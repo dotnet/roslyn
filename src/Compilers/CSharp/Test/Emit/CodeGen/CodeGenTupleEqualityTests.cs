@@ -518,10 +518,9 @@ struct S
 }";
             var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "True");
             comp.VerifyDiagnostics();
-            // PROTOTYPE(tuple-equality) Weird boxing/unboxing needs to be investigated
 
             comp.VerifyIL("S.Main", @"{
-  // Code size       70 (0x46)
+  // Code size       48 (0x30)
   .maxstack  2
   .locals init (S? V_0, //s
                 S? V_1,
@@ -532,26 +531,20 @@ struct S
   IL_000a:  call       ""bool S?.HasValue.get""
   IL_000f:  pop
   IL_0010:  ldloc.0
-  IL_0011:  ldloc.0
-  IL_0012:  stloc.1
-  IL_0013:  box        ""S?""
-  IL_0018:  unbox.any  ""S?""
-  IL_001d:  stloc.2
-  IL_001e:  ldloca.s   V_2
-  IL_0020:  call       ""bool S?.HasValue.get""
-  IL_0025:  brtrue.s   IL_003f
-  IL_0027:  ldloc.1
-  IL_0028:  box        ""S?""
-  IL_002d:  unbox.any  ""S?""
-  IL_0032:  stloc.2
-  IL_0033:  ldloca.s   V_2
-  IL_0035:  call       ""bool S?.HasValue.get""
-  IL_003a:  ldc.i4.0
-  IL_003b:  ceq
-  IL_003d:  br.s       IL_0040
-  IL_003f:  ldc.i4.0
-  IL_0040:  call       ""void System.Console.Write(bool)""
-  IL_0045:  ret
+  IL_0011:  stloc.1
+  IL_0012:  ldloc.0
+  IL_0013:  stloc.2
+  IL_0014:  ldloca.s   V_1
+  IL_0016:  call       ""bool S?.HasValue.get""
+  IL_001b:  brtrue.s   IL_0029
+  IL_001d:  ldloca.s   V_2
+  IL_001f:  call       ""bool S?.HasValue.get""
+  IL_0024:  ldc.i4.0
+  IL_0025:  ceq
+  IL_0027:  br.s       IL_002a
+  IL_0029:  ldc.i4.0
+  IL_002a:  call       ""void System.Console.Write(bool)""
+  IL_002f:  ret
 }");
         }
 
@@ -1168,13 +1161,7 @@ ref struct S
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "s1").WithArguments("S").WithLocation(6, 35),
                 // (6,30): error CS0019: Operator '==' cannot be applied to operands of type 'S' and 'S'
                 //         System.Console.Write(("", s1) == (null, s2));
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"("""", s1) == (null, s2)").WithArguments("==", "S", "S").WithLocation(6, 30),
-                // (6,35): error CS0306: The type 'S' may not be used as a type argument
-                //         System.Console.Write(("", s1) == (null, s2));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "s1").WithArguments("S").WithLocation(6, 35),
-                // (6,49): error CS0306: The type 'S' may not be used as a type argument
-                //         System.Console.Write(("", s1) == (null, s2));
-                Diagnostic(ErrorCode.ERR_BadTypeArgument, "s2").WithArguments("S").WithLocation(6, 49)
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, @"("""", s1) == (null, s2)").WithArguments("==", "S", "S").WithLocation(6, 30)
                 );
         }
 

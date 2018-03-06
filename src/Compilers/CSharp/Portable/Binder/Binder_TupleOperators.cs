@@ -67,20 +67,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportBinaryOperatorError(node, diagnostics, node.OperatorToken, left, right, resultKind);
             }
 
-            TypeSymbol convertedLeftType = signature.LeftType;
-            TypeSymbol convertedRightType = signature.RightType;
-
-            if (convertedLeftType is null)
-            {
-                Debug.Assert(convertedRightType is null);
-
-                convertedLeftType = leftType ?? CreateErrorType();
-                convertedRightType = rightType ?? CreateErrorType();
-            }
-
             PrepareBoolConversionAndTruthOperator(signature.ReturnType, node, kind, diagnostics, out Conversion conversionIntoBoolOperator, out UnaryOperatorSignature boolOperator);
 
-            return new TupleBinaryOperatorInfo.Single(convertedLeftType, convertedRightType, signature.Kind,
+            return new TupleBinaryOperatorInfo.Single(signature.LeftType, signature.RightType, signature.Kind,
                 analysisResult.LeftConversion, analysisResult.RightConversion, signature.Method, conversionIntoBoolOperator, boolOperator);
         }
 
@@ -201,8 +190,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var compilation = this.Compilation;
             var operators = operatorsBuilder.ToImmutableAndFree();
             bool isNullable = leftNullable || rightNullable;
-            TypeSymbol leftTupleType = MakeConvertedType(operators.SelectAsArray(o => o.LeftConvertedType), node.Left, leftParts, isNullable, compilation, diagnostics);
-            TypeSymbol rightTupleType = MakeConvertedType(operators.SelectAsArray(o => o.RightConvertedType), node.Right, rightParts, isNullable, compilation, diagnostics);
+            TypeSymbol leftTupleType = MakeConvertedType(operators.SelectAsArray(o => o.LeftConvertedTypeOpt), node.Left, leftParts, isNullable, compilation, diagnostics);
+            TypeSymbol rightTupleType = MakeConvertedType(operators.SelectAsArray(o => o.RightConvertedTypeOpt), node.Right, rightParts, isNullable, compilation, diagnostics);
 
             return new TupleBinaryOperatorInfo.Multiple(operators, leftTupleType, rightTupleType);
         }

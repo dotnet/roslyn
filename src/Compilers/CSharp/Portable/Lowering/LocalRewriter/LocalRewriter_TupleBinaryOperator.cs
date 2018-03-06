@@ -294,15 +294,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // PROTOTYPE(tuple-equality) checked
-            // We leave the null literal in nullable-null conversions unconverted because MakeBinaryOperator has special rules for it
-            bool isNullableNullConversion = operatorKind.OperandTypes() == BinaryOperatorKind.NullableNull;
-            BoundExpression convertedLeft = (isNullableNullConversion && left.IsLiteralNull())
+            // We leave both operands in nullable-null conversions unconverted, MakeBinaryOperator has special for null-literal
+            bool isNullableNullConversion = single.Kind.OperandTypes() == BinaryOperatorKind.NullableNull;
+            BoundExpression convertedLeft = isNullableNullConversion
                 ? left
-                : MakeConversionNode(left.Syntax, left, single.LeftConversion, single.LeftConvertedType, @checked: false);
+                : MakeConversionNode(left.Syntax, left, single.LeftConversion, single.LeftConvertedTypeOpt, @checked: false);
 
-            BoundExpression convertedRight = (isNullableNullConversion && right.IsLiteralNull())
+            BoundExpression convertedRight = isNullableNullConversion
                 ? right
-                : MakeConversionNode(right.Syntax, right, single.RightConversion, single.RightConvertedType, @checked: false);
+                : MakeConversionNode(right.Syntax, right, single.RightConversion, single.RightConvertedTypeOpt, @checked: false);
 
             BoundExpression binary = MakeBinaryOperator(_factory.Syntax, single.Kind, convertedLeft, convertedRight, single.MethodSymbolOpt?.ReturnType ?? boolType, single.MethodSymbolOpt);
             UnaryOperatorSignature boolOperator = single.BoolOperator;

@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (isNullableEquality)
                 {
-                    resultSignature = new BinaryOperatorSignature(kind | BinaryOperatorKind.NullableNull, leftType: null, rightType: null, 
+                    resultSignature = new BinaryOperatorSignature(kind | BinaryOperatorKind.NullableNull, leftType: null, rightType: null,
                         GetSpecialType(SpecialType.System_Boolean, diagnostics, node));
 
                     foundOperator = true;

@@ -17,17 +17,17 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal abstract class TupleBinaryOperatorInfo
     {
         internal abstract bool IsSingle();
-        internal readonly TypeSymbol LeftConvertedType;
-        internal readonly TypeSymbol RightConvertedType;
+        internal readonly TypeSymbol LeftConvertedTypeOpt;
+        internal readonly TypeSymbol RightConvertedTypeOpt;
 #if DEBUG
         internal abstract TreeDumperNode DumpCore();
         internal string Dump() => TreeDumper.DumpCompact(DumpCore());
 #endif
 
-        private TupleBinaryOperatorInfo(TypeSymbol leftConvertedType, TypeSymbol rightConvertedType)
+        private TupleBinaryOperatorInfo(TypeSymbol leftConvertedTypeOpt, TypeSymbol rightConvertedTypeOpt)
         {
-            LeftConvertedType = leftConvertedType;
-            RightConvertedType = rightConvertedType;
+            LeftConvertedTypeOpt = leftConvertedTypeOpt;
+            RightConvertedTypeOpt = rightConvertedTypeOpt;
         }
 
         /// <summary>
@@ -43,9 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             internal readonly Conversion ConversionForBool; // If a conversion to bool exists, then no operator needed. If an operator is needed, this holds the conversion for input to that operator.
             internal readonly UnaryOperatorSignature BoolOperator; // Information for op_true or op_false
 
-            internal Single(TypeSymbol leftConvertedType, TypeSymbol rightConvertedType, BinaryOperatorKind kind,
+            internal Single(TypeSymbol leftConvertedTypeOpt, TypeSymbol rightConvertedTypeOpt, BinaryOperatorKind kind,
                 Conversion leftConversion, Conversion rightConversion, MethodSymbol methodSymbolOpt,
-                Conversion conversionForBool, UnaryOperatorSignature boolOperator) : base(leftConvertedType, rightConvertedType)
+                Conversion conversionForBool, UnaryOperatorSignature boolOperator) : base(leftConvertedTypeOpt, rightConvertedTypeOpt)
             {
                 Kind = kind;
                 LeftConversion = leftConversion;
@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     sub.Add(new TreeDumperNode("methodSymbolOpt", MethodSymbolOpt.ToDisplayString(), null));
                 }
-                sub.Add(new TreeDumperNode("leftConversion", LeftConvertedType.ToDisplayString(), null));
-                sub.Add(new TreeDumperNode("rightConversion", RightConvertedType.ToDisplayString(), null));
+                sub.Add(new TreeDumperNode("leftConversion", LeftConvertedTypeOpt.ToDisplayString(), null));
+                sub.Add(new TreeDumperNode("rightConversion", RightConvertedTypeOpt.ToDisplayString(), null));
 
                 return new TreeDumperNode("nested", Kind, sub);
             }
@@ -86,11 +86,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal readonly ImmutableArray<TupleBinaryOperatorInfo> Operators;
 
-            internal Multiple(ImmutableArray<TupleBinaryOperatorInfo> operators, TypeSymbol leftConvertedType, TypeSymbol rightConvertedType)
-                : base(leftConvertedType, rightConvertedType)
+            internal Multiple(ImmutableArray<TupleBinaryOperatorInfo> operators, TypeSymbol leftConvertedTypeOpt, TypeSymbol rightConvertedTypeOpt)
+                : base(leftConvertedTypeOpt, rightConvertedTypeOpt)
             {
-                Debug.Assert(leftConvertedType.StrippedType().IsTupleType);
-                Debug.Assert(rightConvertedType.StrippedType().IsTupleType);
+                Debug.Assert(leftConvertedTypeOpt is null || leftConvertedTypeOpt.StrippedType().IsTupleType);
+                Debug.Assert(rightConvertedTypeOpt is null || rightConvertedTypeOpt.StrippedType().IsTupleType);
                 Debug.Assert(!operators.IsDefault);
                 Debug.Assert(operators.IsEmpty || operators.Length > 1); // an empty array is used for error cases, otherwise tuples must have cardinality > 1
 
