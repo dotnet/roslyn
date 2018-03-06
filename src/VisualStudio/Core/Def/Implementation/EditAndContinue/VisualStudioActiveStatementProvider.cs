@@ -30,7 +30,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 // TODO: return empty outside of debug session.
                 // https://github.com/dotnet/roslyn/issues/24325
 
-                bool completed = false;
                 int unexpectedError = 0;
                 var completion = new TaskCompletionSource<ImmutableArray<ActiveStatementDebugInfo>>();
                 var builders = default(ArrayBuilder<ArrayBuilder<ActiveStatementDebugInfo>>);
@@ -39,10 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
 
                 var workList = DkmWorkList.Create(CompletionRoutine: _ =>
                 {
-                    if (!completed)
-                    {
-                        completion.TrySetException(new InvalidOperationException($"Unexpected error enumerating active statements: 0x{unexpectedError:X8}"));
-                    }
+                    completion.TrySetException(new InvalidOperationException($"Unexpected error enumerating active statements: 0x{unexpectedError:X8}"));
                 });
 
                 void CancelWork()
@@ -59,7 +55,6 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                         // workList.Cancel();
 
                         // make sure we cancel with the token we received from the caller:
-                        completed = true;
                         completion.TrySetCanceled(cancellationToken);
                     }
                 }
@@ -145,8 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                             // the last active statement of the last runtime has been processed:
                                             if (Interlocked.Decrement(ref pendingRuntimes) == 0)
                                             {
-                                                completed = true;
-                                                completion.SetResult(builders.ToFlattenedImmutableArrayAndFree());
+                                                completion.TrySetResult(builders.ToFlattenedImmutableArrayAndFree());
                                             }
                                         }
                                     });
