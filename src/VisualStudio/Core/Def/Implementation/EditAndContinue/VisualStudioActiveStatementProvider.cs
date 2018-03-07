@@ -30,11 +30,16 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                 // TODO: return empty outside of debug session.
                 // https://github.com/dotnet/roslyn/issues/24325
 
-                var workList = DkmWorkList.Create(CompletionRoutine: null);
+                int unexpectedError = 0;
                 var completion = new TaskCompletionSource<ImmutableArray<ActiveStatementDebugInfo>>();
                 var builders = default(ArrayBuilder<ArrayBuilder<ActiveStatementDebugInfo>>);
                 int pendingRuntimes = 0;
                 int runtimeCount = 0;
+
+                var workList = DkmWorkList.Create(CompletionRoutine: _ =>
+                {
+                    completion.TrySetException(new InvalidOperationException($"Unexpected error enumerating active statements: 0x{unexpectedError:X8}"));
+                });
 
                 void CancelWork()
                 {
@@ -73,8 +78,15 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                     return;
                                 }
 
+                                if (activeStatementsResult.ErrorCode != 0)
+                                {
+                                    unexpectedError = activeStatementsResult.ErrorCode;
+                                    return;
+                                }
+
                                 // group active statement by instruction and aggregate flags and threads:
                                 var instructionMap = PooledDictionary<ActiveInstructionId, (DkmInstructionSymbol Symbol, ArrayBuilder<Guid> Threads, int Index, ActiveStatementFlags Flags)>.GetInstance();
+
                                 GroupActiveStatementsByInstructionId(instructionMap, activeStatementsResult.ActiveStatements);
 
                                 int pendingStatements = instructionMap.Count;
@@ -93,10 +105,16 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                             return;
                                         }
 
-                                        var position = sourcePositionResult.SourcePosition;
+                                        int errorCode = sourcePositionResult.ErrorCode;
+                                        if (errorCode != 0)
+                                        {
+                                            unexpectedError = errorCode;
+                                        }
+
+                                        DkmSourcePosition position;
                                         string documentNameOpt;
                                         LinePositionSpan span;
-                                        if (sourcePositionResult.ErrorCode == 0 && position != null)
+                                        if (errorCode == 0 && (position = sourcePositionResult.SourcePosition) != null)
                                         {
                                             documentNameOpt = position.DocumentName;
                                             span = ToLinePositionSpan(position.TextSpan);
@@ -122,7 +140,7 @@ namespace Microsoft.VisualStudio.LanguageServices.EditAndContinue
                                             // the last active statement of the last runtime has been processed:
                                             if (Interlocked.Decrement(ref pendingRuntimes) == 0)
                                             {
-                                                completion.SetResult(builders.ToFlattenedImmutableArrayAndFree());
+                                                completion.TrySetResult(builders.ToFlattenedImmutableArrayAndFree());
                                             }
                                         }
                                     });
