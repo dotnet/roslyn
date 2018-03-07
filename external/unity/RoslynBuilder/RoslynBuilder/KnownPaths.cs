@@ -1,8 +1,8 @@
-﻿using Microsoft.Win32;
-using NiceIO;
-using System;
+﻿using System;
 using System.IO;
 using System.Reflection;
+using Microsoft.Win32;
+using NiceIO;
 
 namespace RoslynBuilder
 {
@@ -30,7 +30,8 @@ namespace RoslynBuilder
 			}
 		}
 
-		public static NPath NuGet => RoslynRoot.Combine("Binaries", "NuGet", "NuGet.exe");
+		public static NPath NuGet => RoslynRoot.Combine("external", "NuGet", "NuGet.exe");
+		public static NPath DotNet => RoslynRoot.Combine("Binaries", "Tools", "dotnet", "dotnet.exe");
 		public static NPath CscBinariesDirectory => RoslynRoot.Combine("Binaries", "Release", "Exes", "CscCore");
 		public static NPath BuildsZipDirectory => RoslynRoot.Combine("Artifacts", "Builds");
 
