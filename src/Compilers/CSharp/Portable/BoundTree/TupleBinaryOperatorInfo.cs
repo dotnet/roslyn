@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal abstract class TupleBinaryOperatorInfo
     {
-        internal abstract bool IsSingle();
+        internal abstract KindEnum InfoKind { get; }
         internal readonly TypeSymbol LeftConvertedTypeOpt;
         internal readonly TypeSymbol RightConvertedTypeOpt;
 #if DEBUG
@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(Kind.IsUserDefined() == ((object)MethodSymbolOpt != null));
             }
 
-            internal override bool IsSingle()
-                => true;
+            internal override KindEnum InfoKind
+                => KindEnum.Single;
 
             public override string ToString()
                 => $"binaryOperatorKind: {Kind}";
@@ -97,8 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Operators = operators;
             }
 
-            internal override bool IsSingle()
-                => false;
+            internal override KindEnum InfoKind
+                => KindEnum.Multiple;
 
 #if DEBUG
             internal override TreeDumperNode DumpCore()
@@ -110,6 +110,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new TreeDumperNode("nested", null, sub);
             }
 #endif
+        }
+
+        internal class NullNull : TupleBinaryOperatorInfo
+        {
+            internal readonly BinaryOperatorKind Kind;
+
+            internal NullNull(BinaryOperatorKind kind, TypeSymbol leftConvertedTypeOpt, TypeSymbol rightConvertedTypeOpt)
+                : base(leftConvertedTypeOpt, rightConvertedTypeOpt)
+            {
+                Kind = kind;
+            }
+
+            internal override KindEnum InfoKind
+                => KindEnum.NullNull;
+
+#if DEBUG
+            internal override TreeDumperNode DumpCore()
+            {
+                return new TreeDumperNode("nullnull", value: Kind, children: null);
+            }
+#endif
+        }
+
+        internal enum KindEnum
+        {
+            Single,
+            NullNull,
+            Multiple
         }
     }
 }

@@ -24,15 +24,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // PROTOTYPE(tuple-equality) Block in expression tree
             TupleBinaryOperatorInfo.Multiple operators = BindTupleBinaryOperatorNestedInfo(node, kind, left, right, diagnostics);
 
+            DiagnosticBag discardDiagnostics = DiagnosticBag.GetInstance();
+
+            // The converted types are only used for the semantic model, so we don't need the conversion diagnostics
             TypeSymbol leftConvertedTypeOpt = operators.LeftConvertedTypeOpt;
             BoundExpression convertedLeft = leftConvertedTypeOpt is null
                 ? left
-                : GenerateConversionForAssignment(leftConvertedTypeOpt, left, diagnostics);
+                : GenerateConversionForAssignment(leftConvertedTypeOpt, left, discardDiagnostics);
 
             TypeSymbol rightConvertedTypeOpt = operators.RightConvertedTypeOpt;
             BoundExpression convertedRight = rightConvertedTypeOpt is null
                 ? right
-                : GenerateConversionForAssignment(rightConvertedTypeOpt, right, diagnostics);
+                : GenerateConversionForAssignment(rightConvertedTypeOpt, right, discardDiagnostics);
+
+            discardDiagnostics.Free();
 
             TypeSymbol resultType = GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
 
@@ -59,6 +64,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (GetTupleCardinality(left) > 1 && GetTupleCardinality(right) > 1)
             {
                 return BindTupleBinaryOperatorNestedInfo(node, kind, left, right, diagnostics);
+            }
+
+            bool leftNull = left.IsLiteralNull();
+            bool rightNull = right.IsLiteralNull();
+            if (leftNull && rightNull)
+            {
+                return new TupleBinaryOperatorInfo.NullNull(kind, leftConvertedTypeOpt: null, rightConvertedTypeOpt: null);
             }
 
             LookupResultKind resultKind;

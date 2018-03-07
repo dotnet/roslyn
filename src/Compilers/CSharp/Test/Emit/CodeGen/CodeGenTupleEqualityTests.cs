@@ -4,6 +4,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -105,7 +106,7 @@ class C
                 );
         }
 
-        [Fact]
+        [Fact, WorkItem(25295, "https://github.com/dotnet/roslyn/issues/25295")]
         public void TestWithoutValueTuple()
         {
             var source = @"
@@ -118,7 +119,8 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib40(source);
 
-            // PROTOTYPE(tuple-equality) See if we can relax the restriction on requiring ValueTuple types
+            // https://github.com/dotnet/roslyn/issues/25295
+            // Can we relax the requirement on ValueTuple types being found?
 
             comp.VerifyDiagnostics(
                 // (6,16): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
@@ -907,18 +909,15 @@ class C
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
 
-            // PROTOTYPE(tuple-equality) Semantic model: expect nulls to have type string
-            return;
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
 
-            //var tree = comp.SyntaxTrees[0];
-            //var model = comp.GetSemanticModel(tree);
-
-            //var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(3);
-            //Assert.Equal("((null, null), t)", tuple.ToString());
-            //var tupleType = model.GetTypeInfo(tuple);
-            //Assert.Null(tupleType.Type);
-            //Assert.Equal("((System.String, System.String), (System.String, System.String))",
-            //    tupleType.ConvertedType.ToTestDisplayString());
+            var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(3);
+            Assert.Equal("((null, null), t)", tuple.ToString());
+            var tupleType = model.GetTypeInfo(tuple);
+            Assert.Null(tupleType.Type);
+            Assert.Equal("((System.String, System.String), (System.String, System.String))",
+                tupleType.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -937,7 +936,27 @@ class C
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueTrueFalse");
-            // PROTOTYPE(tuple-equality) Semantic model: check that null and tuples are typeless
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var nulls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>();
+            foreach (var literal in nulls)
+            {
+                Assert.Equal("null", literal.ToString());
+                var symbol = model.GetTypeInfo(literal);
+                Assert.Null(symbol.Type);
+                Assert.Null(symbol.ConvertedType);
+            }
+
+            var tuples = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>();
+            foreach (var tuple in tuples)
+            {
+                Assert.Equal("(null, null)", tuple.ToString());
+                var symbol = model.GetTypeInfo(tuple);
+                Assert.Null(symbol.Type);
+                Assert.Null(symbol.ConvertedType);
+            }
         }
 
         [Fact]
