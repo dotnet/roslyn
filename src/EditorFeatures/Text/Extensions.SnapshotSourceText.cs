@@ -8,7 +8,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
-using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -23,17 +22,6 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         private class SnapshotSourceText : SourceText
         {
-            /// <summary>
-            /// Use a separate class for closed files to simplify memory leak investigations
-            /// </summary>
-            internal sealed class ClosedSnapshotSourceText : SnapshotSourceText
-            {
-                public ClosedSnapshotSourceText(ITextImage textImage, Encoding encodingOpt)
-                    : base(textImage, encodingOpt, containerOpt: null)
-                {
-                }
-            }
-
             private static readonly Func<int, int, string> s_textLog = (v1, v2) => string.Format("FullRange : from {0} to {1}", v1, v2);
 
             /// <summary>
@@ -43,16 +31,19 @@ namespace Microsoft.CodeAnalysis.Text
 
             private readonly Encoding _encodingOpt;
             private readonly TextBufferContainer _containerOpt;
-            private readonly int _reiteratedVersion;
 
-            private SnapshotSourceText(ITextSnapshot editorSnapshot, Encoding encodingOpt)
+            private SnapshotSourceText(ITextSnapshot editorSnapshot) :
+                this(editorSnapshot, TextBufferContainer.From(editorSnapshot.TextBuffer))
+            {
+            }
+
+            private SnapshotSourceText(ITextSnapshot editorSnapshot, TextBufferContainer container)
             {
                 Contract.ThrowIfNull(editorSnapshot);
 
-                this.TextImage = TextBufferMapper.RecordTextSnapshotAndGetImage(editorSnapshot);
-                _containerOpt = TextBufferContainer.From(editorSnapshot.TextBuffer);
-                _reiteratedVersion = editorSnapshot.Version.ReiteratedVersionNumber;
-                _encodingOpt = encodingOpt;
+                this.TextImage = RecordReverseMapAndGetImage(editorSnapshot);
+                _encodingOpt = editorSnapshot.TextBuffer.GetEncodingOrUTF8();
+                _containerOpt = container;
             }
 
             public SnapshotSourceText(ITextImage textImage, Encoding encodingOpt, TextBufferContainer containerOpt)
@@ -68,7 +59,12 @@ namespace Microsoft.CodeAnalysis.Text
             /// A weak map of all Editor ITextSnapshots and their associated SourceText
             /// </summary>
             private static readonly ConditionalWeakTable<ITextSnapshot, SnapshotSourceText> s_textSnapshotMap = new ConditionalWeakTable<ITextSnapshot, SnapshotSourceText>();
-            private static readonly ConditionalWeakTable<ITextSnapshot, SnapshotSourceText>.CreateValueCallback s_createTextCallback = CreateText;
+
+            /// <summary>
+            /// Reverse map of roslyn text to editor snapshot. unlike forward map, this doesn't strongly hold onto editor snapshot so that 
+            /// we don't leak editor snapshot which should go away once editor is closed. roslyn source's lifetime is not usually tied to view.
+            /// </summary>
+            private static readonly ConditionalWeakTable<ITextImage, WeakReference<ITextSnapshot>> s_textImageToEditorSnapshotMap = new ConditionalWeakTable<ITextImage, WeakReference<ITextSnapshot>>();
 
             public static SourceText From(ITextSnapshot editorSnapshot)
             {
@@ -77,44 +73,21 @@ namespace Microsoft.CodeAnalysis.Text
                     throw new ArgumentNullException(nameof(editorSnapshot));
                 }
 
-                return s_textSnapshotMap.GetValue(editorSnapshot, s_createTextCallback);
+                return s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(s));
             }
 
-            // Use this as a secondary cache to catch ITextSnapshots that have the same ReiteratedVersionNumber as a previously created SnapshotSourceText
-            private static readonly ConditionalWeakTable<ITextBuffer, StrongBox<SnapshotSourceText>> s_textBufferLatestSnapshotMap = new ConditionalWeakTable<ITextBuffer, StrongBox<SnapshotSourceText>>();
-
-            private static SnapshotSourceText CreateText(ITextSnapshot editorSnapshot)
+            /// <summary>
+            /// This only exist to break circular dependency on creating buffer. nobody except extension itself should use it
+            /// </summary>
+            internal static SourceText From(ITextSnapshot editorSnapshot, TextBufferContainer container)
             {
-                var strongBox = s_textBufferLatestSnapshotMap.GetOrCreateValue(editorSnapshot.TextBuffer);
-                var text = strongBox.Value;
-                if (text != null && text._reiteratedVersion == editorSnapshot.Version.ReiteratedVersionNumber)
+                if (editorSnapshot == null)
                 {
-                    if (text.Length == editorSnapshot.Length)
-                    {
-                        return text;
-                    }
-                    else
-                    {
-                        // In editors with non-compliant Undo/Redo implementations, you can end up
-                        // with two Versions with the same ReiteratedVersionNumber but with very
-                        // different text. We've never provably seen this problem occur in Visual 
-                        // Studio, but we have seen crashes that look like they could have been
-                        // caused by incorrect results being returned from this cache. 
-                        try
-                        {
-                            throw new InvalidOperationException(
-                                $"The matching cached SnapshotSourceText with <Reiterated Version, Length> = <{text._reiteratedVersion}, {text.Length}> " +
-                                $"does not match the given editorSnapshot with <{editorSnapshot.Version.ReiteratedVersionNumber}, {editorSnapshot.Length}>");
-                        }
-                        catch (Exception e) when (FatalError.ReportWithoutCrash(e))
-                        {
-                        }
-                    }
+                    throw new ArgumentNullException(nameof(editorSnapshot));
                 }
 
-                text = new SnapshotSourceText(editorSnapshot, editorSnapshot.TextBuffer.GetEncodingOrUTF8());
-                strongBox.Value = text;
-                return text;
+                Contract.ThrowIfFalse(editorSnapshot.TextBuffer == container.GetTextBuffer());
+                return s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(s, container));
             }
 
             public override Encoding Encoding
@@ -123,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Text
             }
 
             public ITextSnapshot TryFindEditorSnapshot()
-                => TextBufferMapper.TryFindEditorSnapshot(this.TextImage);
+                => TryFindEditorSnapshot(this.TextImage);
 
             protected static ITextBufferCloneService TextBufferFactory
             {
@@ -262,6 +235,52 @@ namespace Microsoft.CodeAnalysis.Text
                     currentSnapshot: ((ITextSnapshot2)buffer.CurrentSnapshot).TextImage);
             }
 
+            private static ITextImage RecordReverseMapAndGetImage(ITextSnapshot editorSnapshot)
+            {
+                Contract.ThrowIfNull(editorSnapshot);
+
+                var textImage = ((ITextSnapshot2)editorSnapshot).TextImage;
+                Contract.ThrowIfNull(textImage);
+
+                // If we're already in the map, there's nothing to update.  Do a quick check
+                // to avoid two allocations per call to RecordTextSnapshotAndGetImage.
+                if (!s_textImageToEditorSnapshotMap.TryGetValue(textImage, out var weakReference))
+                {
+                    // put reverse entry that won't hold onto anything
+                    weakReference = s_textImageToEditorSnapshotMap.GetValue(
+                        textImage, _ => new WeakReference<ITextSnapshot>(editorSnapshot));
+                }
+
+#if DEBUG
+                // forward and reversed map is 1:1 map. snapshot can't be different
+                var snapshot = weakReference.GetTarget();
+                Contract.ThrowIfFalse(snapshot == editorSnapshot);
+#endif
+                return textImage;
+            }
+
+            private static ITextSnapshot TryFindEditorSnapshot(ITextImage textImage)
+            {
+                if (!s_textImageToEditorSnapshotMap.TryGetValue(textImage, out var weakReference) ||
+                    !weakReference.TryGetTarget(out var editorSnapshot))
+                {
+                    return null;
+                }
+
+                return editorSnapshot;
+            }
+
+            /// <summary>
+            /// Use a separate class for closed files to simplify memory leak investigations
+            /// </summary>
+            internal sealed class ClosedSnapshotSourceText : SnapshotSourceText
+            {
+                public ClosedSnapshotSourceText(ITextImage textImage, Encoding encodingOpt)
+                    : base(textImage, encodingOpt, containerOpt: null)
+                {
+                }
+            }
+
             /// <summary>
             /// Perf: Optimize calls to GetChangeRanges after WithChanges by using editor snapshots
             /// </summary>
@@ -362,8 +381,8 @@ namespace Microsoft.CodeAnalysis.Text
 
             private static bool AreSameReiteratedVersion(ITextImage oldImage, ITextImage newImage)
             {
-                var oldSnapshot = TextBufferMapper.TryFindEditorSnapshot(oldImage);
-                var newSnapshot = TextBufferMapper.TryFindEditorSnapshot(newImage);
+                var oldSnapshot = TryFindEditorSnapshot(oldImage);
+                var newSnapshot = TryFindEditorSnapshot(newImage);
 
                 return oldSnapshot != null && newSnapshot != null && oldSnapshot.Version.ReiteratedVersionNumber == newSnapshot.Version.ReiteratedVersionNumber;
             }
