@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         [WorkItem(481125, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=481125")]
         public void Repro481125()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 using System.Linq;
 
@@ -80,7 +80,7 @@ public class E
         [WorkItem(24647, "https://github.com/dotnet/roslyn/issues/24647")]
         public void Repro24647()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 class Program
 {
     static void Main(string[] args)
@@ -150,7 +150,7 @@ static void Main(string[] args)
         [WorkItem(21768, "https://github.com/dotnet/roslyn/issues/21768")]
         public void Repro21768()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 using System.Linq;
 class C
@@ -184,7 +184,7 @@ class C
         [WorkItem(21811, "https://github.com/dotnet/roslyn/issues/21811")]
         public void Repro21811()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System.Collections.Generic;
 using System.Linq;
 
@@ -703,7 +703,7 @@ class C
         [Fact]
         public void Repro20577()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System.Linq;
 
 public class Program {
@@ -1093,7 +1093,7 @@ class C2
         [Fact]
         public void NameofRecursiveDefaultParameter()
         {
-            var comp = CreateStandardCompilation(@"
+            var comp = CreateCompilation(@"
 using System;
 class C
 {
@@ -1347,7 +1347,7 @@ class C
     }
 }";
             CompileAndVerify(src,
-                additionalRefs: new[] { MscorlibRef_v46 },
+                targetFramework: TargetFramework.Mscorlib46,
                 expectedOutput: @"1
 0");
         }
@@ -1385,8 +1385,7 @@ class C
         Console.WriteLine(x);
     }
 }";
-            CompileAndVerify(src,
-                additionalRefs: new[] { MscorlibRef_v46 },
+            CompileAndVerifyWithMscorlib46(src,
                 expectedOutput: @"1
 0");
         }
@@ -1653,7 +1652,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(src);
+            var comp = CreateCompilation(src);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -5042,8 +5041,7 @@ class Program
         c.M(""D"");
     }
 }";
-            CompileAndVerify(src, expectedOutput: "CDBACDBACDBACDBACDBA",
-                additionalRefs: new[] { SystemRuntimeFacadeRef, ValueTupleRef });
+            CompileAndVerify(src, expectedOutput: "CDBACDBACDBACDBACDBA");
         }
 
         [Fact]
@@ -5115,13 +5113,13 @@ class Program
 
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options, Verification verify = Verification.Passes)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: options);
             return CompileAndVerify(comp, expectedOutput: output, verify: verify).VerifyDiagnostics(); // no diagnostics
         }
 
         internal CompilationVerifier VerifyOutput(string source, string output)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseExe);
             return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
         }
 

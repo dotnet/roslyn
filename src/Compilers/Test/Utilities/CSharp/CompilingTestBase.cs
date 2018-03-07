@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static BoundBlock ParseAndBindMethodBody(string program, string typeName = DefaultTypeName, string methodName = DefaultMethodName)
         {
-            var compilation = CreateStandardCompilation(program);
+            var compilation = CreateCompilation(program);
             var method = (MethodSymbol)compilation.GlobalNamespace.GetTypeMembers(typeName).Single().GetMembers(methodName).Single();
 
             // Provide an Emit.Module so that the lowering passes will be run
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Obsolete("Use VerifyDiagnostics", true)]
         public void TestAllErrors(string code, params string[] errors)
         {
-            var compilation = CreateStandardCompilation(code);
+            var compilation = CreateCompilation(code);
             var diagnostics = compilation.GetDiagnostics();
             AssertEx.SetEqual(errors, diagnostics.Select(DumpDiagnostic));
         }

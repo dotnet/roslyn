@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit
         Private Function GetBytesEmitted(source As String, platform As Platform, debug As Boolean) As ImmutableArray(Of Byte)
             Dim options = If(debug, TestOptions.DebugExe, TestOptions.ReleaseExe).WithPlatform(platform).WithDeterministic(True)
 
-            Dim compilation = CreateCompilationWithMscorlib({source}, assemblyName:="DeterminismTest", options:=options)
+            Dim compilation = CreateCompilationWithMscorlib40({source}, assemblyName:="DeterminismTest", options:=options)
 
             ' The resolution of the PE header time date stamp is seconds, and we want to make sure
             ' that has an opportunity to change between calls to Emit.
@@ -33,10 +33,10 @@ Class C
     Shared Sub Main()
     End Sub
 End Class"
-            Dim compilationDeterministic = CreateCompilationWithMscorlib({source},
+            Dim compilationDeterministic = CreateCompilationWithMscorlib40({source},
                                                                          assemblyName:="DeterminismTest",
                                                                          options:=TestOptions.DebugExe.WithDeterministic(True))
-            Dim compilationNonDeterministic = CreateCompilationWithMscorlib({source},
+            Dim compilationNonDeterministic = CreateCompilationWithMscorlib40({source},
                                                                          assemblyName:="DeterminismTest",
                                                                          options:=TestOptions.DebugExe.WithDeterministic(False))
 
@@ -190,7 +190,7 @@ using System.Runtime.CompilerServices;
 
             Dim forwardingNetModuleReference = forwardingNetModule.EmitToImageReference()
 
-            Dim forwardingCompilation = CreateCompilationWithMscorlib(
+            Dim forwardingCompilation = CreateCompilationWithMscorlib40(
                     assemblyName:="ForwardingAssembly",
                     source:=String.Empty,
                     options:=New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
