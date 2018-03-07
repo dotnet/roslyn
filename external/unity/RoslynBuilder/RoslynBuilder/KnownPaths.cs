@@ -33,6 +33,10 @@ namespace RoslynBuilder
 		public static NPath NuGet => RoslynRoot.Combine("external", "NuGet", "NuGet.exe");
 		public static NPath DotNet => RoslynRoot.Combine("Binaries", "Tools", "dotnet", "dotnet.exe");
 		public static NPath CscBinariesDirectory => RoslynRoot.Combine("Binaries", "Release", "Exes", "CscCore");
+		public static NPath CscWindowsBinariesDirectory => CscBinariesDirectory.Combine("Windows");
+		public static NPath CscMacBinariesDirectory => CscBinariesDirectory.Combine("Mac");
+		public static NPath CscLinuxBinariesDirectory => CscBinariesDirectory.Combine("Linux");
+		public static NPath CscNet46Directory => CscBinariesDirectory.Combine("Net46");
 		public static NPath BuildsZipDirectory => RoslynRoot.Combine("Artifacts", "Builds");
 
 		public static NPath MSBuild

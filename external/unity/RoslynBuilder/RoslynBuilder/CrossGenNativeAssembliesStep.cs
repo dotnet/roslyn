@@ -2,18 +2,18 @@
 
 namespace RoslynBuilder
 {
-    class CrossGenNativeAssembliesStep : IBuildStep
+	class CrossGenNativeAssembliesStep : IBuildStep
 	{
 		public void Execute()
 		{
-			var allAssemblies = KnownPaths.CscBinariesDirectory.Files("*.dll");
+			var allAssemblies = KnownPaths.CscWindowsBinariesDirectory.Files("*.dll");
 			foreach (var assembly in allAssemblies)
 			{
-				var crossGenArgs = $"/nologo /JITPath {KnownPaths.CscBinariesDirectory.Combine("clrjit.dll").InQuotes()} /platform_assemblies_paths {KnownPaths.CscBinariesDirectory.InQuotes()} {assembly.InQuotes()}";
+				var crossGenArgs = $"/nologo /JITPath {KnownPaths.CscWindowsBinariesDirectory.Combine("clrjit.dll").InQuotes()} /platform_assemblies_paths {KnownPaths.CscWindowsBinariesDirectory.InQuotes()} {assembly.InQuotes()}";
 
 				try
 				{
-					var crossGenOutput = Shell.ExecuteAndCaptureOutput(KnownPaths.CrossGen, crossGenArgs, KnownPaths.CscBinariesDirectory);
+					var crossGenOutput = Shell.ExecuteAndCaptureOutput(KnownPaths.CrossGen, crossGenArgs, KnownPaths.CscWindowsBinariesDirectory);
 					Console.WriteLine(crossGenOutput);
 				}
 				catch (Exception e)
@@ -23,8 +23,8 @@ namespace RoslynBuilder
 				}
 
 				var outputPath = assembly.ChangeExtension(".ni.dll");
-                if (!outputPath.Exists()) // If assembly had an entry point, crossgen will turn it into an .exe
-                    outputPath = assembly.ChangeExtension(".ni.exe");
+				if (!outputPath.Exists()) // If assembly had an entry point, crossgen will turn it into an .exe
+					outputPath = assembly.ChangeExtension(".ni.exe");
 
 				if (outputPath.FileExists())
 				{
