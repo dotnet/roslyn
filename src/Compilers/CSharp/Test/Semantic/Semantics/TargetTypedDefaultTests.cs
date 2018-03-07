@@ -45,7 +45,7 @@ class C
     async Task M(CancellationToken t = default) { await Task.Delay(0); }
 }
 ";
-            var comp = CreateCompilationWithMscorlib46(source,parseOptions: TestOptions.Regular7 );
+            var comp = CreateCompilationWithMscorlib46(source, parseOptions: TestOptions.Regular7);
             comp.VerifyDiagnostics(
                 // (7,40): error CS8107: Feature 'default literal' is not available in C# 7.0. Please use language version 7.1 or greater.
                 //     async Task M(CancellationToken t = default) { await Task.Delay(0); }
@@ -835,8 +835,8 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
-            comp.VerifyDiagnostics(
+            var expected = new[]
+            {
                 // (6,17): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //         var a = default + default;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default + default").WithArguments("+", "default").WithLocation(6, 17),
@@ -894,7 +894,13 @@ class C
                 // (24,17): error CS8310: Operator '??' cannot be applied to operand 'default'
                 //         var s = default ?? default;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default ?? default").WithArguments("??", "default").WithLocation(24, 17)
-                );
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(expected);
+
+            var comp2 = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp2.VerifyDiagnostics(expected);
         }
 
         [Fact]
@@ -928,8 +934,8 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
-            comp.VerifyDiagnostics(
+            var expected = new[]
+            {
                 // (6,17): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //         var a = default + 1;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "default + 1").WithArguments("+", "default").WithLocation(6, 17),
@@ -990,7 +996,13 @@ class C
                 // (21,13): warning CS0219: The variable 'p' is assigned but its value is never used
                 //         var p = default != 1; // ok
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p").WithLocation(21, 13)
-                );
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(expected);
+
+            var comp2 = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp2.VerifyDiagnostics(expected);
         }
 
         [Fact]
@@ -1024,8 +1036,8 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
-            comp.VerifyDiagnostics(
+            var expected = new[]
+            {
                 // (6,17): error CS8310: Operator '+' cannot be applied to operand 'default'
                 //         var a = 1 + default;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "1 + default").WithArguments("+", "default").WithLocation(6, 17),
@@ -1083,7 +1095,13 @@ class C
                 // (21,13): warning CS0219: The variable 'p' is assigned but its value is never used
                 //         var p = 1 != default; // ok
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "p").WithArguments("p").WithLocation(21, 13)
-                );
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            comp.VerifyDiagnostics(expected);
+
+            var comp2 = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp2.VerifyDiagnostics(expected);
         }
 
         [Fact]
@@ -1122,12 +1140,18 @@ struct S
     public static S operator +(S left, S right) => new S(left.field + right.field);
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
+            var expected = new[]
+            {
                 // (8,9): error CS8310: Operator '+=' cannot be applied to operand 'default'
                 //         s += default;
                 Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "s += default").WithArguments("+=", "default").WithLocation(8, 9)
-                );
+            };
+
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(expected);
+
+            var comp2 = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+            comp2.VerifyDiagnostics(expected);
 
             var tree = comp.SyntaxTrees.First();
             var model = comp.GetSemanticModel(tree);
@@ -1139,7 +1163,256 @@ struct S
         }
 
         [Fact]
-        public void WithUserDefinedEqualityOperator()
+        public void EqualityComparison()
+        {
+            string template = @"
+MODIFIER MyType
+{
+    static void Main()
+    {
+        TYPE x = VALUE;
+
+        if ((x == default) != EQUAL) throw null;
+        if ((default == x) != EQUAL) throw null;
+
+        if ((x != default) == EQUAL) throw null;
+        if ((default != x) == EQUAL) throw null;
+
+        if ((x == default(TYPE)) != EQUAL) throw null;
+        if ((x != default(TYPE)) == EQUAL) throw null;
+
+        System.Console.Write(""Done"");
+    }
+}
+";
+            validate("class", "int", "0", "true", "System.Int32");
+            validate("class", "int", "1", "false", "System.Int32");
+            validate("class", "int?", "null", "true", "System.Int32?");
+
+            validate("class", "string", "null", "true", "System.String");
+            validate("class", "string", "\"\"", "false", "System.String");
+
+            validate("class", "MyType", "null", "true", "System.Object");
+            validate("class", "MyType", "new MyType()", "false", "System.Object");
+
+            // struct MyType doesn't have an == operator
+            validate("struct", "MyType", "new MyType()", "false", "System.Object",
+                // (8,14): error CS0019: Operator '==' cannot be applied to operands of type 'MyType' and 'default'
+                //         if ((x == default) != false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default").WithArguments("==", "MyType", "default").WithLocation(8, 14),
+                // (9,14): error CS0019: Operator '==' cannot be applied to operands of type 'default' and 'MyType'
+                //         if ((default == x) != false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default == x").WithArguments("==", "default", "MyType").WithLocation(9, 14),
+                // (11,14): error CS0019: Operator '!=' cannot be applied to operands of type 'MyType' and 'default'
+                //         if ((x != default) == false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x != default").WithArguments("!=", "MyType", "default").WithLocation(11, 14),
+                // (12,14): error CS0019: Operator '!=' cannot be applied to operands of type 'default' and 'MyType'
+                //         if ((default != x) == false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default != x").WithArguments("!=", "default", "MyType").WithLocation(12, 14),
+                // (14,14): error CS0019: Operator '==' cannot be applied to operands of type 'MyType' and 'MyType'
+                //         if ((x == default(MyType)) != false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default(MyType)").WithArguments("==", "MyType", "MyType").WithLocation(14, 14),
+                // (15,14): error CS0019: Operator '!=' cannot be applied to operands of type 'MyType' and 'MyType'
+                //         if ((x != default(MyType)) == false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x != default(MyType)").WithArguments("!=", "MyType", "MyType").WithLocation(15, 14)
+                );
+
+            // struct MyType doesn't have an == operator, so no lifted == operator on MyType?
+            validate("struct", "MyType?", "null", "true", "System.Object",
+                // (8,14): error CS0019: Operator '==' cannot be applied to operands of type 'MyType?' and 'default'
+                //         if ((x == default) != true) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default").WithArguments("==", "MyType?", "default").WithLocation(8, 14),
+                // (9,14): error CS0019: Operator '==' cannot be applied to operands of type 'default' and 'MyType?'
+                //         if ((default == x) != true) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default == x").WithArguments("==", "default", "MyType?").WithLocation(9, 14),
+                // (11,14): error CS0019: Operator '!=' cannot be applied to operands of type 'MyType?' and 'default'
+                //         if ((x != default) == true) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x != default").WithArguments("!=", "MyType?", "default").WithLocation(11, 14),
+                // (12,14): error CS0019: Operator '!=' cannot be applied to operands of type 'default' and 'MyType?'
+                //         if ((default != x) == true) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default != x").WithArguments("!=", "default", "MyType?").WithLocation(12, 14),
+                // (14,14): error CS0019: Operator '==' cannot be applied to operands of type 'MyType?' and 'MyType?'
+                //         if ((x == default(MyType?)) != true) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default(MyType?)").WithArguments("==", "MyType?", "MyType?").WithLocation(14, 14),
+                // (15,14): error CS0019: Operator '!=' cannot be applied to operands of type 'MyType?' and 'MyType?'
+                //         if ((x != default(MyType?)) == true) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x != default(MyType?)").WithArguments("!=", "MyType?", "MyType?").WithLocation(15, 14)
+                );
+
+            // struct ValueTuple doesn't have an == operator
+            validate("class", "(int, int)", "(1, 2)", "false", "System.Object",
+                // (8,14): error CS0019: Operator '==' cannot be applied to operands of type '(int, int)' and 'default'
+                //         if ((x == default) != false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default").WithArguments("==", "(int, int)", "default").WithLocation(8, 14),
+                // (9,14): error CS0019: Operator '==' cannot be applied to operands of type 'default' and '(int, int)'
+                //         if ((default == x) != false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default == x").WithArguments("==", "default", "(int, int)").WithLocation(9, 14),
+                // (11,14): error CS0019: Operator '!=' cannot be applied to operands of type '(int, int)' and 'default'
+                //         if ((x != default) == false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x != default").WithArguments("!=", "(int, int)", "default").WithLocation(11, 14),
+                // (12,14): error CS0019: Operator '!=' cannot be applied to operands of type 'default' and '(int, int)'
+                //         if ((default != x) == false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default != x").WithArguments("!=", "default", "(int, int)").WithLocation(12, 14),
+                // (14,14): error CS0019: Operator '==' cannot be applied to operands of type '(int, int)' and '(int, int)'
+                //         if ((x == default((int, int))) != false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default((int, int))").WithArguments("==", "(int, int)", "(int, int)").WithLocation(14, 14),
+                // (15,14): error CS0019: Operator '!=' cannot be applied to operands of type '(int, int)' and '(int, int)'
+                //         if ((x != default((int, int))) == false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x != default((int, int))").WithArguments("!=", "(int, int)", "(int, int)").WithLocation(15, 14)
+                );
+
+            // struct ValueTuple doesn't have an == operator
+            validate("class", "(int, int)", "(0, 0)", "false", "System.Object",
+                // (8,14): error CS0019: Operator '==' cannot be applied to operands of type '(int, int)' and 'default'
+                //         if ((x == default) != false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default").WithArguments("==", "(int, int)", "default").WithLocation(8, 14),
+                // (9,14): error CS0019: Operator '==' cannot be applied to operands of type 'default' and '(int, int)'
+                //         if ((default == x) != false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default == x").WithArguments("==", "default", "(int, int)").WithLocation(9, 14),
+                // (11,14): error CS0019: Operator '!=' cannot be applied to operands of type '(int, int)' and 'default'
+                //         if ((x != default) == false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x != default").WithArguments("!=", "(int, int)", "default").WithLocation(11, 14),
+                // (12,14): error CS0019: Operator '!=' cannot be applied to operands of type 'default' and '(int, int)'
+                //         if ((default != x) == false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default != x").WithArguments("!=", "default", "(int, int)").WithLocation(12, 14),
+                // (14,14): error CS0019: Operator '==' cannot be applied to operands of type '(int, int)' and '(int, int)'
+                //         if ((x == default((int, int))) != false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default((int, int))").WithArguments("==", "(int, int)", "(int, int)").WithLocation(14, 14),
+                // (15,14): error CS0019: Operator '!=' cannot be applied to operands of type '(int, int)' and '(int, int)'
+                //         if ((x != default((int, int))) == false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x != default((int, int))").WithArguments("!=", "(int, int)", "(int, int)").WithLocation(15, 14)
+                );
+
+            // struct ValueTuple doesn't have an == operator, so no lifted == on ValueTuple?
+            validate("class", "(int, int)?", "(0, 0)", "false", "System.Object",
+                // (8,14): error CS0019: Operator '==' cannot be applied to operands of type '(int, int)?' and 'default'
+                //         if ((x == default) != false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default").WithArguments("==", "(int, int)?", "default").WithLocation(8, 14),
+                // (9,14): error CS0019: Operator '==' cannot be applied to operands of type 'default' and '(int, int)?'
+                //         if ((default == x) != false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default == x").WithArguments("==", "default", "(int, int)?").WithLocation(9, 14),
+                // (11,14): error CS0019: Operator '!=' cannot be applied to operands of type '(int, int)?' and 'default'
+                //         if ((x != default) == false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x != default").WithArguments("!=", "(int, int)?", "default").WithLocation(11, 14),
+                // (12,14): error CS0019: Operator '!=' cannot be applied to operands of type 'default' and '(int, int)?'
+                //         if ((default != x) == false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "default != x").WithArguments("!=", "default", "(int, int)?").WithLocation(12, 14),
+                // (14,14): error CS0019: Operator '==' cannot be applied to operands of type '(int, int)?' and '(int, int)?'
+                //         if ((x == default((int, int)?)) != false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x == default((int, int)?)").WithArguments("==", "(int, int)?", "(int, int)?").WithLocation(14, 14),
+                // (15,14): error CS0019: Operator '!=' cannot be applied to operands of type '(int, int)?' and '(int, int)?'
+                //         if ((x != default((int, int)?)) == false) throw null;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "x != default((int, int)?)").WithArguments("!=", "(int, int)?", "(int, int)?").WithLocation(15, 14)
+                );
+
+            void validate(string modifier, string type, string value, string equal, string semanticType, params DiagnosticDescription[] diagnostics)
+            {
+                validateLangVer(modifier, type, value, equal, semanticType, TestOptions.Regular7_2, diagnostics);
+                validateLangVer(modifier, type, value, equal, semanticType, TestOptions.Regular, diagnostics);
+            }
+
+            void validateLangVer(string modifier, string type, string value, string equal, string semanticType, CSharpParseOptions parseOptions, params DiagnosticDescription[] diagnostics)
+            {
+                var source = template.Replace("MODIFIER", modifier).Replace("TYPE", type).Replace("VALUE", value).Replace("EQUAL", equal);
+                var comp = CreateCompilation(source, parseOptions: parseOptions, options: TestOptions.DebugExe);
+                if (diagnostics.Length == 0)
+                {
+                    comp.VerifyDiagnostics();
+                    CompileAndVerify(comp, expectedOutput: "Done");
+                }
+                else
+                {
+                    comp.VerifyDiagnostics(diagnostics);
+                }
+
+                var tree = comp.SyntaxTrees.First();
+                var model = comp.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var defaults = nodes.OfType<LiteralExpressionSyntax>().Where(l => l.ToString() == "default");
+                Assert.True(defaults.Count() == 4);
+                foreach (var @default in defaults)
+                {
+                    Assert.Equal("default", @default.ToString());
+                    Assert.Equal(semanticType, model.GetTypeInfo(@default).Type.ToTestDisplayString());
+                    Assert.Equal(semanticType, model.GetTypeInfo(@default).ConvertedType.ToTestDisplayString());
+                }
+            }
+        }
+
+        [Fact]
+        public void EqualityComparison_StructWithComparison()
+        {
+            string template = @"
+struct MyType
+{
+    int i;
+    public MyType(int value)
+    {
+        i = value;
+    }
+    static void Main()
+    {
+        TYPE x = VALUE;
+
+        if ((x == default) != EQUAL) throw null;
+        if ((default == x) != EQUAL) throw null;
+
+        if ((x != default) == EQUAL) throw null;
+        if ((default != x) == EQUAL) throw null;
+
+        if ((x == default(TYPE)) != EQUAL) throw null;
+        if ((x != default(TYPE)) == EQUAL) throw null;
+
+        System.Console.Write(""Done"");
+    }
+    public static bool operator==(MyType x, MyType y)
+        => x.i == y.i;
+    public static bool operator!=(MyType x, MyType y)
+        => !(x == y);
+    public override bool Equals(object o) => throw null;
+    public override int GetHashCode() => throw null;
+}
+";
+
+            validate("MyType", "new MyType(0)", "true", "MyType");
+            validate("MyType", "new MyType(1)", "false", "MyType");
+
+            validate("MyType?", "new MyType(0)", "false", "MyType?");
+            validate("MyType?", "new MyType(1)", "false", "MyType?");
+            validate("MyType?", "null", "true", "MyType?");
+
+            void validate(string type, string value, string equal, string semanticType, params DiagnosticDescription[] diagnostics)
+            {
+                var source = template.Replace("TYPE", type).Replace("VALUE", value).Replace("EQUAL", equal);
+                var comp = CreateCompilation(source, parseOptions: TestOptions.Regular, options: TestOptions.DebugExe);
+                if (diagnostics.Length == 0)
+                {
+                    comp.VerifyDiagnostics();
+                    CompileAndVerify(comp, expectedOutput: "Done");
+                }
+                else
+                {
+                    comp.VerifyDiagnostics(diagnostics);
+                }
+
+                var tree = comp.SyntaxTrees.First();
+                var model = comp.GetSemanticModel(tree);
+                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+                var defaults = nodes.OfType<LiteralExpressionSyntax>().Where(l => l.ToString() == "default");
+                Assert.True(defaults.Count() == 4);
+                foreach (var @default in defaults)
+                {
+                    Assert.Equal("default", @default.ToString());
+                    Assert.Equal(semanticType, model.GetTypeInfo(@default).Type.ToTestDisplayString());
+                    Assert.Equal(semanticType, model.GetTypeInfo(@default).ConvertedType.ToTestDisplayString());
+                }
+            }
+        }
+
+        [Fact]
+        public void EqualityComparisonWithUserDefinedEqualityOperator()
         {
             string source = @"
 struct S
@@ -1168,6 +1441,7 @@ struct S
             var first = nodes.OfType<LiteralExpressionSyntax>().ElementAt(0);
             Assert.Equal("default", first.ToString());
             Assert.Equal("S", model.GetTypeInfo(first).Type.ToTestDisplayString());
+            Assert.Equal("S", model.GetTypeInfo(first).ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -1920,6 +2194,31 @@ class C
 ";
 
             var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_1, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (6,33): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
+                //         System.Console.Write($"{default == default} {default != default}");
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default == default").WithArguments("==").WithLocation(6, 33),
+                // (6,54): error CS8315: Operator '!=' is ambiguous on operands 'default' and 'default'
+                //         System.Console.Write($"{default == default} {default != default}");
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "default != default").WithArguments("!=").WithLocation(6, 54)
+                );
+        }
+
+        [Fact]
+        public void DefaultEqualsDefault_InCSharp7_3()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write($""{default == default} {default != default}"");
+    }
+}
+";
+
+            // default == default is still disallowed in 7.3
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,33): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write($"{default == default} {default != default}");
@@ -2821,7 +3120,7 @@ class C
         {
             string source = @"
 public struct S { }
-public class A : System.Attribute 
+public class A : System.Attribute
 {
     public A(
         int? x1 = default,
