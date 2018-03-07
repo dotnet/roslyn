@@ -131,7 +131,7 @@ public class Program
     public int Method()
     {
         Console.WriteLine(""Hello World"");
-        var result = [|NewMethod|]();
+        int result = [|NewMethod|]();
         return result;
     }
 

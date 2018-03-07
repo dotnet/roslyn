@@ -5057,6 +5057,45 @@ public class C {
             base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
+        [Fact, WorkItem(24806, "https://github.com/dotnet/roslyn/issues/24806")]
+        public void CaptureStructReceiver()
+        {
+            var source = @"
+
+    using System;
+    using System.Threading.Tasks;
+
+    public class Program
+    {
+        static void Main(string[] args)
+        {
+            System.Console.WriteLine(Test1().Result);
+        }
+
+        static int x = 123;
+        async static Task<string> Test1()
+        {
+            // cannot capture 'x' by value, since write in M1 is observable
+            return x.ToString(await M1());
+        }
+
+        async static Task<string> M1()
+        {
+            x = 42;
+            await Task.Yield();
+            return """";
+        }
+    }
+";
+            var expectedOutput = @"42";
+
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
+        }            
+
         [Fact, WorkItem(13759, "https://github.com/dotnet/roslyn/issues/13759")]
         public void Unnecessary_Lifted_01()
         {
