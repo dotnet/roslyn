@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Holds the information for an element-wise comparison (like `a == b`)
+        /// Holds the information for an element-wise comparison (like `a == b` as part of `(a, ...) == (b, ...)`)
         /// </summary>
         internal class Single : TupleBinaryOperatorInfo
         {
@@ -112,6 +112,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 #endif
         }
 
+        /// <summary>
+        /// Represents an element-wise null/null comparison.
+        /// For instance, `(null, ...) == (null, ...)`.
+        /// </summary>
         internal class NullNull : TupleBinaryOperatorInfo
         {
             internal readonly BinaryOperatorKind Kind;
