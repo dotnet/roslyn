@@ -115,6 +115,20 @@ $@"class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
+        [WorkItem(25237, "https://github.com/dotnet/roslyn/issues/25237")]
+        public async Task TestMissingOnReturnStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [|return;|]
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTypeCheck)]
         public async Task TestMissingOnIsExpression()
         {
             await TestMissingInRegularAndScriptAsync(
