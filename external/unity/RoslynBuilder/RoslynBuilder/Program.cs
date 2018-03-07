@@ -13,7 +13,7 @@ namespace RoslynBuilder
 				new PrepareStep(),
 				new InstallCrossGenStep(),
 				new BuildCscStep(),
-				new PostprocessBuildStep(),
+				new CrossGenNativeAssembliesStep(),
 				new MakeSureCompilerWorksStep(),
 				new PrepareArtifactsForBuildsZipStep(),
 			};

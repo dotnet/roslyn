@@ -48,7 +48,7 @@
     <Compile Include="IBuildStep.cs" />
     <Compile Include="KnownPaths.cs" />
     <Compile Include="MakeSureCompilerWorksStep.cs" />
-    <Compile Include="PostprocessBuildStep.cs" />
+    <Compile Include="CrossGenNativeAssembliesStep.cs" />
     <Compile Include="InstallCrossGenStep.cs" />
     <Compile Include="PrepareArtifactsForBuildsZipStep.cs" />
     <Compile Include="PrepareStep.cs" />
