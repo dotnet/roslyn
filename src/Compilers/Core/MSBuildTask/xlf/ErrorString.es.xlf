@@ -119,6 +119,21 @@
         <target state="translated">MSB3402: Error al crear el archivo pdb "{0}". {1}</target>
         <note>{StrBegin="MSB3402: "}</note>
       </trans-unit>
+      <trans-unit id="MapSourceRoots.ContainsDuplicate">
+        <source>{0} contains a duplicate: '{1}'</source>
+        <target state="new">{0} contains a duplicate: '{1}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.ValueOfNotFoundInItems">
+        <source>The value of {0} not found in {1} items: '{2}'</source>
+        <target state="new">The value of {0} not found in {1} items: '{2}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="MapSourceRoots.PathMustEndWithSlashOrBackslash">
+        <source>{0} paths are required to end with a slash or backslash: '{1}'</source>
+        <target state="new">{0} paths are required to end with a slash or backslash: '{1}'</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
