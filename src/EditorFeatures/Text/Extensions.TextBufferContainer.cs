@@ -23,13 +23,12 @@ namespace Microsoft.CodeAnalysis.Text
             private event EventHandler<TextChangeEventArgs> EtextChanged;
             private SourceText _currentText;
 
-            private TextBufferContainer(ITextBuffer editorBuffer, Encoding encoding)
+            private TextBufferContainer(ITextBuffer editorBuffer)
             {
                 Contract.ThrowIfNull(editorBuffer);
-                Contract.ThrowIfNull(encoding);
 
                 _weakEditorBuffer = new WeakReference<ITextBuffer>(editorBuffer);
-                _currentText = new SnapshotSourceText(TextBufferMapper.RecordTextSnapshotAndGetImage(editorBuffer.CurrentSnapshot), encoding, this);
+                _currentText = SnapshotSourceText.From(editorBuffer.CurrentSnapshot, this);
             }
 
             /// <summary>
@@ -50,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             private static TextBufferContainer CreateContainer(ITextBuffer editorBuffer)
             {
-                return new TextBufferContainer(editorBuffer, editorBuffer.GetEncodingOrUTF8());
+                return new TextBufferContainer(editorBuffer);
             }
 
             public ITextBuffer TryFindEditorTextBuffer()

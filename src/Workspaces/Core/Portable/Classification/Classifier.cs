@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 case ClassificationTypeNames.VerbatimStringLiteral:
                     return SymbolDisplayPartKind.StringLiteral;
                 case ClassificationTypeNames.FieldName:
-                case ClassificationTypeNames.EnumFieldName:
+                case ClassificationTypeNames.EnumMemberName:
                 case ClassificationTypeNames.ConstantName:
                 case ClassificationTypeNames.LocalName:
                 case ClassificationTypeNames.ParameterName:

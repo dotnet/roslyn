@@ -1904,27 +1904,39 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
+                // check if need to construct at all
                 if (!used && ConstructorNotSideEffecting(constructor))
                 {
-                    // creating nullable has no side-effects, so we will just evaluate the arguments
+                    // ctor has no side-effects, so we will just evaluate the arguments
                     foreach (var arg in expression.Arguments)
                     {
                         EmitExpression(arg, used: false);
                     }
+
+                    return;
                 }
-                else
+
+                // ReadOnlySpan may just refer to the blob, if possible.
+                if (this._module.Compilation.IsReadOnlySpanType(expression.Type) &&
+                    expression.Arguments.Length == 1)
                 {
-                    EmitArguments(expression.Arguments, constructor.Parameters, expression.ArgumentRefKindsOpt);
-
-                    var stackAdjustment = GetObjCreationStackBehavior(expression);
-                    _builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment);
-
-                    // for variadic ctors emit expanded ctor token
-                    EmitSymbolToken(constructor, expression.Syntax,
-                                    constructor.IsVararg ? (BoundArgListOperator)expression.Arguments[expression.Arguments.Length - 1] : null);
-
-                    EmitPopIfUnused(used);
+                    if (TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)expression.Type, expression.Arguments[0], used, inPlace: false))
+                    {
+                        return;
+                    }
                 }
+
+                // none of the above cases, so just create an instance
+                EmitArguments(expression.Arguments, constructor.Parameters, expression.ArgumentRefKindsOpt);
+
+                var stackAdjustment = GetObjCreationStackBehavior(expression);
+                _builder.EmitOpCode(ILOpCode.Newobj, stackAdjustment);
+
+                // for variadic ctors emit expanded ctor token
+                EmitSymbolToken(constructor, expression.Syntax,
+                                constructor.IsVararg ? (BoundArgListOperator)expression.Arguments[expression.Arguments.Length - 1] : null);
+
+                EmitPopIfUnused(used);
             }
         }
 
@@ -2128,8 +2140,23 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
         private void InPlaceCtorCall(BoundExpression target, BoundObjectCreationExpression objCreation, bool used)
         {
+            Debug.Assert(TargetIsNotOnHeap(target), "in-place construction target should not be on heap");
+
             var temp = EmitAddress(target, AddressKind.Writeable);
             Debug.Assert(temp == null, "in-place ctor target should not create temps");
+
+            // ReadOnlySpan may just refer to the blob, if possible.
+            if (this._module.Compilation.IsReadOnlySpanType(objCreation.Type) && objCreation.Arguments.Length == 1)
+            {
+                if (TryEmitReadonlySpanAsBlobWrapper((NamedTypeSymbol)objCreation.Type, objCreation.Arguments[0], used, inPlace: true))
+                {
+                    if (used)
+                    {
+                        EmitExpression(target, used: true);
+                    }
+                    return;
+                }
+            }
 
             var constructor = objCreation.Constructor;
             EmitArguments(objCreation.Arguments, constructor.Parameters, objCreation.ArgumentRefKindsOpt);
@@ -2142,7 +2169,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 
             if (used)
             {
-                Debug.Assert(TargetIsNotOnHeap(target), "cannot read-back the target since it could have been modified");
                 EmitExpression(target, used: true);
             }
         }

@@ -403,7 +403,10 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         MetadataOnlyImage_EmitFailure,
         LiveTableDataSource_OnDiagnosticsUpdated,
         Experiment_KeybindingsReset,
-
+        Diagnostics_GeneratePerformaceReport,
+        Diagnostics_BadAnalyzer,
+        CodeAnalysisService_ReportAnalyzerPerformance,
+        PerformanceTrackerService_AddSnapshot,
         AbstractProject_SetIntelliSenseBuild,
         AbstractProject_Created,
         AbstractProject_PushedToWorkspace,

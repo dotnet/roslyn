@@ -1,21 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -26,30 +22,19 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
-        internal override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options)
+        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code, options))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-                var syntaxTree = await document.GetSyntaxTreeAsync();
-
-                var service = document.GetLanguageService<ISyntaxClassificationService>();
-                var classifiers = service.GetDefaultSyntaxClassifiers();
-                var extensionManager = workspace.Services.GetService<IExtensionManager>();
-
-                var results = ArrayBuilder<ClassifiedSpan>.GetInstance();
-                await service.AddSemanticClassificationsAsync(document, textSpan,
-                    extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
-                    extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
-                    results, CancellationToken.None);
-
-                return results.ToImmutableAndFree();
+                return GetSemanticClassificationsAsync(document, span);
             }
         }
 
@@ -1299,7 +1284,7 @@ class C
             var code = @"class C { static void M() { global::C.M(); } }";
 
             await TestAsync(code,
-                code,
+                ParseOptions(Options.Regular),
                 Class("C"),
                 Method("M"));
         }
@@ -1310,8 +1295,7 @@ class C
             var code = @"class C { static void M() { global::Script.C.M(); } }";
 
             await TestAsync(code,
-                code,
-                Options.Script,
+                ParseOptions(Options.Script),
                 Class("Script"),
                 Class("C"),
                 Method("M"));
@@ -1729,7 +1713,7 @@ namespace Roslyn.Compilers.Internal
 }";
 
             await TestAsync(code,
-                code,
+                ParseOptions(Options.Regular),
                 Class("Program"),
                 Class("Program"),
                 Class("Program"));
@@ -1746,8 +1730,7 @@ namespace Roslyn.Compilers.Internal
 }";
 
             await TestAsync(code,
-                code,
-                Options.Script,
+                ParseOptions(Options.Script),
                 Class("Program"),
                 Class("Script"),
                 Class("Program"),
@@ -1762,7 +1745,7 @@ namespace Roslyn.Compilers.Internal
 {
     E,
     F = E
-}", EnumField("E"));
+}", EnumMember("E"));
         }
 
         [WorkItem(541150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
@@ -1853,13 +1836,13 @@ class C
 }",
                 Enum("E"),
                 Enum("E"),
-                EnumField("A"),
+                EnumMember("A"),
                 Enum("E"),
-                EnumField("B"),
+                EnumMember("B"),
                 Enum("E"),
-                EnumField("B"),
+                EnumMember("B"),
                 Enum("E"),
-                EnumField("A"));
+                EnumMember("A"));
         }
 
         [WorkItem(542368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542368")]
@@ -2262,8 +2245,7 @@ struct Type<T>
 {
     (int a, int b) x;
 }",
-                TestOptions.Regular,
-                Options.Script);
+                ParseOptions(TestOptions.Regular, Options.Script));
         }
 
         [Fact]

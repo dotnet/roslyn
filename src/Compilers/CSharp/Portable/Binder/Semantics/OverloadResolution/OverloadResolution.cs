@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -110,60 +111,77 @@ namespace Microsoft.CodeAnalysis.CSharp
         public void MethodInvocationOverloadResolution(
             ArrayBuilder<MethodSymbol> methods,
             ArrayBuilder<TypeSymbol> typeArguments,
+            BoundExpression receiver,
             AnalyzedArguments arguments,
             OverloadResolutionResult<MethodSymbol> result,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool isMethodGroupConversion = false,
             bool allowRefOmittedArguments = false,
             bool inferWithDynamic = false,
-            bool allowUnexpandedForm = true)
+            bool allowUnexpandedForm = true,
+            RefKind returnRefKind = default,
+            TypeSymbol returnType = null)
         {
             MethodOrPropertyOverloadResolution(
-                methods, typeArguments, arguments, result, isMethodGroupConversion,
+                methods, typeArguments, receiver, arguments, result, isMethodGroupConversion,
                 allowRefOmittedArguments, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic,
-                allowUnexpandedForm: allowUnexpandedForm);
+                allowUnexpandedForm: allowUnexpandedForm,
+                returnRefKind: returnRefKind,
+                returnType: returnType);
         }
 
         // Perform overload resolution on the given property group, with the given arguments and
         // names. The names can be null if no names were supplied to any arguments.
         public void PropertyOverloadResolution(
             ArrayBuilder<PropertySymbol> indexers,
+            BoundExpression receiverOpt,
             AnalyzedArguments arguments,
             OverloadResolutionResult<PropertySymbol> result,
             bool allowRefOmittedArguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             ArrayBuilder<TypeSymbol> typeArguments = ArrayBuilder<TypeSymbol>.GetInstance();
-            MethodOrPropertyOverloadResolution(indexers, typeArguments, arguments, result, isMethodGroupConversion: false, allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics);
+            MethodOrPropertyOverloadResolution(
+                indexers, typeArguments, receiverOpt, arguments, result, isMethodGroupConversion: false,
+                allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics);
             typeArguments.Free();
         }
 
         internal void MethodOrPropertyOverloadResolution<TMember>(
             ArrayBuilder<TMember> members,
             ArrayBuilder<TypeSymbol> typeArguments,
+            BoundExpression receiver,
             AnalyzedArguments arguments,
             OverloadResolutionResult<TMember> result,
             bool isMethodGroupConversion,
             bool allowRefOmittedArguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool inferWithDynamic = false,
-            bool allowUnexpandedForm = true)
+            bool allowUnexpandedForm = true,
+            RefKind returnRefKind = default,
+            TypeSymbol returnType = null)
             where TMember : Symbol
         {
             var results = result.ResultsBuilder;
 
             // First, attempt overload resolution not getting complete results.
             PerformMemberOverloadResolution(
-                results, members, typeArguments, arguments, false, isMethodGroupConversion,
-                allowRefOmittedArguments, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic,
-                allowUnexpandedForm: allowUnexpandedForm);
+                results: results, members: members, typeArguments: typeArguments,
+                receiver: receiver, arguments: arguments, completeResults: false,
+                isMethodGroupConversion: isMethodGroupConversion, returnRefKind: returnRefKind, returnType: returnType,
+                allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics,
+                inferWithDynamic: inferWithDynamic, allowUnexpandedForm: allowUnexpandedForm);
 
             if (!OverloadResolutionResultIsValid(results, arguments.HasDynamicArgument))
             {
                 // We didn't get a single good result. Get full results of overload resolution and return those.
                 result.Clear();
-                PerformMemberOverloadResolution(results, members, typeArguments, arguments, true, isMethodGroupConversion,
-                    allowRefOmittedArguments, ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
+                PerformMemberOverloadResolution(
+                    results: results, members: members, typeArguments: typeArguments,
+                    receiver: receiver, arguments: arguments, completeResults: true,
+                    isMethodGroupConversion: isMethodGroupConversion, returnRefKind: returnRefKind, returnType: returnType,
+                    allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics,
+                    allowUnexpandedForm: allowUnexpandedForm);
             }
         }
 
@@ -205,9 +223,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MemberResolutionResult<TMember>> results,
             ArrayBuilder<TMember> members,
             ArrayBuilder<TypeSymbol> typeArguments,
+            BoundExpression receiver,
             AnalyzedArguments arguments,
             bool completeResults,
             bool isMethodGroupConversion,
+            RefKind returnRefKind,
+            TypeSymbol returnType,
             bool allowRefOmittedArguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool inferWithDynamic = false,
@@ -236,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < members.Count; i++)
             {
                 AddMemberToCandidateSet(
-                    members[i], results, members, typeArguments, arguments, completeResults,
+                    members[i], results, members, typeArguments, receiver, arguments, completeResults,
                     isMethodGroupConversion, allowRefOmittedArguments, containingTypeMapOpt, inferWithDynamic: inferWithDynamic,
                     useSiteDiagnostics: ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
             }
@@ -251,6 +272,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // SPEC: The set of candidate methods is reduced to contain only methods from the most derived types.
             RemoveLessDerivedMembers(results, ref useSiteDiagnostics);
+
+            if (Compilation.LanguageVersion.AllowImprovedOverloadCandidates())
+            {
+                RemoveStaticInstanceMismatches(results, arguments, receiver);
+
+                RemoveConstraintViolations(results);
+
+                if (isMethodGroupConversion)
+                {
+                    RemoveDelegateConversionsWithWrongReturnType(results, ref useSiteDiagnostics, returnRefKind, returnType);
+                }
+            }
 
             // NB: As in dev12, we do this AFTER removing less derived members.
             // Also note that less derived members are not actually removed - they are simply flagged.
@@ -271,6 +304,151 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Note, the caller is responsible for "final validation",
             // as that is not part of overload resolution.
+        }
+
+        private void RemoveStaticInstanceMismatches<TMember>(
+            ArrayBuilder<MemberResolutionResult<TMember>> results,
+            AnalyzedArguments arguments,
+            BoundExpression receiverOpt) where TMember : Symbol
+        {
+            // When the feature 'ImprovedOverloadCandidates' is enabled, we do not include instance members when the receiver
+            // is a type, or static members when the receiver is an instance. This does not apply to extension method invocations,
+            // because extension methods are only considered when the receiver is an instance. It also does not apply when the
+            // receiver is a TypeOrValueExpression, which is used to handle the receiver of a Color-Color ambiguity, where either
+            // an instance or a static member would be acceptable.
+            if (arguments.IsExtensionMethodInvocation || Binder.IsTypeOrValueExpression(receiverOpt))
+            {
+                return;
+            }
+
+            bool isImplicitReceiver = Binder.WasImplicitReceiver(receiverOpt);
+            // isStaticContext includes both places where `this` isn't available, and places where it
+            // cannot be used (e.g. a field initializer or a constructor-initializer)
+            bool isStaticContext = !_binder.HasThis(!isImplicitReceiver, out bool inStaticContext) || inStaticContext;
+            if (isImplicitReceiver && !isStaticContext)
+            {
+                return;
+            }
+
+            // We are in a context where only instance (or only static) methods are permitted. We reject the others.
+            bool keepStatic = isImplicitReceiver && isStaticContext || Binder.IsMemberAccessedThroughType(receiverOpt);
+
+            for (int f = 0; f < results.Count; ++f)
+            {
+                var result = results[f];
+                TMember member = result.Member;
+                if (result.Result.IsValid && member.IsStatic != keepStatic)
+                {
+                    results[f] = new MemberResolutionResult<TMember>(member, result.LeastOverriddenMember, MemberAnalysisResult.StaticInstanceMismatch());
+                }
+            }
+        }
+
+        private void RemoveConstraintViolations<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results) where TMember : Symbol
+        {
+            // When the feature 'ImprovedOverloadCandidates' is enabled, we do not include methods for which the type arguments
+            // violate the constraints of the method's type parameters.
+
+            // Constraint violations apply to method in a method group, not to properties in a "property group".
+            if (typeof(TMember) != typeof(MethodSymbol))
+            {
+                return;
+            }
+
+            for (int f = 0; f < results.Count; ++f)
+            {
+                var result = results[f];
+                var member = (MethodSymbol)(Symbol)result.Member;
+                // a constraint failure on the method trumps (for reporting purposes) a previously-detected
+                // constraint failure on the constructed type of a parameter
+                if ((result.Result.IsValid || result.Result.Kind == MemberResolutionKind.ConstructedParameterFailedConstraintCheck) &&
+                    FailsConstraintChecks(member, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt))
+                {
+                    results[f] = new MemberResolutionResult<TMember>(
+                        result.Member, result.LeastOverriddenMember,
+                        MemberAnalysisResult.ConstraintFailure(constraintFailureDiagnosticsOpt.ToImmutableAndFree()));
+                }
+            }
+        }
+
+        private bool FailsConstraintChecks(MethodSymbol method, out ArrayBuilder<TypeParameterDiagnosticInfo> constraintFailureDiagnosticsOpt)
+        {
+            if (method.Arity == 0 || method.OriginalDefinition == (object)method)
+            {
+                constraintFailureDiagnosticsOpt = null;
+                return false;
+            }
+
+            var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
+            ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
+            bool constraintsSatisfied = ConstraintsHelper.CheckMethodConstraints(
+                method,
+                this.Conversions,
+                this.Compilation,
+                diagnosticsBuilder,
+                ref useSiteDiagnosticsBuilder);
+
+            if (!constraintsSatisfied)
+            {
+                if (useSiteDiagnosticsBuilder != null)
+                {
+                    diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder);
+                    useSiteDiagnosticsBuilder.Free();
+                }
+
+                constraintFailureDiagnosticsOpt = diagnosticsBuilder;
+                return true;
+            }
+
+            diagnosticsBuilder.Free();
+            useSiteDiagnosticsBuilder?.Free();
+            constraintFailureDiagnosticsOpt = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Remove candidates to a delegate conversion where the method's return ref kind or return type is wrong.
+        /// </summary>
+        /// <param name="returnRefKind">The ref kind of the delegate's return, if known. This is only unknown in
+        /// error scenarios, such as a delegate type that has no invoke method.</param>
+        /// <param name="returnType">The return type of the delegate, if known. It isn't
+        /// known when we're attempting to infer the return type of a method group for type inference.</param>
+        private void RemoveDelegateConversionsWithWrongReturnType<TMember>(
+            ArrayBuilder<MemberResolutionResult<TMember>> results,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            RefKind? returnRefKind,
+            TypeSymbol returnType) where TMember : Symbol
+        {
+            // When the feature 'ImprovedOverloadCandidates' is enabled, then a delegate conversion overload resolution
+            // rejects candidates that have the wrong return ref kind or return type.
+
+            // Delegate conversions apply to method in a method group, not to properties in a "property group".
+            Debug.Assert(typeof(TMember) == typeof(MethodSymbol));
+
+            for (int f = 0; f < results.Count; ++f)
+            {
+                var result = results[f];
+                if (!result.Result.IsValid)
+                {
+                    continue;
+                }
+
+                var method = (MethodSymbol)(Symbol)result.Member;
+                bool returnsMatch =
+                    (object)returnType == null ||
+                    method.ReturnType.Equals(returnType, TypeCompareKind.AllIgnoreOptions) ||
+                    returnRefKind == RefKind.None && Conversions.HasIdentityOrImplicitReferenceConversion(method.ReturnType, returnType, ref useSiteDiagnostics);
+                if (!returnsMatch)
+                {
+                    results[f] = new MemberResolutionResult<TMember>(
+                        result.Member, result.LeastOverriddenMember, MemberAnalysisResult.WrongReturnType());
+                }
+                else if (method.RefKind != returnRefKind)
+                {
+                    results[f] = new MemberResolutionResult<TMember>(
+                        result.Member, result.LeastOverriddenMember, MemberAnalysisResult.WrongRefKind());
+                }
+            }
         }
 
         private static Dictionary<NamedTypeSymbol, ArrayBuilder<TMember>> PartitionMembersByContainingType<TMember>(ArrayBuilder<TMember> members) where TMember : Symbol
@@ -424,6 +602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MemberResolutionResult<TMember>> results,
             ArrayBuilder<TMember> members,
             ArrayBuilder<TypeSymbol> typeArguments,
+            BoundExpression receiverOpt,
             AnalyzedArguments arguments,
             bool completeResults,
             bool isMethodGroupConversion,
@@ -2943,7 +3122,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //
                     // Suppose there is a call M("", null). Type inference infers that T is string.
                     // M<string> is then not an applicable candidate *NOT* because string violates the
-                    // constraint on T. That is not checked until "final validation". Rather, the 
+                    // constraint on T. That is not checked until "final validation" (although when
+                    // feature 'ImprovedOverloadCandidates' is enabled in later language versions
+                    // it is checked on the candidate before overload resolution). Rather, the 
                     // method is not a candidate because string violates the constraint *on U*. 
                     // The constructed method has formal parameter type X<string>, which is not legal.
                     // In the case given, the generic method is eliminated and the object version wins.

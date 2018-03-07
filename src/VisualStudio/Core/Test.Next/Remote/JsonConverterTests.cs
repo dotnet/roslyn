@@ -139,6 +139,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             });
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public void TestAnalyzerPerformanceInfo()
+        {
+            VerifyJsonSerialization(
+                new AnalyzerPerformanceInfo("testAnalyzer", builtIn: false, timeSpan: TimeSpan.FromMilliseconds(12345)),
+                (x, y) => (x.AnalyzerId == y.AnalyzerId && x.BuiltIn == y.BuiltIn && x.TimeSpan == y.TimeSpan) ? 0 : 1);
+        }
+
         private static void VerifyJsonSerialization<T>(T value, Comparison<T> equality = null)
         {
             var serializer = new JsonSerializer();

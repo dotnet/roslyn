@@ -11,6 +11,7 @@ Microsoft.CodeAnalysis.CSharp.DeconstructionInfo
 Microsoft.CodeAnalysis.CSharp.DeconstructionInfo.Conversion.get -> Microsoft.CodeAnalysis.CSharp.Conversion?
 Microsoft.CodeAnalysis.CSharp.DeconstructionInfo.Method.get -> Microsoft.CodeAnalysis.IMethodSymbol
 Microsoft.CodeAnalysis.CSharp.DeconstructionInfo.Nested.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CSharp.DeconstructionInfo>
+Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp7_3 = 703 -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax.RefKindKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax.Update(Microsoft.CodeAnalysis.CSharp.Syntax.NameColonSyntax nameColon, Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax expression) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax.WithRefKindKeyword(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax
