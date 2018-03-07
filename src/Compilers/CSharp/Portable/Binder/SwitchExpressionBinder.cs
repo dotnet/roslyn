@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="switchArms"></param>
         /// <param name="decisionDag"></param>
         /// <param name="diagnostics"></param>
-        /// <returns></returns>
+        /// <returns>true if the switch expression is not exhaustive</returns>
         private bool CheckSwitchExpressionExhaustive(
             SwitchExpressionSyntax node,
             BoundExpression boundInputExpression,
@@ -68,7 +68,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             defaultLabel = new GeneratedLabelSymbol("default");
             decisionDag = DecisionDagBuilder.CreateDecisionDag(this.Compilation, node, boundInputExpression, switchArms, defaultLabel, diagnostics);
             HashSet<LabelSymbol> reachableLabels = decisionDag.ReachableLabels;
-            bool hasErrors = false;
             foreach (BoundSwitchExpressionArm arm in switchArms)
             {
                 if (!reachableLabels.Contains(arm.Label))
@@ -77,19 +76,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (reachableLabels.Contains(defaultLabel))
-            {
-                // warning: switch expression is not exhaustive
-                diagnostics.Add(ErrorCode.WRN_SwitchExpressionNotExhaustive, node.SwitchKeyword.GetLocation());
-                hasErrors = true;
-            }
-            else
+            bool exhaustive = !reachableLabels.Contains(defaultLabel);
+            if (exhaustive)
             {
                 // switch expression is exhaustive; no default label needed.
                 defaultLabel = null;
             }
+            else
+            {
+                // warning: switch expression is not exhaustive
+                diagnostics.Add(ErrorCode.WRN_SwitchExpressionNotExhaustive, node.SwitchKeyword.GetLocation());
+            }
 
-            return decisionDag.HasErrors | hasErrors;
+            return !exhaustive;
         }
 
         /// <summary>

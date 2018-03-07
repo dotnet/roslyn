@@ -132,10 +132,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<PartialCaseDecision> MakeCases(BoundExpression switchGoverningExpression, BoundPattern pattern, LabelSymbol successLabel)
         {
-            var builder = ArrayBuilder<PartialCaseDecision>.GetInstance(1);
             var rootIdentifier = new BoundDagTemp(switchGoverningExpression.Syntax, switchGoverningExpression.Type, null, 0);
-            builder.Add(MakePartialCaseDecision(1, rootIdentifier, pattern, successLabel));
-            return builder.ToImmutableAndFree();
+            return ImmutableArray.Create(MakePartialCaseDecision(1, rootIdentifier, pattern, successLabel));
         }
 
         private PartialCaseDecision MakePartialCaseDecision(int index, BoundDagTemp input, BoundPattern pattern, LabelSymbol successLabel)
@@ -732,8 +730,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <param name="other"></param>
         /// <param name="trueDecisionPermitsTrueOther">set if d being true would permit other to succeed</param>
         /// <param name="falseDecisionPermitsTrueOther">set if a false decision on d would permit other to succeed</param>
-        /// <param name="trueDecisionImpliesTrueOther">set if d being false means other has been proven true</param>
-        /// <param name="falseDecisionImpliesTrueOther">set if d being true means other has been proven true</param>
+        /// <param name="trueDecisionImpliesTrueOther">set if d being true means other has been proven true</param>
+        /// <param name="falseDecisionImpliesTrueOther">set if d being false means other has been proven true</param>
         private void CheckConsistentDecision(
             BoundDagDecision d,
             BoundDagDecision other,
@@ -875,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ImmutableArray<PartialCaseDecision> RemoveEvaluation(ImmutableArray<PartialCaseDecision> cases, BoundDagEvaluation e)
         {
-            return cases.SelectAsArray(c => RemoveEvaluation(c, e));
+            return cases.SelectAsArray((c, eval) => RemoveEvaluation(c, eval), e);
         }
 
         private static PartialCaseDecision RemoveEvaluation(PartialCaseDecision c, BoundDagEvaluation e)
@@ -900,11 +898,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // We only compute the dag states for the branches after we de-dup this DagState itself.
             // If all that remains is the `when` clauses, SelectedDecision is left `null` and the
-            // FalseBranch field is populated with the succesor on failure of the when clause (if one exists).
+            // FalseBranch field is populated with the successor on failure of the when clause (if one exists).
             public BoundDagDecision SelectedDecision;
             public DagState TrueBranch, FalseBranch;
 
-            // After the entire graph of DatState objects is complete, we translate each into its Dag.
+            // After the entire graph of DagState objects is complete, we translate each into its Dag.
             public BoundDecisionDag Dag;
         }
 
@@ -919,38 +917,20 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public bool Equals(DagState x, DagState y)
             {
-                ImmutableArray<PartialCaseDecision> xCases = x.Cases;
-                ImmutableArray<PartialCaseDecision> yCases = y.Cases;
-                if (xCases.Length != yCases.Length)
-                {
-                    return false;
-                }
-
-                for (int i = 0; i < xCases.Length; i++)
-                {
-                    if (xCases[i] != yCases[i])
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
+                return x.Cases.SequenceEqual(y.Cases, (a, b) => a.Equals(b));
             }
 
             public int GetHashCode(DagState x)
             {
-                int result = x.Cases.Length;
-                foreach (var c in x.Cases)
-                {
-                    result = Hash.Combine(c.GetHashCode(), result);
-                }
-
-                return result;
+                return Hash.Combine(Hash.CombineValues(x.Cases), x.Cases.Length);
             }
         }
 
-        internal class PartialCaseDecision
+        private sealed class PartialCaseDecision
         {
+            /// <summary>
+            /// A number that is distinct for each case and monotinically increasing from earlier to later cases.
+            /// </summary>
             public readonly int Index;
             public readonly SyntaxNode Syntax;
             public readonly ImmutableArray<BoundDagDecision> Decisions;
@@ -975,30 +955,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override bool Equals(object obj)
             {
-                return Equals(obj as PartialCaseDecision);
+                throw ExceptionUtilities.Unreachable;
             }
 
             public bool Equals(PartialCaseDecision other)
             {
                 // We do not include Syntax, Bindings, WhereClause, or CaseLabel
                 // because once the Index is the same, those must be the same too.
-                if (other == null || this.Index != other.Index || this.Decisions.Length != other.Decisions.Length)
-                {
-                    return false;
-                }
-
-                for (int i = 0; i < Decisions.Length; i++)
-                {
-                    if (!SameDecision(Decisions[i], other.Decisions[i]))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
+                return other != null && this.Index == other.Index && this.Decisions.SequenceEqual(other.Decisions, SameDecision);
             }
 
-            private bool SameDecision(BoundDagDecision x, BoundDagDecision y)
+            private static bool SameDecision(BoundDagDecision x, BoundDagDecision y)
             {
                 if (x.Input != y.Input || x.Kind != y.Kind)
                 {
@@ -1008,21 +975,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (x.Kind)
                 {
                     case BoundKind.TypeDecision:
-                        if (((BoundTypeDecision)x).Type != ((BoundTypeDecision)y).Type)
-                        {
-                            return false;
-                        }
-                        break;
+                        return ((BoundTypeDecision)x).Type == ((BoundTypeDecision)y).Type;
 
                     case BoundKind.NonNullValueDecision:
-                        if (((BoundNonNullValueDecision)x).Value != ((BoundNonNullValueDecision)y).Value)
-                        {
-                            return false;
-                        }
-                        break;
-                }
+                        return ((BoundNonNullValueDecision)x).Value == ((BoundNonNullValueDecision)y).Value;
 
-                return true;
+                    default:
+                        return true;
+                }
             }
 
             public override int GetHashCode()

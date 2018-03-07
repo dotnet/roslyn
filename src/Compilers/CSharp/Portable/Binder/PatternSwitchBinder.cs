@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics);
 
             // Report subsumption errors, but ignore the input's constant value for that.
-            bool hasErrors = CheckSwitchErrors(node, boundSwitchGoverningExpression, ref switchSections, decisionDag, diagnostics);
+            CheckSwitchErrors(node, boundSwitchGoverningExpression, ref switchSections, decisionDag, diagnostics);
 
             if (boundSwitchGoverningExpression.ConstantValue != null)
             {
@@ -85,11 +85,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switchSections: switchSections,
                 defaultLabel: defaultLabel,
                 breakLabel: this.BreakLabel,
-                decisionDag: decisionDag,
-                hasErrors: hasErrors);
+                decisionDag: decisionDag);
         }
 
-        private bool CheckSwitchErrors(
+        private static void CheckSwitchErrors(
             SwitchStatementSyntax node,
             BoundExpression boundSwitchGoverningExpression,
             ref ImmutableArray<BoundPatternSwitchSection> switchSections,
@@ -97,13 +96,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             HashSet<LabelSymbol> reachableLabels = decisionDag.ReachableLabels;
+            bool isSubsumed(BoundPatternSwitchLabel switchLabel)
+            {
+                return !reachableLabels.Contains(switchLabel.Label);
+            }
             bool areAnySubsumed(ImmutableArray<BoundPatternSwitchSection> sections)
             {
                 foreach (BoundPatternSwitchSection section in sections)
                 {
                     foreach (BoundPatternSwitchLabel label in section.SwitchLabels)
                     {
-                        if (!label.HasErrors && !reachableLabels.Contains(label.Label))
+                        if (!label.HasErrors && isSubsumed(label))
                         {
                             // we found a label that is subsumed
                             return true;
@@ -116,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!areAnySubsumed(switchSections))
             {
-                return false;
+                return;
             }
 
             // We mark any subsumed sections as erroneous for the benefit of flow analysis
@@ -127,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var label in oldSection.SwitchLabels)
                 {
                     var newLabel = label;
-                    if (!label.HasErrors && !reachableLabels.Contains(label.Label) && label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
+                    if (!label.HasErrors && isSubsumed(label) && label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
                     {
                         var syntax = label.Syntax;
                         switch (syntax)
@@ -151,7 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             switchSections = sectionBuilder.ToImmutableAndFree();
-            return true;
         }
 
         /// <summary>

@@ -27,14 +27,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundDecision d:
                     yield break;
                 case BoundWhenClause w:
+                    Debug.Assert(w.WhenTrue != null);
+                    yield return w.WhenTrue;
                     if (w.WhenFalse != null)
                     {
                         yield return w.WhenFalse;
                     }
 
-                    Debug.Assert(w.WhenTrue != null);
-                    yield return w.WhenTrue;
                     yield break;
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(this.Kind);
             }
         }
 
@@ -53,42 +55,38 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var processed = PooledHashSet<BoundDecisionDag>.GetInstance();
                     var reachableLabels = new HashSet<LabelSymbol>();
                     workQueue.Add(this);
-                    processWorkQueue();
+                    while (workQueue.Count != 0)
+                    {
+                        BoundDecisionDag node = workQueue.Pop();
+                        if (node == null || !processed.Add(node))
+                        {
+                            continue;
+                        }
+
+                        switch (node)
+                        {
+                            case BoundEvaluationPoint x:
+                                workQueue.Push(x.Next);
+                                break;
+                            case BoundDecisionPoint x:
+                                workQueue.Push(x.WhenTrue);
+                                workQueue.Push(x.WhenFalse);
+                                break;
+                            case BoundWhenClause x:
+                                workQueue.Push(x.WhenTrue);
+                                workQueue.Push(x.WhenFalse); // possibly null, handled later
+                                break;
+                            case BoundDecision x:
+                                reachableLabels.Add(x.Label);
+                                break;
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(node.Kind);
+                        }
+                    }
+
                     workQueue.Free();
                     processed.Free();
                     _reachableLabels = reachableLabels;
-
-                    void processWorkQueue()
-                    {
-                        while (workQueue.Count != 0)
-                        {
-                            BoundDecisionDag node = workQueue.Pop();
-                            if (node == null || !processed.Add(node))
-                            {
-                                continue;
-                            }
-
-                            switch (node)
-                            {
-                                case BoundEvaluationPoint x:
-                                    workQueue.Push(x.Next);
-                                    break;
-                                case BoundDecisionPoint x:
-                                    workQueue.Push(x.WhenTrue);
-                                    workQueue.Push(x.WhenFalse);
-                                    break;
-                                case BoundWhenClause x:
-                                    workQueue.Push(x.WhenTrue);
-                                    workQueue.Push(x.WhenFalse); // possibly null, handled later
-                                    break;
-                                case BoundDecision x:
-                                    reachableLabels.Add(x.Label);
-                                    break;
-                                default:
-                                    throw ExceptionUtilities.UnexpectedValue(node.Kind);
-                            }
-                        }
-                    }
                 }
 
                 return _reachableLabels;
@@ -101,32 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<BoundDecisionDag> TopologicallySortedNodes()
         {
             // We use an iterative topological sort to avoid overflowing the compiler's runtime stack for a large switch statement.
-            return TopologicalSort.IterativeSort<BoundDecisionDag>(new[] { this }, successorFunction);
-
-            IEnumerable<BoundDecisionDag> successorFunction(BoundDecisionDag dag)
-            {
-                switch (dag)
-                {
-                    case BoundEvaluationPoint p:
-                        yield return p.Next;
-                        yield break;
-                    case BoundDecisionPoint p:
-                        yield return p.WhenTrue;
-                        yield return p.WhenFalse;
-                        yield break;
-                    case BoundWhenClause p:
-                        yield return p.WhenTrue;
-                        if (p.WhenFalse != null)
-                        {
-                            yield return p.WhenFalse;
-                        }
-                        yield break;
-                    case BoundDecision p:
-                        yield break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(dag);
-                }
-            }
+            return TopologicalSort.IterativeSort<BoundDecisionDag>(new[] { this }, d => d.Successors());
         }
 
         /// <summary>
@@ -147,33 +120,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             // statement if we were using a recursive strategy.
             ImmutableArray<BoundDecisionDag> sortedNodes = this.TopologicallySortedNodes();
 
-            // Cache simplified/translated replacement for each translated dag node
-            var replacementCache = PooledDictionary<BoundDecisionDag, BoundDecisionDag>.GetInstance();
+            // Cache simplified/translated replacement for each translated dag node. Since we always visit
+            // a node's successors before the node, the replacement should always be in the cache when we need it.
+            var replacement = PooledDictionary<BoundDecisionDag, BoundDecisionDag>.GetInstance();
 
             // Loop backwards through the topologically sorted nodes to translate them, so that we always visit a node after its successors
             for (int i = sortedNodes.Length - 1; i >= 0; i--)
             {
                 BoundDecisionDag node = sortedNodes[i];
-                Debug.Assert(!replacementCache.ContainsKey(node));
+                Debug.Assert(!replacement.ContainsKey(node));
                 BoundDecisionDag newNode = makeReplacement(node);
-                replacementCache.Add(node, newNode);
+                replacement.Add(node, newNode);
             }
 
-            var result = replacement(this);
-            replacementCache.Free();
+            var result = replacement[this];
+            replacement.Free();
             return result;
-
-            // Return a cached replacement node. Since we always visit a node's succesors before the node,
-            // the replacement should always be in the cache when we need it.
-            BoundDecisionDag replacement(BoundDecisionDag dag)
-            {
-                if (replacementCache.TryGetValue(dag, out BoundDecisionDag knownReplacement))
-                {
-                    return knownReplacement;
-                }
-
-                throw ExceptionUtilities.Unreachable;
-            }
 
             // Make a replacement for a given node, using the precomputed replacements for its successors.
             BoundDecisionDag makeReplacement(BoundDecisionDag dag)
@@ -181,17 +143,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (dag)
                 {
                     case BoundEvaluationPoint p:
-                        return p.Update(p.Evaluation, replacement(p.Next));
+                        return p.Update(p.Evaluation, replacement[p.Next]);
                     case BoundDecisionPoint p:
                         // This is the key to the optimization. The result of a top-level test might be known if the input is constant.
                         switch (knownResult(p.Decision))
                         {
                             case true:
-                                return replacement(p.WhenTrue);
+                                return replacement[p.WhenTrue];
                             case false:
-                                return replacement(p.WhenFalse);
+                                return replacement[p.WhenFalse];
                             default:
-                                return p.Update(p.Decision, replacement(p.WhenTrue), replacement(p.WhenFalse));
+                                return p.Update(p.Decision, replacement[p.WhenTrue], replacement[p.WhenFalse]);
                         }
                     case BoundWhenClause p:
                         if (p.WhenExpression == null || p.WhenExpression.ConstantValue == ConstantValue.True)
@@ -203,11 +165,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // It is possible in this case that we could eliminate some predecessor nodes, for example
                             // those that compute evaluations only needed to get to this decision. We do not bother,
                             // as that optimization would only be likely to affect test code.
-                            return replacement(p.WhenFalse);
+                            return replacement[p.WhenFalse];
                         }
                         else
                         {
-                            return p.Update(p.Bindings, p.WhenExpression, replacement(p.WhenTrue), replacement(p.WhenFalse));
+                            return p.Update(p.Bindings, p.WhenExpression, replacement[p.WhenTrue], replacement[p.WhenFalse]);
                         }
                     case BoundDecision p:
                         return p;
