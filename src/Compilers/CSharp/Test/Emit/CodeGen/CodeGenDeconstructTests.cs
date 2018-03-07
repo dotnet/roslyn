@@ -449,7 +449,7 @@ setY
 setZ
 setX
 ";
-            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: s_valueTupleRefs);
+            var comp = CompileAndVerify(source, expectedOutput: expected);
             comp.VerifyDiagnostics();
         }
 
