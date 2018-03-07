@@ -199,4 +199,13 @@
     <value>MSB3402: There was an error creating the pdb file "{0}". {1}</value>
     <comment>{StrBegin="MSB3402: "}</comment>
   </data>
+  <data name="MapSourceRoots.ContainsDuplicate">
+    <value>{0} contains a duplicate: '{1}'</value>
+  </data>
+  <data name="MapSourceRoots.ValueOfNotFoundInItems">
+    <value>The value of {0} not found in {1} items: '{2}'</value>
+  </data>
+  <data name="MapSourceRoots.PathMustEndWithSlashOrBackslash">
+    <value>{0} paths are required to end with a slash or backslash: '{1}'</value>
+  </data>
 </root>

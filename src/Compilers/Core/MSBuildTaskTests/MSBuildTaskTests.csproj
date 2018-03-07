@@ -25,6 +25,7 @@
     <ProjectReference Include="..\..\VisualBasic\Portable\BasicCodeAnalysis.vbproj" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="Microsoft.Build.Engine" />
     <Reference Include="System" />
     <Reference Include="System.Xml" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
