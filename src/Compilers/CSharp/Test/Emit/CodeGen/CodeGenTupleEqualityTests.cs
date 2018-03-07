@@ -946,6 +946,68 @@ class C
         }
 
         [Fact]
+        public void TestConvertedElementInTypelessTuple()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write((null, 1L) == (null, 2));
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "False");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var lastLiteral = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Last();
+            Assert.Equal("2", lastLiteral.ToString());
+            var literalInfo = model.GetTypeInfo(lastLiteral);
+            Assert.Equal("System.Int32", literalInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int64", literalInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TestConvertedElementInTypelessTuple_Nested()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write(((null, 1L), null) == ((null, 2), null));
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "False");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var rightTuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(2);
+            Assert.Equal("((null, 2), null)", rightTuple.ToString());
+            var literalInfo = model.GetTypeInfo(rightTuple);
+            Assert.Null(literalInfo.Type);
+            Assert.Null(literalInfo.ConvertedType);
+
+            var nestedTuple = (TupleExpressionSyntax)rightTuple.Arguments[0].Expression;
+            Assert.Equal("(null, 2)", nestedTuple.ToString());
+            var nestedLiteralInfo = model.GetTypeInfo(rightTuple);
+            Assert.Null(nestedLiteralInfo.Type);
+            Assert.Null(nestedLiteralInfo.ConvertedType);
+
+            var two = nestedTuple.Arguments[1].Expression;
+            Assert.Equal("2", two.ToString());
+            var twoInfo = model.GetTypeInfo(two);
+            Assert.Equal("System.Int32", twoInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int64", twoInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
         public void TestFailedInference()
         {
             var source = @"
@@ -2720,7 +2782,7 @@ class C
             var nullType = model.GetTypeInfo(lastNull);
             Assert.Null(nullType.Type);
             Assert.Null(nullType.ConvertedType); // In nullable-null comparison, the null literal remains typeless
-         }
+        }
 
         [Fact]
         public void TestOnLongTuple()

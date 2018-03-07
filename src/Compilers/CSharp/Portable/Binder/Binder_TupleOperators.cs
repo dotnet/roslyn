@@ -27,21 +27,47 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag discardDiagnostics = DiagnosticBag.GetInstance();
 
             // The converted types are only used for the semantic model, so we don't need the conversion diagnostics
-            TypeSymbol leftConvertedTypeOpt = operators.LeftConvertedTypeOpt;
-            BoundExpression convertedLeft = leftConvertedTypeOpt is null
-                ? left
-                : GenerateConversionForAssignment(leftConvertedTypeOpt, left, discardDiagnostics);
-
-            TypeSymbol rightConvertedTypeOpt = operators.RightConvertedTypeOpt;
-            BoundExpression convertedRight = rightConvertedTypeOpt is null
-                ? right
-                : GenerateConversionForAssignment(rightConvertedTypeOpt, right, discardDiagnostics);
+            BoundExpression convertedLeft = ApplyConvertedTypes(left, operators, isRight: false, discardDiagnostics);
+            BoundExpression convertedRight = ApplyConvertedTypes(right, operators, isRight: true, discardDiagnostics);
 
             discardDiagnostics.Free();
 
             TypeSymbol resultType = GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
 
             return new BoundTupleBinaryOperator(node, left, right, convertedLeft, convertedRight, kind, operators, resultType);
+        }
+
+        BoundExpression ApplyConvertedTypes(BoundExpression expr, TupleBinaryOperatorInfo @operator, bool isRight, DiagnosticBag diagnostics)
+        {
+            TypeSymbol convertedType = isRight ? @operator.RightConvertedTypeOpt : @operator.LeftConvertedTypeOpt;
+
+            if (@operator.InfoKind == TupleBinaryOperatorInfo.KindEnum.Multiple && expr.Kind == BoundKind.TupleLiteral)
+            {
+                var multiple = (TupleBinaryOperatorInfo.Multiple)@operator;
+                var tuple = (BoundTupleLiteral)expr;
+                ImmutableArray<BoundExpression> arguments = tuple.Arguments;
+                int length = arguments.Length;
+
+                Debug.Assert(length == multiple.Operators.Length);
+
+                var builder = ArrayBuilder<BoundExpression>.GetInstance(length);
+                for (int i = 0; i < length; i++)
+                {
+                    builder.Add(ApplyConvertedTypes(arguments[i], multiple.Operators[i], isRight, diagnostics));
+                }
+                var convertedArguments = builder.ToImmutableAndFree();
+
+                var newTuple = tuple.Update(argumentNamesOpt: default, inferredNamesOpt: default, convertedArguments, tuple.Type);
+
+                return convertedType is null ? newTuple : GenerateConversionForAssignment(convertedType, newTuple, diagnostics);
+            }
+
+            if (convertedType is null)
+            {
+                return expr;
+            }
+
+            return GenerateConversionForAssignment(convertedType, expr, diagnostics);
         }
 
         /// <summary>
