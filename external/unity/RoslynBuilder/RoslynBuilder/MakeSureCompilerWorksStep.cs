@@ -19,9 +19,9 @@ namespace RoslynBuilder
 			var windowsDirectory = Environment.GetFolderPath(Environment.SpecialFolder.Windows).ToNPath();
 			var mscorlibPath = windowsDirectory.Combine("Microsoft.NET", "Framework", "v4.0.30319", "mscorlib.dll");
 
-			var coreRun = KnownPaths.CscBinariesDirectory.Combine("CoreRun.exe");
-			var args = $"{KnownPaths.CscBinariesDirectory.Combine("csc.exe").InQuotes()} /REFERENCE:{mscorlibPath.InQuotes()} {programPath.InQuotes()} /OUT:{executablePath.InQuotes()}";
-			var compilerOutput = Shell.ExecuteAndCaptureOutput(coreRun, args);
+			var csc = KnownPaths.CscBinariesDirectory.Combine("csc.exe");
+			var args = $"/REFERENCE:{mscorlibPath.InQuotes()} {programPath.InQuotes()} /OUT:{executablePath.InQuotes()}";
+			var compilerOutput = Shell.ExecuteAndCaptureOutput(csc, args);
 			Console.WriteLine(compilerOutput);
 
 			var programOutput = Shell.ExecuteAndCaptureOutput(executablePath, string.Empty).Trim();
