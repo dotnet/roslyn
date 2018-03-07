@@ -1142,5 +1142,70 @@ Block[B5] - Exit
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ObjectCreationFlow_05()
+        {
+            string source = @"
+public class MyClass
+{
+    public int A { get; set; }
+    static void M()
+    /*<bind>*/{
+        var a = new MyClass
+        {
+            A = 1
+        };
+    }/*</bind>*/
+}
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            string expectedFlowGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [MyClass a]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (3)
+            IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'new MyClass ... }')
+              Value: 
+                IObjectCreationOperation (Constructor: MyClass..ctor()) (OperationKind.ObjectCreation, Type: MyClass) (Syntax: 'new MyClass ... }')
+                  Arguments(0)
+                  Initializer: 
+                    null
+
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'A = 1')
+              Left: 
+                IPropertyReferenceOperation: System.Int32 MyClass.A { get; set; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'A')
+                  Instance Receiver: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'A')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: MyClass, IsImplicit) (Syntax: 'a = new MyC ... }')
+              Left: 
+                ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: MyClass, IsImplicit) (Syntax: 'a = new MyC ... }')
+              Right: 
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: MyClass, IsImplicit) (Syntax: 'new MyClass ... }')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);
+        }
+
+
     }
 }

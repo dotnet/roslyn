@@ -69,6 +69,7 @@ Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation.Id.get -> int
 Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation.Value.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.IFlowCaptureReferenceOperation
 Microsoft.CodeAnalysis.Operations.IFlowCaptureReferenceOperation.Id.get -> int
+Microsoft.CodeAnalysis.Operations.IInstanceReferenceOperation.ReferenceKind.get -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
 Microsoft.CodeAnalysis.Operations.IIsNullOperation
 Microsoft.CodeAnalysis.Operations.IIsNullOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.ILoopOperation.ContinueLabel.get -> Microsoft.CodeAnalysis.ILabelSymbol
@@ -76,6 +77,11 @@ Microsoft.CodeAnalysis.Operations.ILoopOperation.ExitLabel.get -> Microsoft.Code
 Microsoft.CodeAnalysis.Operations.ISwitchOperation.ExitLabel.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Operations.ITryOperation.ExitLabel.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Operations.ITupleOperation.NaturalType.get -> Microsoft.CodeAnalysis.ITypeSymbol
+Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
+Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.Base = 2 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
+Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.Initializer = 3 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
+Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.ThisNonOverridable = 1 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
+Microsoft.CodeAnalysis.Operations.InstanceReferenceKind.ThisOverridable = 0 -> Microsoft.CodeAnalysis.Operations.InstanceReferenceKind
 abstract Microsoft.CodeAnalysis.DataFlowAnalysis.CapturedInside.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>
 abstract Microsoft.CodeAnalysis.DataFlowAnalysis.CapturedOutside.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ISymbol>
 const Microsoft.CodeAnalysis.WellKnownMemberNames.DeconstructMethodName = "Deconstruct" -> string

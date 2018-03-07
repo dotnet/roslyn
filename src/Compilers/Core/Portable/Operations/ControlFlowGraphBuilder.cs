@@ -1972,7 +1972,14 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public override IOperation VisitFlowCaptureReference(IFlowCaptureReferenceOperation operation, int? captureIdForResult)
         {
-            throw ExceptionUtilities.Unreachable;
+            if (operation.Id == _currentInitializerCaptureId)
+            {
+                return new FlowCaptureReference(operation.Id, operation.Syntax, operation.Type, operation.ConstantValue);
+            }
+            else
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
         }
 
         public override IOperation VisitIsNull(IIsNullOperation operation, int? captureIdForResult)
@@ -1998,18 +2005,53 @@ namespace Microsoft.CodeAnalysis.Operations
             return new InvocationExpression(operation.TargetMethod, visitedInstance, operation.IsVirtual, visitedArguments, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
+        private int? _currentInitializerCaptureId = null;
+
         public override IOperation VisitObjectCreation(IObjectCreationOperation operation, int? captureIdForResult)
         {
             ImmutableArray<IArgumentOperation> visitedArgs = VisitArguments(operation.Arguments);
 
             // Initializer is removed from the tree and turned into a series of statements that assign to the created instance
-            var objectCreation = new ObjectCreationExpression(operation.Constructor, initializer: null, visitedArgs, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            IOperation objectCreation = new ObjectCreationExpression(operation.Constructor, initializer: null, visitedArgs, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
 
             // PROTOTYPE(dataflow): For a non-null initializer, we'll need to assign the created object to a flow reference and rewrite all initializers to assign to/call functions on it, then return return the flow reference
+            if (operation.Initializer != null)
+            {
+                SpillEvalStack();
+
+                int? previousInitializerId = _currentInitializerCaptureId;
+
+                int currentInitializerCaptureId = _availableCaptureId++;
+                _currentInitializerCaptureId = currentInitializerCaptureId;
+
+                AddStatement(new FlowCapture(currentInitializerCaptureId, objectCreation.Syntax, objectCreation));
+
+                foreach (IOperation initializer in operation.Initializer.Initializers)
+                {
+                    AddStatement(Visit(initializer));
+                }
+
+                objectCreation = new FlowCaptureReference(currentInitializerCaptureId, objectCreation.Syntax, objectCreation.Type, objectCreation.ConstantValue);
+
+                _currentInitializerCaptureId = previousInitializerId;
+            }
 
             return objectCreation;
         }
 
+        public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
+        {
+            if (operation.ReferenceKind == InstanceReferenceKind.Initializer)
+            {
+                // When we're in an object or collection initializer, we need to replace the instance reference with a reference to the object being initialized
+                Debug.Assert(_currentInitializerCaptureId != null);
+                return new FlowCaptureReference(_currentInitializerCaptureId.Value, operation.Syntax, operation.Type, operation.ConstantValue);
+            }
+            else
+            {
+                return new InstanceReferenceExpression(operation.ReferenceKind, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
+            }
+        }
 
         internal override IOperation VisitNoneOperation(IOperation operation, int? captureIdForResult)
         {
@@ -2200,11 +2242,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitParameterReference(IParameterReferenceOperation operation, int? captureIdForResult)
         {
             return new ParameterReferenceExpression(operation.Parameter, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitInstanceReference(IInstanceReferenceOperation operation, int? captureIdForResult)
-        {
-            return new InstanceReferenceExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitFieldReference(IFieldReferenceOperation operation, int? captureIdForResult)

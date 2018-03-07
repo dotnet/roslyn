@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// </remarks>
     public interface IInstanceReferenceOperation : IOperation
     {
+        InstanceReferenceKind ReferenceKind { get; }
     }
 }
 
