@@ -101,6 +101,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression RewriteTupleNestedOperators(TupleBinaryOperatorInfo.Multiple operators, BoundExpression left, BoundExpression right,
             TypeSymbol boolType, ArrayBuilder<LocalSymbol> temps, BinaryOperatorKind operatorKind)
         {
+            left = Binder.GiveTupleTypeToDefaultLiteralIfNeeded(left, right.Type);
+            right = Binder.GiveTupleTypeToDefaultLiteralIfNeeded(right, left.Type);
+
             // If either left or right is nullable, produce:
             //
             //      // outer sequence
