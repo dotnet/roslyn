@@ -99,7 +99,7 @@ End Namespace
                 "System.Collections.Generic.List(Of String)",
                 "System.Collections.ArrayList")
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                 source,
                 TestOptions.DebugExe.WithGlobalImports(globalImports).WithRootNamespace(""))
 
@@ -272,7 +272,7 @@ End Namespace
                 "System.Collections.Generic.List(Of String)",
                 "System.Collections.ArrayList")
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                 source,
                 TestOptions.DebugExe.WithGlobalImports(globalImports).WithRootNamespace("DefaultNamespace"))
 
@@ -375,7 +375,7 @@ End Class
     </file>
 </compilation>
 
-            Dim c = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll)
+            Dim c = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll)
 
             Dim peStream1 = New MemoryStream()
             Dim peStream2 = New MemoryStream()
@@ -463,8 +463,8 @@ End Class
                 "GlobalZBad = N.SBad",
                 "GlobalNI = N.I")
 
-            Dim libRef = CreateCompilationWithMscorlib(sourceLib).EmitToImageReference(embedInteropTypes:=True)
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {libRef}, options:=TestOptions.DebugDll.WithGlobalImports(globalImports))
+            Dim libRef = CreateCompilationWithMscorlib40(sourceLib).EmitToImageReference(embedInteropTypes:=True)
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(source, {libRef}, options:=TestOptions.DebugDll.WithGlobalImports(globalImports))
             Dim v = CompileAndVerify(compilation)
 
             v.Diagnostics.Verify(
@@ -534,9 +534,9 @@ End Class
     </file>
 </compilation>
 
-            Dim libRef1 = CreateCompilationWithMscorlib(sourceLib1).EmitToImageReference()
-            Dim libRef2 = CreateCompilationWithMscorlibAndReferences(sourceLib2, {libRef1}).EmitToImageReference()
-            Dim compilation = CreateCompilationWithMscorlibAndReferences(source, {libRef2})
+            Dim libRef1 = CreateCompilationWithMscorlib40(sourceLib1).EmitToImageReference()
+            Dim libRef2 = CreateCompilationWithMscorlib40AndReferences(sourceLib2, {libRef1}).EmitToImageReference()
+            Dim compilation = CreateCompilationWithMscorlib40AndReferences(source, {libRef2})
 
             Dim v = CompileAndVerify(compilation)
 

@@ -200,25 +200,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/14444")]
+        [WpfFact]
         public async Task TestPreviewDiagnosticTaggerInPreviewPane()
         {
-            using (var workspace = TestWorkspace.CreateCSharp("class { }", exportProvider: EditorServicesUtil.ExportProvider))
+            using (var workspace = TestWorkspace.CreateCSharp("class { }", exportProvider: EditorServicesUtil.CreateExportProvider()))
             {
                 // set up listener to wait until diagnostic finish running
-                var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticService>() as DiagnosticService;
-
-                // no easy way to setup waiter. kind of hacky way to setup waiter
-                var source = new CancellationTokenSource();
-                var taskSource = new TaskCompletionSource<DiagnosticsUpdatedArgs>();
-                diagnosticService.DiagnosticsUpdated += (s, a) =>
-                {
-                    source.Cancel();
-
-                    source = new CancellationTokenSource();
-                    var cancellationToken = source.Token;
-                    Task.Delay(2000, cancellationToken).ContinueWith(t => taskSource.TrySetResult(a), CancellationToken.None, TaskContinuationOptions.OnlyOnRanToCompletion, TaskScheduler.Current);
-                };
+                var diagnosticService = workspace.ExportProvider.GetExportedValue<IDiagnosticService>();
 
                 var hostDocument = workspace.Projects.First().Documents.First();
 
@@ -236,30 +224,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 {
                     var foregroundService = workspace.GetService<IForegroundNotificationService>();
 
-                    var waiter = new ErrorSquiggleWaiter();
-                    var listeners = AsynchronousOperationListener.CreateListeners(FeatureAttribute.ErrorSquiggles, waiter);
+                    var listenerProvider = workspace.ExportProvider.GetExportedValue<AsynchronousOperationListenerProvider>();
 
                     // set up tagger for both buffers
                     var leftBuffer = diffView.Viewer.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-                    var leftProvider = new DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listeners);
+                    var leftProvider = new DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listenerProvider);
                     var leftTagger = leftProvider.CreateTagger<IErrorTag>(leftBuffer);
                     using (var leftDisposable = leftTagger as IDisposable)
                     {
                         var rightBuffer = diffView.Viewer.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-                        var rightProvider = new DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listeners);
+                        var rightProvider = new DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listenerProvider);
                         var rightTagger = rightProvider.CreateTagger<IErrorTag>(rightBuffer);
                         using (var rightDisposable = rightTagger as IDisposable)
                         {
-                            // wait up to 20 seconds for diagnostics
-                            taskSource.Task.Wait(20000);
-                            if (!taskSource.Task.IsCompleted)
-                            {
-                                // something is wrong
-                                FatalError.Report(new System.Exception("not finished after 20 seconds"));
-                            }
-
-                            // wait taggers
-                            await waiter.CreateWaitTask();
+                            // wait for diagnostics and taggers
+                            await listenerProvider.WaitAllDispatcherOperationAndTasksAsync(FeatureAttribute.DiagnosticService, FeatureAttribute.ErrorSquiggles);
 
                             // check left buffer
                             var leftSnapshot = leftBuffer.CurrentSnapshot;
@@ -281,7 +260,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
         {
             // Verify that analyzer execution doesn't leak solution instances from the preview workspace.
 
-            var previewWorkspace = new PreviewWorkspace();            
+            var previewWorkspace = new PreviewWorkspace();
             Assert.NotNull(previewWorkspace.CurrentSolution);
             var project = previewWorkspace.CurrentSolution.AddProject("project", "project.dll", LanguageNames.CSharp);
             Assert.True(previewWorkspace.TryApplyChanges(project.Solution));
@@ -306,7 +285,5 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             var result = compilationWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None).Result;
             Assert.Equal(1, result.CompilationDiagnostics.Count);
         }
-
-        private class ErrorSquiggleWaiter : AsynchronousOperationListener { }
     }
 }

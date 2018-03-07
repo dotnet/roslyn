@@ -146,10 +146,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_StackAllocExpression = MessageBase + 12729,
         IDS_FeaturePrivateProtected = MessageBase + 12730,
 
-        IDS_FeatureAttributesOnBackingFields = MessageBase + 12731,
-        IDS_FeatureEnumGenericTypeConstraint = MessageBase + 12732,
-        IDS_FeatureDelegateGenericTypeConstraint = MessageBase + 12733,
-        IDS_FeatureUnmanagedGenericTypeConstraint = MessageBase + 12734,
+        IDS_FeatureRefConditional = MessageBase + 12731,
+        IDS_FeatureAttributesOnBackingFields = MessageBase + 12732,
+        IDS_FeatureImprovedOverloadCandidates = MessageBase + 12733,
+        IDS_FeatureEnumGenericTypeConstraint = MessageBase + 12734,
+        IDS_FeatureDelegateGenericTypeConstraint = MessageBase + 12735,
+        IDS_FeatureUnmanagedGenericTypeConstraint = MessageBase + 12736,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -191,6 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# 7.3 features.
                 case MessageID.IDS_FeatureAttributesOnBackingFields: // semantic check
+                case MessageID.IDS_FeatureImprovedOverloadCandidates: // semantic check
                 case MessageID.IDS_FeatureEnumGenericTypeConstraint: // semantic check
                 case MessageID.IDS_FeatureDelegateGenericTypeConstraint: // semantic check
                 case MessageID.IDS_FeatureUnmanagedGenericTypeConstraint: // semantic check
@@ -204,6 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureRefStructs:
                 case MessageID.IDS_FeatureReadOnlyStructs:
                 case MessageID.IDS_FeatureRefExtensionMethods:
+                case MessageID.IDS_FeatureRefConditional:
                     return LanguageVersion.CSharp7_2;
 
                 // C# 7.1 features.

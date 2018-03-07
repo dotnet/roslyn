@@ -338,7 +338,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     this.Handle,
                     out CustomAttributeHandle isUnmanagedAttribute,
                     AttributeDescription.IsUnmanagedAttribute,
-                    out _,
+                    out _, 
+                    default,
+                    out _, 
+                    default, 
+                    out _, 
                     default);
 
                 this._lazyHasIsUnmanagedAttribute = (!isUnmanagedAttribute.IsNil).ToThreeState();

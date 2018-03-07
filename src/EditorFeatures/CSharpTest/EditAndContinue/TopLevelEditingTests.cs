@@ -2641,7 +2641,7 @@ class Test
             var edits = GetTopEdits(src1, src2);
             edits.VerifyRudeDiagnostics(
                 Diagnostic(RudeEditKind.Delete, "await", CSharpFeaturesResources.await_expression),
-                Diagnostic(RudeEditKind.ModifiersUpdate, "public Task<int> WaitAsync()", "method"));
+                Diagnostic(RudeEditKind.ModifiersUpdate, "public Task<int> WaitAsync()", FeaturesResources.method));
         }
 
         [Fact]
@@ -7577,7 +7577,7 @@ class C
                 "Delete [set { Console.WriteLine(0); }]@46");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Delete, "int this[int a]", "indexer setter"));
+                Diagnostic(RudeEditKind.Delete, "int this[int a]", CSharpFeaturesResources.indexer_setter));
         }
 
         [Fact, WorkItem(17681, "https://github.com/dotnet/roslyn/issues/17681")]
@@ -7698,7 +7698,7 @@ class C
                 "Update [(int, int, int a) M() { return (1, 2, 3); }]@10 -> [(int, int) M() { return (1, 2); }]@10");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "(int, int) M()", "method"));
+                Diagnostic(RudeEditKind.TypeUpdate, "(int, int) M()", FeaturesResources.method));
         }
 
         [Fact]
@@ -7713,7 +7713,7 @@ class C
                 "Update [(int, int) M() { return (1, 2); }]@10 -> [(int, int, int a) M() { return (1, 2, 3); }]@10");
 
             edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.TypeUpdate, "(int, int, int a) M()", "method"));
+                Diagnostic(RudeEditKind.TypeUpdate, "(int, int, int a) M()", FeaturesResources.method));
         }
 
         [Fact]

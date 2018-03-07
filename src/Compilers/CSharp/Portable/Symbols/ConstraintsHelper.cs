@@ -627,8 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             ConversionsBase conversions,
             SyntaxNode syntaxNode,
             Compilation currentCompilation,
-            DiagnosticBag diagnostics,
-            BitVector skipParameters = default(BitVector))
+            DiagnosticBag diagnostics)
         {
             if (!RequiresChecking(method))
             {
@@ -637,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var result = CheckMethodConstraints(method, conversions, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder, skipParameters);
+            var result = CheckMethodConstraints(method, conversions, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
@@ -702,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ref useSiteDiagnosticsBuilder);
         }
 
-        private static bool CheckMethodConstraints(
+        public static bool CheckMethodConstraints(
             MethodSymbol method,
             ConversionsBase conversions,
             Compilation currentCompilation,
@@ -788,6 +787,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             HashSet<TypeParameterSymbol> ignoreTypeConstraintsDependentOnTypeParametersOpt)
         {
             Debug.Assert(substitution != null);
+
             // The type parameters must be original definitions of type parameters from the containing symbol.
             Debug.Assert(ReferenceEquals(typeParameter.ContainingSymbol, containingSymbol.OriginalDefinition));
 

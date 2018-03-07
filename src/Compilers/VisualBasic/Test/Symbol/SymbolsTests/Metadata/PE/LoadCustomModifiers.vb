@@ -121,7 +121,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30649: '' is an unsupported type.
@@ -161,7 +161,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30649: '' is an unsupported type.
@@ -189,7 +189,7 @@ End Class
     </file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, references:={reference})
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, references:={reference})
 
             AssertTheseDiagnostics(compilation, <expected>
 BC30649: '' is an unsupported type.

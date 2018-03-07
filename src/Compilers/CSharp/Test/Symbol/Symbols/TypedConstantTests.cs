@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 
         public TypedConstantTests()
         {
-            _compilation = CreateStandardCompilation("class C {}");
+            _compilation = CreateCompilation("class C {}");
             _namedType = _compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             _systemType = _compilation.GetWellKnownType(WellKnownType.System_Type);
             _arrayType = _compilation.CreateArrayTypeSymbol(_compilation.GetSpecialType(SpecialType.System_Object));

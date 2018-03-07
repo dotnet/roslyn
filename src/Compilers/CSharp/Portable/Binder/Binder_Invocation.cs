@@ -330,15 +330,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImmutableArray<BoundExpression> argArray = BuildArgumentsForDynamicInvocation(arguments, diagnostics);
+            var refKindsArray = arguments.RefKinds.ToImmutableOrNull();
 
-            hasErrors &= ReportBadDynamicArguments(node, argArray, diagnostics, queryClause);
+            hasErrors &= ReportBadDynamicArguments(node, argArray, refKindsArray, diagnostics, queryClause);
 
             return new BoundDynamicInvocation(
                 node,
                 expression,
                 argArray,
                 arguments.GetNames(),
-                arguments.RefKinds.ToImmutableOrNull(),
+                refKindsArray,
                 applicableMethods,
                 type: Compilation.DynamicType,
                 hasErrors: hasErrors);
@@ -411,11 +412,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static bool ReportBadDynamicArguments(
             SyntaxNode node,
             ImmutableArray<BoundExpression> arguments,
+            ImmutableArray<RefKind> refKinds,
             DiagnosticBag diagnostics,
             CSharpSyntaxNode queryClause)
         {
             bool hasErrors = false;
             bool reportedBadQuery = false;
+
+            if (!refKinds.IsDefault)
+            {
+                for (int argIndex = 0; argIndex < refKinds.Length; argIndex++)
+                {
+                    if (refKinds[argIndex] == RefKind.In)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_InDynamicMethodArg, arguments[argIndex].Syntax);
+                        hasErrors = true;
+                    }
+                }
+            }
 
             foreach (var arg in arguments)
             {
@@ -483,7 +497,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             methodGroup.PopulateWithSingleMethod(boundExpression, delegateType.DelegateInvokeMethod);
             var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            OverloadResolution.MethodInvocationOverloadResolution(methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments, overloadResolutionResult, ref useSiteDiagnostics);
+            OverloadResolution.MethodInvocationOverloadResolution(
+                methods: methodGroup.Methods,
+                typeArguments: methodGroup.TypeArguments,
+                receiver: methodGroup.Receiver,
+                arguments: analyzedArguments,
+                result: overloadResolutionResult,
+                useSiteDiagnostics: ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
             // If overload resolution on the "Invoke" method found an applicable candidate, and one of the arguments
@@ -680,8 +700,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var validResult = resolution.OverloadResolutionResult.ValidResult;
             var args = resolution.AnalyzedArguments.Arguments.ToImmutable();
+            var refKindsArray = resolution.AnalyzedArguments.RefKinds.ToImmutableOrNull();
 
-            ReportBadDynamicArguments(syntax, args, diagnostics, queryClause);
+            ReportBadDynamicArguments(syntax, args, refKindsArray, diagnostics, queryClause);
 
             var localFunction = validResult.Member;
             var methodResult = validResult.Result;
@@ -928,8 +949,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Since there were no argument errors to report, we report an error on the invocation itself.
                     string name = (object)delegateTypeOpt == null ? methodName : null;
-                    result.ReportDiagnostics(this, GetLocationForOverloadResolutionDiagnostic(node, expression), diagnostics, name,
-                        methodGroup.Receiver, analyzedArguments, methodGroup.Methods.ToImmutable(),
+                    result.ReportDiagnostics(
+                        binder: this, location: GetLocationForOverloadResolutionDiagnostic(node, expression), nodeOpt: node, diagnostics: diagnostics, name: name,
+                        receiver: methodGroup.Receiver, invokedExpression: expression, arguments: analyzedArguments, memberGroup: methodGroup.Methods.ToImmutable(),
                         typeContainingConstructor: null, delegateTypeBeingInvoked: delegateTypeOpt,
                         queryClause: queryClause);
                 }
@@ -964,21 +986,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (i.e. the first argument, if invokedAsExtensionMethod).
             var gotError = MemberGroupFinalValidation(receiver, method, expression, diagnostics, invokedAsExtensionMethod);
 
-            ImmutableArray<BoundExpression> args;
             if (invokedAsExtensionMethod)
             {
-                BoundExpression receiverArgument;
+                BoundExpression receiverArgument = analyzedArguments.Argument(0);
                 ParameterSymbol receiverParameter = method.Parameters.First();
 
-                if ((object)receiver != methodGroup.Receiver)
+                // we will have a different receiver if ReplaceTypeOrValueReceiver has unwrapped TypeOrValue
+                if ((object)receiver != receiverArgument)
                 {
                     // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate conversion here.
                     Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
                     receiverArgument = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), receiverParameter.Type, diagnostics);
-                }
-                else
-                {
-                    receiverArgument = analyzedArguments.Argument(0);
                 }
 
                 if (receiverParameter.RefKind == RefKind.Ref)
@@ -987,21 +1005,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // This helper method will also replace it with a BoundBadExpression if it was invalid.
                     receiverArgument = CheckValue(receiverArgument, BindValueKind.RefOrOut, diagnostics);
 
+                    if (analyzedArguments.RefKinds.Count == 0)
+                    {
+                        analyzedArguments.RefKinds.Count = analyzedArguments.Arguments.Count;
+                    }
+
+                    // receiver of a `ref` extension method is a `ref` argument. (and we have checked above that it can be passed as a Ref)
+                    // we need to adjust the argument refkind as if we had a `ref` modifier in a call.
+                    analyzedArguments.RefKinds[0] = RefKind.Ref;
                     CheckFeatureAvailability(receiverArgument.Syntax, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
                 }
                 else if (receiverParameter.RefKind == RefKind.In)
                 {
+                    // NB: receiver of an `in` extension method is treated as a `byval` argument, so no changes from the default refkind is needed in that case. 
+                    Debug.Assert(analyzedArguments.RefKind(0) == RefKind.None);
                     CheckFeatureAvailability(receiverArgument.Syntax, MessageID.IDS_FeatureRefExtensionMethods, diagnostics);
                 }
 
-                ArrayBuilder<BoundExpression> builder = ArrayBuilder<BoundExpression>.GetInstance(analyzedArguments.Arguments.Count);
-                builder.Add(receiverArgument);
-                builder.AddRange(analyzedArguments.Arguments.Skip(1));
-                args = builder.ToImmutableAndFree();
-            }
-            else
-            {
-                args = analyzedArguments.Arguments.ToImmutable();
+                analyzedArguments.Arguments[0] = receiverArgument;
             }
 
             // This will be the receiver of the BoundCall node that we create.
@@ -1015,6 +1036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var argNames = analyzedArguments.GetNames();
             var argRefKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
+            var args = analyzedArguments.Arguments.ToImmutable();
 
             if (!gotError && !method.IsStatic && receiver != null && receiver.Kind == BoundKind.ThisReference && receiver.WasCompilerGenerated)
             {
@@ -1051,16 +1073,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(args.IsDefaultOrEmpty || (object)receiver != (object)args[0]);
 
-            gotError |= !CheckInvocationArgMixing(
-                node,
-                method,
-                receiver,
-                method.Parameters,
-                args,
-                argRefKinds,
-                argsToParams,
-                this.LocalScopeDepth,
-                diagnostics);
+            if (!gotError)
+            {
+                gotError = !CheckInvocationArgMixing(
+                    node,
+                    method,
+                    receiver,
+                    method.Parameters,
+                    args,
+                    argRefKinds,
+                    argsToParams,
+                    this.LocalScopeDepth,
+                    diagnostics);
+            }
 
             if ((object)delegateTypeOpt != null)
             {

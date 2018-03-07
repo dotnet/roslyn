@@ -249,7 +249,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var variables = node.Variable;
                         if (variables.IsDeconstructionLeft())
                         {
-                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, collectionEscape, iterationVariableType) { WasCompilerGenerated = true } ;
+                            var valuePlaceholder = new BoundDeconstructValuePlaceholder(_syntax.Expression, collectionEscape, iterationVariableType).MakeCompilerGenerated();
                             DeclarationExpressionSyntax declaration = null;
                             ExpressionSyntax expression = null;
                             BoundDeconstructionAssignmentOperator deconstruction = BindDeconstruction(
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 hasErrors = true;
                             }
 
-                            deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder);
+                            deconstructStep = new BoundForEachDeconstructStep(variables, deconstruction, valuePlaceholder).MakeCompilerGenerated();
                         }
                         else if (!node.HasErrors)
                         {
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors = true;
                         }
 
-                        boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType);
+                        boundIterationVariableType = new BoundTypeExpression(variables, aliasOpt: null, type: iterationVariableType).MakeCompilerGenerated();
                         break;
                     }
                 default:
@@ -807,7 +807,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             OverloadResolutionResult<MethodSymbol> overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.OverloadResolution.MethodInvocationOverloadResolution(candidateMethods, typeArguments, arguments, overloadResolutionResult, ref useSiteDiagnostics);
+            // We create a dummy receiver of the invocation so MethodInvocationOverloadResolution knows it was invoked from an instance, not a type
+            var dummyReceiver = new BoundImplicitReceiver(_syntax.Expression, patternType);
+            this.OverloadResolution.MethodInvocationOverloadResolution(
+                methods: candidateMethods,
+                typeArguments: typeArguments,
+                receiver: dummyReceiver,
+                arguments: arguments,
+                result: overloadResolutionResult,
+                useSiteDiagnostics: ref useSiteDiagnostics);
             diagnostics.Add(_syntax.Expression, useSiteDiagnostics);
 
             MethodSymbol result = null;

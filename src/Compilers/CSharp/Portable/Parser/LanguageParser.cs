@@ -450,19 +450,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (body.Members.Count > 0)
             {
-                body.Members[body.Members.Count - 1] = AddTrailingSkippedSyntax(body.Members[body.Members.Count - 1], skippedSyntax);
+                AddTrailingSkippedSyntax(body.Members, skippedSyntax);
             }
             else if (body.Attributes.Count > 0)
             {
-                body.Attributes[body.Attributes.Count - 1] = AddTrailingSkippedSyntax(body.Attributes[body.Attributes.Count - 1], skippedSyntax);
+                AddTrailingSkippedSyntax(body.Attributes, skippedSyntax);
             }
             else if (body.Usings.Count > 0)
             {
-                body.Usings[body.Usings.Count - 1] = AddTrailingSkippedSyntax(body.Usings[body.Usings.Count - 1], skippedSyntax);
+                AddTrailingSkippedSyntax(body.Usings, skippedSyntax);
             }
             else if (body.Externs.Count > 0)
             {
-                body.Externs[body.Externs.Count - 1] = AddTrailingSkippedSyntax(body.Externs[body.Externs.Count - 1], skippedSyntax);
+                AddTrailingSkippedSyntax(body.Externs, skippedSyntax);
             }
             else if (openBrace != null)
             {
@@ -1157,18 +1157,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     return DeclarationModifiers.None;
             }
         }
-
-        private bool IsPossibleModifier()
-        {
-            return IsPossibleModifier(this.CurrentToken);
-        }
-
-        private static bool IsPossibleModifier(SyntaxToken token)
-        {
-            return GetModifier(token) != DeclarationModifiers.None;
-        }
-
-        private void ParseModifiers(SyntaxListBuilder tokens)
+        
+        private void ParseModifiers(SyntaxListBuilder tokens, bool forAccessors)
         {
             while (true)
             {
@@ -1227,6 +1217,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             {
                                 modTok = this.EatToken();
                                 modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureRefStructs);
+                            }
+                            else if (forAccessors && this.IsPossibleAccessorModifier())
+                            {
+                                // Accept ref as a modifier for properties and event accessors, to produce an error later during binding.
+                                modTok = this.EatToken();
                             }
                             else
                             {
@@ -2102,7 +2097,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
 
                 // All modifiers that might start an expression are processed above.
-                this.ParseModifiers(modifiers);
+                this.ParseModifiers(modifiers, forAccessors: false);
                 if (modifiers.Count > 0)
                 {
                     acceptStatement = false;
@@ -3183,33 +3178,36 @@ parse_member_name:;
             // Note: we allow all modifiers here.  That's because we want to parse things like
             // "abstract get" as an accessor.  This way we can provide a good error message
             // to the user that this is not allowed.
-            if (IsPossibleModifier())
+
+            if (GetModifier(this.CurrentToken) == DeclarationModifiers.None)
             {
-                var peekIndex = 1;
-                while (IsPossibleModifier(this.PeekToken(peekIndex)))
-                {
-                    peekIndex++;
-                }
-
-                var token = this.PeekToken(peekIndex);
-                if (token.Kind == SyntaxKind.CloseBraceToken || token.Kind == SyntaxKind.EndOfFileToken)
-                {
-                    // If we see "{ get { } public }
-                    // then we will think that "public" likely starts an accessor.
-                    return true;
-                }
-
-                switch (token.ContextualKind)
-                {
-                    case SyntaxKind.GetKeyword:
-                    case SyntaxKind.SetKeyword:
-                    case SyntaxKind.AddKeyword:
-                    case SyntaxKind.RemoveKeyword:
-                        return true;
-                }
+                return false;
             }
 
-            return false;
+            var peekIndex = 1;
+            while (GetModifier(this.PeekToken(peekIndex)) != DeclarationModifiers.None)
+            {
+                peekIndex++;
+            }
+
+            var token = this.PeekToken(peekIndex);
+            if (token.Kind == SyntaxKind.CloseBraceToken || token.Kind == SyntaxKind.EndOfFileToken)
+            {
+                // If we see "{ get { } public }
+                // then we will think that "public" likely starts an accessor.
+                return true;
+            }
+
+            switch (token.ContextualKind)
+            {
+                case SyntaxKind.GetKeyword:
+                case SyntaxKind.SetKeyword:
+                case SyntaxKind.AddKeyword:
+                case SyntaxKind.RemoveKeyword:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         private enum PostSkipAction
@@ -3277,7 +3275,7 @@ parse_member_name:;
                 var action = SkipBadTokensWithExpectedKind(isNotExpectedFunction, abortFunction, expected, out lastItemTrailingTrivia);
                 if (lastItemTrailingTrivia != null)
                 {
-                    list[list.Count - 1] = AddTrailingSkippedSyntax((CSharpSyntaxNode)list[list.Count - 1], lastItemTrailingTrivia);
+                    AddTrailingSkippedSyntax(list, lastItemTrailingTrivia);
                 }
                 trailingTrivia = null;
                 return action;
@@ -3301,7 +3299,7 @@ parse_member_name:;
                 var action = SkipBadTokensWithErrorCode(isNotExpectedFunction, abortFunction, error, out lastItemTrailingTrivia);
                 if (lastItemTrailingTrivia != null)
                 {
-                    list[list.Count - 1] = AddTrailingSkippedSyntax(list[list.Count - 1], lastItemTrailingTrivia);
+                    AddTrailingSkippedSyntax(list, lastItemTrailingTrivia);
                 }
                 trailingTrivia = null;
                 return action;
@@ -3386,7 +3384,7 @@ parse_member_name:;
             try
             {
                 this.ParseAttributeDeclarations(accAttrs);
-                this.ParseModifiers(accMods);
+                this.ParseModifiers(accMods, forAccessors: true);
 
                 if (!isEvent)
                 {
@@ -10602,13 +10600,32 @@ tryAgain:
             var commas = _pool.Allocate();
             try
             {
-                while (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                int lastTokenPosition = -1;
+                while (IsMakingProgress(ref lastTokenPosition))
                 {
-                    commas.Add(this.EatToken());
+                    if (this.IsPossibleExpression())
+                    {
+                        var size = this.AddError(this.ParseExpressionCore(), ErrorCode.ERR_InvalidArray);
+                        if (commas.Count == 0)
+                        {
+                            openBracket = AddTrailingSkippedSyntax(openBracket, size);
+                        }
+                        else
+                        {
+                            AddTrailingSkippedSyntax(commas, size);
+                        }
+                    }
+
+                    if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                    {
+                        commas.Add(this.EatToken());
+                        continue;
+                    }
+
+                    break;
                 }
 
                 var closeBracket = this.EatToken(SyntaxKind.CloseBracketToken);
-
                 var initializer = this.ParseArrayInitializer();
 
                 return _syntaxFactory.ImplicitArrayCreationExpression(@new, openBracket, commas.ToList(), closeBracket, initializer);
@@ -10818,7 +10835,7 @@ tryAgain:
 
                         // additional parameters
                         int tokenProgress = -1;
-                        while(IsMakingProgress(ref tokenProgress))
+                        while (IsMakingProgress(ref tokenProgress))
                         {
                             if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
                             {
