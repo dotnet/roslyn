@@ -6,10 +6,13 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
@@ -59,6 +62,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     RaiseDocumentDiagnosticsIfNeeded(document, stateSet, kind, result.OldItems, result.Items);
                 }
+
+                var asyncToken = Owner.Listener.BeginAsyncOperation(nameof(AnalyzeDocumentForKindAsync));
+                var _ = ReportAnalyzerPerformanceAsync(document, analyzerDriverOpt, cancellationToken).CompletesAsyncOperation(asyncToken);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -428,6 +434,58 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             RaiseDiagnosticsRemoved(projectId, nullSolution, stateSet, raiseEvents);
+        }
+
+        private async Task ReportAnalyzerPerformanceAsync(Document document, CompilationWithAnalyzers analyzerDriverOpt, CancellationToken cancellationToken)
+        {
+            try
+            {
+                if (analyzerDriverOpt == null)
+                {
+                    return;
+                }
+
+                var client = await document.Project.Solution.Workspace.TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+                if (client == null)
+                {
+                    // no remote support
+                    return;
+                }
+
+                cancellationToken.ThrowIfCancellationRequested();
+
+                using (var pooledObject = SharedPools.Default<Dictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>>().GetPooledObject())
+                {
+                    var containsData = false;
+                    foreach (var analyzer in analyzerDriverOpt.Analyzers)
+                    {
+                        var telemetryInfo = await analyzerDriverOpt.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
+                        if (!containsData && telemetryInfo.ExecutionTime.Ticks > 0)
+                        {
+                            // this is unfortunate tweak due to how GetAnalyzerTelemetryInfoAsync works when analyzers are asked
+                            // one by one rather than in bulk.
+                            containsData = true;
+                        }
+
+                        pooledObject.Object.Add(analyzer, telemetryInfo);
+                    }
+
+                    if (!containsData)
+                    {
+                        // looks like there is no new data from driver. skip reporting.
+                        return;
+                    }
+
+                    await client.TryRunCodeAnalysisRemoteAsync(
+                        nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
+                        new object[] { pooledObject.Object.ToAnalyzerPerformanceInfo(Owner), /* unit count */ 1 },
+                        cancellationToken).ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))
+            {
+                // this is fire and forget method
+            }
         }
     }
 }

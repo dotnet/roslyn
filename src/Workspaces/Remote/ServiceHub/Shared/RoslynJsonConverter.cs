@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Remote
             protected abstract T ReadValue(JsonReader reader, JsonSerializer serializer);
             protected abstract void WriteValue(JsonWriter writer, T value, JsonSerializer serializer);
 
-            protected static U ReadProperty<U>(JsonSerializer serializer, JsonReader reader)
+            protected static U ReadProperty<U>(JsonReader reader, JsonSerializer serializer)
             {
                 // read property
                 Contract.ThrowIfFalse(reader.Read());
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 // all integer is long
                 var scopeId = ReadProperty<long>(reader);
                 var fromPrimaryBranch = ReadProperty<bool>(reader);
-                var checksum = ReadProperty<Checksum>(serializer, reader);
+                var checksum = ReadProperty<Checksum>(reader, serializer);
 
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);

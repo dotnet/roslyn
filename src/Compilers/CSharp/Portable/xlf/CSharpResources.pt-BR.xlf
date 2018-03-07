@@ -4656,8 +4656,8 @@ Um bloco catch() depois de um bloco catch (System.Exception e) poderá capturar 
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPlatformType">
-        <source>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium or x64</source>
-        <target state="translated">Opção inválida "{0}" para /platform; deve ser anycpu, x86, Itanium ou x64</target>
+        <source>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium, arm, arm64 or x64</source>
+        <target state="needs-review-translation">Opção inválida "{0}" para /platform; deve ser anycpu, x86, Itanium ou x64</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
@@ -7224,7 +7224,7 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
  /doc:&lt;file&gt;                   XML Documentation file to generate
  /refout:&lt;file&gt;                Reference assembly output to generate
  /platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
-                               Itanium, x64, arm, anycpu32bitpreferred, or
+                               Itanium, x64, arm, arm64, anycpu32bitpreferred, or
                                anycpu. The default is anycpu.
 
                         - INPUT FILES -
@@ -7346,7 +7346,7 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
                                a part of
  /modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Opções do Compilador do Visual C#
 
                         – ARQUIVOS DE SAÍDA –
@@ -8518,11 +8518,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       <trans-unit id="ERR_StackAllocConversionNotPossible">
         <source>Conversion of a stackalloc expression of type '{0}' to type '{1}' is not possible.</source>
         <target state="translated">A conversão de uma expressão stackalloc do tipo '{0}' para o tipo '{1}' não é possível.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_StackAllocExpression">
-        <source>stackalloc {0}[{1}]</source>
-        <target state="translated">stackalloc {0}[{1}]</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne">

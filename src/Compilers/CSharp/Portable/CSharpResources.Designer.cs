@@ -1844,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /platform; must be anycpu, x86, Itanium or x64.
+        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /platform; must be anycpu, x86, Itanium, arm, arm64 or x64.
         /// </summary>
         internal static string ERR_BadPlatformType {
             get {
@@ -11165,15 +11165,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_SK_VARIABLE {
             get {
                 return ResourceManager.GetString("IDS_SK_VARIABLE", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to stackalloc {0}[{1}].
-        /// </summary>
-        internal static string IDS_StackAllocExpression {
-            get {
-                return ResourceManager.GetString("IDS_StackAllocExpression", resourceCulture);
             }
         }
         
