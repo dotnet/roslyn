@@ -145,9 +145,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="System.Security.Cryptography.Algorithms" Version="$(SystemSecurityCryptographyAlgorithmsVersion)" />
-  </ItemGroup>
-  <ItemGroup>
     <!-- Even though the VS process includes these, we need to also include them in the VSIX for the interactive host processes -->
     <NuGetPackageToIncludeInVsix Include="System.Collections.Immutable" />
     <NuGetPackageToIncludeInVsix Include="System.Reflection.Metadata" />
