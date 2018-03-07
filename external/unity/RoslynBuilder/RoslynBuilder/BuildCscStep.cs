@@ -8,11 +8,11 @@ namespace RoslynBuilder
 		{
 			Console.WriteLine("Building csc...");
 
-			var cscCoreProject = KnownPaths.RoslynRoot.Combine("src", "Compilers", "CSharp", "CscCore", "CscCore.csproj");
-			var msbuildArgs = $"{cscCoreProject.InQuotes()} /v:m /p:Configuration=\"Release\" /p:Platform=\"AnyCPU\" /p:SolutionName=\"Roslyn\" /p:SolutionDir=\"{KnownPaths.RoslynRoot}\"";
-			var msbuildOutput = Shell.ExecuteAndCaptureOutput(KnownPaths.MSBuild, msbuildArgs);
+			var projectDir = KnownPaths.RoslynRoot.Combine("src", "Compilers", "CSharp", "csc");
+			var args = $"publish --configuration Release --no-restore {projectDir.InQuotes()} -o {KnownPaths.CscBinariesDirectory.InQuotes()} --self-contained --framework netcoreapp2.0 --runtime win-x64 /p:UseShippingAssemblyVersion=true";
+			var dotnetOutput = Shell.ExecuteAndCaptureOutput(KnownPaths.DotNet, args);
 
-			Console.WriteLine(msbuildOutput);
+			Console.WriteLine(dotnetOutput);
 			Console.WriteLine("Successfully built csc.");
 		}
 	}
