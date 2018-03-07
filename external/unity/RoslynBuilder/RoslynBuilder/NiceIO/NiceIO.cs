@@ -482,7 +482,7 @@ namespace NiceIO
 				throw new InvalidOperationException("Trying to delete a path that does not exist: " + ToString());
 		}
 
-		public NPath DeleteContents()
+		public NPath DeleteContents(DeleteMode deleteMode = DeleteMode.Normal)
 		{
 			ThrowIfRelative();
 			if (FileExists())
@@ -493,7 +493,8 @@ namespace NiceIO
 				try
 				{
 					Files().Delete();
-					Directories().Delete();
+					foreach (var directory in Directories())
+						directory.Delete(deleteMode);
 				}
 				catch (IOException)
 				{

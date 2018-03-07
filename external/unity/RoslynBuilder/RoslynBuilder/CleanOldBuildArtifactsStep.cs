@@ -1,5 +1,5 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
+using NiceIO;
 
 namespace RoslynBuilder
 {
@@ -8,9 +8,9 @@ namespace RoslynBuilder
 		public void Execute()
 		{
 			foreach (var content in KnownPaths.RoslynRoot.Combine("Artifacts").Contents().Where(d => d.FileName != "RoslynBuilder"))
-				content.Delete();
+				content.Delete(DeleteMode.Soft);
 
-			KnownPaths.RoslynRoot.Combine("Binaries").DeleteContents();
+			KnownPaths.RoslynRoot.Combine("Binaries").DeleteContents(DeleteMode.Soft);
 		}
 	}
 }
