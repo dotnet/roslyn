@@ -149,10 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRefConditional = MessageBase + 12731,
         IDS_FeatureAttributesOnBackingFields = MessageBase + 12732,
         IDS_FeatureImprovedOverloadCandidates = MessageBase + 12733,
-        IDS_FeatureAttributesOnBackingFields = MessageBase + 12734,
-        IDS_FeatureEnumGenericTypeConstraint = MessageBase + 12735,
-        IDS_FeatureDelegateGenericTypeConstraint = MessageBase + 12736,
-        IDS_FeatureUnmanagedGenericTypeConstraint = MessageBase + 12737,
+        IDS_FeatureEnumGenericTypeConstraint = MessageBase + 12734,
+        IDS_FeatureDelegateGenericTypeConstraint = MessageBase + 12735,
+        IDS_FeatureUnmanagedGenericTypeConstraint = MessageBase + 12736,
     }
 
     // Message IDs may refer to strings that need to be localized.

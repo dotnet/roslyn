@@ -4012,12 +4012,12 @@ void M()
 var unmanaged = 0;
 unmanaged++;",
                 Keyword("var"),
-                Identifier("unmanaged"),
+                Local("unmanaged"),
                 Operators.Equals,
                 Number("0"),
                 Punctuation.Semicolon,
                 Identifier("unmanaged"),
-                Operators.DoublePlus,
+                Operators.PlusPlus,
                 Punctuation.Semicolon);
         }
 
@@ -4104,7 +4104,7 @@ class X
                 Class("X"),
                 Punctuation.OpenCurly,
                 Keyword("void"),
-                Identifier("M"),
+                Method("M"),
                 Punctuation.OpenAngle,
                 TypeParameter("T"),
                 Punctuation.CloseAngle,
@@ -4136,7 +4136,7 @@ class X
                 Class("X"),
                 Punctuation.OpenCurly,
                 Keyword("void"),
-                Identifier("M"),
+                Method("M"),
                 Punctuation.OpenAngle,
                 TypeParameter("T"),
                 Punctuation.CloseAngle,
@@ -4175,7 +4175,7 @@ class X
                 Class("X"),
                 Punctuation.OpenCurly,
                 Keyword("void"),
-                Identifier("M"),
+                Method("M"),
                 Punctuation.OpenAngle,
                 TypeParameter("T"),
                 Punctuation.CloseAngle,

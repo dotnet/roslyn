@@ -5726,7 +5726,7 @@ public class Test<T> where T : System.Enum
 {
 }", parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.CSharp7_3)).EmitToImageReference()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Public Enum E1
@@ -5761,7 +5761,7 @@ public class Test<T> where T : System.Delegate
 {
 }", parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.CSharp7_3)).EmitToImageReference()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Delegate Sub D1()
@@ -5795,7 +5795,7 @@ public class Test<T> where T : System.MulticastDelegate
 {
 }", parseOptions:=New CSharp.CSharpParseOptions(CSharp.LanguageVersion.CSharp7_3)).EmitToImageReference()
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib45AndVBRuntime(
 <compilation>
     <file name="a.vb">
 Delegate Sub D1()

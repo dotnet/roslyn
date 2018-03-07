@@ -65,10 +65,11 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (9,9): error CS0570: 'T' is not supported by the language
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (9,13): error CS0570: 'T' is not supported by the language
                 //         obj.M2<int>();      // invalid
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj.M2<int>").WithArguments("T").WithLocation(9, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M2<int>").WithArguments("T").WithLocation(9, 13)
+                );
         }
 
         [Fact]
@@ -127,10 +128,11 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (9,9): error CS0570: 'T' is not supported by the language
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (9,13): error CS0570: 'T' is not supported by the language
                 //         obj.M2<int>();      // invalid
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj.M2<int>").WithArguments("T").WithLocation(9, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M2<int>").WithArguments("T").WithLocation(9, 13)
+                );
         }
 
         [Fact]
@@ -187,10 +189,11 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (9,9): error CS0570: 'T' is not supported by the language
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (9,13): error CS0570: 'T' is not supported by the language
                 //         obj.M2<int>();      // invalid
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj.M2<int>").WithArguments("T").WithLocation(9, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M2<int>").WithArguments("T").WithLocation(9, 13)
+                );
         }
 
         [Fact]
@@ -249,10 +252,11 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (9,9): error CS0570: 'T' is not supported by the language
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (9,13): error CS0570: 'T' is not supported by the language
                 //         obj.M2<int>();      // invalid
-                Diagnostic(ErrorCode.ERR_BindToBogus, "obj.M2<int>").WithArguments("T").WithLocation(9, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M2<int>").WithArguments("T").WithLocation(9, 13)
+                );
         }
 
         [Fact]
@@ -269,7 +273,7 @@ class Test<T> where T : unmanaged
 {
 }";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateEmptyCompilation(code).VerifyDiagnostics(
                 // (8,25): error CS0518: Predefined type 'System.Runtime.InteropServices.UnmanagedType' is not defined or imported
                 // class Test<T> where T : unmanaged
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.Runtime.InteropServices.UnmanagedType").WithLocation(8, 25));
@@ -290,7 +294,7 @@ class Test
     public void M<T>() where T : unmanaged {}
 }";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateEmptyCompilation(code).VerifyDiagnostics(
                 // (10,34): error CS0518: Predefined type 'System.Runtime.InteropServices.UnmanagedType' is not defined or imported
                 //     public void M<T>() where T : unmanaged {}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.Runtime.InteropServices.UnmanagedType").WithLocation(10, 34));
@@ -310,7 +314,7 @@ namespace System
 }
 public delegate void D<T>() where T : unmanaged;";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateEmptyCompilation(code).VerifyDiagnostics(
                 // (10,39): error CS0518: Predefined type 'System.Runtime.InteropServices.UnmanagedType' is not defined or imported
                 // public delegate void D<T>() where T : unmanaged;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.Runtime.InteropServices.UnmanagedType").WithLocation(10, 39));
@@ -337,7 +341,7 @@ class Test<T> where T : unmanaged
 {
 }";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateEmptyCompilation(code).VerifyDiagnostics(
                 // (15,25): error CS0518: Predefined type 'System.ValueType' is not defined or imported
                 // class Test<T> where T : unmanaged
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.ValueType").WithLocation(15, 25));
@@ -365,7 +369,7 @@ class Test
     public void M<T>() where T : unmanaged {}
 }";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateEmptyCompilation(code).VerifyDiagnostics(
                 // (17,34): error CS0518: Predefined type 'System.ValueType' is not defined or imported
                 //     public void M<T>() where T : unmanaged {}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.ValueType").WithLocation(17, 34));
@@ -392,7 +396,7 @@ namespace System
 }
 public delegate void M<T>() where T : unmanaged;";
 
-            CreateCompilation(code).VerifyDiagnostics(
+            CreateEmptyCompilation(code).VerifyDiagnostics(
                 // (17,39): error CS0518: Predefined type 'System.ValueType' is not defined or imported
                 // public delegate void M<T>() where T : unmanaged;
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.ValueType").WithLocation(17, 39));
@@ -432,7 +436,7 @@ class Program
         System.Console.WriteLine(new Parent().M<int>());
         System.Console.WriteLine(new Child().M<int>());
     }
-}", additionalRefs: new[] { reference.Compilation.EmitToImageReference() }, expectedOutput: @"
+}", references: new[] { reference.Compilation.EmitToImageReference() }, expectedOutput: @"
 Parent
 Child");
         }
@@ -458,7 +462,7 @@ public class Parent
 public class Child : Parent
 {
     public override string M<T>() => ""Child"";
-}", additionalRefs: new[] { parent.Compilation.EmitToImageReference() }, symbolValidator: module =>
+}", references: new[] { parent.Compilation.EmitToImageReference() }, symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
@@ -475,7 +479,7 @@ class Program
         System.Console.WriteLine(new Parent().M<int>());
         System.Console.WriteLine(new Child().M<int>());
     }
-}", additionalRefs: new[] { parent.Compilation.EmitToImageReference(), child.Compilation.EmitToImageReference() }, expectedOutput: @"
+}", references: new[] { parent.Compilation.EmitToImageReference(), child.Compilation.EmitToImageReference() }, expectedOutput: @"
 Parent
 Child");
         }
@@ -513,7 +517,7 @@ class Program
     {
         System.Console.WriteLine(new Child().M<int>());
     }
-}", additionalRefs: new[] { reference.Compilation.EmitToImageReference() }, expectedOutput: "Child");
+}", references: new[] { reference.Compilation.EmitToImageReference() }, expectedOutput: "Child");
         }
 
         [Fact]
@@ -537,7 +541,7 @@ public abstract class Parent
 public class Child : Parent
 {
     public override string M<T>() => ""Child"";
-}", additionalRefs: new[] { parent.Compilation.EmitToImageReference() }, symbolValidator: module =>
+}", references: new[] { parent.Compilation.EmitToImageReference() }, symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
@@ -553,7 +557,7 @@ class Program
     {
         System.Console.WriteLine(new Child().M<int>());
     }
-}", additionalRefs: new[] { parent.Compilation.EmitToImageReference(), child.Compilation.EmitToImageReference() }, expectedOutput: "Child");
+}", references: new[] { parent.Compilation.EmitToImageReference(), child.Compilation.EmitToImageReference() }, expectedOutput: "Child");
         }
 
         [Fact]
@@ -589,7 +593,7 @@ class Program
     {
         System.Console.WriteLine(new Child().M<int>());
     }
-}", additionalRefs: new[] { reference.Compilation.EmitToImageReference() }, expectedOutput: "Child");
+}", references: new[] { reference.Compilation.EmitToImageReference() }, expectedOutput: "Child");
         }
 
         [Fact]
@@ -613,7 +617,7 @@ public interface Parent
 public class Child : Parent
 {
     public string M<T>() where T : unmanaged => ""Child"";
-}", additionalRefs: new[] { parent.Compilation.EmitToImageReference() }, symbolValidator: module =>
+}", references: new[] { parent.Compilation.EmitToImageReference() }, symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
@@ -629,7 +633,7 @@ class Program
     {
         System.Console.WriteLine(new Child().M<int>());
     }
-}", additionalRefs: new[] { parent.Compilation.EmitToImageReference(), child.Compilation.EmitToImageReference() }, expectedOutput: "Child");
+}", references: new[] { parent.Compilation.EmitToImageReference(), child.Compilation.EmitToImageReference() }, expectedOutput: "Child");
         }
 
         [Fact]
@@ -665,7 +669,7 @@ class Program
     {
         System.Console.WriteLine(new Child().M<int>());
     }
-}", additionalRefs: new[] { reference.Compilation.EmitToImageReference() }, expectedOutput: "Child");
+}", references: new[] { reference.Compilation.EmitToImageReference() }, expectedOutput: "Child");
         }
 
         [Fact]
@@ -689,7 +693,7 @@ public interface Parent
 public class Child : Parent
 {
     public virtual string M<T>() where T : unmanaged => ""Child"";
-}", additionalRefs: new[] { parent.Compilation.EmitToImageReference() }, symbolValidator: module =>
+}", references: new[] { parent.Compilation.EmitToImageReference() }, symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
@@ -705,7 +709,7 @@ class Program
     {
         System.Console.WriteLine(new Child().M<int>());
     }
-}", additionalRefs: new[] { parent.Compilation.EmitToImageReference(), child.Compilation.EmitToImageReference() }, expectedOutput: "Child");
+}", references: new[] { parent.Compilation.EmitToImageReference(), child.Compilation.EmitToImageReference() }, expectedOutput: "Child");
         }
 
         [Fact]
@@ -742,7 +746,7 @@ class Program
         Parent obj = new Child();
         System.Console.WriteLine(obj.M<int>());
     }
-}", additionalRefs: new[] { reference.Compilation.EmitToImageReference() }, expectedOutput: "Child");
+}", references: new[] { reference.Compilation.EmitToImageReference() }, expectedOutput: "Child");
         }
 
         [Fact]
@@ -766,7 +770,7 @@ public interface Parent
 public class Child : Parent
 {
     string Parent.M<T>() => ""Child"";
-}", additionalRefs: new[] { parent.Compilation.EmitToImageReference() }, symbolValidator: module =>
+}", references: new[] { parent.Compilation.EmitToImageReference() }, symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Child").GetMethod("Parent.M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
@@ -783,7 +787,7 @@ class Program
         Parent obj = new Child();
         System.Console.WriteLine(obj.M<int>());
     }
-}", additionalRefs: new[] { parent.Compilation.EmitToImageReference(), child.Compilation.EmitToImageReference() }, expectedOutput: "Child");
+}", references: new[] { parent.Compilation.EmitToImageReference(), child.Compilation.EmitToImageReference() }, expectedOutput: "Child");
         }
 
         [Fact]
@@ -863,7 +867,7 @@ public class Program
     }
 }",
                 expectedOutput: "5",
-                additionalRefs: new[] { reference.Compilation.EmitToImageReference() },
+                references: new[] { reference.Compilation.EmitToImageReference() },
                 options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.All),
                 symbolValidator: module =>
                 {
@@ -884,15 +888,15 @@ namespace System.Runtime.InteropServices
     public class UnmanagedType {}
 }";
 
-            var ref1 = CreateStandardCompilation(refCode).EmitToImageReference();
-            var ref2 = CreateStandardCompilation(refCode).EmitToImageReference();
+            var ref1 = CreateCompilation(refCode).EmitToImageReference();
+            var ref2 = CreateCompilation(refCode).EmitToImageReference();
 
             var user = @"
 public class Test<T> where T : unmanaged
 {
 }";
 
-            CreateStandardCompilation(user, references: new[] { ref1, ref2 }).VerifyDiagnostics(
+            CreateCompilation(user, references: new[] { ref1, ref2 }).VerifyDiagnostics(
                 // (2,32): error CS0518: Predefined type 'System.Runtime.InteropServices.UnmanagedType' is not defined or imported
                 // public class Test<T> where T : unmanaged
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "unmanaged").WithArguments("System.Runtime.InteropServices.UnmanagedType").WithLocation(2, 32));
@@ -940,10 +944,11 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (6,9): error CS0570: 'T' is not supported by the language
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (6,23): error CS0570: 'T' is not supported by the language
                 //         new TestRef().M<int>();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "new TestRef().M<int>").WithArguments("T").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M<int>").WithArguments("T").WithLocation(6, 23)
+                );
         }
 
         [Fact]
@@ -988,10 +993,11 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (6,9): error CS0570: 'T' is not supported by the language
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (6,23): error CS0570: 'T' is not supported by the language
                 //         new TestRef().M<int>();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "new TestRef().M<int>").WithArguments("T").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M<int>").WithArguments("T").WithLocation(6, 23)
+                );
         }
 
         [Fact]
@@ -1036,10 +1042,11 @@ public class Test
     }
 }";
 
-            CreateStandardCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (6,9): error CS0570: 'T' is not supported by the language
+            CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (6,23): error CS0570: 'T' is not supported by the language
                 //         new TestRef().M<int>();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "new TestRef().M<int>").WithArguments("T").WithLocation(6, 9));
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M<int>").WithArguments("T").WithLocation(6, 23)
+                );
         }
 
         private const string IsUnmanagedAttributeIL = @"

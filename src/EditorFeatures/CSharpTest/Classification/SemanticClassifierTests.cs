@@ -2396,7 +2396,8 @@ namespace AliasTest
             await TestInMethodAsync(@"
 var unmanaged = 0;
 unmanaged++;",
-                Keyword("var"));
+                Keyword("var"),
+                Local("unmanaged"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]

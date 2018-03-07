@@ -69,7 +69,7 @@ public class Test<T> where T : unmanaged
         [Fact]
         public void AttributeUsedIfExists_FromReference_Method_Reference()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 namespace System.Runtime.CompilerServices
 {
     public class IsUnmanagedAttribute : System.Attribute { }
@@ -82,7 +82,7 @@ public class Test
 }
 ";
 
-            CompileAndVerify(text, additionalRefs: new[] { reference }, symbolValidator: module =>
+            CompileAndVerify(text, references: new[] { reference }, symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
@@ -96,7 +96,7 @@ public class Test
         [Fact]
         public void AttributeUsedIfExists_FromReference_Class_Reference()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 namespace System.Runtime.CompilerServices
 {
     public class IsUnmanagedAttribute : System.Attribute { }
@@ -108,7 +108,7 @@ public class Test<T> where T : unmanaged
 }
 ";
 
-            CompileAndVerify(text, additionalRefs: new[] { reference }, symbolValidator: module =>
+            CompileAndVerify(text, references: new[] { reference }, symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Test`1").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
@@ -122,7 +122,7 @@ public class Test<T> where T : unmanaged
         [Fact]
         public void AttributeUsedIfExists_FromReference_Method_Module()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 namespace System.Runtime.CompilerServices
 {
     public class IsUnmanagedAttribute : System.Attribute { }
@@ -135,7 +135,7 @@ public class Test
 }
 ";
 
-            CompileAndVerify(text, verify: Verification.Fails, additionalRefs: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Test").GetMethod("M").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
@@ -149,7 +149,7 @@ public class Test
         [Fact]
         public void AttributeUsedIfExists_FromReference_Class_Module()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 namespace System.Runtime.CompilerServices
 {
     public class IsUnmanagedAttribute : System.Attribute { }
@@ -161,7 +161,7 @@ public class Test<T> where T : unmanaged
 }
 ";
 
-            CompileAndVerify(text, verify: Verification.Fails, additionalRefs: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
+            CompileAndVerify(text, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Test`1").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
@@ -226,7 +226,7 @@ namespace System.Runtime.CompilerServices
 public delegate void D([IsUnmanaged]int x);
 ";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (9,2): error CS8335: Do not use 'System.Runtime.CompilerServices.IsUnmanagedAttribute'. This is reserved for compiler usage.
                 // [IsUnmanaged]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsUnmanaged").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute").WithLocation(9, 2),
@@ -252,7 +252,7 @@ public class Test
 }
 ";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (9,2): error CS8335: Do not use 'System.Runtime.CompilerServices.IsUnmanagedAttribute'. This is reserved for compiler usage.
                 // [IsUnmanaged]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsUnmanaged").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute").WithLocation(9, 2));
@@ -276,7 +276,7 @@ public class Test
 }
 ";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (11,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsUnmanagedAttribute'. This is reserved for compiler usage.
                 //     [IsUnmanaged]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsUnmanaged").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute").WithLocation(11, 6));
@@ -300,7 +300,7 @@ public class Test
 }
 ";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (11,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsUnmanagedAttribute'. This is reserved for compiler usage.
                 //     [IsUnmanaged]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsUnmanaged").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute").WithLocation(11, 6));
@@ -328,7 +328,7 @@ public class Test
 }
 ";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (11,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsUnmanagedAttribute'. This is reserved for compiler usage.
                 //     [IsUnmanaged]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsUnmanaged").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute").WithLocation(11, 6),
@@ -358,7 +358,7 @@ public class Test
 }
 ";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (11,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsUnmanagedAttribute'. This is reserved for compiler usage.
                 //     [IsUnmanaged]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsUnmanaged").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute").WithLocation(11, 6),
@@ -377,7 +377,7 @@ public class Test
 }
 ";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (2,2): error CS0246: The type or namespace name 'IsUnmanagedAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 // [IsUnmanaged]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IsUnmanaged").WithArguments("IsUnmanagedAttribute").WithLocation(2, 2),
@@ -391,13 +391,13 @@ public class Test
         {
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
 
-            var code1 = CreateStandardCompilation(@"
+            var code1 = CreateCompilation(@"
 namespace System.Runtime.CompilerServices
 {
     public class IsUnmanagedAttribute : System.Attribute { }
 }");
 
-            var code2 = CreateStandardCompilation(@"
+            var code2 = CreateCompilation(@"
 public class Test1<T> where T : unmanaged { }
 ", references: new[] { code1.ToMetadataReference() }, options: options);
 
@@ -406,7 +406,7 @@ public class Test1<T> where T : unmanaged { }
                 AssertNoIsUnmanagedAttributeExists(module.ContainingAssembly);
             });
 
-            var code3 = CreateStandardCompilation(@"
+            var code3 = CreateCompilation(@"
 public class Test2<T> : Test1<T> where T : unmanaged { }
 ", references: new[] { code2.ToMetadataReference() }, options: options);
 
@@ -428,7 +428,7 @@ public class Test<T> where T : unmanaged
 {
 }";
 
-            CreateStandardCompilation(code, options: TestOptions.ReleaseModule).VerifyDiagnostics(
+            CreateCompilation(code, options: TestOptions.ReleaseModule).VerifyDiagnostics(
                 // (2,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsUnmanagedAttribute' is not defined or imported
                 // public class Test<T> where T : unmanaged
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "T").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute").WithLocation(2, 19));
@@ -443,7 +443,7 @@ public class Test
     public void M<T>() where T : unmanaged {}
 }";
 
-            CreateStandardCompilation(code, options: TestOptions.ReleaseModule).VerifyDiagnostics(
+            CreateCompilation(code, options: TestOptions.ReleaseModule).VerifyDiagnostics(
                 // (4,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsUnmanagedAttribute' is not defined or imported
                 //     public void M<T>() where T : unmanaged {}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "T").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute").WithLocation(4, 19));
@@ -474,7 +474,7 @@ public class Test2<T> : Test1<T> where T : unmanaged
 {
 }";
 
-            CompileAndVerify(code2, options: options.WithModuleName("Assembly2"), additionalRefs: new[] { comp1.Compilation.ToMetadataReference() }, symbolValidator: module =>
+            CompileAndVerify(code2, options: options.WithModuleName("Assembly2"), references: new[] { comp1.Compilation.ToMetadataReference() }, symbolValidator: module =>
             {
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Test2`1").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
@@ -501,7 +501,7 @@ class Test<T> where T : unmanaged
 {
 }";
 
-            CreateStandardCompilation(text, options: new CSharpCompilationOptions(outputKind)).VerifyDiagnostics(
+            CreateCompilation(text, options: new CSharpCompilationOptions(outputKind)).VerifyDiagnostics(
                 // (9,12): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsUnmanagedAttribute..ctor'
                 // class Test<T> where T : unmanaged
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute", ".ctor").WithLocation(9, 12));
@@ -524,7 +524,7 @@ class Test<T> where T : unmanaged
 {
 }";
 
-            CreateStandardCompilation(text, options: new CSharpCompilationOptions(outputKind)).VerifyDiagnostics(
+            CreateCompilation(text, options: new CSharpCompilationOptions(outputKind)).VerifyDiagnostics(
                 // (9,12): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsUnmanagedAttribute..ctor'
                 // class Test<T> where T : unmanaged
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute", ".ctor").WithLocation(9, 12));
@@ -544,7 +544,7 @@ class Test<T> where T : unmanaged
 {
 }";
 
-            CreateStandardCompilation(text, options: new CSharpCompilationOptions(outputKind)).VerifyDiagnostics(
+            CreateCompilation(text, options: new CSharpCompilationOptions(outputKind)).VerifyDiagnostics(
                 // (6,12): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsUnmanagedAttribute..ctor'
                 // class Test<T> where T : unmanaged
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "T").WithArguments("System.Runtime.CompilerServices.IsUnmanagedAttribute", ".ctor").WithLocation(6, 12));
