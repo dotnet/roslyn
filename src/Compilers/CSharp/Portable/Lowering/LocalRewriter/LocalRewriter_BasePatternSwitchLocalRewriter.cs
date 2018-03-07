@@ -149,6 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             /// <summary>
             /// Translate the decision tree for node, given that it will be followed by the translation for nextNode.
+            /// This knowledge allows us to fall through to nextNode instead of producing a goto statement to get there.
             /// </summary>
             private void LowerDecisionDagNode(BoundDecisionDag node, BoundDecisionDag nextNode)
             {

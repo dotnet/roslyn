@@ -524,13 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    BoundDagDecision selectDecision(DagState s)
-                    {
-                        // Our simple heuristic is to perform the first test of the first possible matched case
-                        return s.Cases[0].Decisions[0];
-                    }
-
-                    switch (state.SelectedDecision = selectDecision(state))
+                    switch (state.SelectedDecision = state.ComputeSelectedDecision())
                     {
                         case BoundDagEvaluation e:
                             state.TrueBranch = uniqifyState(RemoveEvaluation(state.Cases, e));
@@ -643,6 +637,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             finalStates.Free();
 
             Debug.Assert(initialState.Dag != null);
+            // Note: It is useful for debugging the dag state table construction to view `initialState.Dump()` here.
             return initialState.Dag;
         }
 
@@ -775,6 +770,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             trueDecisionPermitsTrueOther = false; // if v!=null is true, then v==null cannot succeed
                             falseDecisionImpliesTrueOther = true; // if v!=null is false, then v==null has been proven true
                             break;
+                        case BoundNonNullDecision n2:
+                            trueDecisionImpliesTrueOther = true;
+                            falseDecisionPermitsTrueOther = false;
+                            break;
                         default:
                             // Once v!=null fails, it must fail a type test
                             falseDecisionPermitsTrueOther = false;
@@ -885,6 +884,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Bindings: c.Bindings, WhenClause: c.WhenClause, CaseLabel: c.CaseLabel);
         }
 
+        /// <summary>
+        /// The state at a given node of the decision acyclic graph. This is used during computation of the state machine,
+        /// and contains a representation of the meaning of the state.
+        /// </summary>
         private class DagState
         {
             public readonly ImmutableArray<PartialCaseDecision> Cases;
@@ -904,7 +907,134 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // After the entire graph of DagState objects is complete, we translate each into its Dag.
             public BoundDecisionDag Dag;
+
+            // Compute a decision to use at the root of the generated decision tree.
+            internal BoundDagDecision ComputeSelectedDecision()
+            {
+                // Our simple heuristic is to perform the first test of the first possible matched case
+                var choice = Cases[0].Decisions[0];
+
+                // But if that test is a null check, it would be redundant with a following
+                // type test. We apply this refinement only when there is exactly one case, because
+                // when there are multiple cases the null check is likely to be shared.
+                if (choice.Kind == BoundKind.NonNullDecision &&
+                    Cases.Length == 1 &&
+                    Cases[0].Decisions.Length > 1)
+                {
+                    var choice2 = Cases[0].Decisions[1];
+                    if (choice2.Kind == BoundKind.TypeDecision)
+                    {
+                        return choice2;
+                    }
+                }
+
+                return choice;
+            }
+
+#if DEBUG
+            /// <summary>
+            /// Starting with `this` state, produce a human-readable description of the state tables.
+            /// This is very useful for debugging and optimizing the dag state construction.
+            /// </summary>
+            internal string Dump()
+            {
+                var printed = PooledHashSet<DagState>.GetInstance();
+
+                int nextStateNumber = 0;
+                var workQueue = ArrayBuilder<DagState>.GetInstance();
+                var stateIdentifierMap = PooledDictionary<DagState, int>.GetInstance();
+                int stateIdentifier(DagState state)
+                {
+                    if (stateIdentifierMap.TryGetValue(state, out int value))
+                    {
+                        return value;
+                    }
+                    else
+                    {
+                        value = stateIdentifierMap[state] = ++nextStateNumber;
+                        workQueue.Push(state);
+                    }
+
+                    return value;
+                }
+
+                int nextTempNumber = 0;
+                var tempIdentifierMap = PooledDictionary<BoundDagEvaluation, int>.GetInstance();
+                int tempIdentifier(BoundDagEvaluation e)
+                {
+                    return (e == null) ? 0 : tempIdentifierMap.TryGetValue(e, out int value) ? value : tempIdentifierMap[e] = ++nextTempNumber;
+                }
+
+                string tempName(BoundDagTemp t)
+                {
+                    return $"t{tempIdentifier(t.Source)}{(t.Index != 0 ? $".{t.Index.ToString()}" : "")}";
+                }
+
+                var resultBuilder = PooledStringBuilder.GetInstance();
+                var result = resultBuilder.Builder;
+                stateIdentifier(this); // push the start node onto the work queue
+
+                while (workQueue.Count != 0)
+                {
+                    var state = workQueue.Pop();
+                    if (!printed.Add(state))
+                    {
+                        continue;
+                    }
+
+                    result.AppendLine($"State " + stateIdentifier(state));
+                    foreach (PartialCaseDecision cd in state.Cases)
+                    {
+                        result.Append($"  [{cd.Syntax}]");
+                        foreach (BoundDagDecision d in cd.Decisions)
+                        {
+                            result.Append($" {dump(d)}");
+                        }
+
+                        result.AppendLine();
+                    }
+
+                    if (state.SelectedDecision != null)
+                    {
+                        result.AppendLine($"  Decision: {dump(state.SelectedDecision)}");
+                    }
+
+                    if (state.TrueBranch != null)
+                    {
+                        result.AppendLine($"  TrueBranch: {stateIdentifier(state.TrueBranch)}");
+                    }
+
+                    if (state.FalseBranch != null)
+                    {
+                        result.AppendLine($"  FalseBranch: {stateIdentifier(state.FalseBranch)}");
+                    }
+                }
+
+                workQueue.Free();
+                printed.Free();
+                stateIdentifierMap.Free();
+                tempIdentifierMap.Free();
+                return resultBuilder.ToStringAndFree();
+
+                string dump(BoundDagDecision d)
+                {
+                    switch (d)
+                    {
+                        case BoundDagTypeEvaluation a:
+                            return $"t{tempIdentifier(a)}={a.Kind}({a.Type.ToString()})";
+                        case BoundDagEvaluation e:
+                            return $"t{tempIdentifier(e)}={e.Kind}";
+                        case BoundTypeDecision b:
+                            return $"?{d.Kind}({b.Type.ToString()}, {tempName(d.Input)})";
+                        case BoundNonNullValueDecision v:
+                            return $"?{d.Kind}({v.Value.ToString()}, {tempName(d.Input)})";
+                        default:
+                            return $"?{d.Kind}({tempName(d.Input)})";
+                    }
+                }
+            }
         }
+#endif
 
         /// <summary>
         /// An equivalence relation between dag states used to dedup the states during dag construction.
