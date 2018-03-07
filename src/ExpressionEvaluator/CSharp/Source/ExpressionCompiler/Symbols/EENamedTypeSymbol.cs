@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             get { return false; }
         }
 
-        public override bool AreLocalsZeroed
+        public sealed override bool AreLocalsZeroed
         {
             get { return true; }
         }

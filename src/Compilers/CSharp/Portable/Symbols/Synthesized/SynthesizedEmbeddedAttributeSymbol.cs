@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsSerializable => false;
 
-        public override bool AreLocalsZeroed => true;
+        public sealed override bool AreLocalsZeroed => true;
 
         internal override TypeLayout Layout => default(TypeLayout);
 

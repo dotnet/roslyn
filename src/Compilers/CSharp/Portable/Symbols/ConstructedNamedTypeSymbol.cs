@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -43,6 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override NamedTypeSymbol ConstructedFrom
         {
             get { return this; }
+        }
+
+        public override sealed bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
         }
     }
 
@@ -139,6 +145,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return false;
+        }
+
+        public override sealed bool AreLocalsZeroed
+        {
+            get { throw ExceptionUtilities.Unreachable; }
         }
     }
 }

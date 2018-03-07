@@ -334,9 +334,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        public override bool AreLocalsZeroed
+        public sealed override bool AreLocalsZeroed
         {
-            get { return true; }
+            get { return ContainingType.AreLocalsZeroed; }
         }
 
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation

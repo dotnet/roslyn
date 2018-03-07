@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _attributes;
         }
 
-        public override bool AreLocalsZeroed => KickoffMethod.AreLocalsZeroed;
+        public sealed override bool AreLocalsZeroed => KickoffMethod.AreLocalsZeroed;
 
         internal override bool HasCodeAnalysisEmbeddedAttribute => false;
     }

@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return ContainingAssembly.GetSpecialType(SpecialType.System_MulticastDelegate); }
         }
 
-        public override bool AreLocalsZeroed
+        public sealed override bool AreLocalsZeroed
         {
-            get { return true; }
+            get { throw ExceptionUtilities.Unreachable; }
         }
 
         private sealed class DelegateConstructor : SynthesizedInstanceConstructor

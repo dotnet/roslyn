@@ -1569,7 +1569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool AreLocalsZeroed
+        public sealed override bool AreLocalsZeroed
         {
             get { throw ExceptionUtilities.Unreachable; }
         }

@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var data = this.GetDecodedWellKnownAttributeData();
-                return data != null ? !data.HasSkipLocalsInitAttribute : true;
+                return data != null ? !data.HasSkipLocalsInitAttribute : ContainingType.AreLocalsZeroed;
             }
         }
 
