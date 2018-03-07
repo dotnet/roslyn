@@ -342,17 +342,16 @@ class C
             var tupleY = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Last();
             Assert.Equal("(y, y)", tupleY.ToString());
 
-            // PROTOTYPE(tuple-equality)
-            return;
+            var lastY = tupleY.Arguments[1].Expression;
+            Assert.Equal("y", lastY.ToString());
 
-            //var tupleYSymbol = model.GetTypeInfo(tupleY);
-            //Assert.Equal("(System.Byte, System.Byte)", tupleYSymbol.Type.ToTestDisplayString());
-            //Assert.Equal("(System.Int32, System.Int32)", tupleYSymbol.ConvertedType.ToTestDisplayString());
+            var ySymbol = model.GetTypeInfo(lastY);
+            Assert.Equal("System.Byte", ySymbol.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", ySymbol.ConvertedType.ToTestDisplayString());
 
-            //var y = tupleY.Arguments[0].Expression;
-            //var ySymbol = model.GetTypeInfo(y);
-            //Assert.Equal("System.Byte", ySymbol.Type.ToTestDisplayString());
-            //Assert.Equal("System.Int32", ySymbol.ConvertedType.ToTestDisplayString());
+            var tupleYSymbol = model.GetTypeInfo(tupleY);
+            Assert.Equal("(System.Byte, System.Byte)", tupleYSymbol.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32)", tupleYSymbol.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]

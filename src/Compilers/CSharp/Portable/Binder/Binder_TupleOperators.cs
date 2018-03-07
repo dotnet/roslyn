@@ -22,15 +22,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression left, BoundExpression right, DiagnosticBag diagnostics)
         {
             // PROTOTYPE(tuple-equality) Block in expression tree
-
             TupleBinaryOperatorInfo.Multiple operators = BindTupleBinaryOperatorNestedInfo(node, kind, left, right, diagnostics);
 
-            // PROTOTYPE(tuple-equality) We'll save the converted nodes separately, for the semantic model
-            //BoundExpression convertedLeft = GenerateConversionForAssignment(operators.LeftConvertedType, left, diagnostics);
-            //BoundExpression convertedRight = GenerateConversionForAssignment(operators.RightConvertedType, right, diagnostics);
+            TypeSymbol leftConvertedTypeOpt = operators.LeftConvertedTypeOpt;
+            BoundExpression convertedLeft = leftConvertedTypeOpt is null
+                ? left
+                : GenerateConversionForAssignment(leftConvertedTypeOpt, left, diagnostics);
+
+            TypeSymbol rightConvertedTypeOpt = operators.RightConvertedTypeOpt;
+            BoundExpression convertedRight = rightConvertedTypeOpt is null
+                ? right
+                : GenerateConversionForAssignment(rightConvertedTypeOpt, right, diagnostics);
 
             TypeSymbol resultType = GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
-            return new BoundTupleBinaryOperator(node, left, right, kind, operators, resultType);
+
+            return new BoundTupleBinaryOperator(node, left, right, convertedLeft, convertedRight, kind, operators, resultType);
         }
 
         /// <summary>

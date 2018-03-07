@@ -1091,17 +1091,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundTupleBinaryOperator : BoundExpression
     {
-        public BoundTupleBinaryOperator(SyntaxNode syntax, BoundExpression left, BoundExpression right, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.TupleBinaryOperator, syntax, type, hasErrors || left.HasErrors() || right.HasErrors())
+        public BoundTupleBinaryOperator(SyntaxNode syntax, BoundExpression left, BoundExpression right, BoundExpression convertedLeft, BoundExpression convertedRight, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.TupleBinaryOperator, syntax, type, hasErrors || left.HasErrors() || right.HasErrors() || convertedLeft.HasErrors() || convertedRight.HasErrors())
         {
 
             Debug.Assert(left != null, "Field 'left' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(right != null, "Field 'right' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(convertedLeft != null, "Field 'convertedLeft' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(convertedRight != null, "Field 'convertedRight' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(operators != null, "Field 'operators' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(type != null, "Field 'type' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
             this.Left = left;
             this.Right = right;
+            this.ConvertedLeft = convertedLeft;
+            this.ConvertedRight = convertedRight;
             this.OperatorKind = operatorKind;
             this.Operators = operators;
         }
@@ -1110,6 +1114,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundExpression Left { get; }
 
         public BoundExpression Right { get; }
+
+        public BoundExpression ConvertedLeft { get; }
+
+        public BoundExpression ConvertedRight { get; }
 
         public BinaryOperatorKind OperatorKind { get; }
 
@@ -1120,11 +1128,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitTupleBinaryOperator(this);
         }
 
-        public BoundTupleBinaryOperator Update(BoundExpression left, BoundExpression right, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type)
+        public BoundTupleBinaryOperator Update(BoundExpression left, BoundExpression right, BoundExpression convertedLeft, BoundExpression convertedRight, BinaryOperatorKind operatorKind, TupleBinaryOperatorInfo.Multiple operators, TypeSymbol type)
         {
-            if (left != this.Left || right != this.Right || operatorKind != this.OperatorKind || operators != this.Operators || type != this.Type)
+            if (left != this.Left || right != this.Right || convertedLeft != this.ConvertedLeft || convertedRight != this.ConvertedRight || operatorKind != this.OperatorKind || operators != this.Operators || type != this.Type)
             {
-                var result = new BoundTupleBinaryOperator(this.Syntax, left, right, operatorKind, operators, type, this.HasErrors);
+                var result = new BoundTupleBinaryOperator(this.Syntax, left, right, convertedLeft, convertedRight, operatorKind, operators, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8740,8 +8748,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression left = (BoundExpression)this.Visit(node.Left);
             BoundExpression right = (BoundExpression)this.Visit(node.Right);
+            BoundExpression convertedLeft = node.ConvertedLeft;
+            BoundExpression convertedRight = node.ConvertedRight;
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(left, right, node.OperatorKind, node.Operators, type);
+            return node.Update(left, right, convertedLeft, convertedRight, node.OperatorKind, node.Operators, type);
         }
         public override BoundNode VisitUserDefinedConditionalLogicalOperator(BoundUserDefinedConditionalLogicalOperator node)
         {
@@ -9749,6 +9759,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 new TreeDumperNode("left", null, new TreeDumperNode[] { Visit(node.Left, null) }),
                 new TreeDumperNode("right", null, new TreeDumperNode[] { Visit(node.Right, null) }),
+                new TreeDumperNode("convertedLeft", null, new TreeDumperNode[] { Visit(node.ConvertedLeft, null) }),
+                new TreeDumperNode("convertedRight", null, new TreeDumperNode[] { Visit(node.ConvertedRight, null) }),
                 new TreeDumperNode("operatorKind", node.OperatorKind, null),
                 new TreeDumperNode("operators", node.Operators, null),
                 new TreeDumperNode("type", node.Type, null)
