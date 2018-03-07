@@ -1,7 +1,6 @@
-﻿using NiceIO;
-using System;
+﻿using System;
 using System.IO;
-using System.Linq;
+using NiceIO;
 
 namespace RoslynBuilder
 {
@@ -9,8 +8,8 @@ namespace RoslynBuilder
 	{
 		// Note: this version must match the version of CoreCLR that's currently used by Roslyn
 		// If it doesn't match, it will complain about ClrJit version not matching when doing CrossGen
-		const string kCoreClrVersion = "1.0.2";
-		const string kCoreClrPackageName = "runtime.win7-x64.Microsoft.NETCore.Runtime.CoreCLR";
+		const string kCoreClrVersion = "2.0.0";
+		const string kCoreClrPackageName = "runtime.win-x64.Microsoft.NETCore.Runtime.CoreCLR";
 
 		private static NPath PackagesDirectory => KnownPaths.RoslynRoot.Combine("Artifacts", "Packages").EnsureDirectoryExists();
 
