@@ -41,8 +41,8 @@
     <MicrosoftDiagnosticsRuntimeVersion>0.8.31-beta</MicrosoftDiagnosticsRuntimeVersion>
     <MicrosoftDiagnosticsTracingTraceEventVersion>1.0.35</MicrosoftDiagnosticsTracingTraceEventVersion>
     <MicrosoftDiaSymReaderVersion>1.2.0</MicrosoftDiaSymReaderVersion>
-    <MicrosoftDiaSymReaderConverterVersion>1.1.0-beta1-62221-01</MicrosoftDiaSymReaderConverterVersion>
-    <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta1-62221-01</MicrosoftDiaSymReaderConverterXmlVersion>
+    <MicrosoftDiaSymReaderConverterVersion>1.1.0-beta1-62628-01</MicrosoftDiaSymReaderConverterVersion>
+    <MicrosoftDiaSymReaderConverterXmlVersion>1.1.0-beta1-62628-01</MicrosoftDiaSymReaderConverterXmlVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.7.0</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion>1.4.0</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftDotNetIBCMerge>4.7.2-alpha-00001</MicrosoftDotNetIBCMerge>
@@ -227,6 +227,7 @@
     <SystemXmlXmlSerializerVersion>4.3.0</SystemXmlXmlSerializerVersion>
     <SystemXmlXPathXDocumentVersion>4.3.0</SystemXmlXPathXDocumentVersion>
     <SQLitePCLRawbundle_greenVersion>1.1.2</SQLitePCLRawbundle_greenVersion>
+    <UIAComWrapperVersion>1.1.0.14</UIAComWrapperVersion>
     <MicrosoftVSSDKBuildToolsVersion>15.1.192</MicrosoftVSSDKBuildToolsVersion>
     <VSExternalAPIsCodingConventionsVersion>1.0.60704.2</VSExternalAPIsCodingConventionsVersion>
     <VSLangProjVersion>7.0.3300</VSLangProjVersion>

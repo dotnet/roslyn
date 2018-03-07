@@ -4370,19 +4370,19 @@ static class Extensions
             CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (26,9): error CS0176: Member 'S.StaticField' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         p->StaticField = 1; //CS0176
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticField").WithArguments("S.StaticField"),
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticField").WithArguments("S.StaticField").WithLocation(26, 9),
                 // (29,9): error CS0176: Member 'S.StaticProperty' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         p->StaticProperty = 2; //CS0176
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticProperty").WithArguments("S.StaticProperty"),
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticProperty").WithArguments("S.StaticProperty").WithLocation(29, 9),
                 // (32,9): error CS0176: Member 'S.StaticMethod()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         p->StaticMethod(); //CS0176
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticMethod").WithArguments("S.StaticMethod()"),
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticMethod").WithArguments("S.StaticMethod()").WithLocation(32, 9),
                 // (38,13): error CS0176: Member 'S.StaticMethod()' cannot be accessed with an instance reference; qualify it with a type name instead
                 //         a = p->StaticMethod; //CS0176
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticMethod").WithArguments("S.StaticMethod()"),
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "p->StaticMethod").WithArguments("S.StaticMethod()").WithLocation(38, 13),
                 // (39,13): error CS1113: Extension method 'Extensions.ExtensionMethod(S)' defined on value type 'S' cannot be used to create delegates
                 //         a = p->ExtensionMethod; //CS1113
-                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "p->ExtensionMethod").WithArguments("Extensions.ExtensionMethod(S)", "S")
+                Diagnostic(ErrorCode.ERR_ValueTypeExtDelegate, "p->ExtensionMethod").WithArguments("Extensions.ExtensionMethod(S)", "S").WithLocation(39, 13)
                 );
         }
 

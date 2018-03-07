@@ -259,6 +259,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ToBadExpression(expr, resultKind);
         }
 
+        internal static bool IsTypeOrValueExpression(BoundExpression expression)
+        {
+            switch (expression?.Kind)
+            {
+                case BoundKind.TypeOrValueExpression:
+                case BoundKind.QueryClause when ((BoundQueryClause)expression).Value.Kind == BoundKind.TypeOrValueExpression:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         /// <summary>
         /// The purpose of this method is to determine if the expression satisfies desired capabilities. 
         /// If it is not then this code gives an appropriate error message.
@@ -2185,6 +2197,11 @@ moreArguments:
                     // just say it does not escape anywhere, so that we do not get false errors.
                     return scopeOfTheContainingExpression;
 
+                case BoundKind.PointerElementAccess:
+                case BoundKind.PointerIndirectionOperator:
+                    // Unsafe code will always be allowed to escape.
+                    return Binder.ExternalScope;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue($"{expr.Kind} expression of {expr.Type} type");
             }
@@ -2492,13 +2509,19 @@ moreArguments:
                     var colElement = (BoundCollectionElementInitializer)expr;
                     return CheckValEscape(colElement.Arguments, escapeFrom, escapeTo, diagnostics);
 
+                case BoundKind.PointerElementAccess:
+                    var accessedExpression = ((BoundPointerElementAccess)expr).Expression;
+                    return CheckValEscape(accessedExpression.Syntax, accessedExpression, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+
+                case BoundKind.PointerIndirectionOperator:
+                    var operandExpression = ((BoundPointerIndirectionOperator)expr).Operand;
+                    return CheckValEscape(operandExpression.Syntax, operandExpression, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue($"{expr.Kind} expression of {expr.Type} type");
 
                 #region "cannot produce ref-like values"
 //                case BoundKind.ThrowExpression:
-//                case BoundKind.PointerIndirectionOperator:
-//                case BoundKind.PointerElementAccess:
 //                case BoundKind.ArgListOperator:
 //                case BoundKind.ArgList:
 //                case BoundKind.RefTypeOperator:

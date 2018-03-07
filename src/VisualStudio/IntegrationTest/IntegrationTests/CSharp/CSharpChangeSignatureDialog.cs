@@ -55,8 +55,7 @@ class C
 }", actualText);
         }
 
-        [Fact (Skip = "https://github.com/dotnet/roslyn/issues/17640"),
-         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyReorderParameters()
         {
             SetUpEditor(@"
@@ -79,8 +78,7 @@ class C
 }", actuaText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17680"),
-         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyRemoveParameter()
         {
             SetUpEditor(@"
@@ -114,7 +112,7 @@ class C
     /// A method.
     /// </summary>
     /// <param name=""a""></param>
-    ///
+    /// 
     public void Method(int a) { }
 
     void Test()
@@ -124,8 +122,7 @@ class C
 }", actuaText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17680"),
-         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyCrossLanguageGlobalUndo()
         {
             SetUpEditor(@"using VBProject;

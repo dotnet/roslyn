@@ -26,7 +26,7 @@ Class C
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
             comp.AssertTheseDiagnostics(<errors>
 BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         M(a:=1, 2)
@@ -104,7 +104,7 @@ End Class
                                             parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
             verifier.VerifyDiagnostics()
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source,
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source,
                                             parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
             comp.AssertTheseDiagnostics(<errors>
 BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
@@ -328,7 +328,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim libComp = CreateCompilationWithMscorlibAndVBRuntime(lib_vb, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+            Dim libComp = CreateCompilationWithMscorlib40AndVBRuntime(lib_vb, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
 
             Dim verifier1 = CompileAndVerify(source, expectedOutput:="1 2.", references:={libComp.ToMetadataReference()},
                                             parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_5))
@@ -354,7 +354,7 @@ Class C
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=latestParseOptions)
             comp.AssertTheseDiagnostics(<errors>
 BC30455: Argument not specified for parameter 'other' of 'Public Shared Sub M(first As Integer, other As Integer)'.
         M(1, first:=2)
@@ -387,7 +387,7 @@ Class C
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=latestParseOptions)
             comp.AssertTheseDiagnostics(<errors>
 BC37302: Named argument 'c' is used out-of-position but is followed by an unnamed argument
         M(c:=1, 2)
@@ -419,7 +419,7 @@ Class C
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=latestParseOptions)
             comp.AssertTheseDiagnostics(<errors>
 BC37302: Named argument 'c' is used out-of-position but is followed by an unnamed argument
         M(c:=1, 2,)
@@ -449,7 +449,7 @@ Class C
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=latestParseOptions)
 
             comp.AssertTheseDiagnostics(<errors>
 BC30587: Named argument cannot match a ParamArray parameter.
@@ -481,7 +481,7 @@ Class C
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=latestParseOptions)
             comp.AssertTheseDiagnostics(<errors>
 BC30587: Named argument cannot match a ParamArray parameter.
         M(1, x:=2)
@@ -511,7 +511,7 @@ Class C
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=latestParseOptions)
             comp.AssertTheseDiagnostics(<errors>
 BC30587: Named argument cannot match a ParamArray parameter.
         M(x:=1, x:=2)
@@ -545,7 +545,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=latestParseOptions)
             comp.AssertTheseDiagnostics(<errors>
 BC30274: Parameter 'x' of 'Public Shared Sub M(x As Integer, y As Integer, z As Integer)' already has a matching argument.
         M(x:=1, x:=2, 3)
@@ -576,7 +576,7 @@ End Class
     </file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
             comp.AssertTheseDiagnostics(<errors>
 BC30274: Parameter 'x' of 'Public Shared Sub M(x As Integer, y As Integer, z As Integer)' already has a matching argument.
         M(x:=1, x:=2, 3)
@@ -609,7 +609,7 @@ Class C
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=latestParseOptions)
             comp.AssertTheseDiagnostics(<errors>
 BC30587: Named argument cannot match a ParamArray parameter.
         M(y:=1, 2)
@@ -639,7 +639,7 @@ Class C
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=latestParseOptions)
             comp.AssertTheseDiagnostics(<errors>
 BC30587: Named argument cannot match a ParamArray parameter.
         M(x:=1, y:=2, 3)
@@ -663,7 +663,7 @@ class C
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=latestParseOptions)
             comp.AssertTheseDiagnostics(<errors>
 BC30192: End of parameter list expected. Cannot define parameters after a paramarray parameter.
     Shared Sub M(ParamArray x() As Integer, y As Integer)
@@ -697,7 +697,7 @@ Class C
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions, options:=TestOptions.DebugExe)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=latestParseOptions, options:=TestOptions.DebugExe)
             comp.AssertTheseDiagnostics(<errors>
 BC30587: Named argument cannot match a ParamArray parameter.
         M(y:=1, x:=2)
@@ -728,7 +728,7 @@ Class C
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=latestParseOptions)
             comp.AssertTheseDiagnostics(<errors>
 BC37302: Named argument 'c' is used out-of-position but is followed by an unnamed argument
         M(c:=valueC, valueB)
@@ -823,14 +823,14 @@ Class C
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=latestParseOptions)
             comp.AssertTheseDiagnostics(<errors>
 BC37304: Named argument specifications must appear after all fixed arguments have been specified in a late bound invocation.
         d.M(a:=1, 2)
                   ~
                                         </errors>)
 
-            Dim comp2 = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
+            Dim comp2 = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15))
             comp2.AssertTheseDiagnostics(<errors>
 BC30241: Named argument expected. Please use language version 15.5 or greater to use non-trailing named arguments.
         d.M(a:=1, 2)
@@ -905,7 +905,7 @@ Public Class C
 End Class
     ]]></file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=latestParseOptions)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC30455: Argument not specified for parameter 'condition' of 'Public Sub New(condition As Boolean, other As Integer)'.
 <MyAttribute(condition:=true, 42)>
@@ -968,7 +968,7 @@ Public Class C
 End Class
     ]]></file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=latestParseOptions)
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntime(source, parseOptions:=latestParseOptions)
             comp.AssertTheseDiagnostics(<errors><![CDATA[
 BC30661: Field or property '' is not found.
 <MyAttribute(c:=3, 2)>
@@ -999,7 +999,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1023,7 +1023,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1054,7 +1054,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.VisualBasic15_3))
 
             CompilationUtils.AssertTheseDiagnostics(compilation,
 <expected>
@@ -1099,7 +1099,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options:=TestOptions.DebugExe)
 
             CompilationUtils.AssertNoDiagnostics(compilation)
@@ -1122,7 +1122,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options:=TestOptions.DebugExe)
 
             CompilationUtils.AssertTheseDiagnostics(compilation, <errors>
@@ -1152,7 +1152,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef,
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef,
                 parseOptions:=TestOptions.Regular.WithLanguageVersion(LanguageVersion.Latest), options:=TestOptions.DebugExe)
 
             CompilationUtils.AssertNoDiagnostics(compilation)

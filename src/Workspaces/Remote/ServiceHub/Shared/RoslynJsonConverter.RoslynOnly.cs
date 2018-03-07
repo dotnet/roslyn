@@ -7,6 +7,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.AddImport;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.DesignerAttributes;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.DocumentHighlighting;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.SymbolSearch;
@@ -34,6 +35,8 @@ namespace Microsoft.CodeAnalysis.Remote
 
             Add(builder, new ReferenceAssemblyWithTypeResultJsonConverter());
             Add(builder, new AddImportFixDataJsonConverter());
+
+            Add(builder, new AnalyzerPerformanceInfoConverter());
         }
 
         private class TodoCommentDescriptorJsonConverter : BaseJsonConverter<TodoCommentDescriptor>
@@ -73,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
                 // all integer is long
-                var descriptor = ReadProperty<TodoCommentDescriptor>(serializer, reader);
+                var descriptor = ReadProperty<TodoCommentDescriptor>(reader, serializer);
                 var message = ReadProperty<string>(reader);
                 var position = ReadProperty<long>(reader);
 
@@ -168,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Remote
             {
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
-                var textSpan = ReadProperty<TextSpan>(serializer, reader);
+                var textSpan = ReadProperty<TextSpan>(reader, serializer);
                 var kind = (HighlightSpanKind)ReadProperty<long>(reader);
 
                 Contract.ThrowIfFalse(reader.Read());
@@ -201,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Remote
                 var typeName = ReadProperty<string>(reader);
                 var version = ReadProperty<string>(reader);
                 var rank = (int)ReadProperty<long>(reader);
-                var containingNamespaceNames = ReadProperty<IList<string>>(serializer, reader);
+                var containingNamespaceNames = ReadProperty<IList<string>>(reader, serializer);
 
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
@@ -273,7 +276,7 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 var assemblyName = ReadProperty<string>(reader);
                 var typeName = ReadProperty<string>(reader);
-                var containingNamespaceNames = ReadProperty<IList<string>>(serializer, reader);
+                var containingNamespaceNames = ReadProperty<IList<string>>(reader, serializer);
 
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
@@ -334,14 +337,14 @@ namespace Microsoft.CodeAnalysis.Remote
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
                 var kind = (AddImportFixKind)ReadProperty<long>(reader);
-                var textChanges = ReadProperty<IList<TextChange>>(serializer, reader).ToImmutableArrayOrEmpty();
+                var textChanges = ReadProperty<IList<TextChange>>(reader, serializer).ToImmutableArrayOrEmpty();
                 var title = ReadProperty<string>(reader);
-                var tags = ReadProperty<IList<string>>(serializer, reader).ToImmutableArrayOrEmpty();
+                var tags = ReadProperty<IList<string>>(reader, serializer).ToImmutableArrayOrEmpty();
                 var priority = (CodeActionPriority)ReadProperty<long>(reader);
 
-                var projectReferenceToAdd = ReadProperty<ProjectId>(serializer, reader);
+                var projectReferenceToAdd = ReadProperty<ProjectId>(reader, serializer);
 
-                var portableExecutableReferenceProjectId = ReadProperty<ProjectId>(serializer, reader);
+                var portableExecutableReferenceProjectId = ReadProperty<ProjectId>(reader, serializer);
                 var portableExecutableReferenceFilePathToAdd = ReadProperty<string>(reader);
 
                 var assemblyReferenceAssemblyName = ReadProperty<string>(reader);
@@ -414,6 +417,39 @@ namespace Microsoft.CodeAnalysis.Remote
 
                 writer.WritePropertyName(nameof(AddImportFixData.PackageVersionOpt));
                 writer.WriteValue(source.PackageVersionOpt);
+
+                writer.WriteEndObject();
+            }
+        }
+
+        private class AnalyzerPerformanceInfoConverter : BaseJsonConverter<AnalyzerPerformanceInfo>
+        {
+            protected override AnalyzerPerformanceInfo ReadValue(JsonReader reader, JsonSerializer serializer)
+            {
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
+
+                var analyzerid = ReadProperty<string>(reader);
+                var builtIn = ReadProperty<bool>(reader);
+                var timeSpan = ReadProperty<TimeSpan>(reader, serializer);
+
+                Contract.ThrowIfFalse(reader.Read());
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
+
+                return new AnalyzerPerformanceInfo(analyzerid, builtIn, timeSpan);
+            }
+
+            protected override void WriteValue(JsonWriter writer, AnalyzerPerformanceInfo info, JsonSerializer serializer)
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName(nameof(AnalyzerPerformanceInfo.AnalyzerId));
+                writer.WriteValue(info.AnalyzerId);
+
+                writer.WritePropertyName(nameof(AnalyzerPerformanceInfo.BuiltIn));
+                writer.WriteValue(info.BuiltIn);
+
+                writer.WritePropertyName(nameof(AnalyzerPerformanceInfo.TimeSpan));
+                serializer.Serialize(writer, info.TimeSpan);
 
                 writer.WriteEndObject();
             }

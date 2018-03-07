@@ -4,49 +4,36 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Composition;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Workspaces.Diagnostics;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
-    [ExportWorkspaceServiceFactory(typeof(ICodeAnalysisDiagnosticAnalyzerExecutor)), Shared]
-    internal class DiagnosticAnalyzerExecutor : IWorkspaceServiceFactory
+    internal partial class DiagnosticIncrementalAnalyzer
     {
-        private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSourceOpt;
-
-        [ImportingConstructor]
-        public DiagnosticAnalyzerExecutor([Import(AllowDefault = true)]AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+        // internal for testing
+        internal class InProcOrRemoteHostAnalyzerRunner
         {
-            // hostDiagnosticUpdateSource can be null in unit test
-            _hostDiagnosticUpdateSourceOpt = hostDiagnosticUpdateSource;
-        }
-
-        public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
-        {
-            return new AnalyzerExecutor(_hostDiagnosticUpdateSourceOpt);
-        }
-
-        private class AnalyzerExecutor : ICodeAnalysisDiagnosticAnalyzerExecutor
-        {
+            private readonly DiagnosticAnalyzerService _owner;
             private readonly AbstractHostDiagnosticUpdateSource _hostDiagnosticUpdateSourceOpt;
 
             // TODO: this should be removed once we move options down to compiler layer
             private readonly ConcurrentDictionary<string, ValueTuple<OptionSet, CustomAsset>> _lastOptionSetPerLanguage;
 
-            public AnalyzerExecutor(AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
+            public InProcOrRemoteHostAnalyzerRunner(DiagnosticAnalyzerService owner, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
             {
+                _owner = owner;
                 _hostDiagnosticUpdateSourceOpt = hostDiagnosticUpdateSource;
 
                 // currently option is a bit wierd since it is not part of snapshot and 
@@ -80,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 // due to OpenFileOnly analyzer, we need to run inproc as well for such analyzers
-                var inProcResultTask = AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => a.IsOpenFileOnly(project.Solution.Workspace)), project, cancellationToken);
+                var inProcResultTask = AnalyzeInProcAsync(CreateAnalyzerDriver(analyzerDriver, a => a.IsOpenFileOnly(project.Solution.Workspace)), project, remoteHostClient, cancellationToken);
                 var outOfProcResultTask = AnalyzeOutOfProcAsync(remoteHostClient, analyzerDriver, project, forcedAnalysis, cancellationToken);
 
                 // run them concurrently in vs and remote host
@@ -95,8 +82,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     inProcResultTask.Result.TelemetryInfo.AddRange(outOfProcResultTask.Result.TelemetryInfo));
             }
 
-            private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(
+            private Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(
                 CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
+            {
+                return AnalyzeInProcAsync(analyzerDriver, project, client: null, cancellationToken);
+            }
+
+            private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeInProcAsync(
+                CompilationWithAnalyzers analyzerDriver, Project project, RemoteHostClient client, CancellationToken cancellationToken)
             {
                 if (analyzerDriver == null ||
                     analyzerDriver.Analyzers.Length == 0)
@@ -110,10 +103,39 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // PERF: Run all analyzers at once using the new GetAnalysisResultAsync API.
                 var analysisResult = await analyzerDriver.GetAnalysisResultAsync(cancellationToken).ConfigureAwait(false);
 
+                // if remote host is there, report performance data
+                var asyncToken = _owner?.Listener.BeginAsyncOperation(nameof(AnalyzeInProcAsync));
+                var _ = FireAndForgetReportAnalyzerPerformanceAsync(project, client, analysisResult, cancellationToken).CompletesAsyncOperation(asyncToken);
+
                 // get compiler result builder map
                 var builderMap = analysisResult.ToResultBuilderMap(project, version, analyzerDriver.Compilation, analyzerDriver.Analyzers, cancellationToken);
 
                 return DiagnosticAnalysisResultMap.Create(builderMap.ToImmutableDictionary(kv => kv.Key, kv => new DiagnosticAnalysisResult(kv.Value)), analysisResult.AnalyzerTelemetryInfo);
+            }
+
+            private async Task FireAndForgetReportAnalyzerPerformanceAsync(Project project, RemoteHostClient client, AnalysisResult analysisResult, CancellationToken cancellationToken)
+            {
+                if (client == null)
+                {
+                    return;
+                }
+
+                try
+                {
+                    await client.TryRunCodeAnalysisRemoteAsync(
+                        nameof(IRemoteDiagnosticAnalyzerService.ReportAnalyzerPerformance),
+                        new object[]
+                        {
+                            analysisResult.AnalyzerTelemetryInfo.ToAnalyzerPerformanceInfo(_owner),
+                            // +1 for project itself
+                            project.DocumentIds.Count + 1
+                        },
+                        cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (FatalError.ReportWithoutCrashUnlessCanceled(ex))
+                {
+                    // ignore all, this is fire and forget method
+                }
             }
 
             private async Task<DiagnosticAnalysisResultMap<DiagnosticAnalyzer, DiagnosticAnalysisResult>> AnalyzeOutOfProcAsync(
@@ -149,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         session.AddAdditionalAssets(optionAsset);
 
                         var result = await session.InvokeAsync(
-                            WellKnownServiceHubServices.CodeAnalysisService_CalculateDiagnosticsAsync,
+                            nameof(IRemoteDiagnosticAnalyzerService.CalculateDiagnosticsAsync),
                             new object[] { argument },
                             (s, c) => GetCompilerAnalysisResultAsync(s, analyzerMap, project, c), cancellationToken).ConfigureAwait(false);
 

@@ -28,7 +28,7 @@ Class C
 End Class
 ")
 
-            Dim compilation0 = CreateCompilationWithReferences({source.Tree}, references:=LatestVbReferences, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateEmptyCompilationWithReferences({source.Tree}, references:=LatestVbReferences, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source.Tree)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -70,7 +70,7 @@ End Class
             v0.VerifyPdb("C.M",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+      <file id="1" name="" language="VB" />
     </files>
     <methods>
         <method containingType="C" name="M">
@@ -177,13 +177,13 @@ End Class
     </file>
 </compilation>
 
-            Dim debug = CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
-            Dim release = CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.ReleaseDll)
+            Dim debug = CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim release = CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.ReleaseDll)
 
             CompileAndVerify(debug).VerifyPdb("C.M",
 <symbols>
     <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="B1, 88, 10, 98, B9, 30, FE, B8, AD, 46, 3F,  5, 46, 9B, AF, A9, 4F, CB, 65, B1, "/>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="B1-88-10-98-B9-30-FE-B8-AD-46-3F-05-46-9B-AF-A9-4F-CB-65-B1"/>
     </files>
     <methods>
         <method containingType="C" name="M">
@@ -209,7 +209,7 @@ End Class
             CompileAndVerify(release).VerifyPdb("C.M",
 <symbols>
     <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="B1, 88, 10, 98, B9, 30, FE, B8, AD, 46, 3F,  5, 46, 9B, AF, A9, 4F, CB, 65, B1, "/>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="B1-88-10-98-B9-30-FE-B8-AD-46-3F-05-46-9B-AF-A9-4F-CB-65-B1"/>
     </files>
     <methods>
         <method containingType="C" name="M">
@@ -268,7 +268,7 @@ Class C
 End Class
 ")
 
-            Dim compilation0 = CreateCompilationWithMscorlib({source.Tree}, options:=ComSafeDebugDll)
+            Dim compilation0 = CreateCompilationWithMscorlib40({source.Tree}, options:=ComSafeDebugDll)
             Dim compilation1 = compilation0.WithSource(source.Tree)
 
             Dim testData0 = New CompilationTestData()
@@ -477,7 +477,7 @@ End Class
     </file>
             </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -515,7 +515,7 @@ End Class
             v0.VerifyPdb("C._Lambda$__2-0", "
 <symbols>
   <files>
-    <file id=""1"" name=""a.vb"" language=""3a12d0b8-c26c-11d0-b442-00a0244a1dd2"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""CB, 10, 23, 23, 67, CE, AD, BE, 85, D1, 57, F2, D2, CB, 12, A0,  4, 4F, 66, C7, "" />
+    <file id=""1"" name=""a.vb"" language=""VB"" checksumAlgorithm=""SHA1"" checksum=""CB-10-23-23-67-CE-AD-BE-85-D1-57-F2-D2-CB-12-A0-04-4F-66-C7"" />
   </files>
   <methods>
     <method containingType=""C"" name=""_Lambda$__2-0"">
@@ -582,7 +582,7 @@ End Class
     </file>
             </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -699,7 +699,7 @@ End Class
             v0.VerifyPdb("C+VB$StateMachine_2_M.MoveNext", "
 <symbols>
   <files>
-    <file id=""1"" name=""a.vb"" language=""3a12d0b8-c26c-11d0-b442-00a0244a1dd2"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum="" E, DD, DB, BF, A5, 4D, 75, 50, 39, C6, 6C, D8, 6D, 49, 1B, 2A, 56, 79, F8, E8, "" />
+    <file id=""1"" name=""a.vb"" language=""VB"" checksumAlgorithm=""SHA1"" checksum=""0E-DD-DB-BF-A5-4D-75-50-39-C6-6C-D8-6D-49-1B-2A-56-79-F8-E8"" />
   </files>
   <methods>
     <method containingType=""C+VB$StateMachine_2_M"" name=""MoveNext"">
@@ -754,7 +754,7 @@ End Class
                 </file>
             </compilation>
 
-            Dim compilation0 = CompilationUtils.CreateCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
+            Dim compilation0 = CompilationUtils.CreateEmptyCompilationWithReferences(source, references:=LatestVbReferences, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.WithSource(source)
 
             Dim v0 = CompileAndVerify(compilation:=compilation0)
@@ -882,7 +882,7 @@ End Class
             v0.VerifyPdb("C+VB$StateMachine_2_M.MoveNext", "
 <symbols>
   <files>
-    <file id=""1"" name=""a.vb"" language=""3a12d0b8-c26c-11d0-b442-00a0244a1dd2"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""30, DD, 7D, 76, D3, C3, 98, A6, 4F, 3D, 96, F9, 8C, 84, 5B, EC, EC, 10, 83, C7, "" />
+    <file id=""1"" name=""a.vb"" language=""VB"" checksumAlgorithm=""SHA1"" checksum=""30-DD-7D-76-D3-C3-98-A6-4F-3D-96-F9-8C-84-5B-EC-EC-10-83-C7"" />
   </files>
   <methods>
     <method containingType=""C+VB$StateMachine_2_M"" name=""MoveNext"">
@@ -945,7 +945,7 @@ End Class
             Dim source1 = MarkedSource(sourceText)
             Dim source2 = MarkedSource(sourceText)
 
-            Dim compilation0 = CreateCompilationWithMscorlib(source0.Tree, options:=ComSafeDebugDll, references:=ValueTupleRefs)
+            Dim compilation0 = CreateCompilationWithMscorlib40(source0.Tree, options:=ComSafeDebugDll, references:=ValueTupleRefs)
             Dim compilation1 = compilation0.WithSource(source1.Tree)
             Dim compilation2 = compilation1.WithSource(source2.Tree)
 

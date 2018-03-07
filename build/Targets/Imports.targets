@@ -208,6 +208,20 @@
     </ItemGroup>
   </Target>
 
+  <!--
+    Some dependencies bring in references to UIAutomationClient and UIAutomationTypes. These conflict with the faster
+    UIAComWrapper implementation used by the Roslyn integration tests. This target sets the alias for the slower
+    dependencies so they are not used unintentionally within the Roslyn code base.
+  -->
+  <Target Name="HideSlowAutomationAssemblies" BeforeTargets="FindReferenceAssembliesForReferences;ResolveReferences" >
+    <ItemGroup>
+      <ReferencePath Condition="'%(FileName)' == 'UIAutomationClient' OR
+                                '%(FileName)' == 'UIAutomationTypes'">
+        <Aliases>slowautomation</Aliases>
+      </ReferencePath>
+    </ItemGroup>
+  </Target>
+
   <Import Project="GenerateAssemblyInfo.targets" Condition="'$(ProjectLanguage)' == 'CSharp' OR '$(ProjectLanguage)' == 'VB'" />
   <Import Project="GenerateInternalsVisibleTo.targets" />
 
@@ -424,6 +438,21 @@
       Text="The $(ShortSdkVersion) SDK is required to build this repo. It can be install here https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.2.0-preview1-007622/dotnet-sdk-2.2.0-preview1-007622-win-x64.exe"
       Condition="'$(UsingMicrosoftNETSdk)' == ''" />
   </Target> 
+
+  <!-- 
+      This target is used to copy referenced projects to a sub-directory vs. the direct output 
+      directory of the build. Useful when the referenced project is an EXE and the referencing 
+      project uses an incompatible targetframework
+  -->  
+  <Target Name="CopyReferencedProjectsToDependenciesDirectory" Condition="'@(RoslynReferenceToDependencyDirectory)' != ''"  AfterTargets="ResolveProjectReferences">
+    <PropertyGroup>
+      <_RoslynReferenceOutputPath>@(RoslynReferenceToDependencyDirectory->'%(RootDir)%(Directory)')</_RoslynReferenceOutputPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <_RoslynReferenceContent Include="$(_RoslynReferenceOutputPath)*.*" />
+      <Content Include="@(_RoslynReferenceContent)" Link="dependency\%(_RoslynReferenceContent.Filename)%(_RoslynReferenceContent.Extension)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
 
   <!-- Count PublicAPIs as AdditionalFiles to get them to analyzers. This is working around
        https://github.com/dotnet/project-system/issues/2160 where AdditionalFileItemNames
