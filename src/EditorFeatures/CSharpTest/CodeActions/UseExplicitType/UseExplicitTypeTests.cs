@@ -66,6 +66,30 @@ class C
         }
 
         [Fact]
+        public async Task TestForeachInsideLocalDeclaration()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        System.Action notThisLocal = () => { foreach (var[||] i in new int[0]) { } };
+    }
+}";
+
+            var expected = @"
+class C
+{
+    static void Main()
+    {
+        System.Action notThisLocal = () => { foreach (int[||] i in new int[0]) { } };
+    }
+}";
+
+            await TestInRegularAndScriptAsync(code, expected, options: PreferImplicitTypeWithNone());
+        }
+
+        [Fact]
         public async Task TestIntLocalDeclaration_Multiple()
         {
             var code = @"

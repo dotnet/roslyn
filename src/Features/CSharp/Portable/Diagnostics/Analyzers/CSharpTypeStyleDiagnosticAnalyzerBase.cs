@@ -27,26 +27,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             switch (node)
             {
                 case VariableDeclarationSyntax variableDeclaration:
-                    if (ShouldAnalyzeVariableDeclaration(variableDeclaration, semanticModel, cancellationToken))
-                    {
-                        return variableDeclaration.Type;
-                    }
-                    break;
-
+                    return ShouldAnalyzeVariableDeclaration(variableDeclaration, semanticModel, cancellationToken)
+                        ? variableDeclaration.Type
+                        : null;
                 case ForEachStatementSyntax forEachStatement:
-                    if (ShouldAnalyzeForEachStatement(forEachStatement, semanticModel, cancellationToken))
-                    {
-                        return forEachStatement.Type;
-                    }
-                    break;
-
+                    return ShouldAnalyzeForEachStatement(forEachStatement, semanticModel, cancellationToken)
+                        ? forEachStatement.Type
+                        : null;
                 case DeclarationExpressionSyntax declarationExpression:
-                    if (ShouldAnalyzeDeclarationExpression(declarationExpression, semanticModel, cancellationToken))
-                    {
-                        return declarationExpression.Type;
-                    }
-                    break;
+                    return ShouldAnalyzeDeclarationExpression(declarationExpression, semanticModel, cancellationToken)
+                        ? declarationExpression.Type
+                        : null;
             }
+
             return null;
         }
 

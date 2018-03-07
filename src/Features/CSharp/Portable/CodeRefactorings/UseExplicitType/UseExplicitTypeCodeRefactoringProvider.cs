@@ -85,36 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
 
         private static SyntaxNode GetDeclaration(SyntaxNode root, TextSpan textSpan)
         {
-            // Ex:
-            // var (x, y) = ...
-            // (var x, ...) = ...
-            // foreach (var (x, y) in ...) ...
-            var declarationExpression = root.FindToken(textSpan.Start).GetAncestor<DeclarationExpressionSyntax>();
-            if (declarationExpression != null)
-            {
-                return declarationExpression;
-            }
-
-            // Ex:
-            // var x = ...;
-            // var x;
-            // for (var x ... ) ...
-            // using (var x = ...) ...
-            var localDeclaration = root.FindToken(textSpan.Start).GetAncestor<VariableDeclarationSyntax>();
-            if (localDeclaration != null)
-            {
-                return localDeclaration;
-            }
-
-            // Ex:
-            // foreach (var x in ...) ...
-            var foreachStatement = root.FindToken(textSpan.Start).GetAncestor<ForEachStatementSyntax>();
-            if (foreachStatement != null)
-            {
-                return foreachStatement;
-            }
-
-            return null;
+            var token = root.FindToken(textSpan.Start);
+            return token.Parent?.FirstAncestorOrSelf<SyntaxNode>(
+                a => a.IsKind(SyntaxKind.DeclarationExpression, SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement));
         }
 
         private static async Task<Document> UpdateDocumentAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
