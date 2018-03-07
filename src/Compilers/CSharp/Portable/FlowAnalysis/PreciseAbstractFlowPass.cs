@@ -937,6 +937,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node;
         }
 
+        public override BoundNode VisitPassByCopy(BoundPassByCopy node)
+        {
+            VisitRvalue(node.Expression);
+            return node;
+        }
+
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
             VisitRvalue(node.Expression);

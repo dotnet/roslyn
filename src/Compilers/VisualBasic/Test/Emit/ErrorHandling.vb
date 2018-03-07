@@ -36,7 +36,7 @@ End Module
 </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
             CompileAndVerify(compilation)
         End Sub
 
@@ -59,7 +59,7 @@ End Module
 </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
             CompileAndVerify(compilation)
         End Sub
 
@@ -82,7 +82,7 @@ End Module
 </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
             CompileAndVerify(compilation)
             'compilation.VerifyDiagnostics()
         End Sub
@@ -104,7 +104,7 @@ End Module
 </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
             CompileAndVerify(compilation)
             'compilation.VerifyDiagnostics()
         End Sub
@@ -136,7 +136,7 @@ End Module
 </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
             CompileAndVerify(compilation)
             ' compilation.VerifyDiagnostics()
         End Sub
@@ -165,7 +165,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
         Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
@@ -200,7 +200,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
         Diagnostic(ERRID.ERR_ExpectedIdentifier, ""),
@@ -237,7 +237,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(compilationDef)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(compilationDef)
 
             Dim compilationVerifier = CompileAndVerify(compilation)
             compilationVerifier.VerifyIL("Module1.Main", <![CDATA[
@@ -348,7 +348,7 @@ End Module
     </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start
 1
 2]]>)
@@ -388,7 +388,7 @@ End Module
     </compilation>
 
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExpectedSpecifier, "Labels"),
                                           Diagnostic(ERRID.ERR_ExpectedDeclaration, "sing"),
                                           Diagnostic(ERRID.ERR_ExpectedEOS, "."),
@@ -434,7 +434,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
 
             Dim ExpectedOutput = <![CDATA[Try
                 On Error GoTo goo
@@ -468,7 +468,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef,
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(compilationDef,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
                                                                          options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
 
@@ -503,7 +503,7 @@ End Class
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef,
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(compilationDef,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
                                                                          options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
 
@@ -529,7 +529,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef,
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(compilationDef,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
                                                                          options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
 
@@ -552,7 +552,7 @@ End Module
             </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(compilationDef,
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(compilationDef,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
                                                                          options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
 
@@ -577,7 +577,7 @@ End Module
             </file>
     </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source,
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
                                                                          options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
 
@@ -598,7 +598,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithReferences(source,
+            Dim compilation = CompilationUtils.CreateEmptyCompilationWithReferences(source,
                                                                          references:={MscorlibRef, SystemRef, SystemCoreRef},
                                                                          options:=TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
 
@@ -624,7 +624,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_ExecutableAsDeclaration, "On Error Goto goo"))
         End Sub
 
@@ -714,7 +714,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             compilation.AssertNoDiagnostics()
         End Sub
 
@@ -790,7 +790,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             compilation.VerifyDiagnostics()
         End Sub
 
@@ -814,7 +814,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             compilation.AssertNoDiagnostics()
         End Sub
 
@@ -837,7 +837,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_NarrowingConversionDisallowed2, """3""").WithArguments("String", "Integer"),
                                           Diagnostic(ERRID.ERR_NarrowingConversionDisallowed2, "4!").WithArguments("Single", "Integer"))
         End Sub
@@ -868,7 +868,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             compilation.VerifyDiagnostics(Diagnostic(ERRID.ERR_LabelNotDefined1, "handler").WithArguments("handler"),
                                           Diagnostic(ERRID.ERR_OnErrorInSyncLock, "On Error GoTo goo"))
         End Sub
@@ -907,7 +907,7 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(compilationDef, TestOptions.ReleaseExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(compilationDef, TestOptions.ReleaseExe)
             compilation.VerifyDiagnostics()
             Dim CompilationVerifier = CompileAndVerify(compilation, expectedOutput:=<![CDATA[Start
 In SyncLock
@@ -1039,7 +1039,7 @@ End]]>)
 
         <Fact>
         Public Sub SynthesizingDefaultConstructorsWithMsCorLibMissing_Nothing()
-            Dim comp = CompilationUtils.CreateCompilation("
+            Dim comp = CompilationUtils.CreateEmptyCompilation("
 Class Test
 End Class
 ", options:=TestOptions.ReleaseDll.WithModuleName("testModule"))
@@ -1056,7 +1056,7 @@ Class Test
 
         <Fact>
         Public Sub SynthesizingDefaultConstructorsWithMsCorLibMissing_NoSystemVoid()
-            Dim comp = CompilationUtils.CreateCompilation("
+            Dim comp = CompilationUtils.CreateEmptyCompilation("
 Namespace System
     Public Class [Object]
     End Class
@@ -1077,7 +1077,7 @@ Class Test
 
         <Fact>
         Public Sub SynthesizingDefaultConstructorsWithMsCorLibMissing_NoSystemObject()
-            Dim comp = CompilationUtils.CreateCompilation("
+            Dim comp = CompilationUtils.CreateEmptyCompilation("
 Namespace System
     Public Class Void
     End Class
@@ -1098,7 +1098,7 @@ Class Test
 
         <Fact>
         Public Sub SynthesizingDefaultConstructorsWithMsCorLibMissing_NoSystemObjectDefaultConstructor()
-            Dim comp = CompilationUtils.CreateCompilation("
+            Dim comp = CompilationUtils.CreateEmptyCompilation("
 Namespace System
     Public Class [Object]
         Public Sub New(other as Object)

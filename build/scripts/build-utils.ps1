@@ -245,12 +245,9 @@ function Get-VersionCore([string]$name, [string]$versionFile) {
     $name = $name.Replace("-", "")
     $nodeName = "$($name)Version"
     $x = [xml](Get-Content -raw $versionFile)
-    $node = $x.Project.PropertyGroup.FirstChild
-    while ($node -ne $null) {
-        if ($node.Name -eq $nodeName) {
-            return $node.InnerText
-        }
-        $node = $node.NextSibling
+    $node = $x.SelectSingleNode("//Project/PropertyGroup/$nodeName")
+    if ($node -ne $null) {
+        return $node.InnerText
     }
 
     throw "Cannot find package $name in $versionFile"
@@ -290,7 +287,7 @@ function Get-PackageDir([string]$name, [string]$version = "") {
     }
 
     $p = Get-PackagesDir
-    $p = Join-Path $p $name
+    $p = Join-Path $p $name.ToLowerInvariant()
     $p = Join-Path $p $version
     return $p
 }

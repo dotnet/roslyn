@@ -8,15 +8,12 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {

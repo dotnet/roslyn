@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.PDB
 
         <Fact>
         Public Sub CheckSumDirectiveClashesSameTree()
-            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C
@@ -76,7 +76,7 @@ End Class
 
         <Fact>
         Public Sub CheckSumDirectiveClashesDifferentLength()
-            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C
@@ -112,7 +112,7 @@ End Class
 
         <Fact>
         Public Sub CheckSumDirectiveClashesDifferentTrees()
-            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C
@@ -154,7 +154,7 @@ End Class
 
         <Fact>
         Public Sub CheckSumDirectiveFullWidth()
-            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
+            Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib40(
     <compilation>
         <file name="a.vb"><![CDATA[
 Public Class C

@@ -11,8 +11,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.TupleEquality)]
     public class CodeGenTupleEqualityTests : CSharpTestBase
     {
-        private static readonly MetadataReference[] s_valueTupleRefs = new[] { SystemRuntimeFacadeRef, ValueTupleRef };
-
         [Fact]
         public void TestCSharp7_2()
         {
@@ -25,7 +23,7 @@ class C
         System.Console.Write(t == (1, 2));
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, parseOptions: TestOptions.Regular7_2);
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
             comp.VerifyDiagnostics(
                 // (7,30): error CS8320: Feature 'tuple equality' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         System.Console.Write(t == (1, 2));
@@ -60,7 +58,7 @@ class C
                 .Replace("CHANGE2", change2)
                 .Replace("EXPECTED", expectedMatch ? "true" : "false");
             string name = GetUniqueName();
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe, assemblyName: name);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, assemblyName: name);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True True");
         }
@@ -78,7 +76,7 @@ class C
         return t1 == t2;
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,16): error CS8355: Tuple types used as operands of a binary operator must have matching cardinalities. But this operator has tuple types of cardinality 2 on the left and 3 on the right.
                 //         return t1 == t2;
@@ -99,7 +97,7 @@ class C
         return t1 == t2;
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,16): error CS8355: Tuple types used as operands of a binary operator must have matching cardinalities. But this operator has tuple types of cardinality 2 on the left and 3 on the right.
                 //         return t1 == t2;
@@ -118,7 +116,7 @@ class C
         return (1, 2) == (3, 4);
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilationWithMscorlib40(source);
 
             // PROTOTYPE(tuple-equality) See if we can relax the restriction on requiring ValueTuple types
 
@@ -152,7 +150,7 @@ class C
         return t1 == t2;
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,16): error CS8373: Tuple types used as operands of a binary operator must have matching cardinalities. But this operator has tuple types of cardinality 2 on the left and 3 on the right.
                 //         return t1 == t2;
@@ -173,7 +171,7 @@ class C
         return t1 == t2;
     }
 }";
-            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs);
+            var comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.M", @"{
@@ -219,7 +217,7 @@ class C
         return t1 != t2;
     }
 }";
-            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs);
+            var comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.M", @"{
@@ -260,7 +258,7 @@ class C
         return t1 == t2;
     }
 }";
-            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs);
+            var comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
 
             // note: the logic to save variables and side-effects results in copying the inputs
@@ -308,7 +306,7 @@ class C
         System.Console.Write($""{(x, x) == (y, y)} "");
     }
 }";
-            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "True False False");
+            var comp = CompileAndVerify(source, expectedOutput: "True False False");
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.M", @"{
@@ -374,7 +372,7 @@ class C
         return t1 == (null, null);
     }
 }";
-            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "TrueFalse");
+            var comp = CompileAndVerify(source, expectedOutput: "TrueFalse");
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.M", @"{
@@ -417,7 +415,7 @@ class C
         return t1 != (null, null);
     }
 }";
-            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "FalseTrue");
+            var comp = CompileAndVerify(source, expectedOutput: "FalseTrue");
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.M", @"{
@@ -457,7 +455,7 @@ class C
         return t1 == (2, true);
     }
 }";
-            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "FalseTrue");
+            var comp = CompileAndVerify(source, expectedOutput: "FalseTrue");
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.M", @"{
@@ -516,7 +514,7 @@ struct S
         System.Console.Write((s, null) == (null, s));
     }
 }";
-            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "True");
+            var comp = CompileAndVerify(source, expectedOutput: "True");
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("S.Main", @"{
@@ -575,7 +573,7 @@ public struct S
     public static bool operator!=(S s1, S s2) { throw null; }
 }";
             // PROTOTYPE(tuple-equality) We need to create a temp for `this`, otherwise it gets mutated
-            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs, expectedOutput: "2 == 1, False");
+            var comp = CompileAndVerify(source, expectedOutput: "2 == 1, False");
             //comp.VerifyDiagnostics();
         }
 
@@ -590,7 +588,7 @@ class C
         return t == (null, 1) && t == (""hello"", 1);
     }
 }";
-            var comp = CompileAndVerify(source, additionalRefs: s_valueTupleRefs);
+            var comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             var tree = comp.Compilation.SyntaxTrees.First();
             var model = comp.Compilation.GetSemanticModel(tree);
@@ -624,7 +622,7 @@ class C
         _ = !t1; // error 4
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0019: Operator '+' cannot be applied to operands of type '(int, int)' and '(int, int)'
                 //         _ = t1 + t1; // error 1
@@ -653,7 +651,7 @@ class C
         System.Console.Write((s, null) == (null, s));
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
 
@@ -687,7 +685,7 @@ class C
         System.Console.Write((1, 2) == (1, 3));
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "False");
         }
@@ -704,7 +702,7 @@ class C
         System.Console.Write(t1 == (1L, 2));
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
 
@@ -734,7 +732,7 @@ class C
         System.Console.Write(t1 == (1L, t2));
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
 
@@ -765,7 +763,7 @@ class C
         System.Console.Write((1, t) == (1, (null, null)));
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueFalseTrue");
 
@@ -782,7 +780,7 @@ class C
             //Assert.Equal("(System.String, System.String)", tupleType.ConvertedType.ToTestDisplayString());
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(tuple-equality) Default")]
         public void TestTypedTupleAndDefault()
         {
             var source = @"
@@ -794,7 +792,7 @@ class C
         System.Console.Write(t == default);
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (7,30): error CS8310: Operator '==' cannot be applied to operand 'default'
                 //         System.Console.Write(t == default);
@@ -802,7 +800,7 @@ class C
                 );
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(tuple-equality) Default")]
         public void TestNullableTupleAndDefault()
         {
             var source = @"
@@ -814,7 +812,7 @@ class C
         System.Console.Write(t == default);
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (7,30): error CS8310: Operator '==' cannot be applied to operand 'default'
                 //         System.Console.Write(t == default);
@@ -835,13 +833,13 @@ class C
         System.Console.Write(t != (default, default));
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueFalse");
             // PROTOTYPE(tuple-equality) Expand this test
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(tuple-equality) Default")]
         public void TestNullableStructAndDefault()
         {
             var source = @"
@@ -856,7 +854,7 @@ struct S
         _ = (ns, ns) == (default, default);
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,13): error CS8310: Operator '==' cannot be applied to operand 'default'
                 //         _ = ns == default;
@@ -906,7 +904,7 @@ class C
         System.Console.Write((t, (null, null)) == ((null, null), t));
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
 
@@ -937,7 +935,7 @@ class C
         System.Console.Write((null, null) != (null, null));
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueTrueFalse");
             // PROTOTYPE(tuple-equality) Semantic model: check that null and tuples are typeless
@@ -954,7 +952,7 @@ class C
         System.Console.Write((null, null, null) == (null, () => { }, Main));
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'lambda expression'
                 //         System.Console.Write((null, null, null) == (null, () => { }, Main));
@@ -994,7 +992,7 @@ class C
         System.Console.Write((s, s) == (1, () => { }));
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0019: Operator '==' cannot be applied to operands of type 'string' and 'int'
                 //         System.Console.Write((s, s) == (1, () => { }));
@@ -1040,7 +1038,7 @@ public class C
         System.Console.Write($""{(d1, 20) != (10, d2)} "");
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True False False True");
         }
@@ -1056,7 +1054,7 @@ public class C
         System.Console.Write($""{((dynamic)true, (dynamic)false) == ((dynamic)true, (dynamic)false)} "");
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
         }
@@ -1074,7 +1072,7 @@ public class C
         System.Console.Write((d1, 2) == (() => 1, d2));
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (8,30): error CS0019: Operator '==' cannot be applied to operands of type 'dynamic' and 'lambda expression'
                 //         System.Console.Write((d1, 2) == (() => 1, d2));
@@ -1094,7 +1092,7 @@ public class C
         System.Console.Write(((dynamic)true, (dynamic)false) != (true, false));
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueFalse");
         }
@@ -1119,7 +1117,7 @@ public class C
         }
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Operator '==' cannot be applied to operands of type 'int' and 'string'");
         }
@@ -1137,7 +1135,7 @@ public class C
         System.Console.Write((d1, null) == (null, d2));
     }
 }";
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
             // PROTOTYPE(tuple-equality) verify converted type on null
@@ -1154,7 +1152,7 @@ ref struct S
         System.Console.Write(("""", s1) == (null, s2));
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,35): error CS0306: The type 'S' may not be used as a type argument
                 //         System.Console.Write(("", s1) == (null, s2));
@@ -1176,7 +1174,7 @@ public class C
         if (error1 == (error2, 3)) { }
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0103: The name 'error1' does not exist in the current context
                 //         if (error1 == (error2, 3)) { }
@@ -1200,7 +1198,7 @@ public class C
         if ("""" == 1) {}
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0815: Cannot assign (<null>, <null>) to an implicitly-typed variable
                 //         var t = (null, null);
@@ -1253,7 +1251,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             // Note: tuple equality picked ahead of custom operator== (small compat break)
             CompileAndVerify(comp, expectedOutput: "FalseTrue");
@@ -1310,7 +1308,7 @@ namespace System
 }
 ";
 
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             // Note: tuple equality picked ahead of custom operator==
@@ -1331,7 +1329,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "False True True False");
         }
@@ -1366,8 +1364,8 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe,
+                references: new[] { CSharpRef, SystemCoreRef });
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput:
@@ -1405,8 +1403,8 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe,
-                references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe,
+                references: new[] { CSharpRef, SystemCoreRef });
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput:
@@ -1437,7 +1435,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: @"True True False True True False");
@@ -1460,7 +1458,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,18): error CS0019: Operator '==' cannot be applied to operands of type '(int, int)' and 'C'
                 //         var b1 = (1, 2) == new C();
@@ -1555,7 +1553,7 @@ public class Y : Base
 
             void validate(string expression, string expected)
             {
-                var comp = CreateStandardCompilation(source.Replace("EXPRESSION", expression), options: TestOptions.DebugExe);
+                var comp = CreateCompilation(source.Replace("EXPRESSION", expression), options: TestOptions.DebugExe);
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: expected);
             }
@@ -1643,7 +1641,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "A:1, GetTuple, A:30, A:40, ValueTuple2, A:4, X:5, X:6, Y:7, Y:8, X -> Y:5, A(1) == Y(5), X -> Y:6, A(30) == Y(6), A(40) == Y(7), A(4) == Y(8), True");
         }
@@ -1730,7 +1728,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: @"A:1, A:2, A:3, A:4, X:5, GetTuple, X:6, Y:7, ValueTuple2, Y:8, X:5 -> Y:5, A(1) == Y(5), X:6 -> Y:6, A(2) == Y(6), A(3) == Y(7), A(4) == Y(8), True");
         }
@@ -1817,7 +1815,7 @@ public class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "GetTuple, A:30, A:40, ValueTuple2, X:6, Y:7, X -> Y:6, A(30) == Y(6), A(40) == Y(7), True");
         }
@@ -1856,7 +1854,7 @@ public class Y
         => throw null;
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,37): error CS0619: 'A.operator ==(A, Y)' is obsolete: 'obsolete'
                 //         System.Console.WriteLine($"{(new A(), new A()) == (new X(), new Y())}");
@@ -1889,7 +1887,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,41): error CS0165: Use of unassigned local variable 'error1'
                 //         System.Console.Write((1, 2) == (error1, 2));
@@ -1919,7 +1917,7 @@ class C
     C(int i) { this.i = i; }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,30): error CS0019: Operator '==' cannot be applied to operands of type 'C' and '(int, int)'
                 //         System.Console.Write(this == (1, 1));
@@ -1958,7 +1956,7 @@ class C
     C(int i) { this.i = i; }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueTrue");
         }
@@ -1988,7 +1986,7 @@ class C
         => throw null;
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueFalse");
         }
@@ -2007,7 +2005,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,30): error CS0019: Operator '==' cannot be applied to operands of type 'C' and 'A'
                 //         System.Console.Write(new C() == new A());
@@ -2032,7 +2030,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,30): error CS0019: Operator '==' cannot be applied to operands of type 'string' and 'int'
                 //         System.Console.Write(s == 3);
@@ -2060,7 +2058,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,18): warning CS0252: Possible unintended reference comparison; to get a value comparison, cast the left hand side to type 'string'
                 //         bool b = o == s;
@@ -2088,7 +2086,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "True False False True False");
 
@@ -2173,7 +2171,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
         }
@@ -2198,7 +2196,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "False True True False True");
 
@@ -2297,7 +2295,7 @@ class C
      }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Success");
         }
@@ -2322,7 +2320,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "True False False True False");
 
@@ -2467,7 +2465,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "True False False Convert4 Convert4 True Convert5 False Convert6 Convert20 False ");
 
@@ -2601,7 +2599,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalse");
@@ -2682,7 +2680,7 @@ class C
         return c._value;
     }
 }";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput: "False False Convert1 True Convert1 True Convert10 False Convert10 False");
@@ -2726,7 +2724,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalse");
@@ -2787,7 +2785,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True False False True");
             // PROTOTYPE(tuple-equality) Semantic model: check type of null
@@ -2833,7 +2831,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Success");
         }
@@ -2863,7 +2861,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,19): error CS0019: Operator '==' cannot be applied to operands of type 'ValueTuple<int?>' and 'ValueTuple<int?>'
                 //         bool b1 = x1 == x1;
@@ -2909,7 +2907,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs);
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,19): error CS0019: Operator '==' cannot be applied to operands of type 'ValueTuple<int?>' and 'ValueTuple<int?>'
                 //         bool b1 = x1 == x1;
@@ -2938,7 +2936,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse");
             verifier.VerifyIL("C.Compare", @"{
@@ -2986,7 +2984,7 @@ class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: s_valueTupleRefs, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             var verifier = CompileAndVerify(comp, expectedOutput: "True");
         }
@@ -3082,8 +3080,8 @@ public class NotBool
 
             void validate(string expression, string expected)
             {
-                var comp = CreateStandardCompilation(source.Replace("REPLACE", expression),
-                    references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+                var comp = CreateCompilation(source.Replace("REPLACE", expression),
+                    references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
 
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: expected);
@@ -3186,8 +3184,8 @@ public class NotBool : NotBoolBase
 
             void validate(string expression, string expected)
             {
-                var comp = CreateStandardCompilation(source.Replace("REPLACE", expression),
-                    references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+                var comp = CreateCompilation(source.Replace("REPLACE", expression),
+                    references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
 
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: expected);
@@ -3276,8 +3274,7 @@ public class NotBool
 
             void validate(string expression, string expected)
             {
-                var comp = CreateStandardCompilation(source.Replace("REPLACE", expression),
-                    references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.DebugExe);
+                var comp = CreateCompilation(source.Replace("REPLACE", expression), options: TestOptions.DebugExe);
 
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: expected);
@@ -3347,7 +3344,7 @@ public class NotBool
 
             void validate(string expression, params DiagnosticDescription[] expected)
             {
-                var comp = CreateStandardCompilation(source.Replace("REPLACE", expression), references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+                var comp = CreateCompilation(source.Replace("REPLACE", expression));
                 comp.VerifyDiagnostics(expected);
             }
         }
@@ -3403,7 +3400,7 @@ public class NotBool
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,18): error CS0029: Cannot implicitly convert type 'NotBool' to 'bool'
                 //         Write($"{(new A(1), new A(2)) == (new X(1), new Y(2))}");
@@ -3441,7 +3438,7 @@ public class A
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0029: Cannot implicitly convert type 'bool?' to 'bool'
                 //         _ = (a, a) == (a, a);
@@ -3498,7 +3495,7 @@ namespace System
 }
 ";
 
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             // Note: tuple equality picked ahead of custom operator==

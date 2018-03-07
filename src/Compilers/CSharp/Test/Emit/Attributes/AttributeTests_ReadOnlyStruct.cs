@@ -34,8 +34,11 @@ class Test
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
+                Assert.Empty(type.GetAttributes());
 
-                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, type.GetAttributes(), module.ContainingAssembly.Name);
+                var peModule = (PEModuleSymbol)module;
+                Assert.True(peModule.Module.HasIsReadOnlyAttribute(((PENamedTypeSymbol)type).Handle));
+                AssertDeclaresType(peModule, WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute, Accessibility.Public);
             });
         }
 
@@ -50,8 +53,7 @@ readonly struct S1{}
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("S1");
                 Assert.True(type.IsReadOnly);
-
-                AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name);
+                Assert.Empty(type.GetAttributes());
             });
         }
 
@@ -69,8 +71,7 @@ class Test
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
-
-                AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name);
+                Assert.Empty(type.GetAttributes());
             });
         }
 
@@ -88,8 +89,7 @@ class Test
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test+S1`1");
                 Assert.True(type.IsReadOnly);
-
-                AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name);
+                Assert.Empty(type.GetAttributes());
             });
         }
 
@@ -107,8 +107,7 @@ class Test<T>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test`1").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
-
-                AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, type.GetAttributes(), module.ContainingAssembly.Name);
+                Assert.Empty(type.GetAttributes());
             });
         }
 
@@ -121,7 +120,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 class Test
@@ -130,12 +129,11 @@ class Test
 }
 ";
 
-            CompileAndVerify(codeB, verify: Verification.Passes, additionalRefs: new[] { referenceA }, symbolValidator: module =>
+            CompileAndVerify(codeB, verify: Verification.Passes, references: new[] { referenceA }, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
-
-                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, type.GetAttributes(), referenceA.Compilation.AssemblyName);
+                Assert.Empty(type.GetAttributes());
                 AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);
             });
         }
@@ -149,7 +147,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -158,7 +156,7 @@ using System.Runtime.CompilerServices;
 public delegate ref readonly int D([IsReadOnly]in int x);
 ";
 
-            CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
+            CreateCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (4,2): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
                 // [IsReadOnly]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(4, 2),
@@ -176,7 +174,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -187,7 +185,7 @@ public class Test
 }
 ";
 
-            CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
+            CreateCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (4,2): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
                 // [IsReadOnly]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(4, 2));
@@ -202,7 +200,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -216,7 +214,7 @@ public class Test
 }
 ";
 
-            CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
+            CreateCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (6,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
                 //     [IsReadOnly]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(6, 6));
@@ -231,7 +229,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -245,7 +243,7 @@ public class Test
 }
 ";
 
-            CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
+            CreateCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (8,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
                 //     [IsReadOnly]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(8, 6));
@@ -260,7 +258,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -276,7 +274,7 @@ public class Test
 }
 ";
 
-            CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
+            CreateCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (6,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
                 //     [IsReadOnly]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(6, 6),
@@ -297,7 +295,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateStandardCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -309,7 +307,7 @@ public class Test
 }
 ";
 
-            CreateStandardCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
+            CreateCompilation(codeB, references: new[] { referenceA }).VerifyDiagnostics(
                 // (6,6): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
                 //     [IsReadOnly]
                 Diagnostic(ErrorCode.ERR_ExplicitReservedAttr, "IsReadOnly").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(6, 6),
@@ -328,7 +326,7 @@ public class Test
 	ref struct S1{}
 }";
 
-            CreateStandardCompilation(code).VerifyDiagnostics(
+            CreateCompilation(code).VerifyDiagnostics(
                 // (2,2): error CS0246: The type or namespace name 'IsReadOnlyAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 // [IsReadOnly]
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "IsReadOnly").WithArguments("IsReadOnlyAttribute").WithLocation(2, 2),
@@ -343,13 +341,13 @@ public class Test
         {
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
 
-            var code1 = CreateStandardCompilation(@"
+            var code1 = CreateCompilation(@"
 namespace System.Runtime.CompilerServices
 {
     public class IsReadOnlyAttribute : System.Attribute { }
 }");
 
-            var code2 = CreateStandardCompilation(@"
+            var code2 = CreateCompilation(@"
 public class Test1
 {
 	public readonly struct S1{}
@@ -362,7 +360,7 @@ public class Test1
                 Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(isReadOnlyAttributeName));
             });
 
-            var code3 = CreateStandardCompilation(@"
+            var code3 = CreateCompilation(@"
 public class Test2
 {
 	public readonly struct S1{}
@@ -383,7 +381,7 @@ public class Test2
 public readonly struct S1{}
 ";
 
-            CreateStandardCompilation(code, options: TestOptions.ReleaseModule).VerifyDiagnostics(
+            CreateCompilation(code, options: TestOptions.ReleaseModule).VerifyDiagnostics(
                 // (2,19): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsReadOnlyAttribute' is not defined or imported
                 // public readonly struct S1{}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "S1").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(2, 24)
@@ -400,7 +398,7 @@ public class Test
     public readonly struct S2{}
 }";
 
-            CreateStandardCompilation(code, options: TestOptions.ReleaseModule).VerifyDiagnostics(
+            CreateCompilation(code, options: TestOptions.ReleaseModule).VerifyDiagnostics(
                 // (5,23): error CS0518: Predefined type 'System.Runtime.CompilerServices.IsReadOnlyAttribute' is not defined or imported
                 //     public readonly struct S2{}
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "S2").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute").WithLocation(5, 28),
@@ -413,7 +411,7 @@ public class Test
         [Fact]
         public void BuildingAModuleRequiresIsReadOnlyAttributeToBeThere_InAReference()
         {
-            var reference = CreateStandardCompilation(@"
+            var reference = CreateCompilation(@"
 namespace System.Runtime.CompilerServices
 {
     public class IsReadOnlyAttribute : System.Attribute { }
@@ -425,12 +423,11 @@ public class Test
     public readonly struct S1{}
 }";
 
-            CompileAndVerify(code, verify: Verification.Fails, additionalRefs: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
+            CompileAndVerify(code, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
                 var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
-
-                AssertReferencedIsReadOnlyAttribute(Accessibility.Public, type.GetAttributes(), reference.Display);
+                Assert.Empty(type.GetAttributes());
                 AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);
             });
         }
@@ -459,7 +456,7 @@ public class Test2
 	public readonly struct S1{}
 }";
 
-            CompileAndVerify(code2, options: options.WithModuleName("Assembly2"), additionalRefs: new[] { comp1.Compilation.ToMetadataReference() }, symbolValidator: module =>
+            CompileAndVerify(code2, options: options.WithModuleName("Assembly2"), references: new[] { comp1.Compilation.ToMetadataReference() }, symbolValidator: module =>
             {
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.IsReadOnlyAttribute.FullName);
@@ -502,7 +499,7 @@ class Test
     public readonly struct S1{}
 }";
 
-            CreateStandardCompilation(text, options: TestOptions.ReleaseModule).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.ReleaseModule).VerifyDiagnostics(
                 // (11,23): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
                 //     public readonly struct S1{}
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "S1").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(11, 28)
@@ -525,7 +522,7 @@ class Test
    public readonly struct S1{}
 }";
 
-            CreateStandardCompilation(text).VerifyEmitDiagnostics(
+            CreateCompilation(text).VerifyEmitDiagnostics(
                 // (11,22): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
                 //    public readonly struct S1{}
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "S1").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(11, 27)
@@ -548,7 +545,7 @@ class Test
     public readonly struct S1{}
 }";
 
-            CreateStandardCompilation(text).VerifyEmitDiagnostics(
+            CreateCompilation(text).VerifyEmitDiagnostics(
                 // (11,23): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
                 //     public readonly struct S1{}
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "S1").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(11, 28)
@@ -558,7 +555,7 @@ class Test
         [Fact]
         public void IsReadOnlyAttributesInNoPia()
         {
-            var comAssembly = CreateStandardCompilation(@"
+            var comAssembly = CreateCompilation(@"
 using System;
 using System.Runtime.InteropServices;
 [assembly: ImportedFromTypeLib(""test.dll"")]
@@ -580,7 +577,7 @@ public readonly struct S1{}
 
                 var property = type.GetMember<PEPropertySymbol>("Property");
                 Assert.NotNull(property);
-                AssertReferencedIsReadOnlyAttribute(Accessibility.Internal, property.Type.GetAttributes(), module.ContainingAssembly.Name);
+                AssertNotReferencedIsReadOnlyAttribute(type.GetAttributes());
             });
 
             var code = @"
@@ -595,10 +592,10 @@ class User
 
             var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
 
-            var compilation_CompilationReference = CreateStandardCompilation(code, options: options, references: new[] { comAssembly.ToMetadataReference(embedInteropTypes: true) });
+            var compilation_CompilationReference = CreateCompilation(code, options: options, references: new[] { comAssembly.ToMetadataReference(embedInteropTypes: true) });
             CompileAndVerify(compilation_CompilationReference, symbolValidator: symbolValidator);
 
-            var compilation_BinaryReference = CreateStandardCompilation(code, options: options, references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) });
+            var compilation_BinaryReference = CreateCompilation(code, options: options, references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) });
             CompileAndVerify(compilation_BinaryReference, symbolValidator: symbolValidator);
 
             void symbolValidator(ModuleSymbol module)
@@ -630,24 +627,16 @@ public class Test
     public readonly struct S1{}
 }";
 
-            CreateStandardCompilation(text).VerifyEmitDiagnostics(
+            CreateCompilation(text).VerifyEmitDiagnostics(
                 // (11,23): error CS0656: Missing compiler required member 'System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor'
                 //     public readonly struct S1{}
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "S1").WithArguments("System.Runtime.CompilerServices.IsReadOnlyAttribute", ".ctor").WithLocation(11, 28)
                 );
         }
 
-        private static void AssertReferencedIsReadOnlyAttribute(Accessibility accessibility, ImmutableArray<CSharpAttributeData> attributes, string assemblyName)
-        {
-            var attributeType = attributes.Single().AttributeClass;
-            Assert.Equal("System.Runtime.CompilerServices.IsReadOnlyAttribute", attributeType.ToDisplayString());
-            Assert.Equal(assemblyName, attributeType.ContainingAssembly.Name);
-            Assert.Equal(accessibility, attributeType.DeclaredAccessibility);
-        }
-
         private static void AssertNotReferencedIsReadOnlyAttribute(ImmutableArray<CSharpAttributeData> attributes)
         {
-            foreach(var attr in attributes)
+            foreach (var attr in attributes)
             {
                 Assert.NotEqual("IsReadOnlyAttribute", attr.AttributeClass.Name);
             }

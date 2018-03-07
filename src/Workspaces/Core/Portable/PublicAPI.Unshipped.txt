@@ -1,0 +1,9 @@
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.EnumMemberName = "enum member name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.FieldName = "field name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ConstantName = "constant name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.LocalName = "local name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ParameterName = "parameter name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.MethodName = "method name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ExtensionMethodName = "extension method name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.PropertyName = "property name" -> string
+const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.EventName = "event name" -> string

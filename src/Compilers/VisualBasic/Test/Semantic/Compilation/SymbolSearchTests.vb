@@ -147,7 +147,7 @@ Enum [Enum]
     EnumValue
 End Enum
 </text>.Value
-            Return CreateCompilationWithMscorlib({source})
+            Return CreateCompilationWithMscorlib40({source})
         End Function
 
         Private Shared Sub Test(compilation As VisualBasicCompilation, predicate As Func(Of String, Boolean), includeNamespace As Boolean, includeType As Boolean, includeMember As Boolean, count As Integer)

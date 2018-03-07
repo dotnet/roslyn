@@ -913,7 +913,7 @@ Class C
     End Sub
 End Class
     </file>
-</compilation>, options:=TestOptions.ReleaseExe.WithModuleName("MODULE"), additionalRefs:={LinqAssemblyRef}, expectedOutput:=<![CDATA[
+</compilation>, options:=TestOptions.ReleaseExe.WithModuleName("MODULE"), references:={LinqAssemblyRef}, expectedOutput:=<![CDATA[
 1
 2
 3
@@ -2520,7 +2520,7 @@ Module Program
 End Module
 </file>
 </compilation>,
-            additionalRefs:={LinqAssemblyRef},
+            references:={LinqAssemblyRef},
             expectedOutput:="123")
 
         End Sub

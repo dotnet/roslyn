@@ -25,7 +25,7 @@ End Class
                              </file>
                          </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source, options:=TestOptions.ReleaseDll, parseOptions:=TestOptions.Regular)
+            Dim compilation = CreateCompilationWithMscorlib40(source, options:=TestOptions.ReleaseDll, parseOptions:=TestOptions.Regular)
 
             Dim tree = compilation.SyntaxTrees.Single()
             Dim nodes = tree.GetRoot().DescendantNodes().Where(Function(n) TryCast(n, VariableDeclaratorSyntax) IsNot Nothing OrElse TryCast(n, PropertyStatementSyntax) IsNot Nothing).ToArray()

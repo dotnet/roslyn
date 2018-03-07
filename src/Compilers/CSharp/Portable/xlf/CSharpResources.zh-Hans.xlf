@@ -4141,8 +4141,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'</source>
-        <target state="translated">“{0}”不包含“{1}”的公共定义，因此 foreach 语句不能作用于“{0}”类型的变量</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
+        <target state="needs-review-translation">“{0}”不包含“{1}”的公共定义，因此 foreach 语句不能作用于“{0}”类型的变量</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">
@@ -8623,6 +8623,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_TupleSizesMismatchForBinOps">
         <source>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</source>
         <target state="new">Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
         <note />
       </trans-unit>
     </body>
