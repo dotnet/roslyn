@@ -7474,5 +7474,35 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
+        public async Task TestTupleAssignment2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Main()
+    {
+        (x, y) = [|Foo()|];
+    }
+}",
+@"using System;
+
+class C
+{
+    void Main()
+    {
+        (x, y) = Foo();
+    }
+
+    private (object x, object y) Foo()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
     }
 }
