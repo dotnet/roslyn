@@ -76,8 +76,6 @@
     <MicrosoftVisualStudioCodeAnalysisSdkUIVersion>15.0.26730-alpha</MicrosoftVisualStudioCodeAnalysisSdkUIVersion>
     <MicrosoftVisualStudioComponentModelHostVersion>15.0.26730-alpha</MicrosoftVisualStudioComponentModelHostVersion>
     <MicrosoftVisualStudioCompositionVersion>15.5.23</MicrosoftVisualStudioCompositionVersion>
-    <MicrosoftVisualStudioDebuggerEngineVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerEngineVersion>
-    <MicrosoftVisualStudioDebuggerMetadataVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerMetadataVersion>
     <MicrosoftVisualStudioDebuggerUIInterfacesVersion>15.0.27309-vsucorediag</MicrosoftVisualStudioDebuggerUIInterfacesVersion>
     <MicrosoftVisualStudioCoreUtilityVersion>15.7.140-preview-gc7d2848231</MicrosoftVisualStudioCoreUtilityVersion>
     <MicrosoftVisualStudioDebuggerEngineVersion>15.0.26811-vsucorediag</MicrosoftVisualStudioDebuggerEngineVersion>
@@ -95,6 +93,7 @@
     <MicrosoftVisualStudioLanguageVersion>15.7.140-preview-gc7d2848231</MicrosoftVisualStudioLanguageVersion>
     <MicrosoftVisualStudioLanguageIntellisenseVersion>15.6.281-preview</MicrosoftVisualStudioLanguageIntellisenseVersion>
     <MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>15.6.281-preview</MicrosoftVisualStudioLanguageNavigateToInterfacesVersion>
+	<MicrosoftVisualStudioLanguageStandardClassificationVersion>15.6.281-preview</MicrosoftVisualStudioLanguageStandardClassificationVersion>
     <MicrosoftVisualStudioLanguageIntellisenseVersion>15.7.140-preview-gc7d2848231</MicrosoftVisualStudioLanguageIntellisenseVersion>
     <MicrosoftVisualStudioOLEInteropVersion>7.10.6070</MicrosoftVisualStudioOLEInteropVersion>
     <MicrosoftVisualStudioPlatformVSEditorVersion>15.6.281-preview</MicrosoftVisualStudioPlatformVSEditorVersion>
