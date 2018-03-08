@@ -6,29 +6,29 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 
-namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
-    internal partial class QuickInfoCommandHandlerAndSourceProvider
+    internal partial class QuickInfoSourceProvider
     {
         private class QuickInfoSource : IAsyncQuickInfoSource
         {
-            private readonly QuickInfoCommandHandlerAndSourceProvider _commandHandler;
+            private readonly QuickInfoSourceProvider _quickInfoSourceProvider;
             private readonly ITextBuffer _subjectBuffer;
 
-            public QuickInfoSource(QuickInfoCommandHandlerAndSourceProvider commandHandler, ITextBuffer subjectBuffer)
+            public QuickInfoSource(QuickInfoSourceProvider quickInfoSourceProvider, ITextBuffer subjectBuffer)
             {
-                _commandHandler = commandHandler;
+                _quickInfoSourceProvider = quickInfoSourceProvider;
                 _subjectBuffer = subjectBuffer;
             }
 
             public Task<QuickInfoItem> GetQuickInfoItemAsync(IAsyncQuickInfoSession session, CancellationToken cancellationToken)
             {
                 var triggerPoint = session.GetTriggerPoint(_subjectBuffer.CurrentSnapshot);
-                if (triggerPoint != null && triggerPoint.HasValue)
+                if (triggerPoint.HasValue)
                 {
                     var textView = session.TextView;
                     var args = new InvokeQuickInfoCommandArgs(textView, _subjectBuffer);
-                    if (_commandHandler.TryGetController(args, out var controller))
+                    if (_quickInfoSourceProvider.TryGetController(args, out var controller))
                     {
                         return controller.GetQuickInfoItemAsync(triggerPoint.Value, cancellationToken);
                     }

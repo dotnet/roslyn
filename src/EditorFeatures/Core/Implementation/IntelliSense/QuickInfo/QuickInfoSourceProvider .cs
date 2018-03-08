@@ -1,29 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.Composition;
-using System.Linq;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
+namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
-    [Export]
-    [Order(After = PredefinedQuickInfoPresenterNames.RoslynQuickInfoPresenter)]
+    [Export]    
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Export(typeof(IAsyncQuickInfoSourceProvider))]
     [Name("RoslynQuickInfoProvider")]
-    internal partial class QuickInfoCommandHandlerAndSourceProvider :
+    internal partial class QuickInfoSourceProvider :
         ForegroundThreadAffinitizedObject,
         IAsyncQuickInfoSourceProvider
     {

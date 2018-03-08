@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
@@ -30,18 +31,18 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
     {
         private readonly CompletionCommandHandler _completionCommandHandler;
         private readonly SignatureHelpCommandHandler _signatureHelpCommandHandler;
-        private readonly QuickInfoCommandHandlerAndSourceProvider _quickInfoCommandHandler;
+        private readonly QuickInfoSourceProvider _quickInfoSourceProvider;
 
         public string DisplayName => EditorFeaturesResources.IntelliSense;
 
         protected AbstractIntelliSenseCommandHandler(
             CompletionCommandHandler completionCommandHandler,
             SignatureHelpCommandHandler signatureHelpCommandHandler,
-            QuickInfoCommandHandlerAndSourceProvider quickInfoCommandHandler)
+            QuickInfoSourceProvider quickInfoSourceProvider)
         {
             _completionCommandHandler = completionCommandHandler;
             _signatureHelpCommandHandler = signatureHelpCommandHandler;
-            _quickInfoCommandHandler = quickInfoCommandHandler;
+            _quickInfoSourceProvider = quickInfoSourceProvider;
         }
 
         public VSCommanding.CommandState GetCommandState(EscapeKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         {
             if ((_completionCommandHandler != null && _completionCommandHandler.TryHandleEscapeKey(args)) ||
                 (_signatureHelpCommandHandler != null && _signatureHelpCommandHandler.TryHandleEscapeKey(args)) ||
-                (_quickInfoCommandHandler != null && _quickInfoCommandHandler.TryHandleEscapeKey(args)))
+                (_quickInfoSourceProvider != null && _quickInfoSourceProvider.TryHandleEscapeKey(args)))
             {
                 return;
             }
