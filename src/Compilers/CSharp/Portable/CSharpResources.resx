@@ -2176,7 +2176,7 @@ If such a class is used as a base class and if the deriving class defines a dest
     <value>An expression tree may not contain a base access</value>
   </data>
   <data name="ERR_ExpressionTreeContainsTupleBinOp" xml:space="preserve">
-    <value>An expression tree may not contain a tuple binary operator</value>
+    <value>An expression tree may not contain a tuple == or != operator</value>
   </data>
   <data name="ERR_ExpressionTreeContainsAssignment" xml:space="preserve">
     <value>An expression tree may not contain an assignment operator</value>

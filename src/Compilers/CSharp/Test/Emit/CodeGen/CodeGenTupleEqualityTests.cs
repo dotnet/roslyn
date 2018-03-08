@@ -1063,6 +1063,64 @@ class C
         }
 
         [Fact]
+        public void TestNestedDefaultWithNullableNonTupleType()
+        {
+            var source = @"
+struct S
+{
+    static void Main()
+    {
+        S? ns = null;
+        _ = (null, ns) == (null, default);
+        _ = (ns, null) != (default, null);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0019: Operator '==' cannot be applied to operands of type 'S?' and 'default'
+                //         _ = (null, ns) == (null, default);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, ns) == (null, default)").WithArguments("==", "S?", "default").WithLocation(7, 13),
+                // (8,13): error CS0019: Operator '!=' cannot be applied to operands of type 'S?' and 'default'
+                //         _ = (ns, null) != (default, null);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(ns, null) != (default, null)").WithArguments("!=", "S?", "default").WithLocation(8, 13)
+                );
+        }
+
+        [Fact]
+        public void TestNestedDefaultWithNullableNonTupleType_WithComparisonOperator()
+        {
+            var source = @"
+public struct S
+{
+    public static void Main()
+    {
+        S? ns = new S();
+        System.Console.Write((null, ns) == (null, default));
+        System.Console.Write((ns, null) != (default, null));
+    }
+    public static bool operator==(S s1, S s2) => throw null;
+    public static bool operator!=(S s1, S s2) => throw null;
+    public override int GetHashCode() => throw null;
+    public override bool Equals(object o) => throw null;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "FalseTrue");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var defaults = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
+                .Where(e => e.Kind() == SyntaxKind.DefaultLiteralExpression);
+
+            foreach (var literal in defaults)
+            {
+                var type = model.GetTypeInfo(literal);
+                Assert.Equal("S?", type.Type.ToTestDisplayString());
+                Assert.Equal("S?", type.ConvertedType.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
         public void TestAllDefaults()
         {
             var source = @"
@@ -3973,12 +4031,12 @@ public class C
     public static void Main()
     {
         Expression<Func<int, bool>> expr = i => (i, i) == (i, i);
-        Expression<Func<(int, int), bool>> expr2 = t => t == t;
+        Expression<Func<(int, int), bool>> expr2 = t => t != t;
     }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (8,49): error CS8374: An expression tree may not contain a tuple binary operator
+                // (8,49): error CS8374: An expression tree may not contain a tuple == or != operator
                 //         Expression<Func<int, bool>> expr = i => (i, i) == (i, i);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "(i, i) == (i, i)").WithLocation(8, 49),
                 // (8,49): error CS8143: An expression tree may not contain a tuple literal.
@@ -3987,9 +4045,9 @@ public class C
                 // (8,59): error CS8143: An expression tree may not contain a tuple literal.
                 //         Expression<Func<int, bool>> expr = i => (i, i) == (i, i);
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleLiteral, "(i, i)").WithLocation(8, 59),
-                // (9,57): error CS8374: An expression tree may not contain a tuple binary operator
-                //         Expression<Func<(int, int), bool>> expr2 = t => t == t;
-                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "t == t").WithLocation(9, 57)
+                // (9,57): error CS8374: An expression tree may not contain a tuple == or != operator
+                //         Expression<Func<(int, int), bool>> expr2 = t => t != t;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "t != t").WithLocation(9, 57)
                 );
         }
     }

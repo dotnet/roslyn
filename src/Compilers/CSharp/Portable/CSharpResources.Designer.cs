@@ -4445,7 +4445,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An expression tree may not contain a tuple binary operator.
+        ///   Looks up a localized string similar to An expression tree may not contain a tuple == or != operator.
         /// </summary>
         internal static string ERR_ExpressionTreeContainsTupleBinOp {
             get {
