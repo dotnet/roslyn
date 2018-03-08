@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundTupleBinaryOperator BindTupleBinaryOperator(BinaryExpressionSyntax node, BinaryOperatorKind kind,
             BoundExpression left, BoundExpression right, DiagnosticBag diagnostics)
         {
-            // PROTOTYPE(tuple-equality) Block in expression tree
             TupleBinaryOperatorInfo.Multiple operators = BindTupleBinaryOperatorNestedInfo(node, kind, left, right, diagnostics);
 
             // The converted types are only used for the semantic model, so we don't need the conversion diagnostics

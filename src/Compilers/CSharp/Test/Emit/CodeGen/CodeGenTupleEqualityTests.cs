@@ -3961,6 +3961,37 @@ namespace System
             // Note: tuple equality picked ahead of custom operator==
             CompileAndVerify(comp, expectedOutput: "False");
         }
+
+        [Fact]
+        public void TestInExpressionTree()
+        {
+            var source = @"
+using System;
+using System.Linq.Expressions;
+public class C
+{
+    public static void Main()
+    {
+        Expression<Func<int, bool>> expr = i => (i, i) == (i, i);
+        Expression<Func<(int, int), bool>> expr2 = t => t == t;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,49): error CS8374: An expression tree may not contain a tuple binary operator
+                //         Expression<Func<int, bool>> expr = i => (i, i) == (i, i);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "(i, i) == (i, i)").WithLocation(8, 49),
+                // (8,49): error CS8143: An expression tree may not contain a tuple literal.
+                //         Expression<Func<int, bool>> expr = i => (i, i) == (i, i);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleLiteral, "(i, i)").WithLocation(8, 49),
+                // (8,59): error CS8143: An expression tree may not contain a tuple literal.
+                //         Expression<Func<int, bool>> expr = i => (i, i) == (i, i);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleLiteral, "(i, i)").WithLocation(8, 59),
+                // (9,57): error CS8374: An expression tree may not contain a tuple binary operator
+                //         Expression<Func<(int, int), bool>> expr2 = t => t == t;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "t == t").WithLocation(9, 57)
+                );
+        }
     }
 }
 
