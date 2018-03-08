@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using Roslyn.Utilities;
 
@@ -12,10 +11,24 @@ namespace Microsoft.CodeAnalysis.MSBuild
         private readonly Dictionary<string, HashSet<ProjectId>> _projectPathToProjectIdsMap;
         private readonly Dictionary<ProjectId, string> _projectIdToOutputFilePathMap;
 
-        public ProjectMap()
+        private ProjectMap()
         {
             _projectPathToProjectIdsMap = new Dictionary<string, HashSet<ProjectId>>(PathUtilities.Comparer);
             _projectIdToOutputFilePathMap = new Dictionary<ProjectId, string>();
+        }
+
+        public static ProjectMap Create() => new ProjectMap();
+
+        public static ProjectMap Create(Solution solution)
+        {
+            var projectMap = new ProjectMap();
+
+            foreach (var project in solution.Projects)
+            {
+                projectMap.Add(project);
+            }
+
+            return projectMap;
         }
 
         public void Add(Project project)

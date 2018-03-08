@@ -117,6 +117,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         public async Task<SolutionInfo> LoadSolutionInfoAsync(
             string solutionFilePath,
+            IProgress<ProjectLoadProgress> progress = null,
             CancellationToken cancellationToken = default)
         {
             if (solutionFilePath == null)
@@ -165,6 +166,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 baseDirectory: Path.GetDirectoryName(absoluteSolutionPath),
                 _properties,
                 projectMap: null,
+                progress,
                 requestedProjectOptions,
                 discoveredProjectOptions,
                 preferMetadataForReferencedProjects: false);
@@ -207,6 +209,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public async Task<ImmutableArray<ProjectInfo>> LoadProjectInfoAsync(
             string projectFilePath,
             ProjectMap projectMap = null,
+            IProgress<ProjectLoadProgress> progress = null,
             CancellationToken cancellationToken = default)
         {
             if (projectFilePath == null)
@@ -232,6 +235,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 baseDirectory: Directory.GetCurrentDirectory(),
                 globalProperties: _properties,
                 projectMap,
+                progress,
                 requestedProjectOptions,
                 discoveredProjectOptions,
                 this.LoadMetadataForReferencedProjects);

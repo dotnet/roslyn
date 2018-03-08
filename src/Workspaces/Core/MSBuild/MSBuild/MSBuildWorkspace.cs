@@ -165,7 +165,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Open a solution file and all referenced projects.
         /// </summary>
-        public async Task<Solution> OpenSolutionAsync(string solutionFilePath, CancellationToken cancellationToken = default)
+        public async Task<Solution> OpenSolutionAsync(
+            string solutionFilePath,
+            IProgress<ProjectLoadProgress> progress = null,
+            CancellationToken cancellationToken = default)
         {
             if (solutionFilePath == null)
             {
@@ -174,7 +177,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             this.ClearSolution();
 
-            var solutionInfo = await _loader.LoadSolutionInfoAsync(solutionFilePath, cancellationToken: cancellationToken).ConfigureAwait(false);
+            var solutionInfo = await _loader.LoadSolutionInfoAsync(solutionFilePath, progress, cancellationToken).ConfigureAwait(false);
 
             // construct workspace from loaded project infos
             this.OnSolutionAdded(solutionInfo);
@@ -187,15 +190,18 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// <summary>
         /// Open a project file and all referenced projects.
         /// </summary>
-        public async Task<Project> OpenProjectAsync(string projectFilePath, CancellationToken cancellationToken = default)
+        public async Task<Project> OpenProjectAsync(
+            string projectFilePath,
+            IProgress<ProjectLoadProgress> progress = null,
+            CancellationToken cancellationToken = default)
         {
             if (projectFilePath == null)
             {
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            //var projects = await _loader.LoadProjectInfoAsync(projectFilePath, GetCurrentProjectMap(), cancellationToken).ConfigureAwait(false);
-            var projects = await _loader.LoadProjectInfoAsync(projectFilePath, GetCurrentProjectMap_New(), cancellationToken).ConfigureAwait(false);
+            var projectMap = ProjectMap.Create(this.CurrentSolution);
+            var projects = await _loader.LoadProjectInfoAsync(projectFilePath, projectMap, progress, cancellationToken).ConfigureAwait(false);
 
             // add projects to solution
             foreach (var project in projects)
@@ -206,25 +212,6 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.UpdateReferencesAfterAdd();
 
             return this.CurrentSolution.GetProject(projects[0].Id);
-        }
-
-        private ImmutableDictionary<string, ProjectId> GetCurrentProjectMap()
-        {
-            return this.CurrentSolution.Projects
-                .Where(p => !string.IsNullOrEmpty(p.FilePath))
-                .ToImmutableDictionary(p => p.FilePath, p => p.Id, PathUtilities.Comparer);
-        }
-
-        private ProjectMap GetCurrentProjectMap_New()
-        {
-            var projectMap = new ProjectMap();
-
-            foreach (var project in this.CurrentSolution.Projects)
-            {
-                projectMap.Add(project);
-            }
-
-            return projectMap;
         }
 
         #endregion
