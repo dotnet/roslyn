@@ -48,10 +48,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         }
 
         internal static Controller GetInstance(
-            EditorCommandArgs args)
+            ITextView textView,
+            ITextBuffer subjectBuffer)
         {
-            var textView = args.TextView;
-            var subjectBuffer = args.SubjectBuffer;
             return textView.GetOrCreatePerSubjectBufferProperty(subjectBuffer, s_quickInfoPropertyKey,
                 (v, b) => new Controller(v, b, new DocumentProvider()));
         }

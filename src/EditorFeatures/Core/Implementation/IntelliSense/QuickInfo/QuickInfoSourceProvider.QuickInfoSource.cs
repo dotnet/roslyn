@@ -26,9 +26,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 var triggerPoint = session.GetTriggerPoint(_subjectBuffer.CurrentSnapshot);
                 if (triggerPoint.HasValue)
                 {
-                    var textView = session.TextView;
-                    var args = new InvokeQuickInfoCommandArgs(textView, _subjectBuffer);
-                    if (_quickInfoSourceProvider.TryGetController(args, out var controller))
+                    var textView = session.TextView;                    
+                    if (_quickInfoSourceProvider.TryGetController(textView, _subjectBuffer, out var controller))
                     {
                         return controller.GetQuickInfoItemAsync(triggerPoint.Value, cancellationToken);
                     }

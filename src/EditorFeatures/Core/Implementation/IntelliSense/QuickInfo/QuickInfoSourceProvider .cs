@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using Microsoft.VisualStudio.Utilities;
@@ -20,16 +21,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         ForegroundThreadAffinitizedObject,
         IAsyncQuickInfoSourceProvider
     {
-        private bool TryGetController(EditorCommandArgs args, out Controller controller)
+        private bool TryGetController(ITextView textView, ITextBuffer subjectBuffer, out Controller controller)
         {
             // check whether this feature is on.
-            if (!args.SubjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.QuickInfo))
+            if (!subjectBuffer.GetFeatureOnOffOption(InternalFeatureOnOffOptions.QuickInfo))
             {
                 controller = null;
                 return false;
             }
 
-            controller = Controller.GetInstance(args);
+            controller = Controller.GetInstance(textView, subjectBuffer);
             return true;
         }
 
@@ -40,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 
         internal bool TryHandleEscapeKey(EscapeKeyCommandArgs commandArgs)
         {
-            if (!TryGetController(commandArgs, out var controller))
+            if (!TryGetController(commandArgs.TextView, commandArgs.SubjectBuffer, out var controller))
             {
                 return false;
             }
