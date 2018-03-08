@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.VisualStudio.Commanding;
 using Microsoft.VisualStudio.Text.Editor.Commanding.Commands;
 using VSCommanding = Microsoft.VisualStudio.Commanding;
@@ -30,19 +29,16 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         IChainedCommandHandler<DownKeyCommandArgs>
     {
         private readonly CompletionCommandHandler _completionCommandHandler;
-        private readonly SignatureHelpCommandHandler _signatureHelpCommandHandler;
-        private readonly QuickInfoSourceProvider _quickInfoSourceProvider;
+        private readonly SignatureHelpCommandHandler _signatureHelpCommandHandler;        
 
         public string DisplayName => EditorFeaturesResources.IntelliSense;
 
         protected AbstractIntelliSenseCommandHandler(
             CompletionCommandHandler completionCommandHandler,
-            SignatureHelpCommandHandler signatureHelpCommandHandler,
-            QuickInfoSourceProvider quickInfoSourceProvider)
+            SignatureHelpCommandHandler signatureHelpCommandHandler)
         {
             _completionCommandHandler = completionCommandHandler;
-            _signatureHelpCommandHandler = signatureHelpCommandHandler;
-            _quickInfoSourceProvider = quickInfoSourceProvider;
+            _signatureHelpCommandHandler = signatureHelpCommandHandler;            
         }
 
         public VSCommanding.CommandState GetCommandState(EscapeKeyCommandArgs args, Func<VSCommanding.CommandState> nextHandler)
@@ -63,8 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         public void ExecuteCommand(EscapeKeyCommandArgs args, Action nextHandler, CommandExecutionContext context)
         {
             if ((_completionCommandHandler != null && _completionCommandHandler.TryHandleEscapeKey(args)) ||
-                (_signatureHelpCommandHandler != null && _signatureHelpCommandHandler.TryHandleEscapeKey(args)) ||
-                (_quickInfoSourceProvider != null && _quickInfoSourceProvider.TryHandleEscapeKey(args)))
+                (_signatureHelpCommandHandler != null && _signatureHelpCommandHandler.TryHandleEscapeKey(args)))
             {
                 return;
             }

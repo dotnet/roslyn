@@ -16,11 +16,9 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
         [ImportingConstructor]
         public InteractiveIntelliSenseCommandHandler(
                CompletionCommandHandler completionCommandHandler,
-               SignatureHelpCommandHandler signatureHelpCommandHandler,
-               QuickInfoSourceProvider quickInfoSourceProvider)
+               SignatureHelpCommandHandler signatureHelpCommandHandler)
             : base(completionCommandHandler,
-                   signatureHelpCommandHandler,
-                   quickInfoSourceProvider)
+                   signatureHelpCommandHandler)
         {
         }
     }
