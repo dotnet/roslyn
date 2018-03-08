@@ -70,10 +70,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 {New Lazy(Of IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession), OrderableMetadata)(Function() New TestCompletionPresenter(Me), New OrderableMetadata("Presenter"))},
                 GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
 
-
-            Dim EP = MinimalTestExportProvider.CreateExportProvider(MinimalTestExportProvider.CreateAssemblyCatalog(MinimalTestExportProvider.GetVisualStudioAssemblies()))
-            Dim handlers = EP.GetExportedValues(Of Microsoft.VisualStudio.Commanding.ICommandHandler)()
-
             Me.CompletionCommandHandler = New CompletionCommandHandler(Me.AsyncCompletionService)
 
             Me.SignatureHelpCommandHandler = New SignatureHelpCommandHandler(
