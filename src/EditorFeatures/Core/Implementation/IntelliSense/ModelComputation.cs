@@ -120,6 +120,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense
             Func<TModel, CancellationToken, Task<TModel>> transformModelAsync,
             bool updateController = true)
         {
+            AssertIsForeground();
+
             Contract.ThrowIfTrue(_stopCancellationToken.IsCancellationRequested, "should not chain tasks after we've been cancelled");
 
             // Mark that an async operation has begun.  This way tests know to wait until the
