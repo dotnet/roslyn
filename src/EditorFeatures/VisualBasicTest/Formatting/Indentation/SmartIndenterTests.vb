@@ -2835,6 +2835,44 @@ End Class"
                 expectedIndentation:=12)
         End Sub
 
+        <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestSmartIndentInArgumentLists3()
+            Dim code = "
+Class C
+    Sub M()
+        Console.WriteLine(""{0} + {1}"",
+            19, 23 +
+                19,
+
+    End Sub
+End Class"
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=6,
+                expectedIndentation:=12)
+        End Sub
+
+        <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestSmartIndentInArgumentLists4()
+            Dim code = "
+Class C
+    Sub M()
+        Console.WriteLine(""{0} + {1}"",
+            19, 23,
+                19,
+
+    End Sub
+End Class"
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=6,
+                expectedIndentation:=16)
+        End Sub
+
         <WorkItem(25323, "https://github.com/dotnet/roslyn/issues/25323")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestSmartIndentAtCaseBlockEndUntabbedComment()
