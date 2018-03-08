@@ -1542,6 +1542,10 @@ namespace Microsoft.CodeAnalysis
             Machine machine;
             switch (platform)
             {
+                case Platform.Arm64:
+                    machine = (Machine)0xAA64; //Machine.Arm64; https://github.com/dotnet/roslyn/issues/25185 
+                    break;
+
                 case Platform.Arm:
                     machine = Machine.ArmThumb2;
                     break;

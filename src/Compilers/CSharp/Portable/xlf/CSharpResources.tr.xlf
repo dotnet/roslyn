@@ -4656,8 +4656,8 @@ RuntimeCompatibilityAttribute AssemblyInfo.cs dosyasında false olarak ayarlanm�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPlatformType">
-        <source>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium or x64</source>
-        <target state="translated">/platform için geçersiz '{0}' seçeneği; anycpu, x86, Itanium veya x64 olmalıdır</target>
+        <source>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium, arm, arm64 or x64</source>
+        <target state="needs-review-translation">/platform için geçersiz '{0}' seçeneği; anycpu, x86, Itanium veya x64 olmalıdır</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
@@ -7224,7 +7224,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
  /doc:&lt;file&gt;                   XML Documentation file to generate
  /refout:&lt;file&gt;                Reference assembly output to generate
  /platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
-                               Itanium, x64, arm, anycpu32bitpreferred, or
+                               Itanium, x64, arm, arm64, anycpu32bitpreferred, or
                                anycpu. The default is anycpu.
 
                         - INPUT FILES -
@@ -7346,7 +7346,7 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
                                a part of
  /modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Visual C# Derleyici Seçenekleri
 
                         - ÇIKIŞ DOSYALARI -
@@ -8518,11 +8518,6 @@ Uyarıyı kaldırmak için, /reference kullanabilirsiniz (Birlikte Çalışma T�
       <trans-unit id="ERR_StackAllocConversionNotPossible">
         <source>Conversion of a stackalloc expression of type '{0}' to type '{1}' is not possible.</source>
         <target state="translated">{0}' türünde bir stackalloc ifadesinin türü, '{1}' türüne dönüştürülemez.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IDS_StackAllocExpression">
-        <source>stackalloc {0}[{1}]</source>
-        <target state="translated">stackalloc {0}[{1}]</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne">

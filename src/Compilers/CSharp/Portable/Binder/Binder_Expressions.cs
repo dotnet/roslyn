@@ -3131,7 +3131,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var spanType = GetWellKnownType(WellKnownType.System_Span_T, diagnostics, node);
                 if (!spanType.IsErrorType())
                 {
-                    type = spanType.Construct(elementType);
+                    type = ConstructNamedType(
+                        type: spanType,
+                        typeSyntax: node.Type,
+                        typeArgumentsSyntax: default,
+                        typeArguments: ImmutableArray.Create(elementType),
+                        basesBeingResolved: null,
+                        diagnostics: diagnostics);
                 }
             }
 
