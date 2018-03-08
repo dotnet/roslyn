@@ -11,13 +11,13 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
 {
-    internal partial class GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
+    internal partial class AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
     {
         private class GenerateEqualsAndGetHashCodeWithDialogCodeAction : CodeActionWithOptions
         {
             private readonly bool _generateEquals;
             private readonly bool _generateGetHashCode;
-            private readonly GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider _service;
+            private readonly AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider _service;
             private readonly Document _document;
             private readonly INamedTypeSymbol _containingType;
             private readonly ImmutableArray<ISymbol> _viableMembers;
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.GenerateEqualsAndGetHashCodeFromMembers
             private readonly TextSpan _textSpan;
 
             public GenerateEqualsAndGetHashCodeWithDialogCodeAction(
-                GenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
+                AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider service,
                 Document document,
                 TextSpan textSpan,
                 INamedTypeSymbol containingType,

@@ -252,5 +252,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ObjectBrowser
             Return GetList(simpleObjectList, index, ObjectListKind.Members)
         End Function
 
+        <Extension>
+        Friend Function GetReferenceList(simpleLibrary As IVsSimpleLibrary2) As IVsSimpleObjectList2
+            Return GetList(simpleLibrary, ObjectListKind.References)
+        End Function
+
+        <Extension>
+        Friend Function GetReferenceList(simpleObjectList As IVsSimpleObjectList2, index As Integer) As IVsSimpleObjectList2
+            Return GetList(simpleObjectList, index, ObjectListKind.References)
+        End Function
+
     End Module
 End Namespace

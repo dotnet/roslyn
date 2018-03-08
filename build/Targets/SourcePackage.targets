@@ -40,15 +40,14 @@
       <_RelativePath>$([MSBuild]::MakeRelative($(RepoRoot), $(MSBuildProjectDirectory)))</_RelativePath>
       
       <!-- TODO: Proper URL escaping -->
-      <_RawUrl>$(RepositoryRawUrl)/$(GitHeadSha)/$(_RelativePath.Replace('\', '/'))</_RawUrl>
+      <_RawUrl>$(RepositoryRawUrl)/$(GitHeadSha)/$(_RelativePath.Replace('\', '/'))/*</_RawUrl>
       
       <_Content>
         <![CDATA[<?xml version="1.0" encoding="utf-8"?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <SourceRoot Include="%24([System.IO.Path]::GetFullPath('%24(MSBuildThisFileDirectory)..\contentFiles\cs\%24(TargetFramework)\'))"
-                RawUrl="$(_RawUrl)"
-                UniqueName="%24(MSBuildThisFileName)"/>
+                SourceLinkUrl="$(_RawUrl)"/>
   </ItemGroup>
 </Project>]]>
       </_Content>

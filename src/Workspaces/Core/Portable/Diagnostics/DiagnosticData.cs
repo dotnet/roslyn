@@ -233,9 +233,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         public TextSpan GetExistingOrCalculatedTextSpan(SourceText text)
-        {
-            return HasTextSpan ? TextSpan : GetTextSpan(this.DataLocation, text);
-        }
+            => HasTextSpan ? EnsureInBounds(TextSpan, text) : GetTextSpan(this.DataLocation, text);
+
+        private static TextSpan EnsureInBounds(TextSpan textSpan, SourceText text)
+            => TextSpan.FromBounds(
+                Math.Min(textSpan.Start, text.Length),
+                Math.Min(textSpan.End, text.Length));
 
         public DiagnosticData WithCalculatedSpan(SourceText text)
         {
@@ -284,7 +287,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SwapIfNeeded(ref startLinePosition, ref endLinePosition);
 
             var span = text.Lines.GetTextSpan(new LinePositionSpan(startLinePosition, endLinePosition));
-            return TextSpan.FromBounds(Math.Min(Math.Max(span.Start, 0), text.Length), Math.Min(Math.Max(span.End, 0), text.Length));
+            return EnsureInBounds(TextSpan.FromBounds(Math.Max(span.Start, 0), Math.Max(span.End, 0)), text);
         }
 
         private static void AdjustBoundaries(DiagnosticDataLocation dataLocation,

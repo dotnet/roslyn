@@ -2168,7 +2168,7 @@ Se si usa tale classe come classe di base e se la classe di derivazione definisc
       </trans-unit>
       <trans-unit id="WRN_ExplicitImplCollision_Title">
         <source>Explicit interface implementation matches more than one interface member</source>
-        <target state="translated">L'implementazione dell'interfaccia esplicita corrisponde a più di un membro di interfaccia</target>
+        <target state="translated">L'implementazione esplicita dell'interfaccia corrisponde a più di un membro di interfaccia</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_AbstractHasBody">
@@ -3373,7 +3373,7 @@ Se si usa tale classe come classe di base e se la classe di derivazione definisc
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedVariableAssignedArrayInitializer">
         <source>Cannot initialize an implicitly-typed variable with an array initializer</source>
-        <target state="translated">Non è possibile inizializzare una variabile locale tipizzata in modo implicito con un inizializzatore di matrici</target>
+        <target state="translated">Non è possibile inizializzare una variabile locale tipizzata in modo implicito con un inizializzatore di matrice</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ImplicitlyTypedLocalCannotBeFixed">
@@ -3453,7 +3453,7 @@ Se si usa tale classe come classe di base e se la classe di derivazione definisc
       </trans-unit>
       <trans-unit id="ERR_ExpressionTreeContainsMultiDimensionalArrayInitializer">
         <source>An expression tree may not contain a multidimensional array initializer</source>
-        <target state="translated">L'albero delle espressioni non può contenere un inizializzatore di matrici multidimensionali</target>
+        <target state="translated">L'albero delle espressioni non può contenere un inizializzatore di matrice multidimensionale</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MissingArgument">
@@ -4192,7 +4192,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="ERR_MissingArraySize">
         <source>Array creation must have array size or array initializer</source>
-        <target state="translated">Per la creazione della matrice occorre specificare la dimensione della matrice o l'inizializzatore della matrice</target>
+        <target state="translated">Per la creazione della matrice occorre specificare la dimensione della matrice o l'inizializzatore di matrice</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_UnprocessedXMLComment">
@@ -4391,8 +4391,8 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUse">
-        <source>Cannot use ref or out parameter '{0}' inside an anonymous method, lambda expression, or query expression</source>
-        <target state="translated">Non è possibile usare il parametro out o ref '{0}' all'interno di un metodo anonimo, un'espressione lambda o un'espressione di query</target>
+        <source>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, or query expression</source>
+        <target state="translated">Non è possibile usare il parametro ref, out o in '{0}' all'interno di un metodo anonimo, un'espressione lambda o un'espressione di query</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalInnerUnsafe">
@@ -4452,7 +4452,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="ERR_BadCoClassSig">
         <source>The managed coclass wrapper class signature '{0}' for interface '{1}' is not a valid class name signature</source>
-        <target state="translated">La firma della classe wrapper '{0}' della coclasse gestita per l'interfaccia '{1}' non è valida per il nome della classe</target>
+        <target state="translated">La firma '{0}' della classe wrapper della coclasse gestita per l'interfaccia '{1}' non è valida per il nome della classe</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_MultipleIEnumOfT">
@@ -4767,7 +4767,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="WRN_CallOnNonAgileField_Description">
         <source>This warning occurs when you try to call a method, property, or indexer on a member of a class that derives from MarshalByRefObject, and the member is a value type. Objects that inherit from MarshalByRefObject are typically intended to be marshaled by reference across an application domain. If any code ever attempts to directly access the value-type member of such an object across an application domain, a runtime exception will occur. To resolve the warning, first copy the member into a local variable and call the method on that variable.</source>
-        <target state="translated">Questo avviso viene visualizzato quando si tenta di chiamare un metodo, una proprietà o un indicizzatore su un membro di una classe derivante da MarshalByRefObject e tale membro è un tipo di valore. Degli oggetti che ereditano da MarshalByRefObject viene in genere effettuato il marshalling dal riferimento in un dominio applicazione. Qualora un codice tenti di accedere direttamente al membro di tipo di valore di tale oggetto in un dominio applicazione, si verificherà un'eccezione in fase di esecuzione. Per risolvere il problema, copiare innanzitutto il membro in una variabile locale e chiamare il metodo su tale variabile.</target>
+        <target state="translated">Questo avviso viene visualizzato quando si tenta di chiamare un metodo, una proprietà o un indicizzatore su un membro di una classe derivante da MarshalByRefObject e tale membro è un tipo di valore. Degli oggetti che ereditano da MarshalByRefObject viene in genere effettuato il marshalling dal riferimento in un dominio dell'applicazione. Qualora un codice tenti di accedere direttamente al membro di tipo di valore di tale oggetto in un dominio dell'applicazione, si verificherà un'eccezione in fase di esecuzione. Per risolvere il problema, copiare innanzitutto il membro in una variabile locale e chiamare il metodo su tale variabile.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadWarningNumber">
@@ -5082,7 +5082,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="ERR_StaticMemberInObjectInitializer">
         <source>Static field or property '{0}' cannot be assigned in an object initializer</source>
-        <target state="translated">Non è possibile assegnare la proprietà o il campo statico '{0}' in un inizializzatore di oggetti</target>
+        <target state="translated">Non è possibile assegnare la proprietà o il campo statico '{0}' in un inizializzatore di oggetto</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ReadonlyValueTypeInObjectInitializer">
@@ -5102,7 +5102,7 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
       </trans-unit>
       <trans-unit id="ERR_EmptyElementInitializer">
         <source>Element initializer cannot be empty</source>
-        <target state="translated">L'inizializzatore di elementi non può essere vuoto</target>
+        <target state="translated">L'inizializzatore di elemento non può essere vuoto</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InitializerAddHasWrongSignature">
@@ -5545,7 +5545,7 @@ Impostare il compilatore in modo tale da distinguere i metodi, ad esempio assegn
       </trans-unit>
       <trans-unit id="WRN_CLS_OverloadUnnamed_Description">
         <source>This error occurs if you have an overloaded method that takes a jagged array and the only difference between the method signatures is the element type of the array. To avoid this error, consider using a rectangular array rather than a jagged array; use an additional parameter to disambiguate the function call; rename one or more of the overloaded methods; or, if CLS Compliance is not needed, remove the CLSCompliantAttribute attribute.</source>
-        <target state="translated">Questo errore si verifica quando si usa un metodo di overload che accetta una matrice di matrici e le firme del metodo si differenziano solo per il tipo di elemento della matrice. Per evitare questo errore, provare a usare una matrice rettangolare invece di una matrice di matrici, aggiungere un parametro in modo da evitare ambiguità nella chiamata della funzione oppure ridenominare uno o più metodi di overload. In alternativa, se la compatibilità con CLS non è necessaria, rimuovere l'attributo CLSCompliantAttribute.</target>
+        <target state="translated">Questo errore si verifica quando si usa un metodo di overload che accetta una matrice di matrici e le firme del metodo si differenziano solo per il tipo di elemento della matrice. Per evitare questo errore, provare a usare una matrice rettangolare invece di una matrice di matrici, aggiungere un parametro in modo da evitare ambiguità nella chiamata della funzione oppure rinominare uno o più metodi di overload. In alternativa, se la compatibilità con CLS non è necessaria, rimuovere l'attributo CLSCompliantAttribute.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_CLS_BadIdentifier">
@@ -7468,7 +7468,31 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
  /utf8output                   Restituisce i messaggi del compilatore usando la codifica UTF-8
  /main:&lt;tipo&gt;                  Consente di specificare il tipo che contiene il punto di ingresso, 
                                ignorando tutti gli altri punti di ingresso possibili. Forma
-      </target>
+                               breve: /m
+ /fullpaths                    Il compilatore genera percorsi completi
+ /filealign:&lt;n&gt;                Consente di specificare l'allineamento usato per le sezioni del
+                               file di output
+ /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                               Consente di specificare un mapping per i nomi di percorso di origine
+                               visualizzati dal compilatore.
+ /pdb:&lt;file&gt;                   Consente di specificare il nome del file di informazioni di debug (impostazione predefinita:
+                               nome del file di output con estensione pdb)
+ /errorendlocation             Riga e colonna di output della posizione finale di
+                               ogni errore
+ /preferreduilang              Consente di specificare il nome del linguaggio di output preferito.
+ /nostdlib[+|-]                Omette i riferimenti alla libreria standard (mscorlib.dll)
+ /subsystemversion:&lt;stringa&gt;    Consente di specificare la versione del sottosistema di questo assembly
+ /lib:&lt;elenco file&gt;              Consente di specificare le directory aggiuntive in cui cercare i
+                               riferimenti
+ /errorreport:&lt;stringa&gt;         Consente di specificare la modalità di gestione degli errori interni del compilatore:
+                               prompt, send, queue o none. L'impostazione predefinita è
+                               queue.
+ /appconfig:&lt;file&gt;             Consente di specificare un file di configurazione dell'applicazione
+                               contenente le impostazioni di binding dell'assembly
+ /moduleassemblyname:&lt;stringa&gt;  Nome dell'assembly di cui farà parte
+                               questo modulo
+ /modulename:&lt;stringa&gt;          Consente di specificare il nome del modulo di origine
+</target>
         <note>Visual C# Compiler Options</note>
       </trans-unit>
       <trans-unit id="ERR_ComImportWithInitializers">
@@ -8273,7 +8297,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       </trans-unit>
       <trans-unit id="ERR_ExpressionVariableInQueryClause">
         <source>Out variable and pattern variable declarations are not allowed within a query clause.</source>
-        <target state="translated">Le dichiarazioni di variabile out e pattern non sono consentite all'interno di una clausola di query.</target>
+        <target state="translated">Le dichiarazioni di variabile out e pattern non sono consentite all'interno di una clausola query.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_SemiOrLBraceOrArrowExpected">
@@ -8476,11 +8500,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <target state="translated">Il primo parametro di un metodo di estensione 'in' '{0}' deve essere un tipo valore.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source>The parameter modifier '{0}' cannot be used after the modifier '{1}'</source>
-        <target state="translated">Non è possibile usare il modificatore di parametro '{0}' dopo il modificatore '{1}'</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
         <source>Instance fields of readonly structs must be readonly.</source>
         <target state="translated">I campi di istanza di struct di sola lettura devono essere di sola lettura.</target>
@@ -8564,6 +8583,26 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
         <target state="translated">Non è possibile usare un valore letterale predefinito 'default' come criterio. Usare un altro valore letterale, ad esempio '0' o 'null'. Per abbinare tutto, usare un criterio di rimozione 'var _'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InDynamicMethodArg">
+        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
+        <target state="translated">Non è possibile usare argomenti con il modificatore 'in' nelle espressioni inviate in modo dinamico.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefConditional">
+        <source>ref conditional expression</source>
+        <target state="translated">espressione condizionale ref</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
+        <target state="translated">'{0}' non può implementare il membro di interfaccia '{1}' nel tipo '{2}' perché contiene un parametro __arglist</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
         <note />
       </trans-unit>
     </body>

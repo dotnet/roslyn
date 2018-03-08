@@ -8550,7 +8550,10 @@
                                   で作成します。
 @&lt;file&gt;                           コマンドライン設定をテキスト ファイルから挿入します
 /vbruntime[+|-|*]                 既定の Visual Basic ランタイムを使用して/使用せずに
-                                  コンパイルします</target>
+                                  コンパイルします。
+/vbruntime:&lt;file&gt;                 &lt;file&gt; の別の Visual Basic ランタイムを使用して 
+                                  コンパイルします。
+</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PdbLocalNameTooLong">
@@ -9071,6 +9074,16 @@
       <trans-unit id="ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment">
         <source>{0} is not a valid Visual Basic compound assignment operation</source>
         <target state="translated">{0} は有効な Visual Basic 複合割り当て操作ではありません</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InterpolatedStrings">
+        <source>interpolated strings</source>
+        <target state="new">interpolated strings</target>
         <note />
       </trans-unit>
     </body>

@@ -2721,6 +2721,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
 
             Dim newTokens = GetModifierList(accessibility, mods, GetDeclarationKind(declaration), isDefault)
+            'GetDeclarationKind returns None for Field if the count is > 1
+            'To handle multiple declarations on a field if the Accessibility is NotApplicable, we need to add the Dim
+            If declaration.Kind = SyntaxKind.FieldDeclaration AndAlso accessibility = Accessibility.NotApplicable AndAlso newTokens.Count = 0 Then
+                ' Add the Dim
+                newTokens = newTokens.Add(SyntaxFactory.Token(SyntaxKind.DimKeyword))
+            End If
+
             Return WithModifierTokens(declaration, Merge(tokens, newTokens))
         End Function
 

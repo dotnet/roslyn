@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         Dim o As (Integer, Integer)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -98,7 +98,7 @@ Namespace System.Reflection
 End Namespace
 "
 
-            Dim corlibWithoutVT = CreateCompilation({String.Format(versionTemplate, "1") + corlib_vb}, options:=TestOptions.DebugDll, assemblyName:="corlib")
+            Dim corlibWithoutVT = CreateEmptyCompilation({String.Format(versionTemplate, "1") + corlib_vb}, options:=TestOptions.DebugDll, assemblyName:="corlib")
             corlibWithoutVT.AssertTheseDiagnostics()
             Dim corlibWithoutVTRef = corlibWithoutVT.EmitToImageReference()
 
@@ -114,7 +114,7 @@ Namespace System
 End Namespace
 "
 
-            Dim corlibWithVT = CreateCompilation({String.Format(versionTemplate, "2") + corlib_vb + valuetuple_vb}, options:=TestOptions.DebugDll, assemblyName:="corlib")
+            Dim corlibWithVT = CreateEmptyCompilation({String.Format(versionTemplate, "2") + corlib_vb + valuetuple_vb}, options:=TestOptions.DebugDll, assemblyName:="corlib")
             corlibWithVT.AssertTheseDiagnostics()
 
             Const source As String =
@@ -125,7 +125,7 @@ End Namespace
     End Function
 End Class"
 
-            Dim app = CreateCompilation(source + valuetuple_vb, references:={corlibWithoutVTRef}, options:=TestOptions.DebugDll)
+            Dim app = CreateEmptyCompilation(source + valuetuple_vb, references:={corlibWithoutVTRef}, options:=TestOptions.DebugDll)
             app.AssertTheseDiagnostics()
 
             Dim runtime = CreateRuntimeInstance({app.ToModuleInstance(), corlibWithVT.ToModuleInstance()})
@@ -168,7 +168,7 @@ Class C
         Dim o As (Integer, Integer)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -300,7 +300,7 @@ class C
         Dim x = (1, 2, 3, 4, 5, 6, 7, 8)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 {MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef},
                 Sub(runtime)
@@ -337,7 +337,7 @@ End Class"
         Dim x = (1, 2, Three:=3, Four:=4, 5, 6, 7, Eight:=8)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 {MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef},
                 Sub(runtime)
@@ -380,7 +380,7 @@ End Class"
         Dim x = (1, 2)
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp, references:={MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef},
                 validator:=Sub(runtime)
                                Dim context = CreateMethodContext(runtime, "C.M")
@@ -432,7 +432,7 @@ End Class"
     Shared Sub M()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, references:={ValueTupleRef, SystemRuntimeFacadeRef}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp, {MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef},
                 Sub(runtime)
                     Dim context = CreateMethodContext(runtime, "C.M")
@@ -491,7 +491,7 @@ End Class"
     Shared Sub M()
     End Sub
 End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
+            Dim comp = CreateCompilationWithMscorlib40({source}, references:={SystemRuntimeFacadeRef, ValueTupleRef}, options:=TestOptions.DebugDll)
             WithRuntimeInstance(comp,
                 {MscorlibRef, SystemCoreRef, SystemRuntimeFacadeRef, ValueTupleRef},
                 Sub(runtime)

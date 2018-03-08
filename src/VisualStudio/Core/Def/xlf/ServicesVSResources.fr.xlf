@@ -1398,7 +1398,7 @@ Informations supplémentaires : {1}</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
+        <source>Prefer local function over anonymous function</source>
         <target state="translated">Préférer une fonction locale à une fonction anonyme</target>
         <note />
       </trans-unit>
@@ -1457,16 +1457,6 @@ Informations supplémentaires : {1}</target>
         <target state="translated">Utiliser des combinaisons de touches pour ReSharper/IntelliJ/Vim/etc.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="translated">Vos combinaisons de touches ne sont plus mappées aux commandes Visual Studio.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="translated">Nous avons remarqué que vous avez suspendu 'ReSharper Ultimate'. Restaurez les combinaisons de touches Visual Studio pour continuer à naviguer et à refactoriser.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
         <target state="translated">Activer la navigation vers des sources décompilées (expérimental)</target>
@@ -1496,6 +1486,26 @@ Je suis d'accord avec tout ce qui précède :</target>
       <trans-unit id="Decompiler_Legal_Notice_Title">
         <source>Decompiler Legal Notice</source>
         <target state="translated">Décompileur - Mention légale</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
+        <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
+        <target state="translated">La désactivation de l'extension '{0}' a annulé la liaison de vos combinaisons de touches.</target>
+        <note>0 is an extension name</note>
+      </trans-unit>
+      <trans-unit id="Code_style_header_use_editor_config">
+        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
+        <target state="translated">Les paramètres configurés ici s'appliquent uniquement à votre machine. Pour configurer ces paramètres afin qu'ils soient liés à votre solution, utilisez les fichiers .editorconfig.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_code_analysis">
+        <source>Live code analysis</source>
+        <target state="translated">Analyse de code en temps réel</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzing_0">
+        <source>Analyzing '{0}'</source>
+        <target state="translated">Analyse de '{0}'</target>
         <note />
       </trans-unit>
     </body>

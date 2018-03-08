@@ -343,8 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VerifyUnchecked(ExpressionSyntax node, DiagnosticBag diagnostics, BoundExpression expr)
         {
-            var isInsideNameof = this.EnclosingNameofArgument != null;
-            if (!expr.HasAnyErrors && !isInsideNameof)
+            if (!expr.HasAnyErrors && !IsInsideNameof)
             {
                 TypeSymbol exprType = expr.Type;
                 if ((object)exprType != null && exprType.IsUnsafe())
@@ -1191,7 +1190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options |= LookupOptions.MustBeInvocableIfMember;
             }
 
-            if (!IsInMethodBody && this.EnclosingNameofArgument == null)
+            if (!IsInMethodBody && !IsInsideNameof)
             {
                 Debug.Assert((options & LookupOptions.NamespacesOrTypesOnly) == 0);
                 options |= LookupOptions.MustNotBeMethodTypeParameter;
@@ -1418,9 +1417,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Not expecting symbol from constructed method.
                     Debug.Assert(!symbol.ContainingSymbol.Equals(containingMethod));
 
-                    var isInsideNameof = this.EnclosingNameofArgument != null;
                     // Captured in a lambda.
-                    return (containingMethod.MethodKind == MethodKind.AnonymousFunction || containingMethod.MethodKind == MethodKind.LocalFunction) && !isInsideNameof; // false in EE evaluation method
+                    return (containingMethod.MethodKind == MethodKind.AnonymousFunction || containingMethod.MethodKind == MethodKind.LocalFunction) && !IsInsideNameof; // false in EE evaluation method
                 }
             }
             return false;
@@ -1530,7 +1528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
 
-                        var constantValueOpt = localSymbol.IsConst && this.EnclosingNameofArgument == null && !type.IsErrorType()
+                        var constantValueOpt = localSymbol.IsConst && !IsInsideNameof && !type.IsErrorType()
                             ? localSymbol.GetConstantValue(node, this.LocalInProgress, diagnostics) : null;
                         return new BoundLocal(node, localSymbol, constantValueOpt, type, hasErrors: isError);
                     }
@@ -3125,7 +3123,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (inLegalPosition && !node.IsVariableDeclarationInitialization())
             {
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureRefStructs, diagnostics);
-                GetWellKnownTypeMember(Compilation, WellKnownMember.System_Span_T__ctor, diagnostics, syntax: node);
 
                 var spanType = GetWellKnownType(WellKnownType.System_Span_T, diagnostics, node);
                 if (!spanType.IsErrorType())
@@ -3377,16 +3374,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
                     var argsToParamsOpt = memberResolutionResult.Result.ArgsToParamsOpt;
 
-                    hasErrors |= !CheckInvocationArgMixing(
-                        nonNullSyntax,
-                        resultMember,
-                        receiver,
-                        resultMember.Parameters, 
-                        arguments, 
-                        refKinds, 
-                        argsToParamsOpt, 
-                        this.LocalScopeDepth, 
-                        diagnostics);
+                    if (!hasErrors)
+                    {
+                        hasErrors = !CheckInvocationArgMixing(
+                            nonNullSyntax,
+                            resultMember,
+                            receiver,
+                            resultMember.Parameters,
+                            arguments,
+                            refKinds,
+                            argsToParamsOpt,
+                            this.LocalScopeDepth,
+                            diagnostics);
+                    }
 
                     return new BoundCall(
                         nonNullSyntax,
@@ -4272,7 +4272,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (implicitReceiver.Type.IsDynamic())
             {
-                var hasErrors = ReportBadDynamicArguments(elementInitializer, boundElementInitializerExpressions, diagnostics, queryClause: null);
+                var hasErrors = ReportBadDynamicArguments(elementInitializer, boundElementInitializerExpressions, refKinds: default, diagnostics, queryClause: null);
 
                 return new BoundDynamicCollectionElementInitializer(
                     elementInitializer,
@@ -4429,15 +4429,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (overloadResolutionResult.HasAnyApplicableMember)
                 {
                     var argArray = BuildArgumentsForDynamicInvocation(analyzedArguments, diagnostics);
+                    var refKindsArray = analyzedArguments.RefKinds.ToImmutableOrNull();
 
-                    hasErrors &= ReportBadDynamicArguments(node, argArray, diagnostics, queryClause: null);
+                    hasErrors &= ReportBadDynamicArguments(node, argArray, refKindsArray, diagnostics, queryClause: null);
 
                     result = new BoundDynamicObjectCreationExpression(
                         node,
                         typeName,
                         argArray,
                         analyzedArguments.GetNames(),
-                        analyzedArguments.RefKinds.ToImmutableOrNull(),
+                        refKindsArray,
                         boundInitializerOpt,
                         overloadResolutionResult.GetAllApplicableMembers(),
                         type,
@@ -4490,16 +4491,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var arguments = analyzedArguments.Arguments.ToImmutable();
                 var refKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
                 var argToParams = memberResolutionResult.Result.ArgsToParamsOpt;
-                hasError |= !CheckInvocationArgMixing(
-                    node,
-                    method,
-                    null,
-                    method.Parameters,
-                    arguments,
-                    refKinds,
-                    argToParams,
-                    this.LocalScopeDepth,
-                    diagnostics);
+
+                if (!hasError)
+                {
+                    hasError = !CheckInvocationArgMixing(
+                        node,
+                        method,
+                        null,
+                        method.Parameters,
+                        arguments,
+                        refKinds,
+                        argToParams,
+                        this.LocalScopeDepth,
+                        diagnostics);
+                }
 
                 result = new BoundObjectCreationExpression(
                     node,
@@ -5971,7 +5976,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasError = this.CheckInstanceOrStatic(node, receiver, fieldSymbol, ref resultKind, diagnostics);
             }
 
-            if (!hasError && fieldSymbol.IsFixed && EnclosingNameofArgument == null)
+            if (!hasError && fieldSymbol.IsFixed && !IsInsideNameof)
             {
                 TypeSymbol receiverType = receiver.Type;
 
@@ -5981,9 +5986,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasError)
                 {
                     var isFixedStatementExpression = SyntaxFacts.IsFixedStatementExpression(node);
-                    var isInsideNameof = this.EnclosingNameofArgument != null;
                     Symbol accessedLocalOrParameterOpt;
-                    if (IsNonMoveableVariable(receiver, out accessedLocalOrParameterOpt) == isFixedStatementExpression && !isInsideNameof)
+                    if (IsNonMoveableVariable(receiver, out accessedLocalOrParameterOpt) == isFixedStatementExpression)
                     {
                         Error(diagnostics, isFixedStatementExpression ? ErrorCode.ERR_FixedNotNeeded : ErrorCode.ERR_FixedBufferNotFixed, node);
                         hasErrors = hasError = true;
@@ -5998,7 +6002,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ConstantValue constantValueOpt = null;
 
-            if (fieldSymbol.IsConst && this.EnclosingNameofArgument == null)
+            if (fieldSymbol.IsConst && !IsInsideNameof)
             {
                 constantValueOpt = fieldSymbol.GetConstantValue(this.ConstantFieldsInProgress, this.IsEarlyAttributeBinder);
                 if (constantValueOpt == ConstantValue.Unset)
@@ -6155,7 +6159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                if (instanceReceiver == false && EnclosingNameofArgument != node)
+                if (instanceReceiver == false && !IsInsideNameof)
                 {
                     Error(diagnostics, ErrorCode.ERR_ObjectRequired, node, symbol);
                     resultKind = LookupResultKind.StaticInstanceMismatch;
@@ -6711,15 +6715,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var argArray = BuildArgumentsForDynamicInvocation(arguments, diagnostics);
+            var refKindsArray = arguments.RefKinds.ToImmutableOrNull();
 
-            hasErrors &= ReportBadDynamicArguments(syntax, argArray, diagnostics, queryClause: null);
+            hasErrors &= ReportBadDynamicArguments(syntax, argArray, refKindsArray, diagnostics, queryClause: null);
 
             return new BoundDynamicIndexerAccess(
                 syntax,
                 receiverOpt,
                 argArray,
                 arguments.GetNames(),
-                arguments.RefKinds.ToImmutableOrNull(),
+                refKindsArray,
                 applicableProperties,
                 AssemblySymbol.DynamicType,
                 hasErrors);
@@ -6814,16 +6819,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var arguments = analyzedArguments.Arguments.ToImmutable();
-                gotError |= !CheckInvocationArgMixing(
-                    syntax,
-                    property,
-                    receiver,
-                    property.Parameters,
-                    arguments,
-                    argumentRefKinds,
-                    argsToParams,
-                    this.LocalScopeDepth,
-                    diagnostics);
+
+                if (!gotError)
+                {
+                    gotError = !CheckInvocationArgMixing(
+                        syntax,
+                        property,
+                        receiver,
+                        property.Parameters,
+                        arguments,
+                        argumentRefKinds,
+                        argsToParams,
+                        this.LocalScopeDepth,
+                        diagnostics);
+                }
 
                 propertyAccess = new BoundIndexerAccess(
                     syntax,

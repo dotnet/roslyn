@@ -8481,9 +8481,9 @@
                                   import_list:namespace,...
 /langversion:?                    Zeigt die zulässigen Werte für die Sprachversion an.
 /langversion:&lt;Zeichenfolge&gt;             Gibt die Sprachversion an:
-                                  ""default"" (neueste Hauptversion) oder
-                                  ""latest"" (neueste Version, einschließlich Nebenversionen)
-                                  oder bestimmte Versionen wie ""14"" oder ""15.3"".
+                                  "default" (neueste Hauptversion) oder
+                                  "latest" (neueste Version, einschließlich Nebenversionen)
+                                  oder bestimmte Versionen wie "14" oder "15.3".
 /optionexplicit[+|-]              Erfordert die explizite Deklaration von Variablen.
 /optioninfer[+|-]                 Lässt den Typrückschluss von Variablen zu.
 /rootnamespace:&lt;Zeichenfolge&gt;           Gibt den Stammnamespace für alle Typ-
@@ -8517,7 +8517,7 @@
 /publicsign[+|-]                  Signiert die Assembly öffentlich nur mithilfe des öffentlichen
                                   Teils des Schlüssels für einen starken Namen.
 /errorreport:&lt;Zeichenfolge&gt;             Gibt an, wie interne Compiler-
-                                                                    fehler behandelt werden. Mögliche Werte sind ""prompt"", ""send"", ""none"" oder ""queue""
+                                                                    fehler behandelt werden. Mögliche Werte sind "prompt", "send", "none" oder "queue"
                                   (Standardwert).
 /filealign:&lt;Zahl&gt;               Gibt die Ausrichtung an, die für die Abschnitte der
                                   Ausgabedatei verwendet wird.
@@ -8527,14 +8527,14 @@
 /libpath:&lt;Pfadliste&gt;              Die Liste der Verzeichnisse, die nach Metadaten-
                                   verweisen durchsucht werden sollen (durch Semikolons getrennt).
 /main:&lt;Klasse&gt;                     Gibt die Klasse oder das Modul an, die bzw. das
-                                  ""Sub Main"" enthält. Es kann sich auch um eine Klasse handeln, 
-                                  die von ""System.Windows.Forms.Form"" erbt. 
+                                  "Sub Main" enthält. Es kann sich auch um eine Klasse handeln, 
+                                  die von "System.Windows.Forms.Form" erbt. 
                                   (Kurzform: /m)
 /moduleassemblyname:&lt;Zeichenfolge&gt;      Der Name der Assembly, zu der dieses Modul 
                                   gehören wird.
 /netcf                            Gibt .NET Compact Framework als Ziel an.
 /nostdlib                         Keine Verweise auf Standardbibliotheken
-                                  (""system.dll"" und VBC.RSP-Datei).
+                                  ("system.dll" und VBC.RSP-Datei).
 /pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
                                   Gibt eine Zuordnung für die Ausgabe der Quellpfadnamen durch
                                   den Compiler an.
@@ -9074,6 +9074,16 @@
       <trans-unit id="ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment">
         <source>{0} is not a valid Visual Basic compound assignment operation</source>
         <target state="translated">"{0}" ist kein gültiger Visual Basic-Verbundzuweisungsvorgang.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InterpolatedStrings">
+        <source>interpolated strings</source>
+        <target state="new">interpolated strings</target>
         <note />
       </trans-unit>
     </body>

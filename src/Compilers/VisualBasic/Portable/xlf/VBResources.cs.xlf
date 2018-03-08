@@ -8519,7 +8519,41 @@
 /errorreport:&lt;řetězec&gt;            Určuje způsob zpracování interních chyb
                                   kompilátoru: prompt, send, none nebo queue
                                   (výchozí).
-/filealign:&lt;číslo&gt;                Určuje zarovnání po</target>
+/filealign:&lt;číslo&gt;                Určuje zarovnání použité pro oddíly výstupního
+                                  souboru.
+/highentropyva[+|-]               Povoluje ASLR s vysokou entropií.
+/keycontainer:&lt;řetězec&gt;           Určuje kontejner klíče se silným názvem.
+/keyfile:&lt;soubor&gt;                 Určuje soubor klíče se silným názvem.
+/libpath:&lt;seznam_cest&gt;            Seznam adresářů, kde se mají hledat odkazy
+                                  na metadata (oddělený středníky)
+/main:&lt;třída&gt;                     Určuje třídu nebo modul obsahující
+                                  Sub Main. Může to být taky třída, která
+                                  dědí od System.Windows.Forms.Form.
+                                  (Krátký tvar: /m)
+/moduleassemblyname:&lt;řetězec&gt;     Určuje název sestavení, jehož součástí bude
+                                  tento modul.
+/netcf                            Cílí na .NET Compact Framework.
+/nostdlib                         Neodkazuje na standardní knihovny
+                                  (system.dll a VBC.RSP).
+/pathmap:&lt;K1&gt;=&lt;V1&gt;,&lt;K2&gt;=&lt;V2&gt;,...
+                                  Určuje mapování pro výstup zdrojových názvů cest
+                                  kompilátorem.
+/platform:&lt;řetězec&gt;               Omezuje platformy, na kterých se dá tento kód
+                                  spustit: x86, x64, Itanium, arm,
+                                  AnyCPU32BitPreferred nebo anycpu (výchozí).
+/preferreduilang                  Určuje název upřednostňovaného výstupního jazyka.
+/sdkpath:&lt;cesta&gt;                  Umístění adresáře s .NET Framework SDK
+                                  (mscorlib.dll).
+/subsystemversion:&lt;verze&gt;         Určuje verzi subsystému výstupního PE.
+                                  verze: &lt;číslo&gt;[.&lt;číslo&gt;]
+/utf8output[+|-]                  Generuje výstup kompilátoru v kódování
+                                  UTF-8.
+@&lt;soubor&gt;                         Vloží nastavení příkazového řádku ze souboru.
+/vbruntime[+|-|*]                 Kompiluje s výchozím modulem runtime nebo bez něj
+                                  Visual Basicu.
+/vbruntime:&lt;soubor&gt;               Kompiluje s alternativním modulem runtime
+                                  Visual Basicu určeným parametrem &lt;soubor&gt;.
+</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PdbLocalNameTooLong">
@@ -9040,6 +9074,16 @@
       <trans-unit id="ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment">
         <source>{0} is not a valid Visual Basic compound assignment operation</source>
         <target state="translated">{0} není platná operace složeného přiřazení Visual Basicu.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InterpolatedStrings">
+        <source>interpolated strings</source>
+        <target state="new">interpolated strings</target>
         <note />
       </trans-unit>
     </body>

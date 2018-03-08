@@ -71,6 +71,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add parentheses.
+        /// </summary>
+        internal static string Add_parentheses_around_conditional_expression_in_interpolated_string {
+            get {
+                return ResourceManager.GetString("Add_parentheses_around_conditional_expression_in_interpolated_string", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add &apos;this.&apos;.
         /// </summary>
         internal static string Add_this {
@@ -140,15 +149,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Autoselect_disabled_due_to_possible_tuple_type_element_creation {
             get {
                 return ResourceManager.GetString("Autoselect_disabled_due_to_possible_tuple_type_element_creation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Autoselect disabled due to potential implicit array creation..
-        /// </summary>
-        internal static string Autoselect_disabled_due_to_potential_implicit_array_creation {
-            get {
-                return ResourceManager.GetString("Autoselect_disabled_due_to_potential_implicit_array_creation", resourceCulture);
             }
         }
         
@@ -548,16 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
             }
         }
         
-        /// <summary>
-        ///   Looks up a localized string similar to Invert if statement.
-        /// </summary>
-        internal static string Invert_if_statement {
-            get {
-                return ResourceManager.GetString("Invert_if_statement", resourceCulture);
-            }
-        }
-        
-        /// <summary>
+         /// <summary>
         ///   Looks up a localized string similar to is pattern.
         /// </summary>
         internal static string is_pattern {

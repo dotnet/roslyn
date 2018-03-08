@@ -14,6 +14,25 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.AddParameter
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
+        <WorkItem(23927, "https://github.com/dotnet/roslyn/issues/23927")>
+        Public Async Function TestMissingOnOmittedArgument() As Task
+            Await TestMissingAsync(
+"Public Module Module1
+    Private Class C
+        Public Sub New(Arg1 As Integer)
+        End Sub
+
+        Public Sub New(Arg1 As Integer, Arg2 As Integer)
+        End Sub
+    End Class
+
+    Public Sub Main()
+        Dim x = New [|C|](, 0)
+    End Sub
+End Module")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddParameter)>
         Public Async Function TestMissingWithImplicitConstructor() As Task
             Await TestMissingAsync(
 "

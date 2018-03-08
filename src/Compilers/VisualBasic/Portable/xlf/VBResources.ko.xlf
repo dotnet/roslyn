@@ -8502,7 +8502,7 @@
 /quiet                            자동 출력 모드입니다.
 /verbose                          자세한 메시지를 표시합니다.
 /parallel[+|-]                    동시 빌드입니다. 
-/version                          컴파일러 버전 번호를 표시하고 종료합니다.
+/version                          컴파일러 버전 번호를 표시하고 종료합니다. 
 
                                   - 고급 -
 /baseaddress:&lt;number&gt;             16진수로 지정된 라이브러리 또는 모듈의 기준 
@@ -8552,7 +8552,8 @@
 /vbruntime[+|-|*]                 기본 Visual Basic 런타임을 사용하거나 사용하지 않고
                                   컴파일합니다.
 /vbruntime:&lt;file&gt;                 &lt;file&gt;에서 대체 Visual Basic 런타임을 사용하여 
-                                  컴파일합니다.</target>
+                                  컴파일합니다.
+</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_PdbLocalNameTooLong">
@@ -9073,6 +9074,16 @@
       <trans-unit id="ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment">
         <source>{0} is not a valid Visual Basic compound assignment operation</source>
         <target state="translated">{0}은(는) 유효한 Visual Basic 복합 할당 연산이 아닙니다.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="FEATURE_InterpolatedStrings">
+        <source>interpolated strings</source>
+        <target state="new">interpolated strings</target>
         <note />
       </trans-unit>
     </body>

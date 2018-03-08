@@ -1,15 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Editor.Shared.Utilities
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
-Imports Microsoft.CodeAnalysis.Shared.TestHooks
-Imports Microsoft.VisualStudio.Language.Intellisense
-Imports Microsoft.VisualStudio.Text.Editor
-Imports Microsoft.VisualStudio.Text.Projection
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
     Public Class SemanticQuickInfoSourceTests
@@ -20,8 +16,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.QuickInfo
         End Function
 
         Protected Async Function TestSharedAsync(workspace As TestWorkspace, position As Integer, ParamArray expectedResults() As Action(Of Object)) As Task
-            Dim noListeners = SpecializedCollections.EmptyEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata))()
-
             Dim provider = New SemanticQuickInfoProvider()
 
             Await TestSharedAsync(workspace, provider, position, expectedResults)
@@ -2151,6 +2145,130 @@ Class Bar
 End Class
 ",
             MainDescription("Sub Program.Test(Of Bar)()"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        Public Async Function DefaultPropertyTransformation_01() As Task
+            Await TestAsync("
+<System.Reflection.DefaultMember(""Item"")>
+Class C1
+    Default Public Property Item(x As String) As String
+        Get
+            Return """"
+        End Get
+        Set(value As String)
+
+        End Set
+    End Property
+End Class
+
+Class C2
+    Public Property ViewData As C1
+End Class
+
+Class C3
+    Inherits C2
+
+    Sub Test()
+        View$$Data(""Title"") = ""About""
+    End Sub
+End Class",
+            MainDescription("Property C2.ViewData As C1"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        Public Async Function DefaultPropertyTransformation_02() As Task
+            Await TestAsync("
+<System.Reflection.DefaultMember(""Item"")>
+Class C1
+    Default Public Property Item(x As String) As String
+        Get
+            Return """"
+        End Get
+        Set(value As String)
+
+        End Set
+    End Property
+End Class
+
+Class C2
+    Public Shared Property ViewData As C1
+End Class
+
+Class C3
+    Inherits C2
+
+    Sub Test()
+        View$$Data(""Title"") = ""About""
+    End Sub
+End Class",
+            MainDescription("Property C2.ViewData As C1"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        Public Async Function DefaultPropertyTransformation_03() As Task
+            Await TestAsync("
+<System.Reflection.DefaultMember(""Item"")>
+Class C1
+    Default Public Property Item(x As String) As String
+        Get
+            Return """"
+        End Get
+        Set(value As String)
+
+        End Set
+    End Property
+End Class
+
+Class C2
+    Public Function ViewData As C1
+        Return Nothing
+    End Function
+End Class
+
+Class C3
+    Inherits C2
+
+    Sub Test()
+        View$$Data(""Title"") = ""About""
+    End Sub
+End Class",
+            MainDescription("Function C2.ViewData() As C1"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
+        <WorkItem(548762, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=548762")>
+        Public Async Function DefaultPropertyTransformation_04() As Task
+            Await TestAsync("
+<System.Reflection.DefaultMember(""Item"")>
+Class C1
+    Default Public Property Item(x As String) As String
+        Get
+            Return """"
+        End Get
+        Set(value As String)
+
+        End Set
+    End Property
+End Class
+
+Class C2
+    Public Shared Function ViewData As C1
+        Return Nothing
+    End Function
+End Class
+
+Class C3
+    Inherits C2
+
+    Sub Test()
+        View$$Data(""Title"") = ""About""
+    End Sub
+End Class",
+            MainDescription("Function C2.ViewData() As C1"))
         End Function
     End Class
 End Namespace

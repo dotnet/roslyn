@@ -4391,8 +4391,8 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUse">
-        <source>Cannot use ref or out parameter '{0}' inside an anonymous method, lambda expression, or query expression</source>
-        <target state="translated">不能在匿名方法、lambda 表达式或查询表达式中使用 ref 或 out 参数“{0}”</target>
+        <source>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, or query expression</source>
+        <target state="translated">不能在匿名方法、lambda 表达式或查询表达式中使用 ref、out 或 in 参数“{0}”</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalInnerUnsafe">
@@ -8500,11 +8500,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">"in" 扩展方法“{0}”的第一个参数必须是值类型。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_BadParameterModifiersOrder">
-        <source>The parameter modifier '{0}' cannot be used after the modifier '{1}'</source>
-        <target state="translated">参数修饰符“{0}”不能在“{1}”修饰符后使用</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_FieldsInRoStruct">
         <source>Instance fields of readonly structs must be readonly.</source>
         <target state="translated">只读结构的实例字段必须为只读。</target>
@@ -8588,6 +8583,26 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_DefaultInPattern">
         <source>A default literal 'default' is not valid as a pattern. Use another literal (e.g. '0' or 'null') as appropriate. To match everything, use a discard pattern 'var _'.</source>
         <target state="translated">默认文本 "default" 作为模式无效。请相应使用其他文本(例如 "0" 或 "null")。若要匹配一切项，请使用放弃模式 "var _"。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InDynamicMethodArg">
+        <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
+        <target state="translated">带有 "in" 修饰符的参数不能用于动态调度的表达式。</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefConditional">
+        <source>ref conditional expression</source>
+        <target state="translated">ref 条件表达式</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
+        <target state="translated">“{0}”无法在类型“{2}”中实现接口成员“{1}”，因为它具有 __arglist 参数</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
         <note />
       </trans-unit>
     </body>

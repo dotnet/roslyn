@@ -2518,7 +2518,7 @@ class C
         d();
     }
 }";
-            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F");
+            CompileAndVerify(source, options: TestOptions.UnsafeReleaseExe, expectedOutput: "F", verify: Verification.Passes);
         }
 
         [Fact]
@@ -4103,7 +4103,6 @@ public class Program
 
             CompileAndVerify(
                 source,
-                new[] { LinqAssemblyRef },
                 expectedOutput:
 @"1
 1
@@ -4161,7 +4160,7 @@ namespace Lambda.Bugs
 }
 ";
 
-            CreateStandardCompilation(source).VerifyEmitDiagnostics(
+            CreateCompilation(source).VerifyEmitDiagnostics(
                 // error CS7013: Name '<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0' exceeds the maximum length allowed in metadata.
                 Diagnostic(ErrorCode.ERR_MetadataNameTooLong).WithArguments("<Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo>b__0").WithLocation(1, 1),
                 // (17,81): error CS7013: Name 'Lambda.Bugs.I<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass,Lambda.Bugs.OuterGenericClass<Lambda.Bugs.OuterGenericClass<T,S>.NestedClass,Lambda.Bugs.OuterGenericClass<T,S>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.NestedClass>.Goo' exceeds the maximum length allowed in metadata.
@@ -4219,7 +4218,6 @@ class Program
             // ref emit would just have different metadata tokens
             // we are not interested in testing that
             CompileAndVerify(source,
-                additionalRefs: new[] { LinqAssemblyRef },
                 expectedOutput: @"
 Void .ctor(System.Object, IntPtr)
 Int32 Invoke()
@@ -4652,7 +4650,7 @@ class D
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp, expectedSignatures: new[]
             {
                 Signature("C+<>c__DisplayClass0_0`1", "<>9__0",
@@ -4744,7 +4742,7 @@ class D
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp);
 
             verifier.VerifyIL("Program.Test", @"
@@ -4873,7 +4871,7 @@ class D
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(source, options: TestOptions.ReleaseDll);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
             var verifier = CompileAndVerify(comp);
 
             verifier.VerifyIL("Program.Test", @"
@@ -5197,7 +5195,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, new[] { SystemCoreRef });
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -5217,7 +5215,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, new[] { SystemCoreRef });
+            CompileAndVerify(source);
         }
 
         [Fact]
@@ -5250,7 +5248,7 @@ class C
     }
 }";
 
-            CompileAndVerify(source, new[] { SystemCoreRef });
+            CompileAndVerify(source);
         }
 
         [Fact, WorkItem(2549, "https://github.com/dotnet/roslyn/issues/2549")]
@@ -5269,7 +5267,7 @@ public class BadBaby
         return from child in Children select from T ch in Children select false;
     }
 }";
-            CompileAndVerify(source, new[] { SystemCoreRef });
+            CompileAndVerify(source);
         }
 
         [WorkItem(9131, "https://github.com/dotnet/roslyn/issues/9131")]

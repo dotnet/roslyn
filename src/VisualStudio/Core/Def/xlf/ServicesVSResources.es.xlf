@@ -1398,8 +1398,8 @@ La opción "Carga de solución ligera" está habilitada para la solución actual
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
-        <target state="translated">Preferir una función local frente a una función anónima</target>
+        <source>Prefer local function over anonymous function</source>
+        <target state="translated">Preferir función local a función anónima</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_deconstructed_variable_declaration">
@@ -1457,16 +1457,6 @@ La opción "Carga de solución ligera" está habilitada para la solución actual
         <target state="translated">Use enlaces de teclado para ReSharper/IntelliJ/Vim/etc.</target>
         <note />
       </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="translated">Los enlaces de teclado ya no están asignados a los comandos de Visual Studio.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="translated">Hemos observado que ha suspendido "ReSharper Ultimate". Restaure los enlaces de teclado de Visual Studio para seguir navegando y refactorizando.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
         <source>Enable navigation to decompiled sources (experimental)</source>
         <target state="translated">Habilitar la navegación a orígenes decompilados (experimental)</target>
@@ -1496,6 +1486,26 @@ Estoy de acuerdo con todo lo anterior:</target>
       <trans-unit id="Decompiler_Legal_Notice_Title">
         <source>Decompiler Legal Notice</source>
         <target state="translated">Aviso legal del Descompilador</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
+        <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
+        <target state="translated">La deshabilitación de la extensión "{0}" quitará los enlaces de teclado.</target>
+        <note>0 is an extension name</note>
+      </trans-unit>
+      <trans-unit id="Code_style_header_use_editor_config">
+        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
+        <target state="translated">Los parámetros configurados aquí solo son aplicables a su equipo. Para configurar estos parámetros de manera que se desplacen con su solución, use los archivos .editorconfig.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_code_analysis">
+        <source>Live code analysis</source>
+        <target state="translated">Análisis de código activo</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzing_0">
+        <source>Analyzing '{0}'</source>
+        <target state="translated">Analizando “{0}”</target>
         <note />
       </trans-unit>
     </body>
