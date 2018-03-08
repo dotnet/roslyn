@@ -158,6 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                             Conversion conversion = _factory.Compilation.Conversions.ClassifyBuiltInConversion(inputType, output.Type, ref useSiteDiagnostics);
                             _localRewriter._diagnostics.Add(t.Syntax, useSiteDiagnostics);
+                            BoundExpression evaluated;
                             if (conversion.Exists)
                             {
                                 if (conversion.Kind == ConversionKind.ExplicitNullable &&
@@ -165,17 +166,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     _localRewriter.TryGetNullableMethod(t.Syntax, inputType, SpecialMember.System_Nullable_T_GetValueOrDefault, out MethodSymbol getValueOrDefault))
                                 {
                                     // As a special case, since the null test has already been done we can use Nullable<T>.GetValueOrDefault
-                                    return _factory.AssignmentExpression(output, _factory.Call(input, getValueOrDefault));
+                                    evaluated = _factory.Call(input, getValueOrDefault);
                                 }
                                 else
                                 {
-                                    return _factory.AssignmentExpression(output, _factory.Convert(type, input, conversion));
+                                    evaluated = _factory.Convert(type, input, conversion);
                                 }
                             }
                             else
                             {
-                                return _factory.AssignmentExpression(output, _factory.As(input, type));
+                                evaluated = _factory.As(input, type);
                             }
+
+                            return _factory.AssignmentExpression(output, evaluated);
                         }
 
                     default:
@@ -184,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             /// <summary>
-            /// Return the boolean test required for the given decision
+            /// Return the boolean test required for the given decision. Returns `null` if the decision is trivially true.
             /// </summary>
             protected BoundExpression LowerDecision(BoundDagDecision decision)
             {

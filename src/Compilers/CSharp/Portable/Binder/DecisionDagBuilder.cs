@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bindings = bindingsBuilder.ToImmutableAndFree();
         }
 
-        private void SimplifyDecisionsAndBindings(
+        private static void SimplifyDecisionsAndBindings(
             ArrayBuilder<BoundDagDecision> decisionsBuilder,
             ArrayBuilder<(BoundExpression, BoundDagTemp)> bindingsBuilder)
         {
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private void NullCheck(
+        private static void NullCheck(
             BoundDagTemp input,
             SyntaxNode syntax,
             ArrayBuilder<BoundDagDecision> decisions)
@@ -503,6 +503,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (workList.Count != 0)
             {
                 DagState state = workList.Pop();
+                Debug.Assert(state.SelectedDecision == null);
+                Debug.Assert(state.TrueBranch == null);
+                Debug.Assert(state.FalseBranch == null);
                 if (state.Cases.IsDefaultOrEmpty)
                 {
                     continue;
@@ -571,13 +574,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!finalStates.TryGetValue(label, out BoundDecisionDag final))
                 {
-                    if (bindings.IsDefaultOrEmpty)
+                    final = new BoundDecision(syntax, label);
+                    if (!bindings.IsDefaultOrEmpty)
                     {
-                        final = new BoundDecision(syntax, label);
-                    }
-                    else
-                    {
-                        final = new BoundWhenClause(syntax, bindings, null, new BoundDecision(syntax, label), null);
+                        final = new BoundWhenClause(syntax, bindings, null, final, null);
                     }
 
                     finalStates.Add(label, final);
@@ -619,10 +619,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         case BoundDagEvaluation e:
                             {
-                                BoundDecisionDag whenTrue = state.TrueBranch.Dag;
-                                Debug.Assert(whenTrue != null);
+                                BoundDecisionDag next = state.TrueBranch.Dag;
+                                Debug.Assert(next != null);
                                 Debug.Assert(state.FalseBranch == null);
-                                state.Dag = new BoundEvaluationPoint(e.Syntax, e, whenTrue);
+                                state.Dag = new BoundEvaluationPoint(e.Syntax, e, next);
                             }
                             break;
                         case BoundDagDecision d:
@@ -709,15 +709,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            PartialCaseDecision makeNext(ArrayBuilder<BoundDagDecision> remainingDecisions)
+            {
+                if (remainingDecisions.Count == c.Decisions.Length)
+                {
+                    remainingDecisions.Free();
+                    return c;
+                }
+                else
+                {
+                    return new PartialCaseDecision(c.Index, c.Syntax, remainingDecisions.ToImmutableAndFree(), c.Bindings, c.WhenClause, c.CaseLabel);
+                }
+            }
+
             if (trueBuilder != null)
             {
-                var pcd = trueBuilder.Count == c.Decisions.Length ? c : new PartialCaseDecision(c.Index, c.Syntax, trueBuilder.ToImmutableAndFree(), c.Bindings, c.WhenClause, c.CaseLabel);
+                var pcd = makeNext(trueBuilder);
                 whenTrueBuilder.Add(pcd);
             }
 
             if (falseBuilder != null)
             {
-                var pcd = falseBuilder.Count == c.Decisions.Length ? c : new PartialCaseDecision(c.Index, c.Syntax, falseBuilder.ToImmutableAndFree(), c.Bindings, c.WhenClause, c.CaseLabel);
+                var pcd = makeNext(falseBuilder);
                 whenFalseBuilder.Add(pcd);
             }
         }
@@ -929,7 +942,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class PartialCaseDecision
         {
             /// <summary>
-            /// A number that is distinct for each case and monotinically increasing from earlier to later cases.
+            /// A number that is distinct for each case and monotonically increasing from earlier to later cases.
             /// </summary>
             public readonly int Index;
             public readonly SyntaxNode Syntax;

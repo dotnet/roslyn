@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// In a switch expression, some labels may first reached by a backward branch, and
             /// it may occur when something (from the enclosing expression) is on the stack.
             /// To satisfy the verifier, the caller must arrange forward jumps to these labels. The set of
-            /// labels that will need such forward jumps (if something can be on the stack) is stored in
+            /// states whose labels will need such forward jumps (if something can be on the stack) is stored in
             /// _backwardLabels. In practice, this is exclusively the set of states that are reached
             /// when a when-clause evaluates to false.
             /// PROTOTYPE(patterns2): This is a placeholder. It is not used yet for lowering the
@@ -61,11 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     _switchArms.Add(arm, new ArrayBuilder<BoundStatement>());
                 }
 
-                ImmutableArray<BoundDecisionDag> sortedNodes = 
-                    TopologicalSort.IterativeSort<BoundDecisionDag>(SpecializedCollections.SingletonEnumerable<BoundDecisionDag>(decisionDag), d => d.Successors());
-
+                ImmutableArray<BoundDecisionDag> sortedNodes = decisionDag.TopologicallySortedNodes();
                 ComputeLabelSet(sortedNodes);
-
                 LowerDecisionDag(sortedNodes);
             }
 
@@ -241,8 +238,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var whenFalse = whenClause.WhenFalse;
                             if (whenClause.WhenExpression != null && whenClause.WhenExpression.ConstantValue != ConstantValue.True)
                             {
-                                // PROTOTYPE(patterns2): there should perhaps be a sequence point (for e.g. a breakpoint) on the when clase.
-                                // However, it is not clear that is wanted for the switch expression as that would be a breakpoing where the stack is nonempty.
+                                // PROTOTYPE(patterns2): there should perhaps be a sequence point (for e.g. a breakpoint) on the when clause.
+                                // However, it is not clear that is wanted for the switch expression as that would be a breakpoint where the stack is nonempty.
                                 sectionBuilder.Add(_factory.ConditionalGoto(_localRewriter.VisitExpression(whenClause.WhenExpression), whenTrue.Label, jumpIfTrue: true));
                                 Debug.Assert(whenFalse != null);
                                 Debug.Assert(_backwardLabels.Contains(whenFalse));
