@@ -1318,61 +1318,93 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitCondition(node.Condition);
             var consequenceState = this.StateWhenTrue;
             var alternativeState = this.StateWhenFalse;
+
+            var consequence = VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
+            Unsplit();
+            consequenceState = this.State;
+            var consequenceResult = _result;
+
+            var alternative = VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
+            Unsplit();
+            var alternativeResult = _result;
+
+            bool? getIsNullable(Result result) => (object)result.Type == null ? true : result.Type.IsNullable;
+            bool? resultIsNullable;
             if (IsConstantTrue(node.Condition))
             {
-                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
-                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
-                // it may be a boolean state at this point.
+                SetState(consequenceState);
+                resultIsNullable = getIsNullable(consequenceResult);
             }
             else if (IsConstantFalse(node.Condition))
             {
-                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
-                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
-                // it may be a boolean state at this point.
+                resultIsNullable = getIsNullable(alternativeResult);
             }
             else
             {
-                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
-                Unsplit();
-                var consequenceType = _result.Type;
-                consequenceState = this.State;
-                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
-                Unsplit();
-                var alternativeType = _result.Type;
                 IntersectWith(ref this.State, ref consequenceState);
-                if ((object)consequenceType == null || (object)alternativeType == null || !consequenceType.Equals(alternativeType, TypeCompareKind.ConsiderEverything))
+                resultIsNullable = (getIsNullable(consequenceResult) | getIsNullable(alternativeResult));
+            }
+
+            TypeSymbolWithAnnotations resultType;
+            if (consequence.Kind == BoundKind.ThrowExpression)
+            {
+                resultType = alternativeResult.Type;
+            }
+            else if (alternative.Kind == BoundKind.ThrowExpression)
+            {
+                resultType = consequenceResult.Type;
+            }
+            else
+            {
+                if (node.HasErrors)
                 {
-                    var consequenceIsNullable = (object)consequenceType == null ? true : consequenceType.IsNullable;
-                    var alternativeIsNullable = (object)alternativeType == null ? true : alternativeType.IsNullable;
-                    _result = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: consequenceIsNullable | alternativeIsNullable);
+                    resultType = null;
                 }
                 else
                 {
-                    // PROTOTYPE(NullableReferenceTypes): Use BestTypeInferrer.InferBestTypeForConditionalOperator
-                    // to ensure nested nullability is considered.
-                    _result = GetMoreNullableType(consequenceType, alternativeType);
+                    BoundExpression createPlaceholderIfNecessary(BoundExpression expr, Result result)
+                    {
+                        var type = result.Type;
+                        return type is null ?
+                            expr :
+                            new BoundValuePlaceholder(expr.Syntax, type.IsNullable, type.TypeSymbol);
+                    }
+                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                    resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(
+                        createPlaceholderIfNecessary(consequence, consequenceResult),
+                        createPlaceholderIfNecessary(alternative, alternativeResult),
+                        _conversions,
+                        out bool _,
+                        ref useSiteDiagnostics);
+                    if (resultType is null)
+                    {
+                        ReportStaticNullCheckingDiagnostics(
+                            ErrorCode.WRN_NoBestNullabilityConditionalExpression,
+                            node.Syntax,
+                            GetTypeAsDiagnosticArgument(consequenceResult.Type?.TypeSymbol),
+                            GetTypeAsDiagnosticArgument(alternativeResult.Type?.TypeSymbol));
+                    }
                 }
-
-                // it may not be a boolean state at this point (5.3.3.28)
-                // PROTOTYPE(NullableReferenceTypes): Report conversion warnings.
+                resultType = TypeSymbolWithAnnotations.Create(resultType?.TypeSymbol ?? node.Type, resultIsNullable);
             }
 
-            // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-            SetResult(node);
+            _result = resultType;
             return null;
         }
 
-        // Return the type that is "more nullable". Assumes types are equal, ignoring nullability.
-        private static TypeSymbolWithAnnotations GetMoreNullableType(TypeSymbolWithAnnotations typeA, TypeSymbolWithAnnotations typeB)
+        private BoundExpression VisitConditionalOperand(LocalState state, BoundExpression operand, bool isByRef)
         {
-            Debug.Assert(typeA.Equals(typeB, TypeCompareKind.ConsiderEverything));
-            bool? isNullableA = typeA.IsNullable;
-            bool? isNullableB = typeB.IsNullable;
-            if (isNullableA == true) return typeA;
-            if (isNullableB == true) return typeB;
-            if (isNullableA == null) return typeA;
-            if (isNullableB == null) return typeB;
-            return typeA;
+            SetState(state);
+            if (isByRef)
+            {
+                VisitLvalue(operand);
+            }
+            else
+            {
+                operand = RemoveImplicitConversions(operand);
+                VisitRvalue(operand);
+            }
+            return operand;
         }
 
         public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)

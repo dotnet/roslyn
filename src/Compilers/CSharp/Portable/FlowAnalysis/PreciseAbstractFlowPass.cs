@@ -2424,7 +2424,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        protected void VisitConditionalOperand(LocalState state, BoundExpression operand, bool isByRef)
+        private void VisitConditionalOperand(LocalState state, BoundExpression operand, bool isByRef)
         {
             SetState(state);
             if (isByRef)
