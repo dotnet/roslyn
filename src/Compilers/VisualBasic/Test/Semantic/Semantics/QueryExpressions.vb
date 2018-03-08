@@ -15371,6 +15371,138 @@ BC36600: Range variable 'x' is already declared.
 
             VerifyOperationTreeAndDiagnosticsForTest(Of QueryExpressionSyntax)(source, expectedOperationTree, expectedDiagnostics)
         End Sub
+
+        <Fact>
+        <CompilerTrait(CompilerFeature.IOperation)>
+        Public Sub From3111()
+            Dim source =
+<compilation>
+    <file name="a.vb">
+        <![CDATA[
+Imports System
+Imports System.Collections
+Imports System.Linq
+Public Class C1
+    Sub M1(a as integer, b as integer) 
+        Dim q0 = From s1 In New Integer() {1, -1} Select s1 + 1 From s2 In New Integer() {2, 3}, s3 In New Integer() {4, 5}
+    End Sub
+End Class
+         ]]>
+    </file>
+</compilation>
+
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, additionalRefs:={SystemCoreRef})
+
+            compilation.AssertNoDiagnostics()
+
+            Dim tree = compilation.SyntaxTrees.Single()
+            Dim node = tree.GetRoot().DescendantNodes().OfType(Of QueryExpressionSyntax)().Single()
+
+            compilation.VerifyOperationTree(node, expectedOperationTree:=
+            <![CDATA[
+ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>)) (Syntax: 'From s1 In  ... er() {4, 5}')
+  Expression: 
+    IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).SelectMany(Of System.Int32, <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>)(collectionSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32)), resultSelector As System.Func(Of System.Int32, System.Int32, <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>)) As System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable(Of <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>), IsImplicit) (Syntax: 's3 In New I ... er() {4, 5}')
+      Instance Receiver: 
+        IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).SelectMany(Of System.Int32, System.Int32)(collectionSelector As System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32)), resultSelector As System.Func(Of System.Int32, System.Int32, System.Int32)) As System.Collections.Generic.IEnumerable(Of System.Int32)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
+          Instance Receiver: 
+            IInvocationOperation ( Function System.Collections.Generic.IEnumerable(Of System.Int32).Select(Of System.Int32)(selector As System.Func(Of System.Int32, System.Int32)) As System.Collections.Generic.IEnumerable(Of System.Int32)) (OperationKind.Invocation, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 'Select s1 + 1')
+              Instance Receiver: 
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's1 In New I ... r() {1, -1}')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                  Operand: 
+                    IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'New Integer() {1, -1}')
+                      Dimension Sizes(1):
+                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {1, -1}')
+                      Initializer: 
+                        IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{1, -1}')
+                          Element Values(2):
+                              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                              IUnaryOperation (UnaryOperatorKind.Minus, Checked) (OperationKind.UnaryOperator, Type: System.Int32, Constant: -1) (Syntax: '-1')
+                                Operand: 
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+              Arguments(1):
+                  IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: selector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 's1 + 1')
+                    IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, System.Int32), IsImplicit) (Syntax: 's1 + 1')
+                      Target: 
+                        IAnonymousFunctionOperation (Symbol: Function (s1 As System.Int32) As System.Int32) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 's1 + 1')
+                          IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 's1 + 1')
+                            IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 's1 + 1')
+                              ReturnedValue: 
+                                IBinaryOperation (BinaryOperatorKind.Add, Checked) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 's1 + 1')
+                                  Left: 
+                                    IParameterReferenceOperation: s1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 's1')
+                                  Right: 
+                                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                    InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                    OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          Arguments(2):
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: collectionSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'New Integer() {2, 3}')
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32)), IsImplicit) (Syntax: 'New Integer() {2, 3}')
+                  Target: 
+                    IAnonymousFunctionOperation (Symbol: Function ($VB$ItAnonymous As System.Int32) As System.Collections.Generic.IEnumerable(Of System.Int32)) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'New Integer() {2, 3}')
+                      IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'New Integer() {2, 3}')
+                        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'New Integer() {2, 3}')
+                          ReturnedValue: 
+                            IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's2 In New I ... er() {2, 3}')
+                              Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                              Operand: 
+                                IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'New Integer() {2, 3}')
+                                  Dimension Sizes(1):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {2, 3}')
+                                  Initializer: 
+                                    IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{2, 3}')
+                                      Element Values(2):
+                                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+                                          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+              IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: resultSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'From s2 In  ... er() {4, 5}')
+                IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, System.Int32, System.Int32), IsImplicit) (Syntax: 'From s2 In  ... er() {4, 5}')
+                  Target: 
+                    IAnonymousFunctionOperation (Symbol: Function ($VB$ItAnonymous As System.Int32, s2 As System.Int32) As System.Int32) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'From s2 In  ... er() {4, 5}')
+                      IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'From s2 In  ... er() {4, 5}')
+                        IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'From s2 In  ... er() {4, 5}')
+                          ReturnedValue: 
+                            IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Arguments(2):
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: collectionSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'New Integer() {4, 5}')
+            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, System.Collections.Generic.IEnumerable(Of System.Int32)), IsImplicit) (Syntax: 'New Integer() {4, 5}')
+              Target: 
+                IAnonymousFunctionOperation (Symbol: Function (s2 As System.Int32) As System.Collections.Generic.IEnumerable(Of System.Int32)) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'New Integer() {4, 5}')
+                  IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'New Integer() {4, 5}')
+                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'New Integer() {4, 5}')
+                      ReturnedValue: 
+                        IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Collections.Generic.IEnumerable(Of System.Int32), IsImplicit) (Syntax: 's3 In New I ... er() {4, 5}')
+                          Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: True, IsUserDefined: False) (MethodSymbol: null)
+                          Operand: 
+                            IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32()) (Syntax: 'New Integer() {4, 5}')
+                              Dimension Sizes(1):
+                                  ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsImplicit) (Syntax: 'New Integer() {4, 5}')
+                              Initializer: 
+                                IArrayInitializerOperation (2 elements) (OperationKind.ArrayInitializer, Type: null) (Syntax: '{4, 5}')
+                                  Element Values(2):
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+                                      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+          IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: resultSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'From s2 In  ... er() {4, 5}')
+            IDelegateCreationOperation (OperationKind.DelegateCreation, Type: System.Func(Of System.Int32, System.Int32, <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>), IsImplicit) (Syntax: 'From s2 In  ... er() {4, 5}')
+              Target: 
+                IAnonymousFunctionOperation (Symbol: Function (s2 As System.Int32, s3 As System.Int32) As <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'From s2 In  ... er() {4, 5}')
+                  IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'From s2 In  ... er() {4, 5}')
+                    IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'From s2 In  ... er() {4, 5}')
+                      ReturnedValue: 
+                        IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: Key s2 As System.Int32, Key s3 As System.Int32>, IsImplicit) (Syntax: 's3 In New I ... er() {4, 5}')
+                          Initializers(2):
+                              IParameterReferenceOperation: s2 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's2')
+                              IParameterReferenceOperation: s3 (OperationKind.ParameterReference, Type: System.Int32, IsImplicit) (Syntax: 's3')
+            InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+            OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+]]>.Value)
+        End Sub
     End Class
 
 End Namespace

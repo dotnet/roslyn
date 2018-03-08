@@ -44,7 +44,7 @@ select num",
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
         public async Task Conversion_SelectWithType()
         {
-            await Test("from int a in new[] { 1 } select a", "new[] { 1 }.Cast<int>()");
+            await Test("from int a in new[] { 1 } select a", "new[] { 1 }.Cast<int>().Select(Function(x) x)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
@@ -71,7 +71,7 @@ select num",
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
         public async Task Conversion_TrivialSelect()
         {
-            await Test("from a in new int[] { 1, 2, 3 } select a", "new int[] { 1, 2, 3 }");
+            await Test("from a in new int[] { 1, 2, 3 } select a", "new int[] { 1, 2, 3 }.Select(a => a)");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
@@ -88,7 +88,7 @@ select num",
         public async Task Conversion_IntoDoubleFrom()
         {
             await Test("from a in new[] { 1, 2, 3 } select a.ToString() into b from c in b select c",
-                "new[] { 1, 2, 3 }.Select(a => a.ToString()).SelectMany(b => b, (b, c) => c)");
+                "new[] { 1, 2, 3 }.Select(a => a.ToString()).SelectMany(b => b, (b, c) => c).Select((b, c) => c)");
         }
 
         #endregion

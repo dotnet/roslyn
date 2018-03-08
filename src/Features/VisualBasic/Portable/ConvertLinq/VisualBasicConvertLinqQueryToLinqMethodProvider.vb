@@ -106,32 +106,91 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertLinq
 
                     Dim bodyExpression As ExpressionSyntax = variable.Expression
                     Dim argumentAnonymousFunctions As ImmutableArray(Of IAnonymousFunctionOperation) = FindAnonymousFunctionsFromParentInvocationOperation(bodyExpression)
-                    Debug.Assert(argumentAnonymousFunctions.Length = 2)
+                    If (argumentAnonymousFunctions.Length <> 2) Then
+                        Throw New ArgumentException($"{variable.Expression} is expected to produce two anonymous functions but actually produces {argumentAnonymousFunctions.Length}")
+                    End If
                     Dim secondArgumentAnonymousFunction As IAnonymousFunctionOperation = argumentAnonymousFunctions.Last()
 
-                    Debug.Assert(secondArgumentAnonymousFunction.Body.Operations.Length = 1)
+                    If (secondArgumentAnonymousFunction.Body.Operations.Length <> 1) Then
+                        Throw New ArgumentException($"{secondArgumentAnonymousFunction.Body} is expected to have a single operation but actually has {secondArgumentAnonymousFunction.Body.Operations.Length}")
+                    End If
+
                     Dim returnOperation As IReturnOperation = DirectCast(secondArgumentAnonymousFunction.Body.Operations.First(), IReturnOperation)
                     Dim returnedValue As IOperation = returnOperation.ReturnedValue
 
-                    Dim tupleExpression As VisualBasicSyntaxNode
+                    Dim anonymousObjectCreation As VisualBasicSyntaxNode
                     If returnedValue.Kind = OperationKind.AnonymousObjectCreation Then
                         Dim objectCreation As IAnonymousObjectCreationOperation = DirectCast(returnedValue, IAnonymousObjectCreationOperation)
-                        Dim fieldInitializers As IEnumerable(Of InferredFieldInitializerSyntax) =
-                            objectCreation.
-                            Initializers.
-                            Select(Function(initializer) SyntaxFactory.InferredFieldInitializer(
-                            SyntaxFactory.IdentifierName(BeautifyName(DirectCast(initializer, IParameterReferenceOperation).Parameter.Name))))
-                        tupleExpression = SyntaxFactory.AnonymousObjectCreationExpression(
-                            SyntaxFactory.ObjectMemberInitializer(SyntaxFactory.SeparatedList(Of FieldInitializerSyntax)(fieldInitializers)))
+                        Dim fieldInitializers As IEnumerable(Of FieldInitializerSyntax) =
+                            objectCreation.Initializers.SelectMany(Function(initializer) CreateNamedFieldInitializers(initializer))
+
+                        anonymousObjectCreation = SyntaxFactory.AnonymousObjectCreationExpression(SyntaxFactory.ObjectMemberInitializer(SyntaxFactory.SeparatedList(fieldInitializers)))
                     Else
-                        tupleExpression = ReplaceIdentifierNames(returnOperation.Syntax)
+                        anonymousObjectCreation = ReplaceIdentifierNames(returnOperation.Syntax)
                     End If
 
-                    Dim secondLambda As LambdaExpressionSyntax = CreateLambdaExpression(tupleExpression, secondArgumentAnonymousFunction.Symbol)
+                    Dim secondLambda As LambdaExpressionSyntax = CreateLambdaExpression(anonymousObjectCreation, secondArgumentAnonymousFunction.Symbol)
                     expression = CreateInvocationExpression(expression, NameOf(Enumerable.SelectMany), {CreateLambdaExpressionWithReplacedIdentifiers(bodyExpression), secondLambda})
                 Next
 
                 Return expression
+            End Function
+
+            Private Function CreateNamedFieldInitializers(operation As IOperation) As ImmutableArray(Of NamedFieldInitializerSyntax)
+                Select Case (operation.Kind)
+                    Case OperationKind.FieldInitializer
+                        Return CreateNamedFieldInitializers(DirectCast(operation, IFieldInitializerOperation))
+                    Case OperationKind.ParameterReference
+                        Return ImmutableArray.Create(CreateNamedFieldInitializer(DirectCast(operation, IParameterReferenceOperation)))
+                    Case OperationKind.PropertyReference
+                        Return ImmutableArray.Create(CreateNamedFieldInitializer(DirectCast(operation, IPropertyReferenceOperation)))
+                    Case Else
+                        Throw New ArgumentException(operation.Kind.ToString(), "operation.Kind")
+                End Select
+            End Function
+
+            Private Function CreateNamedFieldInitializers(fieldInitializer As IFieldInitializerOperation) As ImmutableArray(Of NamedFieldInitializerSyntax)
+                Dim builder = ImmutableArray.CreateBuilder(Of NamedFieldInitializerSyntax)
+
+                For Each field In fieldInitializer.InitializedFields
+                    builder.Add(SyntaxFactory.NamedFieldInitializer(
+                                    If(field.IsReadOnly, SyntaxFactory.Token(SyntaxKind.KeyKeyword), Nothing),
+                                    SyntaxFactory.Token(SyntaxKind.DotToken),
+                                    SyntaxFactory.IdentifierName(field.Name),
+                                    SyntaxFactory.Token(SyntaxKind.EqualsToken),
+                                    CreateFieldInitializerValue(fieldInitializer.Value)))
+                Next
+                Return builder.ToImmutable()
+            End Function
+
+            Private Function CreateNamedFieldInitializer(parameterReference As IParameterReferenceOperation) As NamedFieldInitializerSyntax
+                Return SyntaxFactory.NamedFieldInitializer(
+                                    SyntaxFactory.Token(SyntaxKind.KeyKeyword),
+                                    SyntaxFactory.Token(SyntaxKind.DotToken),
+                                    SyntaxFactory.IdentifierName(parameterReference.Parameter.Name), ' TODO maybe should consider InferredParameters
+                                    SyntaxFactory.Token(SyntaxKind.EqualsToken),
+                                    CreateFieldInitializerValue(parameterReference))
+            End Function
+
+            Private Function CreateNamedFieldInitializer(propertyReference As IPropertyReferenceOperation) As NamedFieldInitializerSyntax
+                Return SyntaxFactory.NamedFieldInitializer(
+                                    SyntaxFactory.Token(SyntaxKind.KeyKeyword),
+                                    SyntaxFactory.Token(SyntaxKind.DotToken),
+                                    SyntaxFactory.IdentifierName(propertyReference.Member.Name), ' TODO maybe should consider InferredParameters
+                                    SyntaxFactory.Token(SyntaxKind.EqualsToken),
+                                    CreateFieldInitializerValue(propertyReference))
+            End Function
+
+            Private Function CreateFieldInitializerValue(operation As IOperation) As ExpressionSyntax
+                Select Case (operation.Kind())
+                    Case OperationKind.ParameterReference
+                        Return SyntaxFactory.IdentifierName(DirectCast(operation, IParameterReferenceOperation).Parameter.Name)
+                    Case OperationKind.PropertyReference
+                        Dim propertyReference = DirectCast(operation, IPropertyReferenceOperation)
+                        Return SyntaxFactory.SimpleMemberAccessExpression(CreateFieldInitializerValue(propertyReference.Instance), SyntaxFactory.IdentifierName(propertyReference.Property.Name))
+                    Case Else
+                        Throw New ArgumentException(operation.Kind().ToString())
+                End Select
             End Function
 
             Private Function CreateLambdaExpression(body As VisualBasicSyntaxNode, methodSymbol As IMethodSymbol) As LambdaExpressionSyntax

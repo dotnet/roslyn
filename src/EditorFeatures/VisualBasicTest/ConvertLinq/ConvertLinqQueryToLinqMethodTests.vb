@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Conver
         Public Async Function Conversion_WhereOrderByTrivialSelect() As Task
             Await Test(
 "From num In New Integer() {0, 1, 2} Where num Mod 2 = 0 Order By num Select num",
-"New Integer() {0, 1, 2}.Where(Function(num) num Mod 2 = 0).OrderBy(Function(num) num)")
+"New Integer() {0, 1, 2}.Where(Function(num) num Mod 2 = 0).OrderBy(Function(num) num).Select(Function(num) num)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
@@ -38,19 +38,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.Conver
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
         Public Async Function Conversion_SelectWithType() As Task
-            Await Test("From x As String In New Object() {""1""} Select x", "New Object() {""1""}.Cast(Of String)()")
+            Await Test("From x As String In New Object() {""1""} Select x", "New Object() {""1""}.Cast(Of String)().Select(Function(x) x)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
-        Public Async Function Conversion_ReduceUnnecessarySelect() As Task
-            Await Test("From a In New Integer() {1, 2, 3} Select a", "New Integer() {1, 2, 3}")
+        Public Async Function Conversion_TrivialSelect() As Task
+            Await Test("From a In New Integer() {1, 2, 3} Select a", "New Integer() {1, 2, 3}.Select(Function(a) a)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>
         Public Async Function Conversion_DoubleFrom() As Task
             Await Test(
 "From w In ""aaa bbb ccc"".Split("" "") From c In w Select c",
-"""aaa bbb ccc"".Split("" "").SelectMany(Function(w) w, Function(w, c) c)")
+"""aaa bbb ccc"".Split("" "").SelectMany(Function(w) w, Function(w, c) c).Select(Function(w, c) c)")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)>

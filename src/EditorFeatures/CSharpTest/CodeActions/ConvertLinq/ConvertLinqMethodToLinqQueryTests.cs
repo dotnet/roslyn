@@ -18,13 +18,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
         public async Task Conversion_WhereOrderByTrivialSelect()
         {
-            await Test(
+            await Test(@"new int[] { 0, 1, 2 }.Where(num => num % 2 == 0).OrderBy(num => num)",
 @"from num in new int[] { 0, 1, 2 }
 where num % 2 == 0
 orderby num
-select num",
-@"new int[] { 0, 1, 2 }.Where(num => num % 2 == 0
-).OrderBy(num => num)");
+select num"
+);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertLinq)]
