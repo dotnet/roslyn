@@ -104,16 +104,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return info;
         }
 
+        internal static readonly EqualityComparer<TypeSymbol> EqualsConsiderEverything = new TypeSymbolComparer(TypeCompareKind.ConsiderEverything);
+
+        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringTupleNames = new TypeSymbolComparer(TypeCompareKind.IgnoreTupleNames);
 
         /// <summary>
         /// A comparer that treats dynamic and object as "the same" types, and also ignores tuple element names differences.
         /// </summary>
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicAndTupleNamesComparer = new EqualsIgnoringComparer(TypeCompareKind.IgnoreDynamicAndTupleNames);
+        internal static readonly EqualityComparer<TypeSymbol> EqualsIgnoringDynamicAndTupleNamesComparer = new TypeSymbolComparer(TypeCompareKind.IgnoreDynamicAndTupleNames);
 
         /// <summary>
         /// A comparator that pays attention to nullable modifiers in addition to default behavior.
         /// </summary>
-        internal static readonly EqualityComparer<TypeSymbol> EqualsIncludingNullableComparer = new EqualsIgnoringComparer(TypeCompareKind.CompareNullableModifiersForReferenceTypes);
+        internal static readonly EqualityComparer<TypeSymbol> EqualsIncludingNullableComparer = new TypeSymbolComparer(TypeCompareKind.CompareNullableModifiersForReferenceTypes);
 
         /// <summary>
         /// The original definition of this symbol. If this symbol is constructed from another
@@ -307,13 +310,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return RuntimeHelpers.GetHashCode(this);
         }
 
-        internal sealed class EqualsIgnoringComparer : EqualityComparer<TypeSymbol>
+        internal sealed class TypeSymbolComparer : EqualityComparer<TypeSymbol>
         {
-            public static EqualsIgnoringComparer InstanceIgnoringTupleNames { get; } = new EqualsIgnoringComparer(TypeCompareKind.IgnoreTupleNames);
-
             private readonly TypeCompareKind _comparison;
 
-            public EqualsIgnoringComparer(TypeCompareKind comparison)
+            public TypeSymbolComparer(TypeCompareKind comparison)
             {
                 _comparison = comparison;
             }
@@ -354,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected virtual ImmutableArray<NamedTypeSymbol> MakeAllInterfaces()
         {
             var result = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            var visited = new HashSet<NamedTypeSymbol>(EqualsIgnoringComparer.InstanceIgnoringTupleNames);
+            var visited = new HashSet<NamedTypeSymbol>(EqualsIgnoringTupleNames);
 
             for (var baseType = this; !ReferenceEquals(baseType, null); baseType = baseType.BaseTypeNoUseSiteDiagnostics)
             {

@@ -598,8 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             var declarator = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
             var symbol = (LocalSymbol)model.GetDeclaredSymbol(declarator);
             Assert.Equal("System.String", symbol.Type.ToTestDisplayString());
-            // PROTOTYPE(NullableReferenceTypes): IsNullable should be inferred nullable state: null.
-            Assert.Equal(false, symbol.Type.IsNullable);
+            Assert.Equal(null, symbol.Type.IsNullable);
         }
 
         [Fact]

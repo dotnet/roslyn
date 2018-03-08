@@ -16,13 +16,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const int MaximumRecursionDepth = 50;
 
         protected readonly AssemblySymbol corLibrary;
-        private readonly int _currentRecursionDepth;
+        protected readonly int currentRecursionDepth;
 
-        protected ConversionsBase(AssemblySymbol corLibrary, int currentRecursionDepth)
+        internal readonly bool IncludeNullability;
+
+        protected ConversionsBase(AssemblySymbol corLibrary, int currentRecursionDepth, bool includeNullability)
         {
             Debug.Assert((object)corLibrary != null);
+
             this.corLibrary = corLibrary;
-            _currentRecursionDepth = currentRecursionDepth;
+            this.currentRecursionDepth = currentRecursionDepth;
+            IncludeNullability = includeNullability;
         }
 
         public abstract Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
@@ -47,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceType = sourceExpression.Type;
 
             //PERF: identity conversion is by far the most common implicit conversion, check for that first
-            if ((object)sourceType != null && HasIdentityConversion(sourceType, destination))
+            if ((object)sourceType != null && HasIdentityConversionInternal(sourceType, destination))
             {
                 return Conversion.Identity;
             }
@@ -89,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)destination != null);
 
             //PERF: identity conversions are very common, check for that first.
-            if (HasIdentityConversion(source, destination))
+            if (HasIdentityConversionInternal(source, destination))
             {
                 return Conversion.Identity;
             }
@@ -470,7 +474,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            if (HasIdentityConversion(source, destination))
+            if (HasIdentityConversionInternal(source, destination))
             {
                 return Conversion.Identity;
             }
@@ -677,10 +681,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// * this does not check for variance conversions; if a type inherits from
         ///   IEnumerable&lt;string> then IEnumerable&lt;object> is not a base interface.
         /// </summary>
-        public static bool IsBaseInterface(TypeSymbol baseType, TypeSymbol derivedType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public bool IsBaseInterface(TypeSymbol baseType, TypeSymbol derivedType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)baseType != null);
             Debug.Assert((object)derivedType != null);
+
             if (!baseType.IsInterfaceType())
             {
                 return false;
@@ -694,22 +699,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var iface in d.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
-                if (HasIdentityConversion(iface, baseType))
+                if (HasIdentityConversionInternal(iface, baseType))
                 {
                     return true;
                 }
             }
 
             return false;
-        }
-
-        // IsBaseClassOfClass determines whether the purported derived type is a class, and if so,
-        // if the purported base type is one of its base classes. 
-        public static bool IsBaseClassOfClass(TypeSymbol baseType, TypeSymbol derivedType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            Debug.Assert((object)baseType != null);
-            Debug.Assert((object)derivedType != null);
-            return derivedType.IsClassType() && IsBaseClass(derivedType, baseType, ref useSiteDiagnostics);
         }
 
         // IsBaseClass returns true if and only if baseType is a base class of derivedType, period.
@@ -720,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // * all base classes must be classes
         // * dynamics are removed; if we have class D : B<dynamic> then B<object> is a 
         //   base class of D. However, dynamic is never a base class of anything.
-        public static bool IsBaseClass(TypeSymbol derivedType, TypeSymbol baseType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public bool IsBaseClass(TypeSymbol derivedType, TypeSymbol baseType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)derivedType != null);
             Debug.Assert((object)baseType != null);
@@ -733,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (TypeSymbol b = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics); (object)b != null; b = b.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
-                if (HasIdentityConversion(b, baseType))
+                if (HasIdentityConversionInternal(b, baseType))
                 {
                     return true;
                 }
@@ -1323,6 +1319,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool HasIdentityConversion(TypeSymbol type1, TypeSymbol type2)
         {
+            return HasIdentityConversionInternal(type1, type2, includeNullability: false);
+        }
+
+        private static bool HasIdentityConversionInternal(TypeSymbol type1, TypeSymbol type2, bool includeNullability)
+        {
             // Spec (6.1.1):
             // An identity conversion converts from any type to the same type. This conversion exists 
             // such that an entity that already has a required type can be said to be convertible to 
@@ -1335,15 +1336,46 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)type1 != null);
             Debug.Assert((object)type2 != null);
 
-            return type1.Equals(type2, TypeCompareKind.AllIgnoreOptions);
+            // PROTOTYPE(NullableReferenceTypes): If two types differ only by nullability and
+            // one has IsNullable unset and the other doesn't, which do we choose in inference?
+            // See failing test IdentityConversion_ArrayInitializer_IsNullableNull.
+            var compareKind = includeNullability ?
+                TypeCompareKind.AllIgnoreOptions | TypeCompareKind.CompareNullableModifiersForReferenceTypes | TypeCompareKind.UnknownNullableModifierMatchesAny :
+                TypeCompareKind.AllIgnoreOptions;
+            return type1.Equals(type2, compareKind);
+        }
+
+        private bool HasIdentityConversionInternal(TypeSymbol type1, TypeSymbol type2)
+        {
+            return HasIdentityConversionInternal(type1, type2, IncludeNullability);
+        }
+
+        private static bool HasTopLevelNullabilityIdentityConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)
+        {
+            // PROTOTYPE(NullableReferenceTypes): If two types differ only by nullability and
+            // one has IsNullable unset and the other doesn't, which do we choose in inference?
+            // See failing test IdentityConversion_ArrayInitializer_IsNullableNull.
+            bool? sourceIsNullable = source.IsNullable;
+            bool? destinationIsNullable = destination.IsNullable;
+            return sourceIsNullable == null || destinationIsNullable == null || sourceIsNullable == destinationIsNullable;
+        }
+
+        internal static bool HasTopLevelNullabilityImplicitConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination)
+        {
+            return HasTopLevelNullabilityImplicitConversion(source.IsNullable, destination.IsNullable);
+        }
+
+        internal static bool HasTopLevelNullabilityImplicitConversion(bool? sourceIsNullable, bool? destinationIsNullable)
+        {
+            return sourceIsNullable != true || destinationIsNullable != false;
         }
 
         public static bool HasIdentityConversionToAny<T>(T type, ArrayBuilder<T> targetTypes)
             where T : TypeSymbol
         {
-            for (int i = 0, n = targetTypes.Count; i < n; i++)
+            foreach (var targetType in targetTypes)
             {
-                if (HasIdentityConversion(type, targetTypes[i]))
+                if (HasIdentityConversionInternal(type, targetType, includeNullability: false)) // PROTOTYPE(NullableReferenceTypes): Test this!
                 {
                     return true;
                 }
@@ -1368,7 +1400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)sourceType != null)
             {
-                if (HasIdentityConversion(sourceType, destination))
+                if (HasIdentityConversionInternal(sourceType, destination))
                 {
                     return Conversion.Identity;
                 }
@@ -1391,7 +1423,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     destination,
                     ref useSiteDiagnostics,
                     ConversionKind.ImplicitTupleLiteral,
-                    (ConversionsBase conversions, BoundExpression s, TypeSymbol d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyImplicitExtensionMethodThisArgConversion(s, s.Type, d, ref u),
+                    (ConversionsBase conversions, BoundExpression s, TypeSymbol d, ref HashSet<DiagnosticInfo> u, bool a) =>
+                        conversions.ClassifyImplicitExtensionMethodThisArgConversion(s, s.Type, d, ref u),
                     arg: false);
                 if (tupleConversion.Exists)
                 {
@@ -1401,12 +1434,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)sourceType != null)
             {
+                Debug.Assert(!IncludeNullability); // PROTOTYPE(NullableReferenceTypes): Should fail in StaticNullChecking_FlowAnalysis.Conversions_TupleLiteralExtensionThis.
                 var tupleConversion = ClassifyTupleConversion(
                     sourceType,
                     destination,
                     ref useSiteDiagnostics,
                     ConversionKind.ImplicitTuple,
-                    (ConversionsBase conversions, TypeSymbol s, TypeSymbol d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyImplicitExtensionMethodThisArgConversion(null, s, d, ref u),
+                    (ConversionsBase conversions, TypeSymbolWithAnnotations s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a) =>
+                        conversions.ClassifyImplicitExtensionMethodThisArgConversion(null, s.TypeSymbol, d.TypeSymbol, ref u), 
                     arg: false);
                 if (tupleConversion.Exists)
                 {
@@ -1760,7 +1795,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.NoConversion;
             }
 
-            if (HasIdentityConversion(unwrappedSource, unwrappedDestination))
+            if (HasIdentityConversionInternal(unwrappedSource, unwrappedDestination))
             {
                 return new Conversion(ConversionKind.ImplicitNullable, Conversion.IdentityUnderlying);
             }
@@ -1780,7 +1815,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private delegate Conversion ClassifyConversionFromExpressionDelegate(ConversionsBase conversions, BoundExpression sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool arg);
-        private delegate Conversion ClassifyConversionFromTypeDelegate(ConversionsBase conversions, TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool arg);
+        private delegate Conversion ClassifyConversionFromTypeDelegate(ConversionsBase conversions, TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool arg);
 
         private Conversion GetImplicitTupleLiteralConversion(BoundTupleLiteral source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
@@ -1828,6 +1863,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < arguments.Length; i++)
             {
                 var argument = arguments[i];
+                Debug.Assert(!IncludeNullability); // PROTOTYPE(NullableReferenceTypes): Should fail in StaticNullChecking_FlowAnalysis.Conversions_TupleLiteral.
                 var result = classifyConversion(this, argument, targetElementTypes[i].TypeSymbol, ref useSiteDiagnostics, arg);
                 if (!result.Exists)
                 {
@@ -1848,18 +1884,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 destination,
                 ref useSiteDiagnostics,
                 ConversionKind.ImplicitTuple,
-                (ConversionsBase conversions, TypeSymbol s, TypeSymbol d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyImplicitConversionFromType(s, d, ref u),
+                (ConversionsBase conversions, TypeSymbolWithAnnotations s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a) =>
+                {
+                    if (conversions.IncludeNullability && !HasTopLevelNullabilityImplicitConversion(s, d))
+                    {
+                        return Conversion.NoConversion;
+                    }
+                    return conversions.ClassifyImplicitConversionFromType(s.TypeSymbol, d.TypeSymbol, ref u);
+                },
                 arg: false);
         }
 
         private Conversion ClassifyExplicitTupleConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics, bool forCast)
         {
+            Debug.Assert(!IncludeNullability); // PROTOTYPE(NullableReferenceTypes): Should NullableWalker call ClassifyExplicitTupleConversion?
             return ClassifyTupleConversion(
                 source,
                 destination,
                 ref useSiteDiagnostics,
                 ConversionKind.ExplicitTuple,
-                (ConversionsBase conversions, TypeSymbol s, TypeSymbol d, ref HashSet<DiagnosticInfo> u, bool a) => conversions.ClassifyConversionFromType(s, d, ref u, a),
+                (ConversionsBase conversions, TypeSymbolWithAnnotations s, TypeSymbolWithAnnotations d, ref HashSet<DiagnosticInfo> u, bool a) =>
+                    conversions.ClassifyConversionFromType(s.TypeSymbol, d.TypeSymbol, ref u, a),
                 forCast);
         }
 
@@ -1884,7 +1929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var nestedConversions = ArrayBuilder<Conversion>.GetInstance(sourceTypes.Length);
             for (int i = 0; i < sourceTypes.Length; i++)
             {
-                var conversion = classifyConversion(this, sourceTypes[i].TypeSymbol, destTypes[i].TypeSymbol, ref useSiteDiagnostics, arg);
+                var conversion = classifyConversion(this, sourceTypes[i], destTypes[i], ref useSiteDiagnostics, arg);
                 if (!conversion.Exists)
                 {
                     nestedConversions.Free();
@@ -1918,7 +1963,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol unwrappedSource = source.StrippedType();
             TypeSymbol unwrappedDestination = destination.StrippedType();
 
-            if (HasIdentityConversion(unwrappedSource, unwrappedDestination))
+            if (HasIdentityConversionInternal(unwrappedSource, unwrappedDestination))
             {
                 return new Conversion(ConversionKind.ExplicitNullable, Conversion.IdentityUnderlying);
             }
@@ -1964,18 +2009,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // * S and T differ only in element type. In other words, S and T have the same number of dimensions.
+            if (!s.HasSameShapeAs(d))
+            {
+                return false;
+            }
+
             // * Both SE and TE are reference types.
             // * An implicit reference conversion exists from SE to TE.
-            return
-                s.HasSameShapeAs(d) &&
-                HasImplicitReferenceConversion(s.ElementType.TypeSymbol, d.ElementType.TypeSymbol, ref useSiteDiagnostics);
+            return HasImplicitReferenceConversion(s.ElementType, d.ElementType, ref useSiteDiagnostics);
         }
 
         public bool HasIdentityOrImplicitReferenceConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
-            if (HasIdentityConversion(source, destination))
+
+            if (HasIdentityConversionInternal(source, destination))
             {
                 return true;
             }
@@ -2057,6 +2106,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return HasIdentityOrImplicitReferenceConversion(source.ElementType.TypeSymbol, argument0, ref useSiteDiagnostics);
         }
 
+        private bool HasImplicitReferenceConversion(TypeSymbolWithAnnotations source, TypeSymbolWithAnnotations destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (IncludeNullability && !HasTopLevelNullabilityImplicitConversion(source, destination))
+            {
+                return false;
+            }
+            return HasImplicitReferenceConversion(source.TypeSymbol, destination.TypeSymbol, ref useSiteDiagnostics);
+        }
+
         private bool HasImplicitReferenceConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)source != null);
@@ -2093,46 +2151,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     }
 
-                    if (HasImplicitConversionToInterface(source, destination, ref useSiteDiagnostics))
-                    {
-                        return true;
-                    }
-                    break;
+                    return HasImplicitConversionToInterface(source, destination, ref useSiteDiagnostics);
 
                 case TypeKind.Interface:
                     // SPEC: From any interface-type S to any interface-type T, provided S is derived from T.
                     // NOTE: This handles variance conversions
-                    if (HasImplicitConversionToInterface(source, destination, ref useSiteDiagnostics))
-                    {
-                        return true;
-                    }
-                    break;
+                    return HasImplicitConversionToInterface(source, destination, ref useSiteDiagnostics);
 
                 case TypeKind.Delegate:
                     // SPEC: From any delegate-type to System.Delegate and the interfaces it implements.
                     // NOTE: This handles variance conversions.
-                    if (HasImplicitConversionFromDelegate(source, destination, ref useSiteDiagnostics))
-                    {
-                        return true;
-                    }
-                    break;
+                    return HasImplicitConversionFromDelegate(source, destination, ref useSiteDiagnostics);
 
                 case TypeKind.TypeParameter:
-                    if (HasImplicitReferenceTypeParameterConversion((TypeParameterSymbol)source, destination, ref useSiteDiagnostics))
-                    {
-                        return true;
-                    }
-                    break;
+                    return HasImplicitReferenceTypeParameterConversion((TypeParameterSymbol)source, destination, ref useSiteDiagnostics);
 
                 case TypeKind.Array:
                     // SPEC: From an array-type S ... to an array-type T, provided ...
                     // SPEC: From any array-type to System.Array and the interfaces it implements.
                     // SPEC: From a single-dimensional array type S[] to IList<T>, provided ...
-                    if (HasImplicitConversionFromArray(source, destination, ref useSiteDiagnostics))
-                    {
-                        return true;
-                    }
-                    break;
+                    return HasImplicitConversionFromArray(source, destination, ref useSiteDiagnostics);
             }
 
             // UNDONE: Implicit conversions involving type parameters that are known to be reference types.
@@ -2149,24 +2187,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // * From any class type S to any interface type T provided S implements an interface
             //   convertible to T.
+            if (source.IsClassType())
+            {
+                return HasAnyBaseInterfaceConversion(source, destination, ref useSiteDiagnostics);
+            }
+
             // * From any interface type S to any interface type T provided S implements an interface
             //   convertible to T.
             // * From any interface type S to any interface type T provided S is not T and S is 
             //   an interface convertible to T.
-
-            if (source.IsClassType() && HasAnyBaseInterfaceConversion(source, destination, ref useSiteDiagnostics))
+            if (source.IsInterfaceType())
             {
-                return true;
-            }
+                if (HasAnyBaseInterfaceConversion(source, destination, ref useSiteDiagnostics))
+                {
+                    return true;
+                }
 
-            if (source.IsInterfaceType() && HasAnyBaseInterfaceConversion(source, destination, ref useSiteDiagnostics))
-            {
-                return true;
-            }
-
-            if (source.IsInterfaceType() && source != destination && HasInterfaceVarianceConversion(source, destination, ref useSiteDiagnostics))
-            {
-                return true;
+                if (!HasIdentityConversionInternal(source, destination) && HasInterfaceVarianceConversion(source, destination, ref useSiteDiagnostics))
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -2312,7 +2352,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // * From T to its effective base class C.
             var effectiveBaseClass = source.EffectiveBaseClass(ref useSiteDiagnostics);
-            if (HasIdentityConversion(effectiveBaseClass, destination))
+            if (HasIdentityConversionInternal(effectiveBaseClass, destination))
             {
                 return true;
             }
@@ -2440,7 +2480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // CONSIDER: A more rigorous solution would mimic the CLI approach, which uses
             // a combination of requiring finite instantiation closures (see section 9.2 of
             // the CLI spec) and records previous conversion steps to check for cycles.
-            if (_currentRecursionDepth >= MaximumRecursionDepth)
+            if (currentRecursionDepth >= MaximumRecursionDepth)
             {
                 // NOTE: The spec doesn't really address what happens if there's an overflow
                 // in our conversion check.  It's sort of implied that the conversion "proof"
@@ -2456,16 +2496,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return quickResult.Value();
             }
 
-            return this.CreateInstance(_currentRecursionDepth + 1).
+            return this.CreateInstance(currentRecursionDepth + 1).
                 HasVariantConversionNoCycleCheck(source, destination, ref useSiteDiagnostics);
         }
 
-        private static ThreeState HasVariantConversionQuick(NamedTypeSymbol source, NamedTypeSymbol destination)
+        private ThreeState HasVariantConversionQuick(NamedTypeSymbol source, NamedTypeSymbol destination)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            if (HasIdentityConversion(source, destination))
+            if (HasIdentityConversionInternal(source, destination))
             {
                 return ThreeState.True;
             }
@@ -2484,9 +2524,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            var typeParameters = ArrayBuilder<TypeSymbol>.GetInstance();
-            var sourceTypeArguments = ArrayBuilder<TypeSymbol>.GetInstance();
-            var destinationTypeArguments = ArrayBuilder<TypeSymbol>.GetInstance();
+            var typeParameters = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            var sourceTypeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
+            var destinationTypeArguments = ArrayBuilder<TypeSymbolWithAnnotations>.GetInstance();
 
             try
             {
@@ -2499,29 +2539,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (int paramIndex = 0; paramIndex < typeParameters.Count; ++paramIndex)
                 {
-                    TypeSymbol sourceTypeArgument = sourceTypeArguments[paramIndex];
-                    TypeSymbol destinationTypeArgument = destinationTypeArguments[paramIndex];
+                    var sourceTypeArgument = sourceTypeArguments[paramIndex];
+                    var destinationTypeArgument = destinationTypeArguments[paramIndex];
 
                     // If they're identical then this one is automatically good, so skip it.
-                    if (HasIdentityConversion(sourceTypeArgument, destinationTypeArgument))
+                    if (HasIdentityConversionInternal(sourceTypeArgument.TypeSymbol, destinationTypeArgument.TypeSymbol) &&
+                        (!IncludeNullability || HasTopLevelNullabilityIdentityConversion(sourceTypeArgument, destinationTypeArgument)))
                     {
                         continue;
                     }
 
-                    TypeParameterSymbol typeParameterSymbol = (TypeParameterSymbol)typeParameters[paramIndex];
-                    if (typeParameterSymbol.Variance == VarianceKind.None)
-                    {
-                        return false;
-                    }
+                    var typeParameterSymbol = (TypeParameterSymbol)typeParameters[paramIndex].TypeSymbol;
 
-                    if (typeParameterSymbol.Variance == VarianceKind.Out && !HasImplicitReferenceConversion(sourceTypeArgument, destinationTypeArgument, ref useSiteDiagnostics))
+                    switch (typeParameterSymbol.Variance)
                     {
-                        return false;
-                    }
+                        case VarianceKind.None:
+                            return false;
 
-                    if (typeParameterSymbol.Variance == VarianceKind.In && !HasImplicitReferenceConversion(destinationTypeArgument, sourceTypeArgument, ref useSiteDiagnostics))
-                    {
-                        return false;
+                        case VarianceKind.Out:
+                            if (!HasImplicitReferenceConversion(sourceTypeArgument, destinationTypeArgument, ref useSiteDiagnostics))
+                            {
+                                return false;
+                            }
+                            break;
+
+                        case VarianceKind.In:
+                            if (!HasImplicitReferenceConversion(destinationTypeArgument, sourceTypeArgument, ref useSiteDiagnostics))
+                            {
+                                return false;
+                            }
+                            break;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(typeParameterSymbol.Variance);
                     }
                 }
             }
@@ -2664,7 +2714,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
-            if (HasIdentityConversion(source, destination))
+            if (HasIdentityConversionInternal(source, destination))
             {
                 return true;
             }
@@ -2703,7 +2753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // SPEC: From any class-type S to any class-type T, provided S is a base class of T.
-            if (IsBaseClassOfClass(source, destination, ref useSiteDiagnostics))
+            if (destination.IsClassType() && IsBaseClass(destination, source, ref useSiteDiagnostics))
             {
                 return true;
             }
@@ -2774,7 +2824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (var type = t.EffectiveBaseClass(ref useSiteDiagnostics); (object)type != null; type = type.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
                 {
-                    if (HasIdentityConversion(type, source))
+                    if (HasIdentityConversionInternal(type, source))
                     {
                         return true;
                     }
@@ -2889,7 +2939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var destinationType = (NamedTypeSymbol)destination;
             var original = sourceType.OriginalDefinition;
 
-            if (HasIdentityConversion(source, destination))
+            if (HasIdentityConversionInternal(source, destination))
             {
                 return false;
             }
@@ -2910,7 +2960,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (original.TypeParameters[i].Variance)
                 {
                     case VarianceKind.None:
-                        if (!HasIdentityConversion(sourceArg, destinationArg))
+                        if (!HasIdentityConversionInternal(sourceArg, destinationArg))
                         {
                             return false;
                         }
@@ -2924,7 +2974,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         break;
                     case VarianceKind.In:
-                        bool hasIdentityConversion = HasIdentityConversion(sourceArg, destinationArg);
+                        bool hasIdentityConversion = HasIdentityConversionInternal(sourceArg, destinationArg);
                         bool bothAreReferenceTypes = sourceArg.IsReferenceType && destinationArg.IsReferenceType;
                         if (!(hasIdentityConversion || bothAreReferenceTypes))
                         {
@@ -2972,7 +3022,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 foreach (var iface in this.corLibrary.GetDeclaredSpecialType(SpecialType.System_Array).AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
                 {
-                    if (HasIdentityConversion(iface, source))
+                    if (HasIdentityConversionInternal(iface, source))
                     {
                         return true;
                     }
@@ -3010,7 +3060,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var sourceElement = ((NamedTypeSymbol)source).TypeArgumentWithDefinitionUseSiteDiagnostics(0, ref useSiteDiagnostics).TypeSymbol;
                     var destinationElement = destinationArray.ElementType.TypeSymbol;
 
-                    if (HasIdentityConversion(sourceElement, destinationElement))
+                    if (HasIdentityConversionInternal(sourceElement, destinationElement))
                     {
                         return true;
                     }

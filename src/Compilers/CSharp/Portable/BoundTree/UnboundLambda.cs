@@ -140,8 +140,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                // PROTOTYPE(NullableReferenceTypes): Should pass includeNullability: false.
-                bestResultType = BestTypeInferrer.InferBestType(resultTypes, binder.Conversions, includeNullability, ref useSiteDiagnostics);
+                var conversions = binder.Conversions.WithNullability(includeNullability);
+                bestResultType = BestTypeInferrer.InferBestType(resultTypes, conversions, ref useSiteDiagnostics);
             }
 
             if (!isAsync)

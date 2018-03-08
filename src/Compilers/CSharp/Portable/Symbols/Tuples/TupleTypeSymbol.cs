@@ -214,6 +214,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Copy this tuple, but modify it to use the new element types.
+        /// </summary>
+        internal TupleTypeSymbol WithElementTypes(ImmutableArray<TypeSymbolWithAnnotations> newElementTypes)
+        {
+            Debug.Assert(_elementTypes.Length == newElementTypes.Length);
+            Debug.Assert(newElementTypes.All(t => (object)t != null));
+
+            NamedTypeSymbol firstTupleType;
+            NamedTypeSymbol chainedTupleType;
+            if (_underlyingType.Arity < TupleTypeSymbol.RestPosition)
+            {
+                firstTupleType = _underlyingType.OriginalDefinition;
+                chainedTupleType = null;
+            }
+            else
+            {
+                chainedTupleType = _underlyingType.OriginalDefinition;
+                var underlyingType = _underlyingType;
+                do
+                {
+                    underlyingType = ((TupleTypeSymbol)underlyingType.TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestIndex].TypeSymbol).UnderlyingNamedType;
+                } while (underlyingType.Arity >= TupleTypeSymbol.RestPosition);
+                firstTupleType = underlyingType.OriginalDefinition;
+            }
+            return Create(
+                ConstructTupleUnderlyingType(firstTupleType, chainedTupleType, newElementTypes),
+                elementNames: _elementNames);
+        }
+
+        /// <summary>
         /// Copy this tuple, but modify it to use the new element names.
         /// Also applies new location of the whole tuple as well as each element.
         /// Drops the inferred positions.
@@ -319,34 +349,40 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             int remainder;
             int chainLength = NumberOfValueTuples(numElements, out remainder);
 
-            NamedTypeSymbol currentSymbol = default(NamedTypeSymbol);
             NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
-
             if ((object)diagnostics != null && (object)syntax != null)
             {
                 ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, firstTupleType);
             }
 
-            currentSymbol = firstTupleType.Construct(ImmutableArray.Create(elementTypes, (chainLength - 1) * (RestPosition - 1), remainder));
-
-            int loop = chainLength - 1;
-            if (loop > 0)
+            NamedTypeSymbol chainedTupleType = null;
+            if (chainLength > 1)
             {
-                NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
-
+                chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
                 if ((object)diagnostics != null && (object)syntax != null)
                 {
                     ReportUseSiteAndObsoleteDiagnostics(syntax, diagnostics, chainedTupleType);
                 }
+            }
 
-                do
-                {
-                    var chainedTypes = ImmutableArray.Create(elementTypes, (loop - 1) * (RestPosition - 1), RestPosition - 1).Add(TypeSymbolWithAnnotations.Create(currentSymbol));
+            return ConstructTupleUnderlyingType(firstTupleType, chainedTupleType, elementTypes);
+        }
 
-                    currentSymbol = chainedTupleType.Construct(chainedTypes);
-                    loop--;
-                }
-                while (loop > 0);
+        internal static NamedTypeSymbol ConstructTupleUnderlyingType(NamedTypeSymbol firstTupleType, NamedTypeSymbol chainedTupleTypeOpt, ImmutableArray<TypeSymbolWithAnnotations> elementTypes)
+        {
+            Debug.Assert(chainedTupleTypeOpt is null == elementTypes.Length < RestPosition);
+
+            int numElements = elementTypes.Length;
+            int remainder;
+            int chainLength = NumberOfValueTuples(numElements, out remainder);
+
+            NamedTypeSymbol currentSymbol = firstTupleType.Construct(ImmutableArray.Create(elementTypes, (chainLength - 1) * (RestPosition - 1), remainder));
+            int loop = chainLength - 1;
+            while (loop > 0)
+            {
+                var chainedTypes = ImmutableArray.Create(elementTypes, (loop - 1) * (RestPosition - 1), RestPosition - 1).Add(TypeSymbolWithAnnotations.Create(currentSymbol));
+                currentSymbol = chainedTupleTypeOpt.Construct(chainedTypes);
+                loop--;
             }
 
             return currentSymbol;

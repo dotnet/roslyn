@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (expr.Kind)
             {
                 case BoundKind.SuppressNullableWarningExpression:
-                    return false;
+                    return null;
                 case BoundKind.Local:
                     {
                         var local = (BoundLocal)expr;
@@ -245,9 +245,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var right = op.RightOperand.IsNullable();
                         return (left == true) ? right : left;
                     }
+                case BoundKind.ThisReference:
+                case BoundKind.BaseReference:
+                case BoundKind.NewT:
                 case BoundKind.ObjectCreationExpression:
                 case BoundKind.DelegateCreationExpression:
-                    return false;
+                case BoundKind.NoPiaObjectCreationExpression:
+                case BoundKind.InterpolatedString:
+                case BoundKind.TypeOfOperator:
+                case BoundKind.NameOfOperator:
                 case BoundKind.TupleLiteral:
                     return false;
                 case BoundKind.DefaultExpression:
@@ -263,9 +269,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var constant = expr.ConstantValue;
-            if (constant != null && constant.IsNull)
+            if (constant != null)
             {
-                return true;
+                if (constant.IsNull)
+                {
+                    return true;
+                }
+                if (expr.Type?.IsReferenceType == true)
+                {
+                    return false;
+                }
             }
 
             return null;
