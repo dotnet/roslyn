@@ -23,12 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
 
             public Task<QuickInfoItem> GetQuickInfoItemAsync(IAsyncQuickInfoSession session, CancellationToken cancellationToken)
             {
-                if (session.Properties.TryGetProperty(QuickInfoUtilities.EventHookupKey, out object eventHookupValue))
-                {
-                    // No quickinfo if it's the event hookup popup.
-                    return Task.FromResult<QuickInfoItem>(null);
-                }
-
                 var triggerPoint = session.GetTriggerPoint(_subjectBuffer.CurrentSnapshot);
                 if (triggerPoint != null && triggerPoint.HasValue)
                 {
