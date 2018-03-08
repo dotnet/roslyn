@@ -2802,6 +2802,41 @@ End Class
 
         <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestSmartIndentInArgumentLists1()
+            Dim code = "
+Class C
+    Sub M()
+        Console.WriteLine(""{0} + {1}"",
+
+    End Sub
+End Class"
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=4,
+                expectedIndentation:=26)
+        End Sub
+
+        <WorkItem(3293, "https://github.com/dotnet/roslyn/issues/3293")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
+        Public Sub TestSmartIndentInArgumentLists2()
+            Dim code = "
+Class C
+    Sub M()
+        Console.WriteLine(""{0} + {1}"",
+            19,
+
+    End Sub
+End Class"
+
+            AssertSmartIndent(
+                code,
+                indentationLine:=5,
+                expectedIndentation:=12)
+        End Sub
+
+        <WorkItem(25323, "https://github.com/dotnet/roslyn/issues/25323")>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestSmartIndentAtCaseBlockEndUntabbedComment()
             Dim code = <code>Class Program
     Public Sub M()
