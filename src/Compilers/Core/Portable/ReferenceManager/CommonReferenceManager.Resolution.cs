@@ -204,7 +204,9 @@ namespace Microsoft.CodeAnalysis
         {
             // Locations of all #r directives in the order they are listed in the references list.
             ImmutableArray<Location> referenceDirectiveLocations;
-            GetCompilationReferences(compilation, diagnostics, out references, out boundReferenceDirectiveMap, out referenceDirectiveLocations);
+            ImmutableArray<(MetadataReference, Location)> referencesWithLocation;
+            GetCompilationReferences(compilation, diagnostics, out referencesWithLocation, out boundReferenceDirectiveMap, out referenceDirectiveLocations);
+            references = referencesWithLocation.Select(r => r.Item1).ToImmutableArray();
 
             // References originating from #r directives precede references supplied as arguments of the compilation.
             int referenceCount = references.Length;
@@ -230,7 +232,7 @@ namespace Microsoft.CodeAnalysis
             // so that we find the one that matters first.
             for (int referenceIndex = referenceCount - 1; referenceIndex >= 0; referenceIndex--)
             {
-                var boundReference = references[referenceIndex];
+                var boundReference = referencesWithLocation[referenceIndex].Item1;
                 if (boundReference == null)
                 {
                     continue;
@@ -252,9 +254,9 @@ namespace Microsoft.CodeAnalysis
                 boundReferences.Add(boundReference, boundReference);
 
                 Location location;
-                if (referenceIndex < referenceDirectiveCount)
+                if (referencesWithLocation[referenceIndex].Item2 != Location.None)
                 {
-                    location = referenceDirectiveLocations[referenceIndex];
+                    location = referencesWithLocation[referenceIndex].Item2;
                     uniqueDirectiveReferences.Add(boundReference);
                 }
                 else
@@ -747,13 +749,13 @@ namespace Microsoft.CodeAnalysis
         protected void GetCompilationReferences(
             TCompilation compilation,
             DiagnosticBag diagnostics,
-            out ImmutableArray<MetadataReference> references,
+            out ImmutableArray<(MetadataReference, Location)> references,
             out IDictionary<(string, string), MetadataReference[]> boundReferenceDirectives,
             out ImmutableArray<Location> referenceDirectiveLocations)
         {
             boundReferenceDirectives = null;
 
-            ArrayBuilder<MetadataReference> referencesBuilder = ArrayBuilder<MetadataReference>.GetInstance();
+            ArrayBuilder<(MetadataReference, Location)> referencesBuilder = ArrayBuilder<(MetadataReference, Location)>.GetInstance();
             ArrayBuilder<Location> referenceDirectiveLocationsBuilder = null;
 
             try
@@ -785,19 +787,19 @@ namespace Microsoft.CodeAnalysis
                         referenceDirectiveLocationsBuilder = ArrayBuilder<Location>.GetInstance();
                     }
 
-                    referencesBuilder.AddRange(boundReferences);
+                    referencesBuilder.AddRange(boundReferences.Select(r => ((MetadataReference)r, referenceDirective.Location)));
                     referenceDirectiveLocationsBuilder.Add(referenceDirective.Location);
                     boundReferenceDirectives.Add((referenceDirective.Location.SourceTree.FilePath, referenceDirective.File), boundReferences);
                 }
 
                 // add external reference at the end, so that they are processed first:
-                referencesBuilder.AddRange(compilation.ExternalReferences);
+                referencesBuilder.AddRange(compilation.ExternalReferences.Select(r => ((MetadataReference)r, Location.None)));
 
                 // Add all explicit references of the previous script compilation.
                 var previousScriptCompilation = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
                 if (previousScriptCompilation != null)
                 {
-                    referencesBuilder.AddRange(previousScriptCompilation.GetBoundReferenceManager().ExplicitReferences);
+                    referencesBuilder.AddRange(previousScriptCompilation.GetBoundReferenceManager().ExplicitReferences.Select(r => ((MetadataReference)r, Location.None)));
                 }
 
                 if (boundReferenceDirectives == null)
