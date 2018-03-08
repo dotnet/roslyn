@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             return new ClassifiedTextElement(description.TaggedParts.Select(p => new ClassifiedTextRun(p.Tag.ToClassificationTypeName(), p.Text)));
         }
 
-        public CustomCommitBehavior CustomCommit(
+        public CommitBehavior CustomCommit(
             ITextView view, 
             ITextBuffer buffer, 
             EditorCompletion.CompletionItem item, 
@@ -218,7 +218,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 }
             }
 
-            return CustomCommitBehavior.SuppressFurtherCommandHandlers;
+            return CommitBehavior.SuppressFurtherCommandHandlers;
+        }
+
+        public CommitBehavior GetDefaultCommitBehavior(ITextView view, ITextBuffer buffer, EditorCompletion.CompletionItem item, ITrackingSpan applicableSpan, char typeChar, CancellationToken token)
+        {
+            // TODO: Handle Enter in VB
+            return CommitBehavior.None;
         }
 
         public ImmutableArray<char> GetPotentialCommitCharacters()

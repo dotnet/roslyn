@@ -218,11 +218,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 // This also preserves the behavior the VB had through Dev12.
                 var hardSelect = bestFilterResult.Value.CompletionItem.FilterText.StartsWith(filterText, StringComparison.CurrentCultureIgnoreCase);
 
-                return Task.FromResult(new FilteredCompletionModel(highlightedList, filteredItems.IndexOf(bestFilterResult.Value.CompletionItem), updatedFilters, matchCount == 1 ? CompletionItemSelection.Selected : CompletionItemSelection.SoftSelected, uniqueItem: null));
+                return Task.FromResult(new FilteredCompletionModel(highlightedList, filteredItems.IndexOf(bestFilterResult.Value.CompletionItem), updatedFilters, matchCount == 1 ? CompletionItemSelection.Selected : CompletionItemSelection.SoftSelected, centerSelection: true, uniqueItem: null));
             }
             else
             {
-                return Task.FromResult(new FilteredCompletionModel(highlightedList, 0, updatedFilters, CompletionItemSelection.SoftSelected, uniqueItem: null));
+                return Task.FromResult(new FilteredCompletionModel(highlightedList, 0, updatedFilters, CompletionItemSelection.SoftSelected, centerSelection: true, uniqueItem: null));
             }
         }
 
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             if (bestItem == null)
             {
-                return Task.FromResult(new FilteredCompletionModel(highlightedList, 0, updatedFilters, isHardSelection ? CompletionItemSelection.Selected : CompletionItemSelection.SoftSelected, uniqueItem: null));
+                return Task.FromResult(new FilteredCompletionModel(highlightedList, 0, updatedFilters, isHardSelection ? CompletionItemSelection.Selected : CompletionItemSelection.SoftSelected, centerSelection: true, uniqueItem: null));
             }
 
             // TODO: Better conversion between Roslyn/Editor completion items
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 uniqueItem = highlightedList[selectedItemIndex].CompletionItem;
             }
 
-            return Task.FromResult(new FilteredCompletionModel(highlightedList, selectedItemIndex, updatedFilters, isHardSelection ? CompletionItemSelection.Selected : CompletionItemSelection.SoftSelected, uniqueItem));
+            return Task.FromResult(new FilteredCompletionModel(highlightedList, selectedItemIndex, updatedFilters, isHardSelection ? CompletionItemSelection.Selected : CompletionItemSelection.SoftSelected, centerSelection: true, uniqueItem));
         }
 
         private bool IsHardSelection(RoslynCompletionItem bestItem, ITextSnapshot snapshot, int? caretPosition, EditorCompletion.CompletionFilterReason filterReason, string filterText, CompletionTriggerReason triggerReason)
@@ -549,7 +549,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 // model (and all the previously filtered items), but switch over to soft 
                 // selection.
 
-                return new FilteredCompletionModel(ImmutableArray<CompletionItemWithHighlight>.Empty, 0, filters, CompletionItemSelection.SoftSelected, uniqueItem: null);
+                return new FilteredCompletionModel(ImmutableArray<CompletionItemWithHighlight>.Empty, 0, filters, CompletionItemSelection.SoftSelected, centerSelection: true, uniqueItem: null);
             }
         }
 
