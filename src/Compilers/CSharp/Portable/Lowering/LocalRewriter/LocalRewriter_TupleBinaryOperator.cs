@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression ReplaceTerminalElementsWithTemps(BoundExpression expr, TupleBinaryOperatorInfo operators, ArrayBuilder<BoundExpression> initEffects, ArrayBuilder<LocalSymbol> temps)
         {
-            if (operators.InfoKind == TupleBinaryOperatorInfo.KindEnum.Multiple)
+            if (operators.InfoKind == TupleBinaryOperatorInfoKind.Multiple)
             {
                 // Example:
                 // in `(expr1, expr2) == (..., ...)` we need to save `expr1` and `expr2`
@@ -83,13 +83,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (@operator.InfoKind)
             {
-                case TupleBinaryOperatorInfo.KindEnum.Multiple:
+                case TupleBinaryOperatorInfoKind.Multiple:
                     return RewriteTupleNestedOperators((TupleBinaryOperatorInfo.Multiple)@operator, left, right, boolType, temps, operatorKind);
 
-                case TupleBinaryOperatorInfo.KindEnum.Single:
+                case TupleBinaryOperatorInfoKind.Single:
                     return RewriteTupleSingleOperator((TupleBinaryOperatorInfo.Single)@operator, left, right, boolType, operatorKind);
 
-                case TupleBinaryOperatorInfo.KindEnum.NullNull:
+                case TupleBinaryOperatorInfoKind.NullNull:
                     var nullnull = (TupleBinaryOperatorInfo.NullNull)@operator;
                     return new BoundLiteral(left.Syntax, ConstantValue.Create(nullnull.Kind == BinaryOperatorKind.Equal), boolType);
 

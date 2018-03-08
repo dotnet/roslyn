@@ -65,6 +65,25 @@ class C
         }
 
         [Fact]
+        public void TestTupleLiteralsWithDifferentCardinalities()
+        {
+            var source = @"
+class C
+{
+    static bool M()
+    {
+        return (1, 1) == (2, 2, 2);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,16): error CS8373: Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality 2 on the left and 3 on the right.
+                //         return (1, 1) == (2, 2, 2);
+                Diagnostic(ErrorCode.ERR_TupleSizesMismatchForBinOps, "(1, 1) == (2, 2, 2)").WithArguments("2", "3").WithLocation(6, 16)
+                );
+        }
+
+        [Fact]
         public void TestTuplesWithDifferentCardinalities()
         {
             var source = @"
@@ -341,11 +360,33 @@ class C
             var tree = comp.Compilation.SyntaxTrees.First();
             var model = comp.Compilation.GetSemanticModel(tree);
 
+            // check x
+            var tupleX = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+            Assert.Equal("(x, x)", tupleX.ToString());
+            Assert.Equal(Conversion.Identity, model.GetConversion(tupleX));
+            Assert.Null(model.GetSymbolInfo(tupleX).Symbol);
+
+            var lastX = tupleX.Arguments[1].Expression;
+            Assert.Equal("x", lastX.ToString());
+            Assert.Equal(Conversion.Identity, model.GetConversion(lastX));
+            Assert.Equal("System.Int32 x", model.GetSymbolInfo(lastX).Symbol.ToTestDisplayString());
+
+            var xSymbol = model.GetTypeInfo(lastX);
+            Assert.Equal("System.Int32", xSymbol.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", xSymbol.ConvertedType.ToTestDisplayString());
+
+            var tupleXSymbol = model.GetTypeInfo(tupleX);
+            Assert.Equal("(System.Int32, System.Int32)", tupleXSymbol.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32)", tupleXSymbol.ConvertedType.ToTestDisplayString());
+
+            // check y
             var tupleY = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Last();
             Assert.Equal("(y, y)", tupleY.ToString());
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(tupleY).Kind);
 
             var lastY = tupleY.Arguments[1].Expression;
             Assert.Equal("y", lastY.ToString());
+            Assert.Equal(Conversion.ImplicitNumeric, model.GetConversion(lastY));
 
             var ySymbol = model.GetTypeInfo(lastY);
             Assert.Equal("System.Byte", ySymbol.Type.ToTestDisplayString());
@@ -599,11 +640,52 @@ class C
             var symbol1 = model.GetTypeInfo(tuple1);
             Assert.Null(symbol1.Type);
             Assert.Equal("(System.String, System.Int64)", symbol1.ConvertedType.ToTestDisplayString());
+            Assert.Equal("(System.String, System.Int64)", model.GetDeclaredSymbol(tuple1).ToTestDisplayString());
 
             var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
             var symbol2 = model.GetTypeInfo(tuple2);
             Assert.Equal("(System.String, System.Int32)", symbol2.Type.ToTestDisplayString());
             Assert.Equal("(System.String, System.Int64)", symbol2.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TestConversionOnTupleExpression()
+        {
+            var source = @"
+class C
+{
+    static bool M((int, byte) t)
+    {
+        return t == (1L, 2);
+    }
+}";
+            var comp = CompileAndVerify(source);
+            comp.VerifyDiagnostics();
+
+            var tree = comp.Compilation.SyntaxTrees.First();
+            var model = comp.Compilation.GetSemanticModel(tree);
+
+            var equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+
+            // check t
+            var t = equals.Left;
+            Assert.Equal("t", t.ToString());
+            Assert.Equal("(System.Int32, System.Byte) t", model.GetSymbolInfo(t).Symbol.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTuple, model.GetConversion(t).Kind);
+
+            var tTypeInfo = model.GetTypeInfo(t);
+            Assert.Equal("(System.Int32, System.Byte)", tTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int64, System.Int32)", tTypeInfo.ConvertedType.ToTestDisplayString());
+
+            // check tuple
+            var tuple = equals.Right;
+            Assert.Equal("(1L, 2)", tuple.ToString());
+            Assert.Null(model.GetSymbolInfo(tuple).Symbol);
+            Assert.Equal(Conversion.Identity, model.GetConversion(tuple));
+
+            var tupleTypeInfo = model.GetTypeInfo(tuple);
+            Assert.Equal("(System.Int64, System.Int32)", tupleTypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int64, System.Int32)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -657,17 +739,31 @@ class C
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
 
+            // check first tuple and its null
             var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
             Assert.Equal("(s, null)", tuple1.ToString());
             var tupleType1 = model.GetTypeInfo(tuple1);
             Assert.Null(tupleType1.Type);
             Assert.Equal("(System.String, System.String)", tupleType1.ConvertedType.ToTestDisplayString());
 
+            var tuple1Null = tuple1.Arguments[1].Expression;
+            var tuple1NullTypeInfo = model.GetTypeInfo(tuple1Null);
+            Assert.Null(tuple1NullTypeInfo.Type);
+            Assert.Equal("System.String", tuple1NullTypeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitReference, model.GetConversion(tuple1Null).Kind);
+
+            // check second tuple and its null
             var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
             Assert.Equal("(null, s)", tuple2.ToString());
             var tupleType2 = model.GetTypeInfo(tuple2);
             Assert.Null(tupleType2.Type);
             Assert.Equal("(System.String, System.String)", tupleType2.ConvertedType.ToTestDisplayString());
+
+            var tuple2Null = tuple2.Arguments[0].Expression;
+            var tuple2NullTypeInfo = model.GetTypeInfo(tuple2Null);
+            Assert.Null(tuple2NullTypeInfo.Type);
+            Assert.Equal("System.String", tuple2NullTypeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitReference, model.GetConversion(tuple2Null).Kind);
         }
 
         [Fact]
@@ -705,11 +801,27 @@ class C
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
 
-            var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+            var equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+
+            // check t1
+            var t1 = equals.Left;
+            Assert.Equal("t1", t1.ToString());
+
+            var t1TypeInfo = model.GetTypeInfo(t1);
+            Assert.Equal("(System.Int32, System.Int64)", t1TypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int64, System.Int64)", t1TypeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTuple, model.GetConversion(t1).Kind);
+
+            // check tuple and its literal 2
+            var tuple = (TupleExpressionSyntax)equals.Right;
             Assert.Equal("(1L, 2)", tuple.ToString());
+
             var tupleType = model.GetTypeInfo(tuple);
             Assert.Equal("(System.Int64, System.Int32)", tupleType.Type.ToTestDisplayString());
             Assert.Equal("(System.Int64, System.Int64)", tupleType.ConvertedType.ToTestDisplayString());
+
+            var two = tuple.Arguments[1].Expression;
+            Assert.Equal(ConversionKind.ImplicitNumeric, model.GetConversion(two).Kind);
         }
 
         [Fact]
@@ -732,11 +844,33 @@ class C
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
 
-            var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(3);
+            var equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+
+            // check t1
+            var t1 = equals.Left;
+            Assert.Equal("t1", t1.ToString());
+
+            var t1TypeInfo = model.GetTypeInfo(t1);
+            Assert.Equal("(System.Int32, (System.Int64, System.String))", t1TypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int64, (System.Int64, System.String))", t1TypeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTuple, model.GetConversion(t1).Kind);
+            Assert.Equal("(System.Int32, (System.Int64, System.String)) t1", model.GetSymbolInfo(t1).Symbol.ToTestDisplayString());
+
+            // check tuple and its t2
+            var tuple = (TupleExpressionSyntax)equals.Right;
             Assert.Equal("(1L, t2)", tuple.ToString());
             var tupleType = model.GetTypeInfo(tuple);
             Assert.Equal("(System.Int64, (System.Int32, System.String) t2)", tupleType.Type.ToTestDisplayString());
             Assert.Equal("(System.Int64, (System.Int64, System.String))", tupleType.ConvertedType.ToTestDisplayString());
+
+            var t2 = tuple.Arguments[1].Expression;
+            Assert.Equal("t2", t2.ToString());
+
+            var t2TypeInfo = model.GetTypeInfo(t2);
+            Assert.Equal("(System.Int32, System.String)", t2TypeInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int64, System.String)", t2TypeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTuple, model.GetConversion(t2).Kind);
+            Assert.Equal("(System.Int32, System.String) t2", model.GetSymbolInfo(t2).Symbol.ToTestDisplayString());
         }
 
         [Fact]
@@ -765,6 +899,29 @@ class C
             var tupleType = model.GetTypeInfo(tuple);
             Assert.Null(tupleType.Type);
             Assert.Equal("(System.String, System.String)", tupleType.ConvertedType.ToTestDisplayString());
+
+            // check last tuple ...
+            var lastEquals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
+            var lastTuple = (TupleExpressionSyntax)lastEquals.Right;
+            Assert.Equal("(1, (null, null))", lastTuple.ToString());
+            TypeInfo lastTupleTypeInfo = model.GetTypeInfo(lastTuple);
+            Assert.Null(lastTupleTypeInfo.Type);
+            Assert.Equal("(System.Int32, (System.String, System.String))", lastTupleTypeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(lastTuple).Kind);
+
+            // ... and its nested (null, null) tuple ...
+            var nullNull = (TupleExpressionSyntax)lastTuple.Arguments[1].Expression;
+            TypeInfo nullNullTypeInfo = model.GetTypeInfo(nullNull);
+            Assert.Null(nullNullTypeInfo.Type);
+            Assert.Equal("(System.String, System.String)", nullNullTypeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(nullNull).Kind);
+
+            // ... and its last null.
+            var lastNull = nullNull.Arguments[1].Expression;
+            TypeInfo lastNullTypeInfo = model.GetTypeInfo(lastNull);
+            Assert.Null(lastNullTypeInfo.Type);
+            Assert.Equal("System.String", lastNullTypeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitReference, model.GetConversion(lastNull).Kind);
         }
 
         [Fact(Skip = "PROTOTYPE(tuple-equality) Default")]
@@ -898,12 +1055,45 @@ class C
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
 
+            // check last tuple ...
             var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(3);
             Assert.Equal("((null, null), t)", tuple.ToString());
+
             var tupleType = model.GetTypeInfo(tuple);
             Assert.Null(tupleType.Type);
             Assert.Equal("((System.String, System.String), (System.String, System.String))",
                 tupleType.ConvertedType.ToTestDisplayString());
+
+            // ... its t ...
+            var t = tuple.Arguments[1].Expression;
+            Assert.Equal("t", t.ToString());
+
+            var tType = model.GetTypeInfo(t);
+            Assert.Equal("(System.String, System.String)", tType.Type.ToTestDisplayString());
+            Assert.Equal("(System.String, System.String)", tType.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(t).Kind);
+            Assert.Equal("(System.String, System.String) t", model.GetSymbolInfo(t).Symbol.ToTestDisplayString());
+            Assert.Null(model.GetDeclaredSymbol(t));
+
+            // ... its nested tuple ...
+            var nestedTuple = (TupleExpressionSyntax)tuple.Arguments[0].Expression;
+            Assert.Equal("(null, null)", nestedTuple.ToString());
+
+            var nestedTupleType = model.GetTypeInfo(nestedTuple);
+            Assert.Null(nestedTupleType.Type);
+            Assert.Equal("(System.String, System.String)", nestedTupleType.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(nestedTuple).Kind);
+            Assert.Null(model.GetSymbolInfo(nestedTuple).Symbol);
+            Assert.Equal("(System.String, System.String)", model.GetDeclaredSymbol(nestedTuple).ToTestDisplayString());
+
+            // ... a nested null.
+            var nestedNull = nestedTuple.Arguments[0].Expression;
+            Assert.Equal("null", nestedNull.ToString());
+
+            var nestedNullType = model.GetTypeInfo(nestedNull);
+            Assert.Null(nestedNullType.Type);
+            Assert.Equal("System.String", nestedNullType.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitReference, model.GetConversion(nestedNull).Kind);
         }
 
         [Fact]
@@ -1015,33 +1205,66 @@ class C
 {
     static void Main()
     {
-        System.Console.Write((null, null, null) == (null, () => { }, Main));
+        System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
     }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'lambda expression'
-                //         System.Console.Write((null, null, null) == (null, () => { }, Main));
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null) == (null, () => { }, Main)").WithArguments("==", "<null>", "lambda expression").WithLocation(6, 30),
+                //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; })").WithArguments("==", "<null>", "lambda expression").WithLocation(6, 30),
                 // (6,30): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'method group'
-                //         System.Console.Write((null, null, null) == (null, () => { }, Main));
-                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null) == (null, () => { }, Main)").WithArguments("==", "<null>", "method group").WithLocation(6, 30)
+                //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; })").WithArguments("==", "<null>", "method group").WithLocation(6, 30),
+                // (6,30): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'lambda expression'
+                //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; })").WithArguments("==", "<null>", "lambda expression").WithLocation(6, 30)
                 );
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
 
+            // check tuple on the left
             var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
-            Assert.Equal("(null, null, null)", tuple1.ToString());
+            Assert.Equal("(null, null, null, null)", tuple1.ToString());
+
             var tupleType1 = model.GetTypeInfo(tuple1);
             Assert.Null(tupleType1.Type);
             Assert.Null(tupleType1.ConvertedType);
 
+            // check tuple on the right ...
             var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
-            Assert.Equal("(null, () => { }, Main)", tuple2.ToString());
+            Assert.Equal("(null, () => { }, Main, (int i) => { int j = 0; return i + j; })", tuple2.ToString());
+
             var tupleType2 = model.GetTypeInfo(tuple2);
             Assert.Null(tupleType2.Type);
             Assert.Null(tupleType2.ConvertedType);
+
+            // ... its first lambda ...
+            var firstLambda = tuple2.Arguments[1].Expression;
+            Assert.Null(model.GetTypeInfo(firstLambda).Type);
+            Assert.Null(model.GetTypeInfo(firstLambda).ConvertedType);
+
+            // ... its method group ...
+            var methodGroup = tuple2.Arguments[2].Expression;
+            Assert.Null(model.GetTypeInfo(methodGroup).Type);
+            Assert.Null(model.GetTypeInfo(methodGroup).ConvertedType);
+            Assert.Null(model.GetSymbolInfo(methodGroup).Symbol);
+            Assert.Equal(new[] { "void C.Main()" }, model.GetSymbolInfo(methodGroup).CandidateSymbols.Select(s => s.ToTestDisplayString()));
+
+            // ... its second lambda and the symbols it uses
+            var secondLambda = tuple2.Arguments[3].Expression;
+            Assert.Null(model.GetTypeInfo(secondLambda).Type);
+            Assert.Null(model.GetTypeInfo(secondLambda).ConvertedType);
+
+            var addition = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
+            Assert.Equal("i + j", addition.ToString());
+
+            var i = addition.Left;
+            Assert.Equal("System.Int32 i", model.GetSymbolInfo(i).Symbol.ToTestDisplayString());
+
+            var j = addition.Right;
+            Assert.Equal("System.Int32 j", model.GetSymbolInfo(j).Symbol.ToTestDisplayString());
         }
 
         [Fact]

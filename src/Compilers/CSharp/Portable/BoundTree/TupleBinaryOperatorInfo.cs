@@ -7,6 +7,14 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+
+    internal enum TupleBinaryOperatorInfoKind
+    {
+        Single,
+        NullNull,
+        Multiple
+    }
+
     /// <summary>
     /// A tree of binary operators for tuple comparisons.
     ///
@@ -16,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal abstract class TupleBinaryOperatorInfo
     {
-        internal abstract KindEnum InfoKind { get; }
+        internal abstract TupleBinaryOperatorInfoKind InfoKind { get; }
         internal readonly TypeSymbol LeftConvertedTypeOpt;
         internal readonly TypeSymbol RightConvertedTypeOpt;
 #if DEBUG
@@ -57,8 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(Kind.IsUserDefined() == ((object)MethodSymbolOpt != null));
             }
 
-            internal override KindEnum InfoKind
-                => KindEnum.Single;
+            internal override TupleBinaryOperatorInfoKind InfoKind
+                => TupleBinaryOperatorInfoKind.Single;
 
             public override string ToString()
                 => $"binaryOperatorKind: {Kind}";
@@ -97,8 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Operators = operators;
             }
 
-            internal override KindEnum InfoKind
-                => KindEnum.Multiple;
+            internal override TupleBinaryOperatorInfoKind InfoKind
+                => TupleBinaryOperatorInfoKind.Multiple;
 
 #if DEBUG
             internal override TreeDumperNode DumpCore()
@@ -120,14 +128,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal readonly BinaryOperatorKind Kind;
 
-            internal NullNull(BinaryOperatorKind kind, TypeSymbol leftConvertedTypeOpt, TypeSymbol rightConvertedTypeOpt)
-                : base(leftConvertedTypeOpt, rightConvertedTypeOpt)
+            internal NullNull(BinaryOperatorKind kind)
+                : base(leftConvertedTypeOpt: null, rightConvertedTypeOpt: null)
             {
                 Kind = kind;
             }
 
-            internal override KindEnum InfoKind
-                => KindEnum.NullNull;
+            internal override TupleBinaryOperatorInfoKind InfoKind
+                => TupleBinaryOperatorInfoKind.NullNull;
 
 #if DEBUG
             internal override TreeDumperNode DumpCore()
@@ -135,13 +143,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new TreeDumperNode("nullnull", value: Kind, children: null);
             }
 #endif
-        }
-
-        internal enum KindEnum
-        {
-            Single,
-            NullNull,
-            Multiple
         }
     }
 }

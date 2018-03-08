@@ -37,17 +37,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundTupleBinaryOperator(node, left, right, convertedLeft, convertedRight, kind, operators, resultType);
         }
 
-        BoundExpression ApplyConvertedTypes(BoundExpression expr, TupleBinaryOperatorInfo @operator, bool isRight, DiagnosticBag diagnostics)
+        private BoundExpression ApplyConvertedTypes(BoundExpression expr, TupleBinaryOperatorInfo @operator, bool isRight, DiagnosticBag diagnostics)
         {
             TypeSymbol convertedType = isRight ? @operator.RightConvertedTypeOpt : @operator.LeftConvertedTypeOpt;
 
-            if (@operator.InfoKind == TupleBinaryOperatorInfo.KindEnum.Multiple && expr.Kind == BoundKind.TupleLiteral)
+            if (@operator.InfoKind == TupleBinaryOperatorInfoKind.Multiple && expr.Kind == BoundKind.TupleLiteral && convertedType is null)
             {
+                // Although the tuple will remain typeless, we'll give elements converted types as possible
                 var multiple = (TupleBinaryOperatorInfo.Multiple)@operator;
+                if (multiple.Operators.Length == 0)
+                {
+                    return expr;
+                }
+
                 var tuple = (BoundTupleLiteral)expr;
                 ImmutableArray<BoundExpression> arguments = tuple.Arguments;
                 int length = arguments.Length;
-
                 Debug.Assert(length == multiple.Operators.Length);
 
                 var builder = ArrayBuilder<BoundExpression>.GetInstance(length);
@@ -96,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool rightNull = right.IsLiteralNull();
             if (leftNull && rightNull)
             {
-                return new TupleBinaryOperatorInfo.NullNull(kind, leftConvertedTypeOpt: null, rightConvertedTypeOpt: null);
+                return new TupleBinaryOperatorInfo.NullNull(kind);
             }
 
             LookupResultKind resultKind;
@@ -211,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Error(diagnostics, ErrorCode.ERR_TupleSizesMismatchForBinOps, node, leftCardinality, rightCardinality);
 
-                return new TupleBinaryOperatorInfo.Multiple(ImmutableArray<TupleBinaryOperatorInfo>.Empty, leftType ?? CreateErrorType(), rightType ?? CreateErrorType());
+                return new TupleBinaryOperatorInfo.Multiple(ImmutableArray<TupleBinaryOperatorInfo>.Empty, leftConvertedTypeOpt: null, rightConvertedTypeOpt: null);
             }
 
             // typeless tuple literals are not nullable
