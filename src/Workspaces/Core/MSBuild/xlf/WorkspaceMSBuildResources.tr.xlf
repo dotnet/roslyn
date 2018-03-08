@@ -17,6 +17,11 @@
         <target state="new">Project does not contain '{0}' target.</target>
         <note />
       </trans-unit>
+      <trans-unit id="Found_project_with_the_same_file_path_and_output_path_as_another_project_0">
+        <source>Found project with the same file path and output path as another project: {0}</source>
+        <target state="new">Found project with the same file path and output path as another project: {0}</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

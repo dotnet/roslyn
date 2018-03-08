@@ -167,6 +167,20 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 foreach (var projectFileInfo in requestedProjectFileInfos)
                 {
                     var projectId = _projectMap.GetOrCreateProjectId(projectFileInfo);
+
+                    if (_projectIdToFileInfoMap.ContainsKey(projectId))
+                    {
+                        // There are multiple projects with the same project path and output path. This can happen
+                        // if a multi-TFM project does not have unique output file paths for each TFM. In that case,
+                        // we'll create a new ProjectId to ensure that the project is added to the workspace.
+
+                        _owner.ReportFailure(
+                            ReportMode.Log,
+                            string.Format(WorkspaceMSBuildResources.Found_project_with_the_same_file_path_and_output_path_as_another_project_0, projectFileInfo.FilePath));
+
+                        projectId = ProjectId.CreateNewId(debugName: projectFileInfo.FilePath);
+                    }
+
                     _projectIdToFileInfoMap.Add(projectId, projectFileInfo);
                     requestedIdsAndFileInfos.Add((projectId, projectFileInfo));
                 }
