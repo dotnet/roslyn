@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -195,7 +196,7 @@ namespace Microsoft.CodeAnalysis
             TCompilation compilation,
             [Out] Dictionary<string, List<ReferencedAssemblyIdentity>> assemblyReferencesBySimpleName,
             out ImmutableArray<MetadataReference> references,
-            out IDictionary<(string, string), MetadataReference> boundReferenceDirectiveMap,
+            out IDictionary<(string, string), MetadataReference[]> boundReferenceDirectiveMap,
             out ImmutableArray<MetadataReference> boundReferenceDirectives,
             out ImmutableArray<AssemblyData> assemblies,
             out ImmutableArray<PEModule> modules,
@@ -747,7 +748,7 @@ namespace Microsoft.CodeAnalysis
             TCompilation compilation,
             DiagnosticBag diagnostics,
             out ImmutableArray<MetadataReference> references,
-            out IDictionary<(string, string), MetadataReference> boundReferenceDirectives,
+            out IDictionary<(string, string), MetadataReference[]> boundReferenceDirectives,
             out ImmutableArray<Location> referenceDirectiveLocations)
         {
             boundReferenceDirectives = null;
@@ -771,8 +772,8 @@ namespace Microsoft.CodeAnalysis
                         continue;
                     }
 
-                    MetadataReference boundReference = ResolveReferenceDirective(referenceDirective.File, referenceDirective.Location, compilation);
-                    if (boundReference == null)
+                    var boundReferences = ResolveReferenceDirective(referenceDirective.File, referenceDirective.Location, compilation);
+                    if (boundReferences == null)
                     {
                         diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_MetadataFileNotFound, referenceDirective.Location, referenceDirective.File));
                         continue;
@@ -780,13 +781,13 @@ namespace Microsoft.CodeAnalysis
 
                     if (boundReferenceDirectives == null)
                     {
-                        boundReferenceDirectives = new Dictionary<(string, string), MetadataReference>();
+                        boundReferenceDirectives = new Dictionary<(string, string), MetadataReference[]>();
                         referenceDirectiveLocationsBuilder = ArrayBuilder<Location>.GetInstance();
                     }
 
-                    referencesBuilder.Add(boundReference);
+                    referencesBuilder.AddRange(boundReferences);
                     referenceDirectiveLocationsBuilder.Add(referenceDirective.Location);
-                    boundReferenceDirectives.Add((referenceDirective.Location.SourceTree.FilePath, referenceDirective.File), boundReference);
+                    boundReferenceDirectives.Add((referenceDirective.Location.SourceTree.FilePath, referenceDirective.File), boundReferences);
                 }
 
                 // add external reference at the end, so that they are processed first:
@@ -802,7 +803,7 @@ namespace Microsoft.CodeAnalysis
                 if (boundReferenceDirectives == null)
                 {
                     // no directive references resolved successfully:
-                    boundReferenceDirectives = SpecializedCollections.EmptyDictionary<(string, string), MetadataReference>();
+                    boundReferenceDirectives = SpecializedCollections.EmptyDictionary<(string, string), MetadataReference[]>();
                 }
 
                 references = referencesBuilder.ToImmutable();
@@ -819,7 +820,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// For each given directive return a bound PE reference, or null if the binding fails.
         /// </summary>
-        private static PortableExecutableReference ResolveReferenceDirective(string reference, Location location, TCompilation compilation)
+        private static PortableExecutableReference[] ResolveReferenceDirective(string reference, Location location, TCompilation compilation)
         {
             var tree = location.SourceTree;
             string basePath = (tree != null && tree.FilePath.Length > 0) ? tree.FilePath : null;
@@ -830,16 +831,16 @@ namespace Microsoft.CodeAnalysis
             var references = compilation.Options.MetadataReferenceResolver.ResolveReference(reference, basePath, MetadataReferenceProperties.Assembly.WithRecursiveAliases(true));
             if (references.IsDefaultOrEmpty)
             {
-                return null;
+                return Array.Empty<PortableExecutableReference>();
             }
 
-            if (references.Length > 1)
-            {
-                // TODO: implement
-                throw new NotSupportedException();
-            }
+            //if (references.Length > 1)
+            //{
+            //    // TODO: implement
+            //    throw new NotSupportedException();
+            //}
 
-            return references[0];
+            return references.ToArray();
         }
 
         internal static AssemblyReferenceBinding[] ResolveReferencedAssemblies(

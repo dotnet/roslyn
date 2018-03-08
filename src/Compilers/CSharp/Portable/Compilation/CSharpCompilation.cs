@@ -864,7 +864,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override IDictionary<(string path, string content), MetadataReference> ReferenceDirectiveMap
+        internal override IDictionary<(string path, string content), MetadataReference[]> ReferenceDirectiveMap
             => GetBoundReferenceManager().ReferenceDirectiveMap;
 
         // for testing purposes
@@ -923,9 +923,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         /// <param name="directive">#r directive.</param>
         /// <returns>Metadata reference the specified directive resolves to, or null if the <paramref name="directive"/> doesn't match any #r directive in the compilation.</returns>
-        public MetadataReference GetDirectiveReference(ReferenceDirectiveTriviaSyntax directive)
+        public MetadataReference[] GetDirectiveReference(ReferenceDirectiveTriviaSyntax directive)
         {
-            MetadataReference reference;
+            MetadataReference[] reference;
             return ReferenceDirectiveMap.TryGetValue((directive.SyntaxTree.FilePath, directive.File.ValueText), out reference) ? reference : null;
         }
 

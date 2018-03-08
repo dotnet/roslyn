@@ -1197,7 +1197,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides ReadOnly Property ReferenceDirectiveMap As IDictionary(Of (path As String, content As String), MetadataReference)
+        Friend Overrides ReadOnly Property ReferenceDirectiveMap As IDictionary(Of (path As String, content As String), MetadataReference())
             Get
                 Return GetBoundReferenceManager().ReferenceDirectiveMap
             End Get

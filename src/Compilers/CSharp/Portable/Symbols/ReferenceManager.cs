@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 try
                 {
-                    IDictionary<(string, string), MetadataReference> boundReferenceDirectiveMap;
+                    IDictionary<(string, string), MetadataReference[]> boundReferenceDirectiveMap;
                     ImmutableArray<MetadataReference> boundReferenceDirectives;
                     ImmutableArray<AssemblyData> referencedAssemblies;
                     ImmutableArray<PEModule> modules; // To make sure the modules are not collected ahead of time.

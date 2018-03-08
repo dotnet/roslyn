@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis
         /// Maps (containing syntax tree file name, reference string) of #r directive to a resolved metadata reference.
         /// If multiple #r's in the same tree use the same value as a reference the resolved metadata reference is the same as well.
         /// </summary>
-        private IDictionary<(string, string), MetadataReference> _lazyReferenceDirectiveMap;
+        private IDictionary<(string, string), MetadataReference[]> _lazyReferenceDirectiveMap;
 
         /// <summary>
         /// Array of unique bound #r references.
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal IDictionary<(string, string), MetadataReference> ReferenceDirectiveMap
+        internal IDictionary<(string, string), MetadataReference[]> ReferenceDirectiveMap
         {
             get
             {
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis
         internal void InitializeNoLock(
             Dictionary<MetadataReference, int> referencedAssembliesMap,
             Dictionary<MetadataReference, int> referencedModulesMap,
-            IDictionary<(string, string), MetadataReference> boundReferenceDirectiveMap,
+            IDictionary<(string, string), MetadataReference[]> boundReferenceDirectiveMap,
             ImmutableArray<MetadataReference> directiveReferences,
             ImmutableArray<MetadataReference> explicitReferences,
             ImmutableArray<MetadataReference> implicitReferences,
