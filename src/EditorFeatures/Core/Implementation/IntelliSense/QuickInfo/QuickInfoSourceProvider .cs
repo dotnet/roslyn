@@ -12,9 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
     [ContentType(ContentTypeNames.RoslynContentType)]
     [Export(typeof(IAsyncQuickInfoSourceProvider))]
     [Name("RoslynQuickInfoProvider")]
-    internal partial class QuickInfoSourceProvider :
-        ForegroundThreadAffinitizedObject,
-        IAsyncQuickInfoSourceProvider
+    internal partial class QuickInfoSourceProvider : IAsyncQuickInfoSourceProvider
     {
         public IAsyncQuickInfoSource TryCreateQuickInfoSource(ITextBuffer textBuffer)
         {
