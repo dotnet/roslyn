@@ -1,16 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+extern alias DSR;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.InteropServices.ComTypes;
+using DSR::Microsoft.DiaSymReader;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.DiaSymReader;
-using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+namespace Roslyn.Test.Utilities
 {
     internal sealed class MockSymUnmanagedReader : ISymUnmanagedReader, ISymUnmanagedReader2, ISymUnmanagedReader3
     {
