@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 ref BasicBlock.Branch next = ref block.InternalNext.Branch;
 
                 Debug.Assert((block.InternalNext.Value != null) == (next.Kind == BasicBlock.BranchKind.Return || next.Kind == BasicBlock.BranchKind.Throw));
-                Debug.Assert(next.Destination != null || 
+                Debug.Assert((next.Destination == null) == 
                              (next.Kind == BasicBlock.BranchKind.ProgramTermination ||
                               next.Kind == BasicBlock.BranchKind.Throw ||
                               next.Kind == BasicBlock.BranchKind.ReThrow ||
@@ -421,7 +421,8 @@ namespace Microsoft.CodeAnalysis.Operations
                         Debug.Assert(next.Kind == BasicBlock.BranchKind.Regular ||
                                      next.Kind == BasicBlock.BranchKind.Return ||
                                      next.Kind == BasicBlock.BranchKind.Throw ||
-                                     next.Kind == BasicBlock.BranchKind.ReThrow);
+                                     next.Kind == BasicBlock.BranchKind.ReThrow ||
+                                     next.Kind == BasicBlock.BranchKind.ProgramTermination);
 
                         ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
                         IOperation value = block.InternalNext.Value;
@@ -515,12 +516,16 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
                 else
                 {
-                    if (next.Destination == null)
+                    if (next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling)
                     {
                         continue;
                     }
 
-                    Debug.Assert(next.Kind == BasicBlock.BranchKind.Regular || next.Kind == BasicBlock.BranchKind.Return);
+                    Debug.Assert(next.Kind == BasicBlock.BranchKind.Regular ||
+                                 next.Kind == BasicBlock.BranchKind.Return ||
+                                 next.Kind == BasicBlock.BranchKind.Throw ||
+                                 next.Kind == BasicBlock.BranchKind.ReThrow ||
+                                 next.Kind == BasicBlock.BranchKind.ProgramTermination);
 
                     ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
 
@@ -550,7 +555,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         mergeBranch(predecessor, ref predecessor.InternalNext.Branch, ref next);
 
                         predecessor.InternalNext.Value = block.InternalNext.Value;
-                        next.Destination.RemovePredecessor(block);
+                        next.Destination?.RemovePredecessor(block);
 
                         predecessor.InternalConditional = block.InternalConditional;
                         BasicBlock destination = block.InternalConditional.Branch.Destination;
@@ -1930,6 +1935,18 @@ namespace Microsoft.CodeAnalysis.Operations
             }
         }
 
+        public override IOperation VisitEnd(IEndOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+            BasicBlock current = CurrentBasicBlock;
+            AppendNewBlock(new BasicBlock(BasicBlockKind.Block), linkToPrevious: false);
+            Debug.Assert(current.InternalNext.Value == null);
+            Debug.Assert(current.InternalNext.Branch.Destination == null);
+            Debug.Assert(current.InternalNext.Branch.Kind == default);
+            current.InternalNext.Branch.Kind = BasicBlock.BranchKind.ProgramTermination;
+            return null;
+        }
+
         public override IOperation VisitVariableDeclarationGroup(IVariableDeclarationGroupOperation operation, int? captureIdForResult)
         {
             // Anything that has a declaration group (such as for loops) needs to handle them directly itself,
@@ -2215,11 +2232,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitStop(IStopOperation operation, int? captureIdForResult)
         {
             return new StopStatement(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitEnd(IEndOperation operation, int? captureIdForResult)
-        {
-            return new EndStatement(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, int? captureIdForResult)

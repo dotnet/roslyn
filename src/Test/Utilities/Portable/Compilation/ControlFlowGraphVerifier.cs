@@ -465,6 +465,8 @@ endRegion:
                 case OperationKind.YieldBreak:
                 case OperationKind.Labeled:
                 case OperationKind.Throw:
+                case OperationKind.End:
+                case OperationKind.Empty:
                     return false;
 
                 case OperationKind.BinaryOperator:
@@ -473,12 +475,10 @@ endRegion:
 
                 case OperationKind.None:
                 case OperationKind.Invalid:
-                case OperationKind.Empty:
                 case OperationKind.YieldReturn:
                 case OperationKind.ExpressionStatement:
                 case OperationKind.LocalFunction:
                 case OperationKind.Stop:
-                case OperationKind.End:
                 case OperationKind.RaiseEvent:
                 case OperationKind.Literal:
                 case OperationKind.Conversion:

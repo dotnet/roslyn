@@ -1531,21 +1531,17 @@ Block[B1] - Block
               Right: 
                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-    Next (Regular) Block[B3]
-Block[B2] - Block
-    Predecessors: [B3]
-    Statements (0)
-    Next (Throw) Block[null]
-        IParameterReferenceOperation: ex2 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex2')
-Block[B3] - Block
-    Predecessors: [B1]
-    Statements (0)
     Jump if False (Regular) to Block[B2]
         IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
     Next (Throw) Block[null]
         IParameterReferenceOperation: ex1 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex1')
-Block[B4] - Exit
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Next (Throw) Block[null]
+        IParameterReferenceOperation: ex2 (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex2')
+Block[B3] - Exit
     Predecessors (0)
     Statements (0)
 ";
@@ -1601,7 +1597,7 @@ Block[B0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-        Next (Regular) Block[B4]
+        Next (Regular) Block[B3]
             Leaving: {R2} {R1}
 }
 .catch {R3} (System.Object)
@@ -1617,17 +1613,13 @@ Block[B0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-        Next (Regular) Block[B3]
-    Block[B3] - Block
-        Predecessors: [B2]
-        Statements (0)
         Jump if False (ReThrow) to Block[null]
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
 
         Next (ReThrow) Block[null]
 }
 
-Block[B4] - Exit
+Block[B3] - Exit
     Predecessors: [B1]
     Statements (0)
 ";
@@ -1683,7 +1675,7 @@ Block[B0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 
-        Next (Regular) Block[B4]
+        Next (Regular) Block[B3]
             Leaving: {R2} {R1}
 }
 .catch {R3} (System.Object)
@@ -1699,19 +1691,15 @@ Block[B0] - Entry
                   Right: 
                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 
-        Next (Regular) Block[B3]
-    Block[B3] - Block
-        Predecessors: [B2]
-        Statements (0)
-        Jump if False (Regular) to Block[B4]
+        Jump if False (Regular) to Block[B3]
             IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
             Leaving: {R3} {R1}
 
         Next (ReThrow) Block[null]
 }
 
-Block[B4] - Exit
-    Predecessors: [B1] [B3]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
@@ -1791,6 +1779,135 @@ Block[B0] - Entry
 
 Block[B3] - Exit
     Predecessors: [B1] [B2]
+    Statements (0)
+";
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ThrowFlow_27()
+        {
+            var source = @"
+class C
+{
+    void F(int u)
+    /*<bind>*/{
+        try
+        {
+            u = 1;
+        }
+        finally
+        {
+            throw;
+        }
+    }/*</bind>*/
+}";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics(
+                // (12,13): error CS0156: A throw statement with no arguments is not allowed outside of a catch clause
+                //             throw;
+                Diagnostic(ErrorCode.ERR_BadEmptyThrow, "throw").WithLocation(12, 13)
+                );
+
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'u = 1;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'u = 1')
+                  Left: 
+                    IParameterReferenceOperation: u (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'u')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+        Next (Regular) Block[B3]
+            Finalizing: {R3}
+            Leaving: {R2} {R1}
+}
+.finally {R3}
+{
+    Block[B2] - Block
+        Predecessors (0)
+        Statements (0)
+        Next (ReThrow) Block[null]
+}
+
+Block[B3] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ThrowFlow_28()
+        {
+            var source = @"
+class C
+{
+    void F(int u, System.Exception ex)
+    /*<bind>*/{
+        try
+        {
+            u = 1;
+        }
+        finally
+        {
+            throw ex;
+        }
+    }/*</bind>*/
+}";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics();
+
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1} {R2}
+
+.try {R1, R2}
+{
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'u = 1;')
+              Expression: 
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32) (Syntax: 'u = 1')
+                  Left: 
+                    IParameterReferenceOperation: u (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'u')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+        Next (Regular) Block[B3]
+            Finalizing: {R3}
+            Leaving: {R2} {R1}
+}
+.finally {R3}
+{
+    Block[B2] - Block
+        Predecessors (0)
+        Statements (0)
+        Next (Throw) Block[null]
+            IParameterReferenceOperation: ex (OperationKind.ParameterReference, Type: System.Exception) (Syntax: 'ex')
+}
+
+Block[B3] - Exit
+    Predecessors: [B1]
     Statements (0)
 ";
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
