@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+// The use of SigningTestHelpers makes this necessary for now. Fix is tracked by https://github.com/dotnet/roslyn/issues/25228
+#if NET461
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -97,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(209695, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=209694")]
         public void ExceptionInReadAllBytes()
         {
@@ -119,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments(keyFile, ex.Message).WithLocation(1, 1));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ExceptionInReadKeysFromContainer()
         {
             var ex = new Exception("Crazy exception you could never have predicted!");
@@ -140,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Diagnostic(ErrorCode.ERR_PublicKeyContainerFailure).WithArguments("RoslynTestContainer", ex.Message).WithLocation(1, 1));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void BadInputStream()
         {
             string src = @"
@@ -161,3 +163,4 @@ class C
         }
     }
 }
+#endif

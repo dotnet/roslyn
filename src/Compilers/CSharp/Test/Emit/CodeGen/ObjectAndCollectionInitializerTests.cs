@@ -1253,7 +1253,7 @@ class A
 -
 3";
 
-            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1815,7 +1815,7 @@ class Program
 ";
             string expectedOutput = @"422";
 
-            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -1927,7 +1927,7 @@ class Program
 ";
             string expectedOutput = @"422";
 
-            var compVerifier = CompileAndVerify(source, references: new[] { SystemCoreRef, CSharpRef }, expectedOutput: expectedOutput);
+            var compVerifier = CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(1073330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1073330")]
