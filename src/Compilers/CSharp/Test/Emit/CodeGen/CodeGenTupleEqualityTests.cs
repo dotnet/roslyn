@@ -2249,6 +2249,148 @@ public class C
         }
 
         [Fact]
+        public void TestConstrainedValueTuple()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        _ = (this, this) == (0, 1); // constraint violated by tuple in source
+        _ = (this, this) == (this, this); // constraint violated by converted tuple
+    }
+    public static bool operator ==(C c, int i)
+        => throw null;
+    public static bool operator !=(C c, int i)
+        => throw null;
+    public override bool Equals(object o)
+        => throw null;
+    public override int GetHashCode()
+        => throw null;
+    public static implicit operator int(C c)
+        => throw null;
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+        where T1 : class
+        where T2 : class
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+            throw null;
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,30): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'
+                //         _ = (this, this) == (0, 1); // constraint violated by tuple in source
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "0").WithArguments("System.ValueTuple<T1, T2>", "T1", "int").WithLocation(6, 30),
+                // (6,33): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
+                //         _ = (this, this) == (0, 1); // constraint violated by tuple in source
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "1").WithArguments("System.ValueTuple<T1, T2>", "T2", "int").WithLocation(6, 33),
+                // (6,30): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'
+                //         _ = (this, this) == (0, 1); // constraint violated by tuple in source
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "0").WithArguments("System.ValueTuple<T1, T2>", "T1", "int").WithLocation(6, 30),
+                // (6,33): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
+                //         _ = (this, this) == (0, 1); // constraint violated by tuple in source
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "1").WithArguments("System.ValueTuple<T1, T2>", "T2", "int").WithLocation(6, 33),
+                // (7,30): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'
+                //         _ = (this, this) == (this, this); // constraint violated by converted tuple
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "this").WithArguments("System.ValueTuple<T1, T2>", "T1", "int").WithLocation(7, 30),
+                // (7,36): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
+                //         _ = (this, this) == (this, this); // constraint violated by converted tuple
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "this").WithArguments("System.ValueTuple<T1, T2>", "T2", "int").WithLocation(7, 36)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            // check the int tuple
+            var firstEquals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+            var intTuple = firstEquals.Right;
+            Assert.Equal("(0, 1)", intTuple.ToString());
+            var intTupleType = model.GetTypeInfo(intTuple);
+            Assert.Equal("(System.Int32, System.Int32)", intTupleType.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32)", intTupleType.ConvertedType.ToTestDisplayString());
+
+            // check the last tuple
+            var secondEquals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
+            var lastTuple = secondEquals.Right;
+            Assert.Equal("(this, this)", lastTuple.ToString());
+            var lastTupleType = model.GetTypeInfo(lastTuple);
+            Assert.Equal("(C, C)", lastTupleType.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32)", lastTupleType.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TestConstrainedNullable()
+        {
+            var source = @"
+class C
+{
+    void M((int, int)? t1, (long, long)? t2)
+    {
+        _ = t1 == t2;
+    }
+}
+public interface IInterface { }
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct Int64 { }
+    public struct Nullable<T> where T : struct, IInterface { public T GetValueOrDefault() => default(T); }
+
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+            throw null;
+        }
+    }
+}
+";
+
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,24): error CS0315: The type '(int, int)' cannot be used as type parameter 'T' in the generic type or method 'Nullable<T>'. There is no boxing conversion from '(int, int)' to 'IInterface'.
+                //     void M((int, int)? t1, (long, long)? t2)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "t1").WithArguments("System.Nullable<T>", "IInterface", "T", "(int, int)").WithLocation(4, 24),
+                // (4,42): error CS0315: The type '(long, long)' cannot be used as type parameter 'T' in the generic type or method 'Nullable<T>'. There is no boxing conversion from '(long, long)' to 'IInterface'.
+                //     void M((int, int)? t1, (long, long)? t2)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "t2").WithArguments("System.Nullable<T>", "IInterface", "T", "(long, long)").WithLocation(4, 42)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            // check t1
+            var equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
+            var t1 = equals.Left;
+            Assert.Equal("t1", t1.ToString());
+            var t1Type = model.GetTypeInfo(t1);
+            Assert.Equal("(System.Int32, System.Int32)?", t1Type.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int64, System.Int64)?", t1Type.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
         public void TestEvaluationOrderOnTupleType2()
         {
             var source = @"
@@ -4166,7 +4308,7 @@ public class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True False False True");
         }
@@ -4199,7 +4341,7 @@ public class C
 }
 ";
 
-            var comp = CreateStandardCompilation(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput:

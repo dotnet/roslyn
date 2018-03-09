@@ -407,7 +407,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<Location> elementLocations = elements.SelectAsArray(e => e.Syntax.Location);
 
-            // PROTOTYPE(tuple-equality) Add test for violated tuple constraint
             var tuple = TupleTypeSymbol.Create(locationOpt: null, elementTypes: convertedTypes,
                 elementLocations, elementNames: names, compilation,
                 shouldCheckConstraints: true, errorPositions: default, syntax, diagnostics);
@@ -417,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return tuple;
             }
 
-            // PROTOTYPE(tuple-equality) check constraints
+            // Any violated constraints on nullable tuples would have been reported already
             NamedTypeSymbol nullableT = GetSpecialType(SpecialType.System_Nullable_T, diagnostics, syntax);
             return nullableT.Construct(tuple);
         }
