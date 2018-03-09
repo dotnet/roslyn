@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.QuickInfo
+Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Adornments
@@ -62,8 +63,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 .DefaultValue = DefaultValue.Mock
             }
 
-            Dim snapshotPoint = New SnapshotPoint(view.Object.TextSnapshot, view.Object.Caret.Position.BufferPosition.Position)
-            Dim intellisenseQuickInfo = IntellisenseQuickInfoBuilder.BuildItem(snapshotPoint, codeAnalysisQuickInfoItem)
+            Dim textVersion = view.Object.TextSnapshot.Version
+            Dim trackingSpan = textVersion.CreateTrackingSpan(codeAnalysisQuickInfoItem.Span.ToSpan(), SpanTrackingMode.EdgeInclusive)
+
+            Dim intellisenseQuickInfo = IntellisenseQuickInfoBuilder.BuildItem(trackingSpan, codeAnalysisQuickInfoItem)
 
             Assert.NotNull(intellisenseQuickInfo)
 

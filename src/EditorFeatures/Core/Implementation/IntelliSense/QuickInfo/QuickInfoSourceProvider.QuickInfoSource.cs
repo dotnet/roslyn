@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
+using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -34,8 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 var triggerPoint = session.GetTriggerPoint(_subjectBuffer.CurrentSnapshot);
                 if (triggerPoint.HasValue)
                 {
-                    var textView = session.TextView;
-
                     var snapshot = _subjectBuffer.CurrentSnapshot;
                     var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
                     if (document == null)
@@ -47,8 +46,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     if (service == null)
                     {
                         return null;
-                    }                                       
-
+                    }
+                    
                     try
                     {
                         using (Internal.Log.Logger.LogBlock(FunctionId.QuickInfo_ModelComputation_ComputeModelInBackground, cancellationToken))
@@ -58,7 +57,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                             var item = await service.GetQuickInfoAsync(document, triggerPoint.Value, cancellationToken).ConfigureAwait(false);
                             if (item != null)
                             {
-                                return IntellisenseQuickInfoBuilder.BuildItem(triggerPoint.Value, item);
+                                var textVersion = snapshot.Version;
+                                var trackingSpan = textVersion.CreateTrackingSpan(item.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
+                                return IntellisenseQuickInfoBuilder.BuildItem(trackingSpan, item);
                             }
 
                             return null;

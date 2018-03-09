@@ -13,13 +13,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
     internal static class IntellisenseQuickInfoBuilder
     {
-        internal static IntellisenseQuickInfoItem BuildItem(SnapshotPoint triggerPoint, CodeAnalysisQuickInfoItem quickInfoItem)
+        internal static IntellisenseQuickInfoItem BuildItem(ITrackingSpan trackingSpan, CodeAnalysisQuickInfoItem quickInfoItem)
         {
-            var line = triggerPoint.GetContainingLine();            
-            var lineSpan = triggerPoint.Snapshot.CreateTrackingSpan(
-                line.Extent,
-                SpanTrackingMode.EdgeInclusive);
-
             // Build the first line of QuickInfo item, the images and the Description section should be on the first line with Wrapped style
             var glyphs = quickInfoItem.Tags.GetGlyphs();
             var symbolGlyph = glyphs.FirstOrDefault(g => g != Glyph.CompletionWarning);
@@ -55,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                                 ContainerElementStyle.Stacked,
                                 elements);
 
-            return new IntellisenseQuickInfoItem(lineSpan, content);
+            return new IntellisenseQuickInfoItem(trackingSpan, content);
         }
 
         private static ClassifiedTextElement BuildClassifiedTextElement(QuickInfoSection section)
