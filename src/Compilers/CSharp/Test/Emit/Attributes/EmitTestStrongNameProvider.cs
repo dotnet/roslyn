@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// The use of SigningTestHelpers makes this necessary for now. Fix is tracked by https://github.com/dotnet/roslyn/issues/25228
-#if NET461
 using System;
 using System.Collections.Immutable;
 using System.IO;
@@ -163,4 +161,3 @@ class C
         }
     }
 }
-#endif
