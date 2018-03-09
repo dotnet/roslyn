@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
                 return true;
             }
 
-           value = default;
+            value = default;
             return false;
         }
     }
