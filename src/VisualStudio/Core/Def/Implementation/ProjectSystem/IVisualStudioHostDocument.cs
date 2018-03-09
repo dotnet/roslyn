@@ -10,24 +10,13 @@ using Microsoft.VisualStudio.Text.Operations;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
-    /// <summary>
-    /// Represents a source document that comes from the <see cref="DocumentProvider"/> used in Visual Studio.
-    /// </summary>
-    /// <remarks>
-    /// It guarantees the existence of a Dispose method, which allows the workspace/project system layer to clean up file system watchers for this
-    /// document when they are no longer needed.
-    /// </remarks>
+//    [Obsolete("This overload is a compatibility shim for TypeScript; please do not use it.")]
     internal interface IVisualStudioHostDocument : IDisposable
     {
         /// <summary>
         /// The visual studio project this document is part of.
         /// </summary>
         AbstractProject Project { get; }
-
-        /// <summary>
-        /// The Visual Studio identity of the document within its project.
-        /// </summary>
-        DocumentKey Key { get; }
 
         /// <summary>
         /// The workspace document Id for this document.

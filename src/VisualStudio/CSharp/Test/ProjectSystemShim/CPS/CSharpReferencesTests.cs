@@ -15,6 +15,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
     [UseExportProvider]
     public class CSharpReferenceTests
     {
+        /*
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddRemoveProjectAndMetadataReference_CPS()
@@ -87,5 +88,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 Assert.False(project.CurrentProjectAnalyzersContains(analyzerAssemblyFullPath));
             }
         }
+        */
     }
 }

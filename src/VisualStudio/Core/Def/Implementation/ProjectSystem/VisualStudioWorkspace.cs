@@ -80,13 +80,21 @@ namespace Microsoft.VisualStudio.LanguageServices
         /// <param name="projectId">The <see cref="ProjectId"/> for the project.</param>
         /// <returns>The <see cref="IVsHierarchy"/>, or null if the project doesn't have one.</returns>
         public abstract IVsHierarchy GetHierarchy(ProjectId projectId);
-        public abstract string GetFilePath(DocumentId documentId);
+
+        internal abstract Guid GetProjectGuid(ProjectId projectId);
+
+        public virtual string GetFilePath(DocumentId documentId)
+        {
+            return CurrentSolution.GetDocument(documentId)?.FilePath;
+        }
 
         /// <summary>
         /// Given a document id, opens an invisible editor for the document.
         /// </summary>
         /// <returns>A unique instance of IInvisibleEditor that must be disposed by the caller.</returns>
         internal abstract IInvisibleEditor OpenInvisibleEditor(DocumentId documentId);
+
+        [Obsolete("This overload is a compatibility shim for TypeScript; please do not use it.")]
         internal abstract IInvisibleEditor OpenInvisibleEditor(IVisualStudioHostDocument document);
 
         /// <summary>

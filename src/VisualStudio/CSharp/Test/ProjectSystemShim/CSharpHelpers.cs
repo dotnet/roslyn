@@ -5,6 +5,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -27,12 +28,10 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
 
             return new CSharpProjectShim(
                 new MockCSharpProjectRoot(hierarchy),
-                environment.ProjectTracker,
-                reportExternalErrorCreatorOpt: null,
                 projectSystemName: projectName,
                 hierarchy: hierarchy,
                 serviceProvider: environment.ServiceProvider,
-                visualStudioWorkspaceOpt: null,
+                threadingContext: environment.ThreadingContext,
                 hostDiagnosticUpdateSourceOpt: null,
                 commandLineParserServiceOpt: new CSharpCommandLineParserService());
         }
@@ -56,11 +55,21 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             return CreateCSharpCPSProject(environment, projectName, projectFilePath, binOutputPath, projectGuid: Guid.NewGuid(), commandLineArguments: commandLineArguments);
         }
 
+        public static unsafe void SetOption(this CSharpProjectShim csharpProject, CompilerOptions optionID, object value)
+        {
+            HACK_VariantStructure variant = default;
+            Marshal.GetNativeVariantForObject(value, (IntPtr)(&variant));
+            csharpProject.SetOption(optionID, variant);
+        }
+
         public static CPSProject CreateCSharpCPSProject(TestEnvironment environment, string projectName, string projectFilePath, string binOutputPath, Guid projectGuid, params string[] commandLineArguments)
         {
             var hierarchy = environment.CreateHierarchy(projectName, projectFilePath, "CSharp");
+
+            return null;
+            /*
             
-            var cpsProject = CPSProjectFactory.CreateCPSProject(
+            var cpsProject = new CPSProject(
                 environment.ProjectTracker,
                 environment.ServiceProvider,
                 hierarchy,
@@ -75,11 +84,15 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
             cpsProject.SetOptions(commandLineForOptions);
 
             return cpsProject;
+            */
         }
 
         public static CPSProject CreateNonCompilableProject(TestEnvironment environment, string projectName, string projectFilePath)
         {
             var hierarchy = environment.CreateHierarchy(projectName, projectFilePath, "");
+            return null;
+
+            /*
 
             return CPSProjectFactory.CreateCPSProject(
                 environment.ProjectTracker,
@@ -91,6 +104,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim
                 NoCompilationConstants.LanguageName,
                 commandLineParserService: null,
                 binOutputPath: null);
+                */
         }
 
         private static string GetOutputPathFromArguments(string[] commandLineArguments)

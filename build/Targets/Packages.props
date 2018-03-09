@@ -130,6 +130,7 @@
     <MicrosoftVisualStudioShellInterop100Version>10.0.30320</MicrosoftVisualStudioShellInterop100Version>
     <MicrosoftVisualStudioShellInterop110Version>11.0.61031</MicrosoftVisualStudioShellInterop110Version>
     <MicrosoftVisualStudioShellInterop121DesignTimeVersion>12.1.30328</MicrosoftVisualStudioShellInterop121DesignTimeVersion>
+    <MicrosoftVisualStudioShellInterop157DesignTimeVersion>15.7.1</MicrosoftVisualStudioShellInterop157DesignTimeVersion>
     <MicrosoftVisualStudioShellInterop80Version>8.0.50728</MicrosoftVisualStudioShellInterop80Version>
     <MicrosoftVisualStudioTelemetryVersion>15.8.27812-alpha</MicrosoftVisualStudioTelemetryVersion>
     <MicrosoftVisualStudioTemplateWizardInterfaceVersion>8.0.0.0-alpha</MicrosoftVisualStudioTemplateWizardInterfaceVersion>

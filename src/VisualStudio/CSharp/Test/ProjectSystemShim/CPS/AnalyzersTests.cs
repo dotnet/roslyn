@@ -16,6 +16,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
     [UseExportProvider]
     public class AnalyzersTests
     {
+        /*
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void RuleSet_GeneralOption_CPS()
@@ -90,5 +91,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
                 Assert.Equal(expected: ReportDiagnostic.Warn, actual: ca1012DiagnosticOption);
             }
         }
+        */
     }
 }

@@ -39,8 +39,8 @@ namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem
 
             if (workspace is VisualStudioWorkspaceImpl vsWorkspace)
             {
-                vsWorkspace.GetProjectData(project.Id, 
-                    out var ivisualStudioHostProject, out var hierarchy, out var envDTEProject);
+                vsWorkspace.GetProjectData(project.Id,
+                    out var hierarchy, out var envDTEProject);
 
                 try
                 {
@@ -61,8 +61,8 @@ namespace Roslyn.VisualStudio.Services.Implementation.ProjectSystem
 
             if (workspace is VisualStudioWorkspaceImpl vsWorkspace)
             {
-                vsWorkspace.GetProjectData(projectId, 
-                    out var ivisualStudioHostProject, out var hierarchy, out var envDTEProject);
+                vsWorkspace.GetProjectData(projectId,
+                    out var hierarchy, out var envDTEProject);
 
                 var projectItems = envDTEProject.ProjectItems;
 

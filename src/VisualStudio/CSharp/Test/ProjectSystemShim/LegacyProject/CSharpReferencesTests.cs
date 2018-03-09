@@ -14,6 +14,7 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
     [UseExportProvider]
     public class CSharpReferenceTests
     {
+        /*
         [WpfFact]
         [Trait(Traits.Feature, Traits.Features.ProjectSystemShims)]
         public void AddingReferenceToProjectMetadataPromotesToProjectReference()
@@ -192,5 +193,6 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.LegacyProject
                 project1.Disconnect();
             }
         }
+    */
     }
 }
