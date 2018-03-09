@@ -275,7 +275,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
         {
             var methodDisplay = methodToUpdate.ToDisplayString(new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
-                extensionMethodStyle: SymbolDisplayExtensionMethodStyle.Default,
+                extensionMethodStyle: SymbolDisplayExtensionMethodStyle.StaticMethod,
                 parameterOptions: SymbolDisplayParameterOptions.None,
                 memberOptions: methodToUpdate.IsConstructor()
                     ? SymbolDisplayMemberOptions.None
