@@ -259,6 +259,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ToBadExpression(expr, resultKind);
         }
 
+        internal static bool IsTypeOrValueExpression(BoundExpression expression)
+        {
+            switch (expression?.Kind)
+            {
+                case BoundKind.TypeOrValueExpression:
+                case BoundKind.QueryClause when ((BoundQueryClause)expression).Value.Kind == BoundKind.TypeOrValueExpression:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         /// <summary>
         /// The purpose of this method is to determine if the expression satisfies desired capabilities. 
         /// If it is not then this code gives an appropriate error message.

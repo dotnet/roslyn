@@ -194,7 +194,7 @@ class C
             Assert.Equal(((ArrayTypeSymbol)other.ReturnType).CustomModifiers.Length, 1);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void VaryingCompilationReferences()
         {
             string libSource = @"

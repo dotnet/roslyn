@@ -36,8 +36,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public InMethodBinder(MethodSymbol owner, Binder enclosing)
-            : base(enclosing)
+            : base(enclosing, enclosing.Flags & ~BinderFlags.AllClearedAtExecutableCodeBoundary)
         {
+            Debug.Assert(!enclosing.Flags.Includes(BinderFlags.InCatchFilter));
             Debug.Assert((object)owner != null);
             _methodSymbol = owner;
         }
@@ -237,12 +238,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static bool ReportConflictWithParameter(Symbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
         {
             var oldLocation = parameter.Locations[0];
-#if PATTERNS_FIXED
             Debug.Assert(oldLocation != newLocation || oldLocation == Location.None || newLocation.SourceTree?.GetRoot().ContainsDiagnostics == true,
                 "same nonempty location refers to different symbols?");
-#else
-            if (oldLocation == newLocation) return false;
-#endif
             SymbolKind parameterKind = parameter.Kind;
 
             // Quirk of the way we represent lambda parameters.                

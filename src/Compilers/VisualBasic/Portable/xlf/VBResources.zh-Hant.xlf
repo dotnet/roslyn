@@ -8380,7 +8380,7 @@
                                   Specify a mapping for source path names output by
                                   the compiler.
 /platform:&lt;string&gt;                Limit which platforms this code can run on; 
-                                  must be x86, x64, Itanium, arm,
+                                  must be x86, x64, Itanium, arm, arm64
                                   AnyCPU32BitPreferred or anycpu (default).
 /preferreduilang                  Specify the preferred output language name.
 /sdkpath:&lt;path&gt;                   Location of the .NET Framework SDK directory
@@ -8395,7 +8395,7 @@
 /vbruntime:&lt;file&gt;                 Compile with the alternate Visual Basic 
                                   runtime in &lt;file&gt;.
 </source>
-        <target state="translated">                  Visual Basic 編譯器選項
+        <target state="needs-review-translation">                  Visual Basic 編譯器選項
 
                                   - 輸出檔案 -
 /out:&lt;檔案&gt;                       指定輸出檔案名稱。
