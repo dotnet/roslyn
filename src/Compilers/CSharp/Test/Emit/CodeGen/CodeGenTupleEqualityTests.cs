@@ -1339,7 +1339,7 @@ public struct S
                 Assert.Null(model.GetTypeInfo(defaultLiteral).Type);
                 Assert.Null(model.GetTypeInfo(defaultLiteral).ConvertedType);
                 // https://github.com/dotnet/roslyn/issues/25318
-                // PROTOTYPE(tuple-equality) default should become int
+                // default should become int
             }
         }
 
@@ -1817,7 +1817,7 @@ public class C
         }
 
         [Fact]
-        public void TestCustomOperatorPreferred()
+        public void TestTupleEqualityPreferredOverCustomOperator()
         {
             var source = @"
 namespace System
@@ -1859,6 +1859,45 @@ public class C
             comp.VerifyDiagnostics();
             // Note: tuple equality picked ahead of custom operator== (small compat break)
             CompileAndVerify(comp, expectedOutput: "FalseTrue");
+        }
+
+        [Fact]
+        public void TestCustomOperatorPlusAllowed()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public static ValueTuple<T1, T2> operator +(ValueTuple<T1, T2> t1, ValueTuple<T1, T2> t2)
+            => (default(T1), default(T2));
+
+        public override string ToString()
+            => $""({Item1}, {Item2})"";
+    }
+}
+public class C
+{
+    public static void Main()
+    {
+        var t1 = (0, 1);
+        var t2 = (2, 3);
+        System.Console.Write(t1 + t2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(0, 0)");
         }
 
         [Fact]
@@ -2147,7 +2186,6 @@ public class Y : Base
 
             validate("(new A(1), new A(2)) != (new X(1), new Y(2))", "A:1, A:2, X:1, Y:2, X -> Y:1, A(1) != Y(1), A(2) != Y(2), False");
             validate("(new A(1), new A(2)) != (new Y(1), new X(2))", "A:1, A:2, Y:1, X:2, A(1) != Y(1), X -> Y:2, A(2) != Y(2), False");
-            // PROTOTYPE(tuple-equality) test case where conversion is on last tuple element on the left side
 
             validate("(new A(1), new A(2)) != (new X(30), new Y(40))", "A:1, A:2, X:30, Y:40, X -> Y:30, A(1) != Y(30), True");
             validate("(new A(1), new A(2)) != (new X(50), new Y(2))", "A:1, A:2, X:50, Y:2, X -> Y:50, A(1) != Y(50), True");
@@ -3545,7 +3583,7 @@ class C
             var left = model.GetTypeInfo(comparison.Left);
             Assert.Equal("ValueTuple<System.Int32?>", left.Type.ToTestDisplayString());
             Assert.Equal("ValueTuple<System.Int32?>", left.ConvertedType.ToTestDisplayString());
-            Assert.True(left.Type.IsTupleType); // PROTOTYPE(tuple-equality) Need to investigate this
+            Assert.True(left.Type.IsTupleType);
         }
 
         [Fact]
@@ -4348,9 +4386,112 @@ public class C
 @"Operator '==' cannot be applied to operands of type 'System.ValueTuple<int,string>' and 'System.ValueTuple<int,string>'
 Operator '==' cannot be applied to operands of type 'System.ValueTuple<int,string>' and 'System.ValueTuple<byte,int>'");
         }
+
+        [Fact]
+        public void TestComparisonWithTupleElementNames()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        int Bob = 1;
+        System.Console.Write((Alice: 0, (Bob, 2)) == (Bob: 0, (1, Other: 2)));
     }
 }
+";
 
-// PROTOTYPE(tuple-equality)
-// Test with tuple element names (semantic model)
-// Test tuples with casts or nested casts
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "True");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+
+            // check left tuple
+            var leftTuple = equals.Left;
+            var leftInfo = model.GetTypeInfo(leftTuple);
+            Assert.Equal("(System.Int32 Alice, (System.Int32 Bob, System.Int32))", leftInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, (System.Int32, System.Int32))", leftInfo.ConvertedType.ToTestDisplayString());
+
+            // check right tuple
+            var rightTuple = equals.Right;
+            var rightInfo = model.GetTypeInfo(rightTuple);
+            Assert.Equal("(System.Int32 Bob, (System.Int32, System.Int32 Other))", rightInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, (System.Int32, System.Int32))", rightInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TestComparisonWithCastedTuples()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        System.Console.Write( ((string, (byte, long))) (null, (1, 2L)) == ((string, (long, byte))) (null, (1L, 2)) );
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "True");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+
+            // check left cast ...
+            var leftCast = (CastExpressionSyntax)equals.Left;
+            Assert.Equal("((string, (byte, long))) (null, (1, 2L))", leftCast.ToString());
+            var leftCastInfo = model.GetTypeInfo(leftCast);
+            Assert.Equal("(System.String, (System.Byte, System.Int64))", leftCastInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.String, (System.Int64, System.Int64))", leftCastInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTuple, model.GetConversion(leftCast).Kind);
+
+            // ... its tuple ...
+            var leftTuple = (TupleExpressionSyntax)leftCast.Expression;
+            Assert.Equal("(null, (1, 2L))", leftTuple.ToString());
+            var leftTupleInfo = model.GetTypeInfo(leftTuple);
+            Assert.Null(leftTupleInfo.Type);
+            Assert.Equal("(System.String, (System.Byte, System.Int64))", leftTupleInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(leftTuple).Kind);
+
+            // ... its null ...
+            var leftNull = leftTuple.Arguments[0].Expression;
+            Assert.Equal("null", leftNull.ToString());
+            var leftNullInfo = model.GetTypeInfo(leftNull);
+            Assert.Null(leftNullInfo.Type);
+            Assert.Equal("System.String", leftNullInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitReference, model.GetConversion(leftNull).Kind);
+
+            // ... its nested tuple
+            var leftNestedTuple = leftTuple.Arguments[1].Expression;
+            Assert.Equal("(1, 2L)", leftNestedTuple.ToString());
+            var leftNestedTupleInfo = model.GetTypeInfo(leftNestedTuple);
+            Assert.Equal("(System.Int32, System.Int64)", leftNestedTupleInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.Byte, System.Int64)", leftNestedTupleInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(leftNestedTuple).Kind);
+
+            // check right cast ...
+            var rightCast = (CastExpressionSyntax)equals.Right;
+            var rightCastInfo = model.GetTypeInfo(rightCast);
+            Assert.Equal("(System.String, (System.Int64, System.Byte))", rightCastInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.String, (System.Int64, System.Int64))", rightCastInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTuple, model.GetConversion(rightCast).Kind);
+
+            // ... its tuple
+            var rightTuple = rightCast.Expression;
+            var rightTupleInfo = model.GetTypeInfo(rightTuple);
+            Assert.Null(rightTupleInfo.Type);
+            Assert.Equal("(System.String, (System.Int64, System.Byte))", rightTupleInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(rightTuple).Kind);
+        }
+    }
+}
