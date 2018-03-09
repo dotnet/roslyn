@@ -426,13 +426,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             string assemblyName = "",
-            bool skipUsesIsNullable = false)
+            bool skipUsesIsNullable = false,
+            bool skipVerify = false)
         {
             if (CoreClrShim.IsRunningOnCoreClr)
             {
                 references = references?.Except(s_desktopRefsToRemove);
             }
-            return CreateCompilation(trees, (references != null) ? s_stdRefs.Concat(references) : s_stdRefs, options, assemblyName, skipUsesIsNullable: skipUsesIsNullable);
+            return CreateCompilation(trees, (references != null) ? s_stdRefs.Concat(references) : s_stdRefs, options, assemblyName, skipUsesIsNullable: skipUsesIsNullable, skipVerify: skipVerify);
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlibAndSystemCore(
@@ -501,7 +502,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             string assemblyName = "",
-            bool skipUsesIsNullable = false)
+            bool skipUsesIsNullable = false,
+            bool skipVerify = false)
         {
             if (options == null)
             {
@@ -529,9 +531,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             {
                 VerifyNoNullability(compilation.SourceModule.GlobalNamespace);
             }
-            foreach (var tree in trees)
+            if (!skipVerify)
             {
-                VerifyTypes(compilation, tree);
+                foreach (var tree in trees)
+                {
+                    VerifyTypes(compilation, tree);
+                }
             }
             return compilation;
         }
@@ -567,12 +572,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 return;
             }
             var model = compilation.GetSemanticModel(tree);
-            var expectedTypes = annotations.SelectAsArray(annotation => annotation.Item2);
-            var actualTypes = annotations.SelectAsArray(annotation => ((CSharpDataFlowAnalysis)model.AnalyzeDataFlow(annotation.Item1)).TypeAndNullability.GetDebuggerDisplay());
+            var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
+            var actualTypes = annotations.SelectAsArray(
+                annotation => ((CSharpDataFlowAnalysis)model.AnalyzeDataFlow(annotation.Expression)).TypeAndNullability.ToDisplayString(TypeSymbolWithAnnotations.DebuggerDisplayFormat));
+            // Consider reporting the correct source with annotations on mismatch.
             AssertEx.Equal(expectedTypes, actualTypes);
         }
 
-        private static ImmutableArray<(ExpressionSyntax, string)> GetAnnotations(SyntaxNode root)
+        private static ImmutableArray<(ExpressionSyntax Expression, string Text)> GetAnnotations(SyntaxNode root)
         {
             var builder = ArrayBuilder<(ExpressionSyntax, string)>.GetInstance();
             foreach (var token in root.DescendantTokens())
