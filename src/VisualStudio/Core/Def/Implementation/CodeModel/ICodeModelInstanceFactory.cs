@@ -14,8 +14,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         /// <remarks>
         /// This is sometimes necessary because it's possible to go from one <see cref="EnvDTE.FileCodeModel"/> to another,
         /// but the language service can't create that instance directly, as it doesn't know what the <see cref="EnvDTE.FileCodeModel.Parent"/>
-        /// member should be. The expectation is the implementer of this will do what is necessary and call back into the code model implementation
-        /// with a parent object.</remarks>
+        /// member should be. The expectation is the implementer of this will do what is necessary and call back into <see cref="IProjectCodeModel.GetOrCreateFileCodeModel(string, object)"/>
+        /// handing it the appropriate parent.</remarks>
         EnvDTE.FileCodeModel TryCreateFileCodeModelThroughProjectSystem(string filePath);
     }
 }
