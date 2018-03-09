@@ -929,7 +929,7 @@ class C
             Assert.Equal(ConversionKind.ImplicitReference, model.GetConversion(lastNull).Kind);
         }
 
-        [Fact(Skip = "PROTOTYPE(tuple-equality) Default")]
+        [Fact]
         public void TestTypedTupleAndDefault()
         {
             var source = @"
@@ -939,17 +939,33 @@ class C
     {
         (string, string) t = (null, null);
         System.Console.Write(t == default);
+        System.Console.Write(t != default);
+
+        (string, string) t2 = (null, ""hello"");
+        System.Console.Write(t2 == default);
+        System.Console.Write(t2 != default);
     }
 }";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics(
-                // (7,30): error CS8310: Operator '==' cannot be applied to operand 'default'
-                //         System.Console.Write(t == default);
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "t == default").WithArguments("==", "default").WithLocation(7, 30)
-                );
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var defaultLiterals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
+                .Where(e => e.Kind() == SyntaxKind.DefaultLiteralExpression);
+
+            foreach (var literal in defaultLiterals)
+            {
+                Assert.Equal("default", literal.ToString());
+                var info = model.GetTypeInfo(literal);
+                Assert.Equal("(System.String, System.String)", info.Type.ToTestDisplayString());
+                Assert.Equal("(System.String, System.String)", info.ConvertedType.ToTestDisplayString());
+            }
         }
 
-        [Fact(Skip = "PROTOTYPE(tuple-equality) Default")]
+        [Fact]
         public void TestNullableTupleAndDefault()
         {
             var source = @"
@@ -959,13 +975,196 @@ class C
     {
         (string, string)? t = (null, null);
         System.Console.Write(t == default);
+        System.Console.Write(t != default);
+        System.Console.Write(default == t);
+        System.Console.Write(default != t);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "FalseTrueFalseTrue");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var defaultLiterals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
+                .Where(e => e.Kind() == SyntaxKind.DefaultLiteralExpression);
+
+            foreach (var literal in defaultLiterals)
+            {
+                Assert.Equal("default", literal.ToString());
+                var info = model.GetTypeInfo(literal);
+                Assert.Equal("(System.String, System.String)?", info.Type.ToTestDisplayString());
+                Assert.Equal("(System.String, System.String)?", info.ConvertedType.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void TestNullableTupleAndDefault_Nested()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (string, string)? t = (null, null);
+        System.Console.Write((null, t) == (null, default));
+        System.Console.Write((t, null) != (default, null));
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "FalseTrue");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var defaultLiterals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
+                .Where(e => e.Kind() == SyntaxKind.DefaultLiteralExpression);
+
+            foreach (var literal in defaultLiterals)
+            {
+                Assert.Equal("default", literal.ToString());
+                var info = model.GetTypeInfo(literal);
+                Assert.Equal("(System.String, System.String)?", info.Type.ToTestDisplayString());
+                Assert.Equal("(System.String, System.String)?", info.ConvertedType.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void TestNestedDefaultWithNonTupleType()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write((null, 1) == (null, default));
+        System.Console.Write((0, null) != (default, null));
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "FalseFalse");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var defaultLiterals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
+                .Where(e => e.Kind() == SyntaxKind.DefaultLiteralExpression);
+
+            foreach (var literal in defaultLiterals)
+            {
+                Assert.Equal("default", literal.ToString());
+                var info = model.GetTypeInfo(literal);
+                Assert.Equal("System.Int32", info.Type.ToTestDisplayString());
+                Assert.Equal("System.Int32", info.ConvertedType.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void TestNestedDefaultWithNullableNonTupleType()
+        {
+            var source = @"
+struct S
+{
+    static void Main()
+    {
+        S? ns = null;
+        _ = (null, ns) == (null, default);
+        _ = (ns, null) != (default, null);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0019: Operator '==' cannot be applied to operands of type 'S?' and 'default'
+                //         _ = (null, ns) == (null, default);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, ns) == (null, default)").WithArguments("==", "S?", "default").WithLocation(7, 13),
+                // (8,13): error CS0019: Operator '!=' cannot be applied to operands of type 'S?' and 'default'
+                //         _ = (ns, null) != (default, null);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(ns, null) != (default, null)").WithArguments("!=", "S?", "default").WithLocation(8, 13)
+                );
+        }
+
+        [Fact]
+        public void TestNestedDefaultWithNullableNonTupleType_WithComparisonOperator()
+        {
+            var source = @"
+public struct S
+{
+    public static void Main()
+    {
+        S? ns = new S();
+        System.Console.Write((null, ns) == (null, default));
+        System.Console.Write((ns, null) != (default, null));
+    }
+    public static bool operator==(S s1, S s2) => throw null;
+    public static bool operator!=(S s1, S s2) => throw null;
+    public override int GetHashCode() => throw null;
+    public override bool Equals(object o) => throw null;
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "FalseTrue");
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var defaults = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
+                .Where(e => e.Kind() == SyntaxKind.DefaultLiteralExpression);
+
+            foreach (var literal in defaults)
+            {
+                var type = model.GetTypeInfo(literal);
+                Assert.Equal("S?", type.Type.ToTestDisplayString());
+                Assert.Equal("S?", type.ConvertedType.ToTestDisplayString());
+            }
+        }
+
+        [Fact]
+        public void TestAllDefaults()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write((default, default) == (default, default));
+        System.Console.Write(default == (default, default));
     }
 }";
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
-                // (7,30): error CS8310: Operator '==' cannot be applied to operand 'default'
-                //         System.Console.Write(t == default);
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "t == default").WithArguments("==", "default").WithLocation(7, 30)
+                // (6,30): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
+                //         System.Console.Write((default, default) == (default, default));
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "(default, default) == (default, default)").WithArguments("==").WithLocation(6, 30),
+                // (6,30): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
+                //         System.Console.Write((default, default) == (default, default));
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "(default, default) == (default, default)").WithArguments("==").WithLocation(6, 30),
+                // (7,30): error CS0034: Operator '==' is ambiguous on operands of type 'default' and '(default, default)'
+                //         System.Console.Write(default == (default, default));
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "default == (default, default)").WithArguments("==", "default", "(default, default)").WithLocation(7, 30)
+                );
+        }
+
+        [Fact]
+        public void TestAllDefaults_Nested()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write((null, (default, default)) == (null, (default, default)));
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (6,30): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
+                //         System.Console.Write((null, (default, default)) == (null, (default, default)));
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "(null, (default, default)) == (null, (default, default))").WithArguments("==").WithLocation(6, 30),
+                // (6,30): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
+                //         System.Console.Write((null, (default, default)) == (null, (default, default)));
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOpsOnDefault, "(null, (default, default)) == (null, (default, default))").WithArguments("==").WithLocation(6, 30)
                 );
         }
 
@@ -985,10 +1184,48 @@ class C
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueFalse");
-            // PROTOTYPE(tuple-equality) Expand this test
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lastTuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Last();
+
+            Assert.Equal("(default, default)", lastTuple.ToString());
+            Assert.Null(model.GetTypeInfo(lastTuple).Type);
+            Assert.Equal("(System.String, System.String)?", model.GetTypeInfo(lastTuple).ConvertedType.ToTestDisplayString());
+
+            var lastDefault = lastTuple.Arguments[1].Expression;
+            Assert.Equal("default", lastDefault.ToString());
+            Assert.Equal("System.String", model.GetTypeInfo(lastDefault).Type.ToTestDisplayString());
+            Assert.Equal("System.String", model.GetTypeInfo(lastDefault).ConvertedType.ToTestDisplayString());
         }
 
-        [Fact(Skip = "PROTOTYPE(tuple-equality) Default")]
+        [Fact]
+        public void TestTypelessTupleAndTupleOfDefaults()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write((null, () => 1) == (default, default));
+        System.Console.Write((null, () => 2) == default);
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,30): error CS0034: Operator '==' is ambiguous on operands of type '<null>' and 'default'
+                //         System.Console.Write((null, () => 1) == (default, default));
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(null, () => 1) == (default, default)").WithArguments("==", "<null>", "default").WithLocation(6, 30),
+                // (6,30): error CS0019: Operator '==' cannot be applied to operands of type 'lambda expression' and 'default'
+                //         System.Console.Write((null, () => 1) == (default, default));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, () => 1) == (default, default)").WithArguments("==", "lambda expression", "default").WithLocation(6, 30),
+                // (7,30): error CS0034: Operator '==' is ambiguous on operands of type '(<null>, lambda expression)' and 'default'
+                //         System.Console.Write((null, () => 2) == default);
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(null, () => 2) == default").WithArguments("==", "(<null>, lambda expression)", "default").WithLocation(7, 30)
+                );
+        }
+
+        [Fact]
         public void TestNullableStructAndDefault()
         {
             var source = @"
@@ -999,21 +1236,29 @@ struct S
         S? ns = new S();
         _ = ns == null;
         _ = s == null;
-        _ = ns == default;
-        _ = (ns, ns) == (default, default);
+        _ = ns == default; // error 1
+        _ = (ns, ns) == (null, null);
+        _ = (ns, ns) == (default, default); // errors 2 and 3
+        _ = (ns, ns) == default; // error 4
     }
 }";
             var comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
-                // (9,13): error CS8310: Operator '==' cannot be applied to operand 'default'
-                //         _ = ns == default;
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "ns == default").WithArguments("==", "default").WithLocation(9, 13),
-                // (10,13): error CS8310: Operator '==' cannot be applied to operand 'default'
-                //         _ = (ns, ns) == (default, default);
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "(ns, ns) == (default, default)").WithArguments("==", "default").WithLocation(10, 13),
-                // (10,13): error CS8310: Operator '==' cannot be applied to operand 'default'
-                //         _ = (ns, ns) == (default, default);
-                Diagnostic(ErrorCode.ERR_BadOpOnNullOrDefault, "(ns, ns) == (default, default)").WithArguments("==", "default").WithLocation(10, 13)
+                // (9,13): error CS0019: Operator '==' cannot be applied to operands of type 'S?' and 'default'
+                //         _ = ns == default; // error 1
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "ns == default").WithArguments("==", "S?", "default").WithLocation(9, 13),
+                // (11,13): error CS0019: Operator '==' cannot be applied to operands of type 'S?' and 'default'
+                //         _ = (ns, ns) == (default, default); // errors 2 and 3
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(ns, ns) == (default, default)").WithArguments("==", "S?", "default").WithLocation(11, 13),
+                // (11,13): error CS0019: Operator '==' cannot be applied to operands of type 'S?' and 'default'
+                //         _ = (ns, ns) == (default, default); // errors 2 and 3
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(ns, ns) == (default, default)").WithArguments("==", "S?", "default").WithLocation(11, 13),
+                // (12,13): error CS0019: Operator '==' cannot be applied to operands of type 'S?' and 'S?'
+                //         _ = (ns, ns) == default; // error 4
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(ns, ns) == default").WithArguments("==", "S?", "S?").WithLocation(12, 13),
+                // (12,13): error CS0019: Operator '==' cannot be applied to operands of type 'S?' and 'S?'
+                //         _ = (ns, ns) == default; // error 4
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(ns, ns) == default").WithArguments("==", "S?", "S?").WithLocation(12, 13)
                 );
 
             var tree = comp.SyntaxTrees[0];
@@ -1029,16 +1274,73 @@ struct S
             Assert.Null(model.GetTypeInfo(nullLiteral2).Type);
             Assert.Equal("System.String", model.GetTypeInfo(nullLiteral2).ConvertedType.ToTestDisplayString());
 
-            // PROTOTYPE(tuple-equality) Semantic model
-            return;
+            var defaultLiterals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
+                .Where(e => e.Kind() == SyntaxKind.DelegateDeclaration);
 
-            //var defaultLiteral = literals.ElementAt(2);
-            //Assert.Equal("default", defaultLiteral.ToString());
-            //Assert.Equal("System.Object", model.GetTypeInfo(defaultLiteral).ConvertedType.ToTestDisplayString());
+            foreach (var defaultLiteral in defaultLiterals)
+            {
+                Assert.Equal("default", defaultLiteral.ToString());
+                Assert.Null(model.GetTypeInfo(defaultLiteral).Type);
+                Assert.Null(model.GetTypeInfo(defaultLiteral).ConvertedType);
+            }
+        }
 
-            //var defaultLiteral2 = literals.ElementAt(3);
-            //Assert.Equal("default", defaultLiteral2.ToString());
-            //Assert.Equal("System.Object", model.GetTypeInfo(defaultLiteral2).ConvertedType.ToTestDisplayString());
+        [Fact, WorkItem(25318, "https://github.com/dotnet/roslyn/issues/25318")]
+        public void TestNullableStructAndDefault_WithComparisonOperator()
+        {
+            var source = @"
+public struct S
+{
+    static void M(string s)
+    {
+        S? ns = new S();
+        _ = ns == 1;
+        _ = (ns, ns) == (default, default);
+        _ = (ns, ns) == default;
+    }
+    public static bool operator==(S s, byte b) => throw null;
+    public static bool operator!=(S s, byte b) => throw null;
+    public override bool Equals(object other) => throw null;
+    public override int GetHashCode() => throw null;
+}";
+            var comp = CreateCompilation(source);
+
+            // https://github.com/dotnet/roslyn/issues/25318
+            // This should be allowed
+
+            comp.VerifyDiagnostics(
+                // (7,13): error CS0019: Operator '==' cannot be applied to operands of type 'S?' and 'int'
+                //         _ = ns == 1;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "ns == 1").WithArguments("==", "S?", "int").WithLocation(7, 13),
+                // (8,13): error CS0019: Operator '==' cannot be applied to operands of type 'S?' and 'default'
+                //         _ = (ns, ns) == (default, default);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(ns, ns) == (default, default)").WithArguments("==", "S?", "default").WithLocation(8, 13),
+                // (8,13): error CS0019: Operator '==' cannot be applied to operands of type 'S?' and 'default'
+                //         _ = (ns, ns) == (default, default);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(ns, ns) == (default, default)").WithArguments("==", "S?", "default").WithLocation(8, 13),
+                // (9,13): error CS0019: Operator '==' cannot be applied to operands of type 'S?' and 'S?'
+                //         _ = (ns, ns) == default;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(ns, ns) == default").WithArguments("==", "S?", "S?").WithLocation(9, 13),
+                // (9,13): error CS0019: Operator '==' cannot be applied to operands of type 'S?' and 'S?'
+                //         _ = (ns, ns) == default;
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(ns, ns) == default").WithArguments("==", "S?", "S?").WithLocation(9, 13)
+                );
+
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var defaultLiterals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
+                .Where(e => e.Kind() == SyntaxKind.DelegateDeclaration);
+
+            // Should have types
+            foreach (var defaultLiteral in defaultLiterals)
+            {
+                Assert.Equal("default", defaultLiteral.ToString());
+                Assert.Null(model.GetTypeInfo(defaultLiteral).Type);
+                Assert.Null(model.GetTypeInfo(defaultLiteral).ConvertedType);
+                // https://github.com/dotnet/roslyn/issues/25318
+                // PROTOTYPE(tuple-equality) default should become int
+            }
         }
 
         [Fact]
@@ -1666,8 +1968,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe,
-                references: new[] { CSharpRef, SystemCoreRef });
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, references: new[] { CSharpRef, SystemCoreRef });
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput:
@@ -1705,8 +2006,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe,
-                references: new[] { CSharpRef, SystemCoreRef });
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe, references: new[] { CSharpRef, SystemCoreRef });
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput:
@@ -3718,6 +4018,37 @@ namespace System
 
             // Note: tuple equality picked ahead of custom operator==
             CompileAndVerify(comp, expectedOutput: "False");
+        }
+
+        [Fact]
+        public void TestInExpressionTree()
+        {
+            var source = @"
+using System;
+using System.Linq.Expressions;
+public class C
+{
+    public static void Main()
+    {
+        Expression<Func<int, bool>> expr = i => (i, i) == (i, i);
+        Expression<Func<(int, int), bool>> expr2 = t => t != t;
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,49): error CS8374: An expression tree may not contain a tuple == or != operator
+                //         Expression<Func<int, bool>> expr = i => (i, i) == (i, i);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "(i, i) == (i, i)").WithLocation(8, 49),
+                // (8,49): error CS8143: An expression tree may not contain a tuple literal.
+                //         Expression<Func<int, bool>> expr = i => (i, i) == (i, i);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleLiteral, "(i, i)").WithLocation(8, 49),
+                // (8,59): error CS8143: An expression tree may not contain a tuple literal.
+                //         Expression<Func<int, bool>> expr = i => (i, i) == (i, i);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleLiteral, "(i, i)").WithLocation(8, 59),
+                // (9,57): error CS8374: An expression tree may not contain a tuple == or != operator
+                //         Expression<Func<(int, int), bool>> expr2 = t => t != t;
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "t != t").WithLocation(9, 57)
+                );
         }
     }
 }

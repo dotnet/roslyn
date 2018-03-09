@@ -487,8 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundLiteral(node, ConstantValue.Create(kind == BinaryOperatorKind.Equal), GetSpecialType(SpecialType.System_Boolean, diagnostics, node));
             }
 
-            if (GetTupleCardinality(left) > 1 &&
-                GetTupleCardinality(right) > 1 &&
+            if (IsTupleBinaryOperation(left, right) &&
                 (kind == BinaryOperatorKind.Equal || kind == BinaryOperatorKind.NotEqual))
             {
                 CheckFeatureAvailability(node, MessageID.IDS_FeatureTupleEquality, diagnostics);

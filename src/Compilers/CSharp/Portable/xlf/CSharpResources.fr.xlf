@@ -8630,6 +8630,11 @@ Pour supprimer l'avertissement, vous pouvez utiliser la commande /reference (dé
         <target state="new">Invalid hash algorithm name: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsTupleBinOp">
+        <source>An expression tree may not contain a tuple == or != operator</source>
+        <target state="new">An expression tree may not contain a tuple == or != operator</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

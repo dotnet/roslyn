@@ -21,15 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundTupleBinaryOperator BindTupleBinaryOperator(BinaryExpressionSyntax node, BinaryOperatorKind kind,
             BoundExpression left, BoundExpression right, DiagnosticBag diagnostics)
         {
-            // PROTOTYPE(tuple-equality) Block in expression tree
             TupleBinaryOperatorInfo.Multiple operators = BindTupleBinaryOperatorNestedInfo(node, kind, left, right, diagnostics);
 
-            DiagnosticBag discardDiagnostics = DiagnosticBag.GetInstance();
-
             // The converted types are only used for the semantic model, so we don't need the conversion diagnostics
+            DiagnosticBag discardDiagnostics = DiagnosticBag.GetInstance();
             BoundExpression convertedLeft = ApplyConvertedTypes(left, operators, isRight: false, discardDiagnostics);
             BoundExpression convertedRight = ApplyConvertedTypes(right, operators, isRight: true, discardDiagnostics);
-
             discardDiagnostics.Free();
 
             TypeSymbol resultType = GetSpecialType(SpecialType.System_Boolean, diagnostics, node);
@@ -91,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindTupleDynamicBinaryOperatorSingleInfo(node, kind, left, right, diagnostics);
             }
 
-            if (GetTupleCardinality(left) > 1 && GetTupleCardinality(right) > 1)
+            if (IsTupleBinaryOperation(left, right))
             {
                 return BindTupleBinaryOperatorNestedInfo(node, kind, left, right, diagnostics);
             }
@@ -203,8 +200,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         private TupleBinaryOperatorInfo.Multiple BindTupleBinaryOperatorNestedInfo(BinaryExpressionSyntax node, BinaryOperatorKind kind,
             BoundExpression left, BoundExpression right, DiagnosticBag diagnostics)
         {
-            TypeSymbol leftType = left.Type;
-            TypeSymbol rightType = right.Type;
+            left = GiveTupleTypeToDefaultLiteralIfNeeded(left, right.Type);
+            right = GiveTupleTypeToDefaultLiteralIfNeeded(right, left.Type);
+
+            if ((left.Type is null && left.IsLiteralDefault()) ||
+                (right.Type is null && right.IsLiteralDefault()))
+            {
+                Error(diagnostics, ErrorCode.ERR_AmbigBinaryOps, node, node.OperatorToken.Text, left.Display, right.Display);
+                return new TupleBinaryOperatorInfo.Multiple(ImmutableArray<TupleBinaryOperatorInfo>.Empty, left.Type, right.Type);
+            }
+
+            // Aside from default (which we fixed or ruled out above) and tuple literals,
+            // we must have typed expressions at this point
+            Debug.Assert(left.Type != null || left.Kind == BoundKind.TupleLiteral);
+            Debug.Assert(right.Type != null || right.Kind == BoundKind.TupleLiteral);
 
             int leftCardinality = GetTupleCardinality(left);
             int rightCardinality = GetTupleCardinality(right);
@@ -212,13 +221,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leftCardinality != rightCardinality)
             {
                 Error(diagnostics, ErrorCode.ERR_TupleSizesMismatchForBinOps, node, leftCardinality, rightCardinality);
-
                 return new TupleBinaryOperatorInfo.Multiple(ImmutableArray<TupleBinaryOperatorInfo>.Empty, leftConvertedTypeOpt: null, rightConvertedTypeOpt: null);
             }
-
-            // typeless tuple literals are not nullable
-            bool leftNullable = leftType?.IsNullableType() == true;
-            bool rightNullable = rightType?.IsNullableType() == true;
 
             ImmutableArray<BoundExpression> leftParts = GetTupleArgumentsOrPlaceholders(left);
             ImmutableArray<BoundExpression> rightParts = GetTupleArgumentsOrPlaceholders(right);
@@ -235,11 +239,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var compilation = this.Compilation;
             var operators = operatorsBuilder.ToImmutableAndFree();
+
+            // typeless tuple literals are not nullable
+            bool leftNullable = left.Type?.IsNullableType() == true;
+            bool rightNullable = right.Type?.IsNullableType() == true;
             bool isNullable = leftNullable || rightNullable;
+
             TypeSymbol leftTupleType = MakeConvertedType(operators.SelectAsArray(o => o.LeftConvertedTypeOpt), node.Left, leftParts, isNullable, compilation, diagnostics);
             TypeSymbol rightTupleType = MakeConvertedType(operators.SelectAsArray(o => o.RightConvertedTypeOpt), node.Right, rightParts, isNullable, compilation, diagnostics);
 
             return new TupleBinaryOperatorInfo.Multiple(operators, leftTupleType, rightTupleType);
+        }
+
+        internal static BoundExpression GiveTupleTypeToDefaultLiteralIfNeeded(BoundExpression expr, TypeSymbol targetType)
+        {
+            if (!expr.IsLiteralDefault() || targetType is null)
+            {
+                return expr;
+            }
+
+            Debug.Assert(targetType.StrippedType().IsTupleType);
+            return new BoundDefaultExpression(expr.Syntax, targetType);
+        }
+
+        private static bool IsTupleBinaryOperation(BoundExpression left, BoundExpression right)
+        {
+            bool leftDefault = left.IsLiteralDefault();
+            bool rightDefault = right.IsLiteralDefault();
+            if (leftDefault && rightDefault)
+            {
+                return false;
+            }
+
+            return (GetTupleCardinality(left) > 1 || leftDefault) && (GetTupleCardinality(right) > 1 || rightDefault);
         }
 
         private static int GetTupleCardinality(BoundExpression expr)
