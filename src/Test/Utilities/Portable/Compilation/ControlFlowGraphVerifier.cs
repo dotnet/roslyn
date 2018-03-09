@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Empty(block.Statements);
                         Assert.Null(block.Conditional.Condition);
                         Assert.NotNull(block.Next.Branch.Destination);
-                        Assert.Null(block.Next.ReturnValue);
+                        Assert.Null(block.Next.Value);
                         Assert.Same(graph.Root, currentRegion);
                         Assert.Same(currentRegion, block.Region);
                         Assert.Equal(0, currentRegion.FirstBlockOrdinal);
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Empty(block.Statements);
                         Assert.Null(block.Conditional.Condition);
                         Assert.Null(block.Next.Branch.Destination);
-                        Assert.Null(block.Next.ReturnValue);
+                        Assert.Null(block.Next.Value);
                         Assert.Same(graph.Root, currentRegion);
                         Assert.Same(currentRegion, block.Region);
                         Assert.Equal(i, currentRegion.LastBlockOrdinal);
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                         if (block.Kind != BasicBlockKind.Exit && predecessor.Next.Branch.Destination == block)
                         {
-                            Assert.Null(predecessor.Next.ReturnValue);
+                            Assert.Null(predecessor.Next.Value);
                         }
 
                         stringBuilder.Append($" [B{predecessor.Ordinal}]");
@@ -125,9 +125,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (block.Conditional.Condition != null)
                 {
-                    int index = conditionalBranch.Destination.Ordinal;
-                    Assert.Same(blocks[index], conditionalBranch.Destination);
-                    appendLine($"    Jump if {(block.Conditional.JumpIfTrue ? "True" : "False")} ({conditionalBranch.Flags}) to Block[B{index}]");
+                    if (conditionalBranch.Destination != null)
+                    {
+                        Assert.Same(blocks[conditionalBranch.Destination.Ordinal], conditionalBranch.Destination);
+                    }
+
+                    appendLine($"    Jump if {(block.Conditional.JumpIfTrue ? "True" : "False")} ({conditionalBranch.Kind}) to Block[{getDestinationString(ref conditionalBranch)}]");
 
                     IOperation value = block.Conditional.Condition;
                     validateRoot(value);
@@ -150,8 +153,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Same(blocks[nextBranch.Destination.Ordinal], nextBranch.Destination);
                     }
 
-                    appendLine($"    Next ({nextBranch.Flags}) Block[{(nextBranch.Destination != null ? ("B" + nextBranch.Destination.Ordinal) : (object)"null")}]");
-                    IOperation value = block.Next.ReturnValue;
+                    appendLine($"    Next ({nextBranch.Kind}) Block[{getDestinationString(ref nextBranch)}]");
+                    IOperation value = block.Next.Value;
 
                     if (value != null)
                     {
@@ -161,9 +164,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 }
                 else
                 {
-                    Assert.Equal(0, (int)nextBranch.Flags);
+                    Assert.Equal(0, (int)nextBranch.Kind);
                     Assert.Null(nextBranch.Destination);
-                    Assert.Null(block.Next.ReturnValue);
+                    Assert.Null(block.Next.Value);
                 }
 
                 validateBranch(block, nextBranch);
@@ -180,6 +183,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             regionMap.Free();
             return pooledBuilder.ToStringAndFree();
+
+            string getDestinationString(ref BasicBlock.Branch branch)
+            {
+                return branch.Destination != null ? ("B" + branch.Destination.Ordinal) : "null";
+            }
 
             PooledObjects.PooledDictionary<ControlFlowGraph.Region, int> buildRegionMap()
             {
@@ -456,6 +464,9 @@ endRegion:
                 case OperationKind.Return:
                 case OperationKind.YieldBreak:
                 case OperationKind.Labeled:
+                case OperationKind.Throw:
+                case OperationKind.End:
+                case OperationKind.Empty:
                     return false;
 
                 case OperationKind.BinaryOperator:
@@ -464,12 +475,10 @@ endRegion:
 
                 case OperationKind.None:
                 case OperationKind.Invalid:
-                case OperationKind.Empty:
                 case OperationKind.YieldReturn:
                 case OperationKind.ExpressionStatement:
                 case OperationKind.LocalFunction:
                 case OperationKind.Stop:
-                case OperationKind.End:
                 case OperationKind.RaiseEvent:
                 case OperationKind.Literal:
                 case OperationKind.Conversion:
@@ -508,7 +517,6 @@ endRegion:
                 case OperationKind.AddressOf:
                 case OperationKind.IsPattern:
                 case OperationKind.Increment:
-                case OperationKind.Throw:
                 case OperationKind.Decrement:
                 case OperationKind.DeconstructionAssignment:
                 case OperationKind.DeclarationExpression:

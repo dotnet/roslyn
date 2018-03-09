@@ -999,6 +999,108 @@ Block[B2] - Exit
 
         [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
         [Fact]
+        public void ReturnFlow_17()
+        {
+            var source = @"
+class C
+{
+    int F(bool a)
+    /*<bind>*/{
+        if (a) return 1;
+        goto label1;
+
+label1:
+        goto label2;
+label2:
+        return 2;
+    }/*</bind>*/
+}";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics();
+
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (0)
+    Jump if False (Regular) to Block[B2]
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+
+    Next (Return) Block[B3]
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Next (Return) Block[B3]
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+";
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void ReturnFlow_18()
+        {
+            var source = @"
+class C
+{
+    int F(bool a)
+    /*<bind>*/{
+        a = true;
+        goto label1;
+label2:
+        if (a) return 1;
+        return 2;
+label1:
+        goto label2;
+    }/*</bind>*/
+}";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics();
+
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+Block[B1] - Block
+    Predecessors: [B0]
+    Statements (1)
+        IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'a = true;')
+          Expression: 
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Boolean) (Syntax: 'a = true')
+              Left: 
+                IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Boolean, Constant: True) (Syntax: 'true')
+
+    Jump if False (Regular) to Block[B2]
+        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'a')
+
+    Next (Return) Block[B3]
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+Block[B2] - Block
+    Predecessors: [B1]
+    Statements (0)
+    Next (Return) Block[B3]
+        ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
+    Statements (0)
+";
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
         public void YieldFlow_01()
         {
             var source = @"

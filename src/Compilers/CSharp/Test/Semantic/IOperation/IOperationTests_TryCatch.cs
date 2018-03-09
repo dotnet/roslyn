@@ -3342,6 +3342,63 @@ Block[B3] - Exit
             VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
         }
 
+        [CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)]
+        [Fact]
+        public void TryFlow_29()
+        {
+            var source = @"
+#pragma warning disable CS0168
+#pragma warning disable CS0219
+class C
+{
+    void F()
+    /*<bind>*/{
+        try
+        {
+            int i = 1;
+        }
+        finally
+        {
+            int j;
+            goto label1;
+label1:     ;
+        }
+    }/*</bind>*/
+}";
+
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.RegularWithFlowAnalysisFeature);
+
+            compilation.VerifyDiagnostics();
+
+            string expectedGraph = @"
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [System.Int32 i]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'i = 1')
+              Left: 
+                ILocalReferenceOperation: i (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'i = 1')
+              Right: 
+                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+";
+            VerifyFlowGraphForTest<BlockSyntax>(compilation, expectedGraph);
+        }
+
         // PROTOTYPE(dataflow): Add flow graph tests to VB.
     }
 }

@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Operations
     {
         private readonly ImmutableArray<IOperation>.Builder _statements;
         private readonly ImmutableHashSet<BasicBlock>.Builder _predecessors;
-        internal (IOperation ReturnValue, Branch Branch) InternalNext;
+        internal (IOperation Value, Branch Branch) InternalNext;
         internal (IOperation Condition, bool JumpIfTrue, Branch Branch) InternalConditional;
 
         public BasicBlock(BasicBlockKind kind)
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// PROTOTYPE(dataflow): During CR there was a suggestion to use different name - "Successor".
         /// </summary>
-        public (IOperation ReturnValue, Branch Branch) Next => InternalNext;
+        public (IOperation Value, Branch Branch) Next => InternalNext;
 
         public ImmutableHashSet<BasicBlock> Predecessors => _predecessors.ToImmutable();
 
@@ -84,28 +84,22 @@ namespace Microsoft.CodeAnalysis.Operations
             _predecessors.Remove(block);
         }
 
-        [Flags]
-        public enum BranchFlags
+        public enum BranchKind
         {
-            Regular = 0x01,
-
-            /// <summary>
-            /// This is the only flag that can be combined with other values.
-            /// </summary>
-            Error = 0x02,
-
-            Return = 0x04,
-            StructuredExceptionHandling = 0x08,
-            ProgramTermination = 0x10,
-            Throw = 0x20,
-            ReThrow = 0x40,
+            None,
+            Regular,
+            Return,
+            StructuredExceptionHandling,
+            ProgramTermination,
+            Throw,
+            ReThrow,
         }
 
         public struct Branch
         {
             private ImmutableArray<ControlFlowGraph.Region> _lazyFinallyRegions;
 
-            public BranchFlags Flags { get; internal set; }
+            public BranchKind Kind { get; internal set; }
             public BasicBlock Destination { get; internal set; }
 
             /// <summary>

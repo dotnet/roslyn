@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.Operations
                                 {
                                     BasicBlock block = subRegion.FirstBlock;
 
-                                    if (block.Statements.IsEmpty && block.InternalConditional.Condition == null && block.InternalNext.ReturnValue == null)
+                                    if (block.Statements.IsEmpty && block.InternalConditional.Condition == null && block.InternalNext.Value == null)
                                     {
                                         // This sub-region has no executable code, merge block into the parent and drop the sub-region
                                         Debug.Assert(regionMap[block] == subRegion);
@@ -296,8 +296,8 @@ namespace Microsoft.CodeAnalysis.Operations
                         predecessor.InternalNext.Branch.Destination == block &&
                         regionMap[predecessor] == regionMap[block])
                     {
-                        Debug.Assert(predecessor.InternalNext.ReturnValue == null);
-                        Debug.Assert((predecessor.InternalNext.Branch.Flags & BasicBlock.BranchFlags.Regular) != 0);
+                        Debug.Assert(predecessor.InternalNext.Value == null);
+                        Debug.Assert(predecessor.InternalNext.Branch.Kind == BasicBlock.BranchKind.Regular);
 
                         predecessor.AddStatements(block.Statements);
                         block.RemoveStatements();
@@ -310,15 +310,15 @@ namespace Microsoft.CodeAnalysis.Operations
 
                 ref BasicBlock.Branch next = ref block.InternalNext.Branch;
 
-                Debug.Assert((block.InternalNext.ReturnValue == null) == ((next.Flags & BasicBlock.BranchFlags.Return) == 0));
-                Debug.Assert(next.Destination != null ||
-                             (next.Flags &
-                              (BasicBlock.BranchFlags.Error | BasicBlock.BranchFlags.ProgramTermination |
-                              BasicBlock.BranchFlags.Throw | BasicBlock.BranchFlags.ReThrow |
-                              BasicBlock.BranchFlags.StructuredExceptionHandling)) != 0);
+                Debug.Assert((block.InternalNext.Value != null) == (next.Kind == BasicBlock.BranchKind.Return || next.Kind == BasicBlock.BranchKind.Throw));
+                Debug.Assert((next.Destination == null) == 
+                             (next.Kind == BasicBlock.BranchKind.ProgramTermination ||
+                              next.Kind == BasicBlock.BranchKind.Throw ||
+                              next.Kind == BasicBlock.BranchKind.ReThrow ||
+                              next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling));
 
 #if DEBUG
-                if ((next.Flags & BasicBlock.BranchFlags.StructuredExceptionHandling) != 0)
+                if (next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling)
                 {
                     RegionBuilder currentRegion = regionMap[block];
                     Debug.Assert(currentRegion.Kind == ControlFlowGraph.RegionKind.Filter ||
@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
                         // Remove Try/Finally if Finally is empty
                         if (currentRegion.Kind == ControlFlowGraph.RegionKind.Finally &&
-                            next.Destination == null && next.Flags == BasicBlock.BranchFlags.StructuredExceptionHandling &&
+                            next.Destination == null && next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling &&
                             block.Predecessors.IsEmpty)
                         {
                             // Nothing useful is happening in this finally, let's remove it
@@ -364,9 +364,6 @@ namespace Microsoft.CodeAnalysis.Operations
                             }
                             else
                             {
-                                // PROTOTYPE(dataflow): this code path is unreachable at the moment because we get here before we add locals
-                                //                      to the .try region. But I think we can hit this code path when there is an explicit 
-                                //                      goto at the end of .try once we have handling for gotos. 
                                 @try.Kind = ControlFlowGraph.RegionKind.Locals;
                                 i--; // restart at the block that was following the tryAndFinally
                             }
@@ -385,14 +382,10 @@ namespace Microsoft.CodeAnalysis.Operations
                         continue;
                     }
 
-                    if (next.Destination == null)
+                    if (next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling)
                     {
-                        Debug.Assert(block.InternalNext.ReturnValue == null);
-
-                        if ((next.Flags & BasicBlock.BranchFlags.StructuredExceptionHandling) == 0)
-                        {
-                            continue;
-                        }
+                        Debug.Assert(block.InternalNext.Value == null);
+                        Debug.Assert(next.Destination == null);
 
                         ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
 
@@ -425,10 +418,14 @@ namespace Microsoft.CodeAnalysis.Operations
                     }
                     else
                     {
-                        Debug.Assert((next.Flags & ~(BasicBlock.BranchFlags.Regular | BasicBlock.BranchFlags.Error | BasicBlock.BranchFlags.Return)) == 0);
+                        Debug.Assert(next.Kind == BasicBlock.BranchKind.Regular ||
+                                     next.Kind == BasicBlock.BranchKind.Return ||
+                                     next.Kind == BasicBlock.BranchKind.Throw ||
+                                     next.Kind == BasicBlock.BranchKind.ReThrow ||
+                                     next.Kind == BasicBlock.BranchKind.ProgramTermination);
 
                         ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
-                        IOperation returnValue = block.InternalNext.ReturnValue;
+                        IOperation value = block.InternalNext.Value;
 
                         RegionBuilder implicitEntryRegion = tryGetImplicitEntryRegion(block, currentRegion);
 
@@ -436,7 +433,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         {
                             // First blocks in filter/catch/finally do not capture all possible predecessors
                             // Do not try to merge them, unless they are simply linked to the next block
-                            if (returnValue != null ||
+                            if (value != null ||
                                 next.Destination != blocks[i + 1])
                             {
                                 continue;
@@ -445,18 +442,18 @@ namespace Microsoft.CodeAnalysis.Operations
                             Debug.Assert(implicitEntryRegion.LastBlock.Ordinal >= next.Destination.Ordinal);
                         }
 
-                        if (returnValue != null)
+                        if (value != null)
                         {
                             BasicBlock predecessor;
                             int predecessorsCount = predecessors.Count;
 
-                            if (predecessorsCount == 0)
+                            if (predecessorsCount == 0 && next.Kind == BasicBlock.BranchKind.Return)
                             {
                                 // Let's drop an unreachable compiler generated return that VB optimistically adds at the end of a method body
                                 if (next.Destination.Kind != BasicBlockKind.Exit ||
-                                    !returnValue.IsImplicit ||
-                                    returnValue.Kind != OperationKind.LocalReference ||
-                                    !((ILocalReferenceOperation)returnValue).Local.IsFunctionValue)
+                                    !value.IsImplicit ||
+                                    value.Kind != OperationKind.LocalReference ||
+                                    !((ILocalReferenceOperation)value).Local.IsFunctionValue)
                                 {
                                     continue;
                                 }
@@ -468,10 +465,10 @@ namespace Microsoft.CodeAnalysis.Operations
                                   predecessor.Kind == BasicBlockKind.Entry ||
                                   regionMap[predecessor] != currentRegion)
                                 {
-                                    // Do not merge return with expression with more than one predecessor
-                                    // Do not merge return with expression with conditional branch
-                                    // Do not merge return with expression with an entry block
-                                    // Do not merge return with expression into a different region
+                                    // Do not merge return/throw with expression with more than one predecessor
+                                    // Do not merge return/throw with expression with conditional branch
+                                    // Do not merge return/throw with expression with an entry block
+                                    // Do not merge return/throw with expression into a different region
                                     continue;
                                 }
 
@@ -479,16 +476,17 @@ namespace Microsoft.CodeAnalysis.Operations
                             }
                         }
 
-                        RegionBuilder destinationRegion = regionMap[next.Destination];
+                        // For throw/re-throw assume there is no specific destination region
+                        RegionBuilder destinationRegionOpt = next.Destination == null ? null : regionMap[next.Destination];
 
                         // If source and destination are in different regions, it might
                         // be unsafe to merge branches.
-                        if (currentRegion != destinationRegion)
+                        if (currentRegion != destinationRegionOpt)
                         {
                             fromCurrent?.Clear();
                             fromDestination?.Clear();
 
-                            if (!checkBranchesFromPredecessors(block, currentRegion, destinationRegion))
+                            if (!checkBranchesFromPredecessors(block, currentRegion, destinationRegionOpt))
                             {
                                 continue;
                             }
@@ -496,13 +494,19 @@ namespace Microsoft.CodeAnalysis.Operations
 
                         foreach (BasicBlock predecessor in predecessors)
                         {
-                            tryMergeBranch(predecessor, ref predecessor.InternalNext.Branch, block);
-                            Debug.Assert(predecessor.InternalNext.ReturnValue == null);
-                            predecessor.InternalNext.ReturnValue = returnValue;
-                            tryMergeBranch(predecessor, ref predecessor.InternalConditional.Branch, block);
+                            if (tryMergeBranch(predecessor, ref predecessor.InternalNext.Branch, block))
+                            {
+                                Debug.Assert(predecessor.InternalNext.Value == null);
+                                predecessor.InternalNext.Value = value;
+                            }
+
+                            if (tryMergeBranch(predecessor, ref predecessor.InternalConditional.Branch, block))
+                            {
+                                Debug.Assert(value == null);
+                            }
                         }
 
-                        next.Destination.RemovePredecessor(block);
+                        next.Destination?.RemovePredecessor(block);
                     }
 
                     i--;
@@ -512,12 +516,16 @@ namespace Microsoft.CodeAnalysis.Operations
                 }
                 else
                 {
-                    if (next.Destination == null)
+                    if (next.Kind == BasicBlock.BranchKind.StructuredExceptionHandling)
                     {
                         continue;
                     }
 
-                    Debug.Assert((next.Flags & ~(BasicBlock.BranchFlags.Regular | BasicBlock.BranchFlags.Error | BasicBlock.BranchFlags.Return)) == 0);
+                    Debug.Assert(next.Kind == BasicBlock.BranchKind.Regular ||
+                                 next.Kind == BasicBlock.BranchKind.Return ||
+                                 next.Kind == BasicBlock.BranchKind.Throw ||
+                                 next.Kind == BasicBlock.BranchKind.ReThrow ||
+                                 next.Kind == BasicBlock.BranchKind.ProgramTermination);
 
                     ImmutableHashSet<BasicBlock> predecessors = block.Predecessors;
 
@@ -542,19 +550,20 @@ namespace Microsoft.CodeAnalysis.Operations
                         regionMap[predecessor] == currentRegion)
                     {
                         Debug.Assert(predecessor != block);
-                        Debug.Assert(predecessor.InternalNext.ReturnValue == null);
+                        Debug.Assert(predecessor.InternalNext.Value == null);
 
                         mergeBranch(predecessor, ref predecessor.InternalNext.Branch, ref next);
 
-                        // PROTOTYPE(dataflow): So far we dont have tests that pass through here with block.InternalNext.ReturnValue
-                        //                      Should be able to hit this with backward branches once handling is added
-                        predecessor.InternalNext.ReturnValue = block.InternalNext.ReturnValue;
-                        next.Destination.RemovePredecessor(block);
+                        predecessor.InternalNext.Value = block.InternalNext.Value;
+                        next.Destination?.RemovePredecessor(block);
 
                         predecessor.InternalConditional = block.InternalConditional;
                         BasicBlock destination = block.InternalConditional.Branch.Destination;
-                        destination.AddPredecessor(predecessor);
-                        destination.RemovePredecessor(block);
+                        if (destination != null)
+                        {
+                            destination.AddPredecessor(predecessor);
+                            destination.RemovePredecessor(block);
+                        }
 
                         i--;
                         count--;
@@ -636,23 +645,26 @@ namespace Microsoft.CodeAnalysis.Operations
                 block.Ordinal = -1;
             }
 
-            void tryMergeBranch(BasicBlock predecessor, ref BasicBlock.Branch predecessorBranch, BasicBlock successor)
+            bool tryMergeBranch(BasicBlock predecessor, ref BasicBlock.Branch predecessorBranch, BasicBlock successor)
             {
                 if (predecessorBranch.Destination == successor)
                 {
                     mergeBranch(predecessor, ref predecessorBranch, ref successor.InternalNext.Branch);
+                    return true;
                 }
+
+                return false;
             }
 
             void mergeBranch(BasicBlock predecessor, ref BasicBlock.Branch predecessorBranch, ref BasicBlock.Branch successorBranch)
             {
                 predecessorBranch.Destination = successorBranch.Destination;
-                successorBranch.Destination.AddPredecessor(predecessor);
-                Debug.Assert((predecessorBranch.Flags & ~(BasicBlock.BranchFlags.Regular | BasicBlock.BranchFlags.Error)) == 0);
-                predecessorBranch.Flags = successorBranch.Flags | (predecessorBranch.Flags & BasicBlock.BranchFlags.Error);
+                successorBranch.Destination?.AddPredecessor(predecessor);
+                Debug.Assert(predecessorBranch.Kind == BasicBlock.BranchKind.Regular);
+                predecessorBranch.Kind = successorBranch.Kind;
             }
 
-            bool checkBranchesFromPredecessors(BasicBlock block, RegionBuilder currentRegion, RegionBuilder destinationRegion)
+            bool checkBranchesFromPredecessors(BasicBlock block, RegionBuilder currentRegion, RegionBuilder destinationRegionOpt)
             {
                 foreach (BasicBlock predecessor in block.Predecessors)
                 {
@@ -662,9 +674,15 @@ namespace Microsoft.CodeAnalysis.Operations
                     // be unsafe to merge branches.
                     if (predecessorRegion != currentRegion)
                     {
+                        if (destinationRegionOpt == null)
+                        {
+                            // destination is unknown and predecessor is in different region, do not merge
+                            return false;
+                        }
+
                         fromPredecessor?.Clear();
                         collectAncestorsAndSelf(currentRegion, ref fromCurrent);
-                        collectAncestorsAndSelf(destinationRegion, ref fromDestination);
+                        collectAncestorsAndSelf(destinationRegionOpt, ref fromDestination);
                         collectAncestorsAndSelf(predecessorRegion, ref fromPredecessor);
 
                         // On the way from predecessor directly to the destination, are we going leave the same regions as on the way
@@ -682,6 +700,11 @@ namespace Microsoft.CodeAnalysis.Operations
                             // We have different transitions 
                             return false;
                         }
+                    }
+                    else if (predecessor.Kind == BasicBlockKind.Entry && destinationRegionOpt == null)
+                    {
+                        // Do not merge throw into an entry block
+                        return false;
                     }
                 }
 
@@ -828,12 +851,12 @@ namespace Microsoft.CodeAnalysis.Operations
             _currentBasicBlock = null;
         }
 
-        private static void LinkBlocks(BasicBlock prevBlock, BasicBlock nextBlock, BasicBlock.BranchFlags branchFlags = BasicBlock.BranchFlags.Regular)
+        private static void LinkBlocks(BasicBlock prevBlock, BasicBlock nextBlock, BasicBlock.BranchKind branchKind = BasicBlock.BranchKind.Regular)
         {
-            Debug.Assert(prevBlock.InternalNext.ReturnValue == null);
+            Debug.Assert(prevBlock.InternalNext.Value == null);
             Debug.Assert(prevBlock.InternalNext.Branch.Destination == null);
             prevBlock.InternalNext.Branch.Destination = nextBlock;
-            prevBlock.InternalNext.Branch.Flags = branchFlags;
+            prevBlock.InternalNext.Branch.Kind = branchKind;
             nextBlock.AddPredecessor(prevBlock);
         }
 
@@ -1397,7 +1420,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private static BasicBlock.Branch RegularBranch(BasicBlock destination)
         {
-            return new BasicBlock.Branch() { Destination = destination, Flags = BasicBlock.BranchFlags.Regular };
+            return new BasicBlock.Branch() { Destination = destination, Kind = BasicBlock.BranchKind.Regular };
         }
 
         private static IOperation MakeInvalidOperation(ITypeSymbol type, IOperation child)
@@ -1705,7 +1728,7 @@ namespace Microsoft.CodeAnalysis.Operations
                         VisitConditionalBranch(filter, ref catchBlock, sense: true);
                         var continueDispatchBlock = new BasicBlock(BasicBlockKind.Block);
                         AppendNewBlock(continueDispatchBlock);
-                        continueDispatchBlock.InternalNext.Branch.Flags = BasicBlock.BranchFlags.StructuredExceptionHandling;
+                        continueDispatchBlock.InternalNext.Branch.Kind = BasicBlock.BranchKind.StructuredExceptionHandling;
                         LeaveRegion();
 
                         Debug.Assert(filterRegion.LastBlock.InternalNext.Branch.Destination == null);
@@ -1757,7 +1780,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 VisitStatement(operation.Finally);
                 var continueDispatchBlock = new BasicBlock(BasicBlockKind.Block);
                 AppendNewBlock(continueDispatchBlock);
-                continueDispatchBlock.InternalNext.Branch.Flags = BasicBlock.BranchFlags.StructuredExceptionHandling;
+                continueDispatchBlock.InternalNext.Branch.Kind = BasicBlock.BranchKind.StructuredExceptionHandling;
                 LeaveRegion();
                 Debug.Assert(_currentRegion == tryAndFinallyRegion);
                 LeaveRegion();
@@ -1827,8 +1850,8 @@ namespace Microsoft.CodeAnalysis.Operations
                 case OperationKind.YieldBreak:
                 case OperationKind.Return:
                     BasicBlock current = CurrentBasicBlock;
-                    LinkBlocks(CurrentBasicBlock, _exit, returnedValue is null ? BasicBlock.BranchFlags.Regular : BasicBlock.BranchFlags.Return);
-                    current.InternalNext.ReturnValue = Operation.SetParentOperation(returnedValue, null);
+                    LinkBlocks(CurrentBasicBlock, _exit, returnedValue is null ? BasicBlock.BranchKind.Regular : BasicBlock.BranchKind.Return);
+                    current.InternalNext.Value = Operation.SetParentOperation(returnedValue, null);
                     _currentBasicBlock = null;
                     break;
 
@@ -1882,6 +1905,45 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitEmpty(IEmptyOperation operation, int? captureIdForResult)
         {
             Debug.Assert(_currentStatement == operation);
+            return null;
+        }
+
+        public override IOperation VisitThrow(IThrowOperation operation, int? captureIdForResult)
+        {
+            bool isStatement = (_currentStatement == operation);
+
+            if (!isStatement)
+            {
+                SpillEvalStack();
+            }
+
+            BasicBlock current = CurrentBasicBlock;
+            AppendNewBlock(new BasicBlock(BasicBlockKind.Block), linkToPrevious: false);
+            Debug.Assert(current.InternalNext.Value == null);
+            Debug.Assert(current.InternalNext.Branch.Destination == null);
+            Debug.Assert(current.InternalNext.Branch.Kind == BasicBlock.BranchKind.None);
+            current.InternalNext.Value = Operation.SetParentOperation(Visit(operation.Exception), null);
+            current.InternalNext.Branch.Kind = operation.Exception == null ? BasicBlock.BranchKind.ReThrow : BasicBlock.BranchKind.Throw;
+
+            if (isStatement)
+            {
+                return null;
+            }
+            else
+            {
+                return Operation.CreateOperationNone(semanticModel: null, operation.Syntax, constantValue: default, children: ImmutableArray<IOperation>.Empty, isImplicit: true);
+            }
+        }
+
+        public override IOperation VisitEnd(IEndOperation operation, int? captureIdForResult)
+        {
+            Debug.Assert(_currentStatement == operation);
+            BasicBlock current = CurrentBasicBlock;
+            AppendNewBlock(new BasicBlock(BasicBlockKind.Block), linkToPrevious: false);
+            Debug.Assert(current.InternalNext.Value == null);
+            Debug.Assert(current.InternalNext.Branch.Destination == null);
+            Debug.Assert(current.InternalNext.Branch.Kind == BasicBlock.BranchKind.None);
+            current.InternalNext.Branch.Kind = BasicBlock.BranchKind.ProgramTermination;
             return null;
         }
 
@@ -2172,11 +2234,6 @@ namespace Microsoft.CodeAnalysis.Operations
             return new StopStatement(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
-        public override IOperation VisitEnd(IEndOperation operation, int? captureIdForResult)
-        {
-            return new EndStatement(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
         public override IOperation VisitOmittedArgument(IOmittedArgumentOperation operation, int? captureIdForResult)
         {
             return new OmittedArgumentExpression(semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
@@ -2275,11 +2332,6 @@ namespace Microsoft.CodeAnalysis.Operations
         public override IOperation VisitNameOf(INameOfOperation operation, int? captureIdForResult)
         {
             return new NameOfExpression(Visit(operation.Argument), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
-        }
-
-        public override IOperation VisitThrow(IThrowOperation operation, int? captureIdForResult)
-        {
-            return new ThrowExpression(Visit(operation.Exception), semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
         }
 
         public override IOperation VisitAddressOf(IAddressOfOperation operation, int? captureIdForResult)
