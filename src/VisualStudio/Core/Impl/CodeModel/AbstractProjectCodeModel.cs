@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Roslyn.Utilities;
@@ -11,17 +12,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     internal abstract class AbstractProjectCodeModel
     {
         private readonly NonReentrantLock _guard = new NonReentrantLock();
-                
+        private readonly ProjectId _projectId;
+        private readonly ICodeModelInstanceFactory _codeModelInstanceFactory;
+
         private CodeModelProjectCache _codeModelCache;
 
-        public AbstractProjectCodeModel(AbstractProject project, VisualStudioWorkspaceImpl visualStudioWorkspace, IServiceProvider serviceProvider)
+        public AbstractProjectCodeModel(ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, VisualStudioWorkspaceImpl visualStudioWorkspace, IServiceProvider serviceProvider)
         {
-            VSProject = project;
+            _projectId = projectId;
+            _codeModelInstanceFactory = codeModelInstanceFactory;
             VisualStudioWorkspace = visualStudioWorkspace;
             ServiceProvider = serviceProvider;
         }
 
-        protected AbstractProject VSProject { get; }
         protected VisualStudioWorkspaceImpl VisualStudioWorkspace { get; }
         protected IServiceProvider ServiceProvider { get; }
 
@@ -32,26 +35,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         private CodeModelProjectCache GetCodeModelCache()
         {
-            Contract.ThrowIfNull(VSProject);
+            Contract.ThrowIfNull(_projectId);
             Contract.ThrowIfNull(VisualStudioWorkspace);
 
             using (_guard.DisposableWait())
             {
                 if (_codeModelCache == null)
                 {
-                    var project = VisualStudioWorkspace.CurrentSolution.GetProject(VSProject.Id);
-                    if (project == null && !VSProject.PushingChangesToWorkspace)
+                    var workspaceProject = VisualStudioWorkspace.CurrentSolution.GetProject(_projectId);
+                    var hostProject = VisualStudioWorkspace.GetHostProject(_projectId);
+                    if (workspaceProject == null && !hostProject.PushingChangesToWorkspace)
                     {
                         // if this project hasn't been pushed yet, push it now so that the user gets a useful experience here.
-                        VSProject.StartPushingToWorkspaceAndNotifyOfOpenDocuments();
+                        hostProject.StartPushingToWorkspaceAndNotifyOfOpenDocuments();
 
                         // re-check to see whether we now has the project in the workspace
-                        project = VisualStudioWorkspace.CurrentSolution.GetProject(VSProject.Id);
+                        workspaceProject = VisualStudioWorkspace.CurrentSolution.GetProject(_projectId);
                     }
 
-                    if (project != null)
+                    if (workspaceProject != null)
                     {
-                        _codeModelCache = new CodeModelProjectCache(VSProject, ServiceProvider, project.LanguageServices, VisualStudioWorkspace);
+                        _codeModelCache = new CodeModelProjectCache(_projectId, _codeModelInstanceFactory, ServiceProvider, workspaceProject.LanguageServices, VisualStudioWorkspace);
                     }
                 }
 
@@ -103,9 +107,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         {
             GetCodeModelCache().OnSourceFileRenaming(filePath, newFilePath);
         }
-
-        internal abstract bool CanCreateFileCodeModelThroughProject(string filePath);
-        internal abstract object CreateFileCodeModelThroughProject(string filePath);
-
     }
 }

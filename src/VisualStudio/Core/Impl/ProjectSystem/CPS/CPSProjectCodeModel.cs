@@ -9,35 +9,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
     internal sealed class CPSProjectCodeModel : AbstractProjectCodeModel
     {
         public CPSProjectCodeModel(CPSProject project, VisualStudioWorkspaceImpl visualStudioWorkspace, IServiceProvider serviceProvider)
-            : base(project, visualStudioWorkspace, serviceProvider)
+            : base(project.Id, new CPSCodeModelInstanceFactory(project), visualStudioWorkspace, serviceProvider)
         {
         }
-
-        internal override bool CanCreateFileCodeModelThroughProject(string filePath)
+        
+        private class CPSCodeModelInstanceFactory : ICodeModelInstanceFactory
         {
-            return GetProjectItem(filePath) != null;
-        }
+            private CPSProject _project;
 
-        internal override object CreateFileCodeModelThroughProject(string filePath)
-        {
-            var projectItem = GetProjectItem(filePath);
-            if (projectItem == null)
+            public CPSCodeModelInstanceFactory(CPSProject project)
             {
-                return null;
+                _project = project;
             }
 
-            return this.GetOrCreateFileCodeModel(filePath, projectItem).Handle;
-        }
-
-        private EnvDTE.ProjectItem GetProjectItem(string filePath)
-        {
-            var dteProject = VisualStudioWorkspace.TryGetDTEProject(VSProject.Id);
-            if (dteProject == null)
+            EnvDTE.FileCodeModel ICodeModelInstanceFactory.TryCreateFileCodeModelThroughProjectSystem(string filePath)
             {
-                return null;
+                var projectItem = GetProjectItem(filePath);
+                if (projectItem == null)
+                {
+                    return null;
+                }
+
+                return _project.ProjectCodeModel.GetOrCreateFileCodeModel(filePath, projectItem).Handle;
             }
 
-            return dteProject.FindItemByPath(filePath, StringComparer.OrdinalIgnoreCase);
+            private EnvDTE.ProjectItem GetProjectItem(string filePath)
+            {
+                var dteProject = ((VisualStudioWorkspaceImpl)_project.Workspace).TryGetDTEProject(_project.Id);
+                if (dteProject == null)
+                {
+                    return null;
+                }
+
+                return dteProject.FindItemByPath(filePath, StringComparer.OrdinalIgnoreCase);
+            }
         }
 
         public EnvDTE.CodeModel GetCodeModel(EnvDTE.Project parent)

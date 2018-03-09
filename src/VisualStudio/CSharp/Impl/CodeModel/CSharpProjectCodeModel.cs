@@ -9,22 +9,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
 {
     internal class CSharpProjectCodeModel : AbstractProjectCodeModel
     {
-        private readonly CSharpProjectShimWithServices _project;
-
         public CSharpProjectCodeModel(CSharpProjectShimWithServices project, VisualStudioWorkspaceImpl visualStudioWorkspace, IServiceProvider serviceProvider)
-            : base(project, visualStudioWorkspace, serviceProvider)
+            : base(project.Id, project, visualStudioWorkspace, serviceProvider)
         {
-            _project = project;
-        }
-
-        internal override bool CanCreateFileCodeModelThroughProject(string filePath)
-        {
-            return _project.CanCreateFileCodeModelThroughProject(filePath);
-        }
-
-        internal override object CreateFileCodeModelThroughProject(string filePath)
-        {
-            return _project.CreateFileCodeModelThroughProject(filePath);
         }
     }
 }
