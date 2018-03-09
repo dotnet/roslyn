@@ -8,15 +8,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 {
     internal partial class CSharpProjectShimWithServices : IProjectCodeModelProvider
     {
-        private AbstractProjectCodeModel _projectCodeModel;
+        private ProjectCodeModel _projectCodeModel;
 
-        public AbstractProjectCodeModel ProjectCodeModel
+        public ProjectCodeModel ProjectCodeModel
         {
             get
             {
                 if (_projectCodeModel == null)
                 {
-                    _projectCodeModel = new CSharpProjectCodeModel(this, (VisualStudioWorkspaceImpl)this.Workspace, ServiceProvider);
+                    _projectCodeModel = new ProjectCodeModel(this.Id, this, (VisualStudioWorkspaceImpl)this.Workspace, ServiceProvider);
                 }
 
                 return _projectCodeModel;

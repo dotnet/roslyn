@@ -9,24 +9,26 @@ using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
-    internal abstract class AbstractProjectCodeModel
+    /// <summary>
+    /// The root type that is held by a project to provide CodeModel support.
+    /// </summary>
+    internal sealed class ProjectCodeModel
     {
         private readonly NonReentrantLock _guard = new NonReentrantLock();
         private readonly ProjectId _projectId;
         private readonly ICodeModelInstanceFactory _codeModelInstanceFactory;
+        private readonly VisualStudioWorkspaceImpl _visualStudioWorkspace;
+        private readonly IServiceProvider _serviceProvider;
 
         private CodeModelProjectCache _codeModelCache;
 
-        public AbstractProjectCodeModel(ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, VisualStudioWorkspaceImpl visualStudioWorkspace, IServiceProvider serviceProvider)
+        public ProjectCodeModel(ProjectId projectId, ICodeModelInstanceFactory codeModelInstanceFactory, VisualStudioWorkspaceImpl visualStudioWorkspace, IServiceProvider serviceProvider)
         {
             _projectId = projectId;
             _codeModelInstanceFactory = codeModelInstanceFactory;
-            VisualStudioWorkspace = visualStudioWorkspace;
-            ServiceProvider = serviceProvider;
+            _visualStudioWorkspace = visualStudioWorkspace;
+            _serviceProvider = serviceProvider;
         }
-
-        protected VisualStudioWorkspaceImpl VisualStudioWorkspace { get; }
-        protected IServiceProvider ServiceProvider { get; }
 
         internal void OnProjectClosed()
         {
@@ -36,26 +38,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         private CodeModelProjectCache GetCodeModelCache()
         {
             Contract.ThrowIfNull(_projectId);
-            Contract.ThrowIfNull(VisualStudioWorkspace);
+            Contract.ThrowIfNull(_visualStudioWorkspace);
 
             using (_guard.DisposableWait())
             {
                 if (_codeModelCache == null)
                 {
-                    var workspaceProject = VisualStudioWorkspace.CurrentSolution.GetProject(_projectId);
-                    var hostProject = VisualStudioWorkspace.GetHostProject(_projectId);
+                    var workspaceProject = _visualStudioWorkspace.CurrentSolution.GetProject(_projectId);
+                    var hostProject = _visualStudioWorkspace.GetHostProject(_projectId);
                     if (workspaceProject == null && !hostProject.PushingChangesToWorkspace)
                     {
                         // if this project hasn't been pushed yet, push it now so that the user gets a useful experience here.
                         hostProject.StartPushingToWorkspaceAndNotifyOfOpenDocuments();
 
                         // re-check to see whether we now has the project in the workspace
-                        workspaceProject = VisualStudioWorkspace.CurrentSolution.GetProject(_projectId);
+                        workspaceProject = _visualStudioWorkspace.CurrentSolution.GetProject(_projectId);
                     }
 
                     if (workspaceProject != null)
                     {
-                        _codeModelCache = new CodeModelProjectCache(_projectId, _codeModelInstanceFactory, ServiceProvider, workspaceProject.LanguageServices, VisualStudioWorkspace);
+                        _codeModelCache = new CodeModelProjectCache(_projectId, _codeModelInstanceFactory, _serviceProvider, workspaceProject.LanguageServices, _visualStudioWorkspace);
                     }
                 }
 

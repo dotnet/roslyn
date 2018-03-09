@@ -7,11 +7,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     Partial Friend Class VisualBasicProjectShimWithServices
         Implements IProjectCodeModelProvider
 
-        Private _projectCodeModel As VisualBasicProjectCodeModel
+        Private _projectCodeModel As ProjectCodeModel
 
-        Public ReadOnly Property ProjectCodeModel As AbstractProjectCodeModel Implements IProjectCodeModelProvider.ProjectCodeModel
+        Public ReadOnly Property ProjectCodeModel As ProjectCodeModel Implements IProjectCodeModelProvider.ProjectCodeModel
             Get
-                LazyInitialization.EnsureInitialized(_projectCodeModel, Function() New VisualBasicProjectCodeModel(Me, DirectCast(Me.Workspace, VisualStudioWorkspaceImpl), ServiceProvider))
+                LazyInitialization.EnsureInitialized(_projectCodeModel, Function() New ProjectCodeModel(Me.Id, New VisualBasicCodeModelInstanceFactory(Me), DirectCast(Me.Workspace, VisualStudioWorkspaceImpl), ServiceProvider))
                 Return _projectCodeModel
             End Get
         End Property
