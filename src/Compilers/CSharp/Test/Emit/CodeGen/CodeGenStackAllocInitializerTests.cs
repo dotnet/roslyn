@@ -10,6 +10,59 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CodeGenStackAllocInitializerTests : CompilingTestBase
     {
         [Fact]
+        public void TestLambdaCapture()
+        {
+            var text = @"
+using System;
+public class C
+{
+    unsafe public static void Main() 
+    {
+        // captured by the lambda. 
+        byte x = 1;
+        byte* b = stackalloc byte[] {((Func<byte>)(() => x++))(), x};
+        Console.Write(b[1]);
+    }
+}
+";
+            CompileAndVerify(text,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_3),
+                options: TestOptions.UnsafeReleaseExe,
+                expectedOutput: "2",
+                verify: Verification.Fails).VerifyIL("C.Main",
+@"{
+  // Code size       55 (0x37)
+  .maxstack  4
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.1
+  IL_0008:  stfld      ""byte C.<>c__DisplayClass0_0.x""
+  IL_000d:  ldc.i4.2
+  IL_000e:  conv.u
+  IL_000f:  localloc
+  IL_0011:  dup
+  IL_0012:  ldloc.0
+  IL_0013:  ldftn      ""byte C.<>c__DisplayClass0_0.<Main>b__0()""
+  IL_0019:  newobj     ""System.Func<byte>..ctor(object, System.IntPtr)""
+  IL_001e:  callvirt   ""byte System.Func<byte>.Invoke()""
+  IL_0023:  stind.i1
+  IL_0024:  dup
+  IL_0025:  ldc.i4.1
+  IL_0026:  add
+  IL_0027:  ldloc.0
+  IL_0028:  ldfld      ""byte C.<>c__DisplayClass0_0.x""
+  IL_002d:  stind.i1
+  IL_002e:  ldc.i4.1
+  IL_002f:  add
+  IL_0030:  ldind.u1
+  IL_0031:  call       ""void System.Console.Write(int)""
+  IL_0036:  ret
+}");
+        }
+
+        [Fact]
         public void TestElementThrow()
         {
             var text = @"
