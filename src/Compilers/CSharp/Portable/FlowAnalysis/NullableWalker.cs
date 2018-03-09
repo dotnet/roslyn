@@ -1673,7 +1673,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var conversion = GenerateConversion(_conversions, sourceExpression, type, destinationType);
             if (!conversion.Exists)
             {
-                Debug.Assert(GenerateConversion(_conversions.WithNullability(false), sourceExpression, type, destinationType).Exists);
                 ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, sourceExpression.Syntax, GetTypeAsDiagnosticArgument(type), destinationType);
             }
 
