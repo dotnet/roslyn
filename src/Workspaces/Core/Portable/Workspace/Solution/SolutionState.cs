@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateOutputPath(outputFilePath));
+            return this.ForkProject(this.GetProjectState(projectId).UpdateOutputFilePath(outputFilePath));
         }
 
         /// <summary>
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis
 
             CheckContainsProject(projectId);
 
-            return this.ForkProject(this.GetProjectState(projectId).UpdateOutputRefPath(outputRefFilePath));
+            return this.ForkProject(this.GetProjectState(projectId).UpdateOutputRefFilePath(outputRefFilePath));
         }
 
         /// <summary>

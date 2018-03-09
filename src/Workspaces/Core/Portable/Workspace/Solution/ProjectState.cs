@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis
             return this.With(projectInfo: this.ProjectInfo.WithAssemblyName(assemblyName).WithVersion(this.Version.GetNewerVersion()));
         }
 
-        public ProjectState UpdateOutputPath(string outputFilePath)
+        public ProjectState UpdateOutputFilePath(string outputFilePath)
         {
             if (outputFilePath == this.OutputFilePath)
             {
@@ -414,14 +414,14 @@ namespace Microsoft.CodeAnalysis
             return this.With(projectInfo: this.ProjectInfo.WithOutputFilePath(outputFilePath).WithVersion(this.Version.GetNewerVersion()));
         }
 
-        public ProjectState UpdateOutputRefPath(string outputRefFilePath)
+        public ProjectState UpdateOutputRefFilePath(string outputRefFilePath)
         {
             if (outputRefFilePath == this.OutputRefFilePath)
             {
                 return this;
             }
 
-            return this.With(projectInfo: this.ProjectInfo.WithOutputFilePath(outputRefFilePath).WithVersion(this.Version.GetNewerVersion()));
+            return this.With(projectInfo: this.ProjectInfo.WithOutputRefFilePath(outputRefFilePath).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState UpdateCompilationOptions(CompilationOptions options)
