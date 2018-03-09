@@ -28,6 +28,7 @@ param (
     [switch]$sign = $false,
     [switch]$pack = $false,
     [switch]$binaryLog = $false,
+    [switch]$noAnalyzers = $false,
     [string]$signType = "",
 
     # Test options 
@@ -134,7 +135,12 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
     if ($parallel) {
         $args += " /m"
     }
-    
+
+    if ($noAnalyzers -or ($cibuild -and $testVsi)) {
+        # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
+        $args += " /p:UseRoslynAnalyzers=false"
+    }
+
     if ($binaryLog) {
         if ($logFileName -eq "") { 
             $logFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
@@ -190,7 +196,7 @@ function Make-BootstrapBuild() {
         Exec-Console "dotnet" "publish --no-restore src/Compilers/CSharp/csc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapCsc.binlog"
         Exec-Console "dotnet" "publish --no-restore src/Compilers/VisualBasic/vbc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapVbc.binlog"
         Exec-Console "dotnet" "publish --no-restore src/Compilers/Server/VBCSCompiler -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapVBCSCompiler.binlog"
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/Core/MSBuildTask -o `"$dir`" $bootstrapArgs -bl:$binariesDir/BootstrapMSBuildTask.binlog"
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/Core/MSBuildTask -o `"$dir`" --framework $bootstrapFramework $bootstrapArgs -bl:$binariesDir/BootstrapMSBuildTask.binlog"
         Stop-BuildProcesses
     }
     else {
@@ -240,6 +246,7 @@ function Build-Artifacts() {
 # finish building these before we can run signing.
 function Build-ExtraSignArtifacts() { 
 
+    Ensure-NuGet | Out-Null
     Push-Location (Join-Path $repoDir "src\Setup")
     try {
         # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
@@ -250,10 +257,9 @@ function Build-ExtraSignArtifacts() {
         Write-Host "Publishing VBCSCompiler"
         Run-MSBuild "..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
         Write-Host "Publishing MSBuildTask"
-        Run-MSBuild "..\Compilers\Core\MSBuildTask\MSBuildTask.csproj" "/p:TargetFramework=netstandard1.3 /t:PublishWithoutBuilding"
+        Run-MSBuild "..\Compilers\Core\MSBuildTask\MSBuildTask.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
 
-        $dest = @(
-            $configDir)
+        $dest = @($configDir)
         foreach ($dir in $dest) { 
             Copy-Item "PowerShell\*.ps1" $dir
         }
@@ -393,7 +399,7 @@ function Test-XUnitCoreClr() {
     $tf = "netcoreapp2.0"
     $logDir = Join-Path $unitDir "xUnitResults"
     Create-Directory $logDir 
-    $xunitConsole = Join-Path (Get-PackageDir "dotnet-xunit") "tools\$tf\xunit.console.dll"
+    $xunitConsole = Join-Path (Get-PackageDir "xunit.runner.console") "tools\$tf\xunit.console.dll"
 
     $dlls = @()
     $allGood = $true
@@ -469,7 +475,7 @@ function Test-XUnit() {
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*\\ref\\.*") }
     $dlls = $dlls | ?{ -not ($_.FullName -match ".*/ref/.*") }
 
-    if ($cibuild) {
+    if ($cibuild -or $official) {
         # Use a 50 minute timeout on CI
         $args += " -xml -timeout:50"
 
@@ -496,7 +502,7 @@ function Test-XUnit() {
 # Deploy our core VSIX libraries to Visual Studio via the Roslyn VSIX tool.  This is an alternative to 
 # deploying at build time.
 function Deploy-VsixViaTool() { 
-    $vsixDir = Get-PackageDir "roslyntools.microsoft.vsixexpinstaller"
+    $vsixDir = Get-PackageDir "RoslynTools.Microsoft.VSIXExpInstaller"
     $vsixExe = Join-Path $vsixDir "tools\VsixExpInstaller.exe"
     $both = Get-VisualStudioDirAndId
     $vsDir = $both[0].Trim("\")
@@ -588,6 +594,7 @@ function Ensure-ProcDump() {
 function Redirect-Temp() {
     $temp = Join-Path $binariesDir "Temp"
     Create-Directory $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\.editorconfig") $temp
     Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.props") $temp
     Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.targets") $temp
     ${env:TEMP} = $temp

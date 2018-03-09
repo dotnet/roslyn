@@ -2602,7 +2602,7 @@ End Class
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub CollectionInitSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Module Program
@@ -2624,7 +2624,7 @@ End Module
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub CollectionInitSyntax2()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Imports System.Collections.Generic
@@ -2647,7 +2647,7 @@ End Module
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub CollectionInitSyntax3()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Imports System.Collections.Generic
@@ -2670,7 +2670,7 @@ End Module
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub IfStatementSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Module Program
@@ -2695,7 +2695,7 @@ End Module
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub ElseStatementSyntax()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
    <compilation>
        <file name="a.vb">
 Module Program
@@ -4795,7 +4795,7 @@ End Module
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub XmlEmbeddedExpression()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
       <compilation>
           <file name="c.vb"><![CDATA[
 Option Strict On
@@ -4812,7 +4812,7 @@ Module M
     End Function
 End Module
     ]]></file>
-      </compilation>, additionalRefs:=XmlReferences)
+      </compilation>, references:=XmlReferences)
             Dim tree = compilation.SyntaxTrees.First()
             Dim model = compilation.GetSemanticModel(tree)
             Dim root = tree.GetCompilationUnitRoot()
@@ -4832,7 +4832,7 @@ End Module
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub XmlMemberAccess()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
       <compilation>
           <file name="c.vb"><![CDATA[
 Option Strict On
@@ -4844,7 +4844,7 @@ Module M
     End Function
 End Module
     ]]></file>
-      </compilation>, additionalRefs:=XmlReferences)
+      </compilation>, references:=XmlReferences)
             Dim tree = compilation.SyntaxTrees.First()
             Dim model = compilation.GetSemanticModel(tree)
             Dim root = tree.GetCompilationUnitRoot()
@@ -4878,7 +4878,7 @@ End Module
     ]]></file>
                 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlib(source)
+            Dim compilation = CreateCompilationWithMscorlib40(source)
             Dim tree = compilation.SyntaxTrees.First()
             Dim model = compilation.GetSemanticModel(tree)
             Dim root = tree.GetCompilationUnitRoot()
@@ -6247,25 +6247,25 @@ Public Class MyClass : Inherits BaseClass
 End Class
     </file>
 </compilation>
-            Dim comp = CreateCompilationWithMscorlib(source)
+            Dim comp = CreateCompilationWithMscorlib40(source)
             Dim tree = comp.SyntaxTrees.Single()
             Dim model = comp.GetSemanticModel(tree)
 
             Dim invocation = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax)().Single()
             Dim flowAnalysis = model.AnalyzeDataFlow(invocation)
             Assert.Empty(flowAnalysis.Captured)
-            Assert.Equal("[Me] As [MyClass]", flowAnalysis.DataFlowsIn.Single().ToTestDisplayString())
+            Assert.Equal("Me As [MyClass]", flowAnalysis.DataFlowsIn.Single().ToTestDisplayString())
             Assert.Empty(flowAnalysis.DataFlowsOut)
-            Assert.Equal("[Me] As [MyClass]", flowAnalysis.ReadInside.Single().ToTestDisplayString())
+            Assert.Equal("Me As [MyClass]", flowAnalysis.ReadInside.Single().ToTestDisplayString())
             Assert.Empty(flowAnalysis.WrittenInside)
-            Assert.Equal("[Me] As [MyClass]", flowAnalysis.WrittenOutside.Single().ToTestDisplayString())
+            Assert.Equal("Me As [MyClass]", flowAnalysis.WrittenOutside.Single().ToTestDisplayString())
 
             Dim lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType(Of LambdaExpressionSyntax)().Single()
             flowAnalysis = model.AnalyzeDataFlow(lambda)
-            Assert.Equal("[Me] As [MyClass]", flowAnalysis.Captured.Single().ToTestDisplayString())
-            Assert.Equal("[Me] As [MyClass]", flowAnalysis.DataFlowsIn.Single().ToTestDisplayString())
+            Assert.Equal("Me As [MyClass]", flowAnalysis.Captured.Single().ToTestDisplayString())
+            Assert.Equal("Me As [MyClass]", flowAnalysis.DataFlowsIn.Single().ToTestDisplayString())
             Assert.Empty(flowAnalysis.DataFlowsOut)
-            Assert.Equal("[Me] As [MyClass]", flowAnalysis.ReadInside.Single().ToTestDisplayString())
+            Assert.Equal("Me As [MyClass]", flowAnalysis.ReadInside.Single().ToTestDisplayString())
             Assert.Empty(flowAnalysis.WrittenInside)
             Assert.Equal("Me, f", GetSymbolNamesJoined(flowAnalysis.WrittenOutside))
         End Sub

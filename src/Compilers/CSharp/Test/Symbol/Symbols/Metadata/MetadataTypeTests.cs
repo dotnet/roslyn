@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataNamespaceSymbol01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilation(text, new[] { MscorlibRef });
+            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataTypeSymbolClass01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilation(text, new[] { MscorlibRef });
+            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataTypeSymbolGenClass02()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilation(text, new[] { MscorlibRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataTypeSymbolGenInterface01()
         {
             var text = "public class A {}";
-            var compilation = CreateStandardCompilation(text);
+            var compilation = CreateCompilation(text);
 
             var mscorlib = compilation.ExternalReferences[0];
             var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataTypeSymbolStruct01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilation(text,
+            var compilation = CreateEmptyCompilation(text,
                 new[] { MscorlibRef },
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataArrayTypeSymbol01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilation(text, new[] { MscorlibRef },
+            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef },
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             var mscorlib = compilation.ExternalReferences[0];
@@ -330,7 +330,7 @@ class Test : StaticModClass
         r";
 
             var tree = SyntaxFactory.ParseSyntaxTree(String.Empty);
-            var comp = CreateStandardCompilation(syntaxTree: tree, references: new[] { modRef });
+            var comp = CreateCompilation(source: tree, references: new[] { modRef });
 
             var currComp = comp;
 
@@ -484,7 +484,7 @@ class Test : StaticModClass
 } // end of class C
 ";
 
-            var comp = CreateCompilationWithCustomILSource("", ilSource);
+            var comp = CreateCompilationWithILAndMscorlib40("", ilSource);
 
             var stateMachineClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<NamedTypeSymbol>().Single();
             Assert.Equal("<I<System.Int32>.F>d__0", stateMachineClass.Name); // The name has been reconstructed correctly.
@@ -550,7 +550,7 @@ class Test : StaticModClass
     .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
   }
 }";
-            var comp = CreateCompilationWithCustomILSource("", ilSource);
+            var comp = CreateCompilationWithILAndMscorlib40("", ilSource);
             comp.VerifyDiagnostics();
             var builder = ArrayBuilder<string>.GetInstance();
             var module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;

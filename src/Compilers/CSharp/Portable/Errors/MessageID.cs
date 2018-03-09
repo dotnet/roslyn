@@ -143,12 +143,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRefStructs = MessageBase + 12726,
         IDS_FeatureReadOnlyStructs = MessageBase + 12727,
         IDS_FeatureRefExtensionMethods = MessageBase + 12728,
-        IDS_StackAllocExpression = MessageBase + 12729,
+        // IDS_StackAllocExpression = MessageBase + 12729,
         IDS_FeaturePrivateProtected = MessageBase + 12730,
 
         IDS_FeatureRefConditional = MessageBase + 12731,
         IDS_FeatureAttributesOnBackingFields = MessageBase + 12732,
-        IDS_FeatureStackAllocInitializer = MessageBase + 12733,
+        IDS_FeatureImprovedOverloadCandidates = MessageBase + 12733,
+        IDS_FeatureStackAllocInitializer = MessageBase + 12734,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -190,6 +191,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# 7.3 features.
                 case MessageID.IDS_FeatureAttributesOnBackingFields: // semantic check
+                case MessageID.IDS_FeatureImprovedOverloadCandidates: // semantic check
                 case MessageID.IDS_FeatureStackAllocInitializer:
                     return LanguageVersion.CSharp7_3;
 

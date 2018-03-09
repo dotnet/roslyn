@@ -8,6 +8,7 @@ Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
+Imports System.Security.Cryptography
 Imports System.Text
 Imports System.Text.RegularExpressions
 Imports System.Threading
@@ -30,11 +31,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         Inherits BasicTestBase
 
         Private ReadOnly _baseDirectory As String = TempRoot.Root
-        Private Shared ReadOnly s_basicCompilerExecutable As String = GetType(Vbc).Assembly.Location
+        Private Shared ReadOnly s_basicCompilerExecutable As String = Path.Combine(
+            Path.GetDirectoryName(GetType(CommandLineTests).Assembly.Location),
+            Path.Combine("dependency", "vbc.exe"))
         Private Shared ReadOnly s_defaultSdkDirectory As String = RuntimeEnvironment.GetRuntimeDirectory()
-        Private Shared ReadOnly s_compilerVersion As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
+        Private Shared ReadOnly s_compilerVersion As String = FileVersionInfo.GetVersionInfo(GetType(CommandLineTests).Assembly.Location).FileVersion
         Private Shared ReadOnly s_compilerShortCommitHash As String =
-            CommonCompiler.ExtractShortCommitHash(GetType(VisualBasicCompiler).GetTypeInfo().Assembly.GetCustomAttribute(Of CommitHashAttribute).Hash)
+            CommonCompiler.ExtractShortCommitHash(GetType(CommandLineTests).Assembly.GetCustomAttribute(Of CommitHashAttribute).Hash)
 
         Private Shared Function DefaultParse(args As IEnumerable(Of String), baseDirectory As String, Optional sdkDirectory As String = Nothing, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
             sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
@@ -120,7 +123,7 @@ End Module
             Assert.Equal("", output.ToString().Trim())
         End Sub
 
-        <Fact(Skip:= "https://github.com/dotnet/roslyn/pull/23529")>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/pull/23529")>
         Public Sub CreateCompilationWithKeyFile()
             Dim source = "
 Public Class C
@@ -600,7 +603,7 @@ a.vb
         Public Sub Win32ResourceArguments()
             Dim args As String() = {"/win32manifest:..\here\there\everywhere\nonexistent"}
             Dim parsedArgs = DefaultParse(args, _baseDirectory)
-            Dim compilation = CreateCompilationWithMscorlib(New VisualBasicSyntaxTree() {})
+            Dim compilation = CreateCompilationWithMscorlib40(New VisualBasicSyntaxTree() {})
             Dim errors As IEnumerable(Of DiagnosticInfo) = Nothing
             CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
@@ -643,7 +646,7 @@ a.vb
         Public Sub Win32IconContainsGarbage()
             Dim tmpFileName As String = Temp.CreateFile().WriteAllBytes(New Byte() {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}).Path
             Dim parsedArgs = DefaultParse({"/win32icon:" + tmpFileName}, _baseDirectory)
-            Dim compilation = CreateCompilationWithMscorlib(New VisualBasicSyntaxTree() {})
+            Dim compilation = CreateCompilationWithMscorlib40(New VisualBasicSyntaxTree() {})
             Dim errors As IEnumerable(Of DiagnosticInfo) = Nothing
             CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
@@ -1539,21 +1542,24 @@ End Module").Path
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("codepage", ":<number>"))
         End Sub
 
-        <Fact>
+        <Fact, WorkItem(24735, "https://github.com/dotnet/roslyn/issues/24735")>
         Public Sub ChecksumAlgorithm()
             Dim parsedArgs As VisualBasicCommandLineArguments
 
             parsedArgs = DefaultParse({"/checksumAlgorithm:sHa1", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
 
             parsedArgs = DefaultParse({"/checksumAlgorithm:sha256", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SourceHashAlgorithm.Sha256, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
 
             parsedArgs = DefaultParse({"a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
 
             ' error
             parsedArgs = DefaultParse({"/checksumAlgorithm:256", "a.cs"}, _baseDirectory)
@@ -3112,7 +3118,7 @@ End Module
                     Assert.True(File.Exists(pdbPath))
 
                     Using peStream = File.OpenRead(exePath)
-                        PdbValidation.ValidateDebugDirectory(peStream, Nothing, pePdbPath, isDeterministic)
+                        PdbValidation.ValidateDebugDirectory(peStream, Nothing, pePdbPath, hashAlgorithm:=Nothing, hasEmbeddedPdb:=False, isDeterministic)
                     End Using
                 End Sub
 
@@ -4590,12 +4596,12 @@ Dim b = Loc
             opt = opt.WithEmbedVbCoreRuntime(True)
             opt.Errors.Verify(Diagnostic(ERRID.ERR_VBCoreNetModuleConflict))
 
-            CreateCompilationWithMscorlibAndVBRuntime(<compilation><file/></compilation>, opt).GetDiagnostics().Verify(Diagnostic(ERRID.ERR_VBCoreNetModuleConflict))
+            CreateCompilationWithMscorlib40AndVBRuntime(<compilation><file/></compilation>, opt).GetDiagnostics().Verify(Diagnostic(ERRID.ERR_VBCoreNetModuleConflict))
 
             opt = opt.WithOutputKind(OutputKind.DynamicallyLinkedLibrary)
             opt.Errors.Verify()
 
-            CreateCompilationWithMscorlibAndVBRuntime(<compilation><file/></compilation>, opt).GetDiagnostics().Verify()
+            CreateCompilationWithMscorlib40AndVBRuntime(<compilation><file/></compilation>, opt).GetDiagnostics().Verify()
         End Sub
 
         <Fact()>
@@ -8499,7 +8505,7 @@ End Class")
 
             MetadataReaderUtils.VerifyPEMetadata(exe,
                 {"TypeDefinition:<Module>", "TypeDefinition:C"},
-                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()", "MethodDefinition:Void PrivateMethod()"},
+                {"MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()", "MethodDefinition:Void C.PrivateMethod()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}
                 )
 
@@ -8536,7 +8542,7 @@ a
             ' See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
                 {"TypeDefinition:<Module>", "TypeDefinition:C"},
-                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()"},
+                {"MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute", "ReferenceAssemblyAttribute"}
                 )
 
@@ -8619,7 +8625,7 @@ End Class")
             ' See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
                 {"TypeDefinition:<Module>", "TypeDefinition:C", "TypeDefinition:S"},
-                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()"},
+                {"MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute", "ReferenceAssemblyAttribute"}
                 )
 
@@ -8805,7 +8811,7 @@ End Module
         <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub MissingCompilerAssembly()
             Dim dir = Temp.CreateDirectory()
-            Dim vbcPath = dir.CopyFile(GetType(Vbc).Assembly.Location).Path
+            Dim vbcPath = dir.CopyFile(s_basicCompilerExecutable).Path
             dir.CopyFile(GetType(Compilation).Assembly.Location)
 
             ' Missing Microsoft.CodeAnalysis.VisualBasic.dll.
@@ -8854,9 +8860,8 @@ End Module
             Dim workingDir = Temp.CreateDirectory()
             workingDir.CreateFile("a.vb")
 
-            Dim vbc = New Vbc(Nothing, New BuildPaths("", workingDir.Path, Nothing, tempDir.Path),
-                              {"/features:UseLegacyStrongNameProvider", "/nostdlib", "a.vb"},
-                              analyzerLoader:=Nothing)
+            Dim vbc = New MockVisualBasicCompiler(Nothing, New BuildPaths("", workingDir.Path, Nothing, tempDir.Path),
+                              {"/features:UseLegacyStrongNameProvider", "/nostdlib", "a.vb"})
             Dim comp = vbc.CreateCompilation(New StringWriter(), New TouchedFileLogger(), errorLogger:=Nothing)
             Dim desktopProvider = Assert.IsType(Of DesktopStrongNameProvider)(comp.Options.StrongNameProvider)
             Using inputStream = Assert.IsType(Of DesktopStrongNameProvider.TempFileStream)(desktopProvider.CreateInputStream())

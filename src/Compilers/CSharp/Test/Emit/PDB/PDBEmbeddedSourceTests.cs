@@ -34,7 +34,7 @@ class C
 
             var tree1 = Parse(source1, "f:/build/goo.cs");
             var tree2 = Parse(source2, "f:/build/nocode.cs");
-            var c = CreateStandardCompilation(new[] { tree1, tree2 }, options: TestOptions.DebugDll);
+            var c = CreateCompilation(new[] { tree1, tree2 }, options: TestOptions.DebugDll);
             var embeddedTexts = new[] 
             {
                 EmbeddedText.FromSource(tree1.FilePath, tree1.GetText()),
@@ -94,7 +94,7 @@ class C
 }
 ";
             var tree = Parse(source, "f:/build/goo.cs");
-            var c = CreateStandardCompilation(tree, options: TestOptions.DebugDll);
+            var c = CreateCompilation(tree, options: TestOptions.DebugDll);
 
             var pdbStream = new MemoryStream();
             var peBlob = c.EmitToArray(

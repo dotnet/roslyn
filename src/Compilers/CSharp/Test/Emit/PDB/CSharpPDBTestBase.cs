@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             string source;
             MarkupTestFile.GetPositionAndSpan(markup, out source, out position, out expectedSpan);
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source, options: compilationOptions, parseOptions: parseOptions);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: compilationOptions, parseOptions: parseOptions);
             compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
 
             var pdb = PdbValidation.GetPdbXml(compilation, qualifiedMethodName: methodName);

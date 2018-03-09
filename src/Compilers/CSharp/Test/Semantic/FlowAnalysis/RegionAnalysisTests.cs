@@ -2454,7 +2454,7 @@ class C {
         [Fact]
         public void NullArgsToAnalyzeControlFlowStatements()
         {
-            var compilation = CreateStandardCompilation(@"
+            var compilation = CreateCompilation(@"
 class C
 {
     static void Main()
@@ -3780,7 +3780,7 @@ public class A
         public void BlockSyntaxInAttributeDecl()
         {
             {
-                var compilation = CreateStandardCompilation(@"
+                var compilation = CreateCompilation(@"
 [Attribute(delegate.Class)] 
 public class C {
   public static int Main () {
@@ -3976,6 +3976,26 @@ class C {
     }
 }");
             Assert.Equal(1, analysis.ExitPoints.Count());
+        }
+
+        [Fact]
+        public void TestMultipleLambdaExpressions()
+        {
+            var analysis = CompileAndAnalyzeDataFlowExpression(@"
+class C
+{
+    void M()
+    {
+        int i;
+        N(/*<bind>*/() => { M(); }/*</bind>*/, () => { i++; });
+    }
+    void N(System.Action x, System.Action y) { }
+}");
+
+            Assert.True(analysis.Succeeded);
+            Assert.Equal("this, i", GetSymbolNamesJoined(analysis.Captured));
+            Assert.Equal("this", GetSymbolNamesJoined(analysis.CapturedInside));
+            Assert.Equal("i", GetSymbolNamesJoined(analysis.CapturedOutside));
         }
 
         [Fact]
@@ -4951,7 +4971,7 @@ public class MyClass : BaseClass
     {
     }
 }";
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tree = comp.SyntaxTrees.Single();
             var model = comp.GetSemanticModel(tree);
 
@@ -4960,18 +4980,18 @@ public class MyClass : BaseClass
             Assert.Empty(flowAnalysis.Captured);
             Assert.Empty(flowAnalysis.CapturedInside);
             Assert.Empty(flowAnalysis.CapturedOutside);
-            Assert.Equal("MyClass @this", flowAnalysis.DataFlowsIn.Single().ToTestDisplayString());
+            Assert.Equal("MyClass this", flowAnalysis.DataFlowsIn.Single().ToTestDisplayString());
             Assert.Empty(flowAnalysis.DataFlowsOut);
-            Assert.Equal("MyClass @this", flowAnalysis.ReadInside.Single().ToTestDisplayString());
+            Assert.Equal("MyClass this", flowAnalysis.ReadInside.Single().ToTestDisplayString());
             Assert.Empty(flowAnalysis.WrittenInside);
-            Assert.Equal("MyClass @this", flowAnalysis.WrittenOutside.Single().ToTestDisplayString());
+            Assert.Equal("MyClass this", flowAnalysis.WrittenOutside.Single().ToTestDisplayString());
 
             var lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().Single();
             flowAnalysis = model.AnalyzeDataFlow(lambda);
-            Assert.Equal("MyClass @this", flowAnalysis.Captured.Single().ToTestDisplayString());
-            Assert.Equal("MyClass @this", flowAnalysis.DataFlowsIn.Single().ToTestDisplayString());
+            Assert.Equal("MyClass this", flowAnalysis.Captured.Single().ToTestDisplayString());
+            Assert.Equal("MyClass this", flowAnalysis.DataFlowsIn.Single().ToTestDisplayString());
             Assert.Empty(flowAnalysis.DataFlowsOut);
-            Assert.Equal("MyClass @this", flowAnalysis.ReadInside.Single().ToTestDisplayString());
+            Assert.Equal("MyClass this", flowAnalysis.ReadInside.Single().ToTestDisplayString());
             Assert.Empty(flowAnalysis.WrittenInside);
             Assert.Equal("this, f", GetSymbolNamesJoined(flowAnalysis.WrittenOutside));
         }
@@ -5047,7 +5067,7 @@ class C
         S<object> o;
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateEmptyCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
@@ -5084,7 +5104,7 @@ class Program
         Expression<Func<int>> f3 = () => switch (args[0]) {};
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateEmptyCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
@@ -5111,7 +5131,7 @@ class Program
         }
     }
 }";
-            var compilation = CreateCompilation(source);
+            var compilation = CreateEmptyCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
@@ -5149,7 +5169,7 @@ public class ExportedSymbol
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            var compilation = CreateEmptyCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var statement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BlockSyntax>().FirstOrDefault();
@@ -5177,7 +5197,7 @@ public class ExportedSymbol
     }
     static object P { get; set; }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetCompilationUnitRoot();
@@ -5199,7 +5219,7 @@ public class ExportedSymbol
         this.value = null;
     }
 }";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,18): error CS0170: Use of possibly unassigned field 'value'
                 //         S.Equals(value , value);
@@ -5748,6 +5768,50 @@ class C
             Assert.Equal(null, GetSymbolNamesJoined(analysis.WrittenInside));
             Assert.Equal("this, x", GetSymbolNamesJoined(analysis.ReadOutside));
             Assert.Equal("this, x, a, y", GetSymbolNamesJoined(analysis.WrittenOutside));
+        }
+
+        [Fact, WorkItem(25043, "https://github.com/dotnet/roslyn/issues/25043")]
+        public void FallThroughInSwitch_01()
+        {
+            var analysis = CompileAndAnalyzeControlFlowStatements(@"
+class C
+{
+    void M()
+    {
+/*<bind>*/
+        switch (true)
+        {
+            case true:
+                void f()
+                {
+                }
+        }
+/*</bind>*/
+    }
+}");
+            Assert.Equal(0, analysis.EntryPoints.Count());
+        }
+
+        [Fact, WorkItem(25043, "https://github.com/dotnet/roslyn/issues/25043")]
+        public void FallThroughInSwitch_02()
+        {
+            var analysis = CompileAndAnalyzeControlFlowStatements(@"
+class C
+{
+    void M()
+    {
+/*<bind>*/
+        switch (true)
+        {
+            case true when true:
+                void f()
+                {
+                }
+        }
+/*</bind>*/
+    }
+}");
+            Assert.Equal(0, analysis.EntryPoints.Count());
         }
 
         #endregion

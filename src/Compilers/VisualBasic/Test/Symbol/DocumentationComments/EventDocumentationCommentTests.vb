@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Private ReadOnly _widgetClass As NamedTypeSymbol
 
         Public Sub New()
-            _compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            _compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="FieldDocumentationCommentTests">
     <file name="a.vb"><![CDATA[
 Namespace Acme

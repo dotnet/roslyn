@@ -187,7 +187,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' <summary>
         '''  True if this type is considered serializable (metadata flag Serializable is set).
         ''' </summary>
-        Friend MustOverride ReadOnly Property IsSerializable As Boolean
+        Public MustOverride ReadOnly Property IsSerializable As Boolean Implements INamedTypeSymbol.IsSerializable
 
         ''' <summary>
         ''' Type layout information (ClassLayout metadata and layout kind flags).

@@ -275,46 +275,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableInterlocked.InterlockedInitialize(ref customAttributes, loadedCustomAttributes);
         }
 
+        internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(EntityHandle token,
+            out CustomAttributeHandle filteredOutAttribute1,
+            AttributeDescription filterOut1)
+        {
+            return GetCustomAttributesForToken(token, out filteredOutAttribute1, filterOut1, out _, default, out _, default, out _, default);
+        }
+
         /// <summary>
-        /// Returns a possibly ExtensionAttribute filtered roArray of attributes. If
-        /// filterExtensionAttributes is set to true, the method will remove all ExtensionAttributes
-        /// from the returned array. If it is false, the parameter foundExtension will always be set to
-        /// false and can be safely ignored.
-        /// 
-        /// The paramArrayAttribute parameter is similar to the foundExtension parameter, but instead
-        /// of just indicating if the attribute was found, the parameter is set to the attribute handle
-        /// for the ParamArrayAttribute if any is found and is null otherwise. This allows NoPia to filter
-        /// the attribute out for the symbol but still cache it separately for emit.
+        /// Returns attributes with up-to four filters applied. For each filter, the last application of the
+        /// attribute will be tracked and returned.
         /// </summary>
         internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(EntityHandle token,
             out CustomAttributeHandle filteredOutAttribute1,
             AttributeDescription filterOut1,
             out CustomAttributeHandle filteredOutAttribute2,
-            AttributeDescription filterOut2)
+            AttributeDescription filterOut2,
+            out CustomAttributeHandle filteredOutAttribute3,
+            AttributeDescription filterOut3,
+            out CustomAttributeHandle filteredOutAttribute4,
+            AttributeDescription filterOut4)
         {
-            filteredOutAttribute1 = default(CustomAttributeHandle);
-            filteredOutAttribute2 = default(CustomAttributeHandle);
+            filteredOutAttribute1 = default;
+            filteredOutAttribute2 = default;
+            filteredOutAttribute3 = default;
+            filteredOutAttribute4 = default;
             ArrayBuilder<CSharpAttributeData> customAttributesBuilder = null;
 
             try
             {
                 foreach (var customAttributeHandle in _module.GetCustomAttributesOrThrow(token))
                 {
-                    if (filterOut1.Signatures != null &&
-                        Module.GetTargetAttributeSignatureIndex(customAttributeHandle, filterOut1) != -1)
+                    // It is important to capture the last application of the attribute that we run into,
+                    // it makes a difference for default and constant values.
+
+                    if (matchesFilter(customAttributeHandle, filterOut1))
                     {
-                        // It is important to capture the last application of the attribute that we run into,
-                        // it makes a difference for default and constant values.
                         filteredOutAttribute1 = customAttributeHandle;
                         continue;
                     }
 
-                    if (filterOut2.Signatures != null &&
-                        Module.GetTargetAttributeSignatureIndex(customAttributeHandle, filterOut2) != -1)
+                    if (matchesFilter(customAttributeHandle, filterOut2))
                     {
-                        // It is important to capture the last application of the attribute that we run into,
-                        // it makes a difference for default and constant values.
                         filteredOutAttribute2 = customAttributeHandle;
+                        continue;
+                    }
+
+                    if (matchesFilter(customAttributeHandle, filterOut3))
+                    {
+                        filteredOutAttribute3 = customAttributeHandle;
+                        continue;
+                    }
+
+                    if (matchesFilter(customAttributeHandle, filterOut4))
+                    {
+                        filteredOutAttribute4 = customAttributeHandle;
                         continue;
                     }
 
@@ -335,18 +350,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             return ImmutableArray<CSharpAttributeData>.Empty;
+
+            bool matchesFilter(CustomAttributeHandle handle, AttributeDescription filter)
+                => filter.Signatures != null && Module.GetTargetAttributeSignatureIndex(handle, filter) != -1;
         }
 
         internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(EntityHandle token)
         {
             // Do not filter anything and therefore ignore the out results
-            CustomAttributeHandle ignore1;
-            CustomAttributeHandle ignore2;
-            return GetCustomAttributesForToken(token,
-                out ignore1,
-                default(AttributeDescription),
-                out ignore2,
-                default(AttributeDescription));
+            return GetCustomAttributesForToken(token, out _, default);
         }
 
         /// <summary>
@@ -358,13 +370,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal ImmutableArray<CSharpAttributeData> GetCustomAttributesForToken(EntityHandle token,
             out CustomAttributeHandle paramArrayAttribute)
         {
-            CustomAttributeHandle ignore;
-            return GetCustomAttributesForToken(
-                token,
-                out paramArrayAttribute,
-                AttributeDescription.ParamArrayAttribute,
-                out ignore,
-                default(AttributeDescription));
+            return GetCustomAttributesForToken(token, out paramArrayAttribute, AttributeDescription.ParamArrayAttribute);
         }
 
 
@@ -403,12 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal ImmutableArray<CSharpAttributeData> GetCustomAttributesFilterExtensions(EntityHandle token, out bool foundExtension)
         {
             CustomAttributeHandle extensionAttribute;
-            CustomAttributeHandle ignore;
-            var result = GetCustomAttributesForToken(token,
-                out extensionAttribute,
-                AttributeDescription.CaseSensitiveExtensionAttribute,
-                out ignore,
-                default(AttributeDescription));
+            var result = GetCustomAttributesForToken(token, out extensionAttribute, AttributeDescription.CaseSensitiveExtensionAttribute);
 
             foundExtension = !extensionAttribute.IsNil;
             return result;
