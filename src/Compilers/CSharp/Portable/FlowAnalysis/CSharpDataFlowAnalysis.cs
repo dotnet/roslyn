@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -33,6 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private ImmutableArray<ISymbol> _captured;
         private ImmutableArray<ISymbol> _unsafeAddressTaken;
         private HashSet<PrefixUnaryExpressionSyntax> _unassignedVariableAddressOfSyntaxes;
+        private TypeSymbolWithAnnotations _typeAndNullability;
         private bool? _succeeded;
 
         internal CSharpDataFlowAnalysis(RegionAnalysisContext context)
@@ -293,6 +295,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return _succeeded.Value;
+            }
+        }
+
+        internal TypeSymbolWithAnnotations TypeAndNullability
+        {
+            get
+            {
+                if (_typeAndNullability is null)
+                {
+                    var diagnostics = DiagnosticBag.GetInstance();
+                    TypeSymbolWithAnnotations typeAndNullability = null;
+                    NullableWalker.Analyze(
+                        _context.Compilation,
+                        (MethodSymbol)_context.Member,
+                        _context.BoundNode,
+                        diagnostics,
+                        (expr, exprType) =>
+                        {
+                            if (expr == _context.FirstInRegion)
+                            {
+                                typeAndNullability = exprType;
+                            }
+                        });
+                    diagnostics.Free();
+                    Interlocked.CompareExchange(ref _typeAndNullability, typeAndNullability, null);
+                }
+                return _typeAndNullability;
             }
         }
 

@@ -447,12 +447,12 @@ class C
 {
     static void F(bool b, A<object> x, B1 y)
     {
-        (b ? x : y).F.ToString();
+        (b ? x : y /*T:A<System.Object!>!*/).F.ToString();
         (b ? y : x).P.ToString();
     }
     static void G(bool b, A<object?> x, B2 y)
     {
-        (b ? x : y).F.ToString();
+        (b ? x : y /*T:A<System.Object?>!*/).F.ToString();
         (b ? y : x).P.ToString();
     }
 }";

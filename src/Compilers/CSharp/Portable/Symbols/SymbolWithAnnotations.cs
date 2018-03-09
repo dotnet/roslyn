@@ -682,12 +682,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override string GetDebuggerDisplay()
             {
-                var str = _typeSymbol.GetDebuggerDisplay();
-                if (IsNullable == false)
+                var str = _typeSymbol.ToDisplayString(TypeSymbol.DebuggerDisplayFormat);
+                string suffix;
+                switch (IsNullable)
                 {
-                    str += "!";
+                    case true:
+                        suffix = "?";
+                        break;
+                    case false:
+                        suffix = "!";
+                        break;
+                    default:
+                        suffix = "";
+                        break;
                 }
-                return str;
+                return str + suffix;
             }
         }
 
