@@ -67,10 +67,9 @@ namespace Microsoft.VisualStudio.LanguageServices
                 throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
             }
 
-            if (project is IProjectCodeModelProvider provider)
+            if (project.ProjectCodeModel != null)
             {
-                var projectCodeModel = provider.ProjectCodeModel;
-                return projectCodeModel.GetOrCreateFileCodeModel(document.FilePath);
+                return project.ProjectCodeModel.GetOrCreateFileCodeModel(document.FilePath);
             }
 
             return null;
@@ -95,13 +94,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return false;
             }
 
-            var codeModelProvider = project as IProjectCodeModelProvider;
-            if (codeModelProvider == null)
-            {
-                return false;
-            }
-
-            codeModelProvider.ProjectCodeModel.OnSourceFileRenaming(document.FilePath, newFilePath);
+            project.ProjectCodeModel?.OnSourceFileRenaming(document.FilePath, newFilePath);
 
             return true;
         }

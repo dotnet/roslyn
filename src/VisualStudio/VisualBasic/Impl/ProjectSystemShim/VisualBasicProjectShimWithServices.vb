@@ -1,6 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.Interop
@@ -27,6 +28,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                        visualStudioWorkspaceOpt,
                        hostDiagnosticUpdateSourceOpt,
                        commandLineParserServiceOpt)
+
+            ProjectCodeModel = New ProjectCodeModel(Me.Id, New VisualBasicCodeModelInstanceFactory(Me), DirectCast(Me.Workspace, VisualStudioWorkspaceImpl), ServiceProvider)
         End Sub
 
         ' For unit testing

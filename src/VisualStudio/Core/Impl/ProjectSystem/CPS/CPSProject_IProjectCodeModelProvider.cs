@@ -7,31 +7,8 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Exten
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.CPS
 {
-    internal sealed partial class CPSProject : IProjectCodeModelProvider
+    internal sealed partial class CPSProject
     {
-        private IProjectCodeModel _projectCodeModel;
-
-        public IProjectCodeModel ProjectCodeModel
-        {
-            get
-            {
-                if (_projectCodeModel == null && this.Workspace != null)
-                {
-                    Interlocked.CompareExchange(ref _projectCodeModel, new ProjectCodeModel(this.Id, new CPSCodeModelInstanceFactory(this), (VisualStudioWorkspaceImpl)this.Workspace, ServiceProvider), null);
-                }
-
-                return _projectCodeModel;
-            }
-        }
-
-        protected override void OnDocumentRemoved(string filePath)
-        {
-            base.OnDocumentRemoved(filePath);
-
-            // We may have a code model floating around for it
-            _projectCodeModel?.OnSourceFileRemoved(filePath);
-        }
-
         public EnvDTE.CodeModel GetCodeModel(EnvDTE.Project parent)
         {
             return ProjectCodeModel.GetOrCreateRootCodeModel(parent);

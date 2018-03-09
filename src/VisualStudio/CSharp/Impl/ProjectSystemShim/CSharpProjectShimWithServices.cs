@@ -15,7 +15,7 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 {
-    internal partial class CSharpProjectShimWithServices : CSharpProjectShim, IProjectCodeModelProvider
+    internal partial class CSharpProjectShimWithServices : CSharpProjectShim
     {
         public CSharpProjectShimWithServices(
             ICSharpProjectRoot projectRoot,
@@ -38,6 +38,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                   hostDiagnosticUpdateSourceOpt,
                   commandLineParserServiceOpt)
         {
+            ProjectCodeModel = new ProjectCodeModel(this.Id, this, (VisualStudioWorkspaceImpl)this.Workspace, ServiceProvider);
         }
 
         protected override bool CanUseTextBuffer(ITextBuffer textBuffer)

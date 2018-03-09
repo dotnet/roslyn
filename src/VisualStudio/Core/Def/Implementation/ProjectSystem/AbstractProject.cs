@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
@@ -232,6 +233,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public VersionStamp Version { get; }
 
         public IMetadataService MetadataService { get; }
+
+        public IProjectCodeModel ProjectCodeModel { get; protected set; }
 
         /// <summary>
         /// The containing directory of the project. Null if none exists (consider Venus.)
@@ -1098,7 +1101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 UninitializeDocument(document);
-                OnDocumentRemoved(document.Key.Moniker);
+                ProjectCodeModel?.OnSourceFileRemoved(document.Key.Moniker);
             }
         }
 
@@ -1158,6 +1161,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
 
                     ChangedReferencesPendingUpdate.Clear();
+
+                    ProjectCodeModel?.OnProjectClosed();
 
                     var wasPushing = PushingChangesToWorkspace;
 
@@ -1349,10 +1354,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             document.UpdatedOnDisk -= s_additionalDocumentUpdatedOnDiskEventHandler;
 
             document.Dispose();
-        }
-
-        protected virtual void OnDocumentRemoved(string filePath)
-        {
         }
 
         internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments()

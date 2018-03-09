@@ -190,9 +190,26 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         End Sub
 
 #End Region
+        Public Function CreateCodeModel(pProject As EnvDTE.Project, pProjectItem As EnvDTE.ProjectItem, ByRef ppCodeModel As EnvDTE.CodeModel) As Integer Implements IVbCompilerProject.CreateCodeModel
+            ppCodeModel = ProjectCodeModel.GetOrCreateRootCodeModel(pProject)
 
-        Public MustOverride Function CreateCodeModel(pProject As EnvDTE.Project, pProjectItem As EnvDTE.ProjectItem, ByRef ppCodeModel As EnvDTE.CodeModel) As Integer Implements IVbCompilerProject.CreateCodeModel
-        Public MustOverride Function CreateFileCodeModel(pProject As EnvDTE.Project, pProjectItem As EnvDTE.ProjectItem, ByRef ppFileCodeModel As EnvDTE.FileCodeModel) As Integer Implements IVbCompilerProject.CreateFileCodeModel
+            Return VSConstants.S_OK
+        End Function
+
+        Public Function CreateFileCodeModel(pProject As EnvDTE.Project, pProjectItem As EnvDTE.ProjectItem, ByRef ppFileCodeModel As EnvDTE.FileCodeModel) As Integer Implements IVbCompilerProject.CreateFileCodeModel
+            ppFileCodeModel = Nothing
+
+            If pProjectItem IsNot Nothing Then
+                Dim fileName = pProjectItem.FileNames(1)
+
+                If Not String.IsNullOrWhiteSpace(fileName) Then
+                    ppFileCodeModel = ProjectCodeModel.GetOrCreateFileCodeModel(fileName, pProjectItem)
+                    Return VSConstants.S_OK
+                End If
+            End If
+
+            Return VSConstants.E_INVALIDARG
+        End Function
 
         Public Sub DeleteAllImports() Implements IVbCompilerProject.DeleteAllImports
             Try
