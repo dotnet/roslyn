@@ -251,70 +251,6 @@ unsafe class Test
         }
 
         [Fact]
-        public void BestTypeNumeric_Pointer()
-        {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
-unsafe class Test
-{
-    public void Method1()
-    {
-        var obj1 = stackalloc[] { 1, 1.2 };
-    }
-}", TestOptions.UnsafeReleaseDll);
-
-            comp.VerifyDiagnostics(
-                );
-
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-
-            var variables = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
-            Assert.Equal(1, variables.Count());
-
-            var obj1 = variables.ElementAt(0);
-            Assert.Equal("obj1", obj1.Identifier.Text);
-
-            var obj1Value = model.GetSemanticInfoSummary(obj1.Initializer.Value);
-            Assert.Equal(SpecialType.System_Double, ((PointerTypeSymbol)obj1Value.Type).PointedAtType.SpecialType);
-            Assert.Equal(SpecialType.System_Double, ((PointerTypeSymbol)obj1Value.ConvertedType).PointedAtType.SpecialType);
-            Assert.Equal(ConversionKind.Identity, obj1Value.ImplicitConversion.Kind);
-            var declared = model.GetDeclaredSymbol(obj1.Initializer.Value);
-            Assert.Null(declared);
-        }
-
-        [Fact]
-        public void BestTypeNumeric_Span()
-        {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
-unsafe class Test
-{
-    public void Method1(bool c)
-    {
-        var obj1 = c ? default : stackalloc[] { 1, 1.2 };
-    }
-}", TestOptions.UnsafeReleaseDll);
-
-            comp.VerifyDiagnostics(
-                );
-
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-
-            var variables = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
-            Assert.Equal(1, variables.Count());
-
-            var obj1 = variables.ElementAt(0);
-            Assert.Equal("obj1", obj1.Identifier.Text);
-
-            var obj1Value = model.GetSemanticInfoSummary(obj1.Initializer.Value);
-            Assert.Equal(SpecialType.System_Double, ((NamedTypeSymbol)obj1Value.Type).TypeArgumentsNoUseSiteDiagnostics[0].SpecialType);
-            Assert.Equal(SpecialType.System_Double, ((NamedTypeSymbol)obj1Value.ConvertedType).TypeArgumentsNoUseSiteDiagnostics[0].SpecialType);
-            Assert.Equal(ConversionKind.Identity, obj1Value.ImplicitConversion.Kind);
-            var declared = model.GetDeclaredSymbol(obj1.Initializer.Value);
-            Assert.Null(declared);
-        }
-
-        [Fact]
         public void BadBestType_Pointer()
         {
             var comp = CreateCompilationWithMscorlibAndSpan(@"
@@ -2013,6 +1949,148 @@ unsafe class C
                 //                     int* err63 = stackalloc     [ ] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc     [ ] { 1, 2, 3 }").WithLocation(96, 34)
                 );
+        }
+
+        [Fact]
+        public void StackAllocArrayCreationExpression_Symbols()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+unsafe class Test
+{
+    public void Method1()
+    {
+        var obj1 = stackalloc double[2] { 1, 1.2 };
+        Span<double> obj2 = stackalloc double[2] { 1, 1.2 };
+    }
+}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var expressions = tree.GetCompilationUnitRoot().DescendantNodes().OfType<StackAllocArrayCreationExpressionSyntax>().ToArray();
+            Assert.Equal(2, expressions.Length);
+
+            var @stackalloc = expressions[0];
+            var stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("System.Double*", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Double*", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            var element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Null(element0Info.Symbol);
+            Assert.Equal("System.Int32", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("System.Double", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitNumeric, element0Info.ImplicitConversion);
+
+            var element1Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[1]);
+            Assert.Null(element1Info.Symbol);
+            Assert.Equal("System.Double", element1Info.Type.ToTestDisplayString());
+            Assert.Equal("System.Double", element1Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element1Info.ImplicitConversion);
+
+            var sizeInfo = model.GetSemanticInfoSummary(((ArrayTypeSyntax)@stackalloc.Type).RankSpecifiers[0].Sizes[0]);
+            Assert.Null(sizeInfo.Symbol);
+            Assert.Equal("System.Int32", sizeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", sizeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, sizeInfo.ImplicitConversion);
+
+            Assert.Null(model.GetDeclaredSymbol(@stackalloc));
+
+            @stackalloc = expressions[1];
+            stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("System.Span<System.Double>", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Span<System.Double>", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Null(element0Info.Symbol);
+            Assert.Equal("System.Int32", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("System.Double", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitNumeric, element0Info.ImplicitConversion);
+
+            element1Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[1]);
+            Assert.Null(element1Info.Symbol);
+            Assert.Equal("System.Double", element1Info.Type.ToTestDisplayString());
+            Assert.Equal("System.Double", element1Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element1Info.ImplicitConversion);
+
+            sizeInfo = model.GetSemanticInfoSummary(((ArrayTypeSyntax)@stackalloc.Type).RankSpecifiers[0].Sizes[0]);
+            Assert.Null(sizeInfo.Symbol);
+            Assert.Equal("System.Int32", sizeInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Int32", sizeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, sizeInfo.ImplicitConversion);
+
+            Assert.Null(model.GetDeclaredSymbol(@stackalloc));
+        }
+
+        [Fact]
+        public void ImplicitStackAllocArrayCreationExpression_Symbols()
+        {
+            var comp = CreateCompilationWithMscorlibAndSpan(@"
+using System;
+unsafe class Test
+{
+    public void Method1()
+    {
+        var obj1 = stackalloc[] { 1, 1.2 };
+        Span<double> obj2 = stackalloc[] { 1, 1.2 };
+    }
+}", TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree);
+
+            var expressions = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ImplicitStackAllocArrayCreationExpressionSyntax>().ToArray();
+            Assert.Equal(2, expressions.Length);
+
+            var @stackalloc = expressions[0];
+            var stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("System.Double*", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Double*", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            var element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Null(element0Info.Symbol);
+            Assert.Equal("System.Int32", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("System.Double", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitNumeric, element0Info.ImplicitConversion);
+
+            var element1Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[1]);
+            Assert.Null(element1Info.Symbol);
+            Assert.Equal("System.Double", element1Info.Type.ToTestDisplayString());
+            Assert.Equal("System.Double", element1Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element1Info.ImplicitConversion);
+
+            Assert.Null(model.GetDeclaredSymbol(@stackalloc));
+
+            @stackalloc = expressions[1];
+            stackallocInfo = model.GetSemanticInfoSummary(@stackalloc);
+
+            Assert.Null(stackallocInfo.Symbol);
+            Assert.Equal("System.Span<System.Double>", stackallocInfo.Type.ToTestDisplayString());
+            Assert.Equal("System.Span<System.Double>", stackallocInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, stackallocInfo.ImplicitConversion);
+
+            element0Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[0]);
+            Assert.Null(element0Info.Symbol);
+            Assert.Equal("System.Int32", element0Info.Type.ToTestDisplayString());
+            Assert.Equal("System.Double", element0Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitNumeric, element0Info.ImplicitConversion);
+
+            element1Info = model.GetSemanticInfoSummary(@stackalloc.Initializer.Expressions[1]);
+            Assert.Null(element1Info.Symbol);
+            Assert.Equal("System.Double", element1Info.Type.ToTestDisplayString());
+            Assert.Equal("System.Double", element1Info.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, element1Info.ImplicitConversion);
+
+            Assert.Null(model.GetDeclaredSymbol(@stackalloc));
         }
     }
 }
