@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             SnapshotSpan applicableSpan,
             CancellationToken token)
         {
-            var snapshot = applicableSpan.Snapshot;
+            var snapshot = triggerLocation.Snapshot;
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
