@@ -1921,7 +1921,7 @@ namespace Microsoft.CodeAnalysis.Operations
             AppendNewBlock(new BasicBlock(BasicBlockKind.Block), linkToPrevious: false);
             Debug.Assert(current.InternalNext.Value == null);
             Debug.Assert(current.InternalNext.Branch.Destination == null);
-            Debug.Assert(current.InternalNext.Branch.Kind == default);
+            Debug.Assert(current.InternalNext.Branch.Kind == BasicBlock.BranchKind.None);
             current.InternalNext.Value = Operation.SetParentOperation(Visit(operation.Exception), null);
             current.InternalNext.Branch.Kind = operation.Exception == null ? BasicBlock.BranchKind.ReThrow : BasicBlock.BranchKind.Throw;
 
@@ -1942,7 +1942,7 @@ namespace Microsoft.CodeAnalysis.Operations
             AppendNewBlock(new BasicBlock(BasicBlockKind.Block), linkToPrevious: false);
             Debug.Assert(current.InternalNext.Value == null);
             Debug.Assert(current.InternalNext.Branch.Destination == null);
-            Debug.Assert(current.InternalNext.Branch.Kind == default);
+            Debug.Assert(current.InternalNext.Branch.Kind == BasicBlock.BranchKind.None);
             current.InternalNext.Branch.Kind = BasicBlock.BranchKind.ProgramTermination;
             return null;
         }

@@ -23,6 +23,7 @@ Microsoft.CodeAnalysis.Operations.BasicBlock.Branch.FinallyRegions.get -> System
 Microsoft.CodeAnalysis.Operations.BasicBlock.Branch.Kind.get -> Microsoft.CodeAnalysis.Operations.BasicBlock.BranchKind
 Microsoft.CodeAnalysis.Operations.BasicBlock.Branch.LeavingRegions.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Operations.ControlFlowGraph.Region>
 Microsoft.CodeAnalysis.Operations.BasicBlock.BranchKind
+Microsoft.CodeAnalysis.Operations.BasicBlock.BranchKind.None = 0 -> Microsoft.CodeAnalysis.Operations.BasicBlock.BranchKind
 Microsoft.CodeAnalysis.Operations.BasicBlock.BranchKind.ProgramTermination = 4 -> Microsoft.CodeAnalysis.Operations.BasicBlock.BranchKind
 Microsoft.CodeAnalysis.Operations.BasicBlock.BranchKind.ReThrow = 6 -> Microsoft.CodeAnalysis.Operations.BasicBlock.BranchKind
 Microsoft.CodeAnalysis.Operations.BasicBlock.BranchKind.Regular = 1 -> Microsoft.CodeAnalysis.Operations.BasicBlock.BranchKind

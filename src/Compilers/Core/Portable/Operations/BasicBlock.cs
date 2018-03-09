@@ -86,8 +86,8 @@ namespace Microsoft.CodeAnalysis.Operations
 
         public enum BranchKind
         {
-            // Keep 0 value unused to detect an uninitialized state
-            Regular = 0x01,
+            None,
+            Regular,
             Return,
             StructuredExceptionHandling,
             ProgramTermination,
