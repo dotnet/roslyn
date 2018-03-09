@@ -490,13 +490,12 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
             if (symbol is IMethodSymbol method && method.Parameters.All(p => p.RefKind == RefKind.None))
             {
+                var count = extensionUsedAsInstance ? Math.Max(0, method.Parameters.Length - 1) : method.Parameters.Length;
+                var skip = extensionUsedAsInstance ? 1 : 0;
+
                 // Convert the symbol to Func<...> or Action<...>
                 if (method.ReturnsVoid)
                 {
-                    var count = extensionUsedAsInstance ? method.Parameters.Length - 1 : method.Parameters.Length;
-                    var skip = extensionUsedAsInstance ? 1 : 0;
-                    count = Math.Max(0, count);
-
                     // Action<TArg1, ..., TArgN>
                     var actionName = "System.Action" + (count > 0 ? $"`{count}" : "");
                     var actionType = compilation.GetTypeByMetadataName(actionName);
@@ -518,8 +517,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     // Func<TArg1,...,TArgN,TReturn>
                     //
                     // +1 for the return type.
-                    var count = extensionUsedAsInstance ? method.Parameters.Length - 1 : method.Parameters.Length;
-                    var skip = extensionUsedAsInstance ? 1 : 0;
                     var functionName = "System.Func`" + (count + 1);
                     var functionType = compilation.GetTypeByMetadataName(functionName);
 
