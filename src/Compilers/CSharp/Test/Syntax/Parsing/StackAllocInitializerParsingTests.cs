@@ -8,9 +8,9 @@ using Xunit.Abstractions;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
     [CompilerTrait(CompilerFeature.StackAllocInitializer)]
-    public class StackAllocInitializerTests : ParsingTests
+    public class StackAllocInitializerParsingTests : ParsingTests
     {
-        public StackAllocInitializerTests(ITestOutputHelper output) : base(output) { }
+        public StackAllocInitializerParsingTests(ITestOutputHelper output) : base(output) { }
 
         [Fact]
         public void StackAllocInitializer_01()

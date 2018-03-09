@@ -7,7 +7,7 @@ using Xunit;
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.StackAllocInitializer)]
-    public class StackAllocInitializerTests : CompilingTestBase
+    public class CodeGenStackAllocInitializerTests : CompilingTestBase
     {
         [Fact]
         public void TestElementThrow()
