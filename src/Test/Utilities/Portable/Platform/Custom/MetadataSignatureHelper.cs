@@ -1,5 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-#if NET461 || NET46
+#if NET461 || NET46 || NETCOREAPP2_0
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Roslyn.Utilities;
 
-namespace Roslyn.Test.Utilities.Desktop
+namespace Roslyn.Test.Utilities
 {
     public class MetadataSignatureHelper
     {
@@ -34,11 +34,12 @@ namespace Roslyn.Test.Utilities.Desktop
         {
             if (showGenericConstraints && type.IsGenericParameter)
             {
-                if (type.GenericParameterAttributes.HasFlag(GenericParameterAttributes.ReferenceTypeConstraint)) sb.Append("class ");
-                if (type.GenericParameterAttributes.HasFlag(GenericParameterAttributes.NotNullableValueTypeConstraint)) sb.Append("valuetype ");
-                if (type.GenericParameterAttributes.HasFlag(GenericParameterAttributes.DefaultConstructorConstraint)) sb.Append(".ctor ");
+                var typeInfo = type.GetTypeInfo();
+                if (typeInfo.GenericParameterAttributes.HasFlag(GenericParameterAttributes.ReferenceTypeConstraint)) sb.Append("class ");
+                if (typeInfo.GenericParameterAttributes.HasFlag(GenericParameterAttributes.NotNullableValueTypeConstraint)) sb.Append("valuetype ");
+                if (typeInfo.GenericParameterAttributes.HasFlag(GenericParameterAttributes.DefaultConstructorConstraint)) sb.Append(".ctor ");
 
-                var genericConstraints = type.GetGenericParameterConstraints();
+                var genericConstraints = typeInfo.GetGenericParameterConstraints();
                 if (genericConstraints.Length > 0)
                 {
                     sb.Append("(");
@@ -86,7 +87,7 @@ namespace Roslyn.Test.Utilities.Desktop
             }
             foreach (var namedArgument in attribute.NamedArguments)
             {
-                sb.Append(namedArgument.MemberInfo.Name);
+                sb.Append(namedArgument.MemberName);
                 AppendValue(namedArgument.TypedValue.Value, sb);
                 AppendComma(sb);
             }
@@ -96,7 +97,7 @@ namespace Roslyn.Test.Utilities.Desktop
 
         static private void AppendParameterInfo(ParameterInfo parameter, StringBuilder sb)
         {
-            foreach (var attribute in parameter.GetCustomAttributesData())
+            foreach (var attribute in parameter.CustomAttributes)
             {
                 // these are pseudo-custom attributes that are added by Reflection but don't appear in metadata as custom attributes:
                 if (attribute.AttributeType != typeof(OptionalAttribute) &&
@@ -108,6 +109,7 @@ namespace Roslyn.Test.Utilities.Desktop
                     sb.Append(" ");
                 }
             }
+
             foreach (var modreq in parameter.GetRequiredCustomModifiers())
             {
                 sb.Append("modreq(");
@@ -359,7 +361,7 @@ namespace Roslyn.Test.Utilities.Desktop
         {
             sb.Append(".method");
 
-            foreach (var attribute in method.GetCustomAttributesData())
+            foreach (var attribute in method.CustomAttributes)
             {
                 sb.Append(" ");
                 AppendCustomAttributeData(attribute, sb);
@@ -399,7 +401,7 @@ namespace Roslyn.Test.Utilities.Desktop
         {
             sb.Append(".method");
 
-            foreach (var attribute in constructor.GetCustomAttributesData())
+            foreach (var attribute in constructor.CustomAttributes)
             {
                 sb.Append(" ");
                 AppendCustomAttributeData(attribute, sb);
@@ -451,7 +453,7 @@ namespace Roslyn.Test.Utilities.Desktop
         {
             sb.Append(".property ");
 
-            foreach (var attribute in property.GetCustomAttributesData())
+            foreach (var attribute in property.CustomAttributes)
             {
                 AppendCustomAttributeData(attribute, sb);
                 sb.Append(" ");
@@ -512,11 +514,12 @@ namespace Roslyn.Test.Utilities.Desktop
         {
             sb.Append(".field ");
 
-            foreach (var attribute in field.GetCustomAttributesData())
+            foreach (var attribute in field.CustomAttributes)
             {
                 AppendCustomAttributeData(attribute, sb);
                 sb.Append(" ");
             }
+
             foreach (var modreq in field.GetRequiredCustomModifiers())
             {
                 sb.Append("modreq(");
@@ -539,10 +542,14 @@ namespace Roslyn.Test.Utilities.Desktop
 
             if (field.IsInitOnly) sb.Append("initonly ");
             if (field.IsLiteral) sb.Append("literal ");
+#if NET46 || NET461
             if (field.IsNotSerialized) sb.Append("notserialized ");
+#endif
             if (field.Attributes.HasFlag(FieldAttributes.SpecialName)) sb.Append("specialname ");
             if (field.Attributes.HasFlag(FieldAttributes.RTSpecialName)) sb.Append("rtspecialname ");
+#if NET46 || NET461
             if (field.IsPinvokeImpl) sb.Append("pinvokeimpl ");
+#endif
 
             sb.Append(field.IsStatic ? "static " : "instance ");
             AppendType(field.FieldType, sb);
@@ -559,7 +566,7 @@ namespace Roslyn.Test.Utilities.Desktop
         {
             sb.Append(".event ");
 
-            foreach (var attribute in @event.GetCustomAttributesData())
+            foreach (var attribute in @event.CustomAttributes)
             {
                 AppendCustomAttributeData(attribute, sb);
                 sb.Append(" ");
@@ -572,7 +579,7 @@ namespace Roslyn.Test.Utilities.Desktop
             sb.Append(" ");
             sb.Append(@event.Name);
         }
-        #endregion
+#endregion
 
         static public IEnumerable<string> GetMemberSignatures(System.Reflection.Assembly assembly, string fullyQualifiedTypeName)
         {

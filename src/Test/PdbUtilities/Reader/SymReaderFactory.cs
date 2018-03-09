@@ -1,4 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+extern alias DSR;
 
 using System;
 using System.Collections.Immutable;
@@ -7,8 +8,7 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
 using System.Runtime.InteropServices;
-using Microsoft.DiaSymReader;
-using Roslyn.Utilities;
+using DSR::Microsoft.DiaSymReader;
 using PortablePdb = Microsoft.DiaSymReader.PortablePdb;
 
 namespace Roslyn.Test.PdbUtilities
