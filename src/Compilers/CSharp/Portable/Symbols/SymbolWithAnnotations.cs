@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case true:
                         return str + "?";
                     case false:
-                        if ((format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) != 0)
+                        if (format != null && (format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) != 0)
                         {
                             return str + "!";
                         }
