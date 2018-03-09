@@ -1,0 +1,12 @@
+# https://docs.codecov.io/docs/codecov-yaml
+# https://github.com/codecov/support/wiki/Codecov-Yaml
+
+coverage:
+  status:
+    project:
+      default: false
+    patch:
+      default: false
+
+comment:
+  layout: "diff, flags, files, footer"

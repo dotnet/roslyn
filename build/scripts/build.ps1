@@ -448,9 +448,15 @@ function Test-XUnit() {
     $unitDir = Join-Path $configDir "UnitTests"
     $runTests = Join-Path $configDir "Exes\RunTests\RunTests.exe"
     $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net452"
+    $useCodecov = $cibuild -and $env:CODECOV_TOKEN
+    $useOpenCover = $useCodecov
     $args = "$xunitDir"
     $args += " -log:$logFilePath"
     $args += " -nocache"
+    if ($useOpenCover) {
+        $openCoverPath = Join-Path (Get-PackageDir "OpenCover") "tools\OpenCover.Console.exe"
+        $args += " -openCoverPath:$openCoverPath"
+    }
 
     if ($testDesktop) {
         if ($test32) {
@@ -487,7 +493,34 @@ function Test-XUnit() {
         $args += " -test64"
     }
 
-    foreach ($dll in $dlls) { 
+    $pdb2pdb = Join-Path (Get-PackageDir 'Microsoft.DiaSymReader.Pdb2Pdb') 'tools\Pdb2Pdb.exe'
+    $windowsPdbs = @{}
+    foreach ($dll in $dlls) {
+        if ($useOpenCover) {
+            $dllPdb = [IO.Path]::ChangeExtension($dll, 'pdb')
+            $dllDirectory = [IO.Path]::GetDirectoryName($dll)
+            if (-not (Test-Path $dllPdb)) {
+                # Extract the portable PDB, then convert to Windows PDB
+                Get-ChildItem $dllDirectory -Filter *.dll | ? { $_.Name -notmatch '^System\.|^SQLitePCLRaw\.|^Mono\.Cecil\.|^vslangproj|^xunit\.|^Microsoft\.VisualStudio\.Shell\.|^Microsoft\.VisualStudio\.Text\.|^Microsoft\.VisualStudio\.TextManager\.|^Microsoft\.DiaSymReader\.' } | ForEach-Object {
+                    $intermediatePdb = [IO.Path]::ChangeExtension($_.FullName, 'ppdb')
+                    $outputPdb = [IO.Path]::ChangeExtension($_.FullName, 'pdb')
+                    if ($windowsPdbs.ContainsKey($_.Name)) {
+                        $previousOutput = $windowsPdbs[$_.Name]
+                        if ((Test-Path $previousOutput) -and -not (Test-Path $outputPdb)) {
+                            Copy-Item $previousOutput $outputPdb
+                        }
+                    }
+                    else {
+                        $windowsPdbs.Add($_.Name, $outputPdb)
+                        &$pdb2pdb $_.FullName /out $intermediatePdb /extract
+                        if (Test-Path $intermediatePdb) {
+                            &$pdb2pdb $_.FullName /pdb $intermediatePdb /out $outputPdb
+                        }
+                    }
+                }
+            }
+        }
+
         $args += " $dll"
     }
     
@@ -496,6 +529,51 @@ function Test-XUnit() {
     }
     finally {
         Get-Process "xunit*" -ErrorAction SilentlyContinue | Stop-Process    
+
+        if ($useCodecov) {
+            $coverageFiles = Get-ChildItem -Recurse -Filter '*.coverage' | % { $_.FullName }
+            $codecovPath = Join-Path (Get-PackageDir "Codecov") "tools\codecov.exe"
+
+            $codecovArgs = @()
+            if ($coverageFiles) {
+                $codecovArgs += '-f'
+                # TODO: Merge files before submitting.
+                $codecovArgs += $coverageFiles[1]
+            }
+
+            if ($env:QualifiedRepoName) {
+                $codecovArgs += @("-r", $env:QualifiedRepoName)
+            }
+
+            if ($env:ghprbPullId) {
+                $codecovArgs += @("--pr", $env:ghprbPullId)
+            }
+
+            if ($env:BUILD_NUMBER) {
+                $codecovArgs += @("-b", $env:BUILD_NUMBER)
+            }
+
+            if ($env:ghprbTargetBranch) {
+                $codecovArgs += @("--branch", $env:ghprbTargetBranch)
+            }
+
+            if ($env:ghprbActualCommit) {
+                $codecovArgs += @("-c", $env:ghprbActualCommit)
+            }
+
+            if ($env:JOB_NAME) {
+                $codecovArgs += @("-n", $env:JOB_NAME)
+            }
+
+            if ($release) {
+                $codecovArgs += @("--flag", 'Release')
+            }
+            else {
+                $codecovArgs += @("--flag", 'Debug')
+            }
+
+            &$codecovPath $codecovArgs
+        }
     }
 }
 

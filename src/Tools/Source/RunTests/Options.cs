@@ -67,6 +67,10 @@ namespace RunTests
 
         public string XunitPath { get; set; }
 
+        public bool EnableCoverage { get; set; }
+
+        public string OpenCoverPath { get; set; }
+
         /// <summary>
         /// When set the log file for executing tests will be written to the prescribed location.
         /// </summary>
@@ -166,6 +170,12 @@ namespace RunTests
                 else if (isOption(current, "-procdumpPath", out value))
                 {
                     opt.ProcDumpPath = value;
+                    index++;
+                }
+                else if (isOption(current, "-openCoverPath", out value))
+                {
+                    opt.EnableCoverage = true;
+                    opt.OpenCoverPath = value;
                     index++;
                 }
                 else

@@ -15,17 +15,20 @@ namespace RunTests
         internal readonly string AssemblyPath;
         internal readonly string DisplayName;
         internal readonly string ResultsFileName;
+        internal readonly string CoverageFileName;
         internal readonly string ExtraArguments;
 
         internal AssemblyInfo(
             string assemblyPath,
             string displayName,
             string resultsFileName,
+            string coverageFileName,
             string extraArguments)
         {
             AssemblyPath = assemblyPath;
             DisplayName = displayName;
             ResultsFileName = resultsFileName;
+            CoverageFileName = coverageFileName;
             ExtraArguments = extraArguments;
         }
 
@@ -36,6 +39,7 @@ namespace RunTests
 
             var suffix = useHmtl ? "html" : "xml";
             ResultsFileName = $"{DisplayName}.{suffix}";
+            CoverageFileName = $"{DisplayName}.coverage";
             ExtraArguments = string.Empty;
         }
 
@@ -167,10 +171,12 @@ namespace RunTests
                 var displayName = $"{assemblyName}.{_currentId}";
                 var suffix = _useHtml ? "html" : "xml";
                 var resultsFileName = $"{assemblyName}.{_currentId}.{suffix}";
+                var coverageFileName = $"{assemblyName}.{_currentId}.coverage";
                 var assemblyInfo = new AssemblyInfo(
                     _assemblyPath,
                     displayName,
                     resultsFileName,
+                    coverageFileName,
                     _builder.ToString());
 
                 _partitionList.Add(new Partition(_assemblyPath, _currentId, _currentTypeInfoList));

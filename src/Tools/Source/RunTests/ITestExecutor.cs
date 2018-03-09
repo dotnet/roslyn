@@ -18,8 +18,10 @@ namespace RunTests
         internal bool UseHtml { get; }
         internal bool Test64 { get; }
         internal bool TestVsi { get; }
-        
-        internal TestExecutionOptions(string xunitPath, ProcDumpInfo? procDumpInfo, string logFilePath, string trait, string noTrait, bool useHtml, bool test64, bool testVsi)
+        internal bool EnableCoverage { get; }
+        internal string OpenCoverPath { get; }
+
+        internal TestExecutionOptions(string xunitPath, ProcDumpInfo? procDumpInfo, string logFilePath, string trait, string noTrait, bool useHtml, bool test64, bool testVsi, bool enableCoverage, string openCoverPath)
         {
             XunitPath = xunitPath;
             ProcDumpInfo = procDumpInfo;
@@ -29,6 +31,8 @@ namespace RunTests
             UseHtml = useHtml;
             Test64 = test64;
             TestVsi = testVsi;
+            EnableCoverage = enableCoverage;
+            OpenCoverPath = openCoverPath;
         }
     }
 

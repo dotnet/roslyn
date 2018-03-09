@@ -18,6 +18,8 @@
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" ExcludeAssets="all" />
     <PackageReference Include="RoslynTools.ReferenceAssemblies" Version="$(RoslynToolsReferenceAssembliesVersion)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.DiaSymReader.Pdb2Pdb" Version="$(MicrosoftDiaSymReaderPdb2PdbVersion)" ExcludeAssets="all" />
+    <PackageReference Include="Codecov" Version="$(CodecovVersion)" ExcludeAssets="all" />
+    <PackageReference Include="OpenCover" Version="$(OpenCoverVersion)" ExcludeAssets="all" />
   </ItemGroup>
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <PackageReference Include="FakeSign" Version="$(FakeSignVersion)" ExcludeAssets="all" />
