@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A simple class that combines a single symbol with annotations
     /// </summary>
-    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal abstract class SymbolWithAnnotations : IMessageSerializable 
     {
         public abstract Symbol Symbol { get; }
@@ -166,6 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A simple class that combines a single type symbol with annotations
     /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal abstract class TypeSymbolWithAnnotations : NamespaceOrTypeSymbolWithAnnotations
     {
         internal static readonly SymbolDisplayFormat DebuggerDisplayFormat = new SymbolDisplayFormat(
