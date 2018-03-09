@@ -96,9 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindTupleBinaryOperatorNestedInfo(node, kind, left, right, diagnostics);
             }
 
-            bool leftNull = left.IsLiteralNull();
-            bool rightNull = right.IsLiteralNull();
-            if (leftNull && rightNull)
+            if (left.IsLiteralNull() && right.IsLiteralNull())
             {
                 return new TupleBinaryOperatorInfo.NullNull(kind);
             }
