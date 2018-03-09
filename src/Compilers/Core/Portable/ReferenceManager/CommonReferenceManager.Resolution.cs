@@ -202,15 +202,14 @@ namespace Microsoft.CodeAnalysis
             out ImmutableArray<PEModule> modules,
             DiagnosticBag diagnostics)
         {
-            // Locations of all #r directives in the order they are listed in the references list.
-            ImmutableArray<Location> referenceDirectiveLocations;
-            ImmutableArray<(MetadataReference, Location)> referencesWithLocation;
-            GetCompilationReferences(compilation, diagnostics, out referencesWithLocation, out boundReferenceDirectiveMap, out referenceDirectiveLocations);
-            references = referencesWithLocation.Select(r => r.Item1).ToImmutableArray();
+            // Locations of all #r directives in the order they are listed in the references list, and the MetadataReferences to which they resolved.
+            ImmutableArray<(MetadataReference MetadataReference, Location Location)> referencesWithLocation;
+            GetCompilationReferences(compilation, diagnostics, out referencesWithLocation, out boundReferenceDirectiveMap);
+            references = referencesWithLocation.Select(r => r.MetadataReference).ToImmutableArray();
 
             // References originating from #r directives precede references supplied as arguments of the compilation.
             int referenceCount = references.Length;
-            int referenceDirectiveCount = (referenceDirectiveLocations != null ? referenceDirectiveLocations.Length : 0);
+            int referenceDirectiveCount = referencesWithLocation.Count(r => r.Location != Location.None);
 
             var referenceMap = new ResolvedReference[referenceCount];
 
@@ -221,7 +220,7 @@ namespace Microsoft.CodeAnalysis
             // Used to filter out duplicate references that reference the same file (resolve to the same full normalized path).
             var boundReferences = new Dictionary<MetadataReference, MetadataReference>(MetadataReferenceEqualityComparer.Instance);
 
-            ArrayBuilder<MetadataReference> uniqueDirectiveReferences = (referenceDirectiveLocations != null) ? ArrayBuilder<MetadataReference>.GetInstance() : null;
+            ArrayBuilder<MetadataReference> uniqueDirectiveReferences = (referenceDirectiveCount > 0) ? ArrayBuilder<MetadataReference>.GetInstance() : null;
             var assembliesBuilder = ArrayBuilder<AssemblyData>.GetInstance();
             ArrayBuilder<PEModule> lazyModulesBuilder = null;
 
@@ -749,9 +748,8 @@ namespace Microsoft.CodeAnalysis
         protected void GetCompilationReferences(
             TCompilation compilation,
             DiagnosticBag diagnostics,
-            out ImmutableArray<(MetadataReference, Location)> references,
-            out IDictionary<(string, string), MetadataReference[]> boundReferenceDirectives,
-            out ImmutableArray<Location> referenceDirectiveLocations)
+            out ImmutableArray<(MetadataReference MetadataReference, Location Location)> references,
+            out IDictionary<(string, string), MetadataReference[]> boundReferenceDirectives)
         {
             boundReferenceDirectives = null;
 
@@ -787,13 +785,20 @@ namespace Microsoft.CodeAnalysis
                         referenceDirectiveLocationsBuilder = ArrayBuilder<Location>.GetInstance();
                     }
 
-                    referencesBuilder.AddRange(boundReferences.Select(r => ((MetadataReference)r, referenceDirective.Location)));
+                    foreach (var boundReference in boundReferences)
+                    {
+                        referencesBuilder.Add((boundReference, referenceDirective.Location));
+                    }
+
                     referenceDirectiveLocationsBuilder.Add(referenceDirective.Location);
                     boundReferenceDirectives.Add((referenceDirective.Location.SourceTree.FilePath, referenceDirective.File), boundReferences);
                 }
 
                 // add external reference at the end, so that they are processed first:
-                referencesBuilder.AddRange(compilation.ExternalReferences.Select(r => ((MetadataReference)r, Location.None)));
+                foreach (var externalReference in compilation.ExternalReferences)
+                {
+                    referencesBuilder.Add((externalReference, Location.None));
+                }
 
                 // Add all explicit references of the previous script compilation.
                 var previousScriptCompilation = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
@@ -809,7 +814,6 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 references = referencesBuilder.ToImmutable();
-                referenceDirectiveLocations = referenceDirectiveLocationsBuilder?.ToImmutableAndFree() ?? ImmutableArray<Location>.Empty;
             }
             finally
             {
@@ -835,12 +839,6 @@ namespace Microsoft.CodeAnalysis
             {
                 return Array.Empty<PortableExecutableReference>();
             }
-
-            //if (references.Length > 1)
-            //{
-            //    // TODO: implement
-            //    throw new NotSupportedException();
-            //}
 
             return references.ToArray();
         }
