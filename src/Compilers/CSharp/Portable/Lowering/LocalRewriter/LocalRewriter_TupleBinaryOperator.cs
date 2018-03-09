@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.PooledObjects;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression ReplaceTerminalElementsWithTemps(BoundExpression expr, TupleBinaryOperatorInfo operators, ArrayBuilder<BoundExpression> initEffects, ArrayBuilder<LocalSymbol> temps)
         {
-            if (!operators.IsSingle())
+            if (operators.InfoKind == TupleBinaryOperatorInfoKind.Multiple)
             {
                 // Example:
                 // in `(expr1, expr2) == (..., ...)` we need to save `expr1` and `expr2`
@@ -80,13 +81,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression left, BoundExpression right, TypeSymbol boolType,
             ArrayBuilder<LocalSymbol> temps, BinaryOperatorKind operatorKind)
         {
-            if (@operator.IsSingle())
+            switch (@operator.InfoKind)
             {
-                return RewriteTupleSingleOperator((TupleBinaryOperatorInfo.Single)@operator, left, right, boolType, operatorKind);
-            }
-            else
-            {
-                return RewriteTupleNestedOperators((TupleBinaryOperatorInfo.Multiple)@operator, left, right, boolType, temps, operatorKind);
+                case TupleBinaryOperatorInfoKind.Multiple:
+                    return RewriteTupleNestedOperators((TupleBinaryOperatorInfo.Multiple)@operator, left, right, boolType, temps, operatorKind);
+
+                case TupleBinaryOperatorInfoKind.Single:
+                    return RewriteTupleSingleOperator((TupleBinaryOperatorInfo.Single)@operator, left, right, boolType, operatorKind);
+
+                case TupleBinaryOperatorInfoKind.NullNull:
+                    var nullnull = (TupleBinaryOperatorInfo.NullNull)@operator;
+                    return new BoundLiteral(left.Syntax, ConstantValue.Create(nullnull.Kind == BinaryOperatorKind.Equal), boolType);
+
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(@operator.InfoKind);
             }
         }
 

@@ -7,6 +7,14 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+
+    internal enum TupleBinaryOperatorInfoKind
+    {
+        Single,
+        NullNull,
+        Multiple
+    }
+
     /// <summary>
     /// A tree of binary operators for tuple comparisons.
     ///
@@ -16,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal abstract class TupleBinaryOperatorInfo
     {
-        internal abstract bool IsSingle();
+        internal abstract TupleBinaryOperatorInfoKind InfoKind { get; }
         internal readonly TypeSymbol LeftConvertedTypeOpt;
         internal readonly TypeSymbol RightConvertedTypeOpt;
 #if DEBUG
@@ -31,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Holds the information for an element-wise comparison (like `a == b`)
+        /// Holds the information for an element-wise comparison (like `a == b` as part of `(a, ...) == (b, ...)`)
         /// </summary>
         internal class Single : TupleBinaryOperatorInfo
         {
@@ -57,8 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(Kind.IsUserDefined() == ((object)MethodSymbolOpt != null));
             }
 
-            internal override bool IsSingle()
-                => true;
+            internal override TupleBinaryOperatorInfoKind InfoKind
+                => TupleBinaryOperatorInfoKind.Single;
 
             public override string ToString()
                 => $"binaryOperatorKind: {Kind}";
@@ -97,8 +105,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Operators = operators;
             }
 
-            internal override bool IsSingle()
-                => false;
+            internal override TupleBinaryOperatorInfoKind InfoKind
+                => TupleBinaryOperatorInfoKind.Multiple;
 
 #if DEBUG
             internal override TreeDumperNode DumpCore()
@@ -108,6 +116,31 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Operators.SelectAsArray(c => c.DumpCore())));
 
                 return new TreeDumperNode("nested", null, sub);
+            }
+#endif
+        }
+
+        /// <summary>
+        /// Represents an element-wise null/null comparison.
+        /// For instance, `(null, ...) == (null, ...)`.
+        /// </summary>
+        internal class NullNull : TupleBinaryOperatorInfo
+        {
+            internal readonly BinaryOperatorKind Kind;
+
+            internal NullNull(BinaryOperatorKind kind)
+                : base(leftConvertedTypeOpt: null, rightConvertedTypeOpt: null)
+            {
+                Kind = kind;
+            }
+
+            internal override TupleBinaryOperatorInfoKind InfoKind
+                => TupleBinaryOperatorInfoKind.NullNull;
+
+#if DEBUG
+            internal override TreeDumperNode DumpCore()
+            {
+                return new TreeDumperNode("nullnull", value: Kind, children: null);
             }
 #endif
         }
