@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis
                 hostObjectType);
         }
 
-        // <Previous release> BACKCOMPAT OVERLOAD -- DO NOT TOUCH
+        // 2.7.0 BACKCOMPAT OVERLOAD -- DO NOT TOUCH
         /// <summary>
         /// Create a new instance of a ProjectInfo.
         /// </summary>
