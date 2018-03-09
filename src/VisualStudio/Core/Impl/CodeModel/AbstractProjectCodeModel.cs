@@ -75,6 +75,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return handle != null;
         }
 
+        /// <summary>
+        /// Gets or creates a <see cref="FileCodeModel"/> for the given file name. Because we don't have
+        /// a parent object, this will call back to the project system to provide us the parent object.
+        /// </summary>
         public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string filePath)
         {
             return GetCodeModelCache().GetOrCreateFileCodeModel(filePath);
