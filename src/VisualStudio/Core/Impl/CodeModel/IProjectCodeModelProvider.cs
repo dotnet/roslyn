@@ -4,6 +4,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
     internal interface IProjectCodeModelProvider
     {
-        ProjectCodeModel ProjectCodeModel { get; }
+        IProjectCodeModel ProjectCodeModel { get; }
     }
 }

@@ -81,7 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 }
 
                 var hostProject = ((VisualStudioWorkspaceImpl)Workspace).DeferredState.ProjectTracker.GetProject(_projectId);
-                var projectCodeModel = ((IProjectCodeModelProvider)hostProject).ProjectCodeModel;
+                var projectCodeModel = (ProjectCodeModel)((IProjectCodeModelProvider)hostProject).ProjectCodeModel;
 
                 return projectCodeModel.GetOrCreateFileCodeModel(absoluteFilePath);
             }

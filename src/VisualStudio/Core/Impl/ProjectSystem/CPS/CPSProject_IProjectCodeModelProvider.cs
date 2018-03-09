@@ -9,9 +9,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 {
     internal sealed partial class CPSProject : IProjectCodeModelProvider
     {
-        private ProjectCodeModel _projectCodeModel;
+        private IProjectCodeModel _projectCodeModel;
 
-        public ProjectCodeModel ProjectCodeModel
+        public IProjectCodeModel ProjectCodeModel
         {
             get
             {
@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 return null;
             }
 
-            return ProjectCodeModel.GetOrCreateFileCodeModel(filePath, item).Handle;
+            return ProjectCodeModel.GetOrCreateFileCodeModel(filePath, item);
         }
 
         private class CPSCodeModelInstanceFactory : ICodeModelInstanceFactory
@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                     return null;
                 }
 
-                return _project.ProjectCodeModel.GetOrCreateFileCodeModel(filePath, projectItem).Handle;
+                return _project.ProjectCodeModel.GetOrCreateFileCodeModel(filePath, projectItem);
             }
 
             private EnvDTE.ProjectItem GetProjectItem(string filePath)

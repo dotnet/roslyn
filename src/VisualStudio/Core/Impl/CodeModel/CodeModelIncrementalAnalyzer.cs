@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                         return false;
                     }
 
-                    if (!codeModelProvider.ProjectCodeModel.TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
+                    if (!((ProjectCodeModel)codeModelProvider.ProjectCodeModel).TryGetCachedFileCodeModel(filename, out var fileCodeModelHandle))
                     {
                         return false;
                     }

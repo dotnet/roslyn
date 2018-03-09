@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -12,7 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
     /// <summary>
     /// The root type that is held by a project to provide CodeModel support.
     /// </summary>
-    internal sealed class ProjectCodeModel
+    internal sealed class ProjectCodeModel : IProjectCodeModel
     {
         private readonly NonReentrantLock _guard = new NonReentrantLock();
         private readonly ProjectId _projectId;
@@ -30,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _serviceProvider = serviceProvider;
         }
 
-        internal void OnProjectClosed()
+        public void OnProjectClosed()
         {
             _codeModelCache?.OnProjectClosed();
         }
@@ -65,12 +66,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
         }
 
-        public IEnumerable<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>> GetCachedFileCodeModelInstances()
+        internal IEnumerable<ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel>> GetCachedFileCodeModelInstances()
         {
             return GetCodeModelCache().GetFileCodeModelInstances();
         }
 
-        public bool TryGetCachedFileCodeModel(string fileName, out ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> fileCodeModelHandle)
+        internal bool TryGetCachedFileCodeModel(string fileName, out ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> fileCodeModelHandle)
         {
             var handle = GetCodeModelCache()?.GetComHandleForFileCodeModel(fileName);
 
@@ -108,6 +109,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         public void OnSourceFileRenaming(string filePath, string newFilePath)
         {
             GetCodeModelCache().OnSourceFileRenaming(filePath, newFilePath);
+        }
+
+        EnvDTE.FileCodeModel IProjectCodeModel.GetOrCreateFileCodeModel(string filePath)
+        {
+            return this.GetOrCreateFileCodeModel(filePath).Handle;
+        }
+
+        EnvDTE.FileCodeModel IProjectCodeModel.GetOrCreateFileCodeModel(string filePath, object parent)
+        {
+            return this.GetOrCreateFileCodeModel(filePath, parent).Handle;
         }
     }
 }

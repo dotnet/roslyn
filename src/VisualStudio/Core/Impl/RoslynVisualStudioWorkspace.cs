@@ -70,7 +70,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             if (project is IProjectCodeModelProvider provider)
             {
                 var projectCodeModel = provider.ProjectCodeModel;
-                return projectCodeModel.GetOrCreateFileCodeModel(document.FilePath).Handle;
+                return projectCodeModel.GetOrCreateFileCodeModel(document.FilePath);
             }
 
             return null;

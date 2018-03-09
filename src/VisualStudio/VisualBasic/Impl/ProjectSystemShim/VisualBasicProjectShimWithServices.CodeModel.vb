@@ -7,9 +7,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
     Partial Friend Class VisualBasicProjectShimWithServices
         Implements IProjectCodeModelProvider
 
-        Private _projectCodeModel As ProjectCodeModel
+        Private _projectCodeModel As IProjectCodeModel
 
-        Public ReadOnly Property ProjectCodeModel As ProjectCodeModel Implements IProjectCodeModelProvider.ProjectCodeModel
+        Public ReadOnly Property ProjectCodeModel As IProjectCodeModel Implements IProjectCodeModelProvider.ProjectCodeModel
             Get
                 LazyInitialization.EnsureInitialized(_projectCodeModel, Function() New ProjectCodeModel(Me.Id, New VisualBasicCodeModelInstanceFactory(Me), DirectCast(Me.Workspace, VisualStudioWorkspaceImpl), ServiceProvider))
                 Return _projectCodeModel
@@ -29,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 Dim fileName = pProjectItem.FileNames(1)
 
                 If Not String.IsNullOrWhiteSpace(fileName) Then
-                    ppFileCodeModel = ProjectCodeModel.GetOrCreateFileCodeModel(fileName, pProjectItem).Handle
+                    ppFileCodeModel = ProjectCodeModel.GetOrCreateFileCodeModel(fileName, pProjectItem)
                     Return VSConstants.S_OK
                 End If
             End If

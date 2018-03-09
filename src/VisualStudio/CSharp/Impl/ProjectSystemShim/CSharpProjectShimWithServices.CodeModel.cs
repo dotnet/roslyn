@@ -8,9 +8,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 {
     internal partial class CSharpProjectShimWithServices : IProjectCodeModelProvider
     {
-        private ProjectCodeModel _projectCodeModel;
+        private IProjectCodeModel _projectCodeModel;
 
-        public ProjectCodeModel ProjectCodeModel
+        public IProjectCodeModel ProjectCodeModel
         {
             get
             {
@@ -47,7 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         public override int CreateFileCodeModel(string fileName, object parent, out EnvDTE.FileCodeModel ppFileCodeModel)
         {
-            ppFileCodeModel = ProjectCodeModel.GetOrCreateFileCodeModel(fileName, parent).Handle;
+            ppFileCodeModel = ProjectCodeModel.GetOrCreateFileCodeModel(fileName, parent);
             return VSConstants.S_OK;
         }
     }
