@@ -749,7 +749,7 @@ class C
             Assert.Equal("(s, null)", tuple1.ToString());
             var tupleType1 = model.GetTypeInfo(tuple1);
             Assert.Null(tupleType1.Type);
-            Assert.Equal("(System.String, System.String)", tupleType1.ConvertedType.ToTestDisplayString());
+            Assert.Equal("(System.String s, System.String)", tupleType1.ConvertedType.ToTestDisplayString());
 
             var tuple1Null = tuple1.Arguments[1].Expression;
             var tuple1NullTypeInfo = model.GetTypeInfo(tuple1Null);
@@ -762,7 +762,7 @@ class C
             Assert.Equal("(null, s)", tuple2.ToString());
             var tupleType2 = model.GetTypeInfo(tuple2);
             Assert.Null(tupleType2.Type);
-            Assert.Equal("(System.String, System.String)", tupleType2.ConvertedType.ToTestDisplayString());
+            Assert.Equal("(System.String, System.String s)", tupleType2.ConvertedType.ToTestDisplayString());
 
             var tuple2Null = tuple2.Arguments[0].Expression;
             var tuple2NullTypeInfo = model.GetTypeInfo(tuple2Null);
@@ -866,7 +866,7 @@ class C
             Assert.Equal("(1L, t2)", tuple.ToString());
             var tupleType = model.GetTypeInfo(tuple);
             Assert.Equal("(System.Int64, (System.Int32, System.String) t2)", tupleType.Type.ToTestDisplayString());
-            Assert.Equal("(System.Int64, (System.Int64, System.String))", tupleType.ConvertedType.ToTestDisplayString());
+            Assert.Equal("(System.Int64, (System.Int64, System.String) t2)", tupleType.ConvertedType.ToTestDisplayString());
 
             var t2 = tuple.Arguments[1].Expression;
             Assert.Equal("t2", t2.ToString());
@@ -1368,7 +1368,7 @@ class C
 
             var tupleType = model.GetTypeInfo(tuple);
             Assert.Null(tupleType.Type);
-            Assert.Equal("((System.String, System.String), (System.String, System.String))",
+            Assert.Equal("((System.String, System.String), (System.String, System.String) t)",
                 tupleType.ConvertedType.ToTestDisplayString());
 
             // ... its t ...
@@ -1736,13 +1736,13 @@ public class C
             Assert.Equal("(d1, null)", tuple1.ToString());
             var tupleType1 = model.GetTypeInfo(tuple1);
             Assert.Null(tupleType1.Type);
-            Assert.Equal("(dynamic, dynamic)", tupleType1.ConvertedType.ToTestDisplayString());
+            Assert.Equal("(dynamic d1, dynamic)", tupleType1.ConvertedType.ToTestDisplayString());
 
             var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
             Assert.Equal("(null, d2)", tuple2.ToString());
             var tupleType2 = model.GetTypeInfo(tuple2);
             Assert.Null(tupleType2.Type);
-            Assert.Equal("(dynamic, dynamic)", tupleType2.ConvertedType.ToTestDisplayString());
+            Assert.Equal("(dynamic, dynamic d2)", tupleType2.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]

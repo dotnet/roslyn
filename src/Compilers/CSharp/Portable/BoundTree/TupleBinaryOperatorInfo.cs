@@ -105,6 +105,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Operators = operators;
             }
 
+            /// <summary>
+            /// Used for error scenarios
+            /// </summary>
+            internal Multiple()
+                : this(operators: ImmutableArray<TupleBinaryOperatorInfo>.Empty, leftConvertedTypeOpt: null, rightConvertedTypeOpt: null)
+            {
+            }
+
             internal override TupleBinaryOperatorInfoKind InfoKind
                 => TupleBinaryOperatorInfoKind.Multiple;
 

@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (right.Type is null && right.IsLiteralDefault()))
             {
                 Error(diagnostics, ErrorCode.ERR_AmbigBinaryOps, node, node.OperatorToken.Text, left.Display, right.Display);
-                return new TupleBinaryOperatorInfo.Multiple(ImmutableArray<TupleBinaryOperatorInfo>.Empty, left.Type, right.Type);
+                return new TupleBinaryOperatorInfo.Multiple();
             }
 
             // Aside from default (which we fixed or ruled out above) and tuple literals,
@@ -221,11 +221,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leftCardinality != rightCardinality)
             {
                 Error(diagnostics, ErrorCode.ERR_TupleSizesMismatchForBinOps, node, leftCardinality, rightCardinality);
-                return new TupleBinaryOperatorInfo.Multiple(ImmutableArray<TupleBinaryOperatorInfo>.Empty, leftConvertedTypeOpt: null, rightConvertedTypeOpt: null);
+                return new TupleBinaryOperatorInfo.Multiple();
             }
 
-            ImmutableArray<BoundExpression> leftParts = GetTupleArgumentsOrPlaceholders(left);
-            ImmutableArray<BoundExpression> rightParts = GetTupleArgumentsOrPlaceholders(right);
+            var (leftParts, leftNames, leftInferred) = GetTupleArgumentsOrPlaceholders(left);
+            var (rightParts, rightNames, rightInferred) = GetTupleArgumentsOrPlaceholders(right);
 
             int length = leftParts.Length;
             Debug.Assert(length == rightParts.Length);
@@ -245,8 +245,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool rightNullable = right.Type?.IsNullableType() == true;
             bool isNullable = leftNullable || rightNullable;
 
-            TypeSymbol leftTupleType = MakeConvertedType(operators.SelectAsArray(o => o.LeftConvertedTypeOpt), node.Left, leftParts, isNullable, compilation, diagnostics);
-            TypeSymbol rightTupleType = MakeConvertedType(operators.SelectAsArray(o => o.RightConvertedTypeOpt), node.Right, rightParts, isNullable, compilation, diagnostics);
+            TypeSymbol leftTupleType = MakeConvertedType(operators.SelectAsArray(o => o.LeftConvertedTypeOpt), node.Left, leftParts, leftNames, isNullable, compilation, diagnostics);
+            TypeSymbol rightTupleType = MakeConvertedType(operators.SelectAsArray(o => o.RightConvertedTypeOpt), node.Right, rightParts, rightNames, isNullable, compilation, diagnostics);
 
             return new TupleBinaryOperatorInfo.Multiple(operators, leftTupleType, rightTupleType);
         }
@@ -298,16 +298,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return -1;
         }
 
-        private static ImmutableArray<BoundExpression> GetTupleArgumentsOrPlaceholders(BoundExpression expr)
+        /// <summary>
+        /// Given a tuple literal or expression, we'll get three arrays:
+        /// - the elements from the literal, or some placeholder with proper type (for tuple expressions)
+        /// - the elements' names
+        /// - whether each name was inferred or explicit
+        /// </summary>
+        private static (ImmutableArray<BoundExpression> elements, ImmutableArray<string> names, ImmutableArray<bool> inferredNames) GetTupleArgumentsOrPlaceholders(BoundExpression expr)
         {
             if (expr.Kind == BoundKind.TupleLiteral)
             {
-                return ((BoundTupleLiteral)expr).Arguments;
+                var tuple = (BoundTupleLiteral)expr;
+                return (tuple.Arguments, tuple.ArgumentNamesOpt, tuple.InferredNamesOpt);
             }
 
             // placeholder bound nodes with the proper types are sufficient to bind the element-wise binary operators
-            return expr.Type.StrippedType().TupleElementTypes
+            TypeSymbol tupleType = expr.Type.StrippedType();
+            ImmutableArray<BoundExpression> placeholders = tupleType.TupleElementTypes
                 .SelectAsArray((t, s) => (BoundExpression)new BoundTupleOperandPlaceholder(s, t), expr.Syntax);
+
+            return (placeholders, tupleType.TupleElementNames, default);
         }
 
         /// <summary>
@@ -316,7 +326,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If any of the elements is typeless, then the tuple is typeless too.
         /// </summary>
         private TypeSymbol MakeConvertedType(ImmutableArray<TypeSymbol> convertedTypes, CSharpSyntaxNode syntax,
-            ImmutableArray<BoundExpression> elements, bool isNullable, CSharpCompilation compilation, DiagnosticBag diagnostics)
+            ImmutableArray<BoundExpression> elements, ImmutableArray<string> names,
+            bool isNullable, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
             foreach (var convertedType in convertedTypes)
             {
@@ -330,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // PROTOTYPE(tuple-equality) Add test for violated tuple constraint
             var tuple = TupleTypeSymbol.Create(locationOpt: null, elementTypes: convertedTypes,
-                elementLocations, elementNames: default, compilation,
+                elementLocations, elementNames: names, compilation,
                 shouldCheckConstraints: true, errorPositions: default, syntax, diagnostics);
 
             if (!isNullable)
