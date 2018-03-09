@@ -4875,6 +4875,57 @@ internal class Goo
     expectedContainers: ImmutableArray<string>.Empty,
     expectedDocumentName: "Goo.cs");
         }
+
+        [WorkItem(22293, "https://github.com/dotnet/roslyn/issues/22293")]
+        [Theory, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)]
+        [InlineData("void")]
+        [InlineData("int")]
+        public async Task TestMethodGroupWithMissingSystemActionAndFunc(string returnType)
+        {
+            await TestInRegularAndScriptAsync(
+    $@"
+<Workspace>
+    <Project Language=""C#"" CommonReferences=""false"">
+        <Document><![CDATA[
+class C
+{{
+    void M()
+    {{
+        new [|Class|](Method);
+    }}
+
+    {returnType} Method()
+    {{
+    }}
+}}
+]]>
+        </Document>
+    </Project>
+</Workspace>",
+    $@"
+class C
+{{
+    void M()
+    {{
+        new Class(Method);
+    }}
+
+    {returnType} Method()
+    {{
+    }}
+}}
+
+internal class Class
+{{
+    private global::System.Object method;
+
+    public Class(global::System.Object method)
+    {{
+        this.method = method;
+    }}
+}}",
+    index: 1);
+        }
     }
 
     public partial class GenerateTypeWithUnboundAnalyzerTests : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest

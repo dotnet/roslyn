@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 return type;
             }
 
-            if (symbol is IMethodSymbol method && !method.Parameters.Any(p => p.RefKind != RefKind.None))
+            if (symbol is IMethodSymbol method && method.Parameters.All(p => p.RefKind == RefKind.None))
             {
                 // Convert the symbol to Func<...> or Action<...>
                 if (method.ReturnsVoid)
@@ -496,28 +496,21 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     var count = extensionUsedAsInstance ? method.Parameters.Length - 1 : method.Parameters.Length;
                     var skip = extensionUsedAsInstance ? 1 : 0;
                     count = Math.Max(0, count);
-                    if (count == 0)
-                    {
-                        // Action
-                        return compilation.ActionType();
-                    }
-                    else
-                    {
-                        // Action<TArg1, ..., TArgN>
-                        var actionName = "System.Action`" + count;
-                        var actionType = compilation.GetTypeByMetadataName(actionName);
 
-                        if (actionType != null)
-                        {
-                            var types = method.Parameters
-                                .Skip(skip)
-                                .Select(p =>
-                                    p.Type == null ?
-                                    compilation.GetSpecialType(SpecialType.System_Object) :
-                                    p.Type)
-                                .ToArray();
-                            return actionType.Construct(types);
-                        }
+                    // Action<TArg1, ..., TArgN>
+                    var actionName = "System.Action" + (count > 0 ? $"`{count}" : "");
+                    var actionType = compilation.GetTypeByMetadataName(actionName);
+
+                    if (actionType != null)
+                    {
+                        var types = method.Parameters
+                            .Skip(skip)
+                            .Select(p =>
+                                p.Type == null ?
+                                compilation.GetSpecialType(SpecialType.System_Object) :
+                                p.Type)
+                            .ToArray();
+                        return types.Length > 0 ? actionType.Construct(types) : actionType;
                     }
                 }
                 else
