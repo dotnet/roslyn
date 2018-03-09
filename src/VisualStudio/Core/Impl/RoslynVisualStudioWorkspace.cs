@@ -75,30 +75,6 @@ namespace Microsoft.VisualStudio.LanguageServices
             return null;
         }
 
-        internal override bool RenameFileCodeModelInstance(DocumentId documentId, string newFilePath)
-        {
-            if (documentId == null)
-            {
-                return false;
-            }
-
-            var project = DeferredState.ProjectTracker.GetProject(documentId.ProjectId);
-            if (project == null)
-            {
-                return false;
-            }
-
-            var document = project.GetDocumentOrAdditionalDocument(documentId);
-            if (document == null)
-            {
-                return false;
-            }
-
-            project.ProjectCodeModel?.OnSourceFileRenaming(document.FilePath, newFilePath);
-
-            return true;
-        }
-
         internal override IInvisibleEditor OpenInvisibleEditor(DocumentId documentId)
         {
             var hostDocument = GetHostDocument(documentId);
