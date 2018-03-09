@@ -1242,13 +1242,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType = TypeSymbolWithAnnotations.Create(getLeftResultType(leftResult.Type.TypeSymbol, rightResult.Type?.TypeSymbol), resultIsNullable);
                     break;
                 case BoundNullCoalescingOperatorResultKind.LeftUnwrappedType:
-                    resultType = TypeSymbolWithAnnotations.Create(getLeftResultType(leftResult.Type.TypeSymbol.GetNullableUnderlyingType(), rightResult.Type?.TypeSymbol), resultIsNullable);
+                    resultType = TypeSymbolWithAnnotations.Create(getLeftResultType(unwrapIfNullable(leftResult.Type.TypeSymbol), rightResult.Type?.TypeSymbol), resultIsNullable);
                     break;
                 case BoundNullCoalescingOperatorResultKind.RightType:
                     resultType = TypeSymbolWithAnnotations.Create(getRightResultType(leftResult.Type.TypeSymbol, rightResult.Type.TypeSymbol));
                     break;
                 case BoundNullCoalescingOperatorResultKind.LeftUnwrappedRightType:
-                    resultType = TypeSymbolWithAnnotations.Create(getRightResultType(leftResult.Type.TypeSymbol.GetNullableUnderlyingType(), rightResult.Type.TypeSymbol));
+                    resultType = TypeSymbolWithAnnotations.Create(getRightResultType(unwrapIfNullable(leftResult.Type.TypeSymbol), rightResult.Type.TypeSymbol));
                     break;
                 case BoundNullCoalescingOperatorResultKind.RightDynamicType:
                     resultType = TypeSymbolWithAnnotations.Create(rightResult.Type.TypeSymbol, resultIsNullable);
@@ -1279,6 +1279,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: true);
                 return rightType;
+            }
+            TypeSymbol unwrapIfNullable(TypeSymbol type)
+            {
+                return type.IsNullableType() ? type.GetNullableUnderlyingType() : type;
             }
         }
 
