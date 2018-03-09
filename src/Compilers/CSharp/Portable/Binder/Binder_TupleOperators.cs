@@ -41,37 +41,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol convertedType = isRight ? @operator.RightConvertedTypeOpt : @operator.LeftConvertedTypeOpt;
 
-            if (@operator.InfoKind == TupleBinaryOperatorInfoKind.Multiple && expr.Kind == BoundKind.TupleLiteral && convertedType is null)
-            {
-                // Although the tuple will remain typeless, we'll give elements converted types as possible
-                var multiple = (TupleBinaryOperatorInfo.Multiple)@operator;
-                if (multiple.Operators.Length == 0)
-                {
-                    return expr;
-                }
-
-                var tuple = (BoundTupleLiteral)expr;
-                ImmutableArray<BoundExpression> arguments = tuple.Arguments;
-                int length = arguments.Length;
-                Debug.Assert(length == multiple.Operators.Length);
-
-                var builder = ArrayBuilder<BoundExpression>.GetInstance(length);
-                for (int i = 0; i < length; i++)
-                {
-                    builder.Add(ApplyConvertedTypes(arguments[i], multiple.Operators[i], isRight, diagnostics));
-                }
-                var convertedArguments = builder.ToImmutableAndFree();
-
-                var newTuple = tuple.Update(argumentNamesOpt: default, inferredNamesOpt: default, convertedArguments, tuple.Type);
-
-                return convertedType is null ? newTuple : GenerateConversionForAssignment(convertedType, newTuple, diagnostics);
-            }
-
             if (convertedType is null)
             {
+                if (@operator.InfoKind == TupleBinaryOperatorInfoKind.Multiple && expr.Kind == BoundKind.TupleLiteral)
+                {
+                    // Although the tuple will remain typeless, we'll give elements converted types as possible
+                    var multiple = (TupleBinaryOperatorInfo.Multiple)@operator;
+                    if (multiple.Operators.Length == 0)
+                    {
+                        return expr;
+                    }
+
+                    var tuple = (BoundTupleLiteral)expr;
+                    ImmutableArray<BoundExpression> arguments = tuple.Arguments;
+                    int length = arguments.Length;
+                    Debug.Assert(length == multiple.Operators.Length);
+
+                    var builder = ArrayBuilder<BoundExpression>.GetInstance(length);
+                    for (int i = 0; i < length; i++)
+                    {
+                        builder.Add(ApplyConvertedTypes(arguments[i], multiple.Operators[i], isRight, diagnostics));
+                    }
+
+                    return tuple.Update(argumentNamesOpt: default, inferredNamesOpt: default, builder.ToImmutableAndFree(), tuple.Type);
+                }
+
+                // This element isn't getting a converted type
                 return expr;
             }
 
+            // We were able to determine a converted type (for this tuple literal or element), we can just convert to it
             return GenerateConversionForAssignment(convertedType, expr, diagnostics);
         }
 

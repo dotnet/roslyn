@@ -718,6 +718,11 @@ class C
                 //         _ = !t1; // error 4
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "!t1").WithArguments("!", "(int, int)").WithLocation(10, 13)
                 );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            Assert.Equal("(System.Int32, System.Int32)", model.GetDeclaredSymbol(tuple).ToTestDisplayString());
         }
 
         [Fact]
