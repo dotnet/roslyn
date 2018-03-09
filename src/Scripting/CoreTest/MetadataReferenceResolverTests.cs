@@ -10,6 +10,9 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
 {
     public class MetadataReferenceResolverTests
     {
+        private static PortableExecutableReference CurrentAssemblyMetadataReference = MetadataReference.CreateFromFile(typeof(MetadataReferenceResolverTests).Assembly.Location);
+        private static PortableExecutableReference MicrosoftCodeAnalysisMetadataReference = MetadataReference.CreateFromFile(typeof(MetadataReferenceProperties).Assembly.Location);
+
         [Fact]
         public void ReferenceDirectiveTo0MetadataReferences()
         {
@@ -18,7 +21,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             var compilation = CSharpScript.Create(scriptCode, scriptOptions).GetCompilation();
             var metadataReferences = compilation.References.ToArray();
 
-            Assert.Equal(1, metadataReferences.Length);
+            Assert.DoesNotContain(CurrentAssemblyMetadataReference, metadataReferences);
+            Assert.DoesNotContain(MicrosoftCodeAnalysisMetadataReference, metadataReferences);
         }
 
         [Fact]
@@ -29,7 +33,8 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             var compilation = CSharpScript.Create(scriptCode, scriptOptions).GetCompilation();
             var metadataReferences = compilation.References.ToArray();
 
-            Assert.Equal(2, metadataReferences.Length);
+            Assert.Contains(CurrentAssemblyMetadataReference, metadataReferences);
+            Assert.DoesNotContain(MicrosoftCodeAnalysisMetadataReference, metadataReferences);
         }
 
         [Fact]
@@ -40,36 +45,32 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             var compilation = CSharpScript.Create(scriptCode, scriptOptions).GetCompilation();
             var metadataReferences = compilation.References.ToArray();
 
-            Assert.Equal(4, metadataReferences.Length);
+            Assert.Contains(CurrentAssemblyMetadataReference, metadataReferences);
+            Assert.Contains(MicrosoftCodeAnalysisMetadataReference, metadataReferences);
         }
 
         private class TestFakeMetadataResolver : MetadataReferenceResolver
         {
-            public override bool Equals(object other)
-            {
-                return false;
-            }
+            public override int GetHashCode() => 0;
 
-            public override int GetHashCode()
-            {
-                return new Random().Next(0, 1000);
-            }
+            public bool Equals(TestFakeMetadataResolver other) => ReferenceEquals(this, other);
+
+            public override bool Equals(object other) => Equals(other as TestFakeMetadataResolver);
 
             public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
             {
-                if (reference.Contains("1.dll"))
+                if (reference.Equals("1.dll"))
                 {
                     return new PortableExecutableReference[]
                     {
-                        MetadataReference.CreateFromFile(typeof(MetadataReferenceResolverTests).Assembly.Location), // current assembly
+                        CurrentAssemblyMetadataReference
                     }.AsImmutable();
                 }
 
                 return new PortableExecutableReference[]
                 {
-                    MetadataReference.CreateFromFile(typeof(MetadataReferenceResolverTests).Assembly.Location), // current assembly
-                    MetadataReference.CreateFromFile(typeof(MetadataReferenceProperties).Assembly.Location), // Microsoft.CodeAnalysis
-                    MetadataReference.CreateFromFile(typeof(ScriptOptions).Assembly.Location) // Microsoft.CodeAnalysis.Scripting
+                    CurrentAssemblyMetadataReference,
+                    MicrosoftCodeAnalysisMetadataReference
                 }.AsImmutable();
             }
         }
