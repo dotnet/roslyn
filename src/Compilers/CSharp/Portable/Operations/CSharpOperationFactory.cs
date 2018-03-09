@@ -1117,8 +1117,8 @@ namespace Microsoft.CodeAnalysis.Operations
         private ITupleBinaryOperation CreateBoundTupleBinaryOperatorOperation(BoundTupleBinaryOperator boundTupleBinaryOperator)
         {
             BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundTupleBinaryOperator.OperatorKind);
-            Lazy<IOperation> leftOperand = new Lazy<IOperation>(() => Create(boundTupleBinaryOperator.Left));
-            Lazy<IOperation> rightOperand = new Lazy<IOperation>(() => Create(boundTupleBinaryOperator.Right));
+            Lazy<IOperation> leftOperand = new Lazy<IOperation>(() => Create(boundTupleBinaryOperator.ConvertedLeft));
+            Lazy<IOperation> rightOperand = new Lazy<IOperation>(() => Create(boundTupleBinaryOperator.ConvertedRight));
             SyntaxNode syntax = boundTupleBinaryOperator.Syntax;
             ITypeSymbol type = boundTupleBinaryOperator.Type;
             Optional<object> constantValue = ConvertToOptional(boundTupleBinaryOperator.ConstantValue);

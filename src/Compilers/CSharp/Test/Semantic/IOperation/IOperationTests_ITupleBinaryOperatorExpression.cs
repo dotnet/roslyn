@@ -2,7 +2,6 @@
 
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
@@ -35,7 +34,7 @@ ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator,
         }
 
         [Fact]
-        public void VerifyTupleEqualityBinaryOperator2()
+        public void VerifyTupleEqualityBinaryOperator_WithTupleLiteral()
         {
             var source = @"
 class C
@@ -63,7 +62,7 @@ ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator,
         }
 
         [Fact]
-        public void VerifyTupleEqualityBinaryOperator3()
+        public void VerifyTupleEqualityBinaryOperator_WithNotEquals()
         {
             var source = @"
 class C
@@ -91,6 +90,79 @@ ITupleBinaryOperation (BinaryOperatorKind.NotEquals) (OperationKind.BinaryOperat
       Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
       Operand: 
         IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: (System.Int64, System.Byte)) (Syntax: 'y')
+";
+
+            VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact]
+        public void VerifyTupleEqualityBinaryOperator_WithNullsAndConversions()
+        {
+            var source = @"
+class C
+{
+    bool F()
+    {
+        return /*<bind>*/(null, (1, 2L)) == (null, (3L, 4))/*</bind>*/;
+    }
+}";
+
+            string expectedOperationTree =
+@"
+ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: '(null, (1,  ... l, (3L, 4))')
+  Left: 
+    ITupleOperation (OperationKind.Tuple, Type: null) (Syntax: '(null, (1, 2L))')
+      NaturalType: null
+      Elements(2):
+          ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+          ITupleOperation (OperationKind.Tuple, Type: (System.Int64, System.Int64)) (Syntax: '(1, 2L)')
+            NaturalType: (System.Int32, System.Int64)
+            Elements(2):
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 1, IsImplicit) (Syntax: '1')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+                ILiteralOperation (OperationKind.Literal, Type: System.Int64, Constant: 2) (Syntax: '2L')
+  Right: 
+    ITupleOperation (OperationKind.Tuple, Type: null) (Syntax: '(null, (3L, 4))')
+      NaturalType: null
+      Elements(2):
+          ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
+          ITupleOperation (OperationKind.Tuple, Type: (System.Int64, System.Int64)) (Syntax: '(3L, 4)')
+            NaturalType: (System.Int64, System.Int32)
+            Elements(2):
+                ILiteralOperation (OperationKind.Literal, Type: System.Int64, Constant: 3) (Syntax: '3L')
+                IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int64, Constant: 4, IsImplicit) (Syntax: '4')
+                  Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: True, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                  Operand: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
+";
+
+            VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact]
+        public void VerifyTupleEqualityBinaryOperator_WithDefault()
+        {
+            var source = @"
+class C
+{
+    bool F((int, string) y)
+    {
+        return /*<bind>*/y == default/*</bind>*/;
+    }
+}";
+
+            string expectedOperationTree =
+@"
+ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'y == default')
+  Left: 
+    IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: (System.Int32, System.String)) (Syntax: 'y')
+  Right: 
+    IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: (System.Int32, System.String), IsImplicit) (Syntax: 'default')
+      Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+      Operand: 
+        IDefaultValueOperation (OperationKind.DefaultValue, Type: (System.Int32, System.String)) (Syntax: 'default')
 ";
 
             VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
