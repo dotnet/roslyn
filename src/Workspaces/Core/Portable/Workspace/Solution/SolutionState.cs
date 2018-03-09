@@ -607,6 +607,21 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the output file path.
+        /// </summary>
+        public SolutionState WithProjectOutputRefFilePath(ProjectId projectId, string outputRefFilePath)
+        {
+            if (projectId == null)
+            {
+                throw new ArgumentNullException(nameof(projectId));
+            }
+
+            CheckContainsProject(projectId);
+
+            return this.ForkProject(this.GetProjectState(projectId).UpdateOutputRefPath(outputRefFilePath));
+        }
+
+        /// <summary>
         /// Creates a new solution instance with the project specified updated to have the name.
         /// </summary>
         public SolutionState WithProjectName(ProjectId projectId, string name)

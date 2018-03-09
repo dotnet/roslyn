@@ -266,6 +266,9 @@ namespace Microsoft.CodeAnalysis
         public string OutputFilePath => this.ProjectInfo.OutputFilePath;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
+        public string OutputRefFilePath => this.ProjectInfo.OutputRefFilePath;
+
+        [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
         public HostLanguageServices LanguageServices => _languageServices;
 
         [DebuggerBrowsable(DebuggerBrowsableState.Collapsed)]
@@ -409,6 +412,16 @@ namespace Microsoft.CodeAnalysis
             }
 
             return this.With(projectInfo: this.ProjectInfo.WithOutputFilePath(outputFilePath).WithVersion(this.Version.GetNewerVersion()));
+        }
+
+        public ProjectState UpdateOutputRefPath(string outputRefFilePath)
+        {
+            if (outputRefFilePath == this.OutputRefFilePath)
+            {
+                return this;
+            }
+
+            return this.With(projectInfo: this.ProjectInfo.WithOutputFilePath(outputRefFilePath).WithVersion(this.Version.GetNewerVersion()));
         }
 
         public ProjectState UpdateCompilationOptions(CompilationOptions options)
