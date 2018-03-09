@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             _codeModelCache?.OnProjectClosed();
         }
 
-        internal CodeModelProjectCache GetCodeModelCache()
+        private CodeModelProjectCache GetCodeModelCache()
         {
             Contract.ThrowIfNull(VSProject);
             Contract.ThrowIfNull(VisualStudioWorkspace);
@@ -84,7 +84,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             return GetCodeModelCache().GetOrCreateFileCodeModel(filePath);
         }
 
+        public ComHandle<EnvDTE80.FileCodeModel2, FileCodeModel> GetOrCreateFileCodeModel(string filePath, object parent)
+        {
+            return GetCodeModelCache().GetOrCreateFileCodeModel(filePath, parent);
+        }
+
+        public EnvDTE.CodeModel GetOrCreateRootCodeModel(EnvDTE.Project parent)
+        {
+            return GetCodeModelCache().GetOrCreateRootCodeModel(parent);
+        }
+
+        public void OnSourceFileRemoved(string fileName)
+        {
+            GetCodeModelCache().OnSourceFileRemoved(fileName);
+        }
+
+        public void OnSourceFileRenaming(string filePath, string newFilePath)
+        {
+            GetCodeModelCache().OnSourceFileRenaming(filePath, newFilePath);
+        }
+
         internal abstract bool CanCreateFileCodeModelThroughProject(string filePath);
         internal abstract object CreateFileCodeModelThroughProject(string filePath);
+
     }
 }

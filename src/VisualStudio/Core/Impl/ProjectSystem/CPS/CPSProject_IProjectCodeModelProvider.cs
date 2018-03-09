@@ -27,11 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
             base.OnDocumentRemoved(filePath);
 
             // We may have a code model floating around for it
-            var codeModelCache = _projectCodeModel?.GetCodeModelCache();
-            if (codeModelCache != null)
-            {
-                codeModelCache.OnSourceFileRemoved(filePath);
-            }
+            _projectCodeModel?.OnSourceFileRemoved(filePath);
         }
 
         public EnvDTE.CodeModel GetCodeModel(EnvDTE.Project parent)

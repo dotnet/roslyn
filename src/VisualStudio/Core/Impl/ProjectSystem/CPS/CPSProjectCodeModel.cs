@@ -26,18 +26,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
                 return null;
             }
 
-            var codeModelCache = GetCodeModelCache();
-            return codeModelCache.GetOrCreateFileCodeModel(filePath, projectItem).Handle;
+            return this.GetOrCreateFileCodeModel(filePath, projectItem).Handle;
         }
 
         private EnvDTE.ProjectItem GetProjectItem(string filePath)
         {
-            var codeModelCache = GetCodeModelCache();
-            if (codeModelCache == null)
-            {
-                return null;
-            }
-
             var dteProject = VisualStudioWorkspace.TryGetDTEProject(VSProject.Id);
             if (dteProject == null)
             {
@@ -49,29 +42,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.C
 
         public EnvDTE.CodeModel GetCodeModel(EnvDTE.Project parent)
         {
-            var codeModelCache = GetCodeModelCache();
-            if (codeModelCache == null)
-            {
-                return null;
-            }
-
-            return codeModelCache.GetOrCreateRootCodeModel(parent);
+            return this.GetOrCreateRootCodeModel(parent);
         }
 
         public EnvDTE.FileCodeModel GetFileCodeModel(EnvDTE.ProjectItem item)
         {
-            var codeModelCache = GetCodeModelCache();
-            if (codeModelCache == null)
-            {
-                return null;
-            }
-
             if (!item.TryGetFullPath(out var filePath))
             {
                 return null;
             }
 
-            return codeModelCache.GetOrCreateFileCodeModel(filePath, item).Handle;
+            return this.GetOrCreateFileCodeModel(filePath, item).Handle;
         }
     }
 }

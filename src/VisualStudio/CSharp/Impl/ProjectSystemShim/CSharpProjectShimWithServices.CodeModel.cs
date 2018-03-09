@@ -36,36 +36,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             base.OnDocumentRemoved(filePath);
 
             // We may have a code model floating around for it
-            var codeModelCache = ProjectCodeModel.GetCodeModelCache();
-            if (codeModelCache != null)
-            {
-                codeModelCache.OnSourceFileRemoved(filePath);
-            }
+            ProjectCodeModel.OnSourceFileRemoved(filePath);
         }
 
         public override int CreateCodeModel(object parent, out EnvDTE.CodeModel codeModel)
         {
-            var codeModelCache = ProjectCodeModel.GetCodeModelCache();
-            if (codeModelCache == null)
-            {
-                codeModel = null;
-                return VSConstants.E_FAIL;
-            }
-
-            codeModel = codeModelCache.GetOrCreateRootCodeModel((EnvDTE.Project)parent);
+            codeModel = ProjectCodeModel.GetOrCreateRootCodeModel((EnvDTE.Project)parent);
             return VSConstants.S_OK;
         }
 
         public override int CreateFileCodeModel(string fileName, object parent, out EnvDTE.FileCodeModel ppFileCodeModel)
         {
-            var codeModelCache = ProjectCodeModel.GetCodeModelCache();
-            if (codeModelCache == null)
-            {
-                ppFileCodeModel = null;
-                return VSConstants.E_FAIL;
-            }
-
-            ppFileCodeModel = codeModelCache.GetOrCreateFileCodeModel(fileName, parent).Handle;
+            ppFileCodeModel = ProjectCodeModel.GetOrCreateFileCodeModel(fileName, parent).Handle;
             return VSConstants.S_OK;
         }
     }

@@ -17,14 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
         End Property
 
         Public Overrides Function CreateCodeModel(pProject As EnvDTE.Project, pProjectItem As EnvDTE.ProjectItem, ByRef ppCodeModel As EnvDTE.CodeModel) As Integer
-            ppCodeModel = Nothing
-
-            Dim codeModelCache = ProjectCodeModel.GetCodeModelCache()
-            If codeModelCache Is Nothing Then
-                Return VSConstants.E_FAIL
-            End If
-
-            ppCodeModel = codeModelCache.GetOrCreateRootCodeModel(pProject)
+            ppCodeModel = ProjectCodeModel.GetOrCreateRootCodeModel(pProject)
 
             Return VSConstants.S_OK
         End Function
@@ -36,12 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 Dim fileName = pProjectItem.FileNames(1)
 
                 If Not String.IsNullOrWhiteSpace(fileName) Then
-                    Dim codeModelCache = ProjectCodeModel.GetCodeModelCache()
-                    If codeModelCache Is Nothing Then
-                        Return VSConstants.E_FAIL
-                    End If
-
-                    ppFileCodeModel = codeModelCache.GetOrCreateFileCodeModel(fileName, pProjectItem).Handle
+                    ppFileCodeModel = ProjectCodeModel.GetOrCreateFileCodeModel(fileName, pProjectItem).Handle
                     Return VSConstants.S_OK
                 End If
             End If
@@ -53,10 +41,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             MyBase.OnDocumentRemoved(filePath)
 
             ' We may have a code model floating around for it
-            Dim codeModelCache = ProjectCodeModel.GetCodeModelCache()
-            If codeModelCache IsNot Nothing Then
-                codeModelCache.OnSourceFileRemoved(filePath)
-            End If
+            ProjectCodeModel.OnSourceFileRemoved(filePath)
         End Sub
 
         Public Overrides Sub Disconnect()

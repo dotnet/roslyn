@@ -104,13 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 return false;
             }
 
-            var codeModelCache = codeModelProvider.ProjectCodeModel.GetCodeModelCache();
-            if (codeModelCache == null)
-            {
-                return false;
-            }
-
-            codeModelCache.OnSourceFileRenaming(document.FilePath, newFilePath);
+            codeModelProvider.ProjectCodeModel.OnSourceFileRenaming(document.FilePath, newFilePath);
 
             return true;
         }
