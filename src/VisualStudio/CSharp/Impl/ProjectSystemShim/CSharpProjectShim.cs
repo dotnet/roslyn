@@ -31,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
     /// effectively methods that just QI from one interface to another), are implemented here.
     /// </remarks>
     [ExcludeFromCodeCoverage]
-    internal abstract partial class CSharpProjectShim : AbstractLegacyProject, ICodeModelInstanceFactory
+    internal sealed partial class CSharpProjectShim : AbstractLegacyProject, ICodeModelInstanceFactory
     {
         /// <summary>
         /// This member is used to store a raw array of warning numbers, which is needed to properly implement
@@ -73,6 +73,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             UpdateOptions();
 
             projectTracker.AddProject(this);
+
+            ProjectCodeModel = new ProjectCodeModel(this.Id, this, visualStudioWorkspaceOpt, ServiceProvider);
         }
 
         public override void Disconnect()

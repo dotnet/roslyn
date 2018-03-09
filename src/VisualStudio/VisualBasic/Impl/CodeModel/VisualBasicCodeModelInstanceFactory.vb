@@ -2,7 +2,6 @@
 
 Imports EnvDTE
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 Imports Microsoft.VisualStudio.Shell.Interop
 
@@ -11,9 +10,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     Friend NotInheritable Class VisualBasicCodeModelInstanceFactory
         Implements ICodeModelInstanceFactory
 
-        Private ReadOnly _project As VisualBasicProjectShimWithServices
+        Private ReadOnly _project As VisualBasicProject
 
-        Public Sub New(project As VisualBasicProjectShimWithServices)
+        Public Sub New(project As VisualBasicProject)
             _project = project
         End Sub
 

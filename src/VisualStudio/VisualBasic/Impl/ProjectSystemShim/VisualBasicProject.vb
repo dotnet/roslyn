@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
@@ -16,7 +17,7 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.TextManager.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
-    Partial Friend MustInherit Class VisualBasicProject
+    Partial Friend NotInheritable Class VisualBasicProject
         Inherits AbstractLegacyProject
         Implements IVbCompilerProject
 
@@ -50,6 +51,8 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             _compilerHost = compilerHost
 
             projectTracker.AddProject(Me)
+
+            ProjectCodeModel = New ProjectCodeModel(Me.Id, New VisualBasicCodeModelInstanceFactory(Me), visualStudioWorkspaceOpt, serviceProvider)
         End Sub
 
         Public Sub AddApplicationObjectVariable(wszClassName As String, wszMemberName As String) Implements IVbCompilerProject.AddApplicationObjectVariable
