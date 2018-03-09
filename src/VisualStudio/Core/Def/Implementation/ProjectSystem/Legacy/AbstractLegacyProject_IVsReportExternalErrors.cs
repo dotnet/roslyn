@@ -2,62 +2,50 @@
 
 using System.Runtime.InteropServices;
 using Microsoft.VisualStudio;
+using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.TextManager.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
+namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Legacy
 {
-    internal partial class AbstractProject : IVsReportExternalErrors, IVsLanguageServiceBuildErrorReporter2
+    internal partial class AbstractLegacyProject : IVsReportExternalErrors, IVsLanguageServiceBuildErrorReporter2
     {
+        private readonly ProjectExternalErrorReporter _externalErrorReporter;
+
         int IVsReportExternalErrors.AddNewErrors(IVsEnumExternalErrors pErrors)
         {
-            if (ExternalErrorReporter != null)
-            {
-                return ExternalErrorReporter.AddNewErrors(pErrors);
-            }
-
-            return VSConstants.E_NOTIMPL;
+            return _externalErrorReporter.AddNewErrors(pErrors);
         }
 
         int IVsReportExternalErrors.ClearAllErrors()
         {
-            if (ExternalErrorReporter != null)
-            {
-                return ExternalErrorReporter.ClearAllErrors();
-            }
-
-            return VSConstants.E_NOTIMPL;
+            return _externalErrorReporter.ClearAllErrors();
         }
 
         int IVsLanguageServiceBuildErrorReporter.ClearErrors()
         {
-            return ((IVsLanguageServiceBuildErrorReporter2)this).ClearErrors();
+            return _externalErrorReporter.ClearErrors();
         }
 
         int IVsLanguageServiceBuildErrorReporter2.ClearErrors()
         {
-            if (ExternalErrorReporter != null)
-            {
-                return ((IVsLanguageServiceBuildErrorReporter2)ExternalErrorReporter).ClearErrors();
-            }
-
-            return VSConstants.E_NOTIMPL;
+            return _externalErrorReporter.ClearErrors();
         }
 
         int IVsReportExternalErrors.GetErrors(out IVsEnumExternalErrors pErrors)
         {
-            pErrors = null;
-            if (ExternalErrorReporter != null)
-            {
-                return ExternalErrorReporter.GetErrors(out pErrors);
-            }
-
-            return VSConstants.E_NOTIMPL;
+            return _externalErrorReporter.GetErrors(out pErrors);
         }
 
         int IVsLanguageServiceBuildErrorReporter.ReportError(string bstrErrorMessage, string bstrErrorId, VSTASKPRIORITY nPriority, int iLine, int iColumn, string bstrFileName)
         {
-            return ((IVsLanguageServiceBuildErrorReporter2)this).ReportError(bstrErrorMessage, bstrErrorId, nPriority, iLine, iColumn, bstrFileName);
+            return _externalErrorReporter.ReportError(
+                bstrErrorMessage,
+                bstrErrorId,
+                nPriority,
+                iLine,
+                iColumn,
+                bstrFileName);
         }
 
         int IVsLanguageServiceBuildErrorReporter2.ReportError(
@@ -68,18 +56,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             int iColumn,
             string bstrFileName)
         {
-            if (ExternalErrorReporter != null)
-            {
-                return ((IVsLanguageServiceBuildErrorReporter2)ExternalErrorReporter).ReportError(
-                    bstrErrorMessage,
-                    bstrErrorId,
-                    nPriority,
-                    iLine,
-                    iColumn,
-                    bstrFileName);
-            }
-
-            return VSConstants.S_OK;
+            return _externalErrorReporter.ReportError(
+                bstrErrorMessage,
+                bstrErrorId,
+                nPriority,
+                iLine,
+                iColumn,
+                bstrFileName);
         }
 
         void IVsLanguageServiceBuildErrorReporter2.ReportError2(
@@ -92,9 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             int iEndColumn,
             string bstrFileName)
         {
-            if (ExternalErrorReporter != null)
-            {
-                ((IVsLanguageServiceBuildErrorReporter2)ExternalErrorReporter).ReportError2(
+            _externalErrorReporter.ReportError2(
                     bstrErrorMessage,
                     bstrErrorId,
                     nPriority,
@@ -103,7 +84,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     iEndLine,
                     iEndColumn,
                     bstrFileName);
-            }
         }
     }
 }

@@ -6,8 +6,6 @@ using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Serialization;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.Shell.Interop;
-using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
@@ -21,20 +19,17 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Services
         {
             var workspace = new AdhocWorkspace();
             var project = workspace.CurrentSolution.AddProject("empty", "empty", LanguageNames.CSharp);
-            var mockFileChangeService = new Mock<IVsFileChangeEx>();
             using (var analyzer = new VisualStudioAnalyzer(
                 @"PathToAnalyzer",
-                fileChangeService: mockFileChangeService.Object,
                 hostDiagnosticUpdateSource: null,
                 projectId: project.Id,
                 workspace: workspace,
-                loader: null,
                 language: project.Language))
             {
                 var analyzerReference = analyzer.GetReference();
                 project = project.WithAnalyzerReferences(new AnalyzerReference[]
                 {
-                analyzerReference,
+                    analyzerReference,
                 });
 
                 var checksum = await project.State.GetChecksumAsync(CancellationToken.None).ConfigureAwait(false);

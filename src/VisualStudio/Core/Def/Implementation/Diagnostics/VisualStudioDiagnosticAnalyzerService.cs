@@ -15,11 +15,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
     [Export(typeof(IVisualStudioDiagnosticAnalyzerService))]
     internal partial class VisualStudioDiagnosticAnalyzerService : IVisualStudioDiagnosticAnalyzerService
     {
-        private readonly VisualStudioWorkspaceImpl _workspace;
+        private readonly VisualStudioWorkspace _workspace;
         private readonly IDiagnosticAnalyzerService _diagnosticService;
 
         [ImportingConstructor]
-        public VisualStudioDiagnosticAnalyzerService(VisualStudioWorkspaceImpl workspace, IDiagnosticAnalyzerService diagnosticService)
+        public VisualStudioDiagnosticAnalyzerService(VisualStudioWorkspace workspace, IDiagnosticAnalyzerService diagnosticService)
         {
             _workspace = workspace;
             _diagnosticService = diagnosticService;
@@ -35,10 +35,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             }
 
             // Analyzers are only supported for C# and VB currently.
-            var projectsWithHierarchy = (_workspace.DeferredState?.ProjectTracker.ImmutableProjects ?? ImmutableArray<AbstractProject>.Empty)
+            var projectsWithHierarchy = _workspace.CurrentSolution.Projects
                 .Where(p => p.Language == LanguageNames.CSharp || p.Language == LanguageNames.VisualBasic)
-                .Where(p => p.Hierarchy == hierarchyOpt)
-                .Select(p => _workspace.CurrentSolution.GetProject(p.Id));
+                .Where(p => _workspace.GetHierarchy(p.Id) == hierarchyOpt);
 
             if (projectsWithHierarchy.Count() <= 1)
             {

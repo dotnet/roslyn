@@ -9,7 +9,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
     {
         int IVsSolutionLoadEvents.OnBeforeOpenSolution(string pszSolutionFilename)
         {
-            GetProjectTrackerAndInitializeIfNecessary(ServiceProvider.GlobalProvider).OnBeforeOpenSolution();
             return VSConstants.S_OK;
         }
 
@@ -26,22 +25,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         int IVsSolutionLoadEvents.OnBeforeLoadProjectBatch(bool fIsBackgroundIdleBatch)
         {
-            _foregroundObject.AssertIsForeground();
-            GetProjectTrackerAndInitializeIfNecessary(ServiceProvider.GlobalProvider).OnBeforeLoadProjectBatch(fIsBackgroundIdleBatch);
             return VSConstants.S_OK;
         }
 
         int IVsSolutionLoadEvents.OnAfterLoadProjectBatch(bool fIsBackgroundIdleBatch)
         {
-            _foregroundObject.AssertIsForeground();
-            GetProjectTrackerAndInitializeIfNecessary(ServiceProvider.GlobalProvider).OnAfterLoadProjectBatch(fIsBackgroundIdleBatch);
             return VSConstants.S_OK;
         }
 
         int IVsSolutionLoadEvents.OnAfterBackgroundSolutionLoadComplete()
         {
-            _foregroundObject.AssertIsForeground();
-            GetProjectTrackerAndInitializeIfNecessary(ServiceProvider.GlobalProvider).OnAfterBackgroundSolutionLoadComplete();
             return VSConstants.S_OK;
         }
     }

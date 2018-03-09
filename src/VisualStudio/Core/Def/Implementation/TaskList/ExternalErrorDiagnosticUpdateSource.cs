@@ -653,8 +653,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     return ValueTuple.Create(data.DataLocation?.MappedStartLine ?? 0, data.DataLocation?.MappedStartColumn ?? 0);
                 }
 
-                var containedDocument = workspace.GetHostDocument(data.DocumentId) as ContainedDocument;
-                if (containedDocument == null)
+                if (workspace.TryGetContainedDocument(data.DocumentId) == null)
                 {
                     return ValueTuple.Create(data.DataLocation?.MappedStartLine ?? 0, data.DataLocation?.MappedStartColumn ?? 0);
                 }

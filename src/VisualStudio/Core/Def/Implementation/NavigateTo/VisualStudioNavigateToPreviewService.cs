@@ -30,7 +30,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.NavigateTo
                 return false;
             }
 
-            return !(visualStudioWorkspace.GetHostDocument(document.Id) is ContainedDocument);
+            return visualStudioWorkspace.TryGetContainedDocument(document.Id) == null;
         }
 
         public void PreviewItem(INavigateToItemDisplay itemDisplay)

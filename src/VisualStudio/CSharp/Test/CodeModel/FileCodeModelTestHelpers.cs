@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 
                 var visualStudioWorkspaceMock = new MockVisualStudioWorkspace(workspace);
 
-                var state = new CodeModelState(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), serviceProvider, project.LanguageServices, visualStudioWorkspaceMock);
+                var state = new CodeModelState(workspace.ExportProvider.GetExportedValue<IThreadingContext>(), serviceProvider, project.LanguageServices, visualStudioWorkspaceMock, workspace.ExportProvider.GetExportedValue<ProjectCodeModelFactory>());
 
                 var codeModel = FileCodeModel.Create(state, null, document, new MockTextManagerAdapter()).Handle;
 

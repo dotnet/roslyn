@@ -23,50 +23,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         internal class DeferredInitializationState : ForegroundThreadAffinitizedObject
         {
             public VisualStudioProjectTracker ProjectTracker { get; }
-            public IServiceProvider ServiceProvider { get; }
-            public IVsUIShellOpenDocument ShellOpenDocumentService { get; }
 
-            public DeferredInitializationState(IThreadingContext threadingContext, VisualStudioWorkspaceImpl workspace, IServiceProvider serviceProvider, LinkedFileUtilities linkedFileUtilities)
-                : base(threadingContext, assertIsForeground: true)
+            public DeferredInitializationState(IThreadingContext threadingContext, VisualStudioWorkspaceImpl workspace)
+                : base(threadingContext, assertIsForeground: false)
             {
-                ServiceProvider = serviceProvider;
-                ShellOpenDocumentService = (IVsUIShellOpenDocument)serviceProvider.GetService(typeof(SVsUIShellOpenDocument));
-                ProjectTracker = new VisualStudioProjectTracker(threadingContext, serviceProvider, workspace, linkedFileUtilities);
+                ProjectTracker = new VisualStudioProjectTracker(workspace, threadingContext);
 
-                // Ensure the document tracking service is initialized on the UI thread
-                var documentTrackingService = (VisualStudioDocumentTrackingService)workspace.Services.GetService<IDocumentTrackingService>();
-                var documentProvider = new DocumentProvider(ProjectTracker, serviceProvider, documentTrackingService, linkedFileUtilities);
-                var metadataReferenceProvider = workspace.Services.GetService<VisualStudioMetadataReferenceManager>();
-                var ruleSetFileProvider = workspace.Services.GetService<VisualStudioRuleSetManager>();
-                ProjectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider);
-
-                var componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
-                var saveEventsService = componentModel.GetService<SaveEventsService>();
-                saveEventsService.StartSendingSaveEvents();
+                // TODO: fix this up
+                /*
 
                 VisualStudioProjectCacheHostServiceFactory.ConnectProjectCacheServiceToDocumentTracking(workspace.Services, (ProjectCacheService)workspace.CurrentSolution.Services.CacheService);
-
-                // Ensure the options factory services are initialized on the UI thread
-                workspace.Services.GetService<IOptionService>();
+                */
             }
-        }
-
-        internal string GetProjectDisplayName(Project project)
-        {
-            var hierarchy = this.GetHierarchy(project.Id);
-            if (hierarchy != null)
-            {
-                var solution = (IVsSolution3)DeferredState.ServiceProvider.GetService(typeof(SVsSolution));
-                if (solution != null)
-                {
-                    if (ErrorHandler.Succeeded(solution.GetUniqueUINameOfProject(hierarchy, out string name)) && name != null)
-                    {
-                        return name;
-                    }
-                }
-            }
-
-            return project.Name;
         }
     }
 }

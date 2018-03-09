@@ -15,7 +15,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
     Public Class VisualStudioAnalyzerTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub GetReferenceCalledMultipleTimes()
-            Using analyzer = New VisualStudioAnalyzer("C:\Goo\Bar.dll", New MockVsFileChangeEx(), Nothing, Nothing, Nothing, Nothing, Nothing)
+            Using analyzer = New VisualStudioAnalyzer("C:\Goo\Bar.dll", Nothing, Nothing, Nothing, Nothing)
                 Dim reference1 = analyzer.GetReference()
                 Dim reference2 = analyzer.GetReference()
 
@@ -32,7 +32,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
 
             AddHandler hostDiagnosticUpdateSource.DiagnosticsUpdated, AddressOf eventHandler.DiagnosticAddedTest
 
-            Using analyzer = New VisualStudioAnalyzer(file, New MockVsFileChangeEx(), hostDiagnosticUpdateSource, ProjectId.CreateNewId(), Nothing, New MockAnalyzerAssemblyLoader(), LanguageNames.VisualBasic)
+            Using analyzer = New VisualStudioAnalyzer(file, hostDiagnosticUpdateSource, ProjectId.CreateNewId(), Nothing, LanguageNames.VisualBasic)
                 Dim reference = analyzer.GetReference()
                 reference.GetAnalyzers(LanguageNames.VisualBasic)
 

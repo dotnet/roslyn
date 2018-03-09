@@ -566,13 +566,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
                 return false;
             }
 
-            var containedDocument = vsWorkspace.GetHostDocument(document.Id) as ContainedDocument;
+            var containedDocument = vsWorkspace.TryGetContainedDocument(document.Id);
             if (containedDocument == null)
             {
                 return false;
             }
 
-            if (containedDocument.ContainedLanguage.ContainedLanguageHost is IVsContainedLanguageHostInternal containedLanguageHost)
+            if (containedDocument.ContainedLanguageHost is IVsContainedLanguageHostInternal containedLanguageHost)
             {
                 foreach (var importClause in memberImportsNamespaces)
                 {

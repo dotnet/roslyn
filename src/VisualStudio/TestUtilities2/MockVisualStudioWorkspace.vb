@@ -50,6 +50,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
             Return Nothing
         End Function
 
+        Friend Overrides Function GetProjectGuid(projectId As ProjectId) As Guid
+            Return Guid.Empty
+        End Function
+
         Friend Overrides Function OpenInvisibleEditor(documentId As DocumentId) As IInvisibleEditor
             Return New MockInvisibleEditor(documentId, _workspace)
         End Function

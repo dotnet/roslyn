@@ -1,10 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Venus;
+using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser
@@ -52,7 +51,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
         {
             if (project.Solution.Workspace is VisualStudioWorkspaceImpl workspace)
             {
-                return workspace.GetProjectDisplayName(project);
+                var hierarchy = workspace.GetHierarchy(project.Id);
+                if (hierarchy != null)
+                {
+                    var solution = (IVsSolution3)ServiceProvider.GlobalProvider.GetService(typeof(SVsSolution));
+                    if (solution != null)
+                    {
+                        if (ErrorHandler.Succeeded(solution.GetUniqueUINameOfProject(hierarchy, out string name)) && name != null)
+                        {
+                            return name;
+                        }
+                    }
+                }
+
+                return project.Name;
             }
 
             return project.Name;
@@ -68,7 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             foreach (var documentId in project.DocumentIds)
             {
-                if (workspace.GetHostDocument(documentId) is ContainedDocument)
+                if (workspace.TryGetContainedDocument(documentId) != null)
                 {
                     return true;
                 }

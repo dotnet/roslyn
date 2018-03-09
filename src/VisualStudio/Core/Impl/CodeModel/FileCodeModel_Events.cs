@@ -57,7 +57,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 return needMoreTime;
             }
 
-            var projectCodeModel = GetAbstractProject().ProjectCodeModel as ProjectCodeModel;
+            var projectCodeModel = this.State.ProjectCodeModelFactory.GetProjectCodeModel(document.Project.Id);
             if (projectCodeModel == null)
             {
                 return needMoreTime;

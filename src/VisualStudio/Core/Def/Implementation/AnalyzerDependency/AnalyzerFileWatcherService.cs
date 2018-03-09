@@ -152,10 +152,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             // Traverse the chain of requesting assemblies to get back to the original analyzer
             // assembly.
-            var projectsWithAnalyzer = _workspace.DeferredState.ProjectTracker.ImmutableProjects.Where(p => p.CurrentProjectAnalyzersContains(filePath)).ToArray();
-            foreach (var project in projectsWithAnalyzer)
+            foreach (var project in _workspace.CurrentSolution.Projects)
             {
-                RaiseAnalyzerChangedWarning(project.Id, filePath);
+                var analyzerFileReferences = project.AnalyzerReferences.OfType<AnalyzerFileReference>();
+
+                if (analyzerFileReferences.Any(a => a.FullPath.Equals(filePath, StringComparison.OrdinalIgnoreCase)))
+                {
+                    RaiseAnalyzerChangedWarning(project.Id, filePath);
+                }
             }
         }
     }
