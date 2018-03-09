@@ -1231,28 +1231,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rightResult = VisitRvalueWithResult(rightOperand);
             IntersectWith(ref this.State, ref leftState);
 
-            bool? getIsNullable(BoundExpression e, Result r) => (r.Type is null) ? e.IsNullable() : r.Type.IsNullable;
             bool? resultIsNullable = getIsNullable(leftOperand, leftResult) == false ? false : getIsNullable(rightOperand, rightResult);
-            TypeSymbol getLeftResultType(TypeSymbol leftType, TypeSymbol rightType)
-            {
-                // If there was an identity conversion between the two operands (in short, if
-                // there is no conversion on the right operand), then check nullable conversions
-                // in both directions since it's possible the right operand is the better result type.
-                if ((object)rightType != null &&
-                    node.RightOperand.Kind != BoundKind.Conversion &&
-                    GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: false))
-                {
-                    return rightType;
-                }
-                GenerateConversionForConditionalOperator(node.RightOperand, rightType, leftType, reportMismatch: true);
-                return leftType;
-            }
-            TypeSymbol getRightResultType(TypeSymbol leftType, TypeSymbol rightType)
-            {
-                GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: true);
-                return rightType;
-            }
-
             TypeSymbolWithAnnotations resultType;
             switch (node.OperatorResultKind)
             {
@@ -1280,6 +1259,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _result = resultType;
             return null;
+
+            bool? getIsNullable(BoundExpression e, Result r) => (r.Type is null) ? e.IsNullable() : r.Type.IsNullable;
+            TypeSymbol getLeftResultType(TypeSymbol leftType, TypeSymbol rightType)
+            {
+                // If there was an identity conversion between the two operands (in short, if
+                // there is no conversion on the right operand), then check nullable conversions
+                // in both directions since it's possible the right operand is the better result type.
+                if ((object)rightType != null &&
+                    node.RightOperand.Kind != BoundKind.Conversion &&
+                    GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: false))
+                {
+                    return rightType;
+                }
+                GenerateConversionForConditionalOperator(node.RightOperand, rightType, leftType, reportMismatch: true);
+                return leftType;
+            }
+            TypeSymbol getRightResultType(TypeSymbol leftType, TypeSymbol rightType)
+            {
+                GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: true);
+                return rightType;
+            }
         }
 
         private void ReportNullabilityMismatchIfAny(BoundExpression node, TypeSymbolWithAnnotations expectedType, TypeSymbolWithAnnotations actualType)

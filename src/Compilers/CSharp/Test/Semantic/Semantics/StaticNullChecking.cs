@@ -4620,7 +4620,8 @@ class C
                 );
         }
 
-        [Fact]
+        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
+        [Fact(Skip = "TODO")]
         public void TargetingUnannotatedAPIs_04()
         {
             CSharpCompilation c0 = CreateStandardCompilation(@"
@@ -4679,19 +4680,23 @@ class C
 ", parseOptions: TestOptions.Regular8, references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
-                // (21,21): hidden CS8607: Expression is probably never null.
-                //         object z2 = x2 ?? new object();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(21, 21),
-                // (33,21): hidden CS8607: Expression is probably never null.
-                //         object z4 = x4 ?? new object();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x4").WithLocation(33, 21),
+                // (14,21): warning CS8601: Possible null reference assignment.
+                //         object x1 = M4() ? CL0.M1() : M2();
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M4() ? CL0.M1() : M2()").WithLocation(14, 21),
+                // (26,22): warning CS8601: Possible null reference assignment.
+                //         object x3 =  M4() ? M3() : M2();
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M4() ? M3() : M2()").WithLocation(26, 22),
+                // (38,22): warning CS8601: Possible null reference assignment.
+                //         object x5 =  M4() ? M2() : M2();
+                Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M4() ? M2() : M2()").WithLocation(38, 22),
                 // (44,21): hidden CS8607: Expression is probably never null.
                 //         object z6 = x6 ?? new object();
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x6").WithLocation(44, 21)
                 );
         }
 
-        [Fact]
+        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
+        [Fact(Skip = "TODO")]
         public void TargetingUnannotatedAPIs_05()
         {
             CSharpCompilation c0 = CreateStandardCompilation(@"
@@ -4732,9 +4737,12 @@ class C
 ", parseOptions: TestOptions.Regular8, references: new[] { c0.EmitToImageReference() });
 
             c.VerifyDiagnostics(
-                // (21,21): hidden CS8607: Expression is probably never null.
-                //         object z2 = x2 ?? new object();
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "x2").WithLocation(21, 21)
+                 // (14,21): warning CS8601: Possible null reference assignment.
+                 //         object x1 = M4() ? M2() : CL0.M1();
+                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M4() ? M2() : CL0.M1()").WithLocation(14, 21),
+                 // (26,22): warning CS8601: Possible null reference assignment.
+                 //         object x3 =  M4() ? M2() : M3();
+                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "M4() ? M2() : M3()").WithLocation(26, 22)
                 );
         }
 

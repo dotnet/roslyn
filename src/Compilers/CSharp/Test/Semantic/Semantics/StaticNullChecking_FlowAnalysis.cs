@@ -1307,43 +1307,43 @@ class C
 {
     static void F(I<object>? x, I<object?> y)
     {
-        I<object> z = x ?? y;
-        I<object?> w = y ?? x;
+        I<object> z1 = x ?? y;
+        I<object?> w1 = y ?? x;
     }
     static void F(IIn<object>? x, IIn<object?> y)
     {
-        IIn<object> z = x ?? y;
-        IIn<object?> w = y ?? x;
+        IIn<object> z2 = x ?? y;
+        IIn<object?> w2 = y ?? x;
     }
     static void F(IOut<object>? x, IOut<object?> y)
     {
-        IOut<object> z = x ?? y;
-        IOut<object?> w = y ?? x;
+        IOut<object> z3 = x ?? y;
+        IOut<object?> w3 = y ?? x;
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (8,28): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
-                //         I<object> z = x ?? y;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<object?>", "I<object>").WithLocation(8, 28),
-                // (9,24): hidden CS8607: Expression is probably never null.
-                //         I<object?> w = y ?? x;
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(9, 24),
-                // (9,29): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
-                //         I<object?> w = y ?? x;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("I<object>", "I<object?>").WithLocation(9, 29),
-                // (14,26): hidden CS8607: Expression is probably never null.
-                //         IIn<object?> w = y ?? x;
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(14, 26),
-                // (14,26): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<object?>'.
-                //         IIn<object?> w = y ?? x;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y ?? x").WithArguments("IIn<object>", "IIn<object?>").WithLocation(14, 26),
-                // (18,26): warning CS8619: Nullability of reference types in value of type 'IOut<object?>' doesn't match target type 'IOut<object>'.
-                //         IOut<object> z = x ?? y;
-                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x ?? y").WithArguments("IOut<object?>", "IOut<object>").WithLocation(18, 26),
-                // (19,27): hidden CS8607: Expression is probably never null.
-                //         IOut<object?> w = y ?? x;
-                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(19, 27));
+                // (8,29): warning CS8619: Nullability of reference types in value of type 'I<object?>' doesn't match target type 'I<object>'.
+                //         I<object> z1 = x ?? y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y").WithArguments("I<object?>", "I<object>").WithLocation(8, 29),
+                // (9,25): hidden CS8607: Expression is probably never null.
+                //         I<object?> w1 = y ?? x;
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(9, 25),
+                // (9,30): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
+                //         I<object?> w1 = y ?? x;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x").WithArguments("I<object>", "I<object?>").WithLocation(9, 30),
+                // (14,27): hidden CS8607: Expression is probably never null.
+                //         IIn<object?> w2 = y ?? x;
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(14, 27),
+                // (14,27): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<object?>'.
+                //         IIn<object?> w2 = y ?? x;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "y ?? x").WithArguments("IIn<object>", "IIn<object?>").WithLocation(14, 27),
+                // (18,27): warning CS8619: Nullability of reference types in value of type 'IOut<object?>' doesn't match target type 'IOut<object>'.
+                //         IOut<object> z3 = x ?? y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "x ?? y").WithArguments("IOut<object?>", "IOut<object>").WithLocation(18, 27),
+                // (19,28): hidden CS8607: Expression is probably never null.
+                //         IOut<object?> w3 = y ?? x;
+                Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "y").WithLocation(19, 28));
         }
 
         [Fact]
@@ -1476,9 +1476,9 @@ class C
     static void F1(object? x, dynamic? y, dynamic z)
     {
         (x ?? y).ToString();
-        (x ?? z).ToString();
+        (x ?? z).ToString(); // ok
         (y ?? x).ToString();
-        (y ?? z).ToString();
+        (y ?? z).ToString(); // ok
         (z ?? x).ToString();
         (z ?? y).ToString();
     }

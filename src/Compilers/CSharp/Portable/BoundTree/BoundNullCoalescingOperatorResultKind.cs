@@ -2,6 +2,10 @@
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
+    /// <summary>
+    /// Represents the operand type used for the result of a null-coalescing
+    /// operator. Used when determining nullability.
+    /// </summary>
     internal enum BoundNullCoalescingOperatorResultKind
     {
         NoCommonType,
