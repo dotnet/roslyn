@@ -692,6 +692,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Error(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, node);
             }
+
             return base.VisitTupleBinaryOperator(node);
         }
 

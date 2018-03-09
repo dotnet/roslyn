@@ -203,12 +203,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             left = GiveTupleTypeToDefaultLiteralIfNeeded(left, right.Type);
             right = GiveTupleTypeToDefaultLiteralIfNeeded(right, left.Type);
 
-            if ((left.Type is null && left.Kind != BoundKind.TupleLiteral) ||
-                (right.Type is null && right.Kind != BoundKind.TupleLiteral))
+            if ((left.Type is null && left.IsLiteralDefault()) ||
+                (right.Type is null && right.IsLiteralDefault()))
             {
                 Error(diagnostics, ErrorCode.ERR_AmbigBinaryOps, node, node.OperatorToken.Text, left.Display, right.Display);
                 return new TupleBinaryOperatorInfo.Multiple(ImmutableArray<TupleBinaryOperatorInfo>.Empty, left.Type, right.Type);
             }
+
+            // Aside from default (which we fixed or ruled out above) and tuple literals,
+            // we must have typed expressions at this point
+            Debug.Assert(left.Type != null || left.Kind == BoundKind.TupleLiteral);
+            Debug.Assert(right.Type != null || right.Kind == BoundKind.TupleLiteral);
 
             int leftCardinality = GetTupleCardinality(left);
             int rightCardinality = GetTupleCardinality(right);
@@ -218,10 +223,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Error(diagnostics, ErrorCode.ERR_TupleSizesMismatchForBinOps, node, leftCardinality, rightCardinality);
                 return new TupleBinaryOperatorInfo.Multiple(ImmutableArray<TupleBinaryOperatorInfo>.Empty, leftConvertedTypeOpt: null, rightConvertedTypeOpt: null);
             }
-
-            // typeless tuple literals are not nullable
-            bool leftNullable = left.Type?.IsNullableType() == true;
-            bool rightNullable = right.Type?.IsNullableType() == true;
 
             ImmutableArray<BoundExpression> leftParts = GetTupleArgumentsOrPlaceholders(left);
             ImmutableArray<BoundExpression> rightParts = GetTupleArgumentsOrPlaceholders(right);
@@ -238,7 +239,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var compilation = this.Compilation;
             var operators = operatorsBuilder.ToImmutableAndFree();
+
+            // typeless tuple literals are not nullable
+            bool leftNullable = left.Type?.IsNullableType() == true;
+            bool rightNullable = right.Type?.IsNullableType() == true;
             bool isNullable = leftNullable || rightNullable;
+
             TypeSymbol leftTupleType = MakeConvertedType(operators.SelectAsArray(o => o.LeftConvertedTypeOpt), node.Left, leftParts, isNullable, compilation, diagnostics);
             TypeSymbol rightTupleType = MakeConvertedType(operators.SelectAsArray(o => o.RightConvertedTypeOpt), node.Right, rightParts, isNullable, compilation, diagnostics);
 
