@@ -493,43 +493,45 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 var count = extensionUsedAsInstance ? Math.Max(0, method.Parameters.Length - 1) : method.Parameters.Length;
                 var skip = extensionUsedAsInstance ? 1 : 0;
 
-                // Convert the symbol to Func<...> or Action<...>
-                if (method.ReturnsVoid)
-                {
-                    // Action<TArg1, ..., TArgN>
-                    var actionName = "System.Action" + (count > 0 ? $"`{count}" : "");
-                    var actionType = compilation.GetTypeByMetadataName(actionName);
+                string WithArity(string typeName, int arity) => arity > 0 ? typeName + '`' + arity : typeName;
 
-                    if (actionType != null)
+                var delegateTypeName = method.ReturnsVoid
+                    ? WithArity("System.Action", count)
+                    : WithArity("System.Func", count + 1);
+                var delegateType = compilation.GetTypeByMetadataName(delegateTypeName);
+
+                if (delegateType != null)
+                {
+                    ITypeSymbol[] types;
+
+                    // Convert the symbol to Func<...> or Action<...>
+                    if (method.ReturnsVoid)
                     {
-                        var types = method.Parameters
+                        // Action<TArg1, ..., TArgN>
+
+                        types = method.Parameters
                             .Skip(skip)
                             .Select(p =>
                                 p.Type == null ?
                                 compilation.GetSpecialType(SpecialType.System_Object) :
                                 p.Type)
                             .ToArray();
-                        return types.Length > 0 ? actionType.Construct(types) : actionType;
                     }
-                }
-                else
-                {
-                    // Func<TArg1,...,TArgN,TReturn>
-                    //
-                    // +1 for the return type.
-                    var functionName = "System.Func`" + (count + 1);
-                    var functionType = compilation.GetTypeByMetadataName(functionName);
-
-                    if (functionType != null)
+                    else
                     {
-                        var types = method.Parameters
+                        // Func<TArg1,...,TArgN,TReturn>
+                        //
+                        // +1 for the return type.
+
+                        types = method.Parameters
                             .Skip(skip)
                             .Select(p => p.Type)
                             .Concat(method.ReturnType)
                             .Select(t => t ?? compilation.GetSpecialType(SpecialType.System_Object))
                             .ToArray();
-                        return functionType.Construct(types);
                     }
+
+                    return types.Length > 0 ? delegateType.Construct(types) : delegateType;
                 }
             }
 
