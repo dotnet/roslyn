@@ -44,6 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.UseExplicitType
             var optionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
 
             var declaration = GetDeclaration(root, textSpan);
+            if (declaration == null)
+            {
+                return;
+            }
+
             Debug.Assert(declaration.IsKind(SyntaxKind.VariableDeclaration, SyntaxKind.ForEachStatement, SyntaxKind.DeclarationExpression));
 
             var declaredType = s_useExplicitTypeHelper.FindAnalyzableType(declaration, semanticModel, cancellationToken);

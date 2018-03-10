@@ -90,6 +90,23 @@ class C
         }
 
         [Fact]
+        public async Task TestInVarPattern()
+        {
+            var code = @"
+class C
+{
+    static void Main()
+    {
+        _ = 0 is var[||] i;
+    }
+}";
+
+            await TestMissingInRegularAndScriptAsync(code, PreferImplicitTypeWithNone());
+            await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithNone());
+            await TestMissingInRegularAndScriptAsync(code, PreferExplicitTypeWithInfo());
+        }
+
+        [Fact]
         public async Task TestIntLocalDeclaration_Multiple()
         {
             var code = @"
