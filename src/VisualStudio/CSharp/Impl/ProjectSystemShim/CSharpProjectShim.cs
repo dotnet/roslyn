@@ -297,8 +297,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         EnvDTE.FileCodeModel ICodeModelInstanceFactory.TryCreateFileCodeModelThroughProjectSystem(string filePath)
         {
-            var iid = VSConstants.IID_IUnknown;
-            return _projectRoot.CreateFileCodeModel(filePath, ref iid) as EnvDTE.FileCodeModel;
+            if (_projectRoot.CanCreateFileCodeModel(filePath))
+            {
+                var iid = VSConstants.IID_IUnknown;
+                return _projectRoot.CreateFileCodeModel(filePath, ref iid) as EnvDTE.FileCodeModel;
+            }
+            else
+            {
+                return null;
+            }
         }
     }
 }
