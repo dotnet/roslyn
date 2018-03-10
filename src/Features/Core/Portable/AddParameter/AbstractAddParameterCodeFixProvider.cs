@@ -194,9 +194,16 @@ namespace Microsoft.CodeAnalysis.AddParameter
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
         {
+            var codeActions = CreateCodeActions(context.Document, arguments, methodsAndArgumentsToAdd);
+            context.RegisterFixes(codeActions, context.Diagnostics);
+        }
+
+        private ImmutableArray<CodeAction> CreateCodeActions(Document document, SeparatedSyntaxList<TArgumentSyntax> arguments, ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
+        {
             // Order by the furthest argument index to the nearest argument index.  The ones with
             // larger argument indexes mean that we matched more earlier arguments (and thus are
             // likely to be the correct match).
+            var builder = ImmutableArray.CreateBuilder<CodeAction>(methodsAndArgumentsToAdd.Length);
             foreach (var argumentInsertPositionData in methodsAndArgumentsToAdd.OrderByDescending(t => t.ArgumentInsertionIndex))
             {
                 var methodToUpdate = argumentInsertPositionData.MethodToUpdate;
@@ -206,7 +213,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var title = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, methodToUpdate, parameters);
                 var hasCascadingDeclarations = HasCascadingDeclarations(methodToUpdate);
                 CodeAction codeAction = new MyCodeAction(title,
-                    c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, c));
+                    c => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, c));
                 if (hasCascadingDeclarations)
                 {
                     // Offer another alternative code action. Wrap both options so the IDE can collapse them.
@@ -218,11 +225,13 @@ namespace Microsoft.CodeAnalysis.AddParameter
                         nestedActions: ImmutableArray.Create<CodeAction>(
                             codeAction,
                             new MyCodeAction(titleForCascadingFix,
-                                c => FixAsync(context.Document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, c))));
+                                c => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, c))));
                 }
 
-                context.RegisterCodeFix(codeAction, context.Diagnostics);
+                builder.Add(codeAction);
             }
+
+            return builder.ToImmutable();
         }
 
         /// <summary>
