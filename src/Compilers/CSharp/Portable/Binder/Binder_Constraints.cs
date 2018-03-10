@@ -147,7 +147,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 if (constraints != 0 || constraintTypes.Any())
                                 {
-                                    // TODO: VS first
                                     diagnostics.Add(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, typeSyntax.GetLocation());
                                     continue;
                                 }
