@@ -147,7 +147,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 if (constraints != 0 || constraintTypes.Any())
                                 {
-                                    diagnostics.Add(ErrorCode.ERR_UnmanagedConstraintMustBeAlone, typeSyntax.GetLocation());
+                                    // TODO: VS first
+                                    diagnostics.Add(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, typeSyntax.GetLocation());
                                     continue;
                                 }
 
@@ -176,12 +177,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     continue;
                                 }
 
-                                if ((constraints & TypeParameterConstraintKind.Unmanaged) != 0)
-                                {
-                                    diagnostics.Add(ErrorCode.ERR_UnmanagedConstraintMustBeAlone, typeSyntax.GetLocation());
-                                    continue;
-                                }
-
                                 if (type.TypeKind == TypeKind.Class)
                                 {
                                     // If there is already a struct or class constraint (class constraint could be
@@ -195,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         continue;
                                     }
 
-                                    if ((constraints & (TypeParameterConstraintKind.ReferenceType | TypeParameterConstraintKind.ValueType)) != 0)
+                                    if ((constraints & (TypeParameterConstraintKind.ReferenceType)) != 0)
                                     {
                                         switch (type.SpecialType)
                                         {
@@ -208,6 +203,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                 // "'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint"
                                                 Error(diagnostics, ErrorCode.ERR_RefValBoundWithClass, syntax, type);
                                                 continue;
+                                        }
+                                    }
+                                    else if (type.SpecialType != SpecialType.System_Enum)
+                                    {
+                                        if ((constraints & TypeParameterConstraintKind.ValueType) != 0)
+                                        {
+                                            // "'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint"
+                                            Error(diagnostics, ErrorCode.ERR_RefValBoundWithClass, syntax, type);
+                                            continue;
+                                        }
+                                        else if ((constraints & TypeParameterConstraintKind.ValueType) != 0)
+                                        {
+                                            // "'{0}': cannot specify both a constraint class and the 'unmanaged' constraint"
+                                            Error(diagnostics, ErrorCode.ERR_UnmanagedBoundWithClass, syntax, type);
+                                            continue;
                                         }
                                     }
                                 }

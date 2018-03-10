@@ -66,9 +66,15 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (9,13): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M2<T>()'. There is no boxing conversion from 'int' to '?'.
+                //         obj.M2<int>();      // invalid
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "M2<int>").WithArguments("TestRef.M2<T>()", "?", "T", "int").WithLocation(9, 13),
                 // (9,13): error CS0570: 'T' is not supported by the language
                 //         obj.M2<int>();      // invalid
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M2<int>").WithArguments("T").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M2<int>").WithArguments("T").WithLocation(9, 13),
+                // (9,13): error CS0648: '' is a type not supported by the language
+                //         obj.M2<int>();      // invalid
+                Diagnostic(ErrorCode.ERR_BogusType, "M2<int>").WithArguments("").WithLocation(9, 13)
                 );
         }
 
@@ -129,9 +135,15 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (9,13): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M2<T>()'. There is no boxing conversion from 'int' to '?'.
+                //         obj.M2<int>();      // invalid
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "M2<int>").WithArguments("TestRef.M2<T>()", "?", "T", "int").WithLocation(9, 13),
                 // (9,13): error CS0570: 'T' is not supported by the language
                 //         obj.M2<int>();      // invalid
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M2<int>").WithArguments("T").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M2<int>").WithArguments("T").WithLocation(9, 13),
+                // (9,13): error CS0648: '' is a type not supported by the language
+                //         obj.M2<int>();      // invalid
+                Diagnostic(ErrorCode.ERR_BogusType, "M2<int>").WithArguments("").WithLocation(9, 13)
                 );
         }
 
@@ -941,13 +953,20 @@ public class Test
     public static void Main()
     {
         new TestRef().M<int>();
+        new TestRef().M<string>();
     }
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (6,23): error CS0570: 'T' is not supported by the language
+                // (6,23): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'TestRef.M<T>()'
                 //         new TestRef().M<int>();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M<int>").WithArguments("T").WithLocation(6, 23)
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "M<int>").WithArguments("TestRef.M<T>()", "T", "int").WithLocation(6, 23),
+                // (7,23): error CS0311: The type 'string' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M<T>()'. There is no implicit reference conversion from 'string' to 'System.ValueType'.
+                //         new TestRef().M<string>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M<string>").WithArguments("TestRef.M<T>()", "System.ValueType", "T", "string").WithLocation(7, 23),
+                // (7,23): error CS0570: 'T' is not supported by the language
+                //         new TestRef().M<string>();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M<string>").WithArguments("T").WithLocation(7, 23)
                 );
         }
 
@@ -1038,14 +1057,20 @@ public class Test
 {
     public static void Main()
     {
+        // OK
         new TestRef().M<int>();
+
+        // Not IComparable
+        new TestRef().M<S1>();
     }
+
+    struct S1{}
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (6,23): error CS0570: 'T' is not supported by the language
-                //         new TestRef().M<int>();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M<int>").WithArguments("T").WithLocation(6, 23)
+                // (10,23): error CS0315: The type 'Test.S1' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M<T>()'. There is no boxing conversion from 'Test.S1' to 'System.IComparable'.
+                //         new TestRef().M<S1>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "M<S1>").WithArguments("TestRef.M<T>()", "System.IComparable", "T", "Test.S1").WithLocation(10, 23)
                 );
         }
 

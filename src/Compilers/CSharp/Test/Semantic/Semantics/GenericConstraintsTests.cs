@@ -667,9 +667,10 @@ public class Test2
 public class Test<T> where T : struct, System.Delegate
 {
 }").VerifyDiagnostics(
-                // (2,19): error CS0455: Type parameter 'T' inherits conflicting constraints 'Delegate' and 'ValueType'
+                // (2,40): error CS0450: 'Delegate': cannot specify both a constraint class and the 'class' or 'struct' constraint
                 // public class Test<T> where T : struct, System.Delegate
-                Diagnostic(ErrorCode.ERR_BaseConstraintConflict, "T").WithArguments("T", "System.Delegate", "System.ValueType").WithLocation(2, 19));
+                Diagnostic(ErrorCode.ERR_RefValBoundWithClass, "System.Delegate").WithArguments("System.Delegate").WithLocation(2, 40)
+            );
         }
 
         [Fact]
@@ -864,16 +865,17 @@ public class Test2
         {
             var compilation = CreateCompilation("public class Test<T> where T : struct, System.Delegate { }")
                     .VerifyDiagnostics(
-                // (1,19): error CS0455: Type parameter 'T' inherits conflicting constraints 'Delegate' and 'ValueType'
-                // public class Test<T> where T : struct, System.Delegate { }
-                Diagnostic(ErrorCode.ERR_BaseConstraintConflict, "T").WithArguments("T", "System.Delegate", "System.ValueType").WithLocation(1, 19));
+                        // (1,40): error CS0450: 'Delegate': cannot specify both a constraint class and the 'class' or 'struct' constraint
+                        // public class Test<T> where T : struct, System.Delegate { }
+                        Diagnostic(ErrorCode.ERR_RefValBoundWithClass, "System.Delegate").WithArguments("System.Delegate").WithLocation(1, 40)
+                    );
 
             var typeParameter = compilation.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
 
             Assert.True(typeParameter.HasValueTypeConstraint);
             Assert.False(typeParameter.HasReferenceTypeConstraint);
             Assert.False(typeParameter.HasConstructorConstraint);
-            Assert.Equal(SpecialType.System_Delegate, typeParameter.ConstraintTypes().Single().SpecialType);
+            Assert.Empty(typeParameter.ConstraintTypes());
         }
 
         [Fact]
@@ -1126,9 +1128,10 @@ public class Test2
 public class Test<T> where T : struct, System.MulticastDelegate
 {
 }").VerifyDiagnostics(
-                // (2,19): error CS0455: Type parameter 'T' inherits conflicting constraints 'MulticastDelegate' and 'ValueType'
+                // (2,40): error CS0450: 'MulticastDelegate': cannot specify both a constraint class and the 'class' or 'struct' constraint
                 // public class Test<T> where T : struct, System.MulticastDelegate
-                Diagnostic(ErrorCode.ERR_BaseConstraintConflict, "T").WithArguments("T", "System.MulticastDelegate", "System.ValueType").WithLocation(2, 19));
+                Diagnostic(ErrorCode.ERR_RefValBoundWithClass, "System.MulticastDelegate").WithArguments("System.MulticastDelegate").WithLocation(2, 40)
+            );
         }
 
         [Fact]
@@ -1326,16 +1329,17 @@ public class Test2
         {
             var compilation = CreateCompilation("public class Test<T> where T : struct, System.MulticastDelegate { }")
                     .VerifyDiagnostics(
-                // (1,19): error CS0455: Type parameter 'T' inherits conflicting constraints 'MulticastDelegate' and 'ValueType'
-                // public class Test<T> where T : struct, System.MulticastDelegate { }
-                Diagnostic(ErrorCode.ERR_BaseConstraintConflict, "T").WithArguments("T", "System.MulticastDelegate", "System.ValueType").WithLocation(1, 19));
+                        // (1,40): error CS0450: 'MulticastDelegate': cannot specify both a constraint class and the 'class' or 'struct' constraint
+                        // public class Test<T> where T : struct, System.MulticastDelegate { }
+                        Diagnostic(ErrorCode.ERR_RefValBoundWithClass, "System.MulticastDelegate").WithArguments("System.MulticastDelegate").WithLocation(1, 40)
+                     );
 
             var typeParameter = compilation.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
 
             Assert.True(typeParameter.HasValueTypeConstraint);
             Assert.False(typeParameter.HasReferenceTypeConstraint);
             Assert.False(typeParameter.HasConstructorConstraint);
-            Assert.Equal(SpecialType.System_MulticastDelegate, typeParameter.ConstraintTypes().Single().SpecialType);
+            Assert.Empty(typeParameter.ConstraintTypes());
         }
 
         [Fact]
@@ -1663,18 +1667,18 @@ public abstract class Test2<U, W> where U : unmanaged
         public void UnmanagedConstraint_Compilation_ReferenceType()
         {
             CreateCompilation("public class Test<T> where T : class, unmanaged {}").VerifyDiagnostics(
-                // (1,39): error CS8374: The 'unmanaged' constraint cannot be specified with other constraints.
+                // (1,39): error CS8374: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T> where T : class, unmanaged {}
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeAlone, "unmanaged").WithLocation(1, 39));
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 39));
         }
 
         [Fact]
         public void UnmanagedConstraint_Compilation_ValueType()
         {
             CreateCompilation("public class Test<T> where T : struct, unmanaged {}").VerifyDiagnostics(
-                // (1,40): error CS8374: The 'unmanaged' constraint cannot be specified with other constraints.
+                // (1,40): error CS8374: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T> where T : struct, unmanaged {}
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeAlone, "unmanaged").WithLocation(1, 40));
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 40));
         }
 
         [Fact]
@@ -1690,36 +1694,47 @@ public abstract class Test2<U, W> where U : unmanaged
         public void UnmanagedConstraint_Compilation_AnotherType_Before()
         {
             CreateCompilation("public class Test<T> where T : unmanaged, System.Exception { }").VerifyDiagnostics(
-                // (1,43): error CS8374: The 'unmanaged' constraint cannot be specified with other constraints.
+                // (1,19): error CS0455: Type parameter 'T' inherits conflicting constraints 'Exception' and 'ValueType'
                 // public class Test<T> where T : unmanaged, System.Exception { }
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeAlone, "System.Exception").WithLocation(1, 43));
+                Diagnostic(ErrorCode.ERR_BaseConstraintConflict, "T").WithArguments("T", "System.Exception", "System.ValueType").WithLocation(1, 19)
+            );
+        }
+
+        [Fact]
+        public void UnmanagedConstraint_Compilation_AnotherType_Before1()
+        {
+            CreateCompilation("public class Test<T> where T : unmanaged, System.Enum { }").VerifyDiagnostics();
+
+            CreateCompilation("public class Test<T> where T : unmanaged, System.Delegate { }").VerifyDiagnostics(
+                // (1,19): error CS0455: Type parameter 'T' inherits conflicting constraints 'Delegate' and 'ValueType'
+                // public class Test<T> where T : unmanaged, System.Delegate { }
+                Diagnostic(ErrorCode.ERR_BaseConstraintConflict, "T").WithArguments("T", "System.Delegate", "System.ValueType").WithLocation(1, 19)
+                );
         }
 
         [Fact]
         public void UnmanagedConstraint_Compilation_AnotherType_After()
         {
             CreateCompilation("public class Test<T> where T : System.Exception, unmanaged { }").VerifyDiagnostics(
-                // (1,50): error CS8374: The 'unmanaged' constraint cannot be specified with other constraints.
+                // (1,50): error CS8374: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T> where T : System.Exception, unmanaged { }
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeAlone, "unmanaged").WithLocation(1, 50));
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 50));
         }
 
         [Fact]
         public void UnmanagedConstraint_Compilation_AnotherParameter_After()
         {
             CreateCompilation("public class Test<T, U> where T : U, unmanaged { }").VerifyDiagnostics(
-                // (1,38): error CS8374: The 'unmanaged' constraint cannot be specified with other constraints.
+                // (1,38): error CS8374: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T, U> where T : U, unmanaged { }
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeAlone, "unmanaged").WithLocation(1, 38));
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 38));
         }
 
         [Fact]
         public void UnmanagedConstraint_Compilation_AnotherParameter_Before()
         {
-            CreateCompilation("public class Test<T, U> where T : unmanaged, U { }").VerifyDiagnostics(
-                // (1,46): error CS8374: The 'unmanaged' constraint cannot be specified with other constraints.
-                // public class Test<T, U> where T : unmanaged, U { }
-                Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeAlone, "U").WithLocation(1, 46));
+            CreateCompilation("public class Test<T, U> where T : unmanaged, U { }").VerifyDiagnostics();
+            CreateCompilation("public class Test<T, U> where U: class where T : unmanaged, U, System.IDisposable { }").VerifyDiagnostics();
         }
 
         [Fact]
@@ -2025,6 +2040,153 @@ public class B : A
         }
 
         [Fact]
+        public void UnmanagedConstraint_StructMismatchInImplements()
+        {
+            CreateCompilation(@"
+public interface I1<in T> where T : unmanaged
+{
+    void Test<G>(G x) where G : unmanaged;
+}
+
+public class C2<T> : I1<T> where T : struct
+{
+    public void Test<G>(G x) where G : struct
+    {
+        I1<T> i = this;
+        i.Test(default(System.ArraySegment<int>));
+    }
+}
+").VerifyDiagnostics(
+                // (7,14): error CS8375: The type 'T' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'I1<T>'
+                // public class C2<T> : I1<T> where T : struct
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "C2").WithArguments("I1<T>", "T", "T").WithLocation(7, 14),
+                // (9,17): error CS0425: The constraints for type parameter 'G' of method 'C2<T>.Test<G>(G)' must match the constraints for type parameter 'G' of interface method 'I1<T>.Test<G>(G)'. Consider using an explicit interface implementation instead.
+                //     public void Test<G>(G x) where G : struct
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "Test").WithArguments("G", "C2<T>.Test<G>(G)", "G", "I1<T>.Test<G>(G)").WithLocation(9, 17),
+                // (11,12): error CS8375: The type 'T' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'T' in the generic type or method 'I1<T>'
+                //         I1<T> i = this;
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "T").WithArguments("I1<T>", "T", "T").WithLocation(11, 12),
+                // (12,11): error CS8375: The type 'ArraySegment<int>' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter 'G' in the generic type or method 'I1<T>.Test<G>(G)'
+                //         i.Test(default(System.ArraySegment<int>));
+                Diagnostic(ErrorCode.ERR_UnmanagedConstraintNotSatisfied, "Test").WithArguments("I1<T>.Test<G>(G)", "G", "System.ArraySegment<int>").WithLocation(12, 11)
+                );
+        }
+
+        [Fact]
+        public void UnmanagedConstraint_TypeMismatchInImplements()
+        {
+            CreateCompilation(@"
+public interface I1<in T> where T : unmanaged, System.IDisposable
+{
+    void Test<G>(G x) where G : unmanaged, System.Enum;
+}
+
+public class C2<T> : I1<T> where T : unmanaged
+{
+    public void Test<G>(G x) where G : unmanaged
+    {
+        I1<T> i = this;
+        i.Test(default(System.AttributeTargets)); // <-- this one is OK
+        i.Test(0);
+    }
+}
+").VerifyDiagnostics(
+                // (7,14): error CS0314: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'I1<T>'. There is no boxing conversion or type parameter conversion from 'T' to 'System.IDisposable'.
+                // public class C2<T> : I1<T> where T : unmanaged
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "C2").WithArguments("I1<T>", "System.IDisposable", "T", "T").WithLocation(7, 14),
+                // (9,17): error CS0425: The constraints for type parameter 'G' of method 'C2<T>.Test<G>(G)' must match the constraints for type parameter 'G' of interface method 'I1<T>.Test<G>(G)'. Consider using an explicit interface implementation instead.
+                //     public void Test<G>(G x) where G : unmanaged
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "Test").WithArguments("G", "C2<T>.Test<G>(G)", "G", "I1<T>.Test<G>(G)").WithLocation(9, 17),
+                // (11,12): error CS0314: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'I1<T>'. There is no boxing conversion or type parameter conversion from 'T' to 'System.IDisposable'.
+                //         I1<T> i = this;
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "T").WithArguments("I1<T>", "System.IDisposable", "T", "T").WithLocation(11, 12),
+                // (13,11): error CS0315: The type 'int' cannot be used as type parameter 'G' in the generic type or method 'I1<T>.Test<G>(G)'. There is no boxing conversion from 'int' to 'System.Enum'.
+                //         i.Test(0);
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "Test").WithArguments("I1<T>.Test<G>(G)", "System.Enum", "G", "int").WithLocation(13, 11)
+                );
+        }
+
+        [Fact]
+        public void UnmanagedConstraint_TypeMismatchInImplementsMeta()
+        {
+            var reference = CreateCompilation(@"
+public interface I1<in T> where T : unmanaged, System.IDisposable
+{
+    void Test<G>(G x) where G : unmanaged, System.Enum;
+}
+").EmitToImageReference();
+
+            CreateCompilation(@"
+public class C2<T> : I1<T> where T : unmanaged
+{
+    public void Test<G>(G x) where G : unmanaged
+    {
+        I1<T> i = this;
+        i.Test(default(System.AttributeTargets)); // <-- this one is OK
+        i.Test(0);
+    }
+}", references: new[] { reference }).VerifyDiagnostics(
+                // (2,14): error CS0314: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'I1<T>'. There is no boxing conversion or type parameter conversion from 'T' to 'System.IDisposable'.
+                // public class C2<T> : I1<T> where T : unmanaged
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "C2").WithArguments("I1<T>", "System.IDisposable", "T", "T").WithLocation(2, 14),
+                // (4,17): error CS0425: The constraints for type parameter 'G' of method 'C2<T>.Test<G>(G)' must match the constraints for type parameter 'G' of interface method 'I1<T>.Test<G>(G)'. Consider using an explicit interface implementation instead.
+                //     public void Test<G>(G x) where G : unmanaged
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "Test").WithArguments("G", "C2<T>.Test<G>(G)", "G", "I1<T>.Test<G>(G)").WithLocation(4, 17),
+                // (6,12): error CS0314: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'I1<T>'. There is no boxing conversion or type parameter conversion from 'T' to 'System.IDisposable'.
+                //         I1<T> i = this;
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedTyVar, "T").WithArguments("I1<T>", "System.IDisposable", "T", "T").WithLocation(6, 12),
+                // (8,11): error CS0315: The type 'int' cannot be used as type parameter 'G' in the generic type or method 'I1<T>.Test<G>(G)'. There is no boxing conversion from 'int' to 'System.Enum'.
+                //         i.Test(0);
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "Test").WithArguments("I1<T>.Test<G>(G)", "System.Enum", "G", "int").WithLocation(8, 11)
+                );
+        }
+
+        [Fact]
+        public void UnmanagedConstraint_TypeMismatchInImplementsMeta2()
+        {
+            var reference = CreateCompilation(@"
+    public interface I1
+    {
+        void Test<G>(ref G x) where G : unmanaged, System.IDisposable;
+    }
+").EmitToImageReference();
+
+            var reference1 = CreateCompilation(@"
+public class C1 : I1
+{
+    void I1.Test<G>(ref G x)
+    {
+        x.Dispose();
+    }
+}", references: new[] { reference }).EmitToImageReference(); ;
+
+        CompileAndVerify(@"
+struct S : System.IDisposable
+{
+    public int a;
+
+    public void Dispose()
+    {
+        a += 123;
+    }
+}
+
+class Test
+{
+    static void Main()
+    {
+        S local = default;
+        I1 i = new C1();
+        i.Test(ref local);
+        System.Console.WriteLine(local.a);
+    }
+}",
+
+            // NOTE: must pass verification (IDisposable constraint is copied over to the implementing method) 
+            options: TestOptions.UnsafeReleaseExe, references: new[] { reference, reference1 }, verify: Verification.Passes, expectedOutput: "123");
+        }
+
+        [Fact]
         public void UnmanagedConstraint_EnforcedInInheritanceChain_Upwards_Reference()
         {
             var reference = CreateCompilation(@"
@@ -2124,6 +2286,59 @@ unsafe class Test
   IL_0027:  mul.ovf.un
   IL_0028:  localloc
   IL_002a:  ret
+}");
+        }
+
+        [Fact]
+        public void UnmanagedConstraints_InterfaceMethod()
+        {
+            CompileAndVerify(@"
+struct S : System.IDisposable
+{
+    public int a;
+
+    public void Dispose()
+    {
+        a += 123;
+    }
+}
+unsafe class Test
+{
+    static void M<T>(ref T arg) where T : unmanaged, System.IDisposable
+    {
+        arg.Dispose();
+
+        fixed(T* ptr = &arg)
+        {
+            ptr->Dispose();
+        }
+    }
+
+    static void Main()
+    {
+        S local = default;
+        M(ref local);
+        System.Console.WriteLine(local.a);
+    }
+}",
+    options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: "246").VerifyIL("Test.M<T>", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  1
+  .locals init (pinned T& V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  constrained. ""T""
+  IL_0007:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_000c:  ldarg.0
+  IL_000d:  stloc.0
+  IL_000e:  ldloc.0
+  IL_000f:  conv.u
+  IL_0010:  constrained. ""T""
+  IL_0016:  callvirt   ""void System.IDisposable.Dispose()""
+  IL_001b:  ldc.i4.0
+  IL_001c:  conv.u
+  IL_001d:  stloc.0
+  IL_001e:  ret
 }");
         }
 
