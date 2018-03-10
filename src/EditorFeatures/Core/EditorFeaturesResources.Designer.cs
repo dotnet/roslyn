@@ -297,6 +297,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Block Comment Editing.
+        /// </summary>
+        internal static string Block_Comment_Editing {
+            get {
+                return ResourceManager.GetString("Block_Comment_Editing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Brace Completion.
         /// </summary>
         internal static string Brace_Completion {
@@ -468,11 +477,29 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Code Completion.
+        /// </summary>
+        internal static string Code_Completion {
+            get {
+                return ResourceManager.GetString("Code_Completion", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Comment Selection.
         /// </summary>
         internal static string Comment_Selection {
             get {
                 return ResourceManager.GetString("Comment_Selection", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Comment/Uncomment Selection.
+        /// </summary>
+        internal static string Comment_Uncomment_Selection {
+            get {
+                return ResourceManager.GetString("Comment_Uncomment_Selection", resourceCulture);
             }
         }
         
@@ -608,6 +635,24 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Engine_must_be_attached_to_an_Interactive_Window {
             get {
                 return ResourceManager.GetString("Engine_must_be_attached_to_an_Interactive_Window", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Execute In Interactive.
+        /// </summary>
+        internal static string Execute_In_Interactive {
+            get {
+                return ResourceManager.GetString("Execute_In_Interactive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Extract Interface.
+        /// </summary>
+        internal static string Extract_Interface {
+            get {
+                return ResourceManager.GetString("Extract_Interface", resourceCulture);
             }
         }
         
@@ -797,6 +842,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Given_Workspace_doesn_t_support_Undo {
             get {
                 return ResourceManager.GetString("Given_Workspace_doesn_t_support_Undo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Go To Adjacent Member.
+        /// </summary>
+        internal static string Go_To_Adjacent_Member {
+            get {
+                return ResourceManager.GetString("Go_To_Adjacent_Member", resourceCulture);
             }
         }
         
@@ -1017,6 +1071,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Interactive.
+        /// </summary>
+        internal static string Interactive {
+            get {
+                return ResourceManager.GetString("Interactive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Interface Parts.
         /// </summary>
         internal static string Interface_Parts {
@@ -1058,6 +1121,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Modify_any_highlighted_location_to_begin_renaming {
             get {
                 return ResourceManager.GetString("Modify_any_highlighted_location_to_begin_renaming", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Navigate To Highlighted Reference.
+        /// </summary>
+        internal static string Navigate_To_Highlight_Reference {
+            get {
+                return ResourceManager.GetString("Navigate_To_Highlight_Reference", resourceCulture);
             }
         }
         
@@ -1170,6 +1242,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Outlining.
+        /// </summary>
+        internal static string Outlining {
+            get {
+                return ResourceManager.GetString("Outlining", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Overridden By.
         /// </summary>
         internal static string Overridden_By {
@@ -1193,6 +1274,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         internal static string Paste {
             get {
                 return ResourceManager.GetString("Paste", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Paste in Interactive.
+        /// </summary>
+        internal static string Paste_in_Interactive {
+            get {
+                return ResourceManager.GetString("Paste_in_Interactive", resourceCulture);
             }
         }
         
@@ -1432,6 +1522,15 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Rename Tracking Cancellation.
+        /// </summary>
+        internal static string Rename_Tracking_Cancellation {
+            get {
+                return ResourceManager.GetString("Rename_Tracking_Cancellation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Rename will update {0} references in 1 file..
         /// </summary>
         internal static string Rename_will_update_0_references_in_1_file {
@@ -1486,11 +1585,29 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Signature Help.
+        /// </summary>
+        internal static string Signature_Help {
+            get {
+                return ResourceManager.GetString("Signature_Help", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Smart Indenting.
         /// </summary>
         internal static string Smart_Indenting {
             get {
                 return ResourceManager.GetString("Smart_Indenting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Smart Token Formatter.
+        /// </summary>
+        internal static string Smart_Token_Formatter {
+            get {
+                return ResourceManager.GetString("Smart_Token_Formatter", resourceCulture);
             }
         }
         

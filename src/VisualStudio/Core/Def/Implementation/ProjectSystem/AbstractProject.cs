@@ -1200,8 +1200,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     if (_projectsReferencingMe.Count > 0)
                     {
-                        FatalError.ReportWithoutCrash(new Exception("We still have projects referencing us. That's not expected."));
-
+                        // We shouldn't be able to get here, but for reasons we don't entirely
+                        // understand we sometimes do. We've long assumed that by the time a project is
+                        // disconnected, all references to that project have been removed. However, it
+                        // appears that this isn't always true when closing a solution (which includes
+                        // reloading the solution, or opening a different solution) or when reloading a
+                        // project that has changed on disk, or when deleting a project from a
+                        // solution.
+                        
                         // Clear just so we don't cause a leak
                         _projectsReferencingMe.Clear();
                     }

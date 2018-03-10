@@ -692,6 +692,11 @@
         <target state="translated">Ad ö_nerilerini göster</target>
         <note />
       </trans-unit>
+      <trans-unit id="Generate Event Subscription">
+        <source>Generate Event Subscription</source>
+        <target state="new">Generate Event Subscription</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
