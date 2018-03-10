@@ -65,6 +65,8 @@ class C
             var rxSymbol = Assert.IsAssignableFrom<ILocalSymbol>(rxInfo.Symbol);
             Assert.True(rxSymbol.IsRef);
             Assert.Equal(RefKind.RefReadOnly, rxSymbol.RefKind);
+            var rxDecl = root.DescendantNodes().OfType<ForStatementSyntax>().Single().Declaration;
+            Assert.Equal(model.GetDeclaredSymbol(rxDecl.Variables.Single()), rxSymbol);
         }
 
         [Fact]
@@ -95,6 +97,8 @@ class C
             var rxSymbol = Assert.IsAssignableFrom<ILocalSymbol>(rxInfo.Symbol);
             Assert.True(rxSymbol.IsRef);
             Assert.Equal(RefKind.RefReadOnly, rxSymbol.RefKind);
+            var rxDecl = root.DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            Assert.Equal(model.GetDeclaredSymbol(rxDecl), rxSymbol);
         }
 
         [Fact]
