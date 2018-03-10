@@ -34,7 +34,7 @@
 
     <DisableTransitiveProjectReferences Condition="'$(RoslynProjectType)' == 'Vsix'">true</DisableTransitiveProjectReferences>
 
-    <!-- Disable the message indicating we are using a preview SDK. That is understood and be design 
+    <!-- Disable the message indicating we are using a preview SDK. That is understood and by design 
          https://github.com/dotnet/sdk/issues/2033 -->
     <_NETCoreSdkIsPreview>false</_NETCoreSdkIsPreview>
   </PropertyGroup>
