@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -3216,8 +3217,58 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SyntaxNode newActiveStatement,
             bool isLeaf)
         {
+            ReportRudeEditsForUnsupportedCSharpFeatures(diagnostics, match);
             ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement, isLeaf);
             ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isLeaf);
+        }
+
+        /// <summary>
+        /// If either trees (after or before the edit) contain unsupported C# features around the active statement, report it.
+        /// This method should remain even when EnC is updated to support all current C# features. It will be useful when new (yet unsupported) features are added.
+        /// </summary>
+        private void ReportRudeEditsForUnsupportedCSharpFeatures(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match)
+        {
+            SyntaxNode foundUnsupportedCSharpSyntax = match.NewRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharpEnCNode(n));
+            if (foundUnsupportedCSharpSyntax != null)
+            {
+                AddRudeUpdateAroundActiveStatement(diagnostics, foundUnsupportedCSharpSyntax);
+                return;
+            }
+
+            foundUnsupportedCSharpSyntax = match.OldRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharpEnCNode(n));
+            if (foundUnsupportedCSharpSyntax != null)
+            {
+                AddRudeUpdateInUnsupportedCSharpMethod(diagnostics, foundUnsupportedCSharpSyntax);
+            }
+        }
+
+        /// <summary>
+        /// If the active method used unsupported C# features before the edit, it needs to be reported.
+        /// </summary>
+        private void AddRudeUpdateInUnsupportedCSharpMethod(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldUnsupportedCSharpSyntax)
+        {
+            diagnostics.Add(new RudeEditDiagnostic(
+                RudeEditKind.UpdateAroundActiveStatement,
+                span: default, // no span since the offending node is in the old syntax
+                oldUnsupportedCSharpSyntax,
+                new[] { GetStatementDisplayName(oldUnsupportedCSharpSyntax, EditKind.Update) }));
+        }
+
+        private static bool IsUnsupportedCSharpEnCNode(SyntaxNode n)
+        {
+            switch (n.Kind())
+            {
+                case SyntaxKind.EqualsExpression:
+                case SyntaxKind.NotEqualsExpression:
+                    return isTupleBinaryOperation((BinaryExpressionSyntax)n);
+                default:
+                    return false;
+            }
+
+            bool isTupleBinaryOperation(BinaryExpressionSyntax equals)
+            {
+
+            }
         }
 
         private void ReportRudeEditsForCheckedStatements(
@@ -3333,6 +3384,73 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             return true;
+        }
+
+        internal override void ReportMemberBodySemanticRudeEdits(SemanticModel oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, List<RudeEditDiagnostic> diagnostics)
+        {
+            var foundNode = FindUnsupportedV7Switch(oldModel, oldNode, diagnostics);
+            if (foundNode != null)
+            {
+                AddRudeUpdateInUnsupportedCSharpMethod(diagnostics, foundNode);
+            }
+            else if ((foundNode = FindUnsupportedV7Switch(newModel, newNode, diagnostics)) != null)
+            {
+                AddRudeUpdateAroundActiveStatement(diagnostics, foundNode);
+            }
+        }
+
+        private SyntaxNode FindUnsupportedV7Switch(SemanticModel model, SyntaxNode syntaxNode, List<RudeEditDiagnostic> diagnostics)
+        {
+            foreach (var node in syntaxNode.DescendantNodesAndSelf().Where(n => n.Kind() == SyntaxKind.SwitchStatement))
+            {
+                var switchExpression = ((SwitchStatementSyntax)node).Expression;
+                ITypeSymbol governingType = model.GetTypeInfo(switchExpression).Type;
+
+                if (!IsValidV6SwitchGoverningType(governingType))
+                {
+                    return node;
+                }
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Returns true iff the supplied type is sbyte, byte, short, ushort, int, uint,
+        /// long, ulong, bool, char, string, or an enum-type, or if it is the nullable type
+        /// corresponding to one of those types. These types were permitted as the governing
+        /// type of a switch statement in C# 6.
+        /// </summary>
+        private static bool IsValidV6SwitchGoverningType(ITypeSymbol type)
+        {
+            Debug.Assert(type != null);
+
+            if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
+            {
+                type = ((INamedTypeSymbol)type).TypeArguments[0];
+            }
+
+            if (type.TypeKind == TypeKind.Enum)
+            {
+                type = ((INamedTypeSymbol)type).EnumUnderlyingType;
+            }
+
+            switch (type.SpecialType)
+            {
+                case SpecialType.System_SByte:
+                case SpecialType.System_Byte:
+                case SpecialType.System_Int16:
+                case SpecialType.System_UInt16:
+                case SpecialType.System_Int32:
+                case SpecialType.System_UInt32:
+                case SpecialType.System_Int64:
+                case SpecialType.System_UInt64:
+                case SpecialType.System_Char:
+                case SpecialType.System_String:
+                case SpecialType.System_Boolean:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         #endregion

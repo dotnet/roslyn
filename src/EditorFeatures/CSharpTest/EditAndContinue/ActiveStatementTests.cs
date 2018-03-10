@@ -8845,6 +8845,41 @@ class C
 
         #endregion
 
+        #region C# 7.3
+
+        [Fact]
+        public void MethodUpdate_TupleEquality()
+        {
+            // Can't make an edit in a method containing a tuple equality while the active statment is in that method
+            string src1 = @"
+class C
+{
+    static void F(object o1, object o2)
+    {
+        <AS:0>System.Console.WriteLine(1);</AS:0>
+        _ = (1, 2) == (3, 4);
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F(object o1, object o2)
+    {
+        <AS:0>System.Console.WriteLine(1);</AS:0>
+        _ = (10, 20) == (3, 4);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, "C# 7 enhanced switch statement"));
+        }
+
+        #endregion
+
         #region Misc
 
         [Fact]

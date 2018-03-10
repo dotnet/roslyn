@@ -9170,6 +9170,71 @@ int G1(int[] p) { return p[2]; }
                 "Update [(int, int) x]@35 -> [(int, int) y]@35");
         }
 
-        #endregion 
+        #endregion
+
+        #region C# 7.3
+
+        [Fact]
+        public void TupleEqualityInCSharp7_3()
+        {
+            var src1 = @"
+class C
+{
+    static void F(object o)
+    {
+        _ = (1, 2) == (3, 4);
+        System.Console.WriteLine(1);
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F(object o)
+    {
+        _ = (1, 2) == (3, 4);
+        System.Console.WriteLine(2);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            CSharpEditAndContinueTestHelpers.Instance.VerifySemantics(
+                edits,
+                ActiveStatementsDescription.Empty,
+                expectedDiagnostics: new[]
+                {
+                    Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, CSharpFeaturesResources.v7_switch)
+                });
+        }
+
+        [Fact]
+        public void TupleEquality_Update1()
+        {
+            var src1 = @"
+class C
+{
+    static void F()
+    {
+        _ = (1, 2) == (3, 4);
+    }
+}
+";
+            var src2 = @"
+class C
+{
+    static void F()
+    {
+        _ = (10, 20) == (3, 4);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2);
+
+            edits.VerifyRudeDiagnostics(
+                Diagnostic(RudeEditKind.Update, "yield return 4;", CSharpFeaturesResources.yield_statement));
+        }
+
+        #endregion
     }
 }
