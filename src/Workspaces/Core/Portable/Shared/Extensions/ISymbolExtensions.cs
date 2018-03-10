@@ -495,43 +495,24 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
                 string WithArity(string typeName, int arity) => arity > 0 ? typeName + '`' + arity : typeName;
 
-                var delegateTypeName = method.ReturnsVoid
+                // Convert the symbol to Func<...> or Action<...>
+                var delegateType = compilation.GetTypeByMetadataName(method.ReturnsVoid
                     ? WithArity("System.Action", count)
-                    : WithArity("System.Func", count + 1);
-                var delegateType = compilation.GetTypeByMetadataName(delegateTypeName);
+                    : WithArity("System.Func", count + 1));
 
                 if (delegateType != null)
                 {
-                    ITypeSymbol[] types;
+                    var types = method.Parameters
+                        .Skip(skip)
+                        .Select(p => p.Type ?? compilation.GetSpecialType(SpecialType.System_Object));
 
-                    // Convert the symbol to Func<...> or Action<...>
-                    if (method.ReturnsVoid)
+                    if (!method.ReturnsVoid)
                     {
-                        // Action<TArg1, ..., TArgN>
-
-                        types = method.Parameters
-                            .Skip(skip)
-                            .Select(p =>
-                                p.Type == null ?
-                                compilation.GetSpecialType(SpecialType.System_Object) :
-                                p.Type)
-                            .ToArray();
-                    }
-                    else
-                    {
-                        // Func<TArg1,...,TArgN,TReturn>
-                        //
                         // +1 for the return type.
-
-                        types = method.Parameters
-                            .Skip(skip)
-                            .Select(p => p.Type)
-                            .Concat(method.ReturnType)
-                            .Select(t => t ?? compilation.GetSpecialType(SpecialType.System_Object))
-                            .ToArray();
+                        types = types.Concat(method.ReturnType ?? compilation.GetSpecialType(SpecialType.System_Object));
                     }
 
-                    return types.Length > 0 ? delegateType.Construct(types) : delegateType;
+                    return delegateType.TryConstruct(types.ToArray());
                 }
             }
 
