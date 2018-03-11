@@ -448,7 +448,7 @@ function Test-XUnit() {
     $unitDir = Join-Path $configDir "UnitTests"
     $runTests = Join-Path $configDir "Exes\RunTests\RunTests.exe"
     $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net452"
-    $useCodecov = $cibuild -and $env:CODECOV_TOKEN
+    $useCodecov = $cibuild -and $env:CODECOV_TOKEN -and $testDesktop -and $test32 -and -not $release
     $useOpenCover = $useCodecov
     $args = "$xunitDir"
     $args += " -log:$logFilePath"
