@@ -10,31 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
     public partial class ChangeSignatureTests : AbstractChangeSignatureTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task ReorderMethodParameters()
-        {
-            var markup = @"
-using System;
-class MyClass
-{
-    public void $$Goo(int x, string y)
-    {
-    }
-}";
-            var permutation = new[] { 1, 0 };
-            var updatedCode = @"
-using System;
-class MyClass
-{
-    public void Goo(string y, int x)
-    {
-    }
-}";
-
-            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task ReorderLocalFunctionParameters()
+        public async Task ReorderLocalFunctionParametersAndArguments_OnDeclaration()
         {
             var markup = @"
 using System;
@@ -66,7 +42,7 @@ class MyClass
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task ReorderLocalFunctionParameters2()
+        public async Task ReorderLocalFunctionParametersAndArguments_OnInvocation()
         {
             var markup = @"
 using System;
@@ -91,6 +67,30 @@ class MyClass
         void Goo(string y, int x)
         {
         }
+    }
+}";
+
+            await TestChangeSignatureViaCommandAsync(LanguageNames.CSharp, markup, updatedSignature: permutation, expectedUpdatedInvocationDocumentCode: updatedCode);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task ReorderMethodParameters()
+        {
+            var markup = @"
+using System;
+class MyClass
+{
+    public void $$Goo(int x, string y)
+    {
+    }
+}";
+            var permutation = new[] { 1, 0 };
+            var updatedCode = @"
+using System;
+class MyClass
+{
+    public void Goo(string y, int x)
+    {
     }
 }";
 
