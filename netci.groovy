@@ -16,6 +16,7 @@ static void addRoslynJob(def myJob, String jobName, String branchName, Boolean i
   def archiveSettings = new ArchivalSettings()
   archiveSettings.addFiles('Binaries/**/*.pdb')
   archiveSettings.addFiles('Binaries/**/*.xml')
+  archiveSettings.addFiles('Binaries/**/*.coverage')
   archiveSettings.addFiles('Binaries/**/*.log')
   archiveSettings.addFiles('Binaries/**/*.dmp')
   archiveSettings.addFiles('Binaries/**/*.zip')
@@ -66,6 +67,11 @@ commitPullList.each { isPr ->
       def jobName = Utilities.getFullJobName(projectName, "windows_${configuration}_${buildTarget}", isPr)
             def myJob = job(jobName) {
         description("Windows ${configuration} tests on ${buildTarget}")
+              wrappers {
+                credentialsBinding {
+                  string("CODECOV_TOKEN", "CODECOV_TOKEN_DOTNET_ROSLYN")
+                }
+              }
                   steps {
                     batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} ${(buildTarget == 'unit32') ? '-test32' : '-test64'} -testDesktop""")
                   }
@@ -86,6 +92,11 @@ commitPullList.each { isPr ->
     def jobName = Utilities.getFullJobName(projectName, "windows_coreclr_test", isPr)
     def myJob = job(jobName) {
       description("Windows CoreCLR unit tests")
+      wrappers {
+        credentialsBinding {
+          string("CODECOV_TOKEN", "CODECOV_TOKEN_DOTNET_ROSLYN")
+        }
+      }
             steps {
               batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -buildCoreClr -testCoreClr""")
             }
@@ -104,6 +115,11 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "ubuntu_16_debug", isPr)
   def myJob = job(jobName) {
     description("Ubuntu 16.04 tests")
+    wrappers {
+      credentialsBinding {
+        string("CODECOV_TOKEN", "CODECOV_TOKEN_DOTNET_ROSLYN")
+      }
+    }
                   steps {
                     shell("./build/scripts/cibuild.sh --debug")
                   }
@@ -121,6 +137,11 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "ubuntu_16_mono_debug", isPr)
   def myJob = job(jobName) {
     description("Ubuntu 16.04 mono tests")
+    wrappers {
+      credentialsBinding {
+        string("CODECOV_TOKEN", "CODECOV_TOKEN_DOTNET_ROSLYN")
+      }
+    }
                   steps {
                     shell("./build/scripts/cibuild.sh --debug --docker --mono")
                   }
@@ -138,6 +159,11 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "mac_debug", isPr)
   def myJob = job(jobName) {
     description("Mac tests")
+    wrappers {
+      credentialsBinding {
+        string("CODECOV_TOKEN", "CODECOV_TOKEN_DOTNET_ROSLYN")
+      }
+    }
     steps {
       shell("./build/scripts/cibuild.sh --debug")
     }
@@ -155,6 +181,11 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "windows_determinism", isPr)
   def myJob = job(jobName) {
     description('Determinism tests')
+    wrappers {
+      credentialsBinding {
+        string("CODECOV_TOKEN", "CODECOV_TOKEN_DOTNET_ROSLYN")
+      }
+    }
     steps {
       batchFile(""".\\build\\scripts\\cibuild.cmd -testDeterminism""")
     }
@@ -171,6 +202,11 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "windows_build_correctness", isPr)
   def myJob = job(jobName) {
     description('Build correctness tests')
+    wrappers {
+      credentialsBinding {
+        string("CODECOV_TOKEN", "CODECOV_TOKEN_DOTNET_ROSLYN")
+      }
+    }
     steps {
       batchFile(""".\\build\\scripts\\cibuild.cmd -testBuildCorrectness""")
     }
@@ -187,6 +223,11 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "perf_correctness", isPr)
   def myJob = job(jobName) {
     description('perf test correctness')
+    wrappers {
+      credentialsBinding {
+        string("CODECOV_TOKEN", "CODECOV_TOKEN_DOTNET_ROSLYN")
+      }
+    }
     steps {
       batchFile(""".\\build\\scripts\\cibuild.cmd -testPerfCorrectness""")
     }
@@ -203,6 +244,11 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "microbuild", isPr)
   def myJob = job(jobName) {
     description('MicroBuild test')
+    wrappers {
+      credentialsBinding {
+        string("CODECOV_TOKEN", "CODECOV_TOKEN_DOTNET_ROSLYN")
+      }
+    }
     steps {
       batchFile(""".\\src\\Tools\\MicroBuild\\cibuild.cmd""")
     }
@@ -221,6 +267,11 @@ commitPullList.each { isPr ->
       def jobName = Utilities.getFullJobName(projectName, "windows_${configuration}_${buildTarget}", isPr)
       def myJob = job(jobName) {
         description("Windows ${configuration} tests on ${buildTarget}")
+        wrappers {
+          credentialsBinding {
+            string("CODECOV_TOKEN", "CODECOV_TOKEN_DOTNET_ROSLYN")
+          }
+        }
         steps {
           batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -testVsi""")
         }
