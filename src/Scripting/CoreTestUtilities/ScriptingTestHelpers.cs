@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using Microsoft.CodeAnalysis;
@@ -12,6 +12,47 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
 {
     public class ScriptingTestHelpers
     {
+        public static ScriptState<T> RunScriptWithOutput<T>(Script<T> script, string expectedOutput)
+        {
+            string output;
+            string errorOutput;
+            ScriptState<T> result = null;
+            RuntimeEnvironmentFactory.CaptureOutput(() =>
+            {
+                var task = script.RunAsync();
+                task.Wait();
+                result = task.Result;
+            }, expectedOutput.Length, out output, out errorOutput);
+            Assert.Equal(expectedOutput, output.Trim());
+            return result;
+        }
+
+        public static T EvaluateScriptWithOutput<T>(Script<T> script, string expectedOutput)
+        {
+            string output;
+            string errorOutput;
+            T result = default(T);
+            RuntimeEnvironmentFactory.CaptureOutput(() =>
+            {
+                var task = script.EvaluateAsync();
+                task.Wait();
+                result = task.Result;
+            }, expectedOutput.Length, out output, out errorOutput);
+            Assert.Equal(expectedOutput, output.Trim());
+            return result;
+        }
+
+        public static void ContinueRunScriptWithOutput<T>(Task<ScriptState<T>> scriptState, string code, string expectedOutput)
+        {
+            string output;
+            string errorOutput;
+            RuntimeEnvironmentFactory.CaptureOutput(() =>
+            {
+                scriptState.ContinueWith(code).Wait();
+            }, expectedOutput.Length, out output, out errorOutput);
+            Assert.Equal(expectedOutput, output.Trim());
+        }
+
         internal static void AssertCompilationError(Script script, params DiagnosticDescription[] expectedDiagnostics)
         {
             AssertCompilationError(() => script.RunAsync().Wait(), expectedDiagnostics);

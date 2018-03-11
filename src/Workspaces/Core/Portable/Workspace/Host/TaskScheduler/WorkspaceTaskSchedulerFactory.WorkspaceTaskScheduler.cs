@@ -47,14 +47,14 @@ namespace Microsoft.CodeAnalysis.Host
                     cancellationToken);
             }
 
-            public Task ScheduleTask(Func<Task> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken))
+            public Task ScheduleTask(Func<Task> taskFunc, string taskName, CancellationToken cancellationToken = default)
             {
                 return ScheduleTaskWorker(
                     taskName, () => Task.Factory.SafeStartNewFromAsync(taskFunc, cancellationToken, _taskScheduler),
                     cancellationToken);
             }
 
-            public Task<T> ScheduleTask<T>(Func<Task<T>> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken))
+            public Task<T> ScheduleTask<T>(Func<Task<T>> taskFunc, string taskName, CancellationToken cancellationToken = default)
             {
                 return ScheduleTaskWorker(
                     taskName, () => Task.Factory.SafeStartNewFromAsync(taskFunc, cancellationToken, _taskScheduler),

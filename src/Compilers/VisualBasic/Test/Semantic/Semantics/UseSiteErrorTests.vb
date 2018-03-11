@@ -489,7 +489,7 @@ End Class
             <compilation name="CompilerGeneratedAttributeNotRequired">
                 <file name="a.vb">
 Class C
-    Property Foo as Integer 
+    Property Goo as Integer 
 End Class
     </file>
             </compilation>, Enumerable.Empty(Of MetadataReference)())
@@ -502,10 +502,10 @@ BC31091: Import of type 'Object' from assembly or module 'CompilerGeneratedAttri
 Class C
       ~
 BC30002: Type 'System.Void' is not defined.
-    Property Foo as Integer 
+    Property Goo as Integer 
     ~~~~~~~~~~~~~~~~~~~~~~~
 BC30002: Type 'System.Int32' is not defined.
-    Property Foo as Integer 
+    Property Goo as Integer 
                     ~~~~~~~                                                    
                                                 </errors>)
 

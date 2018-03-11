@@ -11,80 +11,93 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal sealed partial class SyntaxTreeIndex
     {
-        private readonly VersionStamp _version;
-
         private readonly LiteralInfo _literalInfo;
         private readonly IdentifierInfo _identifierInfo;
         private readonly ContextInfo _contextInfo;
         private readonly DeclarationInfo _declarationInfo;
 
         private SyntaxTreeIndex(
-            VersionStamp version,
+            Checksum checksum,
             LiteralInfo literalInfo,
             IdentifierInfo identifierInfo,
             ContextInfo contextInfo,
             DeclarationInfo declarationInfo)
         {
-            Version = version;
+            this.Checksum = checksum;
             _literalInfo = literalInfo;
             _identifierInfo = identifierInfo;
             _contextInfo = contextInfo;
             _declarationInfo = declarationInfo;
         }
 
-        /// <summary>
-        /// snapshot based cache to guarantee same info is returned without re-calculating for 
-        /// same solution snapshot.
-        /// 
-        /// since document will be re-created per new solution, this should go away as soon as 
-        /// there is any change on workspace.
-        /// </summary>
-        private static readonly ConditionalWeakTable<Document, SyntaxTreeIndex> s_infoCache
-            = new ConditionalWeakTable<Document, SyntaxTreeIndex>();
+        private static readonly ConditionalWeakTable<Document, SyntaxTreeIndex> s_documentToIndex = new ConditionalWeakTable<Document, SyntaxTreeIndex>();
+        private static readonly ConditionalWeakTable<DocumentId, SyntaxTreeIndex> s_documentIdToIndex = new ConditionalWeakTable<DocumentId, SyntaxTreeIndex>();
 
         public static async Task PrecalculateAsync(Document document, CancellationToken cancellationToken)
         {
             Contract.Requires(document.IsFromPrimaryBranch());
 
-            // we already have information. move on
-            if (await PrecalculatedAsync(document, cancellationToken).ConfigureAwait(false))
+            var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
+
+            // Check if we've already created and persisted the index for this document.
+            if (await PrecalculatedAsync(document, checksum, cancellationToken).ConfigureAwait(false))
             {
                 return;
             }
 
-            var data = await CreateInfoAsync(document, cancellationToken).ConfigureAwait(false);
+            // If not, create and save the index.
+            var data = await CreateIndexAsync(document, checksum, cancellationToken).ConfigureAwait(false);
             await data.SaveAsync(document, cancellationToken).ConfigureAwait(false);
         }
 
-        private static async Task<SyntaxTreeIndex> GetIndexAsync(
+        public static async Task<SyntaxTreeIndex> GetIndexAsync(
             Document document,
-            ConditionalWeakTable<Document, SyntaxTreeIndex> cache,
-            Func<Document, CancellationToken, Task<SyntaxTreeIndex>> generator,
             CancellationToken cancellationToken)
         {
-            if (cache.TryGetValue(document, out var info))
+            // See if we already cached an index with this direct document index.  If so we can just
+            // return it with no additional work.
+            if (!s_documentToIndex.TryGetValue(document, out var index))
             {
-                return info;
+                index = await GetIndexWorkerAsync(document, cancellationToken).ConfigureAwait(false);
+
+                // Populate our caches with this data.
+                s_documentToIndex.GetValue(document, _ => index);
+                s_documentIdToIndex.GetValue(document.Id, _ => index);
             }
 
-            info = await generator(document, cancellationToken).ConfigureAwait(false);
-            if (info != null)
+            return index;
+        }
+
+        private static async Task<SyntaxTreeIndex> GetIndexWorkerAsync(
+            Document document,
+            CancellationToken cancellationToken)
+        {
+            var checksum = await GetChecksumAsync(document, cancellationToken).ConfigureAwait(false);
+
+            // Check if we have an index for a previous version of this document.  If our
+            // checksums match, we can just use that.
+            if (s_documentIdToIndex.TryGetValue(document.Id, out var index) &&
+                index.Checksum == checksum)
             {
-                return cache.GetValue(document, _ => info);
+                // The previous index we stored with this documentId is still valid.  Just
+                // return that.
+                return index;
+            }
+
+            // What we have in memory isn't valid.  Try to load from the persistence service.
+            index = await LoadAsync(document, checksum, cancellationToken).ConfigureAwait(false);
+            if (index != null)
+            {
+                return index;
             }
 
             // alright, we don't have cached information, re-calculate them here.
-            var data = await CreateInfoAsync(document, cancellationToken).ConfigureAwait(false);
+            index = await CreateIndexAsync(document, checksum, cancellationToken).ConfigureAwait(false);
 
             // okay, persist this info
-            await data.SaveAsync(document, cancellationToken).ConfigureAwait(false);
+            await index.SaveAsync(document, cancellationToken).ConfigureAwait(false);
 
-            return cache.GetValue(document, _ => data);
+            return index;
         }
-
-        public static Task<SyntaxTreeIndex> GetIndexAsync(Document document, CancellationToken cancellationToken)
-            => GetIndexAsync(document, s_infoCache, s_loadAsync, cancellationToken);
-
-        private static Func<Document, CancellationToken, Task<SyntaxTreeIndex>> s_loadAsync = LoadAsync;
     }
 }

@@ -764,16 +764,16 @@ End Class";
         [Trait(Traits.Feature, Traits.Features.AddMissingTokens)]
         public async Task StructuredTrivia_Expression_DontCrash()
         {
-            var code = @"[|#Const Foo1 = 1
-#Const Foo2 = 2
-#If Foo1 Then
-#ElseIf Foo2 Then
+            var code = @"[|#Const Goo1 = 1
+#Const Goo2 = 2
+#If Goo1 Then
+#ElseIf Goo2 Then
 #Else
 #End If|]";
-            var expected = @"#Const Foo1 = 1
-#Const Foo2 = 2
-#If Foo1 Then
-#ElseIf Foo2 Then
+            var expected = @"#Const Goo1 = 1
+#Const Goo2 = 2
+#If Goo1 Then
+#ElseIf Goo2 Then
 #Else
 #End If";
             await VerifyAsync(code, expected);
@@ -785,11 +785,11 @@ End Class";
         public async Task EventStatement_AsClause()
         {
             var code = @"[|Imports System.ComponentModel
-Class Foo
+Class Goo
     Public Event PropertyChanged As PropertyChangedEventHandler
 End Class|]";
             var expected = @"Imports System.ComponentModel
-Class Foo
+Class Goo
     Public Event PropertyChanged As PropertyChangedEventHandler
 End Class";
 
@@ -841,17 +841,17 @@ End Class";
         public async Task ObjectCreationExpression_Initializer()
         {
             var code = @"[|Public Class SomeClass
-    Public foo As Integer
+    Public goo As Integer
 
     Sub SomeSub()
-        [|Dim c = New SomeClass With {.foo = 23}|]
+        [|Dim c = New SomeClass With {.goo = 23}|]
     End Sub
 End Class|]";
             var expected = @"Public Class SomeClass
-    Public foo As Integer
+    Public goo As Integer
 
     Sub SomeSub()
-        Dim c = New SomeClass With {.foo = 23}
+        Dim c = New SomeClass With {.goo = 23}
     End Sub
 End Class";
 
@@ -966,19 +966,19 @@ End Class";
         public async Task NamedFieldInitializer()
         {
             var code = @"[|Class S
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
     Property X
     Sub test()
-        Dim x = New S With {.X = 0,.Foo}
+        Dim x = New S With {.X = 0,.Goo}
     End Sub
 End Class|]";
             var expected = @"Class S
-    Public Sub Foo()
+    Public Sub Goo()
     End Sub
     Property X
     Sub test()
-        Dim x = New S With {.X = 0, .Foo}
+        Dim x = New S With {.X = 0, .Goo}
     End Sub
 End Class";
 
@@ -1058,12 +1058,12 @@ End Module";
         public async Task HandlesClauseItem_DontAddParentheses()
         {
             var code = @"[|Structure s1
-    Sub Foo() Handles Me.Foo
+    Sub Goo() Handles Me.Goo
  
     End Sub
 End Structure|]";
             var expected = @"Structure s1
-    Sub Foo() Handles Me.Foo
+    Sub Goo() Handles Me.Goo
 
     End Sub
 End Structure";
@@ -1078,18 +1078,18 @@ End Structure";
         {
             var code = @"[|Module Module1
     Sub Main()
-        For Each foo in {} 
+        For Each goo in {} 
     End Sub
  
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module|]";
             var expected = @"Module Module1
     Sub Main()
-        For Each foo in {}
+        For Each goo in {}
     End Sub
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module";
 
@@ -1103,18 +1103,18 @@ End Module";
         {
             var code = @"[|Module Module1
     Sub Main()
-        For foo to 
+        For goo to 
     End Sub
  
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module|]";
             var expected = @"Module Module1
     Sub Main()
-        For foo to 
+        For goo to 
     End Sub
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Module";
 
@@ -1336,81 +1336,81 @@ End Module";
         {
             var code = @"[|
 Interface I
-    Function Foo() As System.Threading.Tasks.Task
+    Function Goo() As System.Threading.Tasks.Task
 End Interface
 
 Class Test
     Implements I
 
     '   a. Basic
-    Async Function Foo1()
+    Async Function Goo1()
     End Function
 
     '   b. With Trailing trivia
-    Async Function Foo2()   ' Trailing
+    Async Function Goo2()   ' Trailing
     End Function
 
     '   c. Without Parenthesis
-    Async Function Foo4
+    Async Function Goo4
     End Function
 
     '   d. With Implements/Handles clause
-    Async Function Foo5() Implements I.Foo
+    Async Function Goo5() Implements I.Goo
     End Function
 
     '   e. With Implements/Handles clause with trivia
-    Async Function Foo6()      Implements I.Foo  ' Trailing
+    Async Function Goo6()      Implements I.Goo  ' Trailing
     End Function
 
     '   f. Invalid Async Sub
-    Async Sub Foo7()
+    Async Sub Goo7()
     End Sub
 
     '   g. Without End Function
-    Async Function Foo3()
+    Async Function Goo3()
 
     '   h. With End Function On SameLine
-    Async Function Foo4(ByVal x As Integer) End Function
+    Async Function Goo4(ByVal x As Integer) End Function
 
 End Class|]";
 
             var expected = @"
 Interface I
-    Function Foo() As System.Threading.Tasks.Task
+    Function Goo() As System.Threading.Tasks.Task
 End Interface
 
 Class Test
     Implements I
 
     '   a. Basic
-    Async Function Foo1() As System.Threading.Tasks.Task
+    Async Function Goo1() As System.Threading.Tasks.Task
     End Function
 
     '   b. With Trailing trivia
-    Async Function Foo2() As System.Threading.Tasks.Task   ' Trailing
+    Async Function Goo2() As System.Threading.Tasks.Task   ' Trailing
     End Function
 
     '   c. Without Parenthesis
-    Async Function Foo4() As System.Threading.Tasks.Task
+    Async Function Goo4() As System.Threading.Tasks.Task
     End Function
 
     '   d. With Implements/Handles clause
-    Async Function Foo5() As System.Threading.Tasks.Task Implements I.Foo
+    Async Function Goo5() As System.Threading.Tasks.Task Implements I.Goo
     End Function
 
     '   e. With Implements/Handles clause with trivia
-    Async Function Foo6() As System.Threading.Tasks.Task Implements I.Foo  ' Trailing
+    Async Function Goo6() As System.Threading.Tasks.Task Implements I.Goo  ' Trailing
     End Function
 
     '   f. Invalid Async Sub
-    Async Sub Foo7()
+    Async Sub Goo7()
     End Sub
 
     '   g. Without End Function
-    Async Function Foo3() As System.Threading.Tasks.Task
+    Async Function Goo3() As System.Threading.Tasks.Task
 
     '   h. With End Function On SameLine
-    Async Function Foo4(ByVal x As Integer) As System.Threading.Tasks.Task End Function
+    Async Function Goo4(ByVal x As Integer) As System.Threading.Tasks.Task End Function
 
 End Class";
 
@@ -1427,41 +1427,41 @@ Imports System
 Imports System.Threading.Tasks
 
 Interface I
-    Function Foo() As Task
+    Function Goo() As Task
 End Interface
 
 Class Test
     Implements I
 
     '   a. Basic
-    Async Function Foo1()
+    Async Function Goo1()
     End Function
 
     '   b. With Trailing trivia
-    Async Function Foo2()   ' Trailing
+    Async Function Goo2()   ' Trailing
     End Function
 
     '   c. Without Parenthesis
-    Async Function Foo4
+    Async Function Goo4
     End Function
 
     '   d. With Implements/Handles clause
-    Async Function Foo5() Implements I.Foo
+    Async Function Goo5() Implements I.Goo
     End Function
 
     '   e. With Implements/Handles clause with trivia
-    Async Function Foo6()      Implements I.Foo  ' Trailing
+    Async Function Goo6()      Implements I.Goo  ' Trailing
     End Function
 
     '   f. Invalid Async Sub
-    Async Sub Foo7()
+    Async Sub Goo7()
     End Sub
 
     '   g. Without End Function
-    Async Function Foo3()
+    Async Function Goo3()
 
     '   h. With End Function On SameLine
-    Async Function Foo4(ByVal x As Integer) End Function
+    Async Function Goo4(ByVal x As Integer) End Function
 
 End Class|]";
 
@@ -1470,41 +1470,41 @@ Imports System
 Imports System.Threading.Tasks
 
 Interface I
-    Function Foo() As Task
+    Function Goo() As Task
 End Interface
 
 Class Test
     Implements I
 
     '   a. Basic
-    Async Function Foo1() As Task
+    Async Function Goo1() As Task
     End Function
 
     '   b. With Trailing trivia
-    Async Function Foo2() As Task   ' Trailing
+    Async Function Goo2() As Task   ' Trailing
     End Function
 
     '   c. Without Parenthesis
-    Async Function Foo4() As Task
+    Async Function Goo4() As Task
     End Function
 
     '   d. With Implements/Handles clause
-    Async Function Foo5() As Task Implements I.Foo
+    Async Function Goo5() As Task Implements I.Goo
     End Function
 
     '   e. With Implements/Handles clause with trivia
-    Async Function Foo6() As Task Implements I.Foo  ' Trailing
+    Async Function Goo6() As Task Implements I.Goo  ' Trailing
     End Function
 
     '   f. Invalid Async Sub
-    Async Sub Foo7()
+    Async Sub Goo7()
     End Sub
 
     '   g. Without End Function
-    Async Function Foo3() As Task
+    Async Function Goo3() As Task
 
     '   h. With End Function On SameLine
-    Async Function Foo4(ByVal x As Integer) As Task End Function
+    Async Function Goo4(ByVal x As Integer) As Task End Function
 
 End Class";
 
@@ -1518,75 +1518,75 @@ End Class";
         {
             var code = @"[|
 Interface I
-    Function Foo() As System.Collections.IEnumerable
+    Function Goo() As System.Collections.IEnumerable
 End Interface
 
 Class Test
     Implements I
 
     '   a. Basic
-    Iterator Function Foo1()
+    Iterator Function Goo1()
     End Function
 
     '   b. With Trailing trivia
-    Iterator Function Foo2()   ' Trailing
+    Iterator Function Goo2()   ' Trailing
     End Function
 
     '   c. Without Parenthesis
-    Iterator Function Foo4
+    Iterator Function Goo4
     End Function
 
     '   d. With Implements/Handles clause
-    Iterator Function Foo5() Implements I.Foo
+    Iterator Function Goo5() Implements I.Goo
     End Function
 
     '   e. With Implements/Handles clause with trivia
-    Iterator Function Foo6()      Implements I.Foo  ' Trailing
+    Iterator Function Goo6()      Implements I.Goo  ' Trailing
     End Function
 
     '   f. Invalid Iterator Sub
-    Iterator Sub Foo7()
+    Iterator Sub Goo7()
     End Sub
 
     '   g. Without End Function
-    Iterator Function Foo3()
+    Iterator Function Goo3()
 
 End Class|]";
 
             var expected = @"
 Interface I
-    Function Foo() As System.Collections.IEnumerable
+    Function Goo() As System.Collections.IEnumerable
 End Interface
 
 Class Test
     Implements I
 
     '   a. Basic
-    Iterator Function Foo1() As System.Collections.IEnumerable
+    Iterator Function Goo1() As System.Collections.IEnumerable
     End Function
 
     '   b. With Trailing trivia
-    Iterator Function Foo2() As System.Collections.IEnumerable   ' Trailing
+    Iterator Function Goo2() As System.Collections.IEnumerable   ' Trailing
     End Function
 
     '   c. Without Parenthesis
-    Iterator Function Foo4() As System.Collections.IEnumerable
+    Iterator Function Goo4() As System.Collections.IEnumerable
     End Function
 
     '   d. With Implements/Handles clause
-    Iterator Function Foo5() As System.Collections.IEnumerable Implements I.Foo
+    Iterator Function Goo5() As System.Collections.IEnumerable Implements I.Goo
     End Function
 
     '   e. With Implements/Handles clause with trivia
-    Iterator Function Foo6() As System.Collections.IEnumerable Implements I.Foo  ' Trailing
+    Iterator Function Goo6() As System.Collections.IEnumerable Implements I.Goo  ' Trailing
     End Function
 
     '   f. Invalid Iterator Sub
-    Iterator Sub Foo7()
+    Iterator Sub Goo7()
     End Sub
 
     '   g. Without End Function
-    Iterator Function Foo3() As System.Collections.IEnumerable
+    Iterator Function Goo3() As System.Collections.IEnumerable
 
 End Class";
 
@@ -1604,38 +1604,38 @@ Imports System.Collections
 Imports System.Collections.Generic
 
 Interface I
-    Function Foo() As System.Collections.IEnumerable
+    Function Goo() As System.Collections.IEnumerable
 End Interface
 
 Class Test
     Implements I
 
     '   a. Basic
-    Iterator Function Foo1()
+    Iterator Function Goo1()
     End Function
 
     '   b. With Trailing trivia
-    Iterator Function Foo2()   ' Trailing
+    Iterator Function Goo2()   ' Trailing
     End Function
 
     '   c. Without Parenthesis
-    Iterator Function Foo4
+    Iterator Function Goo4
     End Function
 
     '   d. With Implements/Handles clause
-    Iterator Function Foo5() Implements I.Foo
+    Iterator Function Goo5() Implements I.Goo
     End Function
 
     '   e. With Implements/Handles clause with trivia
-    Iterator Function Foo6()      Implements I.Foo  ' Trailing
+    Iterator Function Goo6()      Implements I.Goo  ' Trailing
     End Function
 
     '   f. Invalid Iterator Sub
-    Iterator Sub Foo7()
+    Iterator Sub Goo7()
     End Sub
 
     '   g. Without End Function
-    Iterator Function Foo3()
+    Iterator Function Goo3()
 
 End Class|]";
 
@@ -1645,38 +1645,38 @@ Imports System.Collections
 Imports System.Collections.Generic
 
 Interface I
-    Function Foo() As System.Collections.IEnumerable
+    Function Goo() As System.Collections.IEnumerable
 End Interface
 
 Class Test
     Implements I
 
     '   a. Basic
-    Iterator Function Foo1() As IEnumerable
+    Iterator Function Goo1() As IEnumerable
     End Function
 
     '   b. With Trailing trivia
-    Iterator Function Foo2() As IEnumerable   ' Trailing
+    Iterator Function Goo2() As IEnumerable   ' Trailing
     End Function
 
     '   c. Without Parenthesis
-    Iterator Function Foo4() As IEnumerable
+    Iterator Function Goo4() As IEnumerable
     End Function
 
     '   d. With Implements/Handles clause
-    Iterator Function Foo5() As IEnumerable Implements I.Foo
+    Iterator Function Goo5() As IEnumerable Implements I.Goo
     End Function
 
     '   e. With Implements/Handles clause with trivia
-    Iterator Function Foo6() As IEnumerable Implements I.Foo  ' Trailing
+    Iterator Function Goo6() As IEnumerable Implements I.Goo  ' Trailing
     End Function
 
     '   f. Invalid Iterator Sub
-    Iterator Sub Foo7()
+    Iterator Sub Goo7()
     End Sub
 
     '   g. Without End Function
-    Iterator Function Foo3() As IEnumerable
+    Iterator Function Goo3() As IEnumerable
 
 End Class";
 
@@ -1690,7 +1690,7 @@ End Class";
         {
             var code = @"[|
 Interface I
-    Function Foo() As System.Threading.Tasks.Task
+    Function Goo() As System.Threading.Tasks.Task
 End Interface
 
 Class MyType
@@ -1709,69 +1709,69 @@ Class Test(Of T)
     Implements I
 
     '   a. Basic
-    Async Function Foo1() As Integer
+    Async Function Goo1() As Integer
     End Function
 
     '   b. With Trailing trivia
-    Async Function Foo2() As Integer   ' Trailing
+    Async Function Goo2() As Integer   ' Trailing
     End Function
 
     '   c. Without Parenthesis
-    Async Function Foo3 As Integer   ' Trailing
+    Async Function Goo3 As Integer   ' Trailing
     End Function
 
     '   d. With Implements/Handles clause
-    Async Function Foo4() As Integer Implements I.Foo
+    Async Function Goo4() As Integer Implements I.Goo
     End Function
 
     '   e. With Implements/Handles clause with trivia
-    Async Function Foo5() As Integer     Implements I.Foo  ' Trailing
+    Async Function Goo5() As Integer     Implements I.Goo  ' Trailing
     End Function
 
     '   f. Invalid Async Sub
-    Async Sub Foo6() As Integer
+    Async Sub Goo6() As Integer
     End Sub
 
     '   g. With valid Task return type
-    Async Function Foo7() As Task
+    Async Function Goo7() As Task
     End Function
 
     '   h. With valid Task(Of T) return type
-    Async Function Foo8() As Task(Of T)
+    Async Function Goo8() As Task(Of T)
     End Function
 
     '   i. With valid Task(Of Integer) return type
-    Async Function Foo9() As Task(Of Integer)
+    Async Function Goo9() As Task(Of Integer)
     End Function
 
     '   j. With invalid user defined Task return type
-    Async Function Foo10() As MyType.Task
+    Async Function Goo10() As MyType.Task
     End Function
 
     '   k. With error return type
-    Async Function Foo11() As ErrorType
+    Async Function Goo11() As ErrorType
     End Function
 
     '   l. Without a return type
-    Async Function Foo12() As  ' Trailing
+    Async Function Goo12() As  ' Trailing
     End Function
 
     '   m. With trivia within AsClause
-    Async Function Foo13()    As         Integer  ' Trailing
+    Async Function Goo13()    As         Integer  ' Trailing
     End Function
 
     '   n. With return type that inherits from Task
-    Async Function Foo14() As MyTask
+    Async Function Goo14() As MyTask
     End Function
 
     '   o. Without End Function
-    Async Function FooLast() As Integer
+    Async Function GooLast() As Integer
 
 End Class|]";
 
             var expected = @"
 Interface I
-    Function Foo() As System.Threading.Tasks.Task
+    Function Goo() As System.Threading.Tasks.Task
 End Interface
 
 Class MyType
@@ -1790,63 +1790,63 @@ Class Test(Of T)
     Implements I
 
     '   a. Basic
-    Async Function Foo1() As System.Threading.Tasks.Task(Of Integer)
+    Async Function Goo1() As System.Threading.Tasks.Task(Of Integer)
     End Function
 
     '   b. With Trailing trivia
-    Async Function Foo2() As System.Threading.Tasks.Task(Of Integer)   ' Trailing
+    Async Function Goo2() As System.Threading.Tasks.Task(Of Integer)   ' Trailing
     End Function
 
     '   c. Without Parenthesis
-    Async Function Foo3() As System.Threading.Tasks.Task(Of Integer)   ' Trailing
+    Async Function Goo3() As System.Threading.Tasks.Task(Of Integer)   ' Trailing
     End Function
 
     '   d. With Implements/Handles clause
-    Async Function Foo4() As System.Threading.Tasks.Task(Of Integer) Implements I.Foo
+    Async Function Goo4() As System.Threading.Tasks.Task(Of Integer) Implements I.Goo
     End Function
 
     '   e. With Implements/Handles clause with trivia
-    Async Function Foo5() As System.Threading.Tasks.Task(Of Integer) Implements I.Foo  ' Trailing
+    Async Function Goo5() As System.Threading.Tasks.Task(Of Integer) Implements I.Goo  ' Trailing
     End Function
 
     '   f. Invalid Async Sub
-    Async Sub Foo6() As Integer
+    Async Sub Goo6() As Integer
     End Sub
 
     '   g. With valid Task return type
-    Async Function Foo7() As Task
+    Async Function Goo7() As Task
     End Function
 
     '   h. With valid Task(Of T) return type
-    Async Function Foo8() As Task(Of T)
+    Async Function Goo8() As Task(Of T)
     End Function
 
     '   i. With valid Task(Of Integer) return type
-    Async Function Foo9() As Task(Of Integer)
+    Async Function Goo9() As Task(Of Integer)
     End Function
 
     '   j. With invalid user defined Task return type
-    Async Function Foo10() As System.Threading.Tasks.Task(Of MyType.Task)
+    Async Function Goo10() As System.Threading.Tasks.Task(Of MyType.Task)
     End Function
 
     '   k. With error return type
-    Async Function Foo11() As ErrorType
+    Async Function Goo11() As ErrorType
     End Function
 
     '   l. Without a return type
-    Async Function Foo12() As  ' Trailing
+    Async Function Goo12() As  ' Trailing
     End Function
 
     '   m. With trivia within AsClause
-    Async Function Foo13() As System.Threading.Tasks.Task(Of Integer)  ' Trailing
+    Async Function Goo13() As System.Threading.Tasks.Task(Of Integer)  ' Trailing
     End Function
 
     '   n. With return type that inherits from Task
-    Async Function Foo14() As System.Threading.Tasks.Task(Of MyTask)
+    Async Function Goo14() As System.Threading.Tasks.Task(Of MyTask)
     End Function
 
     '   o. Without End Function
-    Async Function FooLast() As System.Threading.Tasks.Task(Of Integer)
+    Async Function GooLast() As System.Threading.Tasks.Task(Of Integer)
 
 End Class";
 
@@ -1863,7 +1863,7 @@ Imports System
 Imports System.Threading.Tasks
 
 Interface I
-    Function Foo() As System.Threading.Tasks.Task
+    Function Goo() As System.Threading.Tasks.Task
 End Interface
 
 Class MyType
@@ -1882,63 +1882,63 @@ Class Test(Of T)
     Implements I
 
     '   a. Basic
-    Async Function Foo1() As Integer
+    Async Function Goo1() As Integer
     End Function
 
     '   b. With Trailing trivia
-    Async Function Foo2() As Integer   ' Trailing
+    Async Function Goo2() As Integer   ' Trailing
     End Function
 
     '   c. Without Parenthesis
-    Async Function Foo3 As Integer   ' Trailing
+    Async Function Goo3 As Integer   ' Trailing
     End Function
 
     '   d. With Implements/Handles clause
-    Async Function Foo4() As Integer Implements I.Foo
+    Async Function Goo4() As Integer Implements I.Goo
     End Function
 
     '   e. With Implements/Handles clause with trivia
-    Async Function Foo5() As Integer     Implements I.Foo  ' Trailing
+    Async Function Goo5() As Integer     Implements I.Goo  ' Trailing
     End Function
 
     '   f. Invalid Async Sub
-    Async Sub Foo6() As Integer
+    Async Sub Goo6() As Integer
     End Sub
 
     '   g. With valid Task return type
-    Async Function Foo7() As Task
+    Async Function Goo7() As Task
     End Function
 
     '   h. With valid Task(Of T) return type
-    Async Function Foo8() As Task(Of T)
+    Async Function Goo8() As Task(Of T)
     End Function
 
     '   i. With valid Task(Of Integer) return type
-    Async Function Foo9() As Task(Of Integer)
+    Async Function Goo9() As Task(Of Integer)
     End Function
 
     '   j. With invalid user defined Task return type
-    Async Function Foo10() As MyType.Task
+    Async Function Goo10() As MyType.Task
     End Function
 
     '   k. With error return type
-    Async Function Foo11() As ErrorType
+    Async Function Goo11() As ErrorType
     End Function
 
     '   l. Without a return type
-    Async Function Foo12() As  ' Trailing
+    Async Function Goo12() As  ' Trailing
     End Function
 
     '   m. With trivia within AsClause
-    Async Function Foo13()    As         Integer  ' Trailing
+    Async Function Goo13()    As         Integer  ' Trailing
     End Function
 
     '   n. With return type that inherits from Task
-    Async Function Foo14() As MyTask
+    Async Function Goo14() As MyTask
     End Function
 
     '   o. Without End Function
-    Async Function FooLast() As Integer
+    Async Function GooLast() As Integer
 
 End Class|]";
 
@@ -1947,7 +1947,7 @@ Imports System
 Imports System.Threading.Tasks
 
 Interface I
-    Function Foo() As System.Threading.Tasks.Task
+    Function Goo() As System.Threading.Tasks.Task
 End Interface
 
 Class MyType
@@ -1966,63 +1966,63 @@ Class Test(Of T)
     Implements I
 
     '   a. Basic
-    Async Function Foo1() As Task(Of Integer)
+    Async Function Goo1() As Task(Of Integer)
     End Function
 
     '   b. With Trailing trivia
-    Async Function Foo2() As Task(Of Integer)   ' Trailing
+    Async Function Goo2() As Task(Of Integer)   ' Trailing
     End Function
 
     '   c. Without Parenthesis
-    Async Function Foo3() As Task(Of Integer)   ' Trailing
+    Async Function Goo3() As Task(Of Integer)   ' Trailing
     End Function
 
     '   d. With Implements/Handles clause
-    Async Function Foo4() As Task(Of Integer) Implements I.Foo
+    Async Function Goo4() As Task(Of Integer) Implements I.Goo
     End Function
 
     '   e. With Implements/Handles clause with trivia
-    Async Function Foo5() As Task(Of Integer) Implements I.Foo  ' Trailing
+    Async Function Goo5() As Task(Of Integer) Implements I.Goo  ' Trailing
     End Function
 
     '   f. Invalid Async Sub
-    Async Sub Foo6() As Integer
+    Async Sub Goo6() As Integer
     End Sub
 
     '   g. With valid Task return type
-    Async Function Foo7() As Task
+    Async Function Goo7() As Task
     End Function
 
     '   h. With valid Task(Of T) return type
-    Async Function Foo8() As Task(Of T)
+    Async Function Goo8() As Task(Of T)
     End Function
 
     '   i. With valid Task(Of Integer) return type
-    Async Function Foo9() As Task(Of Integer)
+    Async Function Goo9() As Task(Of Integer)
     End Function
 
     '   j. With invalid user defined Task return type
-    Async Function Foo10() As Task(Of MyType.Task)
+    Async Function Goo10() As Task(Of MyType.Task)
     End Function
 
     '   k. With error return type
-    Async Function Foo11() As ErrorType
+    Async Function Goo11() As ErrorType
     End Function
 
     '   l. Without a return type
-    Async Function Foo12() As  ' Trailing
+    Async Function Goo12() As  ' Trailing
     End Function
 
     '   m. With trivia within AsClause
-    Async Function Foo13() As Task(Of Integer)  ' Trailing
+    Async Function Goo13() As Task(Of Integer)  ' Trailing
     End Function
 
     '   n. With return type that inherits from Task
-    Async Function Foo14() As Task(Of MyTask)
+    Async Function Goo14() As Task(Of MyTask)
     End Function
 
     '   o. Without End Function
-    Async Function FooLast() As Task(Of Integer)
+    Async Function GooLast() As Task(Of Integer)
 
 End Class";
 
@@ -2036,7 +2036,7 @@ End Class";
         {
             var code = @"[|
 Interface I
-    Function Foo() As System.Collections.IEnumerable
+    Function Goo() As System.Collections.IEnumerable
 End Interface
 
 Class MyType
@@ -2056,81 +2056,81 @@ Class Test(Of T)
     Implements I
 
     '   a. Basic
-    Iterator Function Foo1() As Integer
+    Iterator Function Goo1() As Integer
     End Function
 
     '   b. With Trailing trivia
-    Iterator Function Foo2() As Integer   ' Trailing
+    Iterator Function Goo2() As Integer   ' Trailing
     End Function
 
     '   c. Without Parenthesis
-    Iterator Function Foo3 As Integer   ' Trailing
+    Iterator Function Goo3 As Integer   ' Trailing
     End Function
 
     '   d. With Implements/Handles clause
-    Iterator Function Foo4() As Integer Implements I.Foo
+    Iterator Function Goo4() As Integer Implements I.Goo
     End Function
 
     '   e. With Implements/Handles clause with trivia
-    Iterator Function Foo5() As Integer     Implements I.Foo  ' Trailing
+    Iterator Function Goo5() As Integer     Implements I.Goo  ' Trailing
     End Function
 
     '   f. Invalid Iterator Sub
-    Iterator Sub Foo6() As Integer
+    Iterator Sub Goo6() As Integer
     End Sub
 
     '   g1. With valid IEnumerable return type
-    Iterator Function Foo7_1() As System.Collections.IEnumerable
+    Iterator Function Goo7_1() As System.Collections.IEnumerable
     End Function
 
     '   g2. With valid IEnumerator return type
-    Iterator Function Foo7_2() As System.Collections.IEnumerator
+    Iterator Function Goo7_2() As System.Collections.IEnumerator
     End Function
 
     '   h1. With valid IEnumerable(Of T) return type
-    Iterator Function Foo8_1() As System.Collections.Generic.IEnumerable(Of T)
+    Iterator Function Goo8_1() As System.Collections.Generic.IEnumerable(Of T)
     End Function
 
     '   h2. With valid IEnumerator(Of T) return type
-    Iterator Function Foo8_2() As System.Collections.Generic.IEnumerator(Of T)
+    Iterator Function Goo8_2() As System.Collections.Generic.IEnumerator(Of T)
     End Function
 
     '   i1. With valid IEnumerable(Of Integer) return type
-    Iterator Function Foo9_1() As System.Collections.Generic.IEnumerable(Of Integer)
+    Iterator Function Goo9_1() As System.Collections.Generic.IEnumerable(Of Integer)
     End Function
 
     '   i2. With valid IEnumerator(Of Integer) return type
-    Iterator Function Foo9_2() As System.Collections.Generic.IEnumerator(Of Integer)
+    Iterator Function Goo9_2() As System.Collections.Generic.IEnumerator(Of Integer)
     End Function
 
     '   j. With invalid user defined IEnumerable return type
-    Iterator Function Foo10() As MyType.IEnumerable
+    Iterator Function Goo10() As MyType.IEnumerable
     End Function
 
     '   k. With error return type
-    Iterator Function Foo11() As ErrorType
+    Iterator Function Goo11() As ErrorType
     End Function
 
     '   l. Without a return type
-    Iterator Function Foo12() As  ' Trailing
+    Iterator Function Goo12() As  ' Trailing
     End Function
 
     '   m. With trivia within AsClause
-    Iterator Function Foo13()    As         Integer  ' Trailing
+    Iterator Function Goo13()    As         Integer  ' Trailing
     End Function
 
     '   n. With return type that implements IEnumerable
-    Iterator Function Foo14() As MyIEnumerable
+    Iterator Function Goo14() As MyIEnumerable
     End Function
 
     '   o. Without End Function
-    Iterator Function FooLast() As Integer
+    Iterator Function GooLast() As Integer
 
 End Class|]";
 
             var expected = @"
 Interface I
-    Function Foo() As System.Collections.IEnumerable
+    Function Goo() As System.Collections.IEnumerable
 End Interface
 
 Class MyType
@@ -2150,75 +2150,75 @@ Class Test(Of T)
     Implements I
 
     '   a. Basic
-    Iterator Function Foo1() As System.Collections.Generic.IEnumerable(Of Integer)
+    Iterator Function Goo1() As System.Collections.Generic.IEnumerable(Of Integer)
     End Function
 
     '   b. With Trailing trivia
-    Iterator Function Foo2() As System.Collections.Generic.IEnumerable(Of Integer)   ' Trailing
+    Iterator Function Goo2() As System.Collections.Generic.IEnumerable(Of Integer)   ' Trailing
     End Function
 
     '   c. Without Parenthesis
-    Iterator Function Foo3() As System.Collections.Generic.IEnumerable(Of Integer)   ' Trailing
+    Iterator Function Goo3() As System.Collections.Generic.IEnumerable(Of Integer)   ' Trailing
     End Function
 
     '   d. With Implements/Handles clause
-    Iterator Function Foo4() As System.Collections.Generic.IEnumerable(Of Integer) Implements I.Foo
+    Iterator Function Goo4() As System.Collections.Generic.IEnumerable(Of Integer) Implements I.Goo
     End Function
 
     '   e. With Implements/Handles clause with trivia
-    Iterator Function Foo5() As System.Collections.Generic.IEnumerable(Of Integer) Implements I.Foo  ' Trailing
+    Iterator Function Goo5() As System.Collections.Generic.IEnumerable(Of Integer) Implements I.Goo  ' Trailing
     End Function
 
     '   f. Invalid Iterator Sub
-    Iterator Sub Foo6() As Integer
+    Iterator Sub Goo6() As Integer
     End Sub
 
     '   g1. With valid IEnumerable return type
-    Iterator Function Foo7_1() As System.Collections.IEnumerable
+    Iterator Function Goo7_1() As System.Collections.IEnumerable
     End Function
 
     '   g2. With valid IEnumerator return type
-    Iterator Function Foo7_2() As System.Collections.IEnumerator
+    Iterator Function Goo7_2() As System.Collections.IEnumerator
     End Function
 
     '   h1. With valid IEnumerable(Of T) return type
-    Iterator Function Foo8_1() As System.Collections.Generic.IEnumerable(Of T)
+    Iterator Function Goo8_1() As System.Collections.Generic.IEnumerable(Of T)
     End Function
 
     '   h2. With valid IEnumerator(Of T) return type
-    Iterator Function Foo8_2() As System.Collections.Generic.IEnumerator(Of T)
+    Iterator Function Goo8_2() As System.Collections.Generic.IEnumerator(Of T)
     End Function
 
     '   i1. With valid IEnumerable(Of Integer) return type
-    Iterator Function Foo9_1() As System.Collections.Generic.IEnumerable(Of Integer)
+    Iterator Function Goo9_1() As System.Collections.Generic.IEnumerable(Of Integer)
     End Function
 
     '   i2. With valid IEnumerator(Of Integer) return type
-    Iterator Function Foo9_2() As System.Collections.Generic.IEnumerator(Of Integer)
+    Iterator Function Goo9_2() As System.Collections.Generic.IEnumerator(Of Integer)
     End Function
 
     '   j. With invalid user defined IEnumerable return type
-    Iterator Function Foo10() As System.Collections.Generic.IEnumerable(Of MyType.IEnumerable)
+    Iterator Function Goo10() As System.Collections.Generic.IEnumerable(Of MyType.IEnumerable)
     End Function
 
     '   k. With error return type
-    Iterator Function Foo11() As ErrorType
+    Iterator Function Goo11() As ErrorType
     End Function
 
     '   l. Without a return type
-    Iterator Function Foo12() As  ' Trailing
+    Iterator Function Goo12() As  ' Trailing
     End Function
 
     '   m. With trivia within AsClause
-    Iterator Function Foo13() As System.Collections.Generic.IEnumerable(Of Integer)  ' Trailing
+    Iterator Function Goo13() As System.Collections.Generic.IEnumerable(Of Integer)  ' Trailing
     End Function
 
     '   n. With return type that implements IEnumerable
-    Iterator Function Foo14() As System.Collections.Generic.IEnumerable(Of MyIEnumerable)
+    Iterator Function Goo14() As System.Collections.Generic.IEnumerable(Of MyIEnumerable)
     End Function
 
     '   o. Without End Function
-    Iterator Function FooLast() As System.Collections.Generic.IEnumerable(Of Integer)
+    Iterator Function GooLast() As System.Collections.Generic.IEnumerable(Of Integer)
 
 End Class";
 
@@ -2235,7 +2235,7 @@ Imports System
 Imports System.Collections.Generic
 
 Interface I
-    Function Foo() As System.Collections.IEnumerable
+    Function Goo() As System.Collections.IEnumerable
 End Interface
 
 Class MyType
@@ -2255,75 +2255,75 @@ Class Test(Of T)
     Implements I
 
     '   a. Basic
-    Iterator Function Foo1() As Integer
+    Iterator Function Goo1() As Integer
     End Function
 
     '   b. With Trailing trivia
-    Iterator Function Foo2() As Integer   ' Trailing
+    Iterator Function Goo2() As Integer   ' Trailing
     End Function
 
     '   c. Without Parenthesis
-    Iterator Function Foo3 As Integer   ' Trailing
+    Iterator Function Goo3 As Integer   ' Trailing
     End Function
 
     '   d. With Implements/Handles clause
-    Iterator Function Foo4() As Integer Implements I.Foo
+    Iterator Function Goo4() As Integer Implements I.Goo
     End Function
 
     '   e. With Implements/Handles clause with trivia
-    Iterator Function Foo5() As Integer     Implements I.Foo  ' Trailing
+    Iterator Function Goo5() As Integer     Implements I.Goo  ' Trailing
     End Function
 
     '   f. Invalid Iterator Sub
-    Iterator Sub Foo6() As Integer
+    Iterator Sub Goo6() As Integer
     End Sub
 
     '   g1. With valid IEnumerable return type
-    Iterator Function Foo7_1() As System.Collections.IEnumerable
+    Iterator Function Goo7_1() As System.Collections.IEnumerable
     End Function
 
     '   g2. With valid IEnumerator return type
-    Iterator Function Foo7_2() As System.Collections.IEnumerator
+    Iterator Function Goo7_2() As System.Collections.IEnumerator
     End Function
 
     '   h1. With valid IEnumerable(Of T) return type
-    Iterator Function Foo8_1() As IEnumerable(Of T)
+    Iterator Function Goo8_1() As IEnumerable(Of T)
     End Function
 
     '   h2. With valid IEnumerator(Of T) return type
-    Iterator Function Foo8_2() As System.Collections.Generic.IEnumerator(Of T)
+    Iterator Function Goo8_2() As System.Collections.Generic.IEnumerator(Of T)
     End Function
 
     '   i1. With valid IEnumerable(Of Integer) return type
-    Iterator Function Foo9_1() As IEnumerable(Of Integer)
+    Iterator Function Goo9_1() As IEnumerable(Of Integer)
     End Function
 
     '   i2. With valid IEnumerator(Of Integer) return type
-    Iterator Function Foo9_2() As System.Collections.Generic.IEnumerator(Of Integer)
+    Iterator Function Goo9_2() As System.Collections.Generic.IEnumerator(Of Integer)
     End Function
 
     '   j. With invalid user defined IEnumerable return type
-    Iterator Function Foo10() As MyType.IEnumerable
+    Iterator Function Goo10() As MyType.IEnumerable
     End Function
 
     '   k. With error return type
-    Iterator Function Foo11() As ErrorType
+    Iterator Function Goo11() As ErrorType
     End Function
 
     '   l. Without a return type
-    Iterator Function Foo12() As  ' Trailing
+    Iterator Function Goo12() As  ' Trailing
     End Function
 
     '   m. With trivia within AsClause
-    Iterator Function Foo13()    As         Integer  ' Trailing
+    Iterator Function Goo13()    As         Integer  ' Trailing
     End Function
 
     '   n. With return type that implements IEnumerable
-    Iterator Function Foo14() As MyIEnumerable
+    Iterator Function Goo14() As MyIEnumerable
     End Function
 
     '   o. Without End Function
-    Iterator Function FooLast() As Integer
+    Iterator Function GooLast() As Integer
 
 End Class|]";
 
@@ -2332,7 +2332,7 @@ Imports System
 Imports System.Collections.Generic
 
 Interface I
-    Function Foo() As System.Collections.IEnumerable
+    Function Goo() As System.Collections.IEnumerable
 End Interface
 
 Class MyType
@@ -2352,75 +2352,75 @@ Class Test(Of T)
     Implements I
 
     '   a. Basic
-    Iterator Function Foo1() As IEnumerable(Of Integer)
+    Iterator Function Goo1() As IEnumerable(Of Integer)
     End Function
 
     '   b. With Trailing trivia
-    Iterator Function Foo2() As IEnumerable(Of Integer)   ' Trailing
+    Iterator Function Goo2() As IEnumerable(Of Integer)   ' Trailing
     End Function
 
     '   c. Without Parenthesis
-    Iterator Function Foo3() As IEnumerable(Of Integer)   ' Trailing
+    Iterator Function Goo3() As IEnumerable(Of Integer)   ' Trailing
     End Function
 
     '   d. With Implements/Handles clause
-    Iterator Function Foo4() As IEnumerable(Of Integer) Implements I.Foo
+    Iterator Function Goo4() As IEnumerable(Of Integer) Implements I.Goo
     End Function
 
     '   e. With Implements/Handles clause with trivia
-    Iterator Function Foo5() As IEnumerable(Of Integer) Implements I.Foo  ' Trailing
+    Iterator Function Goo5() As IEnumerable(Of Integer) Implements I.Goo  ' Trailing
     End Function
 
     '   f. Invalid Iterator Sub
-    Iterator Sub Foo6() As Integer
+    Iterator Sub Goo6() As Integer
     End Sub
 
     '   g1. With valid IEnumerable return type
-    Iterator Function Foo7_1() As System.Collections.IEnumerable
+    Iterator Function Goo7_1() As System.Collections.IEnumerable
     End Function
 
     '   g2. With valid IEnumerator return type
-    Iterator Function Foo7_2() As System.Collections.IEnumerator
+    Iterator Function Goo7_2() As System.Collections.IEnumerator
     End Function
 
     '   h1. With valid IEnumerable(Of T) return type
-    Iterator Function Foo8_1() As IEnumerable(Of T)
+    Iterator Function Goo8_1() As IEnumerable(Of T)
     End Function
 
     '   h2. With valid IEnumerator(Of T) return type
-    Iterator Function Foo8_2() As System.Collections.Generic.IEnumerator(Of T)
+    Iterator Function Goo8_2() As System.Collections.Generic.IEnumerator(Of T)
     End Function
 
     '   i1. With valid IEnumerable(Of Integer) return type
-    Iterator Function Foo9_1() As IEnumerable(Of Integer)
+    Iterator Function Goo9_1() As IEnumerable(Of Integer)
     End Function
 
     '   i2. With valid IEnumerator(Of Integer) return type
-    Iterator Function Foo9_2() As System.Collections.Generic.IEnumerator(Of Integer)
+    Iterator Function Goo9_2() As System.Collections.Generic.IEnumerator(Of Integer)
     End Function
 
     '   j. With invalid user defined IEnumerable return type
-    Iterator Function Foo10() As IEnumerable(Of MyType.IEnumerable)
+    Iterator Function Goo10() As IEnumerable(Of MyType.IEnumerable)
     End Function
 
     '   k. With error return type
-    Iterator Function Foo11() As ErrorType
+    Iterator Function Goo11() As ErrorType
     End Function
 
     '   l. Without a return type
-    Iterator Function Foo12() As  ' Trailing
+    Iterator Function Goo12() As  ' Trailing
     End Function
 
     '   m. With trivia within AsClause
-    Iterator Function Foo13() As IEnumerable(Of Integer)  ' Trailing
+    Iterator Function Goo13() As IEnumerable(Of Integer)  ' Trailing
     End Function
 
     '   n. With return type that implements IEnumerable
-    Iterator Function Foo14() As IEnumerable(Of MyIEnumerable)
+    Iterator Function Goo14() As IEnumerable(Of MyIEnumerable)
     End Function
 
     '   o. Without End Function
-    Iterator Function FooLast() As IEnumerable(Of Integer)
+    Iterator Function GooLast() As IEnumerable(Of Integer)
 
 End Class";
 
@@ -2438,7 +2438,7 @@ Imports System.Threading.Tasks
 Imports X = System.Threading.Tasks.Task
 Imports Y = System.Threading
 Class Test
-    Async Function Foo() As X
+    Async Function Goo() As X
     End Function
     Async Function Bar() As Y.Tasks.Task
 End Class|]";
@@ -2449,7 +2449,7 @@ Imports System.Threading.Tasks
 Imports X = System.Threading.Tasks.Task
 Imports Y = System.Threading
 Class Test
-    Async Function Foo() As X
+    Async Function Goo() As X
     End Function
     Async Function Bar() As Y.Tasks.Task
 End Class";
@@ -2468,7 +2468,7 @@ Imports System.Collections
 Imports X = System.Collections.IEnumerable
 Imports Y = System.Collections
 Class Test
-    Iterator Function Foo() As X
+    Iterator Function Goo() As X
     End Function
     Iterator Function Bar() As Y.IEnumerable
 End Class|]";
@@ -2479,7 +2479,7 @@ Imports System.Collections
 Imports X = System.Collections.IEnumerable
 Imports Y = System.Collections
 Class Test
-    Iterator Function Foo() As X
+    Iterator Function Goo() As X
     End Function
     Iterator Function Bar() As Y.IEnumerable
 End Class";
@@ -2498,7 +2498,7 @@ Imports System.Threading.Tasks
 Imports Y = System.Int32
 
 Class Test
-    Async Function Foo() As Y      ' Trailing
+    Async Function Goo() As Y      ' Trailing
     End Function
 End Class|]";
 
@@ -2508,7 +2508,7 @@ Imports System.Threading.Tasks
 Imports Y = System.Int32
 
 Class Test
-    Async Function Foo() As Task(Of Y)      ' Trailing
+    Async Function Goo() As Task(Of Y)      ' Trailing
     End Function
 End Class";
 
@@ -2526,7 +2526,7 @@ Imports System.Threading.Tasks
 Imports Y = System.Int32
 
 Class Test
-    Iterator Function Foo() As Y      ' Trailing
+    Iterator Function Goo() As Y      ' Trailing
     End Function
 End Class|]";
 
@@ -2536,7 +2536,7 @@ Imports System.Threading.Tasks
 Imports Y = System.Int32
 
 Class Test
-    Iterator Function Foo() As Collections.Generic.IEnumerable(Of Y)      ' Trailing
+    Iterator Function Goo() As Collections.Generic.IEnumerable(Of Y)      ' Trailing
     End Function
 End Class";
 
@@ -2553,7 +2553,7 @@ Imports System
 Imports System.Threading.Tasks
 
 Class Test
-    Async Function Foo() As System.Int32      ' Trailing
+    Async Function Goo() As System.Int32      ' Trailing
     End Function
 End Class|]";
 
@@ -2562,7 +2562,7 @@ Imports System
 Imports System.Threading.Tasks
 
 Class Test
-    Async Function Foo() As Task(Of System.Int32)      ' Trailing
+    Async Function Goo() As Task(Of System.Int32)      ' Trailing
     End Function
 End Class";
 
@@ -2579,7 +2579,7 @@ Imports System
 Imports System.Collections
 
 Class Test
-    Iterator Function Foo() As System.Int32      ' Trailing
+    Iterator Function Goo() As System.Int32      ' Trailing
     End Function
 End Class|]";
 
@@ -2588,7 +2588,7 @@ Imports System
 Imports System.Collections
 
 Class Test
-    Iterator Function Foo() As Generic.IEnumerable(Of System.Int32)      ' Trailing
+    Iterator Function Goo() As Generic.IEnumerable(Of System.Int32)      ' Trailing
     End Function
 End Class";
 
@@ -2605,7 +2605,7 @@ Imports System
 Imports System.Threading.Tasks
 
 Class Test
-    Async Function Foo() As Integer
+    Async Function Goo() As Integer
         ' Basic
         Dim a = Async Function() As Integer
                 End Function
@@ -2635,7 +2635,7 @@ Imports System
 Imports System.Threading.Tasks
 
 Class Test
-    Async Function Foo() As Task(Of Integer)
+    Async Function Goo() As Task(Of Integer)
         ' Basic
         Dim a = Async Function() As Task(Of Integer)
                 End Function
@@ -2673,7 +2673,7 @@ Imports System
 Imports System.Collections.Generic
 
 Class Test
-    Iterator Function Foo() As Integer
+    Iterator Function Goo() As Integer
         ' Basic
         Dim a = Iterator Function() As Integer
                 End Function
@@ -2703,7 +2703,7 @@ Imports System
 Imports System.Collections.Generic
 
 Class Test
-    Iterator Function Foo() As IEnumerable(Of Integer)
+    Iterator Function Goo() As IEnumerable(Of Integer)
         ' Basic
         Dim a = Iterator Function() As IEnumerable(Of Integer)
                 End Function
@@ -2744,12 +2744,12 @@ Imports System
 Imports System.Collections.Generic
 
 Class Test
-    Private Function Foo() As Integer
+    Private Function Goo() As Integer
         Return 1
     End Function
 
     Private Sub Caller(i As Integer)
-        Caller(Foo)
+        Caller(Goo)
     End Sub
 End Class|]";
 
@@ -2758,12 +2758,12 @@ Imports System
 Imports System.Collections.Generic
 
 Class Test
-    Private Function Foo() As Integer
+    Private Function Goo() As Integer
         Return 1
     End Function
 
     Private Sub Caller(i As Integer)
-        Caller(Foo)
+        Caller(Goo)
     End Sub
 End Class";
 
@@ -2839,7 +2839,7 @@ End Class";
                 out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
-            var codeCleanups = CodeCleaner.GetDefaultProviders(document).Where(p => p.Name == PredefinedCodeCleanupProviderNames.AddMissingTokens || p.Name == PredefinedCodeCleanupProviderNames.Format || p.Name == PredefinedCodeCleanupProviderNames.Simplification);
+            var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name == PredefinedCodeCleanupProviderNames.AddMissingTokens || p.Name == PredefinedCodeCleanupProviderNames.Format || p.Name == PredefinedCodeCleanupProviderNames.Simplification);
 
             var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups);
 

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             // So if the test fails we should fix the product bug that is causing the failure
             // as opposed to 'fixing' the test by updating the benchmark code.
 
-            ///GNAMBOO: Changing this code has implications for perf tests.
+            //GNAMBOO: Changing this code has implications for perf tests.
             CompileAndVerify(TestResources.PerfTests.CSPerfTest,
                              additionalRefs: new[] { SystemCoreRef }).
                              VerifyDiagnostics(

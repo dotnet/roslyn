@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -50,7 +50,8 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
 
             // Ok, we're in the signature of the method.  Now see if the method is viable to be 
             // replaced with a property.
-            var methodName = service.GetMethodName(methodDeclaration);
+            var generator = SyntaxGenerator.GetGenerator(document);
+            var methodName = generator.GetName(methodDeclaration);
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var methodSymbol = semanticModel.GetDeclaredSymbol(methodDeclaration) as IMethodSymbol;
@@ -121,7 +122,21 @@ namespace Microsoft.CodeAnalysis.ReplaceMethodWithProperty
                 !getMethod.IsAsync &&
                 getMethod.Parameters.Length == 0 &&
                 !getMethod.ReturnsVoid &&
-                getMethod.DeclaringSyntaxReferences.Length == 1;
+                getMethod.DeclaringSyntaxReferences.Length == 1 &&
+                !OverridesMethodFromSystemObject(getMethod);
+        }
+
+        private static bool OverridesMethodFromSystemObject(IMethodSymbol method)
+        {
+            for (var current = method; current != null; current = current.OverriddenMethod)
+            {
+                if (current.ContainingType.SpecialType == SpecialType.System_Object)
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static bool IsValidSetMethod(IMethodSymbol setMethod, IMethodSymbol getMethod)

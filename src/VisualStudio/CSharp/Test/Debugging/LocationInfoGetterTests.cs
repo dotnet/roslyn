@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
         public async Task TestClass()
         {
-            await TestAsync("class F$$oo { }", "Foo", 0);
+            await TestAsync("class G$$oo { }", "Goo", 0);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]

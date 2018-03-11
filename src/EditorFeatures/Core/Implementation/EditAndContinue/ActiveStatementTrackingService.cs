@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
             TrackingSession session = _session;
             if (session == null)
             {
-                span = default(TextSpan);
+                span = default;
                 return false;
             }
 
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.EditAndContinue
                     }
                 }
 
-                span = default(TextSpan);
+                span = default;
                 return false;
             }
 

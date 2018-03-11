@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -160,6 +160,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             return null;
         }
 
+        private static void AssertTextAndClassifications(string expectedText, Tuple<string, string>[] expectedClassifications, IDeferredQuickInfoContent actualContent)
+        {
+            var actualClassifications = ((ClassifiableDeferredContent)actualContent).ClassifiableContent;
+
+            ClassificationTestHelper.VerifyTextAndClassifications(expectedText, expectedClassifications, actualClassifications);
+        }
+
         protected void WaitForDocumentationComment(object content)
         {
             if (content is QuickInfoDisplayDeferredContent deferredContent)
@@ -173,9 +180,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 
         internal Action<object> SymbolGlyph(Glyph expectedGlyph)
         {
-            return (content) =>
+            return content =>
             {
-                var actualIcon = ((QuickInfoDisplayDeferredContent)content).SymbolGlyph;
+                var actualIcon = (SymbolGlyphDeferredContent)((QuickInfoDisplayDeferredContent)content).SymbolGlyph;
                 Assert.Equal(expectedGlyph, actualIcon.Glyph);
             };
         }
@@ -190,15 +197,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
                 {
                     case QuickInfoDisplayDeferredContent qiContent:
                         {
-                            var actualContent = qiContent.MainDescription.ClassifiableContent;
-                            ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
+                            AssertTextAndClassifications(expectedText, expectedClassifications, (ClassifiableDeferredContent)qiContent.MainDescription);
                         }
                         break;
 
                     case ClassifiableDeferredContent classifiable:
                         {
                             var actualContent = classifiable.ClassifiableContent;
-                            ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
+                            ClassificationTestHelper.VerifyTextAndClassifications(expectedText, expectedClassifications, actualContent);
                         }
                         break;
                 }
@@ -216,10 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
                 {
                     case DocumentationCommentDeferredContent docComment:
                         {
-                            var documentationCommentBlock = (TextBlock)docComment.Create();
-                            var actualText = documentationCommentBlock.Text;
-
-                            Assert.Equal(expectedText, actualText);
+                            Assert.Equal(expectedText, docComment.DocumentationComment);
                         }
                         break;
 
@@ -227,7 +230,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
                         {
                             var actualContent = classifiable.ClassifiableContent;
                             Assert.Equal(expectedText, actualContent.GetFullText());
-                            ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
+                            ClassificationTestHelper.VerifyTextAndClassifications(expectedText, expectedClassifications, actualContent);
                         }
                         break;
                 }
@@ -238,16 +241,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return (content) =>
+            return content =>
             {
-                var actualContent = ((QuickInfoDisplayDeferredContent)content).TypeParameterMap.ClassifiableContent;
-
-                // The type parameter map should have an additional line break at the beginning. We
-                // create a copy here because we've captured expectedText and this delegate might be
-                // executed more than once (e.g. with different parse options).
-
-                // var expectedTextCopy = "\r\n" + expectedText;
-                ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
+                AssertTextAndClassifications(expectedText, expectedClassifications, ((QuickInfoDisplayDeferredContent)content).TypeParameterMap);
             };
         }
 
@@ -255,46 +251,40 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
             string expectedText,
             Tuple<string, string>[] expectedClassifications = null)
         {
-            return (content) =>
+            return content =>
             {
-                var actualContent = ((QuickInfoDisplayDeferredContent)content).AnonymousTypes.ClassifiableContent;
-
-                // The type parameter map should have an additional line break at the beginning. We
-                // create a copy here because we've captured expectedText and this delegate might be
-                // executed more than once (e.g. with different parse options).
-
-                // var expectedTextCopy = "\r\n" + expectedText;
-                ClassificationTestHelper.Verify(expectedText, expectedClassifications, actualContent);
+                AssertTextAndClassifications(expectedText, expectedClassifications, ((QuickInfoDisplayDeferredContent)content).AnonymousTypes);
             };
         }
+
 
         protected Action<object> NoTypeParameterMap
         {
             get
             {
-                return (content) =>
+                return content =>
                 {
-                    Assert.Equal(string.Empty, ((QuickInfoDisplayDeferredContent)content).TypeParameterMap.ClassifiableContent.GetFullText());
+                    AssertTextAndClassifications("", NoClassifications(), ((QuickInfoDisplayDeferredContent)content).TypeParameterMap);
                 };
             }
         }
 
         protected Action<object> Usage(string expectedText, bool expectsWarningGlyph = false)
         {
-            return (content) =>
+            return content =>
             {
                 var quickInfoContent = (QuickInfoDisplayDeferredContent)content;
-                Assert.Equal(expectedText, quickInfoContent.UsageText.ClassifiableContent.GetFullText());
-                Assert.Equal(expectsWarningGlyph, quickInfoContent.WarningGlyph != null && quickInfoContent.WarningGlyph.Glyph == Glyph.CompletionWarning);
+                Assert.Equal(expectedText, ((ClassifiableDeferredContent)quickInfoContent.UsageText).ClassifiableContent.GetFullText());
+                var warningGlyph = quickInfoContent.WarningGlyph as SymbolGlyphDeferredContent;
+                Assert.Equal(expectsWarningGlyph, warningGlyph != null && warningGlyph.Glyph == Glyph.CompletionWarning);
             };
         }
 
         protected Action<object> Exceptions(string expectedText)
         {
-            return (content) =>
+            return content =>
             {
-                var quickInfoContent = (QuickInfoDisplayDeferredContent)content;
-                Assert.Equal(expectedText, quickInfoContent.ExceptionText.ClassifiableContent.GetFullText());
+                AssertTextAndClassifications(expectedText, expectedClassifications: null, actualContent: ((QuickInfoDisplayDeferredContent)content).ExceptionText);
             };
         }
 

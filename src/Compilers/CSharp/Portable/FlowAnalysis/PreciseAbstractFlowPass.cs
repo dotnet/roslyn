@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -803,22 +804,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool ResolveBranches(BoundLabeledStatement target)
-        {
-            return ResolveBranches(target.Label, target);
-        }
-
         protected struct SavedPending
         {
             public readonly ArrayBuilder<PendingBranch> PendingBranches;
             public readonly PooledHashSet<BoundStatement> LabelsSeen;
 
-            public SavedPending(ref ArrayBuilder<PendingBranch> pendingBranches, ref PooledHashSet<BoundStatement> labelsSeen)
+            public SavedPending(ArrayBuilder<PendingBranch> pendingBranches, PooledHashSet<BoundStatement> labelsSeen)
             {
                 this.PendingBranches = pendingBranches;
                 this.LabelsSeen = labelsSeen;
-                pendingBranches = ArrayBuilder<PendingBranch>.GetInstance();
-                labelsSeen = PooledHashSet<BoundStatement>.GetInstance();
             }
         }
 
@@ -830,7 +824,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected SavedPending SavePending()
         {
             Debug.Assert(!this.IsConditionalState);
-            var result = new SavedPending(ref _pendingBranches, ref _labelsSeen);
+            var result = new SavedPending(_pendingBranches, _labelsSeen);
+
+            _pendingBranches = ArrayBuilder<PendingBranch>.GetInstance();
+            _labelsSeen = PooledHashSet<BoundStatement>.GetInstance();
+
             if (_trackExceptions)
             {
                 _pendingBranches.Add(new PendingBranch(null, this.State));
@@ -840,7 +838,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// We use this to restore the old set of pending branches after visiting a construct that contains nested statements.
+        /// We use this when closing a block that may contain labels or branches
+        /// - branches to new labels are resolved
+        /// - new labels are removed (no longer can be reached)
+        /// - unresolved pending branches are carried forward
         /// </summary>
         /// <param name="oldPending">The old pending branches, which are to be merged with the current ones</param>
         protected void RestorePending(SavedPending oldPending)
@@ -885,20 +886,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            int i = 0;
-            int n = _pendingBranches.Count;
             if (_trackExceptions)
             {
                 Debug.Assert(oldPending.PendingBranches[0].Branch == null);
                 Debug.Assert(this.PendingBranches[0].Branch == null);
                 this.IntersectWith(ref oldPending.PendingBranches[0].State, ref this.PendingBranches[0].State);
-                i++;
+
+                for (int i = 1, c = this.PendingBranches.Count; i < c; i++)
+                {
+                    oldPending.PendingBranches.Add(this.PendingBranches[i]);
+                }
+            }
+            else
+            { 
+                oldPending.PendingBranches.AddRange(this.PendingBranches);
             }
 
-            for (; i < n; i++)
-            {
-                oldPending.PendingBranches.Add(this.PendingBranches[i]);
-            }
             _pendingBranches.Free();
             _pendingBranches = oldPending.PendingBranches;
 
@@ -1669,9 +1672,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitRvalue(node.Right);
 
             // byref assignment is also a potential write
-            if (node.RefKind != RefKind.None)
+            if (node.IsRef)
             {
-                WriteArgument(node.Right, node.RefKind, method: null);
+                WriteArgument(node.Right, node.Left.GetRefKind(), method: null);
             }
 
             return null;
@@ -2160,7 +2163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.ReceiverOpt != null)
             {
-                // An explicit or implicit receiver, for example in an expression such as (x.Foo is Action, or Foo is Action), is considered to be read.
+                // An explicit or implicit receiver, for example in an expression such as (x.Goo is Action, or Goo is Action), is considered to be read.
                 VisitRvalue(node.ReceiverOpt);
             }
 
@@ -2332,41 +2335,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
+        public sealed override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
+            var isByRef = node.IsRef;
+
             VisitCondition(node.Condition);
             var consequenceState = this.StateWhenTrue;
             var alternativeState = this.StateWhenFalse;
             if (IsConstantTrue(node.Condition))
             {
-                SetState(alternativeState);
-                Visit(node.Alternative);
-                SetState(consequenceState);
-                Visit(node.Consequence);
+                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
+                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
                 // it may be a boolean state at this point.
             }
             else if (IsConstantFalse(node.Condition))
             {
-                SetState(consequenceState);
-                Visit(node.Consequence);
-                SetState(alternativeState);
-                Visit(node.Alternative);
+                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
+                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
                 // it may be a boolean state at this point.
             }
             else
             {
-                SetState(consequenceState);
-                Visit(node.Consequence);
+                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
                 Unsplit();
                 consequenceState = this.State;
-                SetState(alternativeState);
-                Visit(node.Alternative);
+                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
                 Unsplit();
                 IntersectWith(ref this.State, ref consequenceState);
                 // it may not be a boolean state at this point (5.3.3.28)
             }
 
             return null;
+        }
+
+        private void VisitConditionalOperand(LocalState state, BoundExpression operand, bool isByRef)
+        {
+            SetState(state);
+            if (isByRef)
+            {
+                VisitLvalue(operand);
+                // exposing ref is a potential write
+                WriteArgument(operand, RefKind.Ref, method: null);
+            }
+            else
+            {
+                Visit(operand);
+            }
         }
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)
@@ -2497,7 +2511,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitDefaultOperator(BoundDefaultOperator node)
+        public override BoundNode VisitDefaultExpression(BoundDefaultExpression node)
         {
             return null;
         }
@@ -2519,7 +2533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitAddressOfOperator(BoundAddressOfOperator node)
         {
-            VisitAddressOfOperator(node, shouldReadOperand: false);
+            VisitAddressOfOperand(node.Operand, shouldReadOperand: false);
             return null;
         }
 
@@ -2527,10 +2541,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If the operand is definitely assigned, we may want to perform a read (in addition to
         /// a write) so that the operand can show up as ReadInside/DataFlowsIn.
         /// </summary>
-        protected void VisitAddressOfOperator(BoundAddressOfOperator node, bool shouldReadOperand)
+        protected void VisitAddressOfOperand(BoundExpression operand, bool shouldReadOperand)
         {
-            BoundExpression operand = node.Operand;
-
             if (shouldReadOperand)
             {
                 this.VisitRvalue(operand);
@@ -2562,6 +2574,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
+        {
+            VisitRvalue(node.Count);
+            return null;
+        }
+
+        public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
         {
             VisitRvalue(node.Count);
             return null;

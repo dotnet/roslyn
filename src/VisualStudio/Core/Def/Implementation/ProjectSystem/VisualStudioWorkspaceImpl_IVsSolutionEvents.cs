@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -18,13 +18,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public void AdviseSolutionEvents(IVsSolution solution)
         {
             _vsSolution = solution;
-            _vsSolution.AdviseSolutionEvents(this, out var solutionEventsCookie);
-            _solutionEventsCookie = solutionEventsCookie;
+            if (_solutionEventsCookie == null)
+            {
+                _vsSolution.AdviseSolutionEvents(this, out var solutionEventsCookie);
+                _solutionEventsCookie = solutionEventsCookie;
+            }
         }
 
         public void UnadviseSolutionEvents()
         {
-            if (_solutionEventsCookie.HasValue)
+            if (_solutionEventsCookie != null)
             {
                 _vsSolution.UnadviseSolutionEvents(_solutionEventsCookie.Value);
                 _solutionEventsCookie = null;
@@ -43,13 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         int IVsSolutionEvents.OnAfterOpenSolution(object pUnkReserved, int fNewSolution)
         {
-            _foregroundObject.Value.AssertIsForeground();
-
-            if (IsDeferredSolutionLoadEnabled(Shell.ServiceProvider.GlobalProvider))
-            {
-                GetProjectTrackerAndInitializeIfNecessary(Shell.ServiceProvider.GlobalProvider).LoadSolutionFromMSBuildAsync().FireAndForget();
-            }
-
             return VSConstants.S_OK;
         }
 
@@ -89,14 +85,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             DeferredState?.ProjectTracker.OnAfterCloseSolution();
             return VSConstants.S_OK;
         }
-
-        internal static bool IsDeferredSolutionLoadEnabled(IServiceProvider serviceProvider)
-        {
-            // NOTE: It is expected that the "as" will fail on Dev14, as IVsSolution7 was
-            // introduced in Dev15.  Be sure to handle the null result here.
-            var solution7 = serviceProvider.GetService(typeof(SVsSolution)) as IVsSolution7;
-            return solution7?.IsSolutionLoadDeferred() == true;
-        }
-
     }
 }

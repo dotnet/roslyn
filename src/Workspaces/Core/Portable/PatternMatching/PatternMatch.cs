@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -9,11 +9,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
 {
     internal struct PatternMatch : IComparable<PatternMatch>
     {
-        /// <summary>
-        /// The weight of a CamelCase match. A higher number indicates a more accurate match.
-        /// </summary>
-        public int? CamelCaseWeight { get; }
-
         /// <summary>
         /// True if this was a case sensitive match.
         /// </summary>
@@ -36,11 +31,9 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             PatternMatchKind resultType,
             bool punctuationStripped,
             bool isCaseSensitive,
-            TextSpan? matchedSpan,
-            int? camelCaseWeight = null)
+            TextSpan? matchedSpan)
             : this(resultType, punctuationStripped, isCaseSensitive,
-                   matchedSpan == null ? ImmutableArray<TextSpan>.Empty : ImmutableArray.Create(matchedSpan.Value),
-                   camelCaseWeight)
+                   matchedSpan == null ? ImmutableArray<TextSpan>.Empty : ImmutableArray.Create(matchedSpan.Value))
         {
         }
 
@@ -48,32 +41,25 @@ namespace Microsoft.CodeAnalysis.PatternMatching
             PatternMatchKind resultType,
             bool punctuationStripped,
             bool isCaseSensitive,
-            ImmutableArray<TextSpan> matchedSpans,
-            int? camelCaseWeight = null)
+            ImmutableArray<TextSpan> matchedSpans)
             : this()
         {
             this.Kind = resultType;
             this.IsCaseSensitive = isCaseSensitive;
-            this.CamelCaseWeight = camelCaseWeight;
             this.MatchedSpans = matchedSpans;
             _punctuationStripped = punctuationStripped;
-
-            if ((resultType == PatternMatchKind.CamelCase) != camelCaseWeight.HasValue)
-            {
-                throw new ArgumentException("A CamelCase weight must be specified if and only if the resultType is CamelCase.");
-            }
         }
+
+        public PatternMatch WithMatchedSpans(ImmutableArray<TextSpan> matchedSpans)
+            => new PatternMatch(Kind, _punctuationStripped, IsCaseSensitive, matchedSpans);
 
         public int CompareTo(PatternMatch other)
-        {
-            return CompareTo(other, ignoreCase: false);
-        }
+            => CompareTo(other, ignoreCase: false);
 
         public int CompareTo(PatternMatch other, bool ignoreCase)
         {
             int diff;
             if ((diff = CompareType(this, other)) != 0 ||
-                (diff = CompareCamelCase(this, other)) != 0 ||
                 (diff = CompareCase(this, other, ignoreCase)) != 0 ||
                 (diff = ComparePunctuation(this, other)) != 0)
             {
@@ -109,20 +95,6 @@ namespace Microsoft.CodeAnalysis.PatternMatching
         }
 
         private static int CompareType(PatternMatch result1, PatternMatch result2)
-        {
-            return result1.Kind - result2.Kind;
-        }
-
-        private static int CompareCamelCase(PatternMatch result1, PatternMatch result2)
-        {
-            if (result1.Kind == PatternMatchKind.CamelCase && result2.Kind == PatternMatchKind.CamelCase)
-            {
-                // Swap the values here.  If result1 has a higher weight, then we want it to come
-                // first.
-                return result2.CamelCaseWeight.Value - result1.CamelCaseWeight.Value;
-            }
-
-            return 0;
-        }
+            => result1.Kind - result2.Kind;
     }
 }

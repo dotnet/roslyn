@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Xml.Linq
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
@@ -121,7 +122,7 @@ End Class"
 "Namespace System.Runtime.CompilerServices
     Public Class TupleElementNamesAttribute
         Inherits Attribute
-        Public Sub New(names As String())
+        Public Sub New(names() As String)
         End Sub
     End Class
 End Namespace"
@@ -217,7 +218,7 @@ BC30652: Reference required to assembly 'mscorlib, Version=4.0.0.0, Culture=neut
                 </expected>)
         End Sub
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/16829")>
+        <Fact>
         Public Sub RoundTrip()
             Dim comp = CreateCompilationWithMscorlib({s_tuplesTestSource}, options:=TestOptions.ReleaseDll, references:=s_valueTupleRefs)
             Dim sourceModule As ModuleSymbol = Nothing

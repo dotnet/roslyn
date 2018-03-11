@@ -7,7 +7,8 @@ Imports System.Collections.ObjectModel
 Imports System.IO
 Imports System.Runtime.InteropServices
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.Semantics
+Imports Microsoft.CodeAnalysis.PooledObjects
+Imports Microsoft.CodeAnalysis.Operations
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -350,11 +351,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Function
 
-        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, options As GetOperationOptions, cancellationToken As CancellationToken) As IOperation
-            Dim model As MemberSemanticModel = Me.GetMemberSemanticModel(node)
+        Friend Overrides Function GetOperationWorker(node As VisualBasicSyntaxNode, cancellationToken As CancellationToken) As IOperation
+            Dim model As MemberSemanticModel
+
+            Dim methodBlock = TryCast(node, MethodBlockBaseSyntax)
+            If methodBlock IsNot Nothing Then
+                ' Trying to get the MemberSemanticModel for a MethodBlock will end up returning
+                ' nothing.  That's because trying to get Binder for the MethodBlock will actually
+                ' return the binder for the containing type.  To avoid this we ask for the model
+                ' passing in a position at the end of the method's starting block-statement.
+                ' This will cause it to try to get the interior MemberSemanticModel.
+                model = GetMemberSemanticModel(methodBlock.BlockStatement.EndPosition)
+            Else
+                model = Me.GetMemberSemanticModel(node)
+            End If
 
             If model IsNot Nothing Then
-                Return model.GetOperationWorker(node, options, cancellationToken)
+                Return model.GetOperationWorker(node, cancellationToken)
             Else
                 Return Nothing
             End If

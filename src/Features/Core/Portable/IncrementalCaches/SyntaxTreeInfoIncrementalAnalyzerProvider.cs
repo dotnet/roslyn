@@ -1,9 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Composition;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -21,11 +22,14 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         {
             public override Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                if (document.Project.Solution.Workspace.Kind != WorkspaceKind.RemoteWorkspace &&
-                    document.Project.Solution.Workspace.Options.GetOption(SymbolFinderOptions.OutOfProcessAllowed))
+                if (!document.SupportsSyntaxTree)
                 {
-                    // if FAR feature is set to run on remote host, then we don't need to build inproc cache.
-                    // remote host will build this cache in remote host.
+                    // Not a language we can produce indices for (i.e. TypeScript).  Bail immediately.
+                    return SpecializedTasks.EmptyTask;
+                }
+
+                if (!RemoteFeatureOptions.ShouldComputeIndex(document.Project.Solution.Workspace))
+                {
                     return SpecializedTasks.EmptyTask;
                 }
 

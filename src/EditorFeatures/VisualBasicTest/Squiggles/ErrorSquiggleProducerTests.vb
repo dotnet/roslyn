@@ -1,9 +1,10 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Squiggles
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -16,7 +17,7 @@ Imports Microsoft.VisualStudio.Text.Tagging
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
     Public Class ErrorSquiggleProducerTests
 
-        Private _producer As New DiagnosticTagProducer(Of IErrorTag)
+        Private _producer As New DiagnosticTagProducer(Of DiagnosticsSquiggleTaggerProvider)
 
         Private Async Function ProduceSquiggles(content As String) As Task(Of ImmutableArray(Of ITagSpan(Of IErrorTag)))
             Using workspace = TestWorkspace.CreateVisualBasic(content)
@@ -44,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Squiggles
         Public Async Sub ArgOutOfRangeExceptionBug_904382()
             Dim spans = Await ProduceSquiggles(
 "Class C1
-Sub Foo(
+Sub Goo(
 End Class")
 
             'If the following line does not throw an exception then the test passes.
@@ -55,7 +56,7 @@ End Class")
         Public Async Sub ErrorDoesNotCrashPastEOF()
             Dim spans = Await ProduceSquiggles(
 "Class C1
-    Sub Foo()
+    Sub Goo()
         Dim x = <xml>
     End Sub
 End Class")
@@ -66,7 +67,7 @@ End Class")
         Public Async Sub SemanticError()
             Dim spans = Await ProduceSquiggles(
 "Class C1
-    Sub Foo(b as Bar)
+    Sub Goo(b as Bar)
     End Sub
 End Class")
             Assert.Equal(1, spans.Count())
@@ -87,7 +88,7 @@ Imports System.Collections.Generic
 Imports System.Linq
 
 Class C1
-    Sub Foo()
+    Sub Goo()
         Process.Start(GetType(Int32).ToString()) 'Int32 can be simplified.
     End Sub
 End Class"

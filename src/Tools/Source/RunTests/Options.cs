@@ -1,7 +1,8 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -57,7 +58,19 @@ namespace RunTests
         /// </summary>
         public List<string> Assemblies { get; set; }
 
+        /// <summary>
+        /// Time after which the runner should kill the xunit process and exit with a failure.
+        /// </summary>
+        public TimeSpan? Timeout { get; set; }
+
+        public string ProcDumpPath { get; set; }
+
         public string XunitPath { get; set; }
+
+        /// <summary>
+        /// When set the log file for executing tests will be written to the prescribed location.
+        /// </summary>
+        public string LogFilePath { get; set; }
 
         internal static Options Parse(string[] args)
         {
@@ -66,62 +79,93 @@ namespace RunTests
                 return null;
             }
 
+            var comparer = StringComparer.OrdinalIgnoreCase;
+            bool isOption(string argument, string optionName, out string value)
+            {
+                Debug.Assert(!string.IsNullOrEmpty(optionName) && optionName[0] == '-');
+                if (argument.StartsWith(optionName + ":", StringComparison.OrdinalIgnoreCase))
+                {
+                    value = argument.Substring(optionName.Length + 1);
+                    return !string.IsNullOrEmpty(value);
+                }
+
+                value = null;
+                return false;
+            }
+
             var opt = new Options { XunitPath = args[0], UseHtml = true, UseCachedResults = true };
             var index = 1;
             var allGood = true;
-            var comp = StringComparer.OrdinalIgnoreCase;
             while (index < args.Length)
             {
-                const string optionTrait = "-trait:";
-                const string optionNoTrait = "-notrait:";
-                const string optionDisplay = "-display:";
-
                 var current = args[index];
-                if (comp.Equals(current, "-test64"))
+                if (comparer.Equals(current, "-test64"))
                 {
                     opt.Test64 = true;
                     index++;
                 }
-                else if (comp.Equals(current, "-testVsi"))
+                else if (comparer.Equals(current, "-testVsi"))
                 {
                     opt.TestVsi = true;
                     opt.UseCachedResults = false;
                     index++;
                 }
-                else if (comp.Equals(current, "-xml"))
+                else if (comparer.Equals(current, "-xml"))
                 {
                     opt.UseHtml = false;
                     index++;
                 }
-                else if (comp.Equals(current, "-nocache"))
+                else if (comparer.Equals(current, "-nocache"))
                 {
                     opt.UseCachedResults = false;
                     index++;
                 }
-                else if (current.StartsWith(optionDisplay, StringComparison.OrdinalIgnoreCase))
+                else if (isOption(current, "-log", out string value))
                 {
-                    Display display;
-                    var arg = current.Substring(optionDisplay.Length);
-                    if (Enum.TryParse(arg, ignoreCase: true, result: out display))
+                    opt.LogFilePath = value;
+                    index++;
+                }
+                else if (isOption(current, "-display", out value))
+                {
+                    if (Enum.TryParse(value, ignoreCase: true, result: out Display display))
                     {
                         opt.Display = display;
                     }
                     else
                     {
-                        Console.WriteLine($"{arg} is not a valid option for display");
+                        Console.WriteLine($"{value} is not a valid option for display");
                         allGood = false;
                     }
 
                     index++;
                 }
-                else if (current.StartsWith(optionTrait, StringComparison.OrdinalIgnoreCase))
+                else if (isOption(current, "-trait", out value))
                 {
-                    opt.Trait = current.Substring(optionTrait.Length);
+                    opt.Trait = value;
                     index++;
                 }
-                else if (current.StartsWith(optionNoTrait, StringComparison.OrdinalIgnoreCase))
+                else if (isOption(current, "-notrait", out value))
                 {
-                    opt.NoTrait = current.Substring(optionNoTrait.Length);
+                    opt.NoTrait = value;
+                    index++;
+                }
+                else if (isOption(current, "-timeout", out value))
+                {
+                    if (int.TryParse(value, out var minutes))
+                    {
+                        opt.Timeout = TimeSpan.FromMinutes(minutes);
+                    }
+                    else
+                    {
+                        Console.WriteLine($"{value} is not a valid minute value for timeout");
+                        allGood = false;
+                    }
+
+                    index++;
+                }
+                else if (isOption(current, "-procdumpPath", out value))
+                {
+                    opt.ProcDumpPath = value;
                     index++;
                 }
                 else

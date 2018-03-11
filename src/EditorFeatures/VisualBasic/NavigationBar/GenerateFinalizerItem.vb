@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -45,8 +45,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 accessibility:=Accessibility.Protected,
                 modifiers:=New DeclarationModifiers(isOverride:=True),
                 returnType:=compilation.GetSpecialType(SpecialType.System_Void),
-                returnsByRef:=False,
-                explicitInterfaceSymbol:=Nothing,
+                refKind:=RefKind.None,
+                explicitInterfaceImplementations:=Nothing,
                 name:=WellKnownMemberNames.DestructorName,
                 typeParameters:=Nothing,
                 parameters:=ImmutableArray(Of IParameterSymbol).Empty,

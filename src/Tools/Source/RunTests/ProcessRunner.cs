@@ -11,30 +11,15 @@ namespace RunTests
 {
     public sealed class ProcessOutput
     {
-        private readonly int _exitCode;
-        private readonly IList<string> _outputLines;
-        private readonly IList<string> _errorLines;
-
-        public int ExitCode
-        {
-            get { return _exitCode; }
-        }
-
-        public IList<string> OutputLines
-        {
-            get { return _outputLines; }
-        }
-
-        public IList<string> ErrorLines
-        {
-            get { return _errorLines; }
-        }
+        public int ExitCode { get; }
+        public IList<string> OutputLines { get; }
+        public IList<string> ErrorLines { get; }
 
         public ProcessOutput(int exitCode, IList<string> outputLines, IList<string> errorLines)
         {
-            _exitCode = exitCode;
-            _outputLines = outputLines;
-            _errorLines = errorLines;
+            ExitCode = exitCode;
+            OutputLines = outputLines;
+            ErrorLines = errorLines;
         }
     }
 
@@ -51,65 +36,34 @@ namespace RunTests
         public static Task<ProcessOutput> RunProcessAsync(
             string executable,
             string arguments,
-            bool lowPriority,
             CancellationToken cancellationToken,
+            bool lowPriority = false,
             string workingDirectory = null,
             bool captureOutput = false,
             bool displayWindow = true,
             Dictionary<string, string> environmentVariables = null,
-            Action<Process> processMonitor = null)
+            Action<Process> onProcessStartHandler = null)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             var taskCompletionSource = new TaskCompletionSource<ProcessOutput>();
-
-            var process = new Process();
-            process.EnableRaisingEvents = true;
-            process.StartInfo = CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow);
-
-            var task = CreateTask(process, taskCompletionSource, cancellationToken);
-
-            process.Start();
-
-            processMonitor?.Invoke(process);
-
-            if (lowPriority)
-            {
-                process.PriorityClass = ProcessPriorityClass.BelowNormal;
-            }
-
-            if (process.StartInfo.RedirectStandardOutput)
-            {
-                process.BeginOutputReadLine();
-            }
-
-            if (process.StartInfo.RedirectStandardError)
-            {
-                process.BeginErrorReadLine();
-            }
-
-            return task;
+            var processStartInfo = CreateProcessStartInfo(executable, arguments, workingDirectory, captureOutput, displayWindow, environmentVariables);
+            return CreateProcessTask(processStartInfo, lowPriority, taskCompletionSource, onProcessStartHandler, cancellationToken);
         }
 
-        private static Task<ProcessOutput> CreateTask(
-            Process process,
+        private static Task<ProcessOutput> CreateProcessTask(
+            ProcessStartInfo processStartInfo,
+            bool lowPriority,
             TaskCompletionSource<ProcessOutput> taskCompletionSource,
+            Action<Process> onProcessStartHandler,
             CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (taskCompletionSource == null)
-            {
-                throw new ArgumentException("taskCompletionSource");
-            }
-
-            if (process == null)
-            {
-                return taskCompletionSource.Task;
-            }
-
             var errorLines = new List<string>();
             var outputLines = new List<string>();
+            var process = new Process();
+
+            process.EnableRaisingEvents = true;
+            process.StartInfo = processStartInfo;
 
             process.OutputDataReceived += (s, e) =>
                 {
@@ -158,6 +112,24 @@ namespace RunTests
                         }
                     }
                 });
+
+            process.Start();
+            onProcessStartHandler?.Invoke(process);
+
+            if (lowPriority)
+            {
+                process.PriorityClass = ProcessPriorityClass.BelowNormal;
+            }
+
+            if (processStartInfo.RedirectStandardOutput)
+            {
+                process.BeginOutputReadLine();
+            }
+
+            if (processStartInfo.RedirectStandardError)
+            {
+                process.BeginErrorReadLine();
+            }
 
             return taskCompletionSource.Task;
         }

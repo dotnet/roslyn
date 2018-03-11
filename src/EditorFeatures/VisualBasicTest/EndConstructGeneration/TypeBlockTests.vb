@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
@@ -36,9 +36,9 @@ End Class",
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyAfterInterfaceStatement()
             VerifyStatementEndConstructApplied(
-                before:="Interface IFoo",
+                before:="Interface IGoo",
                 beforeCaret:={0, -1},
-                after:="Interface IFoo
+                after:="Interface IGoo
 
 End Interface",
                 afterCaret:={1, -1})
@@ -47,9 +47,9 @@ End Interface",
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyAfterStructureStatement()
             VerifyStatementEndConstructApplied(
-                before:="Structure Foo",
+                before:="Structure Goo",
                 beforeCaret:={0, -1},
-                after:="Structure Foo
+                after:="Structure Goo
 
 End Structure",
                 afterCaret:={1, -1})
@@ -58,9 +58,9 @@ End Structure",
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyAfterEnumStatement()
             VerifyStatementEndConstructApplied(
-                before:="Enum Foo",
+                before:="Enum Goo",
                 beforeCaret:={0, -1},
-                after:="Enum Foo
+                after:="Enum Goo
 
 End Enum",
                 afterCaret:={1, -1})

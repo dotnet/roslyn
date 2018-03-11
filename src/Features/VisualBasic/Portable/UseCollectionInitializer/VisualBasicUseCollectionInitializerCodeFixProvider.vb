@@ -3,8 +3,10 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.UseCollectionInitializer
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.UseObjectInitializer
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.UseCollectionInitializer), [Shared]>
@@ -46,19 +48,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UseCollectionInitializer
                 objectCreation As ObjectCreationExpressionSyntax,
                 matches As ImmutableArray(Of ExpressionStatementSyntax)) As ObjectCreationExpressionSyntax
 
-            Dim initializer = SyntaxFactory.ObjectCollectionInitializer(
-                CreateCollectionInitializer(matches))
-
-            If objectCreation.ArgumentList IsNot Nothing AndAlso
-               objectCreation.ArgumentList.Arguments.Count = 0 Then
-
-                objectCreation = objectCreation.WithType(objectCreation.Type.WithTrailingTrivia(objectCreation.ArgumentList.GetTrailingTrivia())).
-                                                WithArgumentList(Nothing)
-            End If
-
-            Return objectCreation.WithoutTrailingTrivia().
-                                  WithInitializer(initializer).
-                                  WithTrailingTrivia(objectCreation.GetTrailingTrivia())
+            Return UseInitializerHelpers.GetNewObjectCreation(
+                objectCreation,
+                SyntaxFactory.ObjectCollectionInitializer(
+                    CreateCollectionInitializer(matches)))
         End Function
 
         Private Function CreateCollectionInitializer(

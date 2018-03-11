@@ -46,25 +46,67 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Label Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=dialog, Path=NamingStyleTitleLabelText}"/>
-        <TextBox Grid.Row="0" Grid.Column="1" MinWidth="300" Text="{Binding ItemName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
+        <Label Name="titleLabel" Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=dialog, Path=NamingStyleTitleLabelText}"/>
+        <TextBox Grid.Row="0" 
+                 Grid.Column="1" 
+                 MinWidth="300" 
+                 Text="{Binding ItemName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                 VerticalContentAlignment="Center" 
+                 AutomationProperties.LabeledBy="{Binding ElementName=titleLabel}"/>
 
-        <Label Grid.Row="1" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=RequiredPrefixLabelText}"/>
-        <TextBox Grid.Row="1" Grid.Column="1" Margin="0 5 0 0" Width="100" HorizontalAlignment="Left" VerticalContentAlignment="Center" Text="{Binding RequiredPrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        <Label Name ="requiredPrefixLabel" Grid.Row="1" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=RequiredPrefixLabelText}"/>
+        <TextBox Grid.Row="1" 
+                 Grid.Column="1" 
+                 Margin="0 5 0 0" 
+                 Width="100" 
+                 HorizontalAlignment="Left"
+                 VerticalContentAlignment="Center" 
+                 Text="{Binding RequiredPrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 AutomationProperties.LabeledBy="{Binding ElementName=requiredPrefixLabel}"/>
 
-        <Label Grid.Row="2" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=RequiredSuffixLabelText}"/>
-        <TextBox Grid.Row="2" Grid.Column="1" Margin="0 5 0 0" Width="100" HorizontalAlignment="Left" VerticalContentAlignment="Center" Text="{Binding RequiredSuffix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        <Label Name="requiredSuffixLabel" Grid.Row="2" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=RequiredSuffixLabelText}"/>
+        <TextBox Grid.Row="2" 
+                 Grid.Column="1" 
+                 Margin="0 5 0 0" 
+                 Width="100" 
+                 HorizontalAlignment="Left" 
+                 VerticalContentAlignment="Center" 
+                 Text="{Binding RequiredSuffix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 AutomationProperties.LabeledBy="{Binding ElementName=requiredSuffixLabel}"/>
 
-        <Label Grid.Row="3" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=WordSeparatorLabelText}"/>
-        <TextBox Grid.Row="3" Grid.Column="1" Margin="0 5 0 0" Width="100" HorizontalAlignment="Left" VerticalContentAlignment="Center" Text="{Binding WordSeparator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+        <Label Name="wordSeparatorLabel" Grid.Row="3" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=WordSeparatorLabelText}"/>
+        <TextBox Grid.Row="3" 
+                 Grid.Column="1" 
+                 Margin="0 5 0 0" 
+                 Width="100" 
+                 HorizontalAlignment="Left" 
+                 VerticalContentAlignment="Center" 
+                 Text="{Binding WordSeparator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 AutomationProperties.LabeledBy="{Binding ElementName=wordSeparatorLabel}"/>
 
-        <Label Grid.Row="4" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=CapitalizationLabelText}"/>
-        <ComboBox Grid.Row="4" Grid.Column="1" Width="200" HorizontalAlignment="Left" Margin="0 5 0 0" VerticalContentAlignment="Center" ItemsSource="{Binding CapitalizationSchemes}" DisplayMemberPath="Name" SelectedIndex="{Binding CapitalizationSchemeIndex, Mode=TwoWay}"/>
+        <Label Name="capitalizationLabel" Grid.Row="4" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=CapitalizationLabelText}"/>
+        <ComboBox 
+            Grid.Row="4" 
+            Grid.Column="1" 
+            Width="200" 
+            HorizontalAlignment="Left" 
+            Margin="0 5 0 0" 
+            VerticalContentAlignment="Center" 
+            ItemsSource="{Binding CapitalizationSchemes}" 
+            DisplayMemberPath="Name" 
+            SelectedIndex="{Binding CapitalizationSchemeIndex, Mode=TwoWay}"
+            AutomationProperties.LabeledBy="{Binding ElementName=capitalizationLabel}"/>
 
-        <Label Grid.Row="6" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=SampleIdentifierLabelText}"/>
-        <Border Grid.Row="6" Grid.Column="1" Margin="0 5 0 0" BorderThickness="1" BorderBrush="Gray" Background="White">
-            <TextBlock FontFamily="Consolas" Margin="2 2 2 2" Text="{Binding CurrentConfiguration, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"></TextBlock>
-        </Border>
+        <Label Name="sampleIdentifierLabel" Grid.Row="6" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=SampleIdentifierLabelText}"/>
+        <TextBox Grid.Row="6" 
+                 Grid.Column="1" 
+                 IsReadOnly="True"
+                 Margin="0 5 0 0" 
+                 Padding="1 6 1 6"
+                 FontFamily="Consolas" 
+                 Text="{Binding CurrentConfiguration, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" 
+                 VerticalAlignment="Center" 
+                 AutomationProperties.LabeledBy="{Binding ElementName=sampleIdentifierLabel}"/>
 
         <StackPanel Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2"
                     HorizontalAlignment="Right" 

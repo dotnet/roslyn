@@ -20,7 +20,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void Verify_Color_Of_Some_Tokens()
         {
-            Editor.SetText(@"Imports System
+            VisualStudio.Editor.SetText(@"Imports System
 Imports MathAlias = System.Math
 Namespace Acme
     ''' <summary>innertext
@@ -35,46 +35,46 @@ Namespace Acme
     End Class
 End Namespace");
 
-            PlaceCaret("MathAlias");
-            VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("Namespace");
-            VerifyCurrentTokenType(tokenType: "keyword");
-            PlaceCaret("summary");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - name");
-            PlaceCaret("innertext");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - text");
-            PlaceCaret("!--");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            PlaceCaret("comment");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - comment");
-            PlaceCaret("CDATA");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - delimiter");
-            PlaceCaret("cdata");
-            VerifyCurrentTokenType(tokenType: "xml doc comment - cdata section");
-            PlaceCaret("attribute");
-            VerifyCurrentTokenType(tokenType: "identifier");
-            PlaceCaret("Class");
-            VerifyCurrentTokenType(tokenType: "keyword");
-            PlaceCaret("Program");
-            VerifyCurrentTokenType(tokenType: "class name");
-            PlaceCaret("Hello");
-            VerifyCurrentTokenType(tokenType: "string");
-            PlaceCaret("comment");
-            VerifyCurrentTokenType(tokenType: "comment");
+            VisualStudio.Editor.PlaceCaret("MathAlias");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.Editor.PlaceCaret("Namespace");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "keyword");
+            VisualStudio.Editor.PlaceCaret("summary");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - name");
+            VisualStudio.Editor.PlaceCaret("innertext");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - text");
+            VisualStudio.Editor.PlaceCaret("!--");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
+            VisualStudio.Editor.PlaceCaret("comment");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - comment");
+            VisualStudio.Editor.PlaceCaret("CDATA");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - delimiter");
+            VisualStudio.Editor.PlaceCaret("cdata");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "xml doc comment - cdata section");
+            VisualStudio.Editor.PlaceCaret("attribute");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "identifier");
+            VisualStudio.Editor.PlaceCaret("Class");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "keyword");
+            VisualStudio.Editor.PlaceCaret("Program");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
+            VisualStudio.Editor.PlaceCaret("Hello");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "string");
+            VisualStudio.Editor.PlaceCaret("comment");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "comment");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public void Semantic_Classification()
         {
-            Editor.SetText(@"
+            VisualStudio.Editor.SetText(@"
 Imports System
-Class Foo
+Class Goo
     Inherits Attribute
 End Class");
-            PlaceCaret("Foo");
-            VerifyCurrentTokenType(tokenType: "class name");
-            PlaceCaret("Attribute");
-            VerifyCurrentTokenType(tokenType: "class name");
+            VisualStudio.Editor.PlaceCaret("Goo");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
+            VisualStudio.Editor.PlaceCaret("Attribute");
+            VisualStudio.Editor.Verify.CurrentTokenType(tokenType: "class name");
         }
     }
 }

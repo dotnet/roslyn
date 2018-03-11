@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 expectedItemOrNull As String, expectedDescriptionOrNull As String,
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
                 checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?,
-                options As IDictionary(Of OptionKey, Object)) As Task
+                hasSuggestionItem As Boolean?, options As IDictionary(Of OptionKey, Object)) As Task
             ' Script/interactive support removed for now.
             ' TODO: Re-enable these when interactive is back in the product.
             If sourceCodeKind <> SourceCodeKind.Regular Then
@@ -27,7 +27,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
             Await BaseVerifyWorkerAsync(
                 code, position, expectedItemOrNull, expectedDescriptionOrNull,
-                sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, matchPriority, options)
+                sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph,
+                matchPriority, hasSuggestionItem, options)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -36,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 End Class
 
 Class Program
-    Sub foo()
+    Sub goo()
         Dim a as C = new C With { .$$
     End Sub
 End Class</a>.Value
@@ -52,7 +53,7 @@ End Class</a>.Value
 End Class
 
 Class Program
-    Sub foo()
+    Sub goo()
         Dim a = new C(1, .$$
     End Sub
 End Class</a>.Value
@@ -67,7 +68,7 @@ End Class</a>.Value
 End Class
 
 Class Program
-    Sub foo()
+    Sub goo()
         Dim a as C = new C With { .$$
     End Sub
 End Program</a>.Value
@@ -79,24 +80,24 @@ End Program</a>.Value
         Public Async Function TestFieldAndProperty() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
-    Public Property foo as Integer
+    Public Property goo as Integer
 End Class
 
 Class Program
-    Sub foo()
+    Sub goo()
         Dim a as C = new C With { .$$
     End Sub
 End Program</a>.Value
 
             Await VerifyItemExistsAsync(text, "bar")
-            Await VerifyItemExistsAsync(text, "foo")
+            Await VerifyItemExistsAsync(text, "goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestFieldAndPropertyBaseTypes() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
-    Public Property foo as Integer
+    Public Property goo as Integer
 End Class
 
 Public Class D
@@ -104,13 +105,13 @@ Public Class D
 End Class
 
 Class Program
-    Sub foo()
+    Sub goo()
         Dim a as D = new D With { .$$
     End Sub
 End Program</a>.Value
 
             Await VerifyItemExistsAsync(text, "bar")
-            Await VerifyItemExistsAsync(text, "foo")
+            Await VerifyItemExistsAsync(text, "goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -122,46 +123,46 @@ Public Class D
     Inherits C
 
     Public bar as Integer
-    Public Property foo as Integer
+    Public Property goo as Integer
 End Class
 
 Class Program
-    Sub foo()
+    Sub goo()
         Dim a as C = new D With { .$$
     End Sub
 End Program</a>.Value
 
             Await VerifyItemExistsAsync(text, "bar")
-            Await VerifyItemExistsAsync(text, "foo")
+            Await VerifyItemExistsAsync(text, "goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestOneItemAfterComma() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
-    Public Property foo as Integer
+    Public Property goo as Integer
 End Class
 
 Class Program
-    Sub foo()
-        Dim a as C = new C With { .foo = 3, .b$$
+    Sub goo()
+        Dim a as C = new C With { .goo = 3, .b$$
     End Sub
 End Program</a>.Value
 
             Await VerifyItemExistsAsync(text, "bar")
-            Await VerifyItemIsAbsentAsync(text, "foo")
+            Await VerifyItemIsAbsentAsync(text, "goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNothingLeftToShow() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
-    Public Property foo as Integer
+    Public Property goo as Integer
 End Class
 
 Class Program
-    Sub foo()
-        Dim a as C = new C With { .foo = 3, .bar = 3, .$$
+    Sub goo()
+        Dim a as C = new C With { .goo = 3, .bar = 3, .$$
     End Sub
 End Program</a>.Value
 
@@ -172,29 +173,29 @@ End Program</a>.Value
         Public Async Function TestWithoutAsClause() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
-    Public Property foo as Integer
+    Public Property goo as Integer
 End Class
 
 Class Program
-    Sub foo()
+    Sub goo()
         Dim a = new C With { .$$
     End Sub
 End Program</a>.Value
 
             Await VerifyItemExistsAsync(text, "bar")
-            Await VerifyItemExistsAsync(text, "foo")
+            Await VerifyItemExistsAsync(text, "goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestWithoutAsClauseNothingLeftToShow() As Task
             Dim text = <a>Public Class C
     Public bar as Integer
-    Public Property foo as Integer
+    Public Property goo as Integer
 End Class
 
 Class Program
-    Sub foo()
-        Dim a = new C With { .foo = 3, .bar = 3, .$$
+    Sub goo()
+        Dim a = new C With { .goo = 3, .bar = 3, .$$
     End Sub
 End Program</a>.Value
 
@@ -220,21 +221,21 @@ End Module</a>.Value
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestNoBackingFields() As Task
             Dim text = <a>Class C
-    Public Property Foo As Integer
+    Public Property Goo As Integer
 
     Sub M()
         Dim c As New C With { .$$
     End Sub
 End Class</a>.Value
 
-            Await VerifyItemExistsAsync(text, "Foo")
-            Await VerifyItemIsAbsentAsync(text, "_Foo")
+            Await VerifyItemExistsAsync(text, "Goo")
+            Await VerifyItemIsAbsentAsync(text, "_Goo")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestReadOnlyPropertiesAreNotPresentOnLeftSide() As Task
             Dim text = <a>Class C
-    Public Property Foo As Integer
+    Public Property Goo As Integer
     Public ReadOnly Property Bar As Integer
         Get
             Return 0
@@ -246,7 +247,7 @@ End Class</a>.Value
     End Sub
 End Class</a>.Value
 
-            Await VerifyItemExistsAsync(text, "Foo")
+            Await VerifyItemExistsAsync(text, "Goo")
             Await VerifyItemIsAbsentAsync(text, "Bar")
         End Function
 
@@ -290,7 +291,7 @@ Public Class AImpl
         End Set
     End Property
 
-    Sub Foo()
+    Sub Goo()
         Dim z = New AImpl With {.$$
     End Sub
 End Class</a>.Value
@@ -313,7 +314,7 @@ Public Class AImpl
         End Set
     End Property
 
-    Sub Foo()
+    Sub Goo()
         Dim z = New AImpl With {.$$
     End Sub
 End Class</a>.Value
@@ -384,7 +385,7 @@ Public Class C
 End Class
 
 Class Program
-    Sub foo()
+    Sub goo()
         Dim a as C = new C With { .$$
     End Sub
 End Program"
@@ -402,7 +403,7 @@ Public Class C
 End Class
 
 Class Program
-    Sub foo()
+    Sub goo()
         Dim a as C = new C With { .$$
     End Sub
 End Program</Document>
@@ -427,7 +428,7 @@ Public Class C
 End Class
 
 Class Program
-    Sub foo()
+    Sub goo()
         Dim a as C = new C With { .$$
     End Sub
 End Program"

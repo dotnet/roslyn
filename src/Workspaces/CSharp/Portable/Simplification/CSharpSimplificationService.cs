@@ -1,19 +1,16 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Simplification
@@ -30,7 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 new CSharpExtensionMethodReducer(),
                 new CSharpParenthesesReducer(),
                 new CSharpEscapingReducer(),
-                new CSharpMiscellaneousReducer());
+                new CSharpMiscellaneousReducer(),
+                new CSharpInferredMemberNameReducer(),
+                new CSharpDefaultExpressionReducer());
 
         public CSharpSimplificationService() : base(s_reducers)
         {
@@ -90,6 +89,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 return syntaxToken;
             }
 
+            if (SyntaxFacts.GetContextualKeywordKind(syntaxToken.ValueText) == SyntaxKind.UnderscoreToken)
+            {
+                return syntaxToken;
+            }
+
             var parent = parentOfToken.Parent;
             if (parentOfToken is SimpleNameSyntax && parent.Kind() == SyntaxKind.XmlNameAttribute)
             {
@@ -128,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
 
         private static bool TryAddLeadingElasticTriviaIfNecessary(SyntaxToken token, SyntaxToken originalToken, out SyntaxToken tokenWithLeadingWhitespace)
         {
-            tokenWithLeadingWhitespace = default(SyntaxToken);
+            tokenWithLeadingWhitespace = default;
 
             if (token.HasLeadingTrivia)
             {
@@ -164,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             return false;
         }
 
-        private static readonly string s_CS8019_UnusedUsingDirective = "CS8019";
+        private const string s_CS8019_UnusedUsingDirective = "CS8019";
 
         protected override void GetUnusedNamespaceImports(SemanticModel model, HashSet<SyntaxNode> namespaceImports, CancellationToken cancellationToken)
         {
@@ -175,14 +179,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
             {
                 if (diagnostic.Id == s_CS8019_UnusedUsingDirective)
                 {
-                    var node = root.FindNode(diagnostic.Location.SourceSpan) as UsingDirectiveSyntax;
 
-                    if (node != null)
+                    if (root.FindNode(diagnostic.Location.SourceSpan) is UsingDirectiveSyntax node)
                     {
                         namespaceImports.Add(node);
                     }
                 }
             }
+        }
+
+        // Is the tuple on either side of a deconstruction (top-level or nested)?
+        private static bool IsTupleInDeconstruction(SyntaxNode tuple)
+        {
+            Contract.Assert(tuple.IsKind(SyntaxKind.TupleExpression));
+            var currentTuple = tuple;
+            do
+            {
+                var parent = currentTuple.Parent;
+                if (parent.IsKind(SyntaxKind.SimpleAssignmentExpression))
+                {
+                    return true;
+                }
+
+                if (!parent.IsKind(SyntaxKind.Argument))
+                {
+                    return false;
+                }
+
+                var grandParent = parent.Parent;
+                if (!grandParent.IsKind(SyntaxKind.TupleExpression))
+                {
+                    return false;
+                }
+
+                currentTuple = grandParent;
+            }
+            while (true);
         }
     }
 }

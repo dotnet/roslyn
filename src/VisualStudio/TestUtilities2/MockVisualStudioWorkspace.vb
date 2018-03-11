@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -96,10 +96,16 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
 
         Private ReadOnly _documentId As DocumentId
         Private ReadOnly _workspace As TestWorkspace
+        Private ReadOnly _needsClose As Boolean = False
 
         Public Sub New(documentId As DocumentId, workspace As TestWorkspace)
             Me._documentId = documentId
             Me._workspace = workspace
+
+            If Not workspace.IsDocumentOpen(documentId) Then
+                _workspace.OpenDocument(documentId)
+                _needsClose = True
+            End If
         End Sub
 
         Public ReadOnly Property TextBuffer As Global.Microsoft.VisualStudio.Text.ITextBuffer Implements IInvisibleEditor.TextBuffer
@@ -109,6 +115,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests
         End Property
 
         Public Sub Dispose() Implements IDisposable.Dispose
+            If _needsClose Then
+                _workspace.CloseDocument(_documentId)
+            End If
         End Sub
 
     End Class

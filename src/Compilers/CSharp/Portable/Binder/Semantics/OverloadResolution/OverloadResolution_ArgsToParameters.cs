@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -61,11 +62,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(arguments != null);
 
             ImmutableArray<ParameterSymbol> parameters = symbol.GetParameters();
+            bool isVararg = symbol.GetIsVararg();
 
             // The easy out is that we have no named arguments and are in normal form.
             if (!expanded && arguments.Names.Count == 0)
             {
-                return AnalyzeArgumentsForNormalFormNoNamedArguments(parameters, arguments, isMethodGroupConversion, symbol.GetIsVararg());
+                return AnalyzeArgumentsForNormalFormNoNamedArguments(parameters, arguments, isMethodGroupConversion, isVararg);
             }
 
             // We simulate an additional non-optional parameter for a vararg method.
@@ -78,11 +80,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Try to map every argument position to a formal parameter position:
 
+            bool seenNamedParams = false;
+            bool seenOutOfPositionNamedArgument = false;
+            bool isValidParams = IsValidParams(symbol);
             for (int argumentPosition = 0; argumentPosition < argumentCount; ++argumentPosition)
             {
                 // We use -1 as a sentinel to mean that no parameter was found that corresponded to this argument.
                 bool isNamedArgument;
-                int parameterPosition = CorrespondsToAnyParameter(parameters, expanded, arguments, argumentPosition, out isNamedArgument) ?? -1;
+                int parameterPosition = CorrespondsToAnyParameter(parameters, expanded, arguments, argumentPosition,
+                    isValidParams, isVararg, out isNamedArgument, ref seenNamedParams, ref seenOutOfPositionNamedArgument) ?? -1;
+
                 if (parameterPosition == -1 && unmatchedArgumentIndex == null)
                 {
                     unmatchedArgumentIndex = argumentPosition;
@@ -107,12 +114,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             ParameterMap argsToParameters = new ParameterMap(parametersPositions, argumentCount);
 
             // We have analyzed every argument and tried to make it correspond to a particular parameter. 
-            // There are now three questions we must answer:
+            // There are now four questions we must answer:
             //
-            // (1) Is there any argument without a corresponding parameter?
-            // (2) was there any named argument that specified a parameter that was already
+            // (1) Is there any named argument used out-of-position and followed by unnamed arguments?
+            // (2) Is there any argument without a corresponding parameter?
+            // (3) Was there any named argument that specified a parameter that was already
             //     supplied with a positional parameter?
-            // (3) Is there any non-optional parameter without a corresponding argument?
+            // (4) Is there any non-optional parameter without a corresponding argument?
             //
             // If the answer to any of these questions is "yes" then the method is not applicable.
             // It is possible that the answer to any number of these questions is "yes", and so
@@ -120,7 +128,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // should we need to report why a given method is not applicable. We prioritize
             // them in the given order.
 
-            // (1) Is there any argument without a corresponding parameter?
+            // (1) Is there any named argument used out-of-position and followed by unnamed arguments?
+
+            int? badNonTrailingNamedArgument = CheckForBadNonTrailingNamedArgument(arguments, argsToParameters, parameters);
+            if (badNonTrailingNamedArgument != null)
+            {
+                return ArgumentAnalysisResult.BadNonTrailingNamedArgument(badNonTrailingNamedArgument.Value);
+            }
+
+            // (2) Is there any argument without a corresponding parameter?
 
             if (unmatchedArgumentIndex != null)
             {
@@ -134,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            // (2) was there any named argument that specified a parameter that was already
+            // (3) was there any named argument that specified a parameter that was already
             //     supplied with a positional parameter?
 
             int? nameUsedForPositional = NameUsedForPositional(arguments, argsToParameters);
@@ -143,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ArgumentAnalysisResult.NameUsedForPositional(nameUsedForPositional.Value);
             }
 
-            // (3) Is there any non-optional parameter without a corresponding argument?
+            // (4) Is there any non-optional parameter without a corresponding argument?
 
             int? requiredParameterMissing = CheckForMissingRequiredParameter(argsToParameters, parameters, isMethodGroupConversion, expanded);
             if (requiredParameterMissing != null)
@@ -152,7 +168,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // __arglist cannot be used with named arguments (as it doesn't have a name)
-            if (arguments.Names.Count != 0 && symbol.GetIsVararg())
+            if (arguments.Names.Any() && arguments.Names.Last() != null && isVararg)
             {
                 return ArgumentAnalysisResult.RequiredParameterMissing(parameters.Length);
             }
@@ -164,12 +180,54 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArgumentAnalysisResult.NormalForm(argsToParameters.ToImmutableArray());
         }
 
+        private static int? CheckForBadNonTrailingNamedArgument(AnalyzedArguments arguments, ParameterMap argsToParameters, ImmutableArray<ParameterSymbol> parameters)
+        {
+            // Is there any named argument used out-of-position and followed by unnamed arguments?
+
+            // If the map is trivial then clearly not.
+            if (argsToParameters.IsTrivial)
+            {
+                return null;
+            }
+
+            // Find the first named argument which is used out-of-position
+            int foundPosition = -1;
+            int length = arguments.Arguments.Count;
+            for (int i = 0; i < length;  i++)
+            {
+                int parameter = argsToParameters[i];
+                if (parameter != -1 && parameter != i && arguments.Name(i) != null)
+                {
+                    foundPosition = i;
+                    break;
+                }
+            }
+
+            if (foundPosition != -1)
+            {
+                // Verify that all the following arguments are named
+                for (int i = foundPosition + 1; i < length; i++)
+                {
+                    if (arguments.Name(i) == null)
+                    {
+                        return foundPosition;
+                    }
+                }
+            }
+
+            return null;
+        }
+
         private static int? CorrespondsToAnyParameter(
             ImmutableArray<ParameterSymbol> memberParameters,
             bool expanded,
             AnalyzedArguments arguments,
             int argumentPosition,
-            out bool isNamedArgument)
+            bool isValidParams,
+            bool isVararg,
+            out bool isNamedArgument,
+            ref bool seenNamedParams,
+            ref bool seenOutOfPositionNamedArgument)
         {
             // Spec 7.5.1.1: Corresponding parameters:
             // For each argument in an argument list there has to be a corresponding parameter in
@@ -205,9 +263,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //   expanded form, where no fixed parameter occurs at the same position in the
                 //   parameter list, corresponds to an element in the parameter array.
 
-                if (argumentPosition >= memberParameters.Length)
+                if (seenNamedParams)
                 {
-                    return expanded ? memberParameters.Length - 1 : (int?)null;
+                    // Unnamed arguments after a named argument corresponding to a params parameter cannot correspond to any parameters
+                    return null;
+                }
+
+                if (seenOutOfPositionNamedArgument)
+                {
+                    // Unnamed arguments after an out-of-position named argument cannot correspond to any parameters
+                    return null;
+                }
+
+                int parameterCount = memberParameters.Length + (isVararg ? 1 : 0);
+                if (argumentPosition >= parameterCount)
+                {
+                    return expanded ? parameterCount - 1 : (int?)null;
                 }
 
                 return argumentPosition;
@@ -232,10 +303,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var name = arguments.Names[argumentPosition];
                 for (int p = 0; p < memberParameters.Length; ++p)
                 {
-                    // TODO: p is initialized to zero; is it ok for a named argument to "correspond" to
-                    // _any_ parameter, or just the parameters past the point of positional arguments?
+                    // p is initialized to zero; it is ok for a named argument to "correspond" to
+                    // _any_ parameter (not just the parameters past the point of positional arguments)
                     if (memberParameters[p].Name == name.Identifier.ValueText)
                     {
+                        if (isValidParams && p == memberParameters.Length - 1)
+                        {
+                            seenNamedParams = true;
+                        }
+
+                        if (p != argumentPosition)
+                        {
+                            seenOutOfPositionNamedArgument = true;
+                        }
+
                         return p;
                     }
                 }

@@ -82,12 +82,12 @@ Type ""#help"" for more information.
         Public Sub TestReferenceDirective()
             Dim file1 = Temp.CreateFile("1.dll").WriteAllBytes(TestCompilationFactory.CreateVisualBasicCompilationWithCorlib("
 public Class C1
-Public Function Foo() As String
+Public Function Goo() As String
     Return ""Bar""
 End Function
 End Class", "1").EmitToArray())
 
-            Dim runner = CreateRunner(args:={}, input:="#r """ & file1.Path & """" & vbCrLf & "? New C1().Foo()")
+            Dim runner = CreateRunner(args:={}, input:="#r """ & file1.Path & """" & vbCrLf & "? New C1().Goo()")
 
             runner.RunInteractive()
 
@@ -97,11 +97,11 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
 > #r """ & file1.Path & """
-> ? New C1().Foo()
+> ? New C1().Goo()
 ""Bar""
 >", runner.Console.Out.ToString())
 
-            runner = CreateRunner(args:={}, input:="? New C1().Foo()")
+            runner = CreateRunner(args:={}, input:="? New C1().Goo()")
 
             runner.RunInteractive()
 
@@ -110,7 +110,7 @@ Type ""#help"" for more information.
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
-> ? New C1().Foo()
+> ? New C1().Goo()
 «Red»
 (1) : error BC30002: Type 'C1' is not defined.
 «Gray»
@@ -171,10 +171,10 @@ System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalizat
             runner.RunInteractive()
 
             AssertEx.AssertEqualToleratingWhitespaceDifferences(
-"Microsoft (R) Visual Basic Interactive Compiler version " + s_compilerVersion + "
-Copyright (C) Microsoft Corporation. All rights reserved.
+"Microsoft (R) Visual Basic – interaktive Compilerversion " + s_compilerVersion + "
+Copyright (C) Microsoft Corporation. Alle Rechte vorbehalten.
 
-Type ""#help"" for more information.
+Weitere Informationen erhalten Sie nach der Eingabe von ""#help"".
 > Imports System.Globalization
 > System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")
 > System.Globalization.CultureInfo.DefaultThreadCurrentCulture = System.Globalization.CultureInfo.GetCultureInfo(""en-GB"")

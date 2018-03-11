@@ -491,7 +491,7 @@ End Module
             compilation.AssertNoErrors()
 
             ' PEVerify should not report "Field value__ ... is not marked RTSpecialName".
-            Dim verifier = New CompilationVerifier(Me, compilation)
+            Dim verifier = New CompilationVerifier(compilation)
             verifier.EmitAndVerify(
                 "Error: Field name value__ is reserved for Enums only.")
         End Sub

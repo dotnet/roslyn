@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 accessibility: CodeModelService.GetAccessibility(access, SymbolKind.NamedType, destination),
                 modifiers: new DeclarationModifiers(),
                 returnType: returnType,
-                returnsByRef: false,
+                refKind: RefKind.None,
                 name: name);
 
             return CodeGenerationService.CreateNamedTypeDeclaration(
@@ -82,8 +82,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     accessibility: Accessibility.NotApplicable,
                     modifiers: new DeclarationModifiers(),
                     returnType: null,
-                    returnsByRef: false,
-                    explicitInterfaceSymbol: null,
+                    refKind: RefKind.None,
+                    explicitInterfaceImplementations: default,
                     name: "add_" + name,
                     typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
                     parameters: default(ImmutableArray<IParameterSymbol>));
@@ -93,8 +93,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     accessibility: Accessibility.NotApplicable,
                     modifiers: new DeclarationModifiers(),
                     returnType: null,
-                    returnsByRef: false,
-                    explicitInterfaceSymbol: null,
+                    refKind: RefKind.None,
+                    explicitInterfaceImplementations: default,
                     name: "remove_" + name,
                     typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
                     parameters: default(ImmutableArray<IParameterSymbol>));
@@ -105,7 +105,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 accessibility: CodeModelService.GetAccessibility(access, SymbolKind.Event, destination),
                 modifiers: new DeclarationModifiers(),
                 type: type,
-                explicitInterfaceSymbol: null,
+                explicitInterfaceImplementations: default,
                 name: name,
                 addMethod: addMethod,
                 removeMethod: removeMethod);
@@ -140,8 +140,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 accessibility: CodeModelService.GetAccessibility(access, SymbolKind.Method, destination),
                 modifiers: new DeclarationModifiers(),
                 returnType: returnType,
-                returnsByRef: false,
-                explicitInterfaceSymbol: null,
+                refKind: RefKind.None,
+                explicitInterfaceImplementations: default,
                 name: name,
                 typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
                 parameters: default(ImmutableArray<IParameterSymbol>));
@@ -163,8 +163,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     accessibility: Accessibility.NotApplicable,
                     modifiers: new DeclarationModifiers(),
                     returnType: null,
-                    returnsByRef: false,
-                    explicitInterfaceSymbol: null,
+                    refKind: RefKind.None,
+                    explicitInterfaceImplementations: default,
                     name: "get_" + name,
                     typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
                     parameters: default(ImmutableArray<IParameterSymbol>),
@@ -179,8 +179,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                     accessibility: Accessibility.NotApplicable,
                     modifiers: new DeclarationModifiers(),
                     returnType: null,
-                    returnsByRef: false,
-                    explicitInterfaceSymbol: null,
+                    refKind: RefKind.None,
+                    explicitInterfaceImplementations: default,
                     name: "set_" + name,
                     typeParameters: default(ImmutableArray<ITypeParameterSymbol>),
                     parameters: default(ImmutableArray<IParameterSymbol>));
@@ -191,8 +191,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 accessibility: CodeModelService.GetAccessibility(access, SymbolKind.Field, destination),
                 modifiers: new DeclarationModifiers(),
                 type: type,
-                returnsByRef: false,
-                explicitInterfaceSymbol: null,
+                refKind: RefKind.None,
+                explicitInterfaceImplementations: default,
                 name: name,
                 parameters: default(ImmutableArray<IParameterSymbol>),
                 getMethod: getMethod,

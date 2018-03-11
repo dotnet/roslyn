@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -33,6 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(Workspaces.NoCompilationContentTypeLanguageService),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent.SmartIndentProvider),
                 typeof(Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification.ForegroundNotificationService),
+                typeof(Implementation.InlineRename.InlineRenameService), // Ensure that EditorFeatures.Wpf is included in the composition
                 typeof(IncrementalCaches.SymbolTreeInfoIncrementalAnalyzerProvider),
                 typeof(CodeAnalysis.Diagnostics.EngineV2.DiagnosticAnalyzerExecutor)
             };

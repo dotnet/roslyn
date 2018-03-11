@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
             var unimplementedMembers = explicitly ? state.UnimplementedExplicitMembers : state.UnimplementedMembers;
             var idisposable = TryGetSymbolForIDisposable(state.Model.Compilation);
             return (idisposable != null) &&
-                   unimplementedMembers.Any(m => m.Item1.Equals(idisposable)) &&
+                   unimplementedMembers.Any(m => m.type.Equals(idisposable)) &&
                    this.CanImplementDisposePattern(state.ClassOrStructType, state.ClassOrStructDecl);
         }
 
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.ImplementInterface
                 var idisposable = TryGetSymbolForIDisposable(compilation);
                 result = await base.GetUpdatedDocumentAsync(
                     result,
-                    unimplementedMembers.WhereAsArray(m => !m.Item1.Equals(idisposable)),
+                    unimplementedMembers.WhereAsArray(m => !m.type.Equals(idisposable)),
                     classOrStructType,
                     classOrStructDecl,
                     cancellationToken).ConfigureAwait(false);

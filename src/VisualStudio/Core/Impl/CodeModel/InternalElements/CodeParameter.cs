@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -45,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
 
         private void UpdateNodeAndReacquireParentNodeKey<T>(Action<SyntaxNode, T> parameterUpdater, T value)
         {
-            Action<SyntaxNode, T> updater = (n, v) =>
+            void updater(SyntaxNode n, T v)
             {
                 var parentNode = _parentHandle.Value.LookupNode();
                 var parentNodePath = new SyntaxPath(parentNode);
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Inter
                 parameterUpdater(n, v);
 
                 _parentHandle.Value.ReacquireNodeKey(parentNodePath, CancellationToken.None);
-            };
+            }
 
             UpdateNode(updater, value);
         }

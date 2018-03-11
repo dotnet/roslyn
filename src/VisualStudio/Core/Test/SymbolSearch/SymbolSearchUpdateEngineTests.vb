@@ -1,14 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Immutable
 Imports System.IO
 Imports System.IO.Compression
 Imports System.Threading
 Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Elfie.Model
-Imports Microsoft.CodeAnalysis.Packaging
 Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.VisualStudio.RemoteControl
 Imports Moq
@@ -39,6 +36,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim service = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
+                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlService.Object,
                     delayService:=TestDelayService.Instance,
                     ioService:=ioMock.Object,
@@ -69,6 +67,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim service = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
+                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlService.Object,
                     delayService:=TestDelayService.Instance,
                     ioService:=ioMock.Object,
@@ -106,6 +105,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
+                    progressService:=TestProgressService.Instance,
                     remoteControlService:=serviceMock.Object,
                     delayService:=TestDelayService.Instance,
                     ioService:=ioMock.Object,
@@ -149,6 +149,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
+                    progressService:=TestProgressService.Instance,
                     remoteControlService:=serviceMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
@@ -184,6 +185,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
+                    progressService:=TestProgressService.Instance,
                     remoteControlService:=serviceMock.Object,
                     delayService:=TestDelayService.Instance,
                     ioService:=ioMock.Object,
@@ -232,6 +234,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
+                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
@@ -275,6 +278,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
+                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
@@ -322,6 +326,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
+                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
@@ -380,6 +385,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
+                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
@@ -425,6 +431,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
+                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
@@ -478,6 +485,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
+                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
@@ -537,6 +545,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
+                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
@@ -592,6 +601,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
 
                 Dim searchService = New SymbolSearchUpdateEngine(
                     logService:=TestLogService.Instance,
+                    progressService:=TestProgressService.Instance,
                     remoteControlService:=remoteControlMock.Object,
                     delayService:=delayMock.Object,
                     ioService:=ioMock.Object,
@@ -745,6 +755,31 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
             End Function
 
             Public Function LogInfoAsync(text As String) As Task Implements ISymbolSearchLogService.LogInfoAsync
+                Return SpecializedTasks.EmptyTask
+            End Function
+        End Class
+
+        Private Class TestProgressService
+            Implements ISymbolSearchProgressService
+
+            Public Shared ReadOnly Instance As TestProgressService = New TestProgressService()
+
+            Private Sub New()
+            End Sub
+
+            Public Function OnDownloadFullDatabaseStartedAsync(title As String) As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseStartedAsync
+                Return SpecializedTasks.EmptyTask
+            End Function
+
+            Public Function OnDownloadFullDatabaseSucceededAsync() As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseSucceededAsync
+                Return SpecializedTasks.EmptyTask
+            End Function
+
+            Public Function OnDownloadFullDatabaseCanceledAsync() As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseCanceledAsync
+                Return SpecializedTasks.EmptyTask
+            End Function
+
+            Public Function OnDownloadFullDatabaseFailedAsync(message As String) As Task Implements ISymbolSearchProgressService.OnDownloadFullDatabaseFailedAsync
                 Return SpecializedTasks.EmptyTask
             End Function
         End Class

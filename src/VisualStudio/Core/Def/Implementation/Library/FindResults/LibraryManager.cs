@@ -9,12 +9,17 @@ using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [Guid(Guids.RoslynLibraryIdString)]
     internal partial class LibraryManager : AbstractLibraryManager
     {
-        public LibraryManager(IServiceProvider serviceProvider)
+        private readonly Workspace _workspace;
+
+        public LibraryManager(Workspace workspace, IServiceProvider serviceProvider)
             : base(Guids.RoslynLibraryId, serviceProvider)
         {
+            _workspace = workspace;
         }
 
         public override uint GetLibraryFlags()

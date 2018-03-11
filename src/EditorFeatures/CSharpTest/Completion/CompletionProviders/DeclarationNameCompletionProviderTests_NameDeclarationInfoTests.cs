@@ -100,7 +100,7 @@ class C
             var markup = @"
 class C
 {
-    void foo()
+    void goo()
     {
         int $$
     }
@@ -118,7 +118,7 @@ class C
             var markup = @"
 class C
 {
-    void foo()
+    void goo()
     {
         int c1, $$
     }
@@ -136,7 +136,7 @@ class C
             var markup = @"
 class C
 {
-    void foo()
+    void goo()
     {
         readonly int $$
     }
@@ -154,7 +154,7 @@ class C
             var markup = @"
 class C
 {
-    void foo()
+    void goo()
     {
         readonly int c1, $$
     }
@@ -172,7 +172,7 @@ class C
             var markup = @"
 class C
 {
-    void foo(C $$
+    void goo(C $$
     }
 }
 ";
@@ -188,7 +188,7 @@ class C
             var markup = @"
 class C
 {
-    void foo(C c1, C $$
+    void goo(C c1, C $$
     }
 }
 ";
@@ -204,7 +204,7 @@ class C
             var markup = @"
 class C
 {
-    void foo(string $$
+    void goo(string $$
     }
 }
 ";
@@ -220,7 +220,7 @@ class C
             var markup = @"
 class C
 {
-    void foo(C c1, string $$
+    void goo(C c1, string $$
     }
 }
 ";
@@ -237,7 +237,7 @@ class C
 using System.Collections.Generic;
 class C
 {
-    void foo(C c1, List<string> $$
+    void goo(C c1, List<string> $$
     }
 }
 ";
@@ -344,14 +344,13 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async void ModifierExclusion7()
         {
-            // Note that the async is not included in the incomplete member syntax
             var markup = @"
 class C
 {
     async int $$
 }
 ";
-            await VerifySymbolKinds(markup, SymbolKind.Field, SymbolKind.Method, SymbolKind.Property);
+            await VerifySymbolKinds(markup, SymbolKind.Method);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -483,9 +482,7 @@ namespace ConsoleApp1
 
         private (Document, int) ApplyChangesToFixture(string markup)
         {
-            string text;
-            int position;
-            MarkupTestFile.GetPosition(markup, out text, out position);
+            MarkupTestFile.GetPosition(markup, out var text, out int position);
             return (fixture.UpdateDocument(text, SourceCodeKind.Regular), position);
         }
     }

@@ -123,4 +123,7 @@
   <data name="Smart_Indenting" xml:space="preserve">
     <value>Smart Indenting</value>
   </data>
+  <data name="Split_string" xml:space="preserve">
+    <value>Split string</value>
+  </data>
 </root>

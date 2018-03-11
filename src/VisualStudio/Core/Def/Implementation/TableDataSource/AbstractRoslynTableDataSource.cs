@@ -7,6 +7,8 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     /// <summary>
     /// A version of ITableDataSource who knows how to connect them to Roslyn solution crawler for live information.
     /// </summary>
@@ -38,25 +40,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
 
             var reporter = crawlerService.GetProgressReporter(workspace);
+            reporter.ProgressChanged += OnSolutionCrawlerProgressChanged;
 
             // set initial value
-            IsStable = !reporter.InProgress;
-
-            ChangeStableState(stable: IsStable);
-
-            reporter.Started += OnSolutionCrawlerStarted;
-            reporter.Stopped += OnSolutionCrawlerStopped;
+            SolutionCrawlerProgressChanged(reporter.InProgress);
         }
 
-        private void OnSolutionCrawlerStarted(object sender, EventArgs e)
+        private void OnSolutionCrawlerProgressChanged(object sender, bool running)
         {
-            IsStable = false;
-            ChangeStableState(IsStable);
+            SolutionCrawlerProgressChanged(running);
         }
 
-        private void OnSolutionCrawlerStopped(object sender, EventArgs e)
+        private void SolutionCrawlerProgressChanged(bool running)
         {
-            IsStable = true;
+            IsStable = !running;
             ChangeStableState(IsStable);
         }
     }

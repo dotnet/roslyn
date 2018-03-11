@@ -47,9 +47,7 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         public static void SetStatements(this SyntaxEditor editor, SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
-        {
-            editor.ReplaceNode(declaration, (d, g) => g.WithStatements(d, statements));
-        }
+            => editor.ReplaceNode(declaration, (d, g) => g.WithStatements(d, statements));
 
         public static void SetGetAccessorStatements(this SyntaxEditor editor, SyntaxNode declaration, IEnumerable<SyntaxNode> statements)
         {
@@ -64,6 +62,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public static void AddParameter(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode parameter)
         {
             editor.ReplaceNode(declaration, (d, g) => g.AddParameters(d, new[] { parameter }));
+        }
+
+        public static void InsertParameter(this SyntaxEditor editor, SyntaxNode declaration, int index, SyntaxNode parameter)
+        {
+            editor.ReplaceNode(declaration, (d, g) => g.InsertParameters(d, index, new[] { parameter }));
         }
 
         public static void AddAttribute(this SyntaxEditor editor, SyntaxNode declaration, SyntaxNode attribute)

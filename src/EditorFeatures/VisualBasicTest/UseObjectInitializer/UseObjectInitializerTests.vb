@@ -28,12 +28,11 @@ End Class",
 Class C
     Dim i As Integer
     Sub M()
-        Dim c = New C() With {
+        Dim c = New C With {
             .i = 1
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -51,12 +50,11 @@ End Class",
 Class C
     Dim i As Integer
     Sub M()
-        Dim c As New C() With {
+        Dim c As New C With {
             .i = 1
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -76,12 +74,11 @@ Class C
     Dim i As Integer
     Sub M()
         Dim c as C = Nothing
-        c = New C() With {
+        c = New C With {
             .i = 1
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -100,13 +97,12 @@ End Class",
 Class C
     Dim i As Integer
     Sub M()
-        Dim c = New C() With {
+        Dim c = New C With {
             .i = 1
         }
         c.i = 2
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -131,13 +127,12 @@ Class C
     Sub M()
         Dim array As C()
 
-        array(0) = New C() With {
+        array(0) = New C With {
             .i = 1,
             .j = 2
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -158,13 +153,12 @@ Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
-        Dim c = New C() With {
+        Dim c = New C With {
             .i = 1
         }
         c.j += 1
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -216,7 +210,7 @@ End Class",
 "                            
 Class C
     Sub M()
-        Dim x As ProcessStartInfo = New ProcessStartInfo() With {
+        Dim x As ProcessStartInfo = New ProcessStartInfo With {
             .Arguments = Sub()
                              With New String()
                                  Dim a = .Length.ToString()
@@ -224,7 +218,7 @@ Class C
                          End Sub()
         }
     End Sub
-End Class", ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -253,18 +247,17 @@ Class C
     Sub M()
         Dim array As C()
 
-        array(0) = New C() With {
+        array(0) = New C With {
             .i = 1,
             .j = 2
         }
 
-        array(1) = New C() With {
+        array(1) = New C With {
             .i = 3,
             .j = 4
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
@@ -276,7 +269,7 @@ Class C
     Dim j As Integer
     Sub M()
         Dim c = [||]New C()
-        c.i = 1 ' Foo
+        c.i = 1 ' Goo
         c.j = 2 ' Bar
     End Sub
 End Class",
@@ -285,13 +278,12 @@ Class C
     Dim i As Integer
     Dim j As Integer
     Sub M()
-        Dim c = New C() With {
-            .i = 1, ' Foo
+        Dim c = New C With {
+            .i = 1, ' Goo
             .j = 2 ' Bar
             }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
@@ -317,8 +309,7 @@ Class C
             .WhitespaceHandling = WhitespaceHandling.All
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
         End Function
 
         <WorkItem(15525, "https://github.com/dotnet/roslyn/issues/15525")>
@@ -347,8 +338,38 @@ Class C
             .WhitespaceHandling = WhitespaceHandling.All
         }
     End Sub
-End Class",
-ignoreTrivia:=False)
+End Class")
+        End Function
+
+        <WorkItem(401322, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=401322")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseObjectInitializer)>
+        Public Async Function TestSharedMember() As Task
+            Await TestInRegularAndScriptAsync(
+"
+Class C
+    Dim x As Integer
+    Shared y As Integer
+
+    Sub M()
+        Dim z = [||]New C()
+        z.x = 1
+        z.y = 2
+    End Sub
+End Class
+",
+"
+Class C
+    Dim x As Integer
+    Shared y As Integer
+
+    Sub M()
+        Dim z = New C With {
+            .x = 1
+        }
+        z.y = 2
+    End Sub
+End Class
+")
         End Function
     End Class
 End Namespace

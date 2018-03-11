@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <summary>
         /// Creates a new <see cref="DocumentEditor"/> instance.
         /// </summary>
-        public static async Task<DocumentEditor> CreateAsync(Document document, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<DocumentEditor> CreateAsync(Document document, CancellationToken cancellationToken = default)
         {
             if (document == null)
             {

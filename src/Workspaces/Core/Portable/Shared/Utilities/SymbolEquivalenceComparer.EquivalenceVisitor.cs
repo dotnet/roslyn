@@ -211,8 +211,11 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                 }
                 else
                 {
-                    if (x.MethodKind == MethodKind.AnonymousFunction)
+                    if (x.MethodKind == MethodKind.AnonymousFunction ||
+                        x.MethodKind == MethodKind.LocalFunction)
                     {
+                        // Treat local and anonymous functions just like we do ILocalSymbols.  
+                        // They're only equivalent if they have the same location.
                         return HaveSameLocation(x, y);
                     }
 
@@ -351,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                         return false;
                     }
 
-                    for(int i = 0; i < xElements.Length; i++)
+                    for (int i = 0; i < xElements.Length; i++)
                     {
                         if (!AreEquivalent(xElements[i].Type, yElements[i].Type, equivalentTypesWithDifferingAssemblies))
                         {

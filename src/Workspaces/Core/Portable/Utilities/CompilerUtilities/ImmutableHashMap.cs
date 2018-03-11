@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections;
@@ -306,8 +306,7 @@ namespace Roslyn.Collections.Immutable
                     var en = stack.Peek();
                     if (en.MoveNext())
                     {
-                        var vb = en.Current as ValueBucket;
-                        if (vb != null)
+                        if (en.Current is ValueBucket vb)
                         {
                             yield return vb.Key;
                         }
@@ -401,7 +400,7 @@ namespace Roslyn.Collections.Immutable
                 }
             }
 
-            value = default(TValue);
+            value = default;
             return false;
         }
 
@@ -493,7 +492,7 @@ namespace Roslyn.Collections.Immutable
             }
             else
             {
-                existingKey = default(TKey);
+                existingKey = default;
                 return false;
             }
         }
@@ -579,8 +578,7 @@ namespace Roslyn.Collections.Immutable
                 var en = stack.Peek();
                 if (en.MoveNext())
                 {
-                    var vb = en.Current as ValueBucket;
-                    if (vb != null)
+                    if (en.Current is ValueBucket vb)
                     {
                         yield return vb;
                     }

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Simplification;
@@ -138,7 +139,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                 cancellationToken);
 
             var extractedInterfaceSymbol = CodeGenerationSymbolFactory.CreateNamedTypeSymbol(
-                attributes: default(ImmutableArray<AttributeData>),
+                attributes: default,
                 accessibility: ShouldIncludeAccessibilityModifier(refactoringResult.TypeNode) ? refactoringResult.TypeToExtractFrom.DeclaredAccessibility : Accessibility.NotApplicable,
                 modifiers: new DeclarationModifiers(),
                 typeKind: TypeKind.Interface,
@@ -338,7 +339,7 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             accessibility: Accessibility.Public,
                             modifiers: new DeclarationModifiers(isAbstract: true),
                             type: @event.Type,
-                            explicitInterfaceSymbol: null,
+                            explicitInterfaceImplementations: default,
                             name: @event.Name));
                         break;
                     case SymbolKind.Method:
@@ -348,8 +349,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             accessibility: Accessibility.Public,
                             modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: method.IsUnsafe()),
                             returnType: method.ReturnType,
-                            returnsByRef: method.ReturnsByRef,
-                            explicitInterfaceSymbol: null,
+                            refKind: method.RefKind,
+                            explicitInterfaceImplementations: default,
                             name: method.Name,
                             typeParameters: method.TypeParameters,
                             parameters: method.Parameters));
@@ -361,8 +362,8 @@ namespace Microsoft.CodeAnalysis.ExtractInterface
                             accessibility: Accessibility.Public,
                             modifiers: new DeclarationModifiers(isAbstract: true, isUnsafe: property.IsUnsafe()),
                             type: property.Type,
-                            returnsByRef: property.ReturnsByRef,
-                            explicitInterfaceSymbol: null,
+                            refKind: property.RefKind,
+                            explicitInterfaceImplementations: default,
                             name: property.Name,
                             parameters: property.Parameters,
                             getMethod: property.GetMethod == null ? null : (property.GetMethod.DeclaredAccessibility == Accessibility.Public ? property.GetMethod : null),

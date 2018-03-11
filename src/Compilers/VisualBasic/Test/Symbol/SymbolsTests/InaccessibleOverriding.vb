@@ -345,7 +345,7 @@ BC30981: 'Friend Overrides ReadOnly Property P As String' in class 'Class3' cann
 // =============================================================
 ]]>.Value.Replace("<<P1Name>>", p1AssemblyName)
 
-            Using proj2ILFile = IlasmUtilities.CreateTempAssembly(proj2ILText, appendDefaultHeader:=False)
+            Using proj2ILFile = IlasmUtilities.CreateTempAssembly(proj2ILText, prependDefaultHeader:=False)
                 Dim proj2AssemblyName = IO.Path.GetFileNameWithoutExtension(proj2ILFile.Path)
                 Dim proj2Ref = MetadataReference.CreateFromImage(ReadFromFile(proj2ILFile.Path))
                 Dim proj2AssemblyNameBytes As New System.Text.StringBuilder()
@@ -396,7 +396,7 @@ BC30981: 'Friend Overrides ReadOnly Property P As String' in class 'Class3' cann
     } // end of class Class1    ]]>.Value
                 proj1ILText = proj1ILText.Replace("<<P1Name>>", p1AssemblyName)
 
-                Using proj1ILFile = IlasmUtilities.CreateTempAssembly(proj1ILText, appendDefaultHeader:=False)
+                Using proj1ILFile = IlasmUtilities.CreateTempAssembly(proj1ILText, prependDefaultHeader:=False)
                     Dim proj1Ref = MetadataReference.CreateFromImage(ReadFromFile(proj1ILFile.Path))
 
                     Dim proj3 = CompileAndVerify(
@@ -476,7 +476,7 @@ End Module
 // =============================================================
 ]]>.Value
 
-            Using proj2ILFile = IlasmUtilities.CreateTempAssembly(proj2ILText, appendDefaultHeader:=False)
+            Using proj2ILFile = IlasmUtilities.CreateTempAssembly(proj2ILText, prependDefaultHeader:=False)
                 Dim proj2AssemblyName = IO.Path.GetFileNameWithoutExtension(proj2ILFile.Path)
                 Dim proj2Ref = MetadataReference.CreateFromImage(ReadFromFile(proj2ILFile.Path))
 
@@ -520,7 +520,7 @@ End Module
 
 } // end of class Class1    ]]>.Value
 
-                Using proj1ILFile = IlasmUtilities.CreateTempAssembly(proj1ILText, appendDefaultHeader:=False)
+                Using proj1ILFile = IlasmUtilities.CreateTempAssembly(proj1ILText, prependDefaultHeader:=False)
                     Dim proj1Ref = MetadataReference.CreateFromImage(ReadFromFile(proj1ILFile.Path))
 
                     Dim proj3 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
@@ -604,12 +604,12 @@ BC30981: 'Friend Overrides Sub f()' in class 'Class3' cannot override 'Friend Ov
     IL_0006:  ret
   } // end of method Cls1::.ctor
 
-  .method private instance void  foo() cil managed
+  .method private instance void  goo() cil managed
   {
     // Code size       1 (0x1)
     .maxstack  8
     IL_0000:  ret
-  } // end of method Cls1::foo
+  } // end of method Cls1::goo
 
 } // end of class Cls1
 ]]>
@@ -617,22 +617,22 @@ BC30981: 'Friend Overrides Sub f()' in class 'Class3' cannot override 'Friend Ov
             ' Because the private is defined in another assembly, we don't import it.
             ' So BC30284 is reasonable, and Dev10 does the same.
 
-            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, prependDefaultHeader:=False)
                 Dim ilRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndReferences(
                     <compilation name="CannotOverrideInAccessibleMemberInMetadata">
                         <file name="a.vb">
                         Class Cls2
                             Inherits Cls1
-                            Private Overrides Sub foo()
+                            Private Overrides Sub goo()
                             End Sub
                         End Class
                     </file>
                     </compilation>, references:={ilRef})
 
                 Dim expectedErrors1 = <errors>
-BC30284: sub 'foo' cannot be declared 'Overrides' because it does not override a sub in a base class.
-                            Private Overrides Sub foo()
+BC30284: sub 'goo' cannot be declared 'Overrides' because it does not override a sub in a base class.
+                            Private Overrides Sub goo()
                                                   ~~~
                  </errors>
 
@@ -660,7 +660,7 @@ BC30284: sub 'foo' cannot be declared 'Overrides' because it does not override a
        extends [mscorlib]System.Object
 {
   .method family hidebysig newslot virtual 
-          instance int32  foo() cil managed
+          instance int32  goo() cil managed
   {
     // Code size       7 (0x7)
     .maxstack  1
@@ -672,10 +672,10 @@ BC30284: sub 'foo' cannot be declared 'Overrides' because it does not override a
 
     IL_0005:  ldloc.0
     IL_0006:  ret
-  } // end of method CaseMembers::foo
+  } // end of method CaseMembers::goo
 
   .method assembly hidebysig instance int32 
-          Foo() cil managed
+          Goo() cil managed
   {
     // Code size       7 (0x7)
     .maxstack  1
@@ -687,7 +687,7 @@ BC30284: sub 'foo' cannot be declared 'Overrides' because it does not override a
 
     IL_0005:  ldloc.0
     IL_0006:  ret
-  } // end of method CaseMembers::Foo
+  } // end of method CaseMembers::Goo
 
   .method public hidebysig specialname rtspecialname 
           instance void  .ctor() cil managed
@@ -703,7 +703,7 @@ BC30284: sub 'foo' cannot be declared 'Overrides' because it does not override a
 
 ]]>
 
-            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, appendDefaultHeader:=False)
+            Using reference = IlasmUtilities.CreateTempAssembly(customIL.Value, prependDefaultHeader:=False)
                 Dim ilRef = MetadataReference.CreateFromImage(ReadFromFile(reference.Path))
                 Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                     <compilation name="Bug14346">
@@ -712,11 +712,11 @@ Option Strict On
 Imports System
 Module m1
     class Car : Inherits CaseMembers
-        protected overrides function foo() as integer
-            return MyBase.foo()
+        protected overrides function goo() as integer
+            return MyBase.goo()
         end function
         public function bar() as integer
-            return foo()
+            return goo()
         end function
     end class
     sub Main()

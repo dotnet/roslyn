@@ -11,14 +11,15 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 {
+#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract class AbstractResolveConflictMarkerCodeFixProvider : CodeFixProvider
+#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
         protected AbstractResolveConflictMarkerCodeFixProvider(string diagnosticId)
         {
             FixableDiagnosticIds = ImmutableArray.Create(diagnosticId);
         }
 
-        protected abstract bool IsNewLine(char ch);
         protected abstract bool IsEndOfLine(SyntaxTrivia trivia);
         protected abstract bool IsDisabledText(SyntaxTrivia trivia);
         protected abstract bool IsConflictMarker(SyntaxTrivia trivia);
@@ -45,12 +46,6 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
             while (true)
             {
-                token = token.GetNextToken(includeZeroWidth: true);
-                if (token.RawKind == 0)
-                {
-                    return;
-                }
-
                 var index = GetEqualsConflictMarkerIndex(text, token);
                 if (index >= 0)
                 {
@@ -58,6 +53,8 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
 
                     if (index + 3 < token.LeadingTrivia.Count)
                     {
+                        // normal case where there us =====, then dead code, then >>>>>>
+
                         var equalsTrivia = leadingTrivia[index];
                         var endOfLineTrivia = leadingTrivia[index + 1];
                         var disabledTrivia = leadingTrivia[index + 2];
@@ -67,105 +64,119 @@ namespace Microsoft.CodeAnalysis.ConflictMarkerResolution
                             IsDisabledText(disabledTrivia) &&
                             IsConflictMarker(text, endTrivia, '>'))
                         {
-                            var topText = startTrivia.ToString().Substring(s_mergeConflictLength).Trim();
-                            var takeTopText = string.IsNullOrWhiteSpace(topText)
-                                ? FeaturesResources.Take_top
-                                : string.Format(FeaturesResources.Take_0, topText);
-
-                            var bottomText = endTrivia.ToString().Substring(s_mergeConflictLength).Trim();
-                            var takeBottomText = string.IsNullOrWhiteSpace(bottomText)
-                                ? FeaturesResources.Take_bottom
-                                : string.Format(FeaturesResources.Take_0, bottomText);
-
-                            var startSpan = startTrivia.Span;
-                            var equalsSpan = equalsTrivia.Span;
-                            var endSpan = endTrivia.Span;
-                            
-                            context.RegisterCodeFix(
-                                new MyCodeAction(takeTopText, 
-                                    c => TakeTopAsync(document, startSpan, equalsSpan, endSpan, c)),
-                                context.Diagnostics);
-                            context.RegisterCodeFix(
-                                new MyCodeAction(takeBottomText, 
-                                c => TakeBottomAsync(document, startSpan, equalsSpan, endSpan, c)),
-                                context.Diagnostics);
-                            context.RegisterCodeFix(
-                                new MyCodeAction(FeaturesResources.Take_both, 
-                                c => TakeBothAsync(document, startSpan, equalsSpan, endSpan, c)),
-                                context.Diagnostics);
+                            RegisterCodeFixes(context, startTrivia, equalsTrivia, endTrivia);
+                            return;
                         }
                     }
+
+                    if (index + 2 < token.LeadingTrivia.Count)
+                    {
+                        // case where there is ===== followed by >>>>>>  on the next line.
+
+                        var equalsTrivia = leadingTrivia[index];
+                        var endOfLineTrivia = leadingTrivia[index + 1];
+                        var endTrivia = leadingTrivia[index + 2];
+
+                        if (IsEndOfLine(endOfLineTrivia) &&
+                            IsConflictMarker(text, endTrivia, '>'))
+                        {
+                            RegisterCodeFixes(context, startTrivia, equalsTrivia, endTrivia);
+                            return;
+                        }
+                    }
+                }
+
+                token = token.GetNextToken(includeZeroWidth: true);
+                if (token.RawKind == 0)
+                {
+                    return;
                 }
             }
         }
 
+        private void RegisterCodeFixes(
+            CodeFixContext context, SyntaxTrivia startTrivia, SyntaxTrivia equalsTrivia, SyntaxTrivia endTrivia)
+        {
+            var document = context.Document;
+
+            var topText = startTrivia.ToString().Substring(s_mergeConflictLength).Trim();
+            var takeTopText = string.IsNullOrWhiteSpace(topText)
+                ? FeaturesResources.Take_top
+                : string.Format(FeaturesResources.Take_0, topText);
+
+            var bottomText = endTrivia.ToString().Substring(s_mergeConflictLength).Trim();
+            var takeBottomText = string.IsNullOrWhiteSpace(bottomText)
+                ? FeaturesResources.Take_bottom
+                : string.Format(FeaturesResources.Take_0, bottomText);
+
+            var startPos = startTrivia.SpanStart;
+            var equalsPos = equalsTrivia.SpanStart;
+            var endPos = endTrivia.SpanStart;
+
+            context.RegisterCodeFix(
+                new MyCodeAction(takeTopText,
+                    c => TakeTopAsync(document, startPos, equalsPos, endPos, c)),
+                context.Diagnostics);
+            context.RegisterCodeFix(
+                new MyCodeAction(takeBottomText,
+                    c => TakeBottomAsync(document, startPos, equalsPos, endPos, c)),
+                context.Diagnostics);
+            context.RegisterCodeFix(
+                new MyCodeAction(FeaturesResources.Take_both,
+                    c => TakeBothAsync(document, startPos, equalsPos, endPos, c)),
+                context.Diagnostics);
+        }
+
         private async Task<Document> TakeTopAsync(
-            Document document, TextSpan startSpan, TextSpan equalsSpan, TextSpan endSpan,
+            Document document, int startPos, int equalsPos, int endPos,
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            var bottomEnd = GetEndIncludingNewLines(text, endSpan.End);
-            var newText = text.Replace(TextSpan.FromBounds(equalsSpan.Start, bottomEnd), "");
+            var bottomEnd = GetEndIncludingLineBreak(text, endPos);
+            var newText = text.Replace(TextSpan.FromBounds(equalsPos, bottomEnd), "");
 
-            var startEnd = GetEndIncludingNewLines(text, startSpan.End);
-            var finaltext = newText.Replace(TextSpan.FromBounds(startSpan.Start, startEnd), "");
+            var startEnd = GetEndIncludingLineBreak(text, startPos);
+            var finaltext = newText.Replace(TextSpan.FromBounds(startPos, startEnd), "");
 
             return document.WithText(finaltext);
         }
 
         private async Task<Document> TakeBottomAsync(
-            Document document, TextSpan startSpan, TextSpan equalsSpan, TextSpan endSpan,
+            Document document, int startPos, int equalsPos, int endPos,
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            var bottomEnd = GetEndIncludingNewLines(text, endSpan.End);
-            var newText = text.Replace(TextSpan.FromBounds(endSpan.Start, bottomEnd), "");
+            var bottomEnd = GetEndIncludingLineBreak(text, endPos);
+            var newText = text.Replace(TextSpan.FromBounds(endPos, bottomEnd), "");
 
-            var equalsEnd = GetEndIncludingNewLines(text, equalsSpan.End);
-            var finaltext = newText.Replace(TextSpan.FromBounds(startSpan.Start, equalsEnd), "");
+            var equalsEnd = GetEndIncludingLineBreak(text, equalsPos);
+            var finaltext = newText.Replace(TextSpan.FromBounds(startPos, equalsEnd), "");
 
             return document.WithText(finaltext);
         }
 
         private async Task<Document> TakeBothAsync(
-            Document document,
-            TextSpan startSpan, TextSpan equalsSpan, TextSpan endSpan,
+            Document document, int startPos, int equalsPos, int endPos,
             CancellationToken cancellationToken)
         {
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            var bottomEnd = GetEndIncludingNewLines(text, endSpan.End);
-            var newText = text.Replace(TextSpan.FromBounds(endSpan.Start, bottomEnd), "");
+            var bottomEnd = GetEndIncludingLineBreak(text, endPos);
+            var newText = text.Replace(TextSpan.FromBounds(endPos, bottomEnd), "");
 
-            var equalsEnd = GetEndIncludingNewLines(text, equalsSpan.End);
-            newText = newText.Replace(TextSpan.FromBounds(equalsSpan.Start, equalsEnd), "");
+            var equalsEnd = GetEndIncludingLineBreak(text, equalsPos);
+            newText = newText.Replace(TextSpan.FromBounds(equalsPos, equalsEnd), "");
 
-            var startEnd = GetEndIncludingNewLines(text, startSpan.End);
-            var finaltext = newText.Replace(TextSpan.FromBounds(startSpan.Start, startEnd), "");
+            var startEnd = GetEndIncludingLineBreak(text, startPos);
+            var finaltext = newText.Replace(TextSpan.FromBounds(startPos, startEnd), "");
 
             return document.WithText(finaltext);
         }
 
-        private int GetEndIncludingNewLines(SourceText text, int position)
-        {
-            var endPosition = position;
-
-            // Skip the text until we get to the newlines.
-            while (endPosition < text.Length && !IsNewLine(text[endPosition]))
-            {
-                endPosition++;
-            }
-
-            // Skip the newlines.
-            while (endPosition < text.Length && IsNewLine(text[endPosition]))
-            {
-                endPosition++;
-            }
-
-            return endPosition;
-        }
+        private int GetEndIncludingLineBreak(SourceText text, int position)
+            => text.Lines.GetLineFromPosition(position).SpanIncludingLineBreak.End;
 
         private int GetEqualsConflictMarkerIndex(SourceText text, SyntaxToken token)
         {

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -29,7 +29,8 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             Type declaredType,
             DkmClrAppDomain appDomain,
             bool includeInherited,
-            bool hideNonPublic)
+            bool hideNonPublic,
+            bool isProxyType)
         {
             Debug.Assert(!type.IsInterface);
 
@@ -64,9 +65,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
                 foreach (var member in type.GetMembers(MemberBindingFlags))
                 {
-                    if (!predicate(member))
+                    // The native EE shows proxy members regardless of accessibility if they have a
+                    // DebuggerBrowsable attribute of any value. Match that behaviour here.
+                    if (!isProxyType || browsableState == null || !browsableState.ContainsKey(member.Name))
                     {
-                        continue;
+                        if (!predicate(member))
+                        {
+                            continue;
+                        }
                     }
 
                     var memberName = member.Name;
@@ -451,7 +457,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         /// <summary>
-        /// Get the first attribute from <see cref="DkmClrType.GetEvalAttributes"/> (including inherited attributes)
+        /// Get the first attribute from <see cref="DkmClrType.GetEvalAttributes()"/> (including inherited attributes)
         /// that is of type T, as well as the type that it targeted.
         /// </summary>
         internal static bool TryGetEvalAttribute<T>(this DkmClrType type, out DkmClrType attributeTarget, out T evalAttribute)

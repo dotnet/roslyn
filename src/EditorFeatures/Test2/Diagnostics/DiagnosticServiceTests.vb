@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Reflection
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                        class Foo { }
+                                        class Goo { }
                                     </Document>
                            </Project>
                        </Workspace>
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                        class Foo { }
+                                        class Goo { }
                                     </Document>
                            </Project>
                        </Workspace>
@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                        class Foo { }
+                                        class Goo { }
                                     </Document>
                            </Project>
                        </Workspace>
@@ -211,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                        class Foo { }
+                                        class Goo { }
                                     </Document>
                            </Project>
                        </Workspace>
@@ -337,7 +337,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   class Foo { }
+                                   class Goo { }
                                </Document>
                            </Project>
                        </Workspace>
@@ -358,7 +358,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   class Foo { }
+                                   class Goo { }
                                </Document>
                            </Project>
                        </Workspace>
@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   class Foo { }
+                                   class Goo { }
                                </Document>
                            </Project>
                        </Workspace>
@@ -415,7 +415,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true" Features="IOperation">
                                <Document FilePath="Test.cs">
-                                   class Foo { }
+                                   class Goo { }
                                </Document>
                            </Project>
                        </Workspace>
@@ -449,7 +449,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   class Foo { void M() {} }
+                                   class Goo { void M() {} }
                                </Document>
                            </Project>
                        </Workspace>
@@ -516,7 +516,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true" Features="IOperation">
                                <Document FilePath="Test.cs">
-                                   class Foo { void M() { int x = 0; } }
+                                   class Goo { void M() { int x = 0; } }
                                </Document>
                            </Project>
                        </Workspace>
@@ -550,7 +550,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   class Foo { void M() {} }
+                                   class Goo { void M() {} }
                                </Document>
                            </Project>
                        </Workspace>
@@ -583,7 +583,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   class Foo { void M() {} }
+                                   class Goo { void M() {} }
                                </Document>
                            </Project>
                        </Workspace>
@@ -693,7 +693,7 @@ class AnonymousFunctions
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   class Foo { void M() {} }
+                                   class Goo { void M() {} }
                                </Document>
                            </Project>
                        </Workspace>
@@ -756,7 +756,7 @@ class AnonymousFunctions
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   class Foo { void M() {} }
+                                   class Goo { void M() {} }
                                </Document>
                            </Project>
                        </Workspace>
@@ -781,7 +781,7 @@ class AnonymousFunctions
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   class Foo { void M() {} }
+                                   class Goo { void M() {} }
                                </Document>
                            </Project>
                        </Workspace>
@@ -813,8 +813,8 @@ class AnonymousFunctions
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test.cs">
-                                   partial class Foo { }
-                                   partial class Foo { }
+                                   partial class Goo { }
+                                   partial class Goo { }
                                </Document>
                            </Project>
                        </Workspace>
@@ -844,11 +844,11 @@ class AnonymousFunctions
         Public Sub TestPartialTypeInGeneratedCode()
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
-                               <Document FilePath="Foo.generated.cs">
-                                   public partial class Foo { }
+                               <Document FilePath="Goo.generated.cs">
+                                   public partial class Goo { }
                                </Document>
                                <Document FilePath="Test1.cs">
-                                   public partial class Foo { }
+                                   public partial class Goo { }
                                </Document>
                            </Project>
                        </Workspace>
@@ -900,10 +900,10 @@ class AnonymousFunctions
             Dim test = <Workspace>
                            <Project Language="C#" CommonReferences="true">
                                <Document FilePath="Test1.cs">
-                                   public partial class Foo { }
+                                   public partial class Goo { }
                                </Document>
                                <Document FilePath="Test2.cs">
-                                   public partial class Foo { }
+                                   public partial class Goo { }
                                </Document>
                            </Project>
                        </Workspace>
@@ -1074,13 +1074,13 @@ public class B
                                <Document>
 Public MustInherit Class Class1
 
-    Public MustOverride Function Foo(x As Integer, y As Integer) As Integer
+    Public MustOverride Function Goo(x As Integer, y As Integer) As Integer
 
 End Class
 
 Public Class Class2
 
-    Public Function Foo(x As Integer, y As Integer) As Integer
+    Public Function Goo(x As Integer, y As Integer) As Integer
         Return x + y
     End Function
 

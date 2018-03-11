@@ -4,35 +4,24 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.Classification.Classifiers;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Classification
 {
     [ExportLanguageService(typeof(IClassificationService), LanguageNames.CSharp), Shared]
-    internal class CSharpClassificationService : AbstractClassificationService
+    internal class CSharpEditorClassificationService : AbstractClassificationService
     {
-        public override IEnumerable<ISyntaxClassifier> GetDefaultSyntaxClassifiers()
-        {
-            return SyntaxClassifier.DefaultSyntaxClassifiers;
-        }
-
         public override void AddLexicalClassifications(SourceText text, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
         {
-            ClassificationHelpers.AddLexicalClassifications(text, textSpan, result, cancellationToken);
+            var temp = ArrayBuilder<ClassifiedSpan>.GetInstance();
+            ClassificationHelpers.AddLexicalClassifications(text, textSpan, temp, cancellationToken);
+            AddRange(temp, result);
+            temp.Free();
         }
 
-        public override void AddSyntacticClassifications(SyntaxTree syntaxTree, TextSpan textSpan, List<ClassifiedSpan> result, CancellationToken cancellationToken)
-        {
-            var root = syntaxTree.GetRoot(cancellationToken);
-            Worker.CollectClassifiedSpans(root, textSpan, result, cancellationToken);
-        }
-
-        public override ClassifiedSpan FixClassification(SourceText rawText, ClassifiedSpan classifiedSpan)
-        {
-            return ClassificationHelpers.AdjustStaleClassification(rawText, classifiedSpan);
-        }
+        public override ClassifiedSpan AdjustStaleClassification(SourceText text, ClassifiedSpan classifiedSpan)
+            => ClassificationHelpers.AdjustStaleClassification(text, classifiedSpan);
     }
 }

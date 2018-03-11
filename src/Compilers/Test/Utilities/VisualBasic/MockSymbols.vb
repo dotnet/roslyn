@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.PooledObjects
 
 Friend Interface IMockSymbol
     Sub SetContainer(container As Symbol)
@@ -295,7 +296,13 @@ Friend Class MockNamedTypeSymbol
         End Get
     End Property
 
-    Friend Overrides ReadOnly Property HasEmbeddedAttribute As Boolean
+    Friend Overrides ReadOnly Property HasCodeAnalysisEmbeddedAttribute As Boolean
+        Get
+            Throw New NotImplementedException()
+        End Get
+    End Property
+
+    Friend Overrides ReadOnly Property HasVisualBasicEmbeddedAttribute As Boolean
         Get
             Throw New NotImplementedException()
         End Get

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public ITypeSymbol PointedAtType { get; }
 
         public CodeGenerationPointerTypeSymbol(ITypeSymbol pointedAtType)
-            : base(null, default(ImmutableArray<AttributeData>), Accessibility.NotApplicable, default(DeclarationModifiers), string.Empty, SpecialType.None)
+            : base(null, default, Accessibility.NotApplicable, default, string.Empty, SpecialType.None)
         {
             this.PointedAtType = pointedAtType;
         }

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.ComponentModel.Composition
 Imports System.Threading
@@ -17,16 +17,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
     <ExportQuickInfoProvider(PredefinedQuickInfoProviderNames.Semantic, LanguageNames.VisualBasic)>
     Friend Class SemanticQuickInfoProvider
         Inherits AbstractSemanticQuickInfoProvider
-
-        <ImportingConstructor>
-        Public Sub New(projectionBufferFactoryService As IProjectionBufferFactoryService,
-                       editorOptionsFactoryService As IEditorOptionsFactoryService,
-                       textEditorFactoryService As ITextEditorFactoryService,
-                       glyphService As IGlyphService,
-                       typeMap As ClassificationTypeMap)
-            MyBase.New(projectionBufferFactoryService, editorOptionsFactoryService,
-                       textEditorFactoryService, glyphService, typeMap)
-        End Sub
 
         Protected Overrides Async Function BuildContentAsync(document As Document,
                                                   token As SyntaxToken,

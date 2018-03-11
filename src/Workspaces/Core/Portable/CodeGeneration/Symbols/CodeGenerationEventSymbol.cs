@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Editing;
 
 namespace Microsoft.CodeAnalysis.CodeGeneration
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol type,
-            IEventSymbol explicitInterfaceSymbolOpt,
+            ImmutableArray<IEventSymbol> explicitInterfaceImplementations,
             string name,
             IMethodSymbol addMethod,
             IMethodSymbol removeMethod,
@@ -31,9 +29,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             : base(containingType, attributes, declaredAccessibility, modifiers, name)
         {
             this.Type = type;
-            this.ExplicitInterfaceImplementations = explicitInterfaceSymbolOpt == null
-                ? ImmutableArray.Create<IEventSymbol>()
-                : ImmutableArray.Create(explicitInterfaceSymbolOpt);
+            this.ExplicitInterfaceImplementations = explicitInterfaceImplementations.NullToEmpty();
             this.AddMethod = addMethod;
             this.RemoveMethod = removeMethod;
             this.RaiseMethod = raiseMethod;
@@ -43,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             return new CodeGenerationEventSymbol(
                 this.ContainingType, this.GetAttributes(), this.DeclaredAccessibility,
-                this.Modifiers, this.Type, this.ExplicitInterfaceImplementations.FirstOrDefault(),
+                this.Modifiers, this.Type, this.ExplicitInterfaceImplementations,
                 this.Name, this.AddMethod, this.RemoveMethod, this.RaiseMethod);
         }
 

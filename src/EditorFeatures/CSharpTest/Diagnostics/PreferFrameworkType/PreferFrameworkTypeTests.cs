@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -747,7 +747,7 @@ class Program
         Int32 x = 5;
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseFrameworkType)]
@@ -772,7 +772,7 @@ class Program
         Int32 /* 2 */ x = 5;
     }
 }";
-            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration, ignoreTrivia: false);
+            await TestInRegularAndScriptAsync(code, expected, options: FrameworkTypeInDeclaration);
         }
     }
 }

@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.ConvertIfToSwitch
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicConvertIfToSwitchCodeRefactoringProvider)), [Shared]>
@@ -182,6 +183,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertIfToSwitch
 
             Protected Overrides Function UnwrapCast(expression As ExpressionSyntax) As ExpressionSyntax
                 Return expression
+            End Function
+
+            Protected Overrides Function CreateSwitchStatement(ifStatement As ExecutableStatementSyntax, expression As ExpressionSyntax, sectionList As List(Of SyntaxNode)) As SyntaxNode
+                Return VisualBasicSyntaxGenerator.Instance.SwitchStatement(expression, sectionList)
             End Function
         End Class
     End Class

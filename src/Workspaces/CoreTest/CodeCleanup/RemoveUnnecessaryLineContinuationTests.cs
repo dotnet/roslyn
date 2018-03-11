@@ -1311,7 +1311,7 @@ End Module
         }
 
         [Fact]
-        [WorkItem(710, "#710")]
+        [WorkItem(710, "https://github.com/dotnet/roslyn/issues/710")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task DontRemoveLineContinuationInStringInterpolation1()
         {
@@ -1332,7 +1332,7 @@ End Module
         }
 
         [Fact]
-        [WorkItem(710, "#710")]
+        [WorkItem(710, "https://github.com/dotnet/roslyn/issues/710")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task DontRemoveLineContinuationInStringInterpolation2()
         {
@@ -1353,7 +1353,7 @@ End Module
         }
 
         [Fact]
-        [WorkItem(710, "#710")]
+        [WorkItem(710, "https://github.com/dotnet/roslyn/issues/710")]
         [Trait(Traits.Feature, Traits.Features.RemoveUnnecessaryLineContinuation)]
         public async Task DontRemoveLineContinuationInStringInterpolation3()
         {
@@ -1460,7 +1460,7 @@ End Class";
                 out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic, langVersion);
-            var codeCleanups = CodeCleaner.GetDefaultProviders(document).Where(p => p.Name == PredefinedCodeCleanupProviderNames.RemoveUnnecessaryLineContinuation || p.Name == PredefinedCodeCleanupProviderNames.Format);
+            var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name == PredefinedCodeCleanupProviderNames.RemoveUnnecessaryLineContinuation || p.Name == PredefinedCodeCleanupProviderNames.Format);
 
             var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups);
 

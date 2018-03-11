@@ -19,8 +19,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
     internal class VisualStudioTaskSchedulerFactory : EditorTaskSchedulerFactory
     {
         [ImportingConstructor]
-        public VisualStudioTaskSchedulerFactory([ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
-            : base(asyncListeners)
+        public VisualStudioTaskSchedulerFactory(IAsynchronousOperationListenerProvider listenerProvider)
+            : base(listenerProvider)
         {
         }
 
@@ -52,22 +52,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
                 return new WorkspaceTaskQueue(_factory, ForegroundThreadAffinitizedObject.CurrentForegroundThreadData.TaskScheduler);
             }
 
-            public Task ScheduleTask(Action taskAction, string taskName, CancellationToken cancellationToken = default(CancellationToken))
+            public Task ScheduleTask(Action taskAction, string taskName, CancellationToken cancellationToken = default)
             {
                 return _queue.Value.ScheduleTask(taskAction, taskName, cancellationToken);
             }
 
-            public Task<T> ScheduleTask<T>(Func<T> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken))
+            public Task<T> ScheduleTask<T>(Func<T> taskFunc, string taskName, CancellationToken cancellationToken = default)
             {
                 return _queue.Value.ScheduleTask(taskFunc, taskName, cancellationToken);
             }
 
-            public Task ScheduleTask(Func<Task> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken))
+            public Task ScheduleTask(Func<Task> taskFunc, string taskName, CancellationToken cancellationToken = default)
             {
                 return _queue.Value.ScheduleTask(taskFunc, taskName, cancellationToken);
             }
 
-            public Task<T> ScheduleTask<T>(Func<Task<T>> taskFunc, string taskName, CancellationToken cancellationToken = default(CancellationToken))
+            public Task<T> ScheduleTask<T>(Func<Task<T>> taskFunc, string taskName, CancellationToken cancellationToken = default)
             {
                 return _queue.Value.ScheduleTask(taskFunc, taskName, cancellationToken);
             }

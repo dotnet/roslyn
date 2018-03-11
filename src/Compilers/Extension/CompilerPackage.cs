@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Shell;
-using System.Reflection;
+using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using EnvDTE;
+using Microsoft.VisualStudio.Shell;
+using Microsoft.VisualStudio.Shell.Interop;
 
 namespace Roslyn.Compilers.Extension
 {
@@ -47,23 +48,13 @@ namespace Roslyn.Compilers.Extension
 
         private void WriteMSBuildFiles(string packagePath, string hiveName)
         {
-            // First we want to ensure any existing Roslyn files are deleted so we don't have old stuff floating
-            // aroud and causing troubles
-            var msbuildDirectory = new DirectoryInfo(GetMSBuildPath());
-            if (msbuildDirectory.Exists)
-            {
-                foreach (var file in msbuildDirectory.EnumerateFiles($"*Roslyn*{hiveName}*", SearchOption.AllDirectories))
-                {
-                    file.Delete();
-                }
-            }
+            // A map of the file name to the content we need to ensure exists in the file
+            var filesToWrite = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-            try
-            {
-                // The props we want to be included as early as possible since we want our tasks to be used and
-                // to ensure our setting of targets path happens early enough
-                var propsContent =
-                    $@"<?xml version=""1.0"" encoding=""utf-8""?>
+            // The props we want to be included as early as possible since we want our tasks to be used and
+            // to ensure our setting of targets path happens early enough
+            filesToWrite.Add(GetMSBuildRelativePath($@"Imports\Microsoft.Common.props\ImportBefore\Roslyn.Compilers.Extension.{hiveName}.props"),
+                $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <PropertyGroup Condition=""'$(RoslynHive)' == '{hiveName}'"">
     <CSharpCoreTargetsPath>{packagePath}\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
@@ -72,26 +63,53 @@ namespace Roslyn.Compilers.Extension
 
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""{packagePath}\Microsoft.Build.Tasks.CodeAnalysis.dll"" Condition=""'$(RoslynHive)' == '{hiveName}'"" />
   <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""{packagePath}\Microsoft.Build.Tasks.CodeAnalysis.dll"" Condition=""'$(RoslynHive)' == '{hiveName}'"" />
-</Project>";
+</Project>");
 
-                WriteMSBuildFile(propsContent, $@"Imports\Microsoft.Common.props\ImportBefore\Roslyn.Compilers.Extension.{hiveName}.props");
-
-                // This targets content we want to be included later since the project flie might touch UseSharedCompilation
-                var targetsContent =
+            // This targets content we want to be included later since the project file might touch UseSharedCompilation
+            var targetsContent =
                     $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <!-- If we're not using the compiler server, set ToolPath/Exe to direct to the exes in this package -->
-  <PropertyGroup Condition=""'$(RoslynHive)' == '{hiveName}' and '$(UseSharedCompilation)' != 'true'"">
+  <PropertyGroup Condition=""'$(RoslynHive)' == '{hiveName}' and '$(UseSharedCompilation)' == 'false'"">
     <CscToolPath>{packagePath}</CscToolPath>
     <CscToolExe>csc.exe</CscToolExe>
     <VbcToolPath>{packagePath}</VbcToolPath>
     <VbcToolExe>vbc.exe</VbcToolExe>
-    <UseSharedCompilation>false</UseSharedCompilation>
   </PropertyGroup>
 </Project>";
 
-                WriteMSBuildFile(targetsContent, $@"Microsoft.CSharp.targets\ImportBefore\Roslyn.Compilers.Extension.{hiveName}.targets");
-                WriteMSBuildFile(targetsContent, $@"Microsoft.VisualBasic.targets\ImportBefore\Roslyn.Compilers.Extension.{hiveName}.targets");
+            filesToWrite.Add(GetMSBuildRelativePath($@"Microsoft.CSharp.targets\ImportBefore\Roslyn.Compilers.Extension.{hiveName}.targets"), targetsContent);
+            filesToWrite.Add(GetMSBuildRelativePath($@"Microsoft.VisualBasic.targets\ImportBefore\Roslyn.Compilers.Extension.{hiveName}.targets"), targetsContent);
+
+            // First we want to ensure any Roslyn files with our hive name that we aren't writing -- this is probably
+            // leftovers from older extensions
+            var msbuildDirectory = new DirectoryInfo(GetMSBuildPath());
+            if (msbuildDirectory.Exists)
+            {
+                foreach (var file in msbuildDirectory.EnumerateFiles($"*Roslyn*{hiveName}*", SearchOption.AllDirectories))
+                {
+                    if (!filesToWrite.ContainsKey(file.FullName))
+                    {
+                        file.Delete();
+                    }
+                }
+            }
+
+            try
+            {
+                foreach (var fileAndContents in filesToWrite)
+                {
+                    var parentDirectory = new DirectoryInfo(Path.GetDirectoryName(fileAndContents.Key));
+                    parentDirectory.Create();
+
+                    // If we already know the file has the same contents, then we can skip
+                    if (File.Exists(fileAndContents.Key) && File.ReadAllText(fileAndContents.Key) == fileAndContents.Value)
+                    {
+                        continue;
+                    }
+
+                    File.WriteAllText(fileAndContents.Key, fileAndContents.Value);
+                }
             }
             catch (Exception e)
             {
@@ -109,6 +127,7 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
                     OLEMSGDEFBUTTON.OLEMSGDEFBUTTON_FIRST);
             }
         }
+
 
         private string GetMSBuildVersionString()
         {
@@ -135,23 +154,16 @@ To reload the Roslyn compiler package, close Visual Studio and any MSBuild proce
             return new Exception($"Unrecoginzed Visual Studio Version: {version}");
         }
 
-        private void WriteMSBuildFile(string content, string relativeFilePath)
-        {
-            var fileFullPath = Path.Combine(GetMSBuildPath(), relativeFilePath);
-            var directory = new DirectoryInfo(Path.GetDirectoryName(fileFullPath));
-            if (!directory.Exists)
-            {
-                directory.Create();
-            }
-
-            File.WriteAllText(fileFullPath, content);
-        }
-
         private string GetMSBuildPath()
         {
             var version = GetMSBuildVersionString();
             var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
             return Path.Combine(localAppData, $@"Microsoft\MSBuild\{version}");
+        }
+
+        private string GetMSBuildRelativePath(string relativePath)
+        {
+            return Path.Combine(GetMSBuildPath(), relativePath);
         }
     }
 }

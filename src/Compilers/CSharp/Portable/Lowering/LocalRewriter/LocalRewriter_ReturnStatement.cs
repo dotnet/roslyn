@@ -28,10 +28,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 rewritten = _instrumenter.InstrumentReturnStatement(node, rewritten);
             }
-            else if (node.WasCompilerGenerated && _factory.CurrentMethod?.IsAsync == true)
-            {
-                rewritten = new BoundSequencePoint(null, rewritten);
-            }
 
             return rewritten;
         }
@@ -47,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 return
-                    (method as SourceMethodSymbol)?.IsExpressionBodied ??
+                    (method as SourceMemberMethodSymbol)?.IsExpressionBodied ??
                     (method as LocalFunctionSymbol)?.IsExpressionBodied ?? false;
             }
         }

@@ -106,7 +106,7 @@ class Test
                 {
                     try
                     {
-                        var comp = CreateCompilationWithMscorlib(string.Format(text, i, j));
+                        var comp = CreateStandardCompilation(string.Format(text, i, j));
                         var errors = comp.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error);
                         if (!validAssignments[i].Contains(j))
                         {
@@ -219,7 +219,7 @@ class Test
                 {
                     try
                     {
-                        var comp = CreateCompilationWithMscorlib(string.Format(text, i, j));
+                        var comp = CreateStandardCompilation(string.Format(text, i, j));
                         var errors = comp.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error);
                         if (!validAssignments[i].Contains(j))
                         {
@@ -242,9 +242,9 @@ class Test
             }
         }
 
-        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         /// <remarks>Based on LambdaTests.TestLambdaErrors03</remarks>
         [Fact]
+        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         public void TestVarianceConversionCycle()
         {
             // To determine which overload is better, we have to try to convert D<IIn<I>> to D<I>
@@ -258,22 +258,22 @@ delegate T D<out T>();
 
 class C
 {
-    static void Foo(D<IIn<I>> x) { }
-    static void Foo(D<I> x) { }
+    static void Goo(D<IIn<I>> x) { }
+    static void Goo(D<I> x) { }
     static void M()
     {
-        Foo(null);
+        Goo(null);
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
-                // (13,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Foo(D<IIn<I>>)' and 'C.Foo(D<I>)'
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("C.Foo(D<IIn<I>>)", "C.Foo(D<I>)"));
+            CreateStandardCompilation(text).VerifyDiagnostics(
+                // (13,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.Goo(D<IIn<I>>)' and 'C.Goo(D<I>)'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("C.Goo(D<IIn<I>>)", "C.Goo(D<I>)"));
         }
 
-        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         /// <remarks>http://blogs.msdn.com/b/ericlippert/archive/2008/05/07/covariance-and-contravariance-part-twelve-to-infinity-but-not-beyond.aspx</remarks>
         [Fact]
+        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         public void TestVarianceConversionInfiniteExpansion01()
         {
             // IC<double> is convertible to IN<IC<string>> if and only
@@ -287,18 +287,18 @@ class C
     static void M()
     {
         IC<double> bar = null;
-        IN<IC<string>> foo = bar;
+        IN<IC<string>> goo = bar;
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (10,30): error CS0266: Cannot implicitly convert type 'IC<double>' to 'IN<IC<string>>'. An explicit conversion exists (are you missing a cast?)
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "bar").WithArguments("IC<double>", "IN<IC<string>>"));
         }
 
-        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         /// <remarks>http://blogs.msdn.com/b/ericlippert/archive/2008/05/07/covariance-and-contravariance-part-twelve-to-infinity-but-not-beyond.aspx</remarks>
         [Fact]
+        [WorkItem(539538, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539538")]
         public void TestVarianceConversionInfiniteExpansion02()
         {
             var text = @"
@@ -326,7 +326,7 @@ class Test
      }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (22,19): error CS0266: Cannot implicitly convert type 'X' to 'A<Y>'. An explicit conversion exists (are you missing a cast?)
                 //          A<Y> x = new X ();
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new X ()").WithArguments("X", "A<Y>")
@@ -364,7 +364,7 @@ class M {
   }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (22,15): error CS0266: Cannot implicitly convert type 'A' to 'N<X>'. An explicit conversion exists (are you missing a cast?)
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a").WithArguments("A", "N<X>"));
         }
@@ -405,7 +405,7 @@ class M
 ";
             // There should not be any diagnostics, but we blow our stack and make a guess.
             // NB: this is a breaking change.
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (24,19): error CS0266: Cannot implicitly convert type 'A' to 'N<X>'. An explicit conversion exists (are you missing a cast?)
                 //         N<X> nx = a;
                 Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "a").WithArguments("A", "N<X>"));
@@ -437,7 +437,7 @@ interface I4<out T, in U, V>
     void M2<X>() where X : C<U>;
     void M3<X>() where X : C<V>;
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (6,12): error CS1961: Invalid variance: The type parameter 'T' must be contravariantly valid on 'I1<T, U, V>.M<X>()'. 'T' is covariant.
                 //     void M<X>() where X : T, U, V;
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "X").WithArguments("I1<T, U, V>.M<X>()", "T", "covariant", "contravariantly").WithLocation(6, 12),
@@ -493,7 +493,7 @@ interface I8<in T, U>
 {
     S<U> M(S<T> o);
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (5,5): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'I1<T, U>.M(C<U>)'. 'T' is covariant.
                 //     C<T> M(C<U> o);
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "C<T>").WithArguments("I1<T, U>.M(C<U>)", "T", "covariant", "invariantly").WithLocation(5, 5),
@@ -545,7 +545,7 @@ interface I4<in T, U>
 {
     C<U>.E M(C<T>.E o);
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (7,5): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'I1<T, U>.M(C<U>.E)'. 'T' is covariant.
                 //     C<T>.E M(C<U>.E o);
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "C<T>.E").WithArguments("I1<T, U>.M(C<U>.E)", "T", "covariant", "invariantly").WithLocation(7, 5),
@@ -569,7 +569,7 @@ interface I4<in T, U>
 interface IA<in T> { }
 interface IB<in T> : IA<IB<T>> { }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (3,17): error CS1961: Invalid variance: The type parameter 'T' must be covariantly valid on 'IA<IB<T>>'. 'T' is contravariant.
                 // interface IB<in T> : IA<IB<T>> { }
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T").WithArguments("IA<IB<T>>", "T", "contravariant", "covariantly").WithLocation(3, 17));
@@ -601,7 +601,7 @@ interface I<out T> :
     I<T, T>
 {
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateStandardCompilation(text).VerifyDiagnostics(
                 // (7,5): error CS1961: Invalid variance: The type parameter 'U' must be invariantly valid on 'I<T, U>.M(C<T>)'. 'U' is contravariant.
                 //     C<U> M(C<T> o);
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "C<U>").WithArguments("I<T, U>.M(C<T>)", "U", "contravariant", "invariantly").WithLocation(7, 5),
@@ -626,6 +626,32 @@ interface I<out T> :
                 // (14,17): error CS1961: Invalid variance: The type parameter 'T' must be contravariantly valid on 'I<T, T>'. 'T' is covariant.
                 // interface I<out T> :
                 Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T").WithArguments("I<T, T>", "T", "covariant", "contravariantly").WithLocation(14, 17));
+        }
+
+        [Fact]
+        public void CovarianceBoundariesForRefReadOnly_Parameters()
+        {
+            CreateStandardCompilation(@"
+interface ITest<in T>
+{
+    void M(in T p);
+}").VerifyDiagnostics(
+                // (4,15): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'ITest<T>.M(in T)'. 'T' is contravariant.
+                //     void M(in T p);
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "T").WithArguments("ITest<T>.M(in T)", "T", "contravariant", "invariantly").WithLocation(4, 15));
+        }
+
+        [Fact]
+        public void CovarianceBoundariesForRefReadOnly_ReturnType()
+        {
+            CreateStandardCompilation(@"
+interface ITest<in T>
+{
+    ref readonly T M();
+}").VerifyDiagnostics(
+                // (4,5): error CS1961: Invalid variance: The type parameter 'T' must be invariantly valid on 'ITest<T>.M()'. 'T' is contravariant.
+                //     ref readonly T M();
+                Diagnostic(ErrorCode.ERR_UnexpectedVariance, "ref readonly T").WithArguments("ITest<T>.M()", "T", "contravariant", "invariantly").WithLocation(4, 5));
         }
     }
 }

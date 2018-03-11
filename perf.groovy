@@ -23,14 +23,6 @@ def generate(boolean isPr) {
         steps {
             batchFile("""powershell -File ./build/scripts/run_perf.ps1""")
         }
-
-        publishers {
-            postBuildScripts {
-                steps {
-                    batchFile("""powershell -File ./build/scripts/cleanup_perf.ps1 -ShouldArchive""")
-                }
-            }
-        }
     }
 
     def archiveSettings = new ArchivalSettings()
@@ -43,7 +35,7 @@ def generate(boolean isPr) {
         TriggerBuilder prTrigger = TriggerBuilder.triggerOnPullRequest()
         prTrigger.permitOrg('Microsoft')
         prTrigger.permitOrg('dotnet')
-        prTrigger.setCustomTriggerPhrase("(?i)^\\s*(@dotnet-bot\\s+)?(re)?test\\s+perf(\\s+please)?\\s*\$" )
+        prTrigger.setCustomTriggerPhrase("(?im)^\\s*(@dotnet-bot\\s+)?(re)?test\\s+perf(\\s+please)?\\s*\$" )
         prTrigger.triggerForBranch(branchName);
         prTrigger.setGithubContext('Performance Test Run')
         prTrigger.emitTrigger(myJob)

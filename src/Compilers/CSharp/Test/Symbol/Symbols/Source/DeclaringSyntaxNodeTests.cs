@@ -182,7 +182,7 @@ namespace N1 {
 
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
 
@@ -226,7 +226,7 @@ namespace N1 {
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var c1 = n1.GetTypeMembers("C1").Single() as NamedTypeSymbol;
@@ -252,7 +252,7 @@ class C1 {
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var global = comp.GlobalNamespace;
             int posA1 = text.IndexOf("a1", StringComparison.Ordinal);
@@ -295,7 +295,7 @@ class C1 {
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree);
             var global = comp.GlobalNamespace;
 
@@ -358,7 +358,7 @@ class C1 {
                     Assert.Equal(1, members.Length);
                     Assert.Equal(member, members[0]);
 
-                    // IsImplicitlyDeclared: Return false. The foo = bar clause in 
+                    // IsImplicitlyDeclared: Return false. The goo = bar clause in 
                     //                       the new { } clause serves as the declaration.
                     Assert.False(member.IsImplicitlyDeclared);
 
@@ -401,7 +401,7 @@ namespace N1.N2 {
 
 namespace System {}
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var system = global.GetMembers("System").Single() as NamespaceSymbol;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
@@ -433,7 +433,7 @@ namespace N1 {
         }
         class C3<W> {
             IEnumerable<U> f2;
-            Foo<Bar> f3;
+            Goo<Bar> f3;
         }
     }
 
@@ -441,7 +441,7 @@ namespace N1 {
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var c1 = n1.GetTypeMembers("C1").Single() as NamedTypeSymbol;
@@ -508,7 +508,7 @@ namespace N1 {
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(text);
+            var comp = CreateStandardCompilation(text);
             var global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var c1 = n1.GetTypeMembers("C1").Single() as NamedTypeSymbol;
@@ -590,14 +590,14 @@ class C1
     {
         int loc1, loc2 = 4, loc3;
         const int loc4 = 6, loc5 = 7;
-        using (IDisposable loc6 = foo()) {}
+        using (IDisposable loc6 = goo()) {}
         for (int loc7 = 0; loc7 < 10; ++loc7) {}
         foreach (int loc8 in new int[] {1,3,4}) {}
     }
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             CheckDeclaringSyntax<VariableDeclaratorSyntax>(comp, tree, "loc1", SymbolKind.Local);
             CheckDeclaringSyntax<VariableDeclaratorSyntax>(comp, tree, "loc2", SymbolKind.Local);
             CheckDeclaringSyntax<VariableDeclaratorSyntax>(comp, tree, "loc3", SymbolKind.Local);
@@ -632,13 +632,13 @@ class C1
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             CheckDeclaringSyntax<LabeledStatementSyntax>(comp, tree, "lab1", SymbolKind.Label);
             CheckDeclaringSyntax<LabeledStatementSyntax>(comp, tree, "lab2", SymbolKind.Label);
             CheckDeclaringSyntax<LabeledStatementSyntax>(comp, tree, "lab3", SymbolKind.Label);
             CheckDeclaringSyntax<SwitchLabelSyntax>(comp, tree, "case 4:", SymbolKind.Label);
             CheckDeclaringSyntax<SwitchLabelSyntax>(comp, tree, "case 3:", SymbolKind.Label);
-            CheckDeclaringSyntax<SwitchLabelSyntax>(comp, tree, "default:", SymbolKind.Label);
+            CheckDeclaringSyntax<SwitchLabelSyntax>(comp, tree, "default", SymbolKind.Label);
         }
 
 
@@ -654,14 +654,14 @@ using ListOfIntAlias=System.Collections.Generic.List<int>;
 
 namespace N1
 {
-    using FooAlias=Con;
+    using GooAlias=Con;
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             CheckDeclaringSyntax<UsingDirectiveSyntax>(comp, tree, "ConsoleAlias", SymbolKind.Alias);
             CheckDeclaringSyntax<UsingDirectiveSyntax>(comp, tree, "ListOfIntAlias", SymbolKind.Alias);
-            CheckDeclaringSyntax<UsingDirectiveSyntax>(comp, tree, "FooAlias", SymbolKind.Alias);
+            CheckDeclaringSyntax<UsingDirectiveSyntax>(comp, tree, "GooAlias", SymbolKind.Alias);
         }
 
         [Fact]
@@ -684,7 +684,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             CheckDeclaringSyntax<QueryClauseSyntax>(comp, tree, "range1", SymbolKind.RangeVariable);
             CheckDeclaringSyntax<QueryClauseSyntax>(comp, tree, "range2", SymbolKind.RangeVariable);
             CheckDeclaringSyntax<QueryContinuationSyntax>(comp, tree, "range3", SymbolKind.RangeVariable);
@@ -713,7 +713,7 @@ class C
 }
 ";
             var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             CheckLambdaDeclaringSyntax<ParenthesizedLambdaExpressionSyntax>(comp, tree, "/*1*/");
             CheckLambdaDeclaringSyntax<SimpleLambdaExpressionSyntax>(comp, tree, "/*2*/");
             CheckLambdaDeclaringSyntax<AnonymousMethodExpressionSyntax>(comp, tree, "/*3*/");
@@ -731,7 +731,7 @@ class C
             var source1 = Parse("namespace N { partial class C { } } namespace N1 { } class C1 { }");
             var source2 = Parse("namespace N { struct S { } }");
             var source3 = Parse("namespace N { partial class C { } } namespace N3 { } class C3 { }");
-            var comp0 = CreateCompilationWithMscorlib(new[] { source0, source1, source2, source3 });
+            var comp0 = CreateStandardCompilation(new[] { source0, source1, source2, source3 });
             comp0.VerifyDiagnostics();
             Assert.Equal(new[] { source0, source1, source2, source3 }, comp0.SyntaxTrees);
 

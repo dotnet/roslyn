@@ -5,7 +5,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -17,8 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
     {
         private CompletionProvider GetCompletionProvider(CompletionItem item)
         {
-            var completionService = this.GetCompletionService() as CompletionServiceWithProviders;
-            if (completionService != null)
+            if (this.GetCompletionService() is CompletionServiceWithProviders completionService)
             {
                 return completionService.GetProvider(item);
             }
@@ -67,8 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // We want to merge with any of our other programmatic edits (e.g. automatic brace completion)
                 transaction.MergePolicy = AutomaticCodeChangeMergePolicy.Instance;
 
-                var provider = GetCompletionProvider(item) as ICustomCommitCompletionProvider;
-                if (provider != null)
+                if (GetCompletionProvider(item) is ICustomCommitCompletionProvider provider)
                 {
                     provider.Commit(item, this.TextView, this.SubjectBuffer, model.TriggerSnapshot, commitChar);
                 }
@@ -111,26 +111,58 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     var mappedSpan = triggerSnapshotSpan.TranslateTo(
                         this.SubjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
 
-                    // Now actually make the text change to the document.
-                    using (var textEdit = this.SubjectBuffer.CreateEdit(EditOptions.None, reiteratedVersionNumber: null, editTag: null))
-                    {
-                        var adjustedNewText = AdjustForVirtualSpace(textChange);
+                    var adjustedNewText = AdjustForVirtualSpace(textChange);
+                    var editOptions = GetEditOptions(mappedSpan, adjustedNewText);
 
+                    // Now actually make the text change to the document.
+                    using (var textEdit = this.SubjectBuffer.CreateEdit(editOptions, reiteratedVersionNumber: null, editTag: null))
+                    {
                         textEdit.Replace(mappedSpan.Span, adjustedNewText);
-                        textEdit.Apply();
+                        textEdit.ApplyAndLogExceptions();
                     }
 
-                    // adjust the caret position if requested by completion service
-                    if (completionChange.NewPosition != null)
+                    // If the completion change requested a new position for the caret to go,
+                    // then set the caret to go directly to that point.
+                    if (completionChange.NewPosition.HasValue)
                     {
-                        TextView.Caret.MoveTo(new SnapshotPoint(
-                            this.SubjectBuffer.CurrentSnapshot, completionChange.NewPosition.Value));
+                        SetCaretPosition(desiredCaretPosition: completionChange.NewPosition.Value);
+                    }
+                    else if (editOptions.ComputeMinimalChange)
+                    {
+                        // Or, If we're doing a minimal change, then the edit that we make to the 
+                        // buffer may not make the total text change that places the caret where we 
+                        // would expect it to go based on the requested change. In this case, 
+                        // determine where the item should go and set the care manually.
+
+                        // Note: we only want to move the caret if the caret would have been moved 
+                        // by the edit.  i.e. if the caret was actually in the mapped span that 
+                        // we're replacing.
+                        if (TextView.GetCaretPoint(this.SubjectBuffer) is SnapshotPoint caretPositionInBuffer &&
+                            mappedSpan.IntersectsWith(caretPositionInBuffer))
+                        {
+                            SetCaretPosition(desiredCaretPosition: mappedSpan.Start.Position + adjustedNewText.Length);
+                        }
                     }
 
                     // Now, pass along the commit character unless the completion item said not to
                     if (characterWasSentIntoBuffer && !completionChange.IncludesCommitCharacter)
                     {
                         nextHandler();
+                    }
+
+                    if (item.Rules.FormatOnCommit)
+                    {
+                        var spanToFormat = triggerSnapshotSpan.TranslateTo(
+                            this.SubjectBuffer.CurrentSnapshot, SpanTrackingMode.EdgeInclusive);
+                        var document = this.GetDocument();
+                        var formattingService = document?.GetLanguageService<IEditorFormattingService>();
+
+                        if (formattingService != null)
+                        {
+                            var changes = formattingService.GetFormattingChangesAsync(
+                                document, spanToFormat.Span.ToTextSpan(), CancellationToken.None).WaitAndGetResult(CancellationToken.None);
+                            document.Project.Solution.Workspace.ApplyTextChanges(document.Id, changes, CancellationToken.None);
+                        }
                     }
 
                     // If the insertion is long enough, the caret will scroll out of the visible area.
@@ -143,6 +175,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // Let the completion rules know that this item was committed.
             this.MakeMostRecentItem(item.DisplayText);
+        }
+
+        private void SetCaretPosition(int desiredCaretPosition)
+        {
+            // Now, move the caret to the right location.
+            var graph = new DisconnectedBufferGraph(this.SubjectBuffer, this.TextView.TextBuffer);
+            var viewTextSpan = graph.GetSubjectBufferTextSpanInViewBuffer(new TextSpan(desiredCaretPosition, 0));
+            var desiredCaretPoint = new SnapshotPoint(TextView.TextBuffer.CurrentSnapshot, viewTextSpan.TextSpan.Start);
+
+            TextView.Caret.MoveTo(new SnapshotPoint(TextView.TextBuffer.CurrentSnapshot, viewTextSpan.TextSpan.Start));
+        }
+
+        private EditOptions GetEditOptions(SnapshotSpan spanToReplace, string adjustedNewText)
+        {
+            if (spanToReplace.GetText() == adjustedNewText)
+            {
+                // We're replacing the current buffer text with the exact same code.  If 
+                // we pass EditOptions.DefaultMinimalChange then no actual buffer change
+                // will happen.  That's problematic as it breaks features like brace-matching
+                // which want to buffer changes to properly compute their state.  In this
+                return EditOptions.None;
+            }
+
+            return EditOptions.DefaultMinimalChange;
         }
 
         private void RollbackToBeforeTypeChar(ITextSnapshot initialTextSnapshot)
@@ -162,7 +218,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         textEdit.Replace(change.NewSpan, change.OldText);
                     }
 
-                    textEdit.Apply();
+                    textEdit.ApplyAndLogExceptions();
                 }
             }
         }

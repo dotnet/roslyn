@@ -1,8 +1,9 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
+Imports Microsoft.CodeAnalysis.ImplementType
 Imports Microsoft.CodeAnalysis.VisualBasic.ImplementAbstractClass
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractClass
@@ -16,22 +17,24 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractC
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementAbstractClass)>
         Public Async Function TestSimpleCases() As Task
             Await TestInRegularAndScriptAsync(
-"Public MustInherit Class Foo
-    Public MustOverride Sub Foo(i As Integer)
+"Public MustInherit Class Goo
+    Public MustOverride Sub Goo(i As Integer)
     Protected MustOverride Function Bar(s As String, ByRef d As Double) As Boolean
 End Class
 Public Class [|Bar|]
-    Inherits Foo
+    Inherits Goo
 End Class",
-"Public MustInherit Class Foo
-    Public MustOverride Sub Foo(i As Integer)
+"Public MustInherit Class Goo
+    Public MustOverride Sub Goo(i As Integer)
     Protected MustOverride Function Bar(s As String, ByRef d As Double) As Boolean
 End Class
 Public Class Bar
-    Inherits Foo
-    Public Overrides Sub Foo(i As Integer)
+    Inherits Goo
+
+    Public Overrides Sub Goo(i As Integer)
         Throw New System.NotImplementedException()
     End Sub
+
     Protected Overrides Function Bar(s As String, ByRef d As Double) As Boolean
         Throw New System.NotImplementedException()
     End Function
@@ -52,6 +55,7 @@ End Class",
 End Class
 Public Class Derived
     Inherits Base
+
     Protected Overrides Function Bar(x As (a As Integer, Integer)) As (c As Integer, Integer)
         Throw New System.NotImplementedException()
     End Function
@@ -72,6 +76,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Integer = 3)
         Throw New System.NotImplementedException()
     End Sub
@@ -92,6 +97,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Boolean = True)
         Throw New System.NotImplementedException()
     End Sub
@@ -112,6 +118,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Boolean = False)
         Throw New System.NotImplementedException()
     End Sub
@@ -132,6 +139,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As String = ""a"")
         Throw New System.NotImplementedException()
     End Sub
@@ -152,6 +160,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Char = ""c""c)
         Throw New System.NotImplementedException()
     End Sub
@@ -172,6 +181,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Long = 3)
         Throw New System.NotImplementedException()
     End Sub
@@ -187,12 +197,12 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As Short = 3)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Short = 3)
         Throw New System.NotImplementedException()
     End Sub
@@ -208,12 +218,12 @@ End Class
 Class [|c|]
     Inherits b
 End Class",
-"
-MustInherit Class b
+"MustInherit Class b
     Public MustOverride Sub g(Optional x As UShort = 3)
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As UShort = 3)
         Throw New System.NotImplementedException()
     End Sub
@@ -234,6 +244,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Integer = -3)
         Throw New System.NotImplementedException()
     End Sub
@@ -254,6 +265,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As UInteger = 3)
         Throw New System.NotImplementedException()
     End Sub
@@ -274,6 +286,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As ULong = 3)
         Throw New System.NotImplementedException()
     End Sub
@@ -294,6 +307,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Decimal = 3)
         Throw New System.NotImplementedException()
     End Sub
@@ -314,6 +328,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Double = 3)
         Throw New System.NotImplementedException()
     End Sub
@@ -338,6 +353,7 @@ MustInherit Class b
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As S = Nothing)
         Throw New System.NotImplementedException()
     End Sub
@@ -363,6 +379,7 @@ MustInherit Class b
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As S? = Nothing)
         Throw New System.NotImplementedException()
     End Sub
@@ -384,6 +401,7 @@ End Class",
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As Integer? = Nothing, Optional y As Integer? = 5)
         Throw New System.NotImplementedException()
     End Sub
@@ -408,6 +426,7 @@ MustInherit Class b
 End Class
 Class c
     Inherits b
+
     Public Overrides Sub g(Optional x As S = Nothing)
         Throw New System.NotImplementedException()
     End Sub
@@ -420,15 +439,16 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Imports System
 MustInherit Class D
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 Class [|C|] : Inherits D : End Class",
 "Imports System
 MustInherit Class D
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 Class C : Inherits D
-    Public Overrides Sub Foo()
+
+    Public Overrides Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -440,15 +460,16 @@ End Class")
             Await TestInRegularAndScriptAsync(
 "Imports System
 MustInherit Class D
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 Class [|C|] : Inherits D : Implements IDisposable : End Class",
 "Imports System
 MustInherit Class D
-    MustOverride Sub Foo()
+    MustOverride Sub Goo()
 End Class
 Class C : Inherits D : Implements IDisposable
-    Public Overrides Sub Foo()
+
+    Public Overrides Sub Goo()
         Throw New NotImplementedException()
     End Sub
 End Class")
@@ -459,17 +480,18 @@ End Class")
         Public Async Function TestRenameTypeParameters() As Task
             Await TestInRegularAndScriptAsync(
 "MustInherit Class A(Of T)
-    MustOverride Sub Foo(Of S As T)()
+    MustOverride Sub Goo(Of S As T)()
 End Class
 Class [|C(Of S)|]
     Inherits A(Of S)
 End Class",
 "MustInherit Class A(Of T)
-    MustOverride Sub Foo(Of S As T)()
+    MustOverride Sub Goo(Of S As T)()
 End Class
 Class C(Of S)
     Inherits A(Of S)
-    Public Overrides Sub Foo(Of S1 As S)()
+
+    Public Overrides Sub Goo(Of S1 As S)()
         Throw New System.NotImplementedException()
     End Sub
 End Class")
@@ -503,8 +525,7 @@ Class c
         Throw New NotImplementedException()
     End Sub
 End Class
-</Text>.Value.Replace(vbLf, vbCrLf),
-ignoreTrivia:=False)
+</Text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         <WorkItem(2407, "https://github.com/dotnet/roslyn/issues/2407")>
@@ -573,6 +594,43 @@ Class x
         Throw New NotImplementedException()
     End Function
 End Class")
+        End Function
+
+        <WorkItem(13932, "https://github.com/dotnet/roslyn/issues/13932")>
+        <WorkItem(5898, "https://github.com/dotnet/roslyn/issues/5898")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
+        Public Async Function TestAutoProperties() As Task
+            Await TestInRegularAndScript1Async(
+"MustInherit Class AbstractClass
+    MustOverride ReadOnly Property ReadOnlyProp As Integer
+    MustOverride Property ReadWriteProp As Integer
+    MustOverride WriteOnly Property WriteOnlyProp As Integer
+End Class
+
+Class [|C|]
+    Inherits AbstractClass
+
+End Class",
+"MustInherit Class AbstractClass
+    MustOverride ReadOnly Property ReadOnlyProp As Integer
+    MustOverride Property ReadWriteProp As Integer
+    MustOverride WriteOnly Property WriteOnlyProp As Integer
+End Class
+
+Class C
+    Inherits AbstractClass
+
+    Public Overrides ReadOnly Property ReadOnlyProp As Integer
+    Public Overrides Property ReadWriteProp As Integer
+
+    Public Overrides WriteOnly Property WriteOnlyProp As Integer
+        Set(value As Integer)
+            Throw New System.NotImplementedException()
+        End Set
+    End Property
+End Class", parameters:=New TestParameters(options:=[Option](
+    ImplementTypeOptions.PropertyGenerationBehavior,
+    ImplementTypePropertyGenerationBehavior.PreferAutoProperties)))
         End Function
     End Class
 End Namespace

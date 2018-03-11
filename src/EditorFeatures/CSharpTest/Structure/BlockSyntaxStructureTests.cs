@@ -81,7 +81,7 @@ class C
 {
     void M()
     {
-        {|hint:using (foo){|textspan:
+        {|hint:using (goo){|textspan:
         {$$
         }|}|}
     }
@@ -99,7 +99,7 @@ class C
 {
     void M()
     {
-        {|hint:lock (foo){|textspan:
+        {|hint:lock (goo){|textspan:
         {$$
         }|}|}
     }

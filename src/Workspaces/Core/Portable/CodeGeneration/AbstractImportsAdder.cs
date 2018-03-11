@@ -27,16 +27,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         protected abstract SyntaxNode GetImportsContainer(SyntaxNode node);
         protected abstract SyntaxNode GetInnermostNamespaceScope(SyntaxNodeOrToken node);
 
-        public abstract Task<Document> AddAsync(IEnumerable<ISymbol> members, bool placeSystemNamespaceFirst, CodeGenerationOptions options, CancellationToken cancellationToken);
+        public abstract Task<Document> AddAsync(bool placeSystemNamespaceFirst, CodeGenerationOptions options, CancellationToken cancellationToken);
 
         protected async Task<IDictionary<SyntaxNode, ISet<INamedTypeSymbol>>> GetAllReferencedDefinitionsAsync(
-            Compilation compilation,
-            IEnumerable<ISymbol> members,
-            CancellationToken cancellationToken)
+            Compilation compilation, CancellationToken cancellationToken)
         {
             var namespaceScopeToReferencedDefinitions = new Dictionary<SyntaxNode, ISet<INamedTypeSymbol>>();
             var root = await Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            Func<SyntaxNode, ISet<INamedTypeSymbol>> createSet = _ => new HashSet<INamedTypeSymbol>();
+            ISet<INamedTypeSymbol> createSet(SyntaxNode _) => new HashSet<INamedTypeSymbol>();
 
             var annotatedNodes = root.GetAnnotatedNodesAndTokens(SymbolAnnotation.Kind);
             foreach (var annotatedNode in annotatedNodes)
@@ -99,15 +97,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         }
 
         protected async Task<IDictionary<SyntaxNode, IList<INamespaceSymbol>>> DetermineNamespaceToImportAsync(
-            IEnumerable<ISymbol> members,
-            CodeGenerationOptions options,
-            CancellationToken cancellationToken)
+            CodeGenerationOptions options, CancellationToken cancellationToken)
         {
             var semanticModel = await this.Document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var compilation = semanticModel.Compilation;
 
             // First, find all the named types referenced by code that we are trying to generated.  
-            var namespaceScopeToReferencedDefinitions = await GetAllReferencedDefinitionsAsync(compilation, members, cancellationToken).ConfigureAwait(false);
+            var namespaceScopeToReferencedDefinitions = await GetAllReferencedDefinitionsAsync(
+                compilation, cancellationToken).ConfigureAwait(false);
 
             var importsContainerToMissingImports = new Dictionary<SyntaxNode, IList<INamespaceSymbol>>();
 

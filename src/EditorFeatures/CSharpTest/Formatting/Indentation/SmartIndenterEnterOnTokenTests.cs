@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -904,7 +904,7 @@ class What
         public async Task Preprocessor()
         {
             var code = @"
-#line 1 """"Bar""""class Foo : [|IComparable|]#line default#line hidden";
+#line 1 """"Bar""""class Goo : [|IComparable|]#line default#line hidden";
 
             await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
                 code,

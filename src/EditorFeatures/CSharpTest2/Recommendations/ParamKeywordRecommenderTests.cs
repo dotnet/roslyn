@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -58,7 +58,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -81,7 +81,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    [Foo]
+    [Goo]
     [$$");
         }
 
@@ -90,7 +90,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    void Foo() {
+    void Goo() {
     }
     [$$");
         }
@@ -100,7 +100,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    int Foo {
+    int Goo {
         get;
     }
     [$$");
@@ -111,7 +111,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    int Foo;
+    int Goo;
     [$$");
         }
 
@@ -120,7 +120,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    event Action<int> Foo;
+    event Action<int> Goo;
     [$$");
         }
 
@@ -136,7 +136,7 @@ $$");
         {
             await VerifyAbsenceAsync(
 @"class C {
-    void Foo([$$");
+    void Goo([$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -144,7 +144,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-    int Foo { [$$");
+    int Goo { [$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -152,7 +152,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-    int Foo { get { } [$$");
+    int Goo { get { } [$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -160,7 +160,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-    event Action<int> Foo { [$$");
+    event Action<int> Goo { [$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -168,7 +168,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-    event Action<int> Foo { add { } [$$");
+    event Action<int> Goo { add { } [$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]

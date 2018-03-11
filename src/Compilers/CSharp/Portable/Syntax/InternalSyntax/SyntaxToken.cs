@@ -131,8 +131,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return new MissingTokenWithTrivia(kind, leading, trailing);
         }
 
-        internal static readonly SyntaxKind FirstTokenWithWellKnownText = SyntaxKind.TildeToken;
-        internal static readonly SyntaxKind LastTokenWithWellKnownText = SyntaxKind.EndOfFileToken;
+        internal const SyntaxKind FirstTokenWithWellKnownText = SyntaxKind.TildeToken;
+        internal const SyntaxKind LastTokenWithWellKnownText = SyntaxKind.EndOfFileToken;
 
         // TODO: eliminate the blank space before the first interesting element?
         private static readonly ArrayElement<SyntaxToken>[] s_tokensWithNoTrivia = new ArrayElement<SyntaxToken>[(int)LastTokenWithWellKnownText + 1];

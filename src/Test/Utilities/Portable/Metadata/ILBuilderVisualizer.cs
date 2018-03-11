@@ -3,11 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Reflection.Emit;
 using System.Reflection.Metadata;
 using System.Text;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
-using Roslyn.Test.MetadataUtilities;
+using Microsoft.Metadata.Tools;
 using Roslyn.Utilities;
 using Cci = Microsoft.Cci;
 
@@ -24,11 +26,38 @@ namespace Roslyn.Test.Utilities
 
         public override string VisualizeUserString(uint token)
         {
+            // Check for an encoding of the spelling of the current module's module version ID.
+            if (token == 0x80000000)
+            {
+                return "##MVID##";
+            }
+
             return "\"" + _tokenDeferral.GetStringFromToken(token) + "\"";
         }
 
-        public override string VisualizeSymbol(uint token)
+        public override string VisualizeSymbol(uint token, OperandType operandType)
         {
+            if (operandType == OperandType.InlineTok)
+            {
+                // Check for an encoding of the maximum method token index value.
+                if ((token & 0xff000000) == 0x40000000)
+                {
+                    return "Max Method Token Index";
+                }
+
+                // Check for an encoding of a source document index.
+                if ((token & 0xff000000) == 0x20000000)
+                {
+                    return "Source Document " + (token & 0x00ffffff).ToString();
+                }
+
+                // Check for a raw token value, encoded with a 1 high-order bit.
+                if ((token & 0x80000000) != 0 && token != 0xffffffff)
+                {
+                    token &= 0x7fffffff;
+                }
+            }
+
             Cci.IReference reference = _tokenDeferral.GetReferenceFromToken(token);
             ISymbol symbol = reference as ISymbol;
             return string.Format("\"{0}\"", symbol == null ? (object)reference : symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat));
@@ -36,8 +65,7 @@ namespace Roslyn.Test.Utilities
 
         public override string VisualizeLocalType(object type)
         {
-            ISymbol symbol = type as ISymbol;
-            return symbol == null ? type.ToString() : symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat);
+            return (type is ISymbol symbol) ? symbol.ToDisplayString(SymbolDisplayFormat.ILVisualizationFormat) : type.ToString();
         }
 
         /// <summary>
@@ -104,7 +132,7 @@ namespace Roslyn.Test.Utilities
         }
 
         /// <remarks>
-        /// Invoked via Reflection from <see cref="ILBuilder.GetDebuggerDisplay()"/>
+        /// Invoked via Reflection from <see cref="ILBuilder"/><c>.GetDebuggerDisplay()</c>.
         /// </remarks>
         internal static string ILBuilderToString(
             ILBuilder builder,
@@ -172,8 +200,7 @@ namespace Roslyn.Test.Utilities
 
         private static void DumpBlockIL(ILBuilder.BasicBlock block, StringBuilder sb)
         {
-            var switchBlock = block as ILBuilder.SwitchBlock;
-            if (switchBlock != null)
+            if (block is ILBuilder.SwitchBlock switchBlock)
             {
                 DumpSwitchBlockIL(switchBlock, sb);
             }

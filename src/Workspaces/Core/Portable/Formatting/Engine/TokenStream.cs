@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             Contract.Requires(_treeData.IsFirstToken(this.FirstTokenInStream.Token));
-            return GetOriginalTriviaData(default(TokenData), this.FirstTokenInStream);
+            return GetOriginalTriviaData(default, this.FirstTokenInStream);
         }
 
         public TriviaData GetTriviaDataAtEndOfTree()
@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             Contract.Requires(_treeData.IsLastToken(this.LastTokenInStream.Token));
-            return GetOriginalTriviaData(this.LastTokenInStream, default(TokenData));
+            return GetOriginalTriviaData(this.LastTokenInStream, default);
         }
 
         public TriviaData GetTriviaData(int pairIndex)

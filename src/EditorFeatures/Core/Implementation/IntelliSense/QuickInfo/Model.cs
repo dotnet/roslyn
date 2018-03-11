@@ -20,6 +20,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             IQuickInfoProvider provider,
             bool trackMouse)
         {
+            Contract.ThrowIfNull(item);
+
             this.TextVersion = textVersion;
             this.Item = item;
             this.Provider = provider;

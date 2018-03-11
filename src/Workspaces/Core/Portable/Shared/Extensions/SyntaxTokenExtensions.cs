@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         {
             return token.Parent != null
                 ? token.Parent.FirstAncestorOrSelf(predicate)
-                : default(T);
+                : default;
         }
 
         public static IEnumerable<T> GetAncestors<T>(this SyntaxToken token)

@@ -65,7 +65,11 @@ namespace Microsoft.CodeAnalysis.Host
 
         public override bool TryGetValue(out T value)
         {
-            return _weakInstance.TryGetTarget(out value);
+            // it has 2 fields that can hold onto the value. if we only check weakInstance, we will
+            // return false for the initial case where weakInstance is set to s_noReference even if
+            // value can be retrieved from _recoverySource. so we check both here.
+            return _weakInstance.TryGetTarget(out value) || 
+                   _recoverySource.TryGetValue(out value);
         }
 
         public override T GetValue(CancellationToken cancellationToken)

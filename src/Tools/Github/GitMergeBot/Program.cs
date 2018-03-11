@@ -3,7 +3,10 @@
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Web.Configuration;
 using LibGit2Sharp;
+using Microsoft.Azure.KeyVault;
+using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using Mono.Options;
 
 using static System.Console;
@@ -29,7 +32,7 @@ namespace GitMergeBot
                 { "sourceproject=", "The name of the source project.  Only needed for VisualStudioOnline repos.", value => options.SourceProject = value },
                 { "sourceuserid=", "The source user ID.  Only needed for VisualStudioOnline repos.", value => options.SourceUserId = value },
                 { "sourceuser=", "The source user name.", value => options.SourceUserName = value },
-                { "sourcepassword=", "The source password.", value => options.SourcePassword = value },
+                { "sourceauthsecret=", "The secret name for the source auth token.", value => options.SourceAuthTokenSecretName = value },
                 { "sourceremote=", "The source remote name.", value => options.SourceRemoteName = value },
                 { "sourcebranch=", "The source branch name.", value => options.SourceBranchName = value },
                 { "pushtodestination=", "If true the PR branch will be pushed to the destination repository; if false the PR branch will be pushed to the source.", value => options.PushBranchToDestination = value != null },
@@ -40,7 +43,7 @@ namespace GitMergeBot
                 { "destinationproject=", "The name of the destination project.  Only needed for VisualStudioOnline repos.", value => options.DestinationProject = value },
                 { "destinationuserid=", "The destination user ID.  Only needed for VisualStudioOnline repos.", value => options.DestinationUserId = value },
                 { "destinationuser=", "The destination user name.  Defaults to `sourceuser` parameter.", value => options.DestinationUserName = value },
-                { "destinationpassword=", "The destination password.  Defaults to `sourcepassword` parameter.", value => options.DestinationPassword = value },
+                { "destinationauthsecret=", "The secret name for the destination auth token.  Defaults to `sourceauthsecret` parameter.", value => options.DestinationAuthTokenSecretName = value },
                 { "destinationremote=", "The destination remote name.  Defaults to `sourceremote` parameter.", value => options.DestinationRemoteName = value },
                 { "destinationbranch=", "The destination branch name.  Defaults to `sourcebranch` parameter.", value => options.DestinationBranchName = value },
                 { "f|force", "Force the creation of the PR even if an open PR already exists.", value => options.Force = value != null },
@@ -57,8 +60,8 @@ namespace GitMergeBot
                     return options.IsValid ? 0 : 1;
                 }
 
-                var sourceRepository = RepositoryBase.Create(options.SourceRepoType, options.RepositoryPath, options.SourceRepoName, options.SourceProject, options.SourceUserId, options.SourceUserName, options.SourcePassword, options.SourceRemoteName);
-                var destRepository = RepositoryBase.Create(options.DestinationRepoType, options.RepositoryPath, options.DestinationRepoName, options.DestinationProject, options.DestinationUserId, options.DestinationUserName, options.DestinationPassword, options.DestinationRemoteName);
+                var sourceRepository = RepositoryBase.Create(options.SourceRepoType, options.RepositoryPath, options.SourceRepoName, options.SourceProject, options.SourceUserId, options.SourceUserName, options.SourceAuthTokenSecretName, options.SourceRemoteName);
+                var destRepository = RepositoryBase.Create(options.DestinationRepoType, options.RepositoryPath, options.DestinationRepoName, options.DestinationProject, options.DestinationUserId, options.DestinationUserName, options.DestinationAuthTokenSecretName, options.DestinationRemoteName);
                 new Program(sourceRepository, destRepository, options).RunAsync().GetAwaiter().GetResult();
                 return 0;
             }
@@ -90,9 +93,11 @@ namespace GitMergeBot
             WriteLine("Fetching.");
             _sourceRepo.Fetch(_options.PullRequestBranchSourceRemote);
 
-            var (prRepo, prRemoteName, prUserName, prPassword) = _options.PushBranchToDestination
-                ? (_destRepo, _options.DestinationRemoteName, _options.DestinationUserName, _options.DestinationPassword)
-                : (_sourceRepo, _options.SourceRemoteName, _options.SourceUserName, _options.SourcePassword);
+            var (prRepo, prRemoteName, prUserName, prAuthTokenSecretName) = _options.PushBranchToDestination
+                ? (_destRepo, _options.DestinationRemoteName, _options.DestinationUserName, _options.DestinationAuthTokenSecretName)
+                : (_sourceRepo, _options.SourceRemoteName, _options.SourceUserName, _options.SourceAuthTokenSecretName);
+
+            var prPassword = GetSecret(prAuthTokenSecretName).Result;
 
             // branch from the source
             var title = $"Merge {_options.SourceBranchName} into {_options.DestinationBranchName}";
@@ -101,7 +106,7 @@ namespace GitMergeBot
             }
             else
             {
-                WriteLine("Existing merge PRs exist; aboring creation.");
+                WriteLine("Existing merge PRs exist; aborting creation.");
                 return;
             }
 
@@ -147,6 +152,40 @@ namespace GitMergeBot
             {
                 await _destRepo.CreatePullRequestAsync(title, _options.DestinationRepoOwner, prBranchName, _options.PullRequestBranchSourceRemote, _options.SourceBranchName, _options.DestinationBranchName);
             }
+        }
+
+        private const string KeyVaultUrl = "https://roslyninfra.vault.azure.net:443";
+
+        //  Use application ID of powershell cmdlets, see http://stackoverflow.com/questions/30096576/using-adal-for-accessing-the-azure-keyvault-on-behalf-of-a-user
+        private const string ApplicationId = "1950a258-227b-4e31-a9cf-717495945fc2";
+
+        /// <summary>
+        /// Gets the specified secret from the key vault;
+        /// </summary>
+        public static async Task<string> GetSecret(string secretName)
+        {
+            var kv = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(GetAccessToken));
+            var secret = await kv.GetSecretAsync(KeyVaultUrl, secretName);
+            return secret.Value;
+        }
+
+        private static async Task<string> GetAccessToken(string authority, string resource, string scope)
+        {
+            var context = new AuthenticationContext(authority);
+            AuthenticationResult authResult;
+            if (string.IsNullOrEmpty(WebConfigurationManager.AppSettings["ClientId"]))
+            {
+                // use default domain authentication
+                authResult = await context.AcquireTokenAsync(resource, ApplicationId, new UserCredential());
+            }
+            else
+            {
+                // use client authentication; "ClientId" and "ClientSecret" are only available when run as a web job
+                var credentials = new ClientCredential(WebConfigurationManager.AppSettings["ClientId"], WebConfigurationManager.AppSettings["ClientSecret"]);
+                authResult = await context.AcquireTokenAsync(resource, credentials);
+            }
+
+            return authResult.AccessToken;
         }
     }
 }

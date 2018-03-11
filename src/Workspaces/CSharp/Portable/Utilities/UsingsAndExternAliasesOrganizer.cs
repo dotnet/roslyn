@@ -2,19 +2,93 @@
 
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Utilities
 {
     internal static partial class UsingsAndExternAliasesOrganizer
     {
+        private static readonly SyntaxTrivia s_newLine = SyntaxFactory.CarriageReturnLineFeed;
+
         public static void Organize(
+            SyntaxList<ExternAliasDirectiveSyntax> externAliasList,
+            SyntaxList<UsingDirectiveSyntax> usingList,
+            bool placeSystemNamespaceFirst, bool separateGroups,
+            out SyntaxList<ExternAliasDirectiveSyntax> organizedExternAliasList,
+            out SyntaxList<UsingDirectiveSyntax> organizedUsingList)
+        {
+            OrganizeWorker(
+                externAliasList, usingList, placeSystemNamespaceFirst,
+                out organizedExternAliasList, out organizedUsingList);
+
+            if (separateGroups)
+            {
+                if (organizedExternAliasList.Count > 0 && organizedUsingList.Count > 0)
+                {
+                    var firstUsing = organizedUsingList[0];
+
+                    if (!firstUsing.GetLeadingTrivia().Any(t => t.IsEndOfLine()))
+                    {
+                        var newFirstUsing = firstUsing.WithPrependedLeadingTrivia(s_newLine);
+                        organizedUsingList = organizedUsingList.Replace(firstUsing, newFirstUsing);
+                    }
+                }
+
+                for (var i = 1; i < organizedUsingList.Count; i++)
+                {
+                    var lastUsing = organizedUsingList[i - 1];
+                    var currentUsing = organizedUsingList[i];
+
+                    if (NeedsGrouping(lastUsing, currentUsing) &&
+                        !currentUsing.GetLeadingTrivia().Any(t => t.IsEndOfLine()))
+                    {
+                        var newCurrentUsing = currentUsing.WithPrependedLeadingTrivia(s_newLine);
+                        organizedUsingList = organizedUsingList.Replace(currentUsing, newCurrentUsing);
+                    }
+                }
+            }
+        }
+
+        private static bool NeedsGrouping(
+            UsingDirectiveSyntax using1, 
+            UsingDirectiveSyntax using2)
+        {
+            var directive1IsUsingStatic = using1.StaticKeyword.IsKind(SyntaxKind.StaticKeyword);
+            var directive2IsUsingStatic = using2.StaticKeyword.IsKind(SyntaxKind.StaticKeyword);
+
+            var directive1IsAlias = using1.Alias != null;
+            var directive2IsAlias = using2.Alias != null;
+
+            var directive1IsNamespace = !directive1IsUsingStatic && !directive1IsAlias;
+            var directive2IsNamespace = !directive2IsUsingStatic && !directive2IsAlias;
+
+            if (directive1IsAlias && directive2IsAlias)
+            {
+                return false;
+            }
+
+            if (directive1IsUsingStatic && directive2IsUsingStatic)
+            {
+                return false;
+            }
+
+            if (directive1IsNamespace && directive2IsNamespace)
+            {
+                // Both normal usings.  Place them in groups if their first namespace
+                // component differs.
+                var name1 = using1.Name.GetFirstToken().ValueText;
+                var name2 = using2.Name.GetFirstToken().ValueText;
+                return name1 != name2;
+            }
+
+            // They have different types, definitely put them into new groups.
+            return true;
+        }
+
+        private static void OrganizeWorker(
             SyntaxList<ExternAliasDirectiveSyntax> externAliasList,
             SyntaxList<UsingDirectiveSyntax> usingList,
             bool placeSystemNamespaceFirst,
@@ -79,9 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
 
                 if (!trailingTrivia.Any() || trailingTrivia.Last().Kind() != SyntaxKind.EndOfLineTrivia)
                 {
-                    // TODO(cyrusn): Don't use CRLF.  Use the appropriate 
-                    // newline for this file.
-                    list[i] = node.WithTrailingTrivia(trailingTrivia.Concat(SyntaxFactory.CarriageReturnLineFeed));
+                    list[i] = node.WithTrailingTrivia(trailingTrivia.Concat(s_newLine));
                 }
             }
 
@@ -90,10 +162,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
             for (int i = 1; i < list.Count; i++)
             {
                 var node = list[i];
-                list[i] = node.WithLeadingTrivia(node.GetLeadingTrivia().SkipWhile(t => t.Kind() == SyntaxKind.EndOfLineTrivia));
+                list[i] = TrimLeadingNewLines(node);
             }
 
-            list[0] = list[0].WithLeadingTrivia(list[0].GetLeadingTrivia().SkipWhile(t => t.Kind() == SyntaxKind.EndOfLineTrivia));
+            list[0] = TrimLeadingNewLines(list[0]);
         }
+
+        private static SyntaxNode TrimLeadingNewLines(SyntaxNode node)
+            => node.WithLeadingTrivia(node.GetLeadingTrivia().SkipWhile(t => t.Kind() == SyntaxKind.EndOfLineTrivia));
     }
 }

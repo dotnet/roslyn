@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Threading
@@ -353,7 +353,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Using
         End Sub
 
-        Private Function CreateItem(workspace As Workspace, documentId As DocumentId) As TodoItem
+        Private Function CreateItem(workspace As Microsoft.CodeAnalysis.Workspace, documentId As DocumentId) As TodoItem
             Return New TodoItem(0, "test", workspace, documentId, 10, 10, 20, 20, Nothing, "test1")
         End Function
 
@@ -368,18 +368,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
 
             Public Event TodoListUpdated As EventHandler(Of TodoItemsUpdatedArgs) Implements ITodoListProvider.TodoListUpdated
 
-            Public Function GetTodoItems(workspace As Workspace, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of TodoItem) Implements ITodoListProvider.GetTodoItems
+            Public Function GetTodoItems(workspace As Microsoft.CodeAnalysis.Workspace, documentId As DocumentId, cancellationToken As CancellationToken) As ImmutableArray(Of TodoItem) Implements ITodoListProvider.GetTodoItems
                 Assert.NotNull(workspace)
                 Assert.NotNull(documentId)
 
                 Return Items.Where(Function(t) t.DocumentId Is documentId).ToImmutableArrayOrEmpty()
             End Function
 
-            Public Function GetTodoItemsUpdatedEventArgs(workspace As Workspace, cancellationToken As CancellationToken) As IEnumerable(Of UpdatedEventArgs) Implements ITodoListProvider.GetTodoItemsUpdatedEventArgs
+            Public Function GetTodoItemsUpdatedEventArgs(workspace As Microsoft.CodeAnalysis.Workspace, cancellationToken As CancellationToken) As IEnumerable(Of UpdatedEventArgs) Implements ITodoListProvider.GetTodoItemsUpdatedEventArgs
                 Return Items.Select(Function(t) New UpdatedEventArgs(Tuple.Create(Me, t.DocumentId), t.Workspace, t.DocumentId.ProjectId, t.DocumentId)).ToImmutableArrayOrEmpty()
             End Function
 
-            Public Sub RaiseTodoListUpdated(workspace As Workspace)
+            Public Sub RaiseTodoListUpdated(workspace As Microsoft.CodeAnalysis.Workspace)
                 Dim map = Items.Where(Function(t) t.Workspace Is workspace).ToLookup(Function(t) t.DocumentId)
 
                 For Each group In map
@@ -388,7 +388,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
                 Next
             End Sub
 
-            Public Sub RaiseClearTodoListUpdated(workspace As Workspace, documentId As DocumentId)
+            Public Sub RaiseClearTodoListUpdated(workspace As Microsoft.CodeAnalysis.Workspace, documentId As DocumentId)
                 RaiseEvent TodoListUpdated(Me, New TodoItemsUpdatedArgs(
                     Tuple.Create(Me, documentId), workspace, workspace.CurrentSolution, documentId.ProjectId, documentId, ImmutableArray(Of TodoItem).Empty))
             End Sub

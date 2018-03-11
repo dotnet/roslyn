@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.Commands
@@ -18,16 +18,16 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementAbstractC
             Dim code = <text>
 Imports System
 
-Public MustInherit Class Foo
-    Public MustOverride Sub Foo(i As Integer)
+Public MustInherit Class Goo
+    Public MustOverride Sub Goo(i As Integer)
     Protected MustOverride Function Baz(s As String, ByRef d As Double) As Boolean
 End Class
 Public Class Bar
-    Inherits Foo$$
+    Inherits Goo$$
 End Class</text>
 
             Dim expectedText = <text>   
-    Public Overrides Sub Foo(i As Integer)
+    Public Overrides Sub Goo(i As Integer)
         Throw New NotImplementedException()
     End Sub
 
@@ -47,16 +47,16 @@ End Class</text>
             Dim code = <text>
 Imports System
 
-Public MustInherit Class Foo
-    Public MustOverride Sub Foo(i As Integer)
+Public MustInherit Class Goo
+    Public MustOverride Sub Goo(i As Integer)
 End Class
 Public Class Bar
-    Inherits Foo $$
+    Inherits Goo $$
 End Class
                       </text>
 
             Dim expectedText = <text>   
-    Public Overrides Sub Foo(i As Integer)
+    Public Overrides Sub Goo(i As Integer)
         Throw New NotImplementedException()
     End Sub</text>
 
@@ -71,16 +71,16 @@ End Class
             Dim code = <text>
 Imports System
 
-Public MustInherit Class Foo
-    Public MustOverride Sub Foo(i As Integer)
+Public MustInherit Class Goo
+    Public MustOverride Sub Goo(i As Integer)
 End Class
 Public Class Bar
-    Inherits Foo 'Comment $$
+    Inherits Goo 'Comment $$
 End Class
                       </text>
 
             Dim expectedText = <text>   
-    Public Overrides Sub Foo(i As Integer)
+    Public Overrides Sub Goo(i As Integer)
         Throw New NotImplementedException()
     End Sub</text>
 
@@ -95,19 +95,19 @@ End Class
             Dim code = <text>
 Imports System
 
-Public MustInherit Class Foo
+Public MustInherit Class Goo
 End Class
 Public Class Bar
-    Inherits Foo$$
+    Inherits Goo$$
 End Class</text>
 
             Dim expectedText = <text>   
 Imports System
 
-Public MustInherit Class Foo
+Public MustInherit Class Goo
 End Class
 Public Class Bar
-    Inherits Foo
+    Inherits Goo
 
 End Class</text>
 
@@ -125,7 +125,7 @@ End Class</text>
         Public Sub TestEnterNotOnSameLine()
             Dim code = <text>
 MustInherit Class Base
-    MustOverride Sub foo()
+    MustOverride Sub goo()
 End Class
  
 Class SomeClass
@@ -136,7 +136,7 @@ End Class
 
             Dim expectedText = <text>
 MustInherit Class Base
-    MustOverride Sub foo()
+    MustOverride Sub goo()
 End Class
  
 Class SomeClass
@@ -159,23 +159,23 @@ End Class</text>
             Dim code = <text>
 Imports System
 
-Public MustInherit Class Foo
-    Public MustOverride Sub Foo(i As Integer)
+Public MustInherit Class Goo
+    Public MustOverride Sub Goo(i As Integer)
 End Class
 Public Class Bar
-    Inherits Foo$$
+    Inherits Goo$$
 </text>
 
             Dim expectedText = <text>
 Imports System
 
-Public MustInherit Class Foo
-    Public MustOverride Sub Foo(i As Integer)
+Public MustInherit Class Goo
+    Public MustOverride Sub Goo(i As Integer)
 End Class
 Public Class Bar
-    Inherits Foo
+    Inherits Goo
 
-    Public Overrides Sub Foo(i As Integer)
+    Public Overrides Sub Goo(i As Integer)
         Throw New NotImplementedException()
     End Sub
 End Class</text>

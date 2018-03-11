@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expressions
     ''' <summary>
-    ''' Recommends the "With" keyword when used in a New syntax (such as New foo With)
+    ''' Recommends the "With" keyword when used in a New syntax (such as New goo With)
     ''' </summary>
     Friend Class WithKeywordRecommender
         Inherits AbstractKeywordRecommender

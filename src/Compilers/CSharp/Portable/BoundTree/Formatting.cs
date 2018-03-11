@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Diagnostics;
 
@@ -133,6 +134,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override object Display
         {
             get { throw ExceptionUtilities.Unreachable; }
+        }
+    }
+
+    internal partial class BoundDefaultExpression
+    {
+        public override object Display
+        {
+            get { return (object)this.Type ?? "default"; }
+        }
+    }
+
+    internal partial class BoundStackAllocArrayCreation
+    {
+        public override object Display
+        {
+            get { return string.Format(MessageID.IDS_StackAllocExpression.Localize().ToString(), ElementType, Count.Syntax); }
         }
     }
 }

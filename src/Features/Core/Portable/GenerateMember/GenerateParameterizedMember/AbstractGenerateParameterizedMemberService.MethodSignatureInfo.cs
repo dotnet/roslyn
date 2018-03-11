@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -26,8 +26,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             protected override ITypeSymbol DetermineReturnTypeWorker(CancellationToken cancellationToken)
                 => _methodSymbol.ReturnType;
 
-            protected override bool DetermineReturnsByRef(CancellationToken cancellationToken)
-                => _methodSymbol.ReturnsByRef;
+            protected override RefKind DetermineRefKind(CancellationToken cancellationToken)
+                => _methodSymbol.RefKind;
 
             protected override ImmutableArray<ITypeParameterSymbol> DetermineTypeParametersWorker(CancellationToken cancellationToken)
                 => _methodSymbol.TypeParameters;

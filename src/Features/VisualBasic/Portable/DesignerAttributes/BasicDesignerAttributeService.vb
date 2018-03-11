@@ -2,13 +2,27 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.DesignerAttributes
+Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.DesignerAttributes
-    <ExportLanguageService(GetType(IDesignerAttributeService), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageServiceFactory(GetType(IDesignerAttributeService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicDesignerAttributeServiceFactory
+        Implements ILanguageServiceFactory
+
+        Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
+            Return New BasicDesignerAttributeService(languageServices.WorkspaceServices.Workspace)
+        End Function
+
+    End Class
+
     Friend Class BasicDesignerAttributeService
         Inherits AbstractDesignerAttributeService
+
+        Public Sub New(workspace As Workspace)
+            MyBase.New(workspace)
+        End Sub
 
         Protected Overrides Function GetAllTopLevelTypeDefined(node As SyntaxNode) As IEnumerable(Of SyntaxNode)
             Dim compilationUnit = TryCast(node, CompilationUnitSyntax)

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         {|Cursor:[|if|]|} (a < 5)
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         [|if|] (a < 5)
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         {|Cursor:[|if|]|} (a < 5)
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         [|if|] (a < 5)
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         [|if|] (a < 5)
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.KeywordHighlighting
         private const string Code3 = @"
 public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         if (a < 5)
@@ -159,7 +159,7 @@ public class C
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         {|Cursor:[|if|]|} (a < 5)
@@ -185,7 +185,7 @@ public class C
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         [|if|] (a < 5)
@@ -211,7 +211,7 @@ public class C
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         [|if|] (a < 5)
@@ -237,7 +237,7 @@ public class C
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         [|if|] (a < 5)
@@ -260,7 +260,7 @@ public class C
         private const string Code4 = @"
 public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         if(a < 5) {
@@ -281,7 +281,7 @@ public class C
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         {|Cursor:[|if|]|}(a < 5)
@@ -305,7 +305,7 @@ public class C
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         [|if|](a < 5)
@@ -329,7 +329,7 @@ public class C
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         [|if|](a < 5)
@@ -353,7 +353,7 @@ public class C
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         {|Cursor:[|if|]|} (a < 5)
@@ -378,7 +378,7 @@ public class C
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         [|if|] (a < 5)
@@ -403,7 +403,7 @@ public class C
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         [|if|] (a < 5)
@@ -425,7 +425,7 @@ public class C
         private const string Code6 = @"
 public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         if (a < 5)
@@ -449,7 +449,7 @@ public class C
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         {|Cursor:[|if|]|} (a < 5)
@@ -474,7 +474,7 @@ public class C
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         [|if|] (a < 5)
@@ -499,7 +499,7 @@ public class C
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         [|if|] (a < 5)
@@ -524,7 +524,7 @@ public class C
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         [|if|] (a < 5)
@@ -546,7 +546,7 @@ public class C
         private const string Code7 = @"
 public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         int b = 15;
@@ -572,7 +572,7 @@ public class C
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         int b = 15;
@@ -602,7 +602,7 @@ public class C
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         int b = 15;
@@ -632,7 +632,7 @@ public class C
             await TestAsync(
 @"public class C
 {
-    public void Foo()
+    public void Goo()
     {
         int a = 10;
         int b = 15;

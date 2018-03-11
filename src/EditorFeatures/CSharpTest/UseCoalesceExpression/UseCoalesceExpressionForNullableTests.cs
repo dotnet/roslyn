@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
@@ -36,7 +36,7 @@ class C
 {
     void M(int? x, int? y)
     {
-        var z = x ?? y;
+        var z = x ?? y ;
     }
 }");
         }
@@ -84,7 +84,7 @@ class C
 {
     void M(int? x, int? y)
     {
-        var z = (x + y) ?? y;
+        var z = (x + y) ?? y ;
     }
 }");
         }
@@ -134,7 +134,7 @@ class C
     void M(int? x, int? y)
     {
         var z1 = x ?? y;
-        var z2 = x ?? y;
+        var z2 = x ?? y ;
     }
 }");
         }
@@ -209,7 +209,7 @@ class C
 {
     void M(int? x, int? y)
     {
-        Expression<Func<int>> e = () => {|Warning:x ?? y|};
+        Expression<Func<int>> e = () => {|Warning:x ?? y|} ;
     }
 }");
         }

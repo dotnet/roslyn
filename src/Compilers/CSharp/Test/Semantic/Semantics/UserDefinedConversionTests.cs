@@ -247,10 +247,10 @@ class Z
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source1 + source2);
+            var comp = CreateStandardCompilation(source1 + source2);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilationWithMscorlib(source1 + source3);
+            comp = CreateStandardCompilation(source1 + source3);
             comp.VerifyDiagnostics(
 // (115,8): error CS1503: Argument 1: cannot convert from 'H?' to 'G'
 //     MG(default(H?));
@@ -310,7 +310,7 @@ class Z
         MG((G)default(R?));
     }
 }";
-            var comp = CreateCompilationWithMscorlib(implicitConversions + implicitConversionBadSuccess);
+            var comp = CreateStandardCompilation(implicitConversions + implicitConversionBadSuccess);
             comp.VerifyDiagnostics();
 
             // More cases where the specification says that the conversion should be bad, but
@@ -331,7 +331,7 @@ class Z
     MG((G)default(R?));
   }
 }";
-            comp = CreateCompilationWithMscorlib(explicitConversions + explicitConversionsBadSuccess);
+            comp = CreateStandardCompilation(explicitConversions + explicitConversionsBadSuccess);
             comp.VerifyDiagnostics();
 
             // These are cases where the specification indicates that a conversion should be legal,
@@ -348,7 +348,7 @@ class Z
   }  
 };";
 
-            comp = CreateCompilationWithMscorlib(implicitConversions + implicitConversionsBadFailures);
+            comp = CreateStandardCompilation(implicitConversions + implicitConversionsBadFailures);
             comp.VerifyDiagnostics(
 // (103,9): error CS0457: Ambiguous user defined conversions 'N.implicit operator G(N?)' and 'N.implicit operator G?(N)' when converting from 'N?' to 'G?'
 //     MNG(default(N?)); 
@@ -373,7 +373,7 @@ class Z
   }  
 };";
 
-            comp = CreateCompilationWithMscorlib(explicitConversions + explicitConversionsBadFailures);
+            comp = CreateStandardCompilation(explicitConversions + explicitConversionsBadFailures);
             comp.VerifyDiagnostics(
 // (103,9): error CS0457: Ambiguous user defined conversions 'N.explicit operator G(N?)' and 'N.explicit operator G?(N)' when converting from 'N?' to 'G?'
 //     MNG((G?)default(N?)); 
@@ -427,7 +427,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(source1);
+            var comp = CreateStandardCompilation(source1);
             comp.VerifyDiagnostics(
                 // (18,13): error CS0457: Ambiguous user defined conversions 'B.implicit operator B(long)' and 'A.implicit operator A(int)' when converting from 'int' to 'B'
                 //         b = (B)1; 
@@ -451,7 +451,7 @@ class X<T> where T : Mammal
 }
 ";
 
-            comp = CreateCompilationWithMscorlib(source2);
+            comp = CreateStandardCompilation(source2);
             comp.VerifyDiagnostics();
         }
 
@@ -477,7 +477,7 @@ class X<T> where T : Mammal
   }
 }
 ";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,15): error CS0030: Cannot convert type 'T' to 'X<T>'
                 //     X<T> xt = (X<T>)t;
@@ -662,10 +662,10 @@ class Z
 ";
 
 
-            var comp = CreateCompilationWithMscorlib(source1 + source3);
+            var comp = CreateStandardCompilation(source1 + source3);
             comp.VerifyDiagnostics();
 
-            comp = CreateCompilationWithMscorlib(source2 + source3);
+            comp = CreateStandardCompilation(source2 + source3);
             comp.VerifyDiagnostics();
 
             // The native compiler produces errors for all of these because
@@ -675,7 +675,7 @@ class Z
 
             // Roslyn originally had a breaking change here, but now matches dev11.
 
-            comp = CreateCompilationWithMscorlib(source1 + source4);
+            comp = CreateStandardCompilation(source1 + source4);
             comp.VerifyDiagnostics(
                 // (105,8): error CS0457: Ambiguous user defined conversions 'N.implicit operator G(N?)' and 'N.implicit operator G?(N)' when converting from 'N' to 'G'
                 //     MG((G)default(N));
@@ -687,7 +687,7 @@ class Z
             // When restricted to only use explicit conversions, the conversions
             // truly are ambiguous; the native and Roslyn compilers agree on these cases:
 
-            comp = CreateCompilationWithMscorlib(source2 + source4);
+            comp = CreateStandardCompilation(source2 + source4);
             comp.VerifyDiagnostics(
                 // (105,8): error CS0457: Ambiguous user defined conversions 'N.explicit operator G(N?)' and 'N.explicit operator G?(N)' when converting from 'N' to 'G'
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "(G)default(N)").WithArguments("N.explicit operator G(N?)", "N.explicit operator G?(N)", "N", "G"),
@@ -1143,7 +1143,7 @@ unsafe class P
             string source5 = "}}";
 
             // All of the cases above should pass semantic analysis:
-            var comp = CreateCompilationWithMscorlib(source1 + source2 + source3 + source4 + source5, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateStandardCompilation(source1 + source2 + source3 + source4 + source5, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
 
             // However, we have not yet implemented lowering and code generation for decimal,
@@ -1177,7 +1177,7 @@ class A
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,15): error CS0457: Ambiguous user defined conversions 'A.implicit operator A(ulong)' and 'A.implicit operator A(long)' when converting from 'int' to 'A'
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "1").WithArguments("A.implicit operator A(ulong)", "A.implicit operator A(long)", "int", "A"));
@@ -1240,7 +1240,7 @@ class A
 
             CompileAndVerify(source1, expectedOutput: "A5A5A6A7A7A7A6A5A5");
 
-            var comp = CreateCompilationWithMscorlib(source2);
+            var comp = CreateStandardCompilation(source2);
             comp.VerifyDiagnostics(
 // (13,9): error CS0029: Cannot implicitly convert type 'int' to 'A'
 //         a++;
@@ -1371,7 +1371,7 @@ class C
         {
             // An ambiguous user-defined conversion should be considered a valid conversion
             // for the purposes of overload resolution; that is, this program should say that
-            // Foo(B) and Foo(C) are both applicable candidates, and that neither is better,
+            // Goo(B) and Goo(C) are both applicable candidates, and that neither is better,
             // even though the conversion from A to B is ambiguous.
 
             string source = @"
@@ -1380,11 +1380,11 @@ class C
             static void Main()
             {
                 A x = null;
-                Foo(x);
+                Goo(x);
             }
 
-            static void Foo(B x) { }
-            static void Foo(C x) { }
+            static void Goo(B x) { }
+            static void Goo(C x) { }
         }
 
         class A
@@ -1403,10 +1403,10 @@ class C
         }
  ";
 
-            var comp = CreateCompilationWithMscorlib(source);
-            comp.VerifyDiagnostics(// (7,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Foo(B)' and 'Program.Foo(C)'
-                                   //                 Foo(x);
-                                   Diagnostic(ErrorCode.ERR_AmbigCall, "Foo").WithArguments("Program.Foo(B)", "Program.Foo(C)"));
+            var comp = CreateStandardCompilation(source);
+            comp.VerifyDiagnostics(// (7,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Goo(B)' and 'Program.Goo(C)'
+                                   //                 Goo(x);
+                                   Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("Program.Goo(B)", "Program.Goo(C)"));
         }
 
         [Fact, WorkItem(543446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543446")]
@@ -1462,7 +1462,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source1);
+            var comp = CreateStandardCompilation(source1);
             comp.VerifyDiagnostics();
 
             var verifier = CompileAndVerify(source: source1, expectedOutput: "");
@@ -1540,7 +1540,7 @@ public struct start
         InArgument<object> outArgument2 = bar as InArgument<object>;
     }
 }";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics();
+            CreateStandardCompilation(source).VerifyDiagnostics();
         }
 
         [Fact, WorkItem(1063555, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1063555")]

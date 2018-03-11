@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.ComponentModel.Composition
 Imports System.Threading
@@ -265,5 +265,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.DocumentationComments
                 Return False
             End Get
         End Property
+
+        Friend Overrides Function HasSkippedTrailingTrivia(token As SyntaxToken) As Boolean
+            Return token.TrailingTrivia.Any(Function(t) t.Kind() = SyntaxKind.SkippedTokensTrivia)
+        End Function
     End Class
 End Namespace

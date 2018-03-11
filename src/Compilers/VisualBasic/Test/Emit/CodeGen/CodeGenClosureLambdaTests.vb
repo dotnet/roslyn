@@ -232,7 +232,7 @@ Imports System
 
 Module M1
     Class C1
-        public Sub Foo()
+        public Sub Goo()
             Dim X as integer = 3
 
             Dim d1 As Action = Sub() 
@@ -247,12 +247,12 @@ Module M1
 
     Public Sub Main()
         Dim x as C1 = New C1
-        x.Foo()
+        x.Goo()
     End Sub
 End Module
     </file>
 </compilation>, expectedOutput:="36")
-            c.VerifyIL("M1.C1.Foo", <![CDATA[
+            c.VerifyIL("M1.C1.Goo", <![CDATA[
 {
   // Code size       56 (0x38)
   .maxstack  4
@@ -289,7 +289,7 @@ Imports System
 
 Module M1
     Class C1
-        public Sub Foo()
+        public Sub Goo()
             Dim X as integer = 3
 
             Dim d1 As Action = Sub() 
@@ -313,12 +313,12 @@ Module M1
 
     Public Sub Main()
         Dim x as C1 = New C1
-        x.Foo()
+        x.Goo()
     End Sub
 End Module
     </file>
 </compilation>, expectedOutput:="36").
-    VerifyIL("M1.C1.Foo",
+    VerifyIL("M1.C1.Goo",
             <![CDATA[
 {
   // Code size       63 (0x3f)
@@ -359,7 +359,7 @@ Imports System
 
 Module M1
     Class C1
-        public Sub Foo(x as integer)
+        public Sub Goo(x as integer)
             Dim d1 As Action(of Integer) = Sub(y) 
                                     Dim d2 As Action(of Integer) = Sub(z) 
                                         Print(x + y + z)
@@ -382,12 +382,12 @@ Module M1
 
     Public Sub Main()
         Dim x as C1 = New C1
-        x.Foo(3)
+        x.Goo(3)
     End Sub
 End Module
     </file>
 </compilation>, expectedOutput:="12 21").
-    VerifyIL("M1.C1.Foo",
+    VerifyIL("M1.C1.Goo",
             <![CDATA[
 {
   // Code size       89 (0x59)
@@ -484,11 +484,11 @@ Module M1
 
     Public Sub Main()
         dim c as Cls1 = new Cls1
-        c.Foo()
+        c.Goo()
     End Sub
 
     public Class cls1
-        public Sub Foo()
+        public Sub Goo()
             Dim d1 As D = Function(a, b) Function(c, d) Function(e, f)
                                                       System.Console.Write(a + b + c + d + e + f)
                                                       System.Console.Write(Me)
@@ -544,7 +544,7 @@ Imports System
 
 Module M1
     Class C1
-        public Sub Foo(x as integer)
+        public Sub Goo(x as integer)
             if x > 0
                 ' this one is valid
                 Dim d2 As Action = Sub() 
@@ -569,7 +569,7 @@ label1:
 
     Public Sub Main()
         Dim x as C1 = New C1
-        x.Foo(3)
+        x.Goo(3)
     End Sub
 End Module
     </file>
@@ -586,7 +586,7 @@ Imports System
 
 Module M1
     Class C1
-        public Sub Foo(x as integer)
+        public Sub Goo(x as integer)
             if x > 0
                 ' this one is valid
                 goto label0
@@ -611,7 +611,7 @@ label1:
 
     Public Sub Main()
         Dim x as C1 = New C1
-        x.Foo(3)
+        x.Goo(3)
     End Sub
 End Module
     </file>
@@ -628,7 +628,7 @@ Imports System
 
 Module M1
     Class C1
-        public Sub Foo(x as integer)
+        public Sub Goo(x as integer)
             if x > 0
                 ' this one is valid
                 Dim d2 As Action = Sub() 
@@ -655,7 +655,7 @@ label1:
 
     Public Sub Main()
         Dim x as C1 = New C1
-        x.Foo(3)
+        x.Goo(3)
     End Sub
 End Module
     </file>
@@ -671,7 +671,7 @@ Imports System
 
 Module M1
     Class C1
-        public Sub Foo(x as integer)
+        public Sub Goo(x as integer)
             if x &lt; 0
                 ' this one is valid
                 Dim d2 As Action = Sub() 
@@ -703,7 +703,7 @@ label1:
 
     Public Sub Main()
         Dim x as C1 = New C1
-        x.Foo(3)
+        x.Goo(3)
     End Sub
 End Module
 
@@ -721,7 +721,7 @@ Imports System
 
 Module M1
     Class C1
-        public Sub Foo(x as integer)
+        public Sub Goo(x as integer)
             if x &lt; 0
                 ' this one is valid
                 Dim d2 As Action = Sub() 
@@ -756,7 +756,7 @@ label1:
 
     Public Sub Main()
         Dim x as C1 = New C1
-        x.Foo(3)
+        x.Goo(3)
     End Sub
 End Module
 
@@ -774,7 +774,7 @@ Imports System
 
 Module M1
     Class C1
-        public Sub Foo(x as integer)
+        public Sub Goo(x as integer)
             While x &lt; 0
                 ' this one is valid
                 Dim d2 As Action = Sub() 
@@ -810,7 +810,7 @@ label1:
 
     Public Sub Main()
         Dim x as C1 = New C1
-        x.Foo(3)
+        x.Goo(3)
     End Sub
 End Module
 
@@ -828,7 +828,7 @@ Imports System
 
 Module M1
     Class C1
-        public Sub Foo(x as integer)
+        public Sub Goo(x as integer)
             if x &lt; 0
                 ' this one is valid
                 Dim d2 As Action = Sub() 
@@ -866,7 +866,7 @@ label1:
 
     Public Sub Main()
         Dim x as C1 = New C1
-        x.Foo(3)
+        x.Goo(3)
     End Sub
 End Module
 
@@ -884,7 +884,7 @@ Imports System
 
 Module M1
     Class C1
-        public Sub Foo(x as integer)
+        public Sub Goo(x as integer)
             if x &lt; 0
                 ' this one is valid
                 Dim d2 As Action = Sub() 
@@ -941,7 +941,7 @@ label2:
 
     Public Sub Main()
         Dim x as C1 = New C1
-        x.Foo(3)
+        x.Goo(3)
     End Sub
 End Module
     </file>
@@ -960,7 +960,7 @@ Imports System
 
 Module M1
     Class C1
-        public Sub Foo(x as integer)
+        public Sub Goo(x as integer)
             if x &lt; 0
                 ' this one is valid
                 Dim d2 As Action = Sub() 
@@ -1014,7 +1014,7 @@ label2:
 
     Public Sub Main()
         Dim x as C1 = New C1
-        x.Foo(3)
+        x.Goo(3)
     End Sub
 End Module
     </file>
@@ -1036,7 +1036,7 @@ Module M1
     Class C1
         Shared X as integer
 
-        public Sub Foo(of T)()
+        public Sub Goo(of T)()
             Dim d1 As Action = Sub() 
                                 Console.Write(X)
                                End Sub 
@@ -1048,12 +1048,12 @@ Module M1
 
     Public Sub Main()
         Dim x as C1 = New C1
-        x.Foo(of Integer)()
+        x.Goo(of Integer)()
     End Sub
 End Module
     </file>
 </compilation>, expectedOutput:="05").
-    VerifyIL("M1.C1.Foo",
+    VerifyIL("M1.C1.Goo",
             <![CDATA[
 {
   // Code size       60 (0x3c)
@@ -1131,7 +1131,7 @@ Imports System
 
 Module M1
     Class C1
-        public shared Sub Foo(of T)()
+        public shared Sub Goo(of T)()
             Dim X as integer
             Dim d1 As Action = Sub() 
                                 Console.Write(X)
@@ -1143,12 +1143,12 @@ Module M1
     End Class
 
     Public Sub Main()
-        C1.Foo(of Integer)()
+        C1.Goo(of Integer)()
     End Sub
 End Module
     </file>
 </compilation>, expectedOutput:="05").
-    VerifyIL("M1.C1.Foo",
+    VerifyIL("M1.C1.Goo",
             <![CDATA[
 {
   // Code size       44 (0x2c)
@@ -1182,7 +1182,7 @@ Imports System
 
 Module M1
     Class C1
-        public shared Sub Foo(of T)(p as T)
+        public shared Sub Goo(of T)(p as T)
             Dim X as T = nothing
             Dim d1 As Action = Sub() 
                                 Console.Write(X.ToString())
@@ -1194,12 +1194,12 @@ Module M1
     End Class
 
     Public Sub Main()
-        C1.Foo(of Integer)(42)
+        C1.Goo(of Integer)(42)
     End Sub
 End Module
     </file>
 </compilation>, expectedOutput:="042").
-    VerifyIL("M1.C1.Foo",
+    VerifyIL("M1.C1.Goo",
             <![CDATA[
 {
   // Code size       49 (0x31)
@@ -1233,7 +1233,7 @@ Imports System
 
 Module M1
     Class C1
-        public shared Sub Foo(of T)(p as T)
+        public shared Sub Goo(of T)(p as T)
             Dim d1 As Action = Sub() 
                                 Console.Write(p.ToString())
                                End Sub 
@@ -1244,12 +1244,12 @@ Module M1
     End Class
 
     Public Sub Main()
-        C1.Foo(of Integer)(42)
+        C1.Goo(of Integer)(42)
     End Sub
 End Module
     </file>
 </compilation>, expectedOutput:="420").
-    VerifyIL("M1.C1.Foo",
+    VerifyIL("M1.C1.Goo",
             <![CDATA[
 {
   // Code size       49 (0x31)
@@ -1297,7 +1297,7 @@ Module M1
             Console.Write(x(0).ToString)
         End Sub
 
-        Public Shared Sub Foo(Of T)(p As T())
+        Public Shared Sub Goo(Of T)(p As T())
             Dim d1 As Action = Sub()
                                    Test(Of T)(C2(Of T).M(p))
                                End Sub
@@ -1306,7 +1306,7 @@ Module M1
     End Class
 
     Public Sub Main()
-        C1.Foo(Of Integer)(New Integer() {42})
+        C1.Goo(Of Integer)(New Integer() {42})
     End Sub
 End Module
     </file>
@@ -1344,7 +1344,7 @@ Imports System
 
 Module M1
     Class C1
-        public shared Sub Foo(of T)(p as T)
+        public shared Sub Goo(of T)(p as T)
             Dim d1 As Action = Sub() 
                     Dim X as T = p
 
@@ -1365,7 +1365,7 @@ Module M1
     End Class
 
     Public Sub Main()
-        C1.Foo(of Integer)(42)
+        C1.Goo(of Integer)(42)
     End Sub
 End Module
     </file>
@@ -1405,7 +1405,7 @@ Imports System
 
 Module M1
     Class C1
-        public shared Sub Foo(of T, U)(p as T, p1 as U)
+        public shared Sub Goo(of T, U)(p as T, p1 as U)
             Dim d1 As Action = Sub() 
                     Dim X as T = p
                     Dim d2 As Action = Sub() 
@@ -1429,12 +1429,12 @@ Module M1
     End Class
 
     Public Sub Main()
-        C1.Foo(of Integer, String)(42, "#"c)
+        C1.Goo(of Integer, String)(42, "#"c)
     End Sub
 End Module
     </file>
 </compilation>, expectedOutput:="42#0#42#0#0#0#").
-    VerifyIL("M1.C1.Foo",
+    VerifyIL("M1.C1.Goo",
             <![CDATA[
 {
   // Code size       62 (0x3e)
@@ -1474,7 +1474,7 @@ Imports System
 
 Module M1
     Class C1
-        Public Shared Sub Foo(Of T, U)(p As T, p1 As U)
+        Public Shared Sub Goo(Of T, U)(p As T, p1 As U)
             Dim d1 As Action = Sub()
                                    Dim d2 As Action(Of T) = Sub(X As T)
                                                                 Console.Write(X.ToString())
@@ -1494,7 +1494,7 @@ Module M1
     End Class
 
     Public Sub Main()
-        C1.Foo(Of Integer, Integer)(42, 333)
+        C1.Goo(Of Integer, Integer)(42, 333)
     End Sub
 End Module
     </file>
@@ -1552,7 +1552,7 @@ Module M1
             Console.Write(y.ToString())
         End Sub
 
-        Public Sub Foo(Of TFun1, TFun2)(p As TFun1, p1 As TFun2)
+        Public Sub Goo(Of TFun1, TFun2)(p As TFun1, p1 As TFun2)
             Dim d1 As Action = Sub()
                                    Dim d2 As Action(Of TFun1) = Sub(X As TFun1)
                                                                     Print(Of TFun1)(X)
@@ -1576,7 +1576,7 @@ Module M1
 
     Public Sub Main()
         Dim inst As New C1(Of Integer)
-        inst.Foo(Of Integer, Integer)(42, 333)
+        inst.Goo(Of Integer, Integer)(42, 333)
     End Sub
 End Module
     </file>
@@ -1842,7 +1842,7 @@ Imports System
 
 Module M1
     Class C1
-        public Sub Foo(ByRef x as integer)
+        public Sub Goo(ByRef x as integer)
             if x > 0
                 ' this one is valid
                 Dim d2 As Action = Sub() 
@@ -1854,7 +1854,7 @@ Module M1
 
     Public Sub Main()
         Dim x as C1 = New C1
-        x.Foo(3)
+        x.Goo(3)
     End Sub
 End Module
     </file>
@@ -1872,7 +1872,7 @@ Imports System
 
 Module M1
     Structure C1
-        public Sub Foo(ByVal x as integer)
+        public Sub Goo(ByVal x as integer)
             if x > 0
                 ' this one is valid
                 Dim d2 As Action = Sub() 
@@ -1884,7 +1884,7 @@ Module M1
 
     Public Sub Main()
         Dim x as C1 = New C1
-        x.Foo(3)
+        x.Goo(3)
     End Sub
 End Module
     </file>
@@ -1907,7 +1907,7 @@ Imports System
 
 Module M1
     Class C1
-        Public Sub Foo(ByVal p As Integer)
+        Public Sub Goo(ByVal p As Integer)
             Dim lifted As ArgIterator = Nothing
             If p > 0 Then
                 ' this one is valid
@@ -1920,7 +1920,7 @@ Module M1
 
     Public Sub Main()
         Dim x As C1 = New C1
-        x.Foo(3)
+        x.Goo(3)
     End Sub
 End Module
     </file>
@@ -2221,7 +2221,7 @@ Class C
     Shared Sub Main()
     End Sub
 
-    Sub foo(x As Integer)
+    Sub goo(x As Integer)
 
         Dim A As action = Sub() Console.WriteLine(x)
         A()
@@ -2232,7 +2232,7 @@ Class C
 End Class
     </file>
 </compilation>, expectedOutput:="").
-    VerifyIL("C.foo",
+    VerifyIL("C.goo",
             <![CDATA[
 {
   // Code size       46 (0x2e)
@@ -2261,7 +2261,7 @@ End Class
     <file name="a.vb">
 Imports System
 Class Program
-    Shared Function Foo(x As Action) As Boolean
+    Shared Function Goo(x As Action) As Boolean
         x()
         Return True
     End Function
@@ -2275,7 +2275,7 @@ Class Program
         Try
             Throw New Exception("blah")
 
-        Catch ex When Foo(Sub()
+        Catch ex When Goo(Sub()
                               Try
                                   Throw New Exception("pass")
                               Catch ex
@@ -2549,7 +2549,7 @@ End Class
     <file name="a.vb">
 Imports System
 Class Program
-    Shared Function Foo(x As Action) As Boolean
+    Shared Function Goo(x As Action) As Boolean
         x()
         Return True
     End Function
@@ -2560,7 +2560,7 @@ Class Program
         Try
             Throw New Exception("_try")
 
-        Catch ex As Exception When Foo(Sub()
+        Catch ex As Exception When Goo(Sub()
                                            ex = New Exception(ex.Message &amp; "_filter")
                                        End Sub)
 
@@ -2605,7 +2605,7 @@ End Class
     IL_002b:  ldloc.1
     IL_002c:  ldftn      "Sub Program._Closure$__2-0._Lambda$__0()"
     IL_0032:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
-    IL_0037:  call       "Function Program.Foo(System.Action) As Boolean"
+    IL_0037:  call       "Function Program.Goo(System.Action) As Boolean"
     IL_003c:  ldc.i4.0
     IL_003d:  cgt.un
     IL_003f:  endfilter
@@ -2701,7 +2701,7 @@ End Class
     <file name="a.vb">
 Imports System
 Class Program
-    Shared Function Foo(x As Action) As Boolean
+    Shared Function Goo(x As Action) As Boolean
         x()
         Return True
     End Function
@@ -2710,7 +2710,7 @@ Class Program
         Try
             Throw New Exception("blah")
 
-        Catch ex As Exception When Foo(Sub()
+        Catch ex As Exception When Goo(Sub()
                                            Try
                                                Throw New Exception("pass")
                                            Catch ex
@@ -2756,7 +2756,7 @@ End Class
     IL_002b:  ldloc.0
     IL_002c:  ldftn      "Sub Program._Closure$__2-0._Lambda$__0()"
     IL_0032:  newobj     "Sub System.Action..ctor(Object, System.IntPtr)"
-    IL_0037:  call       "Function Program.Foo(System.Action) As Boolean"
+    IL_0037:  call       "Function Program.Goo(System.Action) As Boolean"
     IL_003c:  ldc.i4.0
     IL_003d:  cgt.un
     IL_003f:  endfilter
@@ -3042,7 +3042,7 @@ Module Generics
     Sub Main()
         System.Console.WriteLine("======== Generic-12 ===========")
 
-        Test12_Helper("foo")
+        Test12_Helper("goo")
     End Sub
 
     Sub Test12_Helper(Of T)(ByVal value As T)
@@ -3095,7 +3095,7 @@ Module Generics
     Sub Main()
         System.Console.WriteLine("======== Generic-14 ===========")
 
-        Test14_Helper(Of String)("foo")
+        Test14_Helper(Of String)("goo")
     End Sub
 
 
@@ -3401,12 +3401,12 @@ Module Program
     End Sub
 
     Class cls1
-        Public foo As Integer = 42
+        Public goo As Integer = 42
 
         Public Function bar()
             If T
                 Dim a As Func(Of Integer, Boolean) = Function(s)
-                                                         Return s = foo andalso (Function() s = foo).Invoke
+                                                         Return s = goo andalso (Function() s = goo).Invoke
                                                      End Function
 
                 Return a.Invoke(42)
@@ -3416,7 +3416,7 @@ Module Program
 
             if T
                 Dim a As Func(Of Integer, Boolean) = Function(s)
-                                                         Return aaa = foo 
+                                                         Return aaa = goo 
                                                      End Function
 
                 Return a.Invoke(42)

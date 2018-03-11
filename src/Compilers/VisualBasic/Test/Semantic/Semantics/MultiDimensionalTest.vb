@@ -82,7 +82,7 @@ Module Program
     Function fun() As Integer
         Return 3
     End Function
-    Sub foo(x As Integer)
+    Sub goo(x As Integer)
         Dim arr1(3, x) As Integer
     End Sub
 End Module
@@ -144,7 +144,7 @@ End Module
     <file name="a.vb">
 Imports Microsoft.VisualBasic.Information
 Public Class Class1(Of T)
-    Sub foo(x As Integer(,))
+    Sub goo(x As Integer(,))
         Dim y = 1
         Dim arr5(3 + 2, If(True, UBound(x, 1), UBound(arr5, 1))) As Integer
     End Sub
@@ -166,7 +166,7 @@ End Class
     <file name="a.vb">
 Imports Microsoft.VisualBasic.Information
 Public Class Class1
-    Sub foo(x As Integer(,))
+    Sub goo(x As Integer(,))
         Dim myArray As Integer(,) = New Integer(UBound(myArray, 1), UBound(x, 1)) {}
     End Sub
 End Class
@@ -228,7 +228,7 @@ End Module
 <compilation name="GenericAsArrayType">
     <file name="a.vb">
 Public Class Class1(Of T)
-    Private Sub Foo()
+    Private Sub Goo()
         Dim x As T(,) = New T(1, 2) {}
         Dim Y As T(,) = New T(1, 2) {{1, 2, 3}, {1, 2, 3}}        ' invalid
     End Sub

@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
 
             // if the TextAndVersion has not been stored yet, but it has been observed
             // then try to get version from cached value.
-            if (version == default(VersionStamp))
+            if (version == default)
             {
                 if (this.TryGetValue(out var textAndVersion))
                 {
@@ -63,10 +63,10 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            return version != default(VersionStamp);
+            return version != default;
         }
 
-        public override TextAndVersion GetValue(CancellationToken cancellationToken = default(CancellationToken))
+        public override TextAndVersion GetValue(CancellationToken cancellationToken = default)
         {
             if (_text == null)
             {
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis
             return TextAndVersion.Create(_text.GetValue(cancellationToken), _version, _filePath);
         }
 
-        public override async Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public override async Task<TextAndVersion> GetValueAsync(CancellationToken cancellationToken = default)
         {
             if (_text == null)
             {

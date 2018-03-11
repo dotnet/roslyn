@@ -477,7 +477,7 @@ End Module
         ParseAndVerify(<![CDATA[
             module module1
                 sub main()
-				    dim x1 = <foo attr1="&amp; &lt; &gt; &apos; &quot;"></foo>
+				    dim x1 = <goo attr1="&amp; &lt; &gt; &apos; &quot;"></goo>
                 end sub
             end module
         ]]>)
@@ -502,7 +502,7 @@ End Module
         ParseAndVerify(<![CDATA[
             Module Module1
                 Sub Main()
-                    Dim x = <a b="foo" />
+                    Dim x = <a b="goo" />
                     Dim y = x.@b
                 End Sub
             End Module
@@ -515,7 +515,7 @@ End Module
         ParseAndVerify(<![CDATA[
             Module Module1
                 Sub Main()
-                    dim x1 = <foo attr1='qqq"></>
+                    dim x1 = <goo attr1='qqq"></>
                 End Sub
             End Module
         ]]>,
@@ -597,7 +597,7 @@ End Module
             "Module Module1" & vbCrLf &
             "   Sub Main()" & vbCrLf &
             "       scenario = <scenario><![CDATA[" & vbCrLf &
-            "Imports Foo" & vbCrLf &
+            "Imports Goo" & vbCrLf &
             "       ]]></scenario>" & vbCrLf &
             "    End Sub" & vbCrLf &
             "End Module")
@@ -745,8 +745,8 @@ End Module
     <Fact>
     Public Sub ParseAttributeAccessorBracketed()
         ParseAndVerify(<![CDATA[
-            Imports <xmlns:ns = "foo">
-            Imports <xmlns:n-s- = "foo2">
+            Imports <xmlns:ns = "goo">
+            Imports <xmlns:n-s- = "goo2">
             Module Module1
                 Sub Main()
                     Dim ele3 = <ns:e/>
@@ -800,7 +800,7 @@ BC31178: Expected closing ';' for XML entity.
         ParseAndVerify(<![CDATA[
             Module Module1
                 Sub Main()
-                    dim z = <foo attr1="&amp"></foo>
+                    dim z = <goo attr1="&amp"></goo>
                 End Sub
             End Module
         ]]>,
@@ -814,7 +814,7 @@ BC31178: Expected closing ';' for XML entity.
         ParseAndVerify(<![CDATA[
             Module Module1
                 Sub Main()
-                    dim z = <foo attr1=before&amp;after></foo>
+                    dim z = <goo attr1=before&amp;after></goo>
                 End Sub
             End Module
         ]]>,
@@ -828,7 +828,7 @@ BC31178: Expected closing ';' for XML entity.
         ParseAndVerify(<![CDATA[
             Module Module1
                 Sub Main()
-                    dim z = <foo attr1="<%= %>"></foo>
+                    dim z = <goo attr1="<%= %>"></goo>
                 End Sub
             End Module
         ]]>,
@@ -1018,7 +1018,7 @@ BC31178: Expected closing ';' for XML entity.
     Public Sub ParseXmlDocumentStopsParsingXml()
         ParseAndVerify(<![CDATA[
             Module Module1
-                Sub Foo()
+                Sub Goo()
                 Dim x_XML = <?xml version="1.0" encoding="utf-8"?>
                     <contacts>
                         <contact>
@@ -1200,7 +1200,7 @@ End Module
     <Fact>
     Public Sub ParseIncompleteProcessingInstruction()
         ParseAndVerify(<![CDATA[
-            Dim y As Object() = New Object() {<foo/>, <?pi 
+            Dim y As Object() = New Object() {<goo/>, <?pi 
             ]]>,
             <errors>
                 <error id="30370"/>
@@ -1446,7 +1446,7 @@ End Module
     Public Sub ParseXmlRequiresParensNotReported()
         ParseAndVerify(<![CDATA[
                     Class Class1
-                     Sub Foo()
+                     Sub Goo()
                        Dim f = From e As XProcessingInstruction In <?xpi Val=2?>
                      End Sub
                     End Class
@@ -1458,8 +1458,8 @@ End Module
     Public Sub ParseXmlEntityReferenceErrorNotExpected()
         ParseAndVerify(<![CDATA[
                     Class Class1
-                      Sub Foo()
-                          Dim x3 = <foo attr1="&#120; &#60; &#65;"></foo>
+                      Sub Goo()
+                          Dim x3 = <goo attr1="&#120; &#60; &#65;"></goo>
                       End Sub
                     End Class
 
@@ -1471,8 +1471,8 @@ End Module
     Public Sub BC30026ERR_EndSubExpected_ParseMoreErrorExpectedGreater()
         ParseAndVerify(<![CDATA[
                     Class Class1
-                     Sub Foo()
-                       dim x1 = <foo attr1='qqq"></>
+                     Sub Goo()
+                       dim x1 = <goo attr1='qqq"></>
                      Sub
                     End Class
             ]]>,
@@ -1490,7 +1490,7 @@ End Module
     Public Sub ParseMoreErrorsExpectedLTAndExpectedXmlEndPI()
         ParseAndVerify(<![CDATA[
                     Class Class1
-                        Sub Foo()
+                        Sub Goo()
                           #If True Then
                              Dim x31 = From i In (<ns:e <%= <ns:e><%= ns & "hello" %></ns:e> %>></ns:e>.<ns:e>) _
                                        Where i.Value <> (<<%= <ns:e><%= ns %></ns:e>.Name %>><%= ns %></>.Value) _
@@ -1515,7 +1515,7 @@ End Module
         ParseAndVerify(<![CDATA[
                        Class Class1
                          Sub Scenario1()
-                            Dim b = new integer? << <foo/> << <what?/>
+                            Dim b = new integer? << <goo/> << <what?/>
                          End Sub
                        End Class
             ]]>,
@@ -1924,7 +1924,7 @@ End Module
         ParseAndVerify(<![CDATA[
 Module M1
     Sub Main
-        Dim x = <foo>< /foo>
+        Dim x = <goo>< /goo>
     End Sub
 End Module
 ]]>,
@@ -4409,7 +4409,7 @@ End Module]]>,
         ParseAndVerify(<![CDATA[
 Module M
     Sub Main()
-        Dim x = <a/>.@rem:foo
+        Dim x = <a/>.@rem:goo
     End Sub
 End Module]]>,
             Diagnostic(ERRID.ERR_ExpectedXmlName, "@").WithLocation(4, 22))
@@ -4440,7 +4440,7 @@ End Module]]>)
         ParseAndVerify(<![CDATA[
 Module M
     Sub Main()
-        Dim x = <a/>.@xml:foo:rem
+        Dim x = <a/>.@xml:goo:rem
     End Sub
 End Module]]>)
 
@@ -4448,14 +4448,14 @@ End Module]]>)
         ParseAndVerify(<![CDATA[
 Module M
     Sub Main()
-        Dim x = <a/>.@foo~rem
+        Dim x = <a/>.@goo~rem
     End Sub
 End Module]]>.Value.Replace("~"c, FULLWIDTH_COLON))
 
         ParseAndVerify(<![CDATA[
 Module M
     Sub Main()
-        Dim x = <a/>.@foo~rem$
+        Dim x = <a/>.@goo~rem$
     End Sub
 End Module]]>.Value.Replace("~"c, FULLWIDTH_COLON))
 

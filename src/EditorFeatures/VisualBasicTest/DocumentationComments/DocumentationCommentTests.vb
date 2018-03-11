@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.DocumentationComments
@@ -47,7 +47,7 @@ End Class
             Const code = "
 Class C
     ''$$
-    Function M(Of T)(foo As Integer, i() As Integer) As Integer
+    Function M(Of T)(goo As Integer, i() As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -58,10 +58,10 @@ Class C
     ''' $$
     ''' </summary>
     ''' <typeparam name=""T""></typeparam>
-    ''' <param name=""foo""></param>
+    ''' <param name=""goo""></param>
     ''' <param name=""i""></param>
     ''' <returns></returns>
-    Function M(Of T)(foo As Integer, i() As Integer) As Integer
+    Function M(Of T)(goo As Integer, i() As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -115,7 +115,7 @@ End Class
 Class C
     ''$$
     ''' <summary></summary>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -124,7 +124,7 @@ End Class
 Class C
     '''$$
     ''' <summary></summary>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -203,14 +203,14 @@ End Class
         Public Sub TestTypingCharacter_NotInsideMethodBody()
             Const code = "
 Class C
-    Sub Foo()
+    Sub Goo()
     ''$$
     End Sub
 End Class
 "
             Const expected = "
 Class C
-    Sub Foo()
+    Sub Goo()
     '''$$
     End Sub
 End Class
@@ -296,14 +296,14 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.DocumentationComments)>
         Public Sub TestPressingEnter_Class3()
             Const code = "
-'''$$<Foo()> Class C
+'''$$<Goo()> Class C
 End Class
 "
             Const expected = "
 ''' <summary>
 ''' $$
 ''' </summary>
-<Foo()> Class C
+<Goo()> Class C
 End Class
 "
             VerifyPressingEnter(code, expected)
@@ -333,7 +333,7 @@ End Module
             Const code = "
 Class C
     '''$$
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -344,9 +344,9 @@ Class C
     ''' $$
     ''' </summary>
     ''' <typeparam name=""T""></typeparam>
-    ''' <param name=""foo""></param>
+    ''' <param name=""goo""></param>
     ''' <returns></returns>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -358,7 +358,7 @@ End Class
         Public Sub TestPressingEnter_Method2()
             Const code = "
 Class C
-    '''$$Function M(Of T)(foo As Integer) As Integer
+    '''$$Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -369,9 +369,9 @@ Class C
     ''' $$
     ''' </summary>
     ''' <typeparam name=""T""></typeparam>
-    ''' <param name=""foo""></param>
+    ''' <param name=""goo""></param>
     ''' <returns></returns>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -493,7 +493,7 @@ End Class
 Class C
     '''$$
     ''' <summary></summary>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -503,7 +503,7 @@ Class C
     '''
     ''' $$
     ''' <summary></summary>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -589,14 +589,14 @@ End Class
         Public Sub TestPressingEnter_NotInsideMethodBody()
             Const code = "
 Class C
-    Sub Foo()
+    Sub Goo()
     '''$$
     End Sub
 End Class
 "
             Const expected = "
 Class C
-    Sub Foo()
+    Sub Goo()
     '''
 $$
     End Sub
@@ -614,7 +614,7 @@ $$''' <summary>
         ''' 
         ''' </summary>
         ''' <returns></returns>
-Public Async Function TestFoo() As Task
+Public Async Function TestGoo() As Task
             Dim x = 1
         End Sub
     End Class
@@ -626,7 +626,7 @@ $$''' <summary>
         ''' 
         ''' </summary>
         ''' <returns></returns>
-Public Async Function TestFoo() As Task
+Public Async Function TestGoo() As Task
             Dim x = 1
         End Sub
     End Class
@@ -906,7 +906,7 @@ End Class
         Public Sub TestCommand_Method2()
             Const code = "
 Class C
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         $$Return 0
     End Function
 End Class
@@ -917,9 +917,9 @@ Class C
     ''' $$
     ''' </summary>
     ''' <typeparam name=""T""></typeparam>
-    ''' <param name=""foo""></param>
+    ''' <param name=""goo""></param>
     ''' <returns></returns>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         Return 0
     End Function
 End Class
@@ -932,7 +932,7 @@ End Class
             Const code = "
 Class C
     ''' <summary></summary>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         $$Return 0
     End Function
 End Class
@@ -940,7 +940,7 @@ End Class
             Const expected = "
 Class C
     ''' <summary></summary>
-    Function M(Of T)(foo As Integer) As Integer
+    Function M(Of T)(goo As Integer) As Integer
         $$Return 0
     End Function
 End Class

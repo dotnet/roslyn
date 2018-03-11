@@ -1,7 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
@@ -45,108 +53,69 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static INamedTypeSymbol AttributeType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Attribute");
-        }
+            => compilation.GetTypeByMetadataName(typeof(Attribute).FullName);
 
         public static INamedTypeSymbol ExceptionType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Exception");
-        }
+            => compilation.GetTypeByMetadataName(typeof(Exception).FullName);
 
         public static INamedTypeSymbol DesignerCategoryAttributeType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.ComponentModel.DesignerCategoryAttribute");
-        }
+            => compilation.GetTypeByMetadataName("System.ComponentModel.DesignerCategoryAttribute");
 
         public static INamedTypeSymbol DesignerGeneratedAttributeType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("Microsoft.VisualBasic.CompilerServices.DesignerGeneratedAttribute");
-        }
+            => compilation.GetTypeByMetadataName("Microsoft.VisualBasic.CompilerServices.DesignerGeneratedAttribute");
 
         public static INamedTypeSymbol HideModuleNameAttribute(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("Microsoft.VisualBasic.HideModuleNameAttribute");
-        }
+            => compilation.GetTypeByMetadataName("Microsoft.VisualBasic.HideModuleNameAttribute");
 
         public static INamedTypeSymbol EventArgsType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.EventArgs");
-        }
+            => compilation.GetTypeByMetadataName(typeof(EventArgs).FullName);
 
         public static INamedTypeSymbol NotImplementedExceptionType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.NotImplementedException");
-        }
+            => compilation.GetTypeByMetadataName(typeof(NotImplementedException).FullName);
 
         public static INamedTypeSymbol EqualityComparerOfTType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Collections.Generic.EqualityComparer`1");
-        }
+            => compilation.GetTypeByMetadataName(typeof(EqualityComparer<>).FullName);
 
         public static INamedTypeSymbol ActionType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Action");
-        }
+            => compilation.GetTypeByMetadataName(typeof(Action).FullName);
 
         public static INamedTypeSymbol ExpressionOfTType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
-        }
+            => compilation.GetTypeByMetadataName("System.Linq.Expressions.Expression`1");
 
         public static INamedTypeSymbol EditorBrowsableAttributeType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.ComponentModel.EditorBrowsableAttribute");
-        }
+            => compilation.GetTypeByMetadataName(typeof(EditorBrowsableAttribute).FullName);
 
         public static INamedTypeSymbol EditorBrowsableStateType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.ComponentModel.EditorBrowsableState");
-        }
+            => compilation.GetTypeByMetadataName(typeof(EditorBrowsableState).FullName);
 
         public static INamedTypeSymbol TaskType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Threading.Tasks.Task");
-        }
+            => compilation.GetTypeByMetadataName(typeof(Task).FullName);
 
         public static INamedTypeSymbol TaskOfTType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
-        }
+            => compilation.GetTypeByMetadataName(typeof(Task<>).FullName);
+
+        public static INamedTypeSymbol ValueTaskOfTType(this Compilation compilation)
+            => compilation.GetTypeByMetadataName("System.Threading.Tasks.ValueTask`1");
 
         public static INamedTypeSymbol IEnumerableOfTType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Collections.Generic.IEnumerable`1");
-        }
+            => compilation.GetTypeByMetadataName(typeof(IEnumerable<>).FullName);
 
         public static INamedTypeSymbol SerializableAttributeType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.SerializableAttribute");
-        }
+            => compilation.GetTypeByMetadataName("System.SerializableAttribute");
 
         public static INamedTypeSymbol CoClassType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.CoClassAttribute");
-        }
+            => compilation.GetTypeByMetadataName(typeof(CoClassAttribute).FullName);
 
         public static INamedTypeSymbol ComAliasNameAttributeType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Runtime.InteropServices.ComAliasNameAttribute");
-        }
+            => compilation.GetTypeByMetadataName("System.Runtime.InteropServices.ComAliasNameAttribute");
 
         public static INamedTypeSymbol SuppressMessageAttributeType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Diagnostics.CodeAnalysis.SuppressMessageAttribute");
-        }
+            => compilation.GetTypeByMetadataName(typeof(SuppressMessageAttribute).FullName);
 
         public static INamedTypeSymbol TupleElementNamesAttributeType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.TupleElementNamesAttribute");
-        }
+            => compilation.GetTypeByMetadataName(typeof(TupleElementNamesAttribute).FullName);
 
         public static INamedTypeSymbol DynamicAttributeType(this Compilation compilation)
-        {
-            return compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.DynamicAttribute");
-        }
-     }
+            => compilation.GetTypeByMetadataName("System.Runtime.CompilerServices.DynamicAttribute");
+    }
 }

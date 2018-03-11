@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
                 yield return "System.Reflection.Extensions";
                 yield return "System.Reflection.Primitives";
                 yield return "System.Runtime";
+                yield return "System.Runtime.Extensions";
                 yield return "System.Runtime.InteropServices";
                 yield return "System.Text.Encoding";
                 yield return "System.Text.Encoding.CodePages";
@@ -83,9 +84,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
             string workingDirectory = null)
         {
             var io = new TestConsoleIO(input);
+            var clientDir = Path.GetDirectoryName(RuntimeUtilities.GetAssemblyLocation(typeof(CommandLineRunnerTests)));
             var buildPaths = new BuildPaths(
-                clientDir: AppContext.BaseDirectory,
-                workingDir: workingDirectory ?? AppContext.BaseDirectory,
+                clientDir: clientDir,
+                workingDir: workingDirectory ?? clientDir,
                 sdkDir: null,
                 tempDir: Path.GetTempPath());
 
@@ -141,9 +143,9 @@ Enumerable.WhereSelectArrayIterator<int, int> {{ 9, 16, 25 }}
         {
             var runner = CreateRunner(input:
 @"using System.Globalization;
-CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"")
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"", useUserOverride: false)
 Math.PI
-CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""de-DE"")
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""de-DE"", useUserOverride: false)
 Math.PI
 ");
             runner.RunInteractive();
@@ -154,11 +156,11 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
 > using System.Globalization;
-> CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"")
+> CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"", useUserOverride: false)
 [en-GB]
 > Math.PI
 3.1415926535897931
-> CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""de-DE"")
+> CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""de-DE"", useUserOverride: false)
 [de-DE]
 > Math.PI
 3,1415926535897931
@@ -167,10 +169,10 @@ Type ""#help"" for more information.
             // Tests that DefaultThreadCurrentUICulture is respected and not DefaultThreadCurrentCulture.
             runner = CreateRunner(input:
 @"using System.Globalization;
-CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"")
-CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""en-GB"")
+CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"", useUserOverride: false)
+CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""en-GB"", useUserOverride: false)
 Math.PI
-CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""de-DE"")
+CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""de-DE"", useUserOverride: false)
 Math.PI
 ");
             runner.RunInteractive();
@@ -181,13 +183,13 @@ Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
 > using System.Globalization;
-> CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"")
+> CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(""en-GB"", useUserOverride: false)
 [en-GB]
-> CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""en-GB"")
+> CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""en-GB"", useUserOverride: false)
 [en-GB]
 > Math.PI
 3.1415926535897931
-> CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""de-DE"")
+> CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(""de-DE"", useUserOverride: false)
 [de-DE]
 > Math.PI
 3.1415926535897931
@@ -215,7 +217,8 @@ Type ""#help"" for more information.
 > ", runner.Console.Out.ToString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18479")]
+        [WorkItem(18479, "https://github.com/dotnet/roslyn/issues/18479")]
         public void Tuples()
         {
             var runner = CreateRunner(input: "(1,2)");
@@ -813,7 +816,7 @@ C {{ }}
                 runner.Console.Error.ToString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24402")]
         public void HelpCommand()
         {
             var runner = CreateRunner(input:
@@ -944,6 +947,49 @@ Bang!
 @"(1,58): warning CS0162: Unreachable code detected
 Bang!",
                 runner.Console.Error.ToString());
+        }
+
+        [Fact]
+        [WorkItem(21327, "https://github.com/dotnet/roslyn/issues/21327")]
+        public void DefaultLiteral()
+        {
+            var runner = CreateRunner(input:
+@"int i = default;
+Print(i);
+");
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Microsoft (R) Visual C# Interactive Compiler version {s_compilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> int i = default;
+> Print(i);
+0
+> ", runner.Console.Out.ToString());
+        }
+
+        [Fact]
+        [WorkItem(21327, "https://github.com/dotnet/roslyn/issues/21327")]
+        public void InferredTupleNames()
+        {
+            var runner = CreateRunner(input:
+@"var a = 1;
+var t = (a, 2);
+Print(t.a);
+");
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Microsoft (R) Visual C# Interactive Compiler version {s_compilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+Type ""#help"" for more information.
+> var a = 1;
+> var t = (a, 2);
+> Print(t.a);
+1
+> ", runner.Console.Out.ToString());
         }
     }
 }

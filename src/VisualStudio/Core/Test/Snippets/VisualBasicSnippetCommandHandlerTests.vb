@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor
@@ -9,7 +9,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
     Public Class VisualBasicSnippetCommandHandlerTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_TabAtEndOfWord_NoActiveSession_ExpansionInserted()
-            Dim markup = "Public Class$$ Foo"
+            Dim markup = "Public Class$$ Goo"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic)
             Using testState
                 testState.SnippetExpansionClient.TryInsertExpansionReturnValue = True
@@ -17,7 +17,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
                 Assert.True(testState.SnippetExpansionClient.TryInsertExpansionCalled)
                 Assert.Equal(New Span(7, 5), testState.SnippetExpansionClient.InsertExpansionSpan)
-                Assert.Equal("Public Class Foo", testState.SubjectBuffer.CurrentSnapshot.GetText())
+                Assert.Equal("Public Class Goo", testState.SubjectBuffer.CurrentSnapshot.GetText())
             End Using
         End Sub
 
@@ -71,20 +71,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_TabInWhiteSpaceDoesNotCreateSession()
-            Dim markup = "Class $$ Foo"
+            Dim markup = "Class $$ Goo"
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic)
             Using testState
                 testState.SendTab()
 
                 Assert.False(testState.SnippetExpansionClient.TryInsertExpansionCalled)
-                Assert.Equal("Class      Foo", testState.SubjectBuffer.CurrentSnapshot.GetText())
+                Assert.Equal("Class      Goo", testState.SubjectBuffer.CurrentSnapshot.GetText())
             End Using
         End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_TabWithSelectionDoesNotCreateSession()
             Dim markup = <Markup><![CDATA[Class SomeClass
-    {|Selection:Sub Foo
+    {|Selection:Sub Goo
     End Sub$$|}
 End Class
 ]]></Markup>.Value
@@ -106,7 +106,7 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_TabWithSelectionOnWhitespaceQuestionMarkDoesNotCreateSession()
             Dim markup = <Markup><![CDATA[Class SomeClass
-    {|Selection:Sub Foo
+    {|Selection:Sub Goo
     End Sub
     ?$$|}
 End Class
@@ -128,7 +128,7 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_BackTab_ActiveSession()
             Dim markup = <Markup><![CDATA[
-    $$Class Foo
+    $$Class Goo
 End Class
 ]]></Markup>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, startActiveSession:=True)
@@ -138,7 +138,7 @@ End Class
                 Assert.True(testState.SnippetExpansionClient.TryHandleBackTabCalled)
 
                 Dim expectedText = <Code><![CDATA[
-    Class Foo
+    Class Goo
 End Class
 ]]></Code>.Value.Replace(vbLf, vbCrLf)
 
@@ -149,7 +149,7 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_BackTab_NoActiveSession()
             Dim markup = <Markup><![CDATA[
-    $$Class Foo
+    $$Class Goo
 End Class
 ]]></Markup>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic)
@@ -159,7 +159,7 @@ End Class
                 Assert.True(testState.SnippetExpansionClient.TryHandleBackTabCalled)
 
                 Dim expectedText = <Code><![CDATA[
-Class Foo
+Class Goo
 End Class
 ]]></Code>.Value.Replace(vbLf, vbCrLf)
 
@@ -170,7 +170,7 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_Return_ActiveSession()
             Dim markup = <Markup><![CDATA[
-$$    Class Foo
+$$    Class Goo
 End Class
 ]]></Markup>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, startActiveSession:=True)
@@ -180,7 +180,7 @@ End Class
                 Assert.True(testState.SnippetExpansionClient.TryHandleReturnCalled)
 
                 Dim expectedText = <Code><![CDATA[
-    Class Foo
+    Class Goo
 End Class
 ]]></Code>.Value.Replace(vbLf, vbCrLf)
 
@@ -191,7 +191,7 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_Return_NoActiveSession()
             Dim markup = <Markup><![CDATA[
-$$    Class Foo
+$$    Class Goo
 End Class
 ]]></Markup>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic)
@@ -202,7 +202,7 @@ End Class
 
                 Dim expectedText = <Code><![CDATA[
 
-    Class Foo
+    Class Goo
 End Class
 ]]></Code>.Value.Replace(vbLf, vbCrLf)
 
@@ -213,7 +213,7 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_Escape_ActiveSession()
             Dim markup = <Markup><![CDATA[
-$$    Class Foo
+$$    Class Goo
 End Class
 ]]></Markup>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic, startActiveSession:=True)
@@ -223,7 +223,7 @@ End Class
                 Assert.True(testState.SnippetExpansionClient.TryHandleEscapeCalled)
 
                 Dim expectedText = <Code><![CDATA[
-    Class Foo
+    Class Goo
 End Class
 ]]></Code>.Value.Replace(vbLf, vbCrLf)
 
@@ -234,7 +234,7 @@ End Class
         <WpfFact, Trait(Traits.Feature, Traits.Features.Snippets)>
         Public Sub SnippetCommandHandler_Escape_NoActiveSession()
             Dim markup = <Markup><![CDATA[
-$$    Class Foo
+$$    Class Goo
 End Class
 ]]></Markup>.Value
             Dim testState = SnippetTestState.CreateTestState(markup, LanguageNames.VisualBasic)
@@ -244,7 +244,7 @@ End Class
                 Assert.True(testState.SnippetExpansionClient.TryHandleEscapeCalled)
 
                 Dim expectedText = <Code><![CDATA[
-EscapePassedThrough!    Class Foo
+EscapePassedThrough!    Class Goo
 End Class
 ]]></Code>.Value.Replace(vbLf, vbCrLf)
 

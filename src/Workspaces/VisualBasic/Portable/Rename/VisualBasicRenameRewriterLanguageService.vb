@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.LanguageServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Rename
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Microsoft.CodeAnalysis.Simplification
@@ -277,8 +278,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                 Dim prefix = If(isRenameLocation AndAlso Me._renameLocations(token.Span).IsRenamableAccessor, newToken.ValueText.Substring(0, newToken.ValueText.IndexOf("_"c) + 1), String.Empty)
                 Dim suffix As String = Nothing
 
-                If symbols.Count() = 1 Then
-                    Dim symbol = symbols.Single()
+                If symbols.Length = 1 Then
+                    Dim symbol = symbols(0)
 
                     If symbol.IsConstructor() Then
                         symbol = symbol.ContainingSymbol

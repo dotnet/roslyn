@@ -492,9 +492,6 @@
   <data name="Deserialization_reader_for_0_read_incorrect_number_of_values" xml:space="preserve">
     <value>Deserialization reader for '{0}' read incorrect number of values.</value>
   </data>
-  <data name="Option_0_has_an_unsupported_type_to_use_with_1_You_should_specify_a_parsing_function" xml:space="preserve">
-    <value>Option '{0}' has an unsupported type to use with {1}. You should specify a parsing function.</value>
-  </data>
   <data name="Pascal_Case" xml:space="preserve">
     <value>Pascal Case</value>
   </data>

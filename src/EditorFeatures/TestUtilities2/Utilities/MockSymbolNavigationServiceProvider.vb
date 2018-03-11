@@ -1,7 +1,8 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Composition
 Imports System.Threading
+Imports Microsoft.CodeAnalysis.FindUsages
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Navigation
@@ -28,10 +29,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             Public TryNavigateToSymbolProvidedOptions As OptionSet
 
             Public TrySymbolNavigationNotifyProvidedSymbol As ISymbol
-            Public TrySymbolNavigationNotifyProvidedSolution As Solution
+            Public TrySymbolNavigationNotifyProvidedProject As Project
             Public TrySymbolNavigationNotifyReturnValue As Boolean = False
 
-            Public WouldNavigateToSymbolProvidedSymbol As ISymbol
+            Public WouldNavigateToSymbolProvidedDefinitionItem As DefinitionItem
             Public WouldNavigateToSymbolProvidedSolution As Solution
             Public WouldNavigateToSymbolReturnValue As Boolean = False
             Public NavigationFilePathReturnValue As String = String.Empty
@@ -46,19 +47,19 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Utilities
             End Function
 
             Public Function TrySymbolNavigationNotify(symbol As ISymbol,
-                                                      solution As Solution,
+                                                      project As Project,
                                                       cancellationToken As CancellationToken) As Boolean Implements ISymbolNavigationService.TrySymbolNavigationNotify
                 Me.TrySymbolNavigationNotifyProvidedSymbol = symbol
-                Me.TrySymbolNavigationNotifyProvidedSolution = solution
+                Me.TrySymbolNavigationNotifyProvidedProject = project
 
                 Return TrySymbolNavigationNotifyReturnValue
             End Function
 
-            Public Function WouldNavigateToSymbol(symbol As ISymbol,
+            Public Function WouldNavigateToSymbol(definitionItem As DefinitionItem,
                                                   solution As Solution,
                                                   cancellationToken As CancellationToken,
                                                   ByRef filePath As String, ByRef lineNumber As Integer, ByRef charOffset As Integer) As Boolean Implements ISymbolNavigationService.WouldNavigateToSymbol
-                Me.WouldNavigateToSymbolProvidedSymbol = symbol
+                Me.WouldNavigateToSymbolProvidedDefinitionItem = definitionItem
                 Me.WouldNavigateToSymbolProvidedSolution = solution
 
                 filePath = Me.NavigationFilePathReturnValue

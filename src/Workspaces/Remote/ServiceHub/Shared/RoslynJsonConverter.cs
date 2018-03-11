@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Text;
 using Newtonsoft.Json;
 using Roslyn.Utilities;
@@ -20,69 +21,81 @@ namespace Microsoft.CodeAnalysis.Remote
         }
 
         public override bool CanConvert(Type objectType)
-        {
-            return _map.ContainsKey(objectType);
-        }
+            => _map.ContainsKey(objectType);
 
         public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-        {
-            return _map[objectType].ReadJson(reader, objectType, existingValue, serializer);
-        }
+            => _map[objectType].ReadJson(reader, objectType, existingValue, serializer);
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
-        {
-            _map[value.GetType()].WriteJson(writer, value, serializer);
-        }
+            => _map[value.GetType()].WriteJson(writer, value, serializer);
 
-        // this type is shared by multiple teams such as Razor, LUT and etc which have either separated/shared/shim repo
-        // so some types might not available to those context. this partial method let us add Roslyn specific types
-        // without breaking them
+        // this type is shared by multiple teams such as Razor, LUT and etc which have either 
+        // separated/shared/shim repo so some types might not available to those context. this 
+        // partial method let us add Roslyn specific types without breaking them
         partial void AppendRoslynSpecificJsonConverters(ImmutableDictionary<Type, JsonConverter>.Builder builder);
 
         private ImmutableDictionary<Type, JsonConverter> CreateConverterMap()
         {
             var builder = ImmutableDictionary.CreateBuilder<Type, JsonConverter>();
 
-            builder.Add(typeof(Checksum), new ChecksumJsonConverter());
-            builder.Add(typeof(SolutionId), new SolutionIdJsonConverter());
-            builder.Add(typeof(ProjectId), new ProjectIdJsonConverter());
-            builder.Add(typeof(DocumentId), new DocumentIdJsonConverter());
-            builder.Add(typeof(TextSpan), new TextSpanJsonConverter());
-            builder.Add(typeof(SymbolKey), new SymbolKeyJsonConverter());
+            Add(builder, new ChecksumJsonConverter());
+            Add(builder, new SolutionIdJsonConverter());
+            Add(builder, new ProjectIdJsonConverter());
+            Add(builder, new DocumentIdJsonConverter());
+            Add(builder, new TextSpanJsonConverter());
+            Add(builder, new TextChangeJsonConverter());
+            Add(builder, new SymbolKeyJsonConverter());
+            Add(builder, new PinnedSolutionInfoJsonConverter());
 
             AppendRoslynSpecificJsonConverters(builder);
 
             return builder.ToImmutable();
         }
 
-        private abstract class BaseJsonConverter : JsonConverter
+        private static void Add<T>(
+            ImmutableDictionary<Type, JsonConverter>.Builder builder,
+            BaseJsonConverter<T> converter)
         {
-            protected static T ReadProperty<T>(JsonSerializer serializer, JsonReader reader)
+            builder.Add(typeof(T), converter);
+        }
+
+        private abstract class BaseJsonConverter<T> : JsonConverter
+        {
+            public sealed override bool CanConvert(Type objectType) => typeof(T) == objectType;
+
+            public sealed override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+                => ReadValue(reader, serializer);
+
+            public sealed override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+                => WriteValue(writer, (T)value, serializer);
+
+            protected abstract T ReadValue(JsonReader reader, JsonSerializer serializer);
+            protected abstract void WriteValue(JsonWriter writer, T value, JsonSerializer serializer);
+
+            protected static U ReadProperty<U>(JsonSerializer serializer, JsonReader reader)
             {
                 // read property
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.PropertyName);
 
                 Contract.ThrowIfFalse(reader.Read());
-                return serializer.Deserialize<T>(reader);
+                return serializer.Deserialize<U>(reader);
             }
 
-            protected static T ReadProperty<T>(JsonReader reader)
+            protected static U ReadProperty<U>(JsonReader reader)
             {
                 // read property
                 Contract.ThrowIfFalse(reader.Read());
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.PropertyName);
 
                 Contract.ThrowIfFalse(reader.Read());
-                return (T)reader.Value;
+                return (U)reader.Value;
             }
         }
 
-        private class TextSpanJsonConverter : BaseJsonConverter
+        private class TextSpanJsonConverter : BaseJsonConverter<TextSpan>
         {
-            public override bool CanConvert(Type objectType) => typeof(TextSpan) == objectType;
-
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            protected override TextSpan ReadValue(JsonReader reader, JsonSerializer serializer)
             {
                 Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
@@ -96,42 +109,109 @@ namespace Microsoft.CodeAnalysis.Remote
                 return new TextSpan((int)start, (int)length);
             }
 
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            protected override void WriteValue(JsonWriter writer, TextSpan span, JsonSerializer serializer)
             {
-                var span = (TextSpan)value;
-
                 writer.WriteStartObject();
 
-                writer.WritePropertyName("start");
+                writer.WritePropertyName(nameof(TextSpan.Start));
                 writer.WriteValue(span.Start);
 
-                writer.WritePropertyName("length");
+                writer.WritePropertyName(nameof(TextSpan.Length));
                 writer.WriteValue(span.Length);
 
                 writer.WriteEndObject();
             }
         }
 
-        private class SymbolKeyJsonConverter : BaseJsonConverter
+        private class TextChangeJsonConverter : BaseJsonConverter<TextChange>
         {
-            public override bool CanConvert(Type objectType) => typeof(SymbolKey) == objectType;
+            protected override TextChange ReadValue(JsonReader reader, JsonSerializer serializer)
+            {
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
 
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
-                => new SymbolKey((string)reader.Value);
+                // all integer is long
+                var start = ReadProperty<long>(reader);
+                var length = ReadProperty<long>(reader);
+                var newText = ReadProperty<string>(reader);
 
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) =>
-                writer.WriteValue(value.ToString());
+                Contract.ThrowIfFalse(reader.Read());
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
+
+                return new TextChange(new TextSpan((int)start, (int)length), newText);
+            }
+
+            protected override void WriteValue(JsonWriter writer, TextChange change, JsonSerializer serializer)
+            {
+                var span = change.Span;
+
+                writer.WriteStartObject();
+
+                writer.WritePropertyName(nameof(TextSpan.Start));
+                writer.WriteValue(span.Start);
+
+                writer.WritePropertyName(nameof(TextSpan.Length));
+                writer.WriteValue(span.Length);
+
+                writer.WritePropertyName(nameof(TextChange.NewText));
+                writer.WriteValue(change.NewText);
+
+                writer.WriteEndObject();
+            }
         }
 
-        private class ChecksumJsonConverter : JsonConverter
+        private class SymbolKeyJsonConverter : BaseJsonConverter<SymbolKey>
         {
-            public override bool CanConvert(Type objectType) => typeof(Checksum) == objectType;
+            protected override SymbolKey ReadValue(JsonReader reader, JsonSerializer serializer)
+                => new SymbolKey((string)reader.Value);
 
-            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) =>
-                new Checksum(Convert.FromBase64String((string)reader.Value));
+            protected override void WriteValue(JsonWriter writer, SymbolKey value, JsonSerializer serializer)
+                => writer.WriteValue(value.ToString());
+        }
 
-            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) =>
-                writer.WriteValue(value.ToString());
+        private class ChecksumJsonConverter : BaseJsonConverter<Checksum>
+        {
+            protected override Checksum ReadValue(JsonReader reader, JsonSerializer serializer)
+            {
+                var value = (string)reader.Value;
+                return value == null ? null : new Checksum(Convert.FromBase64String(value));
+            }
+
+            protected override void WriteValue(JsonWriter writer, Checksum value, JsonSerializer serializer)
+                => writer.WriteValue(value?.ToString());
+        }
+
+        private class PinnedSolutionInfoJsonConverter : BaseJsonConverter<PinnedSolutionInfo>
+        {
+            protected override PinnedSolutionInfo ReadValue(JsonReader reader, JsonSerializer serializer)
+            {
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.StartObject);
+
+                // all integer is long
+                var scopeId = ReadProperty<long>(reader);
+                var fromPrimaryBranch = ReadProperty<bool>(reader);
+                var checksum = ReadProperty<Checksum>(serializer, reader);
+
+                Contract.ThrowIfFalse(reader.Read());
+                Contract.ThrowIfFalse(reader.TokenType == JsonToken.EndObject);
+
+                return new PinnedSolutionInfo((int)scopeId, fromPrimaryBranch, checksum);
+            }
+
+            protected override void WriteValue(JsonWriter writer, PinnedSolutionInfo scope, JsonSerializer serializer)
+            {
+                writer.WriteStartObject();
+
+                writer.WritePropertyName("scopeId");
+                writer.WriteValue(scope.ScopeId);
+
+                writer.WritePropertyName("primary");
+                writer.WriteValue(scope.FromPrimaryBranch);
+
+                writer.WritePropertyName("checksum");
+                serializer.Serialize(writer, scope.SolutionChecksum);
+
+                writer.WriteEndObject();
+            }
         }
     }
 }

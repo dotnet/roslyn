@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
     public class SyntacticTaggerTests
     {
         [WorkItem(1032665, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032665")]
-        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/19822"), Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestTagsChangedForEntireFile()
         {
             var code =
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 var tagComputer = new SyntacticClassificationTaggerProvider.TagComputer(
                     subjectBuffer,
                     workspace.GetService<IForegroundNotificationService>(),
-                    AggregateAsynchronousOperationListener.CreateEmptyListener(),
+                    AsynchronousOperationListenerProvider.NullListener,
                     null,
                     new SyntacticClassificationTaggerProvider(null, null, null));
 

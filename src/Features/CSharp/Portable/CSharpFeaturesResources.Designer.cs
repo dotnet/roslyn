@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpFeaturesResources {
@@ -98,6 +98,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Autoselect disabled due to member declaration.
+        /// </summary>
+        internal static string Autoselect_disabled_due_to_member_declaration {
+            get {
+                return ResourceManager.GetString("Autoselect_disabled_due_to_member_declaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Autoselect disabled due to namespace declaration..
         /// </summary>
         internal static string Autoselect_disabled_due_to_namespace_declaration {
@@ -131,15 +140,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string Autoselect_disabled_due_to_possible_tuple_type_element_creation {
             get {
                 return ResourceManager.GetString("Autoselect_disabled_due_to_possible_tuple_type_element_creation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Autoselect disabled due to potential implicit array creation..
-        /// </summary>
-        internal static string Autoselect_disabled_due_to_potential_implicit_array_creation {
-            get {
-                return ResourceManager.GetString("Autoselect_disabled_due_to_potential_implicit_array_creation", resourceCulture);
             }
         }
         
@@ -648,15 +648,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Move declaration near reference.
-        /// </summary>
-        internal static string Move_declaration_near_reference {
-            get {
-                return ResourceManager.GetString("Move_declaration_near_reference", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &lt;Name&gt;.
         /// </summary>
         internal static string Name {
@@ -837,6 +828,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove unused function.
+        /// </summary>
+        internal static string Remove_unused_function {
+            get {
+                return ResourceManager.GetString("Remove_unused_function", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Replace return with yield return.
         /// </summary>
         internal static string Replace_return_with_yield_return {
@@ -968,6 +968,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string struct_name {
             get {
                 return ResourceManager.GetString("struct_name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to (Suggested name).
+        /// </summary>
+        internal static string Suggested_name {
+            get {
+                return ResourceManager.GetString("Suggested_name", resourceCulture);
             }
         }
         
@@ -1109,6 +1118,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Use &apos;is null&apos; check.
+        /// </summary>
+        internal static string Use_is_null_check {
+            get {
+                return ResourceManager.GetString("Use_is_null_check", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to use &apos;var&apos; instead of explicit type.
         /// </summary>
         internal static string use_var_instead_of_explicit_type {
@@ -1159,15 +1177,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string v7_switch {
             get {
                 return ResourceManager.GetString("v7_switch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Warning: Declaration changes scope and may change meaning..
-        /// </summary>
-        internal static string Warning_colon_Declaration_changes_scope_and_may_change_meaning {
-            get {
-                return ResourceManager.GetString("Warning_colon_Declaration_changes_scope_and_may_change_meaning", resourceCulture);
             }
         }
         

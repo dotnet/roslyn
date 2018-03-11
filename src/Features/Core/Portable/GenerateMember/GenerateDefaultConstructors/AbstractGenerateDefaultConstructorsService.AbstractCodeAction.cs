@@ -55,15 +55,15 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateDefaultConstructors
                 var syntaxFactory = _document.GetLanguageService<SyntaxGenerator>();
                 var baseConstructorArguments = constructor.Parameters.Length != 0
                     ? syntaxFactory.CreateArguments(constructor.Parameters)
-                    : default(ImmutableArray<SyntaxNode>);
+                    : default;
 
                 return CodeGenerationSymbolFactory.CreateConstructorSymbol(
-                    attributes: default(ImmutableArray<AttributeData>),
+                    attributes: default,
                     accessibility: constructor.DeclaredAccessibility,
                     modifiers: new DeclarationModifiers(),
                     typeName: _state.ClassType.Name,
                     parameters: constructor.Parameters,
-                    statements: default(ImmutableArray<SyntaxNode>),
+                    statements: default,
                     baseConstructorArguments: baseConstructorArguments);
             }
         }

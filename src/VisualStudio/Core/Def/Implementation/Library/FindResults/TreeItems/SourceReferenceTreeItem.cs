@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
@@ -16,7 +17,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
 {
     internal class SourceReferenceTreeItem : AbstractTreeItem, IComparable<SourceReferenceTreeItem>
     {
-        protected readonly Workspace _workspace;
+        protected readonly Microsoft.CodeAnalysis.Workspace _workspace;
         protected readonly DocumentId _documentId;
         protected readonly string _projectName;
         protected readonly string _filePath;

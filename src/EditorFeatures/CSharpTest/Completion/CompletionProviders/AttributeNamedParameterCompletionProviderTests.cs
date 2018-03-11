@@ -29,7 +29,7 @@ using System;
 class class1
 {
     [Test($$
-    public void Foo()
+    public void Goo()
     {
     }
 }
@@ -52,7 +52,7 @@ using System;
 class class1
 {
     [Test($$
-    public void Foo()
+    public void Goo()
     {
     }
 }
@@ -73,7 +73,7 @@ using System;
 class class1
 {
     [Test($$
-    public void Foo()
+    public void Goo()
     {
     }
 }
@@ -94,7 +94,7 @@ using System;
 class class1
 {
     [Test(Color = ConsoleColor.Black, $$
-    public void Foo()
+    public void Goo()
     {
     }
 }
@@ -117,7 +117,7 @@ using System;
 class class1
 {
     [Test(Color = ConsoleColor.Black, $$
-    public void Foo()
+    public void Goo()
     {
     }
 }
@@ -144,7 +144,7 @@ class TestAttribute : Attribute
 }
  
 [Test($$
-class Foo
+class Goo
 { }
 ";
 
@@ -163,7 +163,7 @@ class TestAttribute : Attribute
 }
 
 [Test(s:"""", $$
-class Foo
+class Goo
 { }
 ";
 
@@ -186,7 +186,7 @@ class TestAttribute : Attribute
 }
  
 [Test($$
-class Foo
+class Goo
 {
 }";
 
@@ -202,7 +202,7 @@ using System;
 class class1
 {
     [Test( //$$
-    public void Foo()
+    public void Goo()
     {
     }
 }

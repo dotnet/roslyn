@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -14,7 +14,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.CSharp
         Public Sub TestGetStartPoint1()
             Dim code =
 <Code>
-delegate void $$Foo(int i);
+delegate void $$Goo(int i);
 </Code>
 
             TestGetStartPoint(code,
@@ -45,7 +45,7 @@ delegate void $$Foo(int i);
             Dim code =
 <Code>
 [System.CLSCompliant(true)]
-delegate void $$Foo(int i);
+delegate void $$Goo(int i);
 </Code>
 
             TestGetStartPoint(code,
@@ -79,7 +79,7 @@ delegate void $$Foo(int i);
         Public Sub TestGetEndPoint1()
             Dim code =
 <Code>
-delegate void $$Foo(int i);
+delegate void $$Goo(int i);
 </Code>
 
             TestGetEndPoint(code,
@@ -110,7 +110,7 @@ delegate void $$Foo(int i);
             Dim code =
 <Code>
 [System.CLSCompliant(true)]
-delegate void $$Foo(int i);
+delegate void $$Goo(int i);
 </Code>
 
             TestGetEndPoint(code,

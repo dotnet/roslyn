@@ -935,29 +935,29 @@ End Module";
         public async Task ReorderAsyncModifier()
         {
             var code = @"[|Module M
-    Public Async Function Foo() As Task(Of Integer)
+    Public Async Function Goo() As Task(Of Integer)
         Return 0
     End Function
 
-    Async Public Function Foo2() As Task(Of Integer)
+    Async Public Function Goo2() As Task(Of Integer)
         Return 0
     End Function
 
-    Async Overridable Public Function Foo3() As Task(Of Integer)
+    Async Overridable Public Function Goo3() As Task(Of Integer)
         Return 0
     End Function
 End Module|]";
 
             var expected = @"Module M
-    Public Async Function Foo() As Task(Of Integer)
+    Public Async Function Goo() As Task(Of Integer)
         Return 0
     End Function
 
-    Public Async Function Foo2() As Task(Of Integer)
+    Public Async Function Goo2() As Task(Of Integer)
         Return 0
     End Function
 
-    Public Overridable Async Function Foo3() As Task(Of Integer)
+    Public Overridable Async Function Goo3() As Task(Of Integer)
         Return 0
     End Function
 End Module";
@@ -971,29 +971,29 @@ End Module";
         public async Task ReorderIteratorModifier()
         {
             var code = @"[|Module M
-    Public Iterator Function Foo() As IEnumerable(Of Integer)
+    Public Iterator Function Goo() As IEnumerable(Of Integer)
         Yield Return 0
     End Function
 
-    Iterator Public Function Foo2() As IEnumerable(Of Integer)
+    Iterator Public Function Goo2() As IEnumerable(Of Integer)
         Yield Return 0
     End Function
 
-    Iterator Overridable Public Function Foo3() As IEnumerable(Of Integer)
+    Iterator Overridable Public Function Goo3() As IEnumerable(Of Integer)
         Yield Return 0
     End Function
 End Module|]";
 
             var expected = @"Module M
-    Public Iterator Function Foo() As IEnumerable(Of Integer)
+    Public Iterator Function Goo() As IEnumerable(Of Integer)
         Yield Return 0
     End Function
 
-    Public Iterator Function Foo2() As IEnumerable(Of Integer)
+    Public Iterator Function Goo2() As IEnumerable(Of Integer)
         Yield Return 0
     End Function
 
-    Public Overridable Iterator Function Foo3() As IEnumerable(Of Integer)
+    Public Overridable Iterator Function Goo3() As IEnumerable(Of Integer)
         Yield Return 0
     End Function
 End Module";
@@ -1007,21 +1007,21 @@ End Module";
         public async Task ReorderDuplicateModifiers()
         {
             var code = @"[|Module M
-    Public Public Function Foo() As Integer
+    Public Public Function Goo() As Integer
         Return 0
     End Function
 
-    Iterator Public Public Iterator Public Function Foo2() As IEnumerable(Of Integer)
+    Iterator Public Public Iterator Public Function Goo2() As IEnumerable(Of Integer)
         Yield Return 0
     End Function
 End Module|]";
 
             var expected = @"Module M
-    Public Function Foo() As Integer
+    Public Function Goo() As Integer
         Return 0
     End Function
 
-    Public Iterator Function Foo2() As IEnumerable(Of Integer)
+    Public Iterator Function Goo2() As IEnumerable(Of Integer)
         Yield Return 0
     End Function
 End Module";
@@ -1077,7 +1077,7 @@ End Module";
                 out var codeWithoutMarker, out ImmutableArray<TextSpan> textSpans);
 
             var document = CreateDocument(codeWithoutMarker, LanguageNames.VisualBasic);
-            var codeCleanups = CodeCleaner.GetDefaultProviders(document).Where(p => p.Name == PredefinedCodeCleanupProviderNames.NormalizeModifiersOrOperators || p.Name == PredefinedCodeCleanupProviderNames.Format);
+            var codeCleanups = CodeCleaner.GetDefaultProviders(document).WhereAsArray(p => p.Name == PredefinedCodeCleanupProviderNames.NormalizeModifiersOrOperators || p.Name == PredefinedCodeCleanupProviderNames.Format);
 
             var cleanDocument = await CodeCleaner.CleanupAsync(document, textSpans[0], codeCleanups);
 

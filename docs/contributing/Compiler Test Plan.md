@@ -9,29 +9,34 @@ This document provides guidance for thinking about language interactions and tes
 - Determinism
 - Loading from metadata (source vs. loaded from metadata)
 - Public interface of compiler APIs (including semantic model APIs listed below):
- - GetDeclaredSymbol 
- - GetEnclosingSymbol 
- - GetSymbolInfo 
- - GetSpeculativeSymbolInfo 
- - GetTypeInfo 
- - GetSpeculativeTypeInfo 
- - GetMethodGroup 
- - GetConstantValue 
- - GetAliasInfo 
- - GetSpeculativeAliasInfo 
- - LookupSymbols 
- - AnalyzeStatementsControlFlow 
- - AnalyzeStatementControlFlow 
- - AnalyzeExpressionDataFlow 
- - AnalyzeStatementsDataFlow 
- - AnalyzeStatementDataFlow 
- - ClassifyConversion
+    - GetDeclaredSymbol 
+    - GetEnclosingSymbol 
+    - GetSymbolInfo 
+    - GetSpeculativeSymbolInfo 
+    - GetTypeInfo 
+    - GetSpeculativeTypeInfo 
+    - GetMethodGroup 
+    - GetConstantValue 
+    - GetAliasInfo 
+    - GetSpeculativeAliasInfo 
+    - LookupSymbols 
+    - AnalyzeStatementsControlFlow 
+    - AnalyzeStatementControlFlow 
+    - AnalyzeExpressionDataFlow 
+    - AnalyzeStatementsDataFlow 
+    - AnalyzeStatementDataFlow 
+    - ClassifyConversion
 - VB/F# interop
 - Performance and stress testing
  
 # Type and members
-- Access modifiers (public, protected, internal, protected internal, private), static modifier
-- Parameter modifiers (ref, out, params)
+- Access modifiers (public, protected, internal, protected internal, private protected, private), static, ref
+    - types
+    - methods
+    - fields
+    - properties (including get/set accessors)
+    - events (including add/remove accessors)
+- Parameter modifiers (ref, out, in, params)
 - Attributes (including security attribute)
 - Generics (type arguments, constraints, variance)
 - Default and constant values
@@ -53,6 +58,7 @@ This document provides guidance for thinking about language interactions and tes
 - Multi-declaration
 - NoPIA
 - Dynamic
+- Ref structs, Readonly structs
  
 # Code
 - Operators (see Eric's list below)
@@ -61,41 +67,55 @@ This document provides guidance for thinking about language interactions and tes
 - Target typing (var, lambdas, integrals)
 - Conversions (boxing/unboxing)
 - Nullable (wrapping, unwrapping)
-- Overload resolution, override/inherits/implementation (OHI)
+- Overload resolution, override/hide/implement (OHI)
 - Inheritance (virtual, override, abstract, new)
 - Anonymous types
+- Tuple types and literals (elements with explicit or inferred names, long tuples)
+- Local functions
 - Unsafe code
 - LINQ
 - Constructors, properties, indexers, events, operators, and destructors.
-- Async
+- Async (task-like types)
 - Lvalues: the synthesized fields are mutable 
- - Ref / out parameters
- - Compound operators (+=, /=, etc ..) 
- - Assignment exprs
+    - Ref / out parameters
+    - Compound operators (+=, /=, etc ..) 
+    - Assignment exprs
+- Ref return, ref readonly return, ref ternary, ref readonly local
+- `this = e;` in `struct` .ctor
 
- 
 # Misc
 - reserved keywords (sometimes contextual)
 - pre-processing directives
 - COM interop
-
+- modopt and modreq
+- ref assemblies
+- telemetry
 
 # Testing in interaction with other components
 Interaction with IDE, Debugger, and EnC should be worked out with relevant teams. A few highlights:
 - IDE
- 1. Colorization
- 2. Typing experience and dealing with incomplete code
- 3. Intellisense (squiggles, dot completion)
- 4. "go to" and renaming
- 5. More: https://github.com/dotnet/roslyn/issues/8389
+    - Colorization
+    - Typing experience and dealing with incomplete code
+    - Intellisense (squiggles, dot completion)
+    - "go to" and renaming
+    - cref comments
+    - UpgradeProject code fixer
+    - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/master/docs/contributing/IDE%20Test%20Plan.md)
 
-- Debugger
- 1. Stepping, setting breakpoints
- 2. Displaying Locals (that also covers Autos)
- 3. Typing in immediate/watch window (that also covers hovering over a variable)
+- Debugger / EE
+    - Stepping, setting breakpoints
+    - Displaying Locals/Autos windows
+        - Type and Value display
+        - Expanding instance members
+        - Locals/parameters/this in closure classes
+        - Attributes on locals and expressions (e.g.: [Dynamic], [TupleElementNames])
+    - Compiling expressions in Immediate/Watch windows or hovering over an expression
+    - Compiling expressions in [DebuggerDisplay("...")]
+	- Assigning values in Locals/Autos/Watch windows
  
 - Edit-and-continue
 
+- Live Unit Testing (instrumentation)
 
 # Eric's cheatsheet
 
@@ -112,7 +132,7 @@ x++;
 x--; 
 new C(); 
 if (…) … else … 
-switch(…) { … } 
+switch(…) { … case (…) when (…): … } 
 while(…) … 
 do … while(…); 
 for( … ; … ; … ) … 
@@ -120,7 +140,7 @@ foreach(…) …
 goto … ; 
 throw … ; 
 return … ; 
-try  { … } catch (…) { … } finally { … } 
+try  { … } catch (…) when (…) { … } finally { … } 
 checked { … } 
 unchecked { … } 
 lock(…) … 
@@ -149,7 +169,6 @@ Every expression can be classified as exactly one of these:
 - Array initializer (\*) 
 - __arglist (\*)  
 
-
 (\*) Technically not an expression according to the spec. 
   
 Note that only values, variables, properties, indexers and events have a type. 
@@ -168,20 +187,20 @@ A variable is a storage location. These are all the different ways to refer to a
 - Pointer dereference 
 - __refvalue 
 
-
 ## Operators 
 
 ```
 x.y 
 f( ) 
-a[ ] 
+a[e] 
 x++ 
-x--  
+x-- 
 new X() 
-typeof( ) 
-default( ) 
-checked( ) 
-unchecked( ) 
+typeof(T) 
+default(T)
+default 
+checked(e) 
+unchecked(e) 
 delegate ( ) { } 
 +x 
 -x 
@@ -228,6 +247,7 @@ sizeof( )
 *x 
 & x 
 x->y 
+e is pattern
 await x 
 __arglist( ) 
 __refvalue( x, X ) 
@@ -272,7 +292,6 @@ __makeref( x )
 - Tuple literal
 - Tuple
 
-
 ## Types 
   
 - Class 
@@ -284,7 +303,7 @@ __makeref( x )
 - Pointer 
 - Type parameter 
   
-Things that can be members of another thing 
+## Members
   
 - Class 
 - Struct 

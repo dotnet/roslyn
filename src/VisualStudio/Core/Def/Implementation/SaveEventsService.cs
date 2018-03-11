@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
@@ -140,9 +140,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         /// <returns>The ITextBuffer. If one could not be found, this returns null.</returns>
         private ITextBuffer TryGetTextBufferFromDocData(IntPtr docData)
         {
-            var shimTextBuffer = Marshal.GetObjectForIUnknown(docData) as IVsTextBuffer;
 
-            if (shimTextBuffer != null)
+            if (Marshal.GetObjectForIUnknown(docData) is IVsTextBuffer shimTextBuffer)
             {
                 return _editorAdaptersFactoryService.GetDocumentBuffer(shimTextBuffer);
             }

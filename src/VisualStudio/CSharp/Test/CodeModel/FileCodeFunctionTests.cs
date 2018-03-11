@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -84,10 +84,10 @@ public abstract class C
     public abstract int MethodA(int intA);
 
     // This is a short comment.
-    public abstract int MethodB(string foo);
+    public abstract int MethodB(string goo);
 
     dynamic DynamicField;
-    dynamic DynamicMethod(dynamic foo = 5);
+    dynamic DynamicMethod(dynamic goo = 5);
 }
 
 public class Entity { }

@@ -31,6 +31,8 @@ namespace Microsoft.CodeAnalysis.Editing
         public static SyntaxRemoveOptions DefaultRemoveOptions = SyntaxRemoveOptions.KeepUnbalancedDirectives | SyntaxRemoveOptions.AddElasticMarker;
 
         internal abstract SyntaxTrivia CarriageReturnLineFeed { get; }
+        internal abstract SyntaxTrivia ElasticCarriageReturnLineFeed { get; }
+        internal abstract bool RequiresExplicitImplementationForInterfaceMembers { get; }
 
         internal abstract SyntaxTrivia EndOfLine(string text);
 
@@ -107,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Editing
             string name,
             SyntaxNode type,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             SyntaxNode initializer = null);
 
         /// <summary>
@@ -145,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<string> typeParameters = null,
             SyntaxNode returnType = null,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode> statements = null);
 
         /// <summary>
@@ -171,6 +173,11 @@ namespace Microsoft.CodeAnalysis.Editing
                 decl = this.WithTypeParametersAndConstraints(decl, method.TypeParameters);
             }
 
+            if (method.ExplicitInterfaceImplementations.Length > 0)
+            {
+                decl = this.WithExplicitInterfaceImplementations(decl, method.ExplicitInterfaceImplementations);
+            }
+
             return decl;
         }
 
@@ -182,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<SyntaxNode> parameters = null,
             SyntaxNode returnType = null,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode> statements = null)
         {
             throw new NotImplementedException();
@@ -272,7 +279,7 @@ namespace Microsoft.CodeAnalysis.Editing
             string name,
             SyntaxNode type,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode> getAccessorStatements = null,
             IEnumerable<SyntaxNode> setAccessorStatements = null);
 
@@ -293,6 +300,19 @@ namespace Microsoft.CodeAnalysis.Editing
                     setAccessorStatements);
         }
 
+        public SyntaxNode WithAccessorDeclarations(SyntaxNode declaration, params SyntaxNode[] accessorDeclarations)
+            => WithAccessorDeclarations(declaration, (IEnumerable<SyntaxNode>)accessorDeclarations);
+
+        public abstract SyntaxNode WithAccessorDeclarations(SyntaxNode declaration, IEnumerable<SyntaxNode> accessorDeclarations);
+
+        public abstract SyntaxNode GetAccessorDeclaration(
+            Accessibility accessibility = Accessibility.NotApplicable,
+            IEnumerable<SyntaxNode> statements = null);
+
+        public abstract SyntaxNode SetAccessorDeclaration(
+            Accessibility accessibility = Accessibility.NotApplicable,
+            IEnumerable<SyntaxNode> statements = null);
+
         /// <summary>
         /// Creates an indexer declaration.
         /// </summary>
@@ -300,7 +320,7 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<SyntaxNode> parameters,
             SyntaxNode type,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode> getAccessorStatements = null,
             IEnumerable<SyntaxNode> setAccessorStatements = null);
 
@@ -338,7 +358,7 @@ namespace Microsoft.CodeAnalysis.Editing
             string name,
             SyntaxNode type,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers));
+            DeclarationModifiers modifiers = default);
 
         /// <summary>
         /// Creates an event declaration from an existing event symbol
@@ -359,7 +379,7 @@ namespace Microsoft.CodeAnalysis.Editing
             string name,
             SyntaxNode type,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode> parameters = null,
             IEnumerable<SyntaxNode> addAccessorStatements = null,
             IEnumerable<SyntaxNode> removeAccessorStatements = null);
@@ -392,7 +412,7 @@ namespace Microsoft.CodeAnalysis.Editing
             string containingTypeName = null,
             IEnumerable<SyntaxNode> parameters = null,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode> baseConstructorArguments = null,
             IEnumerable<SyntaxNode> statements = null);
 
@@ -450,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Editing
             string name,
             IEnumerable<string> typeParameters = null,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             SyntaxNode baseType = null,
             IEnumerable<SyntaxNode> interfaceTypes = null,
             IEnumerable<SyntaxNode> members = null);
@@ -462,7 +482,7 @@ namespace Microsoft.CodeAnalysis.Editing
             string name,
             IEnumerable<string> typeParameters = null,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode> interfaceTypes = null,
             IEnumerable<SyntaxNode> members = null);
 
@@ -482,7 +502,7 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode EnumDeclaration(
             string name,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers),
+            DeclarationModifiers modifiers = default,
             IEnumerable<SyntaxNode> members = null);
 
         /// <summary>
@@ -499,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Editing
             IEnumerable<string> typeParameters = null,
             SyntaxNode returnType = null,
             Accessibility accessibility = Accessibility.NotApplicable,
-            DeclarationModifiers modifiers = default(DeclarationModifiers));
+            DeclarationModifiers modifiers = default);
 
         /// <summary>
         /// Creates a declaration matching an existing symbol.
@@ -663,6 +683,8 @@ namespace Microsoft.CodeAnalysis.Editing
 
             return declaration;
         }
+
+        internal abstract SyntaxNode WithExplicitInterfaceImplementations(SyntaxNode declaration, ImmutableArray<IMethodSymbol> explicitInterfaceImplementations);
 
         /// <summary>
         /// Converts a declaration (method, class, etc) into a declaration with type parameters.
@@ -1001,6 +1023,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode WithAccessibility(SyntaxNode declaration, Accessibility accessibility);
 
+        internal abstract bool CanHaveAccessibility(SyntaxNode declaration);
+
         /// <summary>
         /// Gets the <see cref="DeclarationModifiers"/> for the declaration.
         /// </summary>
@@ -1223,6 +1247,28 @@ namespace Microsoft.CodeAnalysis.Editing
 
         #region Utility
 
+        internal static SyntaxTokenList Merge(SyntaxTokenList original, SyntaxTokenList newList)
+        {
+            // return tokens from newList, but use original tokens of kind matches
+            return new SyntaxTokenList(newList.Select(
+                token => Any(original, token.RawKind)
+                    ? original.First(tk => tk.RawKind == token.RawKind)
+                    : token));
+        }
+
+        private static bool Any(SyntaxTokenList original, int rawKind)
+        {
+            foreach (var token in original)
+            {
+                if (token.RawKind == rawKind)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         protected static SyntaxNode PreserveTrivia<TNode>(TNode node, Func<TNode, SyntaxNode> nodeChanger) where TNode : SyntaxNode
         {
             if (node == null)
@@ -1350,6 +1396,9 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates a statement that declares a single local variable.
         /// </summary>
         public abstract SyntaxNode LocalDeclarationStatement(SyntaxNode type, string identifier, SyntaxNode initializer = null, bool isConst = false);
+
+        internal abstract SyntaxNode WithInitializer(SyntaxNode variableDeclarator, SyntaxNode initializer);
+        internal abstract SyntaxNode EqualsValueClause(SyntaxToken operatorToken, SyntaxNode value);
 
         /// <summary>
         /// Creates a statement that declares a single local variable.
@@ -1672,6 +1721,67 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an expression that denotes a nullable type.
         /// </summary>
         public abstract SyntaxNode NullableTypeExpression(SyntaxNode type);
+
+        /// <summary>
+        /// Creates an expression that denotes a tuple type.
+        /// </summary>
+        public SyntaxNode TupleTypeExpression(IEnumerable<SyntaxNode> elements)
+        {
+            if (elements == null)
+            {
+                throw new ArgumentNullException(nameof(elements));
+            }
+            if (elements.Count() <= 1)
+            {
+                throw new ArgumentException("Tuples must have at least two elements.", nameof(elements));
+            }
+
+            return CreateTupleType(elements);
+        }
+
+        internal abstract SyntaxNode CreateTupleType(IEnumerable<SyntaxNode> elements);
+
+        /// <summary>
+        /// Creates an expression that denotes a tuple type.
+        /// </summary>
+        public SyntaxNode TupleTypeExpression(params SyntaxNode[] elements)
+            => TupleTypeExpression((IEnumerable<SyntaxNode>)elements);
+
+        /// <summary>
+        /// Creates an expression that denotes a tuple type.
+        /// </summary>
+        public SyntaxNode TupleTypeExpression(IEnumerable<ITypeSymbol> elementTypes, IEnumerable<string> elementNames = null)
+        {
+            if (elementTypes == null)
+            {
+                throw new ArgumentNullException(nameof(elementTypes));
+            }
+
+            if (elementNames != null)
+            {
+                if (elementNames.Count() != elementTypes.Count())
+                {
+                    throw new ArgumentException("The number of element names must match the cardinality of the tuple.", nameof(elementNames));
+                }
+
+                return TupleTypeExpression(elementTypes.Zip(elementNames, (type, name) => TupleElementExpression(type, name)));
+            }
+
+            return TupleTypeExpression(elementTypes.Select(type => TupleElementExpression(type, name: null)));
+        }
+
+#pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
+        /// <summary>
+        /// Creates an expression that denotes a tuple element.
+        /// </summary>
+        public abstract SyntaxNode TupleElementExpression(SyntaxNode type, string name = null);
+
+        /// <summary>
+        /// Creates an expression that denotes a tuple element.
+        /// </summary>
+        public SyntaxNode TupleElementExpression(ITypeSymbol type, string name = null)
+            => TupleElementExpression(TypeExpression(type), name);
+#pragma warning restore RS0026 // Do not add multiple public overloads with optional parameters
 
         /// <summary>
         /// Creates an expression that denotes an assignment from the right argument to left argument.
@@ -2062,6 +2172,11 @@ namespace Microsoft.CodeAnalysis.Editing
         /// Creates an nameof expression.
         /// </summary>
         public abstract SyntaxNode NameOfExpression(SyntaxNode expression);
+
+        /// <summary>
+        /// Creates an tuple expression.
+        /// </summary>
+        public abstract SyntaxNode TupleExpression(IEnumerable<SyntaxNode> arguments);
 
         #endregion
     }

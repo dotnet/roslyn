@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             // get span and common root
             this.SpanToFormat = GetSpanToFormat();
             _commonRoot = token1.GetCommonRoot(token2);
-            if (token1 == default(SyntaxToken))
+            if (token1 == default)
             {
                 _language = token2.Language;
             }
@@ -293,10 +293,10 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            Action<int, TriviaData> beginningOfTreeTriviaInfoApplier = (i, info) =>
+            void beginningOfTreeTriviaInfoApplier(int i, TriviaData info)
             {
                 tokenStream.ApplyBeginningOfTreeChange(info);
-            };
+            }
 
             // remove all leading indentation
             var triviaInfo = tokenStream.GetTriviaDataAtBeginningOfTree().WithIndentation(0, context, _formattingRules, cancellationToken);
@@ -312,10 +312,10 @@ namespace Microsoft.CodeAnalysis.Formatting
                 return;
             }
 
-            Action<int, TriviaData> endOfTreeTriviaInfoApplier = (i, info) =>
+            void endOfTreeTriviaInfoApplier(int i, TriviaData info)
             {
                 tokenStream.ApplyEndOfTreeChange(info);
-            };
+            }
 
             // remove all trailing indentation
             var triviaInfo = tokenStream.GetTriviaDataAtEndOfTree().WithIndentation(0, context, _formattingRules, cancellationToken);
@@ -326,17 +326,17 @@ namespace Microsoft.CodeAnalysis.Formatting
         private void ApplyTriviaOperations(FormattingContext context, TokenStream tokenStream, CancellationToken cancellationToken)
         {
             // trivia formatting result appliers
-            Action<int, TriviaData> regularApplier = (tokenPairIndex, info) =>
+            void regularApplier(int tokenPairIndex, TriviaData info)
             {
                 tokenStream.ApplyChange(tokenPairIndex, info);
-            };
+            }
 
             // trivia formatting applier
-            Action<int> triviaFormatter = tokenPairIndex =>
+            void triviaFormatter(int tokenPairIndex)
             {
                 var triviaInfo = tokenStream.GetTriviaData(tokenPairIndex);
                 triviaInfo.Format(context, _formattingRules, regularApplier, cancellationToken, tokenPairIndex);
-            };
+            }
 
             this.TaskExecutor.For(0, tokenStream.TokenCount - 1, triviaFormatter, cancellationToken);
         }

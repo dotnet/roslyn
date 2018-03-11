@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             var query =
                 from d in definitionsAndReferences.Definitions
                 let referenceItems = CreateReferenceItems(d, definitionsAndReferences, commonPathElements)
-                select new DefinitionTreeItem(d, referenceItems);
+                select new DefinitionTreeItem(_workspace, d, referenceItems);
 
             return query.ToList<AbstractTreeItem>();
         }

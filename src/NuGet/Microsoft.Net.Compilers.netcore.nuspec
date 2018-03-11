@@ -2,8 +2,15 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
   <metadata>
     <id>Microsoft.Net.Compilers.netcore</id>
+    <summary>
+      CoreCLR-compatible versions of the C# and VB compilers.
+    </summary>
     <description>
       CoreCLR-compatible versions of the C# and VB compilers.
+
+      More details at https://aka.ms/roslyn-packages
+
+      $commitPathMessage$
     </description>
     <language>en-US</language>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
@@ -14,7 +21,7 @@
     <tags>$tags$</tags>
     <serviceable>true</serviceable>
     <dependencies>
-      <group targetFramework="netcoreapp1.0">
+      <group targetFramework="netcoreapp2.0">
         <dependency id="Microsoft.CodeAnalysis.Compilers" version="[$version$]" />
         <dependency id="System.AppContext" version="$SystemAppContextVersion$" />
         <dependency id="System.Diagnostics.Process" version="$SystemDiagnosticsProcessVersion$" />
@@ -28,8 +35,8 @@
     </dependencies>
   </metadata>
   <files>
-    <file src="$emptyDirPath$/_._" target="ref/netcoreapp1.0" />
-    <file src="Exes/CscCore/csc.exe" target="runtimes/any/native" />
-    <file src="Exes/VbcCore/vbc.exe" target="runtimes/any/native" />
+    <file src="$emptyDirPath$/_._" target="ref/netcoreapp2.0" />
+    <file src="Exes/csc/netcoreapp2.0/csc.dll" target="runtimes/any/native" />
+    <file src="Exes/vbc/netcoreapp2.0/vbc.dll" target="runtimes/any/native" />
   </files>
 </package>

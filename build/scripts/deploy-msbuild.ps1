@@ -17,7 +17,7 @@ try {
 
     Create-Directory $toolsDir
     Create-Directory $scratchDir
-    pushd $toolsDir
+    Push-Location $toolsDir
 
     $scratchFile = Join-Path $scratchDir "msbuild.txt"
     $scratchVersion = Get-Content -raw $scratchFile -ErrorAction SilentlyContinue
@@ -46,5 +46,5 @@ catch {
     exit 1
 }
 finally {
-    popd
+    Pop-Location
 }

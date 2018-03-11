@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -465,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="currTypeHasSameKindNonMatch">True if there's a member with the same name and kind that is not a match.</param>
         /// <param name="hiddenBuilder">Hidden members (same name, different kind) will be added to this builder.</param>
         /// <remarks>
-        /// There is some similarity between this member and TypeSymbol.FindPotentialImplicitImplementationMethodDeclaredInType.
+        /// There is some similarity between this member and TypeSymbol.FindPotentialImplicitImplementationMemberDeclaredInType.
         /// When making changes to this member, think about whether or not they should also be applied in TypeSymbol.
         /// 
         /// In incorrect or imported code, it is possible that both currTypeBestMatch and hiddenBuilder will be populated.
@@ -749,8 +750,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         // NOTE: We're actually being more precise than Dev10 - we consider the fact that the runtime will also distinguish
                         // on the basis of return type.  For example, consider the following signatures:
-                        //      int Foo(ref int x)
-                        //      long Foo(out int x)
+                        //      int Goo(ref int x)
+                        //      long Goo(out int x)
                         // Dev10 will warn that these methods are runtime ambiguous, even though they aren't really (because they are
                         // distinguished by their return types).
                         if (MemberSignatureComparer.RuntimeSignatureComparer.Equals(otherMember, representativeMember))

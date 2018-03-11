@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
 using System.Composition;
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Async
                 root, oldNode, semanticModel, diagnostic, document, cancellationToken).ConfigureAwait(false);
             if (newRoot == null)
             {
-                return default(DescriptionAndNode);
+                return default;
             }
 
             return new DescriptionAndNode(CSharpFeaturesResources.Insert_await, newRoot);

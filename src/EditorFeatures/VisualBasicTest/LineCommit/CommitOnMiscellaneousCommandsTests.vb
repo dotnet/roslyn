@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
@@ -127,10 +127,10 @@ End Class
                                                        <Project Language="Visual Basic" CommonReferences="true">
                                                            <Document>$$Module Program
     Sub Main()
-        foo
+        goo
     End Sub
  
-    Private Sub foo()
+    Private Sub goo()
     End Sub
 End Module
                                                         </Document>
@@ -138,7 +138,7 @@ End Module
                                                    </Workspace>)
 
                 testData.CommandHandler.ExecuteCommand(New FormatDocumentCommandArgs(testData.View, testData.Buffer), Sub() Exit Sub)
-                Assert.Equal("        foo()", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(2).GetText())
+                Assert.Equal("        goo()", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(2).GetText())
             End Using
         End Sub
 
@@ -150,7 +150,7 @@ End Module
                                                        <Project Language="Visual Basic" CommonReferences="true">
                                                            <Document>Module Program
         $$Sub Main()
-        foo
+        goo
     End Sub
 End Module
                                                         </Document>

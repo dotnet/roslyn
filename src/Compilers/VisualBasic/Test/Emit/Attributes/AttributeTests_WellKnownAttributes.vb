@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                 <InterfaceTypeAttribute(ComInterfaceType.InterfaceIsIUnknown)>
                 <TypeLibImportClass(GetType(Object)), TypeLibType(TypeLibTypeFlags.FAggregatable)>
                 <BestFitMapping(False, ThrowOnUnmappableChar:=True)>
-                Public Interface IFoo
+                Public Interface IGoo
 
                     <AllowReversePInvokeCalls()>
                     Sub DoSomething()
@@ -78,39 +78,39 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                         Dim tLTypeSym = DirectCast(interopNS.GetTypeMember("TypeLibTypeAttribute"), NamedTypeSymbol)
                         Dim bfmSym = DirectCast(interopNS.GetTypeMember("BestFitMappingAttribute"), NamedTypeSymbol)
 
-                        ' IFoo
-                        Dim ifoo = DirectCast(m.GlobalNamespace.GetTypeMember("IFoo"), NamedTypeSymbol)
+                        ' IGoo
+                        Dim igoo = DirectCast(m.GlobalNamespace.GetTypeMember("IGoo"), NamedTypeSymbol)
 
-                        Assert.True(ifoo.IsComImport)
+                        Assert.True(igoo.IsComImport)
                         ' ComImportAttribute is a pseudo-custom attribute, which is not emitted.
                         If Not isFromSource Then
-                            Assert.Equal(5, ifoo.GetAttributes().Length)
+                            Assert.Equal(5, igoo.GetAttributes().Length)
                         Else
-                            Assert.Equal(6, ifoo.GetAttributes().Length)
+                            Assert.Equal(6, igoo.GetAttributes().Length)
 
                             ' get attr by NamedTypeSymbol
-                            attrSym = ifoo.GetAttribute(ciSym)
+                            attrSym = igoo.GetAttribute(ciSym)
                             Assert.Equal("ComImportAttribute", attrSym.AttributeClass.Name)
                             Assert.Equal(0, attrSym.CommonConstructorArguments.Length)
                             Assert.Equal(0, attrSym.CommonNamedArguments.Length)
                         End If
 
-                        attrSym = ifoo.GetAttribute(guidSym)
+                        attrSym = igoo.GetAttribute(guidSym)
                         Assert.Equal("String", attrSym.CommonConstructorArguments(0).Type.ToDisplayString)
                         Assert.Equal("ABCDEF5D-2448-447A-B786-64682CBEF123", attrSym.CommonConstructorArguments(0).Value)
 
                         ' get attr by ctor
-                        attrSym = ifoo.GetAttribute(itCtor)
+                        attrSym = igoo.GetAttribute(itCtor)
                         Assert.Equal("System.Runtime.InteropServices.ComInterfaceType", attrSym.CommonConstructorArguments(0).Type.ToDisplayString())
                         Assert.Equal(ComInterfaceType.InterfaceIsIUnknown, CType(attrSym.CommonConstructorArguments(0).Value, ComInterfaceType))
 
-                        attrSym = ifoo.GetAttribute(tLibSym)
+                        attrSym = igoo.GetAttribute(tLibSym)
                         Assert.Equal("Object", CType(attrSym.CommonConstructorArguments(0).Value, Symbol).ToDisplayString())
 
-                        attrSym = ifoo.GetAttribute(tLTypeSym)
+                        attrSym = igoo.GetAttribute(tLTypeSym)
                         Assert.Equal(TypeLibTypeFlags.FAggregatable, CType(attrSym.CommonConstructorArguments(0).Value, TypeLibTypeFlags))
 
-                        attrSym = ifoo.GetAttribute(bfmSym)
+                        attrSym = igoo.GetAttribute(bfmSym)
                         Assert.Equal(False, attrSym.CommonConstructorArguments(0).Value)
                         Assert.Equal(1, attrSym.CommonNamedArguments.Length)
                         Assert.Equal("Boolean", attrSym.CommonNamedArguments(0).Value.Type.ToDisplayString)
@@ -118,21 +118,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                         Assert.Equal(True, attrSym.CommonNamedArguments(0).Value.Value)
 
                         ' =============================
-                        Dim mem = DirectCast(ifoo.GetMembers("DoSomething").First(), MethodSymbol)
+                        Dim mem = DirectCast(igoo.GetMembers("DoSomething").First(), MethodSymbol)
                         Assert.Equal(1, mem.GetAttributes().Length)
                         attrSym = mem.GetAttributes().First()
                         Assert.Equal("AllowReversePInvokeCallsAttribute", attrSym.AttributeClass.Name)
                         Assert.Equal(0, attrSym.CommonConstructorArguments.Length)
 
-                        mem = DirectCast(ifoo.GetMembers("Register").First(), MethodSymbol)
+                        mem = DirectCast(igoo.GetMembers("Register").First(), MethodSymbol)
                         attrSym = mem.GetAttributes().First()
                         Assert.Equal("ComRegisterFunctionAttribute", attrSym.AttributeClass.Name)
                         Assert.Equal(0, attrSym.CommonConstructorArguments.Length)
 
-                        mem = DirectCast(ifoo.GetMembers("UnRegister").First(), MethodSymbol)
+                        mem = DirectCast(igoo.GetMembers("UnRegister").First(), MethodSymbol)
                         Assert.Equal(1, mem.GetAttributes().Length)
 
-                        mem = DirectCast(ifoo.GetMembers("LibFunc").First(), MethodSymbol)
+                        mem = DirectCast(igoo.GetMembers("LibFunc").First(), MethodSymbol)
                         attrSym = mem.GetAttributes().First()
                         Assert.Equal(1, attrSym.CommonConstructorArguments.Length)
                         Assert.Equal(TypeLibFuncFlags.FDefaultBind, CType(attrSym.CommonConstructorArguments(0).Value, TypeLibFuncFlags)) ' 32
@@ -156,18 +156,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
                 <ComVisibleAttribute(False)>
                 <UnmanagedFunctionPointerAttribute(CallingConvention.StdCall, BestFitMapping:=True, CharSet:=CharSet.Ansi, SetLastError:=True, ThrowOnUnmappableChar:=True)>
-                Public Delegate Sub DFoo(p1 As Char, p2 As SByte)
+                Public Delegate Sub DGoo(p1 As Char, p2 As SByte)
 
                 <ComDefaultInterface(GetType(Object)), ProgId("ProgId")>
-                Public Class CFoo
+                Public Class CGoo
 
                    <DispIdAttribute(123)> <LCIDConversion(1), ComConversionLoss()>
                     Sub Method(p1 As SByte, p2 As String)
                     End Sub
                 End Class
 
-                <ComVisible(true), TypeIdentifier("1234C65D-1234-447A-B786-64682CBEF136", "EFoo, InteropAttribute, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")>
-                Public Enum EFoo
+                <ComVisible(true), TypeIdentifier("1234C65D-1234-447A-B786-64682CBEF136", "EGoo, InteropAttribute, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null")>
+                Public Enum EGoo
                     One
                     <TypeLibVar(TypeLibVarFlags.FDisplayBind)>
                     Two
@@ -201,8 +201,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
                                          Dim moduleGlobalNS = m.GlobalNamespace
 
-                                         ' delegate DFoo
-                                         Dim type1 = DirectCast(moduleGlobalNS.GetTypeMember("DFoo"), NamedTypeSymbol)
+                                         ' delegate DGoo
+                                         Dim type1 = DirectCast(moduleGlobalNS.GetTypeMember("DGoo"), NamedTypeSymbol)
                                          Assert.Equal(2, type1.GetAttributes().Length)
 
                                          Dim attrSym = type1.GetAttribute(comvSym)
@@ -222,8 +222,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                                          Assert.Equal("ThrowOnUnmappableChar", attrSym.CommonNamedArguments(3).Key)
                                          Assert.Equal(True, attrSym.CommonNamedArguments(3).Value.Value)
 
-                                         ' class CFoo
-                                         Dim type2 = DirectCast(moduleGlobalNS.GetTypeMember("CFoo"), NamedTypeSymbol)
+                                         ' class CGoo
+                                         Dim type2 = DirectCast(moduleGlobalNS.GetTypeMember("CGoo"), NamedTypeSymbol)
                                          Assert.Equal(2, type2.GetAttributes().Length)
 
                                          attrSym = type2.GetAttribute(comdSym)
@@ -241,10 +241,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
                                          attrSym = method.GetAttribute(comcSym)
                                          Assert.Equal(0, attrSym.CommonConstructorArguments.Length)
 
-                                         '' enum EFoo
+                                         '' enum EGoo
                                          If compilation IsNot Nothing Then
                                              ' Because this is a nopia local type it is only visible from the source assembly.
-                                             Dim type3 = DirectCast(globalNS.GetTypeMember("EFoo"), NamedTypeSymbol)
+                                             Dim type3 = DirectCast(globalNS.GetTypeMember("EGoo"), NamedTypeSymbol)
                                              Assert.Equal(2, type3.GetAttributes().Length)
 
                                              attrSym = type3.GetAttribute(comvSym)
@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
                                              attrSym = type3.GetAttribute(tidSym)
                                              Assert.Equal(2, attrSym.CommonConstructorArguments.Length)
-                                             Assert.Equal("EFoo, InteropAttribute, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", attrSym.CommonConstructorArguments(1).Value)
+                                             Assert.Equal("EGoo, InteropAttribute, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null", attrSym.CommonConstructorArguments(1).Value)
 
                                              Dim field = DirectCast(type3.GetMembers("one").First(), FieldSymbol)
                                              Assert.Equal(0, field.GetAttributes().Length)
@@ -934,11 +934,11 @@ Class C
     Public Shared Sub F2()
     End Sub
 
-    <DllImport("foo", EntryPoint:=Nothing)>
+    <DllImport("goo", EntryPoint:=Nothing)>
     Public Shared Sub F3()
     End Sub
 
-    <DllImport("foo", EntryPoint:="")>
+    <DllImport("goo", EntryPoint:="")>
     Public Shared Sub F4()
     End Sub
 
@@ -1211,8 +1211,8 @@ Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 
 Class C
-    Declare Unicode Sub M1 Lib "foo"()
-    Declare Unicode Sub M2 Lib "foo" Alias "bar"()
+    Declare Unicode Sub M1 Lib "goo"()
+    Declare Unicode Sub M2 Lib "goo" Alias "bar"()
 End Class
 ]]>
     </file>
@@ -1224,7 +1224,7 @@ End Class
                         Dim c = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
 
                         Dim info = c.GetMember(Of MethodSymbol)("M1").GetDllImportData()
-                        Assert.Equal("foo", info.ModuleName)
+                        Assert.Equal("goo", info.ModuleName)
                         Assert.Equal(If(isFromSource, Nothing, "M1"), info.EntryPointName)
                         Assert.Equal(CharSet.Unicode, info.CharacterSet)
                         Assert.Equal(CallingConvention.Winapi, info.CallingConvention)
@@ -1234,7 +1234,7 @@ End Class
                         Assert.Equal(Nothing, info.ThrowOnUnmappableCharacter)
 
                         info = c.GetMember(Of MethodSymbol)("M2").GetDllImportData()
-                        Assert.Equal("foo", info.ModuleName)
+                        Assert.Equal("goo", info.ModuleName)
                         Assert.Equal("bar", info.EntryPointName)
                         Assert.Equal(CharSet.Unicode, info.CharacterSet)
                         Assert.Equal(CallingConvention.Winapi, info.CallingConvention)
@@ -1256,7 +1256,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 
 Public Class C
-    <DllImport("foo")>
+    <DllImport("goo")>
     Public Shared Operator +(a As C, b As C) As Integer
     End Operator
 End Class
@@ -1276,7 +1276,7 @@ End Class
                     Dim entryPointName As String = reader.GetString(method.Name)
 
                     Assert.Equal("op_Addition", entryPointName)
-                    Assert.Equal("foo", moduleName)
+                    Assert.Equal("goo", moduleName)
                 End Sub)
         End Sub
 
@@ -1289,7 +1289,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 
 Public Class C
-    <DllImport("foo")>
+    <DllImport("goo")>
     Public Shared Narrowing Operator CType(a As C) As Integer
     End Operator
 End Class
@@ -1308,7 +1308,7 @@ End Class
                     Dim entryPointName As String = peFileReader.GetString(method.Name)
 
                     Assert.Equal("op_Explicit", entryPointName)
-                    Assert.Equal("foo", moduleName)
+                    Assert.Equal("goo", moduleName)
                 End Sub)
         End Sub
 
@@ -1322,10 +1322,10 @@ Imports System.Runtime.InteropServices
 
 Public Class C
     <DllImport("module name")>
-    Shared Partial Private Sub foo()
+    Shared Partial Private Sub goo()
     End Sub
  
-    Shared Private Sub foo()
+    Shared Private Sub goo()
     End Sub
 End Class
 ]]>
@@ -1343,7 +1343,7 @@ End Class
                     Dim entryPointName As String = reader.GetString(method.Name)
 
                     Assert.Equal("module name", moduleName)
-                    Assert.Equal("foo", entryPointName)
+                    Assert.Equal("goo", entryPointName)
                 End Sub)
         End Sub
 
@@ -1356,10 +1356,10 @@ Imports System.Runtime.InteropServices
 
 Public Class C
     <DllImport("module name")>
-    Partial Private Sub foo()
+    Partial Private Sub goo()
     End Sub
  
-    Private Sub foo()
+    Private Sub goo()
     End Sub
 End Class
 ]]>
@@ -1421,47 +1421,47 @@ Public Class C
     End Property
 
     Custom Event x As Action(Of Integer)
-        <DllImport("foo")>
+        <DllImport("goo")>
         AddHandler(value As Action(Of Integer))
         End AddHandler
 
-        <DllImport("foo")>
+        <DllImport("goo")>
         RemoveHandler(value As Action(Of Integer))
         End RemoveHandler
 
-        <DllImport("foo")>
+        <DllImport("goo")>
         RaiseEvent(obj As Integer)
         End RaiseEvent
     End Event
 
-    <DllImport("foo")>
+    <DllImport("goo")>
     Sub InstanceMethod
     End Sub
 
-    <DllImport("foo")>
+    <DllImport("goo")>
     Shared Sub NonEmptyBody
        System.Console.WriteLine() 
     End Sub
 
-    <DllImport("foo")>
+    <DllImport("goo")>
     Shared Sub GenericMethod(Of T)()
     End Sub
 End Class
 
 Interface I
-    <DllImport("foo")>
+    <DllImport("goo")>
     Sub InterfaceMethod()
 End Interface
 
 Interface I(Of T)
-    <DllImport("foo")>
+    <DllImport("goo")>
     Sub InterfaceMethod()
 End Interface
 
 Class C(Of T)
-    Interface Foo
+    Interface Goo
         Class D
-            <DllImport("foo")>
+            <DllImport("goo")>
             Shared Sub MethodOnGenericType()
             End Sub
         End Class
@@ -1790,7 +1790,7 @@ Imports System.Runtime.InteropServices
 
 Public Class C
     <DllImport("Baz")>
-    Declare Ansi Sub Foo Lib "Foo" Alias "bar" ()
+    Declare Ansi Sub Goo Lib "Goo" Alias "bar" ()
 End Class
 ]]>
     </file>
@@ -1815,7 +1815,7 @@ Public Module M
     End Sub
 
     <Extension()>
-    <DllImport("foo")>
+    <DllImport("goo")>
     Sub DllImp(a As Integer)
     End Sub
 
@@ -1856,69 +1856,69 @@ MustInherit Class C
     <MethodImpl(MethodImplOptions.PreserveSig)>
     MustOverride Public Sub f1()
 
-    <DllImport("foo")>
+    <DllImport("goo")>
     Public Shared Sub f2()
     End Sub
 
-    <DllImport("foo", PreserveSig:=True)>
+    <DllImport("goo", PreserveSig:=True)>
     Public Shared Sub f3()
     End Sub
 
-    <DllImport("foo", PreserveSig:=False)>
+    <DllImport("goo", PreserveSig:=False)>
     Public Shared Sub f4()
     End Sub
 
-    <MethodImpl(MethodImplOptions.PreserveSig), DllImport("foo", PreserveSig:=True)>
+    <MethodImpl(MethodImplOptions.PreserveSig), DllImport("goo", PreserveSig:=True)>
     Public Shared Sub f5()
     End Sub
 
-    <MethodImpl(MethodImplOptions.PreserveSig), DllImport("foo", PreserveSig:=False)>
+    <MethodImpl(MethodImplOptions.PreserveSig), DllImport("goo", PreserveSig:=False)>
     Public Shared Sub f6()
     End Sub
 
     <MethodImpl(MethodImplOptions.PreserveSig), PreserveSig>
     MustOverride Public Sub f7()
 
-    <DllImport("foo"), PreserveSig>
+    <DllImport("goo"), PreserveSig>
     Public Shared Sub f8()
     End Sub
 
-    <PreserveSig, DllImport("foo", PreserveSig:=True)>
+    <PreserveSig, DllImport("goo", PreserveSig:=True)>
     Public Shared Sub f9()
     End Sub
 
     ' false
-    <DllImport("foo", PreserveSig:=False), PreserveSig>
+    <DllImport("goo", PreserveSig:=False), PreserveSig>
     Public Shared Sub f10()
     End Sub
 
-    <MethodImpl(MethodImplOptions.PreserveSig), DllImport("foo", PreserveSig:=True), PreserveSig>
+    <MethodImpl(MethodImplOptions.PreserveSig), DllImport("goo", PreserveSig:=True), PreserveSig>
     Public Shared Sub f11()
     End Sub
 
     ' false
-    <DllImport("foo", PreserveSig:=False), PreserveSig, MethodImpl(MethodImplOptions.PreserveSig)>
+    <DllImport("goo", PreserveSig:=False), PreserveSig, MethodImpl(MethodImplOptions.PreserveSig)>
     Public Shared Sub f12()
     End Sub
 
     ' false
-    <DllImport("foo", PreserveSig:=False), MethodImpl(MethodImplOptions.PreserveSig), PreserveSig>
+    <DllImport("goo", PreserveSig:=False), MethodImpl(MethodImplOptions.PreserveSig), PreserveSig>
     Public Shared Sub f13()
     End Sub
 
-    <PreserveSig, DllImport("foo", PreserveSig:=False), MethodImpl(MethodImplOptions.PreserveSig)>
+    <PreserveSig, DllImport("goo", PreserveSig:=False), MethodImpl(MethodImplOptions.PreserveSig)>
     Public Shared Sub f14()
     End Sub
 
-    <PreserveSig, MethodImpl(MethodImplOptions.PreserveSig), DllImport("foo", PreserveSig:=False)>
+    <PreserveSig, MethodImpl(MethodImplOptions.PreserveSig), DllImport("goo", PreserveSig:=False)>
     Public Shared Sub f15()
     End Sub
 
-    <MethodImpl(MethodImplOptions.PreserveSig), PreserveSig, DllImport("foo", PreserveSig:=False)>
+    <MethodImpl(MethodImplOptions.PreserveSig), PreserveSig, DllImport("goo", PreserveSig:=False)>
     Public Shared Sub f16()
     End Sub
 
-    <MethodImpl(MethodImplOptions.PreserveSig), DllImport("foo", PreserveSig:=False), PreserveSig>
+    <MethodImpl(MethodImplOptions.PreserveSig), DllImport("goo", PreserveSig:=False), PreserveSig>
     Public Shared Sub f17()
     End Sub
 
@@ -1926,7 +1926,7 @@ MustInherit Class C
     Public Shared Sub f18()
     End Sub
 
-    <MethodImpl(MethodImplOptions.Synchronized), DllImport("foo", PreserveSig:=False), PreserveSig>
+    <MethodImpl(MethodImplOptions.Synchronized), DllImport("goo", PreserveSig:=False), PreserveSig>
     Public Shared Sub f19()
     End Sub
 
@@ -2119,7 +2119,7 @@ Imports System.Runtime.InteropServices
 <Module:DefaultCharSet(CharSet.Ansi)>
 MustInherit Class C
 
-    <DllImport("foo")>
+    <DllImport("goo")>
     Shared Sub f1()
     End Sub
 End Class
@@ -2150,7 +2150,7 @@ Imports System.Runtime.InteropServices
 
 <StructLayout(LayoutKind.Explicit)>
 MustInherit Class C
-    <DllImport("foo")>
+    <DllImport("goo")>
     Shared Sub f1()
     End Sub
 End Class
@@ -2221,7 +2221,7 @@ Class C
     Class D
         Dim arr As Integer() = {1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0}
 
-        Sub foo()
+        Sub goo()
             Dim a As Integer = 1
             Dim b As Integer = 2
             Dim q = New With {.f = 1, .g = 2}
@@ -2229,7 +2229,7 @@ Class C
         End Sub
     End Class
 
-    Event Foo(a As Integer, b As String)
+    Event Goo(a As Integer, b As String)
 End Class
 
 <SpecialName>
@@ -2295,7 +2295,7 @@ Imports Microsoft.VisualBasic
 <Module:DefaultCharSet(CharSet.Unicode)>
 
 Friend Class C
-    Public Sub Foo(x As Integer)    
+    Public Sub Goo(x As Integer)    
       Console.WriteLine(ChrW(x))
     End Sub
 End Class
@@ -2336,7 +2336,7 @@ Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
 
 Public Class C
-    Declare Sub Bar Lib "Foo" ()
+    Declare Sub Bar Lib "Goo" ()
 End Class
 ]]>
     </file>
@@ -2348,7 +2348,7 @@ End Class
 
                     ' ModuleRef:
                     Dim moduleRefName = reader.GetModuleReference(reader.GetModuleReferences().Single()).Name
-                    Assert.Equal("Foo", reader.GetString(moduleRefName))
+                    Assert.Equal("Goo", reader.GetString(moduleRefName))
 
                     ' FileRef:
                     ' Although the Metadata spec says there should be a File entry for each ModuleRef entry 
@@ -4195,7 +4195,7 @@ Public Class C
     Dim fNotExtensible2 As NotExtensibleInterface2
     Dim fNotExtensible3 As NotExtensibleInterface3
 
-    Public Sub Foo()
+    Public Sub Goo()
         fExtensible1.LateBound()
         fExtensible2.LateBound()
         fExtensible3.LateBound()
@@ -4642,7 +4642,7 @@ End Class
             ' Dev10 Runtime Exception:
             ' Unhandled Exception: System.TypeLoadException: Windows Runtime types can only be declared in Windows Runtime assemblies.
 
-            Dim validator = CompileAndVerify(source, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=False)
+            Dim validator = CompileAndVerify(source, sourceSymbolValidator:=sourceValidator, symbolValidator:=metadataValidator, verify:=Verification.Fails)
             validator.EmitAndVerify("Type load failed.")
         End Sub
 
@@ -4678,7 +4678,7 @@ End Class
         <file name="a.vb">
             Imports System
             Module Module1
-                Sub foo()
+                Sub goo()
                 End Sub
 
                 Sub Main()
@@ -4692,8 +4692,8 @@ End Class
 
             Dim sourceValidator As Action(Of ModuleSymbol) = Sub(m As ModuleSymbol)
                                                                  Dim type = DirectCast(m.GlobalNamespace.GetMember("Module1"), SourceNamedTypeSymbol)
-                                                                 Dim fooMethod = DirectCast(type.GetMember("foo"), SourceMethodSymbol)
-                                                                 VerifySynthesizedSTAThreadAttribute(fooMethod, expected:=False)
+                                                                 Dim gooMethod = DirectCast(type.GetMember("goo"), SourceMethodSymbol)
+                                                                 VerifySynthesizedSTAThreadAttribute(gooMethod, expected:=False)
 
                                                                  Dim mainMethod = DirectCast(type.GetMember("Main"), SourceMethodSymbol)
                                                                  VerifySynthesizedSTAThreadAttribute(mainMethod, expected:=True)
@@ -4709,7 +4709,7 @@ End Class
         <file name="a.vb">
             Imports System
             Module Module1
-                Sub foo()
+                Sub goo()
                 End Sub
 
                 Sub Main()
@@ -4723,8 +4723,8 @@ End Class
 
             Dim sourceValidator As Action(Of ModuleSymbol) = Sub(m As ModuleSymbol)
                                                                  Dim type = DirectCast(m.GlobalNamespace.GetMember("Module1"), SourceNamedTypeSymbol)
-                                                                 Dim fooMethod = DirectCast(type.GetMember("foo"), SourceMethodSymbol)
-                                                                 VerifySynthesizedSTAThreadAttribute(fooMethod, expected:=False)
+                                                                 Dim gooMethod = DirectCast(type.GetMember("goo"), SourceMethodSymbol)
+                                                                 VerifySynthesizedSTAThreadAttribute(gooMethod, expected:=False)
 
                                                                  Dim mainMethod = DirectCast(type.GetMember("Main"), SourceMethodSymbol)
                                                                  VerifySynthesizedSTAThreadAttribute(mainMethod, expected:=False)
@@ -4741,7 +4741,7 @@ End Class
         <![CDATA[ 
             Imports System
                 Module Module1
-            Sub foo()
+            Sub goo()
             End Sub
 
             <STAThread()>
@@ -4757,8 +4757,8 @@ End Class
 
             Dim sourceValidator As Action(Of ModuleSymbol) = Sub(m As ModuleSymbol)
                                                                  Dim type = DirectCast(m.GlobalNamespace.GetMember("Module1"), SourceNamedTypeSymbol)
-                                                                 Dim fooMethod = DirectCast(type.GetMember("foo"), SourceMethodSymbol)
-                                                                 VerifySynthesizedSTAThreadAttribute(fooMethod, expected:=False)
+                                                                 Dim gooMethod = DirectCast(type.GetMember("goo"), SourceMethodSymbol)
+                                                                 VerifySynthesizedSTAThreadAttribute(gooMethod, expected:=False)
 
                                                                  Dim mainMethod = DirectCast(type.GetMember("Main"), SourceMethodSymbol)
                                                                  VerifySynthesizedSTAThreadAttribute(mainMethod, expected:=False)
@@ -4775,7 +4775,7 @@ End Class
         <![CDATA[ 
             Imports System
                 Module Module1
-            Sub foo()
+            Sub goo()
             End Sub
 
             <MTAThread()>
@@ -4791,8 +4791,8 @@ End Class
 
             Dim sourceValidator As Action(Of ModuleSymbol) = Sub(m As ModuleSymbol)
                                                                  Dim type = DirectCast(m.GlobalNamespace.GetMember("Module1"), SourceNamedTypeSymbol)
-                                                                 Dim fooMethod = DirectCast(type.GetMember("foo"), SourceMethodSymbol)
-                                                                 VerifySynthesizedSTAThreadAttribute(fooMethod, expected:=False)
+                                                                 Dim gooMethod = DirectCast(type.GetMember("goo"), SourceMethodSymbol)
+                                                                 VerifySynthesizedSTAThreadAttribute(gooMethod, expected:=False)
 
                                                                  Dim mainMethod = DirectCast(type.GetMember("Main"), SourceMethodSymbol)
                                                                  VerifySynthesizedSTAThreadAttribute(mainMethod, expected:=False)

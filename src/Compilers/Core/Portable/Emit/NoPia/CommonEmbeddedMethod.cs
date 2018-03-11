@@ -110,11 +110,6 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     _method = method;
                 }
 
-                void Cci.IMethodBody.Dispatch(Cci.MetadataVisitor visitor)
-                {
-                    visitor.Visit(this);
-                }
-
                 ImmutableArray<Cci.ExceptionHandlerRegion> Cci.IMethodBody.ExceptionRegions =>
                     ImmutableArray<Cci.ExceptionHandlerRegion>.Empty;
 
@@ -129,13 +124,11 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 ImmutableArray<byte> Cci.IMethodBody.IL => ImmutableArray<byte>.Empty;
 
-                bool Cci.IMethodBody.HasAnySequencePoints => false;
-
-                void Cci.IMethodBody.GetSequencePoints(ArrayBuilder<Cci.SequencePoint> builder) { }
+                ImmutableArray<Cci.SequencePoint> Cci.IMethodBody.SequencePoints => ImmutableArray<Cci.SequencePoint>.Empty;
 
                 bool Cci.IMethodBody.HasDynamicLocalVariables => false;
 
-                Cci.AsyncMethodBodyDebugInfo Cci.IMethodBody.AsyncDebugInfo => null;
+                StateMachineMoveNextBodyDebugInfo Cci.IMethodBody.MoveNextBodyInfo => null;
 
                 DynamicAnalysisMethodBodyData Cci.IMethodBody.DynamicAnalysisData => null;
 
@@ -211,13 +204,10 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
             bool Cci.IMethodDefinition.RequiresSecurityObject => false;
 
-            IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.ReturnValueAttributes
+            IEnumerable<Cci.ICustomAttribute> Cci.IMethodDefinition.GetReturnValueAttributes(EmitContext context)
             {
-                get
-                {
-                    // TODO:
-                    return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
-                }
+                // TODO:
+                return SpecializedCollections.EmptyEnumerable<Cci.ICustomAttribute>();
             }
 
             bool Cci.IMethodDefinition.ReturnValueIsMarshalledExplicitly => ReturnValueIsMarshalledExplicitly;

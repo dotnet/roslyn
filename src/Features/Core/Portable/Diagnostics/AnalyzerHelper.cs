@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Linq;
@@ -9,6 +9,7 @@ using Roslyn.Utilities;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -50,10 +51,28 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public static bool IsOpenFileOnly(this DiagnosticAnalyzer analyzer, Workspace workspace)
         {
-            var builtInAnalyzer = analyzer as IBuiltInAnalyzer;
-            if (builtInAnalyzer != null)
+            if (analyzer is IBuiltInAnalyzer builtInAnalyzer)
             {
                 return builtInAnalyzer.OpenFileOnly(workspace);
+            }
+
+            return false;
+        }
+
+        public static bool ContainsOpenFileOnlyAnalyzers(this CompilationWithAnalyzers analyzerDriverOpt, Workspace workspace)
+        {
+            if (analyzerDriverOpt == null)
+            {
+                // not Roslyn. no open file only analyzers
+                return false;
+            }
+
+            foreach (var analyzer in analyzerDriverOpt.Analyzers)
+            {
+                if (analyzer.IsOpenFileOnly(workspace))
+                {
+                    return true;
+                }
             }
 
             return false;
@@ -120,28 +139,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return typeInfo.Assembly.GetName().Name;
         }
 
-        public static async Task<OptionSet> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
+        public static Task<OptionSet> GetDocumentOptionSetAsync(this AnalyzerOptions analyzerOptions, SyntaxTree syntaxTree, CancellationToken cancellationToken)
         {
-            var workspace = (analyzerOptions as WorkspaceAnalyzerOptions)?.Workspace;
-            if (workspace == null)
+            var workspaceAnalyzerOptions = analyzerOptions as WorkspaceAnalyzerOptions;
+            if (workspaceAnalyzerOptions == null)
             {
-                return null;
+                return SpecializedTasks.Default<OptionSet>();
             }
 
-            var documentId = workspace.CurrentSolution.GetDocumentId(syntaxTree);
-            if (documentId == null)
-            {
-                return workspace.Options;
-            }
-
-            var document = workspace.CurrentSolution.GetDocument(documentId);
-            if (document == null)
-            {
-                return workspace.Options;
-            }
-
-            var documentOptionSet = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
-            return documentOptionSet ?? workspace.Options;
+            return workspaceAnalyzerOptions.GetDocumentOptionSetAsync(syntaxTree, cancellationToken);
         }
 
         internal static void OnAnalyzerException_NoTelemetryLogging(
@@ -278,6 +284,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return language == LanguageNames.CSharp ? csharpMessage : vbMessage;
+        }
+
+        public static void AppendAnalyzerMap(this Dictionary<string, DiagnosticAnalyzer> analyzerMap, IEnumerable<DiagnosticAnalyzer> analyzers)
+        {
+            foreach (var analyzer in analyzers)
+            {
+                // user might have included exact same analyzer twice as project analyzers explicitly. we consider them as one
+                analyzerMap[analyzer.GetAnalyzerId()] = analyzer;
+            }
         }
     }
 }

@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(string.Empty,
                    treeNode,
                    nameLocation: new SourceLocation(treeNode),
-                   children: children)
+                   children: children,
+                   diagnostics: ImmutableArray<Diagnostic>.Empty)
         {
             Debug.Assert(!referenceDirectives.IsDefault);
 

@@ -63,7 +63,7 @@ class Methods
 ";
 
             var source = string.Format(sourceTemplate, s_longSymbolName);
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics(
                 // Uninteresting
 
@@ -181,7 +181,7 @@ namespace {0}1 {{ }}    // Too long, but not checked.
 ";
 
             var source = string.Format(sourceTemplate, s_longSymbolName);
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics();
         }
@@ -214,7 +214,7 @@ interface {2}1<T> {{ }} // Too long after appending '`1'
             var substring1 = s_longSymbolName.Substring(1);
             var substring2 = s_longSymbolName.Substring(2);
             var source = string.Format(sourceTemplate, substring0, substring1, substring2);
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (3,7):
@@ -263,7 +263,7 @@ class C : I, N.J<C>
             var name0 = s_longSymbolName.Substring(2); // Space for "I."
             var name1 = s_longSymbolName.Substring(7); // Space for "N.J<C>."
             var source = string.Format(sourceTemplate, name0, name1);
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (20,12):
@@ -282,31 +282,31 @@ using System.Runtime.InteropServices;
 
 class C1
 {{
-    [DllImport(""foo.dll"", EntryPoint = ""Short1"")]
+    [DllImport(""goo.dll"", EntryPoint = ""Short1"")]
     static extern void {0}();  // Name is fine, entrypoint is fine.
-    [DllImport(""foo.dll"", EntryPoint = ""Short2"")]
+    [DllImport(""goo.dll"", EntryPoint = ""Short2"")]
     static extern void {0}1(); // Name is too long, entrypoint is fine.
 }}
 
 class C2
 {{
-    [DllImport(""foo.dll"", EntryPoint = ""{0}"")]
+    [DllImport(""goo.dll"", EntryPoint = ""{0}"")]
     static extern void Short1();   // Name is fine, entrypoint is fine.
-    [DllImport(""foo.dll"", EntryPoint = ""{0}1"")]
+    [DllImport(""goo.dll"", EntryPoint = ""{0}1"")]
     static extern void Short2();   // Name is fine, entrypoint is too long.
 }}
 
 class C3
 {{
-    [DllImport(""foo.dll"")]
+    [DllImport(""goo.dll"")]
     static extern void {0}();  // Name is fine, entrypoint is unspecified.
-    [DllImport(""foo.dll"")]
+    [DllImport(""goo.dll"")]
     static extern void {0}1(); // Name is too long, entrypoint is unspecified.
 }}
 ";
 
             var source = string.Format(sourceTemplate, s_longSymbolName);
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (9,24):
@@ -333,7 +333,7 @@ class C
 ";
 
             var source = string.Format(sourceTemplate, s_longSymbolName);
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (5,17): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
@@ -367,7 +367,7 @@ class E
 ";
 
             var source = string.Format(sourceTemplate, s_longSymbolName);
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (2,1034): error CS7013: Name 'LongSymbolName + 1' exceeds the maximum length allowed in metadata.
@@ -397,7 +397,7 @@ class C
 ";
 
             var source = string.Format(sourceTemplate, s_longLocalName);
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (7,13): warning CS8029: Local name 'LongLocalName + 1' is too long for PDB.  Consider shortening or compiling without /debug.
@@ -421,7 +421,7 @@ class C
 ";
 
             var source = string.Format(sourceTemplate, s_longLocalName);
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (7,19): warning CS8029: Local name 'LongSymbolName + 1' is too long for PDB.  Consider shortening or compiling without /debug.
@@ -451,7 +451,7 @@ class C
             int padding = GeneratedNames.MakeLambdaMethodName("A", -1, 0, 0, 0).Length - 1;
             string longName = s_longSymbolName.Substring(padding);
             var source = string.Format(sourceTemplate, longName);
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics(
                 // (13,16): error CS7013: Name '<longName + 1>b__3' exceeds the maximum length allowed in metadata.
@@ -474,7 +474,7 @@ class C
             int padding = GeneratedNames.MakeAnonymousTypeBackingFieldName("A").Length - 1;
             string longName = s_longSymbolName.Substring(padding);
             var source = string.Format(sourceTemplate, longName);
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             comp.VerifyDiagnostics();
 
             // CONSIDER: Double reporting (once for field def, once for member ref) is not ideal.
@@ -546,7 +546,7 @@ unsafe struct S
             int padding = GeneratedNames.MakeFixedFieldImplementationName("A").Length - 1;
             string longName = s_longSymbolName.Substring(padding);
             var source = string.Format(sourceTemplate, longName);
-            var comp = CreateCompilationWithMscorlib(source, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
             // CONSIDER: Location would light up if synthesized methods had them.
             comp.VerifyEmitDiagnostics(
@@ -558,7 +558,7 @@ unsafe struct S
         public void TestResources()
         {
             var source = "class C { }";
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateStandardCompilation(source);
             Func<Stream> dataProvider = () => new System.IO.MemoryStream();
             var resources = new[]
             {

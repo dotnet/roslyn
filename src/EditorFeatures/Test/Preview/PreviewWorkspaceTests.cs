@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -28,6 +28,7 @@ using Roslyn.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.Editor.Implementation.Preview;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
@@ -190,7 +191,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 //// enable preview diagnostics
                 previewWorkspace.EnableDiagnostic();
 
-                var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<IErrorTag>(workspace);
+                var diagnosticsAndErrorsSpans = await SquiggleUtilities.GetDiagnosticsAndErrorSpansAsync<DiagnosticsSquiggleTaggerProvider>(workspace);
                 const string AnalzyerCount = "Analyzer Count: ";
                 Assert.Equal(AnalzyerCount + 1, AnalzyerCount + diagnosticsAndErrorsSpans.Item1.Length);
 
@@ -235,17 +236,16 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 {
                     var foregroundService = workspace.GetService<IForegroundNotificationService>();
 
-                    var waiter = new ErrorSquiggleWaiter();
-                    var listeners = AsynchronousOperationListener.CreateListeners(FeatureAttribute.ErrorSquiggles, waiter);
+                    var listenerProvider = new AsynchronousOperationListenerProvider();
 
                     // set up tagger for both buffers
                     var leftBuffer = diffView.Viewer.LeftView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-                    var leftProvider = new DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listeners);
+                    var leftProvider = new DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listenerProvider);
                     var leftTagger = leftProvider.CreateTagger<IErrorTag>(leftBuffer);
                     using (var leftDisposable = leftTagger as IDisposable)
                     {
                         var rightBuffer = diffView.Viewer.RightView.BufferGraph.GetTextBuffers(t => t.ContentType.IsOfType(ContentTypeNames.CSharpContentType)).First();
-                        var rightProvider = new DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listeners);
+                        var rightProvider = new DiagnosticsSquiggleTaggerProvider(diagnosticService, foregroundService, listenerProvider);
                         var rightTagger = rightProvider.CreateTagger<IErrorTag>(rightBuffer);
                         using (var rightDisposable = rightTagger as IDisposable)
                         {
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                             }
 
                             // wait taggers
-                            await waiter.CreateWaitTask();
+                            await listenerProvider.GetWaiter(FeatureAttribute.ErrorSquiggles).CreateWaitTask();
 
                             // check left buffer
                             var leftSnapshot = leftBuffer.CurrentSnapshot;
@@ -275,6 +275,35 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
             }
         }
 
-        private class ErrorSquiggleWaiter : AsynchronousOperationListener { }
+        [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]
+        public void TestPreviewWorkspaceDoesNotLeakSolution()
+        {
+            // Verify that analyzer execution doesn't leak solution instances from the preview workspace.
+
+            var previewWorkspace = new PreviewWorkspace();
+            Assert.NotNull(previewWorkspace.CurrentSolution);
+            var project = previewWorkspace.CurrentSolution.AddProject("project", "project.dll", LanguageNames.CSharp);
+            Assert.True(previewWorkspace.TryApplyChanges(project.Solution));
+            var solutionObjectReference = ObjectReference.Create(previewWorkspace.CurrentSolution);
+
+            var analyzers = ImmutableArray.Create<DiagnosticAnalyzer>(new CommonDiagnosticAnalyzers.NotConfigurableDiagnosticAnalyzer());
+            ExecuteAnalyzers(previewWorkspace, analyzers);
+
+            previewWorkspace.Dispose();
+            solutionObjectReference.AssertReleased();
+        }
+
+        private void ExecuteAnalyzers(PreviewWorkspace previewWorkspace, ImmutableArray<DiagnosticAnalyzer> analyzers)
+        {
+            var analyzerOptions = new AnalyzerOptions(additionalFiles: ImmutableArray<AdditionalText>.Empty);
+            var workspaceAnalyzerOptions = new WorkspaceAnalyzerOptions(analyzerOptions, null, previewWorkspace.CurrentSolution);
+            var compilationWithAnalyzersOptions = new CompilationWithAnalyzersOptions(workspaceAnalyzerOptions, onAnalyzerException: null, concurrentAnalysis: false, logAnalyzerExecutionTime: false);
+            var project = previewWorkspace.CurrentSolution.Projects.Single();
+            var compilation = project.GetCompilationAsync().Result;
+            var compilationReference = ObjectReference.Create(compilation);
+            var compilationWithAnalyzers = new CompilationWithAnalyzers(compilation, analyzers, compilationWithAnalyzersOptions);
+            var result = compilationWithAnalyzers.GetAnalysisResultAsync(CancellationToken.None).Result;
+            Assert.Equal(1, result.CompilationDiagnostics.Count);
+        }
     }
 }

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
     {
         private static SemanticModel GetSemanticModelWithIgnoreAccessibility()
         {
-            var compilationA = CreateCompilationWithMscorlib(@"
+            var compilationA = CreateStandardCompilation(@"
 namespace N
 {
     class A
@@ -26,7 +26,7 @@ namespace N
 
             var referenceA = MetadataReference.CreateFromStream(compilationA.EmitToStream());
 
-            var compilationB = CreateCompilationWithMscorlib(@"
+            var compilationB = CreateStandardCompilation(@"
 using A = N.A;
 
 class B 
@@ -79,7 +79,7 @@ class B
 
 
             SemanticModel speculativeSemanticModel;
-            var statement = SyntaxFactory.ParseStatement("var foo = new A().M();");
+            var statement = SyntaxFactory.ParseStatement("var goo = new A().M();");
 
             semanticModel.TryGetSpeculativeSemanticModel(position, statement, out speculativeSemanticModel);
             var creationExpression =
@@ -109,7 +109,7 @@ class C
 ";
 
             var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateCompilationWithMscorlib(tree);
+            var comp = CreateStandardCompilation(tree);
             var model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
 
             var expr = (ExpressionSyntax)tree.GetCompilationUnitRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single().Body;
@@ -144,7 +144,7 @@ internal static class E
 
             var referenceA = MetadataReference.CreateFromStream(compilationA.EmitToStream());
 
-            var compilationB = CreateCompilationWithMscorlib(@"
+            var compilationB = CreateStandardCompilation(@"
 class B 
 {
     void Main() 
@@ -173,7 +173,7 @@ class B
         [Fact]
         public void TestGetSpeculativeSemanticModelForPropertyAccessorBody()
         {
-            var compilation = CreateCompilationWithMscorlib(@"
+            var compilation = CreateStandardCompilation(@"
 class R
 {
     private int _p;

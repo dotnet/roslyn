@@ -185,28 +185,28 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 var tuple = default(LeadingTrailingTriviaPair);
                 var map = new Dictionary<SyntaxToken, LeadingTrailingTriviaPair>();
 
-                tuple = map.GetOrAdd(tokens[TriviaLocation.BeforeBeginningOfSpan], _ => default(LeadingTrailingTriviaPair));
+                tuple = map.GetOrAdd(tokens[TriviaLocation.BeforeBeginningOfSpan], _ => default);
                 map[tokens[TriviaLocation.BeforeBeginningOfSpan]] = new LeadingTrailingTriviaPair
                 {
                     LeadingTrivia = tuple.LeadingTrivia,
                     TrailingTrivia = _triviaList[TriviaLocation.BeforeBeginningOfSpan]
                 };
 
-                tuple = map.GetOrAdd(tokens[TriviaLocation.AfterBeginningOfSpan], _ => default(LeadingTrailingTriviaPair));
+                tuple = map.GetOrAdd(tokens[TriviaLocation.AfterBeginningOfSpan], _ => default);
                 map[tokens[TriviaLocation.AfterBeginningOfSpan]] = new LeadingTrailingTriviaPair
                 {
                     LeadingTrivia = _triviaList[TriviaLocation.AfterBeginningOfSpan],
                     TrailingTrivia = tuple.TrailingTrivia
                 };
 
-                tuple = map.GetOrAdd(tokens[TriviaLocation.BeforeEndOfSpan], _ => default(LeadingTrailingTriviaPair));
+                tuple = map.GetOrAdd(tokens[TriviaLocation.BeforeEndOfSpan], _ => default);
                 map[tokens[TriviaLocation.BeforeEndOfSpan]] = new LeadingTrailingTriviaPair
                 {
                     LeadingTrivia = tuple.LeadingTrivia,
                     TrailingTrivia = _triviaList[TriviaLocation.BeforeEndOfSpan]
                 };
 
-                tuple = map.GetOrAdd(tokens[TriviaLocation.AfterEndOfSpan], _ => default(LeadingTrailingTriviaPair));
+                tuple = map.GetOrAdd(tokens[TriviaLocation.AfterEndOfSpan], _ => default);
                 map[tokens[TriviaLocation.AfterEndOfSpan]] = new LeadingTrailingTriviaPair
                 {
                     LeadingTrivia = _triviaList[TriviaLocation.AfterEndOfSpan],
@@ -277,8 +277,8 @@ namespace Microsoft.CodeAnalysis.ExtractMethod
                 PreviousNextTokenPair tokenPair,
                 Dictionary<SyntaxToken, LeadingTrailingTriviaPair> triviaMap)
             {
-                var previousTriviaPair = triviaMap.ContainsKey(tokenPair.PreviousToken) ? triviaMap[tokenPair.PreviousToken] : default(LeadingTrailingTriviaPair);
-                var nextTriviaPair = triviaMap.ContainsKey(tokenPair.NextToken) ? triviaMap[tokenPair.NextToken] : default(LeadingTrailingTriviaPair);
+                var previousTriviaPair = triviaMap.ContainsKey(tokenPair.PreviousToken) ? triviaMap[tokenPair.PreviousToken] : default;
+                var nextTriviaPair = triviaMap.ContainsKey(tokenPair.NextToken) ? triviaMap[tokenPair.NextToken] : default;
 
                 var trailingTrivia = previousTriviaPair.TrailingTrivia ?? SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();
                 var leadingTrivia = nextTriviaPair.LeadingTrivia ?? SpecializedCollections.EmptyEnumerable<SyntaxTrivia>();

@@ -37,8 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private static void AddPropertyDeclarationSuppressOperations(List<SuppressOperation> list, SyntaxNode node)
         {
-            var basePropertyDeclaration = node as BasePropertyDeclarationSyntax;
-            if (basePropertyDeclaration != null && basePropertyDeclaration.AccessorList != null &&
+            if (node is BasePropertyDeclarationSyntax basePropertyDeclaration && basePropertyDeclaration.AccessorList != null &&
                 basePropertyDeclaration.AccessorList.Accessors.All(a => a.Body == null) &&
                 basePropertyDeclaration.GetAnnotatedTrivia(SyntaxAnnotation.ElasticAnnotation).Any())
             {
@@ -58,8 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return;
             }
 
-            var anonymousCreationNode = node as AnonymousObjectCreationExpressionSyntax;
-            if (anonymousCreationNode != null)
+            if (node is AnonymousObjectCreationExpressionSyntax anonymousCreationNode)
             {
                 AddSuppressWrappingIfOnSingleLineOperation(list, anonymousCreationNode.NewKeyword, anonymousCreationNode.CloseBraceToken, SuppressOption.IgnoreElastic);
                 return;
@@ -68,22 +66,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private InitializerExpressionSyntax GetInitializerNode(SyntaxNode node)
         {
-            var objectCreationNode = node as ObjectCreationExpressionSyntax;
-            if (objectCreationNode != null)
+            switch (node)
             {
-                return objectCreationNode.Initializer;
-            }
-
-            var arrayCreationNode = node as ArrayCreationExpressionSyntax;
-            if (arrayCreationNode != null)
-            {
-                return arrayCreationNode.Initializer;
-            }
-
-            var implicitArrayNode = node as ImplicitArrayCreationExpressionSyntax;
-            if (implicitArrayNode != null)
-            {
-                return implicitArrayNode.Initializer;
+                case ObjectCreationExpressionSyntax objectCreationNode:
+                    return objectCreationNode.Initializer;
+                case ArrayCreationExpressionSyntax arrayCreationNode:
+                    return arrayCreationNode.Initializer;
+                case ImplicitArrayCreationExpressionSyntax implicitArrayNode:
+                    return implicitArrayNode.Initializer;
             }
 
             return null;
@@ -91,20 +81,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
         private SyntaxToken? GetLastTokenOfType(SyntaxNode node)
         {
-            var objectCreationNode = node as ObjectCreationExpressionSyntax;
-            if (objectCreationNode != null)
+            if (node is ObjectCreationExpressionSyntax objectCreationNode)
             {
                 return objectCreationNode.Type.GetLastToken();
             }
 
-            var arrayCreationNode = node as ArrayCreationExpressionSyntax;
-            if (arrayCreationNode != null)
+            if (node is ArrayCreationExpressionSyntax arrayCreationNode)
             {
                 return arrayCreationNode.Type.GetLastToken();
             }
 
-            var implicitArrayNode = node as ImplicitArrayCreationExpressionSyntax;
-            if (implicitArrayNode != null)
+            if (node is ImplicitArrayCreationExpressionSyntax implicitArrayNode)
             {
                 return implicitArrayNode.CloseBracketToken;
             }

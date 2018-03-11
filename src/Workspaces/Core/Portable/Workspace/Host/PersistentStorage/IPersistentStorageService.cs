@@ -9,4 +9,9 @@ namespace Microsoft.CodeAnalysis.Host
     {
         IPersistentStorage GetStorage(Solution solution);
     }
+
+    internal interface IPersistentStorageService2 : IPersistentStorageService
+    {
+        IPersistentStorage GetStorage(Solution solution, bool checkBranchId);
+    }
 }

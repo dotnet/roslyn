@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.UseCoalesceExpression
             // actually looking at something Nullable (and not some type that uses a similar 
             // syntactic pattern).
             var semanticModel = context.SemanticModel;
-            var nullableType = semanticModel.Compilation.GetTypeByMetadataName("System.Nullable`1");
+            var nullableType = semanticModel.Compilation.GetTypeByMetadataName(typeof(Nullable<>).FullName);
             if (nullableType == null)
             {
                 return;

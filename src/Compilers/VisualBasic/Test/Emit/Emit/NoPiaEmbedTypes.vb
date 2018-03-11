@@ -646,7 +646,7 @@ Module M
 End Module
 ]]></file>
                            </compilation>
-            Dim reference1 = CompileIL(sources1, appendDefaultHeader:=False, embedInteropTypes:=True)
+            Dim reference1 = CompileIL(sources1, prependDefaultHeader:=False, embedInteropTypes:=True)
             Dim compilation2 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sources2, additionalRefs:={reference1})
             VerifyEmitDiagnostics(compilation2, <errors>
 BC31561: Embedded interop method 'Sub D.M1()' contains a body.
@@ -1530,7 +1530,7 @@ End Interface
 ]]></file>
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib(sources0)
-            Dim verifier = CompileAndVerify(compilation0, verify:=False)
+            Dim verifier = CompileAndVerify(compilation0, verify:=Verification.Fails)
             AssertTheseDiagnostics(verifier, (<errors/>))
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
@@ -1600,13 +1600,13 @@ End Interface
                 sources1,
                 options:=TestOptions.DebugDll,
                 additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), SystemCoreRef})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=False)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=Verification.Fails)
             AssertTheseDiagnostics(verifier, (<errors/>))
             compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
                 additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True), SystemCoreRef})
-            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=False)
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=Verification.Fails)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
@@ -3708,12 +3708,12 @@ BC31539: Cannot find the interop type that matches the embedded type 'I1'. Are y
             Dim compilation3 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2)})
-            CompileAndVerify(compilation3, verify:=False)
+            CompileAndVerify(compilation3, verify:=Verification.Fails)
 
             Dim compilation4 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
                 references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
-            CompileAndVerify(compilation4, verify:=False)
+            CompileAndVerify(compilation4, verify:=Verification.Fails)
         End Sub
 
         <Fact()>
@@ -4128,12 +4128,12 @@ BC36924: Type 'List(Of I1)' cannot be used across assembly boundaries because it
             Dim compilation3 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
                 references:={New VisualBasicCompilationReference(piaCompilation2)})
-            CompileAndVerify(compilation3, verify:=False)
+            CompileAndVerify(compilation3, verify:=Verification.Fails)
 
             Dim compilation4 = CreateCompilationWithMscorlibAndReferences(
                 consumer,
                 references:={MetadataReference.CreateFromImage(piaCompilation2.EmitToArray())})
-            CompileAndVerify(compilation4, verify:=False)
+            CompileAndVerify(compilation4, verify:=Verification.Fails)
         End Sub
 
         <Fact(), WorkItem(673546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/673546")>
@@ -4248,7 +4248,7 @@ BC35000: Requested operation is not available because the runtime library functi
     End Class
 ]]></file>
                            </compilation>
-            Dim reference1 = CompileIL(sources1, appendDefaultHeader:=False, embedInteropTypes:=True)
+            Dim reference1 = CompileIL(sources1, prependDefaultHeader:=False, embedInteropTypes:=True)
             CompileAndVerify(sources2, additionalRefs:={reference1}, symbolValidator:=
                                                 Sub([module] As ModuleSymbol)
                                                     DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
@@ -4319,7 +4319,7 @@ BC35000: Requested operation is not available because the runtime library functi
     End Class
 ]]></file>
                            </compilation>
-            Dim reference1 = CompileIL(sources1, appendDefaultHeader:=False, embedInteropTypes:=True)
+            Dim reference1 = CompileIL(sources1, prependDefaultHeader:=False, embedInteropTypes:=True)
             CompileAndVerify(sources2, additionalRefs:={reference1}, symbolValidator:=
                                                 Sub([module] As ModuleSymbol)
                                                     DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()

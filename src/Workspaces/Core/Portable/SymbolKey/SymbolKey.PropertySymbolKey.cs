@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis
 
                 if (originalParameterTypes.Any(s_typeIsNull))
                 {
-                    return default(SymbolKeyResolution);
+                    return default;
                 }
 
                 var properties = containingSymbolResolution.GetAllSymbols().OfType<INamedTypeSymbol>()

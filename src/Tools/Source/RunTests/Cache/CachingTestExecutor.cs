@@ -38,7 +38,6 @@ namespace RunTests.Cache
             catch (Exception ex)
             {
                 var msg = $"Unable to calculate content file for {assemblyInfo.AssemblyPath}";
-                Console.WriteLine(msg);
                 Logger.LogError(ex, msg + Environment.NewLine + ex.Message);
                 contentFile = null;
 
@@ -125,7 +124,7 @@ namespace RunTests.Cache
             }
             catch (Exception ex)
             {
-                Logger.Log($"Failed to create cached {ex}");
+                Logger.Log("Failed to create cached", ex);
             }
         }
     }

@@ -11,7 +11,10 @@ namespace Microsoft.CodeAnalysis.Remote
     {
         public class RemoteHostClientService : IRemoteHostClientService
         {
-            private readonly AsyncLazy<RemoteHostClient> _lazyInstance;
+            private readonly Workspace _workspace;
+            private readonly IRemoteHostClientFactory _remoteHostClientFactory;
+
+            private AsyncLazy<RemoteHostClient> _lazyInstance;
 
             public RemoteHostClientService(Workspace workspace)
             {
@@ -22,12 +25,10 @@ namespace Microsoft.CodeAnalysis.Remote
                     return;
                 }
 
-                _lazyInstance = new AsyncLazy<RemoteHostClient>(c => remoteHostClientFactory.CreateAsync(workspace, c), cacheResult: true);
-            }
+                _workspace = workspace;
+                _remoteHostClientFactory = remoteHostClientFactory;
 
-            public Task<RemoteHostClient> GetRemoteHostClientAsync(CancellationToken cancellationToken)
-            {
-                return TryGetRemoteHostClientAsync(cancellationToken);
+                _lazyInstance = CreateNewLazyRemoteHostClient();
             }
 
             public Task<RemoteHostClient> TryGetRemoteHostClientAsync(CancellationToken cancellationToken)
@@ -38,6 +39,25 @@ namespace Microsoft.CodeAnalysis.Remote
                 }
 
                 return _lazyInstance.GetValueAsync(cancellationToken);
+            }
+
+            public async Task RequestNewRemoteHostAsync(CancellationToken cancellationToken)
+            {
+                var instance = await TryGetRemoteHostClientAsync(cancellationToken).ConfigureAwait(false);
+                if (instance == null)
+                {
+                    return;
+                }
+
+                _lazyInstance = CreateNewLazyRemoteHostClient();
+
+                // let people know this remote host client is being disconnected
+                instance.Shutdown();
+            }
+
+            private AsyncLazy<RemoteHostClient> CreateNewLazyRemoteHostClient()
+            {
+                return new AsyncLazy<RemoteHostClient>(c => _remoteHostClientFactory.CreateAsync(_workspace, c), cacheResult: true);
             }
         }
     }

@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Simplification
     // when a type should be simplified without adding a using for the type.
     //
     // For example, override completion adds 
-    // void foo() => throw new System.NotImplementedException()
+    // void goo() => throw new System.NotImplementedException()
     // with a SymbolAnnotation and a DoNotAddImportsAnnotation.
     //
     // This allows the simplifier to remove the `System.` if 

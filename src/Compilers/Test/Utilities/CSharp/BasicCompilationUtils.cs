@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public static class BasicCompilationUtils
     {
-        public static MetadataReference CompileToMetadata(string source, string assemblyName = null, IEnumerable<MetadataReference> references = null, bool verify = true)
+        public static MetadataReference CompileToMetadata(string source, string assemblyName = null, IEnumerable<MetadataReference> references = null, Verification verify = Verification.Passes)
         {
             if (references == null)
             {
@@ -49,11 +49,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
 
             protected override Compilation GetCompilationForEmit(IEnumerable<string> source, IEnumerable<MetadataReference> additionalRefs, CompilationOptions options, ParseOptions parseOptions)
-            {
-                throw new NotImplementedException();
-            }
-
-            internal override IEnumerable<IModuleSymbol> ReferencesToModuleSymbols(IEnumerable<MetadataReference> references, MetadataImportOptions importOptions = MetadataImportOptions.Public)
             {
                 throw new NotImplementedException();
             }

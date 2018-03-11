@@ -12,8 +12,10 @@ using Microsoft.CodeAnalysis.DesignerAttributes;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Remote;
+using Microsoft.CodeAnalysis.Remote.DebugUtil;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.TodoComments;
+using Nerdbank;
 using Roslyn.Test.Utilities;
 using Roslyn.Test.Utilities.Remote;
 using Roslyn.VisualStudio.Next.UnitTests.Mocks;
@@ -26,19 +28,22 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestRemoteHostCreation()
         {
-            var remoteHostService = CreateService();
-            Assert.NotNull(remoteHostService);
+            using (var remoteHostService = CreateService())
+            {
+                Assert.NotNull(remoteHostService);
+            }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
         public void TestRemoteHostConnect()
         {
-            var remoteHostService = CreateService();
+            using (var remoteHostService = CreateService())
+            {
+                var input = "Test";
+                var output = remoteHostService.Connect(input, uiCultureLCID: 0, cultureLCID: 0, serializedSession: null, cancellationToken: CancellationToken.None);
 
-            var input = "Test";
-            var output = remoteHostService.Connect(input, serializedSession: null);
-
-            Assert.Equal(input, output);
+                Assert.Equal(input, output);
+            }
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
@@ -72,11 +77,16 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 var solution = workspace.CurrentSolution;
 
-                var comments = await client.RunCodeAnalysisServiceOnRemoteHostAsync<IList<TodoComment>>(
-                    solution, nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
-                    new object[] { solution.Projects.First().DocumentIds.First(), ImmutableArray.Create(new TodoCommentDescriptor("TODO", 0)) }, CancellationToken.None);
+                var keepAliveSession = await client.TryCreateCodeAnalysisKeepAliveSessionAsync(CancellationToken.None);
+                var comments = await keepAliveSession.TryInvokeAsync<IList<TodoComment>>(
+                    nameof(IRemoteTodoCommentService.GetTodoCommentsAsync),
+                    solution,
+                    new object[] { solution.Projects.First().DocumentIds.First(), ImmutableArray.Create(new TodoCommentDescriptor("TODO", 0)) },
+                    CancellationToken.None);
 
                 Assert.Equal(comments.Count, 1);
+
+                keepAliveSession.Shutdown();
             }
         }
 
@@ -92,9 +102,12 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
                 var solution = workspace.CurrentSolution;
 
-                var result = await client.RunCodeAnalysisServiceOnRemoteHostAsync<DesignerAttributeResult>(
-                    solution, nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
-                    solution.Projects.First().DocumentIds.First(), CancellationToken.None);
+                var keepAliveSession = await client.TryCreateCodeAnalysisKeepAliveSessionAsync(CancellationToken.None);
+                var result = await keepAliveSession.TryInvokeAsync<DesignerAttributeResult>(
+                    nameof(IRemoteDesignerAttributeService.ScanDesignerAttributesAsync),
+                    solution,
+                    new object[] { solution.Projects.First().DocumentIds.First() },
+                    CancellationToken.None);
 
                 Assert.Equal(result.DesignerAttributeArgument, "Form");
             }
@@ -109,7 +122,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             {
                 var client = (InProcRemoteHostClient)(await InProcRemoteHostClient.CreateAsync(workspace, runCacheCleanup: false, cancellationToken: CancellationToken.None));
 
-                await client.RunOnRemoteHostAsync(
+                await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService,
                     workspace.CurrentSolution,
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync),
@@ -276,10 +289,9 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var map = solution.GetAssetMap();
             var storage = client.AssetStorage;
 
-            object data;
             foreach (var kv in map)
             {
-                Assert.True(storage.TryGetAsset(kv.Key, out data));
+                Assert.True(storage.TryGetAsset(kv.Key, out object data));
             }
         }
 
@@ -310,7 +322,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private static async Task UpdatePrimaryWorkspace(InProcRemoteHostClient client, Solution solution)
         {
-            await client.RunOnRemoteHostAsync(
+            await client.TryRunRemoteAsync(
                 WellKnownRemoteHostServices.RemoteHostService, solution,
                 nameof(IRemoteHostService.SynchronizePrimaryWorkspaceAsync),
                 await solution.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
@@ -390,11 +402,11 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 
         private static RemoteHostService CreateService()
         {
-            var stream = new MemoryStream();
-            return new RemoteHostService(stream, new InProcRemoteHostClient.ServiceProvider(runCacheCleanup: false));
+            var tuple = FullDuplexStream.CreateStreams();
+            return new RemoteHostService(tuple.Item1, new InProcRemoteHostClient.ServiceProvider(runCacheCleanup: false));
         }
 
-        public static void SetEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual)
+        private static void SetEqual<T>(IEnumerable<T> expected, IEnumerable<T> actual)
         {
             var expectedSet = new HashSet<T>(expected);
             var result = expected.Count() == actual.Count() && expectedSet.SetEquals(actual);

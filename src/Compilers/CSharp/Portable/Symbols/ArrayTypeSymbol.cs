@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
@@ -238,6 +239,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return true;
+            }
+        }
+
+        internal sealed override bool IsByRefLikeType
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal sealed override bool IsReadOnly
+        {
+            get
+            {
+                return false;
             }
         }
 
@@ -531,7 +548,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             /// <summary>
             /// SZArray is an array type encoded in metadata with ELEMENT_TYPE_SZARRAY (always single-dim array with 0 lower bound).
-            /// Non-SZArray type is ecoded in metadata with ELEMENT_TYPE_ARRAY and with optional sizes and lower bounds. Even though 
+            /// Non-SZArray type is encoded in metadata with ELEMENT_TYPE_ARRAY and with optional sizes and lower bounds. Even though 
             /// non-SZArray can also be a single-dim array with 0 lower bound, the encoding of these types in metadata is distinct.
             /// </summary>
             public override bool IsSZArray

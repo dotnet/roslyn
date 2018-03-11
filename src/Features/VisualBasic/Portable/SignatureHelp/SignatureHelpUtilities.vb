@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.CodeAnalysis.Text
@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
         Private ReadOnly s_getArgumentListCloseToken As Func(Of ArgumentListSyntax, SyntaxToken) =
             Function(list)
-                ' In the case where the user has typed "Foo(bar:" then the parser doesn't consider
+                ' In the case where the user has typed "Goo(bar:" then the parser doesn't consider
                 ' the colon part of the signature.  However, we want to as it is clearly part of a
                 ' named parameter they are in the middle of typing.  So consume it in that case.
                 If list.CloseParenToken.IsMissing Then

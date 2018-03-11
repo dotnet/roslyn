@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -6,6 +6,7 @@ using System.Windows.Controls;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.NavigateTo;
+using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
@@ -47,9 +48,11 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                 // add OOP feature options
                 var oopFeatureGroup = new StackPanel();
 
-                AddOption(oopFeatureGroup, NavigateToOptions.OutOfProcessAllowed, nameof(NavigateToOptions));
-                AddOption(oopFeatureGroup, SymbolFinderOptions.OutOfProcessAllowed, nameof(SymbolFinderOptions));
-                AddOption(oopFeatureGroup, SymbolSearchOptions.OutOfProcessAllowed, nameof(SymbolSearchOptions));
+                AddOption(oopFeatureGroup, RemoteFeatureOptions.AddImportEnabled, nameof(RemoteFeatureOptions.AddImportEnabled));
+                AddOption(oopFeatureGroup, RemoteFeatureOptions.DocumentHighlightingEnabled, nameof(RemoteFeatureOptions.DocumentHighlightingEnabled));
+                AddOption(oopFeatureGroup, RemoteFeatureOptions.NavigateToEnabled, nameof(RemoteFeatureOptions.NavigateToEnabled));
+                AddOption(oopFeatureGroup, RemoteFeatureOptions.SymbolFinderEnabled, nameof(RemoteFeatureOptions.SymbolFinderEnabled));
+                AddOption(oopFeatureGroup, RemoteFeatureOptions.SymbolSearchEnabled, nameof(RemoteFeatureOptions.SymbolSearchEnabled));
 
                 panel.Children.Add(oopFeatureGroup);
 

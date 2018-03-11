@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports System.Composition
@@ -38,7 +38,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             New CrefCompletionProvider(),
             New CompletionListTagCompletionProvider(),
             New OverrideCompletionProvider(),
-            New XmlDocCommentCompletionProvider()
+            New XmlDocCommentCompletionProvider(),
+            New InternalsVisibleToCompletionProvider()
         )
 
         Private ReadOnly _workspace As Workspace

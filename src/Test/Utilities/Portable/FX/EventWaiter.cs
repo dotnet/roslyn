@@ -66,7 +66,6 @@ namespace Roslyn.Test.Utilities
         /// <summary>
         /// Use this method to block the test until the operation enclosed in the Wrap method completes
         /// </summary>
-        /// <param name="timeout"></param>
         /// <returns></returns>
         public void WaitForEventToFire()
         {

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
             Diagnostic diagnostic;
             var options = context.Options;
             var cancellationToken = context.CancellationToken;
-            Func<SyntaxNode, bool> descendIntoChildren = n =>
+            bool descendIntoChildren(SyntaxNode n)
             {
                 if (!IsRegularCandidate(n) ||
                     !TrySimplifyTypeNameExpression(context.SemanticModel, n, options, out diagnostic, cancellationToken))
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
                 context.ReportDiagnostic(diagnostic);
                 return false;
-            };
+            }
 
             // find regular node first - search from top to down. once found one, don't get into its children
             foreach (var candidate in context.Node.DescendantNodesAndSelf(descendIntoChildren))
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames
 
         internal static bool CanSimplifyTypeNameExpression(SemanticModel model, SyntaxNode node, OptionSet optionSet, out TextSpan issueSpan, out string diagnosticId, CancellationToken cancellationToken)
         {
-            issueSpan = default(TextSpan);
+            issueSpan = default;
             diagnosticId = IDEDiagnosticIds.SimplifyNamesDiagnosticId;
 
             // For Crefs, currently only Qualified Crefs needs to be handled separately

@@ -1,15 +1,13 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Extensions;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
+
 using IVsLanguageBlock = Microsoft.VisualStudio.TextManager.Interop.IVsLanguageBlock;
 using IVsTextLines = Microsoft.VisualStudio.TextManager.Interop.IVsTextLines;
 using VsTextSpan = Microsoft.VisualStudio.TextManager.Interop.TextSpan;
@@ -27,8 +25,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             out string pbstrDescription,
             out int pfBlockAvailable)
         {
-            Tuple<string, TextSpan> foundBlock = null;
-
             var snapshot = this.EditorAdaptersFactoryService.GetDataBuffer(pTextLines).CurrentSnapshot;
             var position = snapshot?.TryGetPosition(iCurrentLine, iCurrentChar);
             if (position == null)
@@ -38,6 +34,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return VSConstants.S_OK;
             }
 
+            (string description, TextSpan span)? foundBlock = null;
+
             var waitIndicator = this.Package.ComponentModel.GetService<IWaitIndicator>();
             waitIndicator.Wait(
                 ServicesVSResources.Current_block,
@@ -45,15 +43,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 allowCancel: true,
                 action: context =>
                 {
-                    foundBlock = VsLanguageBlock.GetCurrentBlockAsync(snapshot, position.Value, context.CancellationToken).WaitAndGetResult(context.CancellationToken);
+                    foundBlock = VsLanguageBlock.GetCurrentBlock(snapshot, position.Value, context.CancellationToken);
                 });
 
             pfBlockAvailable = foundBlock != null ? 1 : 0;
-            pbstrDescription = foundBlock?.Item1;
+            pbstrDescription = foundBlock?.description;
 
             if (foundBlock != null && ptsBlockSpan != null && ptsBlockSpan.Length >= 1)
             {
-                ptsBlockSpan[0] = foundBlock.Item2.ToSnapshotSpan(snapshot).ToVsTextSpan();
+                ptsBlockSpan[0] = foundBlock.Value.span.ToSnapshotSpan(snapshot).ToVsTextSpan();
             }
 
             return VSConstants.S_OK;
@@ -62,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
     internal static class VsLanguageBlock
     {
-        public static async Task<Tuple<string, TextSpan>> GetCurrentBlockAsync(
+        public static (string description, TextSpan span)? GetCurrentBlock(
             ITextSnapshot snapshot,
             int position,
             CancellationToken cancellationToken)
@@ -74,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
 
             var syntaxFactsService = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
-            var syntaxRoot = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var syntaxRoot = document.GetSyntaxRootSynchronously(cancellationToken);
             var node = syntaxFactsService.GetContainingMemberDeclaration(syntaxRoot, position, useFullSpan: false);
             if (node == null)
             {
@@ -87,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 DisplayNameOptions.IncludeType |
                 DisplayNameOptions.IncludeTypeParameters);
 
-            return Tuple.Create(description, node.Span);
+            return (description, node.Span);
         }
     }
 }

@@ -33,9 +33,8 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
 
             string name = token.ValueText;
 
-            if (_currentIdentifiersInScope.ContainsKey(name))
+            if (_currentIdentifiersInScope.TryGetValue(name, out var conflictingTokens))
             {
-                var conflictingTokens = _currentIdentifiersInScope[name];
                 conflictingTokens.Add(token);
 
                 // If at least one of the identifiers is the one we're renaming,

@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -31,12 +32,63 @@ namespace Microsoft.CodeAnalysis
             _index = index;
         }
 
-        internal SyntaxTokenList(SyntaxToken token)
+        public SyntaxTokenList(SyntaxToken token)
         {
             _parent = token.Parent;
             Node = token.Node;
             Position = token.Position;
             _index = 0;
+        }
+
+        /// <summary>
+        /// Creates a list of tokens.
+        /// </summary>
+        /// <param name="tokens">An array of tokens.</param>
+        public SyntaxTokenList(params SyntaxToken[] tokens)
+            : this(null, CreateNode(tokens), 0, 0)
+        {
+        }
+
+        /// <summary>
+        /// Creates a list of tokens.
+        /// </summary>
+        public SyntaxTokenList(IEnumerable<SyntaxToken> tokens)
+            : this(null, CreateNode(tokens), 0, 0)
+        {
+        }
+
+        private static GreenNode CreateNode(SyntaxToken[] tokens)
+        {
+            if (tokens == null)
+            {
+                return null;
+            }
+
+            // TODO: we could remove the unnecessary builder allocations here and go directly
+            // from the array to the List nodes.
+            var builder = new SyntaxTokenListBuilder(tokens.Length);
+            for (int i = 0; i < tokens.Length; i++)
+            {
+                builder.Add(tokens[i].Node);
+            }
+
+            return builder.ToList().Node;
+        }
+
+        private static GreenNode CreateNode(IEnumerable<SyntaxToken> tokens)
+        {
+            if (tokens == null)
+            {
+                return null;
+            }
+
+            var builder = SyntaxTokenListBuilder.Create();
+            foreach (var token in tokens)
+            {
+                builder.Add(token.Node);
+            }
+
+            return builder.ToList().Node;
         }
 
         internal GreenNode Node { get; }

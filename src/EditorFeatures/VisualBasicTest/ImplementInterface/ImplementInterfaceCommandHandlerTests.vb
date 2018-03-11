@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Editor.Commands
@@ -52,10 +52,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ImplementInterface
             Using workspace = GetWorkspace("
 Imports System
 
-Class Foo
-    Implements IFoo$$
+Class Goo
+    Implements IGoo$$
 End Class
-Interface IFoo
+Interface IGoo
     Sub TestSub()
 End Interface")
 
@@ -74,15 +74,15 @@ End Interface")
             Dim code = <text>
 Imports System
 
-Class Foo
-    Implements IFoo$$
+Class Goo
+    Implements IGoo$$
 End Class
-Interface IFoo
+Interface IGoo
     Sub TestSub()
 End Interface</text>
 
             Dim expectedText = <text>   
-    Public Sub TestSub() Implements IFoo.TestSub
+    Public Sub TestSub() Implements IGoo.TestSub
         Throw New NotImplementedException()
     End Sub</text>
 
@@ -96,22 +96,22 @@ End Interface</text>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestInterfacesWithDuplicateMember()
             Dim code = <text>
-Interface IFoo
-    Sub Foo()
+Interface IGoo
+    Sub Goo()
 End Interface
 Interface IBar
-    Sub Foo()
+    Sub Goo()
 End Interface
 Class Zip
-    Implements IFoo, IBar$$
+    Implements IGoo, IBar$$
 End Class</text>
 
             Dim expectedText = <text>   
-    Public Sub Foo() Implements IFoo.Foo
+    Public Sub Goo() Implements IGoo.Goo
         Throw New NotImplementedException()
     End Sub
 
-    Private Sub IBar_Foo() Implements IBar.Foo
+    Private Sub IBar_Goo() Implements IBar.Goo
         Throw New NotImplementedException()
     End Sub</text>
 
@@ -126,17 +126,17 @@ End Class</text>
             Dim code = <text>
 Imports System
 
-Class Foo
-    Implements IFoo$$
+Class Goo
+    Implements IGoo$$
 End Class
-Interface IFoo
+Interface IGoo
     Sub TestSub()
     Function TestFunc() As Integer
     Property TestProperty As String
 End Interface</text>
 
             Dim expectedText = <text>   
-    Public Property TestProperty As String Implements IFoo.TestProperty
+    Public Property TestProperty As String Implements IGoo.TestProperty
         Get
             Throw New NotImplementedException()
         End Get
@@ -146,11 +146,11 @@ End Interface</text>
         End Set
     End Property
 
-    Public Sub TestSub() Implements IFoo.TestSub
+    Public Sub TestSub() Implements IGoo.TestSub
         Throw New NotImplementedException()
     End Sub
 
-    Public Function TestFunc() As Integer Implements IFoo.TestFunc
+    Public Function TestFunc() As Integer Implements IGoo.TestFunc
         Throw New NotImplementedException()
     End Function</text>
 
@@ -165,10 +165,10 @@ End Interface</text>
             Dim code = <text>
 Imports System
 
-Class Foo
-    Implements IFoo, IBar$$
+Class Goo
+    Implements IGoo, IBar$$
 End Class
-Interface IFoo
+Interface IGoo
     Sub TestSub()
 End Interface
 Interface IBar
@@ -176,7 +176,7 @@ Interface IBar
 End Interface</text>
 
             Dim expectedText = <text>   
-    Public Sub TestSub() Implements IFoo.TestSub
+    Public Sub TestSub() Implements IGoo.TestSub
         Throw New NotImplementedException()
     End Sub
 
@@ -195,10 +195,10 @@ End Interface</text>
             Dim code = <text>
 Imports System
 
-Class Foo
-    Implements IFoo$$, IBar
+Class Goo
+    Implements IGoo$$, IBar
 End Class
-Interface IFoo
+Interface IGoo
     Sub TestSub()
 End Interface
 Interface IBar
@@ -206,8 +206,8 @@ Interface IBar
 End Interface</text>
 
             Dim expectedText = <text>   
-Class Foo
-    Implements IFoo
+Class Goo
+    Implements IGoo
     , IBar
 End Class</text>
 
@@ -228,15 +228,15 @@ End Class</text>
             Dim code = <text>
 Imports System
 
-Class Foo
-    Implements IFoo $$
+Class Goo
+    Implements IGoo $$
 End Class
-Interface IFoo
+Interface IGoo
     Sub TestSub()
 End Interface</text>
 
             Dim expectedText = <text>   
-    Public Sub TestSub() Implements IFoo.TestSub
+    Public Sub TestSub() Implements IGoo.TestSub
         Throw New NotImplementedException()
     End Sub</text>
 
@@ -253,16 +253,16 @@ End Interface</text>
             Dim code = <text>
 Imports System
 
-Class Foo
-    Implements IFoo 'Comment $$
+Class Goo
+    Implements IGoo 'Comment $$
 End Class
-Interface IFoo
+Interface IGoo
     Sub TestSub()
 End Interface</text>
 
 
             Dim expectedText = <text>   
-    Public Sub TestSub() Implements IFoo.TestSub
+    Public Sub TestSub() Implements IGoo.TestSub
         Throw New NotImplementedException()
     End Sub</text>
 
@@ -275,19 +275,19 @@ End Interface</text>
         <WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)>
         Public Sub TestNoMembersToImplement()
             Dim code = <text>
-Class Foo
-    Implements IFoo$$
+Class Goo
+    Implements IGoo$$
 End Class
-Interface IFoo
+Interface IGoo
 End Interface</text>
 
 
             Dim expectedText = <text>   
-Class Foo
-    Implements IFoo
+Class Goo
+    Implements IGoo
 
 End Class
-Interface IFoo
+Interface IGoo
 End Interface</text>
 
             Test(code,
@@ -306,13 +306,13 @@ End Interface</text>
             Dim code = <text>
 Imports System
 
-Class Foo
+Class Goo
     Implements ICloneable$$
 </text>
 
             Dim expectedText = <text>   
 Imports System
-Class Foo
+Class Goo
     Implements ICloneable
 
     Public Function Clone() As Object Implements ICloneable.Clone
@@ -331,22 +331,22 @@ End Class</text>
         Public Sub TestWithEndBlockMissing2()
             Dim code = <text>
 Imports System
-Class Foo
+Class Goo
     Implements ICloneable$$
 
-Interface IFoo
+Interface IGoo
 End Interface</text>
 
             Dim expectedText = <text>
 Imports System
-Class Foo
+Class Goo
     Implements ICloneable
 
     Public Function Clone() As Object Implements ICloneable.Clone
         Throw New NotImplementedException()
     End Function
 
-    Interface IFoo
+    Interface IGoo
     End Interface
 End Class</text>
 
@@ -363,21 +363,21 @@ End Class</text>
         Public Sub TestWithStatementSeparator()
             Dim code = <text>
 Imports System
-Interface IFoo
-    Sub Foo()
+Interface IGoo
+    Sub Goo()
 End Interface
 
-Class CFoo : Implements IFoo$$ : End Class
+Class CGoo : Implements IGoo$$ : End Class
 </text>
 
             Dim expectedText = <text>   
 Imports System
-Interface IFoo
-    Sub Foo()
+Interface IGoo
+    Sub Goo()
 End Interface
 
-Class CFoo : Implements IFoo
-    Public Sub Foo() Implements IFoo.Foo
+Class CGoo : Implements IGoo
+    Public Sub Goo() Implements IGoo.Goo
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -397,22 +397,22 @@ End Class
         Public Sub TestCursorNotOnSameLine()
             Dim code = <text>
 Imports System
-Interface IFoo
+Interface IGoo
     Sub FogBar()
 End Interface
 Public Class Bar
-    Implements IFoo
+    Implements IGoo
 
 $$End Class
 </text>
 
             Dim expectedText = <text>   
 Imports System
-Interface IFoo
+Interface IGoo
     Sub FogBar()
 End Interface
 Public Class Bar
-    Implements IFoo
+    Implements IGoo
 
 
 End Class
@@ -467,11 +467,11 @@ End Class
         Public Sub TestMultipleImplementationWithCaseDifference()
             Dim code = <text>
 Interface IA
-    Sub foo()
+    Sub goo()
 End Interface
 
 Interface IB
-    Sub Foo()
+    Sub Goo()
 End Interface
 
 Class C
@@ -483,11 +483,11 @@ End Class</text>
 Class C
     Implements IA, IB
 
-    Public Sub foo() Implements IA.foo
+    Public Sub goo() Implements IA.goo
         Throw New NotImplementedException()
     End Sub
 
-    Private Sub IB_Foo() Implements IB.Foo
+    Private Sub IB_Goo() Implements IB.Goo
         Throw New NotImplementedException()
     End Sub
 End Class</text>
@@ -504,7 +504,7 @@ End Class</text>
             Dim code = <text>
 Namespace N
     Interface IA
-        Sub foo()
+        Sub goo()
     End Interface
 End Namespace
 
@@ -517,7 +517,7 @@ End Class</text>
 Class C
     Implements N.IA
 
-    Public Sub foo() Implements IA.foo
+    Public Sub goo() Implements IA.goo
         Throw New NotImplementedException()
     End Sub
 End Class</text>

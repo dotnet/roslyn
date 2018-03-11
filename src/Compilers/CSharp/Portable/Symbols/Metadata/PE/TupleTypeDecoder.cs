@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
@@ -116,6 +117,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 // Indicates that the tuple info in the attribute didn't match
                 // the type. Bad metadata.
+            }
+
+            if (metadataType.HasUseSiteError)
+            {
+                return metadataType;
             }
 
             // Bad metadata

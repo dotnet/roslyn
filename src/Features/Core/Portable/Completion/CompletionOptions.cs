@@ -37,6 +37,10 @@ namespace Microsoft.CodeAnalysis.Completion
             nameof(CompletionOptions), nameof(BlockForCompletionItems), defaultValue: true,
             storageLocations: new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{BlockForCompletionItems}"));
 
+        public static readonly PerLanguageOption<bool> ShowNameSuggestions =
+            new PerLanguageOption<bool>(nameof(CompletionOptions), nameof(ShowNameSuggestions), defaultValue: true,
+            storageLocations: new RoamingProfileStorageLocation("TextEditor.%LANGUAGE%.Specific.ShowNameSuggestions"));
+
         public static IEnumerable<PerLanguageOption<bool>> GetDev15CompletionOptions()
         {
             yield return ShowCompletionItemFilters;

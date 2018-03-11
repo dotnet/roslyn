@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
     {
         /// <summary>
         /// Creates a new <see cref="IWorkspaceService"/> instance.
+        /// Returns <c>null</c> if the service is not applicable to the given workspace.
         /// </summary>
         /// <param name="workspaceServices">The <see cref="HostWorkspaceServices"/> that can be used to access other services.</param>
         IWorkspaceService CreateService(HostWorkspaceServices workspaceServices);

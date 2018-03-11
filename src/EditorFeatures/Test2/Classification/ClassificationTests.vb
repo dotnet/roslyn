@@ -33,14 +33,13 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                     GetType(NoCompilationEditorClassificationService)))
 
             Using workspace = TestWorkspace.Create(workspaceDefinition, exportProvider:=exportProvider)
-                Dim waiter = New AsynchronousOperationListener()
+                Dim listenerProvider = New AsynchronousOperationListenerProvider()
+
                 Dim provider = New SemanticClassificationViewTaggerProvider(
                     workspace.GetService(Of IForegroundNotificationService),
                     workspace.GetService(Of ISemanticChangeNotificationService),
                     workspace.GetService(Of ClassificationTypeMap),
-                    SpecializedCollections.SingletonEnumerable(
-                        New Lazy(Of IAsynchronousOperationListener, FeatureMetadata)(
-                            Function() waiter, New FeatureMetadata(New Dictionary(Of String, Object)() From {{"FeatureName", FeatureAttribute.Classification}}))))
+                    listenerProvider)
 
                 Dim buffer = workspace.Documents.First().GetTextBuffer()
                 Dim tagger = provider.CreateTagger(Of IClassificationTag)(
@@ -53,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                 End Using
 
                 Using DirectCast(tagger, IDisposable)
-                    Await waiter.CreateWaitTask()
+                    Await listenerProvider.GetWaiter(FeatureAttribute.Classification).CreateWaitTask()
 
                     ' Note: we don't actually care what results we get back.  We're just
                     ' verifying that we don't crash because the SemanticViewTagger ends up
@@ -64,6 +63,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             End Using
         End Function
 
+#Disable Warning BC40000 ' Type or member is obsolete
         <ExportLanguageService(GetType(IEditorClassificationService), "NoCompilation"), [Shared]>
         Private Class NoCompilationEditorClassificationService
             Implements IEditorClassificationService
@@ -82,5 +82,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             Public Function AdjustStaleClassification(text As SourceText, classifiedSpan As ClassifiedSpan) As ClassifiedSpan Implements IEditorClassificationService.AdjustStaleClassification
             End Function
         End Class
+#Enable Warning BC40008 ' Type or member is obsolete
     End Class
 End Namespace

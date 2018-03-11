@@ -4,9 +4,10 @@ using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
+using System.Linq;
+using System.Reflection.Metadata;
+using System.Security.Cryptography;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -70,35 +71,14 @@ namespace Microsoft.CodeAnalysis
         // From ECMAKey.h
         private static readonly ImmutableArray<byte> s_ecmaKey = ImmutableArray.Create(new byte[] { 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0 });
 
-        // From strongname.h
-        // Note: different from the PUBLICKEYBLOB specified in wincrypt.h. The 
-        // PublicKey in the SnPublicKeyBlob contains a PUBLICKEYBLOB
-        //
-        // The public key blob has the following format as a little-endian packed C struct:
-        //
-        [StructLayout(LayoutKind.Sequential, Pack = 1)]
-#pragma warning disable 0649
-        private unsafe struct SnPublicKeyBlob
-        {
-            public UInt32 SigAlgId;          // Signature algorithm ID
-            public UInt32 HashAlgId;         // Hash algorithm ID
-            public UInt32 PublicKeySize;     // Size of public key data in bytes, not including the header
-            // Note: PublicKey is variable sized
-            public fixed byte PublicKey[1];  // PublicKeySize bytes of public key data
-        }
+        private const int SnPublicKeyBlobSize = 13;
 
         // From wincrypt.h
         private const byte PublicKeyBlobId = 0x06;
         private const byte PrivateKeyBlobId = 0x07;
 
         // internal for testing
-        internal unsafe static readonly int s_publicKeyHeaderSize = sizeof(SnPublicKeyBlob) - 1;
-
-        private static uint ToUInt32(ImmutableArray<byte> bytes, int offset)
-        {
-            Debug.Assert((bytes.Length - offset) > sizeof(int));
-            return (uint)(bytes[offset] | (bytes[offset + 1] << 8) | (bytes[offset + 2] << 16) | (bytes[offset + 3] << 24));
-        }
+        internal const int s_publicKeyHeaderSize = SnPublicKeyBlobSize - 1;
 
         // From StrongNameInternal.cpp
         // Checks to see if a public key is a valid instance of a PublicKeyBlob as
@@ -111,204 +91,251 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            return IsValidPublicKeyUnsafe(blob);
-        }
+            BinaryReader blobReader = new BinaryReader(new MemoryStream(blob.DangerousGetUnderlyingArray()));
 
-        private static unsafe bool IsValidPublicKeyUnsafe(ImmutableArray<byte> blob)
-        {
-            var blobArray = blob.DangerousGetUnderlyingArray();
-            fixed (byte* blobPtr = blobArray)
+            // Signature algorithm ID
+            var sigAlgId = blobReader.ReadUInt32();
+            // Hash algorithm ID
+            var hashAlgId = blobReader.ReadUInt32();
+            // Size of public key data in bytes, not including the header
+            var publicKeySize = blobReader.ReadUInt32();
+            // publicKeySize bytes of public key data
+            var publicKey = blobReader.ReadByte();
+
+            // The number of public key bytes must be the same as the size of the header plus the size of the public key data.
+            if (blob.Length != s_publicKeyHeaderSize + publicKeySize)
             {
-                var pkb = (SnPublicKeyBlob*)blobPtr;
+                return false;
+            }
 
-                // The number of public key bytes must be the same as the size of the header plus the size of the public key data.
-                if (blob.Length != s_publicKeyHeaderSize + pkb->PublicKeySize)
-                {
-                    return false;
-                }
+            // Check for the ECMA key, which does not obey the invariants checked below.
+            if (ByteSequenceComparer.Equals(blob, s_ecmaKey))
+            {
+                return true;
+            }
 
-                // Check for the ECMA key, which does not obey the invariants checked below.
-                if (ByteSequenceComparer.Equals(blob, s_ecmaKey))
-                {
-                    return true;
-                }
+            // The public key must be in the wincrypto PUBLICKEYBLOB format
+            if (publicKey != PublicKeyBlobId)
+            {
+                return false;
+            }
 
-                // The public key must be in the wincrypto PUBLICKEYBLOB format
-                if (pkb->PublicKey[0] != PublicKeyBlobId)
-                {
-                    return false;
-                }
+            var signatureAlgorithmId = new AlgorithmId(sigAlgId);
+            if (signatureAlgorithmId.IsSet && signatureAlgorithmId.Class != AlgorithmClass.Signature)
+            {
+                return false;
+            }
 
-                var signatureAlgorithmId = new AlgorithmId(pkb->SigAlgId);
-                if (signatureAlgorithmId.IsSet && signatureAlgorithmId.Class != AlgorithmClass.Signature)
-                {
-                    return false;
-                }
-
-                var hashAlgorithmId = new AlgorithmId(pkb->HashAlgId);
-                if (hashAlgorithmId.IsSet && (hashAlgorithmId.Class != AlgorithmClass.Hash || hashAlgorithmId.SubId < AlgorithmSubId.Sha1Hash))
-                {
-                    return false;
-                }
+            var hashAlgorithmId = new AlgorithmId(hashAlgId);
+            if (hashAlgorithmId.IsSet && (hashAlgorithmId.Class != AlgorithmClass.Hash || hashAlgorithmId.SubId < AlgorithmSubId.Sha1Hash))
+            {
+                return false;
             }
 
             return true;
         }
 
-        // PUBLICKEYSTRUC struct from wincrypt.h
-        [StructLayout(LayoutKind.Sequential)]
-        private struct BlobHeader
-        {
-            public byte Type;       // Blob type
-            public byte Version;    // Blob format version
-            public UInt16 Reserved; // Must be 0
-            public UInt32 AlgId;    // Algorithm ID. Must be one of ALG_ID specified in wincrypto.h
-        }
+        private const int BlobHeaderSize = sizeof(byte) + sizeof(byte) + sizeof(ushort) + sizeof(uint);
 
-        // RSAPUBKEY struct from wincrypt.h
-        [StructLayout(LayoutKind.Sequential)]
-        private struct RsaPubKey
-        {
-            public UInt32 Magic; // Indicates RSA1 or RSA2
-            public UInt32 BitLen; // Number of bits in the modulus. Must be multiple of 8.
-            public UInt32 PubExp; // The public exponent
-        }
+        private const int RsaPubKeySize = sizeof(uint) + sizeof(uint) + sizeof(uint);
+
         private const UInt32 RSA1 = 0x31415352;
         private const UInt32 RSA2 = 0x32415352;
 
         // In wincrypt.h both public and private key blobs start with a
         // PUBLICKEYSTRUC and RSAPUBKEY and then start the key data
-        private unsafe static readonly int s_offsetToKeyData = sizeof(BlobHeader) + sizeof(RsaPubKey);
+        private const int s_offsetToKeyData = BlobHeaderSize + RsaPubKeySize;
 
-        private static ImmutableArray<byte> CreateSnPublicKeyBlob(BlobHeader header, RsaPubKey rsa, byte[] pubKeyData)
+        private static ImmutableArray<byte> CreateSnPublicKeyBlob(
+            byte type, 
+            byte version, 
+            uint algId, 
+            uint magic, 
+            uint bitLen, 
+            uint pubExp, 
+            byte[] pubKeyData)
         {
-            var snPubKey = new SnPublicKeyBlob()
-            {
-                SigAlgId = AlgorithmId.RsaSign,
-                HashAlgId = AlgorithmId.Sha,
-                PublicKeySize = (UInt32)(s_offsetToKeyData + pubKeyData.Length)
-            };
+            var w = new BlobWriter(3 * sizeof(uint) + s_offsetToKeyData + pubKeyData.Length);
+            w.WriteUInt32(AlgorithmId.RsaSign);
+            w.WriteUInt32(AlgorithmId.Sha);
+            w.WriteUInt32((uint)(s_offsetToKeyData + pubKeyData.Length));
 
-            using (var ms = new MemoryStream(160))
-            using (var binaryWriter = new BinaryWriter(ms))
-            {
-                binaryWriter.Write(snPubKey.SigAlgId);
-                binaryWriter.Write(snPubKey.HashAlgId);
-                binaryWriter.Write(snPubKey.PublicKeySize);
+            w.WriteByte(type);
+            w.WriteByte(version);
+            w.WriteUInt16(0 /* 16 bits of reserved space in the spec */);
+            w.WriteUInt32(algId);
 
-                binaryWriter.Write(header.Type);
-                binaryWriter.Write(header.Version);
-                binaryWriter.Write(header.Reserved);
-                binaryWriter.Write(header.AlgId);
+            w.WriteUInt32(magic);
+            w.WriteUInt32(bitLen);
 
-                binaryWriter.Write(rsa.Magic);
-                binaryWriter.Write(rsa.BitLen);
-                binaryWriter.Write(rsa.PubExp);
+            // re-add padding for exponent
+            w.WriteUInt32(pubExp);
 
-                binaryWriter.Write(pubKeyData);
+            w.WriteBytes(pubKeyData);
 
-                return ms.ToImmutable();
-            }
-        }
-
-        private unsafe static bool TryGetPublicKeyFromPublicKeyBlob(byte* blob, int blobLen, out ImmutableArray<byte> publicKey)
-        {
-            var header = Marshal.PtrToStructure<BlobHeader>((IntPtr)blob);
-            var rsaPubKey = Marshal.PtrToStructure<RsaPubKey>((IntPtr)(blob + sizeof(BlobHeader)));
-            var modulus = new byte[rsaPubKey.BitLen >> 3];
-
-            // The key blob data just contains the modulus
-            if (blobLen - s_offsetToKeyData != modulus.Length)
-            {
-                publicKey = ImmutableArray<byte>.Empty;
-                return false;
-            }
-
-            Marshal.Copy((IntPtr)(blob + s_offsetToKeyData), modulus, 0, modulus.Length);
-
-            publicKey = CreateSnPublicKeyBlob(header, rsaPubKey, modulus);
-            return true;
-        }
-
-        private unsafe static bool TryGetPublicKeyFromPrivateKeyBlob(byte* blob, int blobLen, out ImmutableArray<byte> publicKey)
-        {
-            var header = (BlobHeader*)blob;
-            var rsa = (RsaPubKey*)(blob + sizeof(BlobHeader));
-
-            var version = header->Version;
-            var modulusBitLength = rsa->BitLen;
-            var exponent = rsa->PubExp;
-            var modulus = new byte[modulusBitLength >> 3];
-
-            if (blobLen - s_offsetToKeyData < modulus.Length)
-            {
-                publicKey = ImmutableArray<byte>.Empty;
-                return false;
-            }
-
-            Marshal.Copy((IntPtr)(blob + s_offsetToKeyData), modulus, 0, modulus.Length);
-
-            var newHeader = new BlobHeader()
-            {
-                Type = PublicKeyBlobId,
-                Version = version,
-                Reserved = 0,
-                AlgId = AlgorithmId.RsaSign
-            };
-
-            var newRsaKey = new RsaPubKey()
-            {
-                Magic = RSA1, // Public key
-                BitLen = modulusBitLength,
-                PubExp = exponent
-            };
-
-            publicKey = CreateSnPublicKeyBlob(newHeader, newRsaKey, modulus);
-            return true;
+            return w.ToImmutableArray();
         }
 
         /// <summary>
         /// Try to retrieve the public key from a crypto blob.
         /// </summary>
         /// <remarks>
-        /// Can be either a PUBLICKEYBLOB or PRIVATEKEYBLOB. The BLOB must /// be unencrypted.
+        /// Can be either a PUBLICKEYBLOB or PRIVATEKEYBLOB. The BLOB must be unencrypted.
         /// </remarks>
-        public unsafe static bool TryGetPublicKey(ImmutableArray<byte> blob, out ImmutableArray<byte> publicKey)
+        public static bool TryParseKey(ImmutableArray<byte> blob, out ImmutableArray<byte> snKey, out RSAParameters? privateKey)
         {
-            publicKey = ImmutableArray<byte>.Empty;
+            privateKey = null;
+            snKey = default(ImmutableArray<byte>);
 
-            // Is this already a strong name PublicKeyBlob?
+            var asArray = blob.DangerousGetUnderlyingArray();
+
             if (IsValidPublicKey(blob))
             {
-                publicKey = blob;
+                snKey = blob;
                 return true;
             }
 
-            // Must be at least as large as header + RSA info
-            if (blob.Length < sizeof(BlobHeader) + sizeof(RsaPubKey))
+            if (blob.Length < BlobHeaderSize + RsaPubKeySize)
             {
                 return false;
             }
 
-            fixed (byte* backing = blob.DangerousGetUnderlyingArray())
+            try
             {
-                var header = (BlobHeader*)backing;
-                var rsa = (RsaPubKey*)(backing + sizeof(BlobHeader));
+                using (MemoryStream memStream = new MemoryStream(asArray))
+                using (BinaryReader br = new BinaryReader(new MemoryStream(asArray)))
+                {
+                    byte bType = br.ReadByte();    // BLOBHEADER.bType: Expected to be 0x6 (PUBLICKEYBLOB) or 0x7 (PRIVATEKEYBLOB), though there's no check for backward compat reasons. 
+                    byte bVersion = br.ReadByte(); // BLOBHEADER.bVersion: Expected to be 0x2, though there's no check for backward compat reasons.
+                    br.ReadUInt16();               // BLOBHEADER.wReserved
+                    uint algId = br.ReadUInt32();  // BLOBHEADER.aiKeyAlg
+                    uint magic = br.ReadUInt32();  // RSAPubKey.magic: Expected to be 0x31415352 ('RSA1') or 0x32415352 ('RSA2') 
+                    var bitLen = br.ReadUInt32();  // Bit Length for Modulus
+                    var pubExp = br.ReadUInt32();  // Exponent 
+                    var modulusLength = (int)(bitLen / 8);
 
-                // The RSA magic key must match the blob id
-                if (header->Type == PrivateKeyBlobId &&
-                    rsa->Magic == RSA2)
-                {
-                    return TryGetPublicKeyFromPrivateKeyBlob(backing, blob.Length, out publicKey);
-                }
-                else if (header->Type == PublicKeyBlobId &&
-                    rsa->Magic == RSA1)
-                {
-                    return TryGetPublicKeyFromPublicKeyBlob(backing, blob.Length, out publicKey);
+                    if (blob.Length - s_offsetToKeyData < modulusLength)
+                    {
+                        return false;
+                    }
+
+                    var modulus = br.ReadBytes(modulusLength);
+
+                    if (!(bType == PrivateKeyBlobId && magic == RSA2) && !(bType == PublicKeyBlobId && magic == RSA1))
+                    {
+                        return false;
+                    }
+
+                    if (bType == PrivateKeyBlobId)
+                    {
+                        privateKey = ToRSAParameters(asArray, true);
+                        // For snKey, rewrite some of the the parameters
+                        algId = AlgorithmId.RsaSign;
+                        magic = RSA1;
+                    }
+
+                    snKey = CreateSnPublicKeyBlob(PublicKeyBlobId, bVersion, algId, RSA1, bitLen, pubExp, modulus);
+                    return true;
                 }
             }
-
-            return false;
+            catch (Exception)
+            {
+                return false;
+            }
         }
+
+        /// <summary>
+        /// Helper for RsaCryptoServiceProvider.ExportParameters()
+        /// Copied from https://github.com/dotnet/corefx/blob/5fe5f9aae7b2987adc7082f90712b265bee5eefc/src/System.Security.Cryptography.Csp/src/System/Security/Cryptography/CapiHelper.Shared.cs
+        /// </summary>
+        internal static RSAParameters ToRSAParameters(this byte[] cspBlob, bool includePrivateParameters)
+        {
+            BinaryReader br = new BinaryReader(new MemoryStream(cspBlob));
+
+            byte bType = br.ReadByte();    // BLOBHEADER.bType: Expected to be 0x6 (PUBLICKEYBLOB) or 0x7 (PRIVATEKEYBLOB), though there's no check for backward compat reasons. 
+            byte bVersion = br.ReadByte(); // BLOBHEADER.bVersion: Expected to be 0x2, though there's no check for backward compat reasons.
+            br.ReadUInt16();               // BLOBHEADER.wReserved
+            int algId = br.ReadInt32();    // BLOBHEADER.aiKeyAlg
+
+            int magic = br.ReadInt32();    // RSAPubKey.magic: Expected to be 0x31415352 ('RSA1') or 0x32415352 ('RSA2') 
+            int bitLen = br.ReadInt32();   // RSAPubKey.bitLen
+
+            int modulusLength = bitLen / 8;
+            int halfModulusLength = (modulusLength + 1) / 2;
+
+            uint expAsDword = br.ReadUInt32();
+
+            RSAParameters rsaParameters = new RSAParameters();
+            rsaParameters.Exponent = ExponentAsBytes(expAsDword);
+            rsaParameters.Modulus = br.ReadReversed(modulusLength);
+            if (includePrivateParameters)
+            {
+                rsaParameters.P = br.ReadReversed(halfModulusLength);
+                rsaParameters.Q = br.ReadReversed(halfModulusLength);
+                rsaParameters.DP = br.ReadReversed(halfModulusLength);
+                rsaParameters.DQ = br.ReadReversed(halfModulusLength);
+                rsaParameters.InverseQ = br.ReadReversed(halfModulusLength);
+                rsaParameters.D = br.ReadReversed(modulusLength);
+            }
+
+            return rsaParameters;
+        }
+
+        /// <summary>
+        /// Helper for converting a UInt32 exponent to bytes.
+        /// Copied from https://github.com/dotnet/corefx/blob/5fe5f9aae7b2987adc7082f90712b265bee5eefc/src/System.Security.Cryptography.Csp/src/System/Security/Cryptography/CapiHelper.Shared.cs
+        /// </summary>
+        private static byte[] ExponentAsBytes(uint exponent)
+        {
+            if (exponent <= 0xFF)
+            {
+                return new[] { (byte)exponent };
+            }
+            else if (exponent <= 0xFFFF)
+            {
+                unchecked
+                {
+                    return new[]
+                    {
+                        (byte)(exponent >> 8),
+                        (byte)(exponent)
+                    };
+                }
+            }
+            else if (exponent <= 0xFFFFFF)
+            {
+                unchecked
+                {
+                    return new[]
+                    {
+                        (byte)(exponent >> 16),
+                        (byte)(exponent >> 8),
+                        (byte)(exponent)
+                    };
+                }
+            }
+            else
+            {
+                return new[]
+                {
+                    (byte)(exponent >> 24),
+                    (byte)(exponent >> 16),
+                    (byte)(exponent >> 8),
+                    (byte)(exponent)
+                };
+            }
+}
+
+
+        /// <summary>
+        /// Read in a byte array in reverse order.
+        /// Copied from https://github.com/dotnet/corefx/blob/5fe5f9aae7b2987adc7082f90712b265bee5eefc/src/System.Security.Cryptography.Csp/src/System/Security/Cryptography/CapiHelper.Shared.cs
+        /// </summary>
+        private static byte[] ReadReversed(this BinaryReader br, int count)
+        {
+            byte[] data = br.ReadBytes(count);
+            Array.Reverse(data);
+            return data;
+}
     }
 }

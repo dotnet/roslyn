@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -19,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             End Get
         End Property
 
-        Public Async Function CleanupAsync(document As Document, spans As IEnumerable(Of TextSpan), Optional cancellationToken As CancellationToken = Nothing) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
+        Public Async Function CleanupAsync(document As Document, spans As ImmutableArray(Of TextSpan), Optional cancellationToken As CancellationToken = Nothing) As Task(Of Document) Implements ICodeCleanupProvider.CleanupAsync
             ' Is this VB 9? If so, we shouldn't remove line continuations because implicit line continuation was introduced in VB 10.
             Dim parseOptions = TryCast(document.Project.ParseOptions, VisualBasicParseOptions)
             If parseOptions?.LanguageVersion <= LanguageVersion.VisualBasic9 Then
@@ -32,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Return If(newRoot Is root, document, document.WithSyntaxRoot(newRoot))
         End Function
 
-        Public Function CleanupAsync(root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
+        Public Function CleanupAsync(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), workspace As Workspace, Optional cancellationToken As CancellationToken = Nothing) As Task(Of SyntaxNode) Implements ICodeCleanupProvider.CleanupAsync
             Return Task.FromResult(Replacer.Process(root, spans, cancellationToken))
         End Function
 
@@ -42,14 +43,14 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
             Private ReadOnly _tokens As New Dictionary(Of SyntaxToken, SyntaxToken)
 
             Private ReadOnly _root As SyntaxNode
-            Private ReadOnly _spans As IEnumerable(Of TextSpan)
+            Private ReadOnly _spans As ImmutableArray(Of TextSpan)
 
-            Public Shared Function Process(root As SyntaxNode, spans As IEnumerable(Of TextSpan), cancellationToken As CancellationToken) As SyntaxNode
+            Public Shared Function Process(root As SyntaxNode, spans As ImmutableArray(Of TextSpan), cancellationToken As CancellationToken) As SyntaxNode
                 Dim replacer = New Replacer(root, spans)
                 Return replacer.Do(cancellationToken)
             End Function
 
-            Private Sub New(root As SyntaxNode, spans As IEnumerable(Of TextSpan))
+            Private Sub New(root As SyntaxNode, spans As ImmutableArray(Of TextSpan))
                 _root = root
                 _spans = spans
             End Sub

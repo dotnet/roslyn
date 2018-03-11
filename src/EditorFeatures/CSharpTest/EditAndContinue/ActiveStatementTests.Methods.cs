@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.EditAndContinue;
@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 {
-    public class ActiveStatementTests_Methods : RudeEditTestBase
+    public class ActiveStatementTests_Methods : EditingTestBase
     {
         #region Methods
 
@@ -21,10 +21,10 @@ class C
 {
     static void Main(string[] args)
     {
-        <AS:1>Foo(1);</AS:1>
+        <AS:1>Goo(1);</AS:1>
     }
 
-    static void Foo(int a)
+    static void Goo(int a)
     {
         <AS:0>Console.WriteLine(a);</AS:0>
     }
@@ -34,7 +34,7 @@ class C
 {
     static void Main(string[] args)
     {
-        <AS:1>Foo(1);</AS:1>
+        <AS:1>Goo(1);</AS:1>
     }
 }
 ";
@@ -474,7 +474,7 @@ class C
         }
 
         [Fact]
-        public void Property_ExpressionBodyToBlockBody_Internal()
+        public void Property_ExpressionBodyToBlockBody_NonLeaf()
         {
             var src1 = @"
 class C 
@@ -523,7 +523,7 @@ class C
         }
 
         [Fact]
-        public void Property_BlockBodyToExpressionBody_Internal()
+        public void Property_BlockBodyToExpressionBody_NonLeaf()
         {
             var src1 = @"
 class C 
@@ -543,6 +543,7 @@ class C
             var edits = GetTopEdits(src1, src2);
             var active = GetActiveStatements(src1, src2);
 
+            // Can be improved with https://github.com/dotnet/roslyn/issues/22696
             edits.VerifyRudeDiagnostics(active,
                 Diagnostic(RudeEditKind.DeleteActiveStatement, "=>       M()"));
         }

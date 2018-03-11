@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Serialization
             {
                 writer.WriteInt32((int)SerializationKinds.MemoryMapFile);
                 writer.WriteString(storage.Name);
+                writer.WriteInt64(storage.Offset);
                 writer.WriteInt64(storage.Size);
                 return;
             }
@@ -50,9 +51,10 @@ namespace Microsoft.CodeAnalysis.Serialization
             if (kind == SerializationKinds.MemoryMapFile)
             {
                 var name = reader.ReadString();
+                var offset = reader.ReadInt64();
                 var size = reader.ReadInt64();
 
-                var storage = _tempService.AttachTemporaryTextStorage(name, size, encoding, cancellationToken);
+                var storage = _tempService.AttachTemporaryTextStorage(name, offset, size, encoding, cancellationToken);
 
                 return storage.ReadText(cancellationToken);
             }

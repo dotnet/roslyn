@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -901,7 +901,7 @@ End Class</text>.Value
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TestTryRenameElement_ResolvableClass()
-            Dim code As String = <text>Public Partial Class Foo
+            Dim code As String = <text>Public Partial Class Goo
 
 End Class</text>.Value
 
@@ -910,7 +910,7 @@ End Class</text>.Value
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
                     document:=document,
                     clrt:=ContainedLanguageRenameType.CLRT_CLASS,
-                    oldFullyQualifiedName:="Foo",
+                    oldFullyQualifiedName:="Goo",
                     newFullyQualifiedName:="Bar",
                     refactorNotifyServices:=SpecializedCollections.EmptyEnumerable(Of IRefactorNotifyService),
                     cancellationToken:=Nothing)
@@ -921,7 +921,7 @@ End Class</text>.Value
 
         <Fact(), Trait(Traits.Feature, Traits.Features.Venus)>
         Public Sub TestTryRenameElement_ResolvableNamespace()
-            Dim code As String = <text>Namespace Foo
+            Dim code As String = <text>Namespace Goo
 End Namespace</text>.Value
 
             Using workspace = GetWorkspace(code)
@@ -929,7 +929,7 @@ End Namespace</text>.Value
                 Dim renameSucceeded = ContainedLanguageCodeSupport.TryRenameElement(
                     document:=document,
                     clrt:=ContainedLanguageRenameType.CLRT_NAMESPACE,
-                    oldFullyQualifiedName:="Foo",
+                    oldFullyQualifiedName:="Goo",
                     newFullyQualifiedName:="Bar",
                     refactorNotifyServices:=SpecializedCollections.EmptyEnumerable(Of IRefactorNotifyService),
                     cancellationToken:=Nothing)

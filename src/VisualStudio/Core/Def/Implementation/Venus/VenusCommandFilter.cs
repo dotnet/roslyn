@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
 using System.Linq;
@@ -43,7 +43,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
             return _subjectBuffer;
         }
 
-        public override int GetDataTipText(TextSpan[] pSpan, out string pbstrText)
+        protected override int GetDataTipTextImpl(TextSpan[] pSpan, out string pbstrText)
         {
             if (pSpan == null || pSpan.Length != 1)
             {
@@ -78,7 +78,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                 // Next, we'll check to see if there is actually a DataTip for this candidate.
                 // If there is, we'll map this span back to the DataBuffer and return it.
                 pSpan[0] = candidateSpan.ToVsTextSpan();
-                int hr = base.GetDataTipText(pSpan, out pbstrText);
+                int hr = base.GetDataTipTextImpl(pSpan, out pbstrText);
                 if (ErrorHandler.Succeeded(hr))
                 {
                     var subjectSpan = _subjectBuffer.CurrentSnapshot.GetSpan(pSpan[0]);
@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     var surfaceSpan = WpfTextView.BufferGraph.MapUpToBuffer(subjectSpan, SpanTrackingMode.EdgeInclusive, textViewModel.DataBuffer)
                                         .SingleOrDefault(x => x.IntersectsWith(span));
 
-                    if (surfaceSpan == default(SnapshotSpan))
+                    if (surfaceSpan == default)
                     {
                         pbstrText = null;
                         return VSConstants.E_FAIL;

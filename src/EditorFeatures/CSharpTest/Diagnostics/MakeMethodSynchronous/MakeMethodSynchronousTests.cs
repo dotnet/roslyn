@@ -24,7 +24,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    async Task [|Foo|]()
+    async Task [|Goo|]()
     {
     }
 }",
@@ -33,11 +33,10 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -49,7 +48,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    async Task<int> [|Foo|]()
+    async Task<int> [|Goo|]()
     {
     }
 }",
@@ -58,11 +57,10 @@ using System.Threading.Tasks;
 
 class C
 {
-    int Foo()
+    int Goo()
     {
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -74,7 +72,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    public async Task [|Foo|]()
+    public async Task [|Goo|]()
     {
     }
 }",
@@ -83,11 +81,10 @@ using System.Threading.Tasks;
 
 class C
 {
-    public void Foo()
+    public void Goo()
     {
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -99,7 +96,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    async public Task [|Foo|]()
+    async public Task [|Goo|]()
     {
     }
 }",
@@ -108,11 +105,10 @@ using System.Threading.Tasks;
 
 class C
 {
-    public void Foo()
+    public void Goo()
     {
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -125,7 +121,7 @@ using System.Threading.Tasks;
 class C
 {
     async // comment
-    Task [|Foo|]()
+    Task [|Goo|]()
     {
     }
 }",
@@ -134,11 +130,10 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -150,7 +145,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    async Task [|FooAsync|]()
+    async Task [|GooAsync|]()
     {
     }
 }",
@@ -159,11 +154,10 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -175,13 +169,13 @@ using System.Threading.Tasks;
 
 class C
 {
-    async Task [|FooAsync|]()
+    async Task [|GooAsync|]()
     {
     }
 
     void Bar()
     {
-        FooAsync();
+        GooAsync();
     }
 }",
 @"
@@ -189,16 +183,15 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
     }
 
     void Bar()
     {
-        Foo();
+        Goo();
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -210,10 +203,10 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<Task> f =
-            async [|()|] => { };
+            async () [|=>|] { };
     }
 }",
 @"
@@ -221,13 +214,12 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<Task> f =
             () => { };
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -239,10 +231,10 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string, Task> f =
-            async [|a|] => { };
+            async a [|=>|] { };
     }
 }",
 @"
@@ -250,14 +242,14 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string, Task> f =
             a => { };
     }
-}",
-ignoreTrivia: false);
+}");
         }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
         public async Task TestLambdaWithExpressionBody()
         {
@@ -267,10 +259,10 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string, Task> f =
-            async [|a|] => 1;
+            async a [|=>|] 1;
     }
 }",
 @"
@@ -278,13 +270,12 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<string, Task> f =
             a => 1;
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -296,7 +287,7 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<Task> f =
             async [|delegate|] { };
@@ -307,13 +298,12 @@ using System.Threading.Tasks;
 
 class C
 {
-    void Foo()
+    void Goo()
     {
         Func<Task> f =
             delegate { };
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -324,30 +314,30 @@ ignoreTrivia: false);
 
 public class Class1
 {
-    {|FixAllInDocument:async Task FooAsync()
+    {|FixAllInDocument:async Task GooAsync()
     {
         BarAsync();
     }
 
     async Task<int> BarAsync()
     {
-        FooAsync();
+        GooAsync();
     }|}
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    void Foo()
+    void Goo()
     {
         Bar();
     }
 
     int Bar()
     {
-        Foo();
+        Goo();
     }
-}", ignoreTrivia: false, fixAllActionEquivalenceKey: AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey);
+}", fixAllActionEquivalenceKey: AbstractMakeMethodSynchronousCodeFixProvider.EquivalenceKey);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -359,28 +349,28 @@ public class Class1
 
 public class Class1
 {
-    async Task [|FooAsync|]()
+    async Task [|GooAsync|]()
     {
     }
 
     async void BarAsync()
     {
-        await FooAsync();
+        await GooAsync();
     }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    void Foo()
+    void Goo()
     {
     }
 
     async void BarAsync()
     {
-        Foo();
+        Goo();
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -392,28 +382,28 @@ public class Class1
 
 public class Class1
 {
-    async Task [|FooAsync|]()
+    async Task [|GooAsync|]()
     {
     }
 
     async void BarAsync()
     {
-        await FooAsync().ConfigureAwait(false);
+        await GooAsync().ConfigureAwait(false);
     }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    void Foo()
+    void Goo()
     {
     }
 
     async void BarAsync()
     {
-        Foo();
+        Goo();
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -425,28 +415,28 @@ public class Class1
 
 public class Class1
 {
-    async Task [|FooAsync|]()
+    async Task [|GooAsync|]()
     {
     }
 
     async void BarAsync()
     {
-        await this.FooAsync();
+        await this.GooAsync();
     }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    void Foo()
+    void Goo()
     {
     }
 
     async void BarAsync()
     {
-        this.Foo();
+        this.Goo();
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -458,28 +448,28 @@ public class Class1
 
 public class Class1
 {
-    async Task [|FooAsync|]()
+    async Task [|GooAsync|]()
     {
     }
 
     async void BarAsync()
     {
-        await this.FooAsync().ConfigureAwait(false);
+        await this.GooAsync().ConfigureAwait(false);
     }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    void Foo()
+    void Goo()
     {
     }
 
     async void BarAsync()
     {
-        this.Foo();
+        this.Goo();
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -491,28 +481,28 @@ public class Class1
 
 public class Class1
 {
-    async Task<int> [|FooAsync|](int i)
+    async Task<int> [|GooAsync|](int i)
     {
     }
 
     async void BarAsync()
     {
-        await this.FooAsync(await this.FooAsync(0));
+        await this.GooAsync(await this.GooAsync(0));
     }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    int Foo(int i)
+    int Goo(int i)
     {
     }
 
     async void BarAsync()
     {
-        this.Foo(this.Foo(0));
+        this.Goo(this.Goo(0));
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodSynchronous)]
@@ -524,28 +514,136 @@ public class Class1
 
 public class Class1
 {
-    async Task<int> [|FooAsync|](int i)
+    async Task<int> [|GooAsync|](int i)
     {
     }
 
     async void BarAsync()
     {
-        await this.FooAsync(await this.FooAsync(0).ConfigureAwait(false)).ConfigureAwait(false);
+        await this.GooAsync(await this.GooAsync(0).ConfigureAwait(false)).ConfigureAwait(false);
     }
 }",
 @"using System.Threading.Tasks;
 
 public class Class1
 {
-    int Foo(int i)
+    int Goo(int i)
     {
     }
 
     async void BarAsync()
     {
-        this.Foo(this.Foo(0));
+        this.Goo(this.Goo(0));
     }
-}", ignoreTrivia: false);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(14133, "https://github.com/dotnet/roslyn/issues/14133")]
+        public async Task RemoveAsyncInLocalFunction()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        async Task [|M2Async|]()
+        {
+        }
+    }
+}",
+@"using System.Threading.Tasks;
+
+class C
+{
+    public void M1()
+    {
+        void M2()
+        {
+        }
+    }
+}");
+        }
+
+        [Theory]
+        [InlineData("Task<C>", "C")]
+        [InlineData("Task<int>", "int")]
+        [InlineData("Task", "void")]
+        [InlineData("void", "void")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
+        public async Task RemoveAsyncInLocalFunctionKeepsTrivia(string asyncReturn, string expectedReturn)
+        {
+            await TestInRegularAndScriptAsync(
+$@"using System;
+using System.Threading.Tasks;
+
+class C
+{{
+    public void M1()
+    {{
+        // Leading trivia
+        /*1*/ async {asyncReturn} /*2*/ [|M2Async|]/*3*/() /*4*/
+        {{
+            throw new NotImplementedException();
+        }}
+    }}
+}}",
+$@"using System;
+using System.Threading.Tasks;
+
+class C
+{{
+    public void M1()
+    {{
+        // Leading trivia
+        /*1*/
+        {expectedReturn} /*2*/ M2/*3*/() /*4*/
+        {{
+            throw new NotImplementedException();
+        }}
+    }}
+}}");
+        }
+
+        [Theory]
+        [InlineData("", "Task<C>", "\r\n    C")]
+        [InlineData("", "Task<int>", "\r\n    int")]
+        [InlineData("", "Task", "\r\n    void")]
+        [InlineData("", "void", "\r\n    void")]
+        [InlineData("public", "Task<C>", " C")]
+        [InlineData("public", "Task<int>", " int")]
+        [InlineData("public", "Task", " void")]
+        [InlineData("public", "void", " void")]
+        [Trait(Traits.Feature, Traits.Features.CodeActionsMakeMethodAsynchronous)]
+        [WorkItem(18307, "https://github.com/dotnet/roslyn/issues/18307")]
+        public async Task RemoveAsyncKeepsTrivia(string modifiers, string asyncReturn, string expectedReturn)
+        {
+            await TestInRegularAndScriptAsync(
+$@"using System;
+using System.Threading.Tasks;
+
+class C
+{{
+    // Leading trivia
+    {modifiers}/*1*/ async {asyncReturn} /*2*/ [|M2Async|]/*3*/() /*4*/
+    {{
+        throw new NotImplementedException();
+    }}
+}}",
+$@"using System;
+using System.Threading.Tasks;
+
+class C
+{{
+    // Leading trivia
+    {modifiers}/*1*/{expectedReturn} /*2*/ M2/*3*/() /*4*/
+    {{
+        throw new NotImplementedException();
+    }}
+}}");
         }
     }
 }

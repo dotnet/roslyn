@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Editor.Commands
@@ -234,7 +234,7 @@ End Module
         Public Sub TestClassStatementWithInheritsImplementsAndStatementSeparators()
             Dim code = <Code>Namespace NS
     Class CL
-        Inherits IFoo : Implements Foo
+        Inherits IGoo : Implements Goo
 </Code>.Value
 
             AssertSmartIndent(
@@ -247,7 +247,7 @@ End Module
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestClassStatementWithInheritsImplementsAndStatementSeparators2()
             Dim code = <Code>Namespace NS
-    Class CL : Inherits IFoo : Implements Foo
+    Class CL : Inherits IGoo : Implements Goo
 </Code>.Value
 
             AssertSmartIndent(
@@ -274,7 +274,7 @@ End Module
         Public Sub TestEndInterfaceStatement()
             Dim code = <Code>Namespace NS
     Interface IF
-        Sub Foo()
+        Sub Goo()
     End Interface
 </Code>.Value
 
@@ -289,7 +289,7 @@ End Module
         Public Sub TestInterfaceStatementWithInherits()
             Dim code = <Code>Namespace NS
     Interface IF
-        Inherits IFoo
+        Inherits IGoo
 </Code>.Value
 
             AssertSmartIndent(
@@ -302,7 +302,7 @@ End Module
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestInterfaceStatementWithInheritsOnTheSameLine()
             Dim code = <Code>Namespace NS
-    Interface IF : Inherits IFoo
+    Interface IF : Inherits IGoo
 </Code>.Value
 
             AssertSmartIndent(
@@ -315,7 +315,7 @@ End Module
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestEnumStatement()
             Dim code = <Code>Namespace NS
-    Enum Foo
+    Enum Goo
 </Code>.Value
 
             AssertSmartIndent(
@@ -328,7 +328,7 @@ End Module
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestEndEnumStatement()
             Dim code = <Code>Namespace NS
-    Enum Foo
+    Enum Goo
         Member1
     End Enum
 </Code>.Value
@@ -343,7 +343,7 @@ End Module
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestEnumMembers()
             Dim code = <Code>Namespace NS
-    Enum Foo
+    Enum Goo
         Member1
 </Code>.Value
 
@@ -427,7 +427,7 @@ End Namespace
         Public Sub TestEndModuleStatement()
             Dim code = <Code>Namespace NS
     Module Module1
-        Sub Foo()
+        Sub Goo()
         End Sub
     End Module
 </Code>.Value
@@ -572,7 +572,7 @@ End Class</Code>.Value
     Class CL
         Sub Method()
             Do
-                Foo()
+                Goo()
             Loop
 </Code>.Value
 
@@ -619,7 +619,7 @@ End Class</Code>.Value
     Class CL
         Sub Method()
             For i = 1 To 10
-                Foo()
+                Goo()
             Next
 </Code>.Value
 
@@ -697,7 +697,7 @@ End Class</Code>.Value
         Sub Method()
             Select A
                 Case 1
-                    foo()
+                    goo()
 </Code>.Value
 
             AssertSmartIndent(
@@ -714,7 +714,7 @@ End Class</Code>.Value
         Sub Method()
             Select A
                 Case 1
-                    foo()
+                    goo()
                 Case Else
 </Code>.Value
 
@@ -732,7 +732,7 @@ End Class</Code>.Value
         Sub Method()
             Select A
                 Case 1
-                    foo()
+                    goo()
             End Select
 </Code>.Value
 
@@ -878,7 +878,7 @@ End Class</Code>.Value
     Class CL
         Sub Method()
             While True
-                Foo()
+                Goo()
             End While
 </Code>.Value
 
@@ -911,7 +911,7 @@ End Class</Code>.Value
     Class CL
         Sub Method()
             With DataStructure
-                .foo = "foo"
+                .goo = "goo"
             End With
 </Code>.Value
 
@@ -1034,7 +1034,7 @@ End Class</Code>.Value
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
-            Dim foo = Function(x) 42
+            Dim goo = Function(x) 42
 </Code>.Value
 
             AssertSmartIndent(
@@ -1049,7 +1049,7 @@ End Class</Code>.Value
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
-            Dim foo = Function(x)
+            Dim goo = Function(x)
 </Code>.Value
 
             AssertSmartIndent(
@@ -1064,7 +1064,7 @@ End Class</Code>.Value
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
-            Dim foo = Function(x) 'Comment
+            Dim goo = Function(x) 'Comment
 </Code>.Value
 
             AssertSmartIndent(
@@ -1079,7 +1079,7 @@ End Class</Code>.Value
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
-            Dim foo = Sub(x) Console.WriteLine("Foo")
+            Dim goo = Sub(x) Console.WriteLine("Goo")
 </Code>.Value
 
             AssertSmartIndent(
@@ -1094,7 +1094,7 @@ End Class</Code>.Value
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
-            Dim foo = Sub(x) Console.WriteLine("Foo") _
+            Dim goo = Sub(x) Console.WriteLine("Goo") _
 </Code>.Value
 
             AssertSmartIndent(
@@ -1109,7 +1109,7 @@ End Class</Code>.Value
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
-            Dim foo = Sub(x)
+            Dim goo = Sub(x)
 </Code>.Value
 
             AssertSmartIndent(
@@ -1124,7 +1124,7 @@ End Class</Code>.Value
             Dim code = <Code>Namespace NS
     Class CL
         Sub Method()
-            Dim foo = Sub(x) 'Comment
+            Dim goo = Sub(x) 'Comment
 </Code>.Value
 
             AssertSmartIndent(
@@ -1251,7 +1251,7 @@ End Class</Code>.Value
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestBugFix1417_2()
             Dim code = <Code>Sub Main()
-    Dim foo = From x In y
+    Dim goo = From x In y
 </Code>.Value
 
             AssertSmartIndent(
@@ -1280,7 +1280,7 @@ End Class</Code>.Value
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestImplicitLineContinuationAfterAttributeInNamespace()
-            Dim code = "Namespace foo" & vbCrLf &
+            Dim code = "Namespace goo" & vbCrLf &
                        "    <SomeAttribute()>" & vbCrLf &
                        ""
 
@@ -1293,7 +1293,7 @@ End Class</Code>.Value
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestImplicitLineContinuationWithMultipleAttributes()
-            Dim code = "Namespace foo" & vbCrLf &
+            Dim code = "Namespace goo" & vbCrLf &
                        "    <SomeAttribute1()>" & vbCrLf &
                        "    <SomeAttribute2()>" & vbCrLf &
                        ""
@@ -1307,7 +1307,7 @@ End Class</Code>.Value
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestImplicitLineContinuationAfterAttributeInClass()
-            Dim code = "Namespace foo" & vbCrLf &
+            Dim code = "Namespace goo" & vbCrLf &
                        "    Class C" & vbCrLf &
                        "        <SomeAttribute()>" & vbCrLf &
                        ""
@@ -1368,9 +1368,9 @@ End Class</Code>.Value
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestImplicitLineContinuationExpression1()
             Dim code = <Code>Class C
-    Function Foo$(ParamArray arg())
+    Function Goo$(ParamArray arg())
         Dim r$ = "3"
-        Foo$ = Foo$(
+        Goo$ = Goo$(
             r$
 
     End Function
@@ -1449,7 +1449,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestExplicitLineContinuationAfterAttributeInNamespace()
-            Dim code = "Namespace foo" & vbCrLf &
+            Dim code = "Namespace goo" & vbCrLf &
                        "    <SomeAttribute()> _" & vbCrLf &
                        ""
 
@@ -1462,7 +1462,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestExplicitLineContinuationWithMultipleAttributes()
-            Dim code = "Namespace foo" & vbCrLf &
+            Dim code = "Namespace goo" & vbCrLf &
                        "    <SomeAttribute1()> _" & vbCrLf &
                        "    <SomeAttribute2()> _" & vbCrLf &
                        ""
@@ -1476,7 +1476,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestExplicitLineContinuationAfterAttributeInClass()
-            Dim code = "Namespace foo" & vbCrLf &
+            Dim code = "Namespace goo" & vbCrLf &
                        "    Class C" & vbCrLf &
                        "        <SomeAttribute()> _" & vbCrLf &
                        ""
@@ -1494,7 +1494,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestMultipleStatementsWithStatementSeparators()
-            Dim code = <Code>Namespace Foo
+            Dim code = <Code>Namespace Goo
     Class C
         Sub Method()
             Dim r As Integer = 22 : Dim q = 15
@@ -1509,7 +1509,7 @@ End Module
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub TestMultipleStatementsIncludingMultilineLambdaWithStatementSeparators()
-            Dim code = <Code>Namespace Foo
+            Dim code = <Code>Namespace Goo
     Class C
         Sub Method()
             Dim r As Integer = 22 : Dim s = Sub()
@@ -1534,7 +1534,7 @@ End Module
             Dim code = <Code>Namespace SomeNamespace
     Class C
         Sub Method()
-#Const foo
+#Const goo
 </Code>.Value
 
             AssertSmartIndent(
@@ -1550,7 +1550,7 @@ End Module
             Dim code = <Code>Namespace SomeNamespace
     Class C
         Sub Method()
-#Const foo = 42
+#Const goo = 42
 </Code>.Value
 
             AssertSmartIndent(
@@ -1761,7 +1761,7 @@ End Module
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
-                       "                    foo" & vbCrLf &
+                       "                    goo" & vbCrLf &
                        ""
 
             AssertSmartIndent(
@@ -1792,7 +1792,7 @@ End Module
             Dim code = "Class C" & vbCrLf &
                        "    Sub Method()" & vbCrLf &
                        "        Dim q = <xml>" & vbCrLf &
-                       "                    <%= Foo(2 _" & vbCrLf &
+                       "                    <%= Goo(2 _" & vbCrLf &
                        ""
 
             AssertSmartIndent(
@@ -1929,7 +1929,7 @@ End Module</Code>.Value
             Dim code = <Code>Module Program
     Sub Main(args As String())
         If True Then
-#Const foo = 23
+#Const goo = 23
 
         End If
     End Sub

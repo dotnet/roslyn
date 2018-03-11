@@ -42,6 +42,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
             {
                 WriteOptionTo(options, option, writer, cancellationToken);
             }
+
+            foreach (var option in CSharpCodeStyleOptions.GetExpressionBodyOptions())
+            {
+                WriteOptionTo(options, option, writer, cancellationToken);
+            }
+
+            WriteOptionTo(options, CSharpCodeStyleOptions.PreferredModifierOrder, writer, cancellationToken);
         }
 
         public override OptionSet ReadOptionSetFrom(ObjectReader reader, CancellationToken cancellationToken)
@@ -54,6 +61,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Execution
             {
                 options = ReadOptionFrom(options, option, reader, cancellationToken);
             }
+
+            foreach (var option in CSharpCodeStyleOptions.GetExpressionBodyOptions())
+            {
+                options = ReadOptionFrom(options, option, reader, cancellationToken);
+            }
+
+            options = ReadOptionFrom(options, CSharpCodeStyleOptions.PreferredModifierOrder, reader, cancellationToken);
 
             return options;
         }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Threading;
 using EnvDTE;
@@ -65,5 +66,8 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         protected static void WaitForSystemIdle()
             => CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.SystemIdle);
+
+        // Ensure InProcComponents live forever
+        public override object InitializeLifetimeService() => null;
     }
 }

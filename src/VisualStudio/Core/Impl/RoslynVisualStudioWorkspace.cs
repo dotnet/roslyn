@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -10,18 +10,13 @@ using Microsoft.CodeAnalysis.Editor.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.FindSymbols;
-using Microsoft.CodeAnalysis.FindUsages;
-using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.LanguageServices.Implementation;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectBrowser.Lists;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
-using Microsoft.VisualStudio.Shell;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices
@@ -31,18 +26,15 @@ namespace Microsoft.VisualStudio.LanguageServices
     internal class RoslynVisualStudioWorkspace : VisualStudioWorkspaceImpl
     {
         private readonly IEnumerable<Lazy<IStreamingFindUsagesPresenter>> _streamingPresenters;
-        private readonly IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> _referencedSymbolsPresenters;
 
         [ImportingConstructor]
         private RoslynVisualStudioWorkspace(
             ExportProvider exportProvider,
             [ImportMany] IEnumerable<Lazy<IStreamingFindUsagesPresenter>> streamingPresenters,
-            [ImportMany] IEnumerable<Lazy<IDefinitionsAndReferencesPresenter>> referencedSymbolsPresenters,
             [ImportMany] IEnumerable<IDocumentOptionsProviderFactory> documentOptionsProviderFactories)
             : base(exportProvider.AsExportProvider())
         {
             _streamingPresenters = streamingPresenters;
-            _referencedSymbolsPresenters = referencedSymbolsPresenters;
 
             foreach (var providerFactory in documentOptionsProviderFactories)
             {
@@ -75,8 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 throw new ArgumentException(ServicesVSResources.The_given_DocumentId_did_not_come_from_the_Visual_Studio_workspace, nameof(documentId));
             }
 
-            var provider = project as IProjectCodeModelProvider;
-            if (provider != null)
+            if (project is IProjectCodeModelProvider provider)
             {
                 var projectCodeModel = provider.ProjectCodeModel;
                 if (projectCodeModel.CanCreateFileCodeModelThroughProject(document.FilePath))
@@ -151,7 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                 }
             }
 
-            return new InvisibleEditor(DeferredState.ServiceProvider, hostDocument.FilePath, needsSave, needsUndoDisabled);
+            return new InvisibleEditor(DeferredState.ServiceProvider, hostDocument.FilePath, hostDocument.Project, needsSave, needsUndoDisabled);
         }
 
         private static bool TryResolveSymbol(ISymbol symbol, Project project, CancellationToken cancellationToken, out ISymbol resolvedSymbol, out Project resolvedProject)
@@ -202,44 +193,15 @@ namespace Microsoft.VisualStudio.LanguageServices
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)
         {
-            if (!_referencedSymbolsPresenters.Any())
-            {
-                return false;
-            }
-
-            if (!TryResolveSymbol(symbol, project, cancellationToken, out var searchSymbol, out var searchProject))
-            {
-                return false;
-            }
-
-            var searchSolution = searchProject.Solution;
-
-            var result = SymbolFinder
-                .FindReferencesAsync(searchSymbol, searchSolution, cancellationToken)
-                .WaitAndGetResult(cancellationToken).ToList();
-
-            if (result != null)
-            {
-                DisplayReferencedSymbols(searchSolution, result);
-                return true;
-            }
-
+            // Legacy API.  Previously used by ObjectBrowser to support 'FindRefs' off of an
+            // object browser item.  Now ObjectBrowser goes through the streaming-FindRefs system.
             return false;
         }
 
-        public override void DisplayReferencedSymbols(
-            Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
+        public override void DisplayReferencedSymbols(Solution solution, IEnumerable<ReferencedSymbol> referencedSymbols)
         {
-            var service = this.Services.GetService<IDefinitionsAndReferencesFactory>();
-            var definitionsAndReferences = service.CreateDefinitionsAndReferences(
-                solution, referencedSymbols,
-                includeHiddenLocations: false, cancellationToken: CancellationToken.None);
-
-            foreach (var presenter in _referencedSymbolsPresenters)
-            {
-                presenter.Value.DisplayResult(definitionsAndReferences);
-                return;
-            }
+            // Legacy API.  Previously used by ObjectBrowser to support 'FindRefs' off of an
+            // object browser item.  Now ObjectBrowser goes through the streaming-FindRefs system.
         }
 
         internal override object GetBrowseObject(SymbolListItem symbolListItem)

@@ -12,7 +12,7 @@ using CustomAttribute;
 namespace AttributeUse
 {
     // attribute on type parameter (with target typevar or not)
-    public interface IFoo<[typevar: AllInheritMultiple(3.1415926)] T, [AllInheritMultiple('q', 2)] V>
+    public interface IGoo<[typevar: AllInheritMultiple(3.1415926)] T, [AllInheritMultiple('q', 2)] V>
     {
         // default: method
         [AllInheritMultiple(p3:1.234f, p2: 1056, p1: "555")]
@@ -25,7 +25,7 @@ namespace AttributeUse
     [AllInheritMultiple(new char[] { '1', '2' }, UIntField = 112233)]
     [type: AllInheritMultiple(new char[] { 'a', '\0', '\t' }, AryField = new ulong[] { 0, 1, ulong.MaxValue })]
     [AllInheritMultiple(null, "", null, "1234", AryProp = new object[2] { new ushort[] { 1 }, new ushort[] { 2, 3, 4 } })]
-    public class Foo<[typevar: AllInheritMultiple(null), AllInheritMultiple()] T> : IFoo<T, ushort>
+    public class Goo<[typevar: AllInheritMultiple(null), AllInheritMultiple()] T> : IGoo<T, ushort>
     {
         // named parameters
         [field: AllInheritMultiple(p2: System.Reflection.BindingFlags.DeclaredOnly | System.Reflection.BindingFlags.Public, p1: -123)]
@@ -33,7 +33,7 @@ namespace AttributeUse
         public int ClassField;
 
         [property: BaseAttribute(-1)]
-        public Foo<char> Prop
+        public Goo<char> Prop
         {
             // return: NYI
             [AllInheritMultiple(1, 2, 3), AllInheritMultiple(4, 5, 1.1f)]
@@ -44,9 +44,9 @@ namespace AttributeUse
 
         [AllInheritMultiple(+007, 256)]
         [AllInheritMultiple(-008, 255)]
-        [method: DerivedAttribute(typeof(IFoo<short, ushort>), ObjectField = 1)]
+        [method: DerivedAttribute(typeof(IGoo<short, ushort>), ObjectField = 1)]
         public ushort Method(T t) { return 0; }
         // Explicit NotImpl
-        // ushort IFoo<T, ushort>.Method(T t) { return 0; }
+        // ushort IGoo<T, ushort>.Method(T t) { return 0; }
     }
 }

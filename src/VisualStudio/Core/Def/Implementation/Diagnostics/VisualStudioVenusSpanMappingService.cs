@@ -134,7 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             return position1 > position2 ? position1 : position2;
         }
 
-        public static LinePosition GetAdjustedLineColumn(Workspace workspace, DocumentId documentId, int originalLine, int originalColumn, int mappedLine, int mappedColumn)
+        public static LinePosition GetAdjustedLineColumn(Microsoft.CodeAnalysis.Workspace workspace, DocumentId documentId, int originalLine, int originalColumn, int mappedLine, int mappedColumn)
         {
             var vsWorkspace = workspace as VisualStudioWorkspaceImpl;
             if (vsWorkspace == null)
@@ -152,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
         private static bool TryAdjustSpanIfNeededForVenus(VisualStudioWorkspaceImpl workspace, DocumentId documentId, int originalLine, int originalColumn, out MappedSpan mappedSpan)
         {
-            mappedSpan = default(MappedSpan);
+            mappedSpan = default;
 
             if (documentId == null)
             {

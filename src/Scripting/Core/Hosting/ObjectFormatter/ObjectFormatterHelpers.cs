@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -50,8 +50,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
 
             // TODO (tomat): which assembly should we look at for dd attributes?
-            var type = member as TypeInfo;
-            if (type != null)
+            if (member is TypeInfo type)
             {
                 foreach (DebuggerDisplayAttribute attr in type.Assembly.GetCustomAttributes<DebuggerDisplayAttribute>())
                 {

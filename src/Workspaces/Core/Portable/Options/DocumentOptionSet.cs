@@ -5,7 +5,7 @@ using System.Collections.Generic;
 namespace Microsoft.CodeAnalysis.Options
 {
     /// <summary>
-    /// An <see cref="OptionSet"/> that comes from <see cref="Document.GetOptionsAsync"/>. It behaves just like a normal
+    /// An <see cref="OptionSet"/> that comes from <see cref="Document.GetOptionsAsync(System.Threading.CancellationToken)"/>. It behaves just like a normal
     /// <see cref="OptionSet"/> but remembers which language the <see cref="Document"/> is, so you don't have to
     /// pass that information redundantly when calling <see cref="GetOption{T}(PerLanguageOption{T})"/>.
     /// </summary>

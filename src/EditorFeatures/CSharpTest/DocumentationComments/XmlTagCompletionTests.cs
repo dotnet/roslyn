@@ -18,11 +18,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DocumentationComments
         public void SimpleTagCompletion()
         {
             var text = @"
-/// <foo$$
+/// <goo$$
 class c { }";
 
             var expected = @"
-/// <foo>$$</foo>
+/// <goo>$$</goo>
 class c { }";
 
             Verify(text, expected, '>');
@@ -33,13 +33,13 @@ class c { }";
         {
             var text = @"
 /// <summary>
-/// <foo$$
+/// <goo$$
 /// </summary>
 class c { }";
 
             var expected = @"
 /// <summary>
-/// <foo>$$</foo>
+/// <goo>$$</goo>
 /// </summary>
 class c { }";
 
@@ -50,12 +50,12 @@ class c { }";
         public void CompleteBeforeIncompleteTag()
         {
             var text = @"
-/// <foo$$
+/// <goo$$
 /// </summary>
 class c { }";
 
             var expected = @"
-/// <foo>$$</foo>
+/// <goo>$$</goo>
 /// </summary>
 class c { }";
 
@@ -80,11 +80,11 @@ class c { }";
         public void NotAlreadyCompleteTag()
         {
             var text = @"
-/// <foo$$</foo>
+/// <goo$$</goo>
 class c { }";
 
             var expected = @"
-/// <foo>$$</foo>
+/// <goo>$$</goo>
 class c { }";
 
             Verify(text, expected, '>');
@@ -94,15 +94,15 @@ class c { }";
         public void NotAlreadyCompleteTag2()
         {
             var text = @"
-/// <foo$$
+/// <goo$$
 ///
-/// </foo>
+/// </goo>
 class c { }";
 
             var expected = @"
-/// <foo>$$
+/// <goo>$$
 ///
-/// </foo>
+/// </goo>
 class c { }";
 
             Verify(text, expected, '>');
@@ -112,11 +112,11 @@ class c { }";
         public void SimpleSlashCompletion()
         {
             var text = @"
-/// <foo><$$
+/// <goo><$$
 class c { }";
 
             var expected = @"
-/// <foo></foo>$$
+/// <goo></goo>$$
 class c { }";
 
             Verify(text, expected, '/');
@@ -127,13 +127,13 @@ class c { }";
         {
             var text = @"
 /// <summary>
-/// <foo><$$
+/// <goo><$$
 /// </summary>
 class c { }";
 
             var expected = @"
 /// <summary>
-/// <foo></foo>$$
+/// <goo></goo>$$
 /// </summary>
 class c { }";
 
@@ -144,12 +144,12 @@ class c { }";
         public void SlashCompleteBeforeIncompleteTag()
         {
             var text = @"
-/// <foo><$$
+/// <goo><$$
 /// </summary>
 class c { }";
 
             var expected = @"
-/// <foo></foo>$$
+/// <goo></goo>$$
 /// </summary>
 class c { }";
 
@@ -174,11 +174,11 @@ class c { }";
         public void SlashNotAlreadyCompleteTag()
         {
             var text = @"
-/// <foo><$$foo>
+/// <goo><$$goo>
 class c { }";
 
             var expected = @"
-/// <foo></$$foo>
+/// <goo></$$goo>
 class c { }";
 
             Verify(text, expected, '/');
@@ -188,15 +188,15 @@ class c { }";
         public void SlashNotAlreadyCompleteTag2()
         {
             var text = @"
-/// <foo>
+/// <goo>
 ///
-/// <$$foo>
+/// <$$goo>
 class c { }";
 
             var expected = @"
-/// <foo>
+/// <goo>
 ///
-/// </$$foo>
+/// </$$goo>
 class c { }";
 
             Verify(text, expected, '/');
@@ -207,11 +207,11 @@ class c { }";
         public void NestedIdenticalTags()
         {
             var text = @"
-/// <foo><foo$$</foo>
+/// <goo><goo$$</goo>
 class c { }";
 
             var expected = @"
-/// <foo><foo>$$</foo></foo>
+/// <goo><goo>$$</goo></goo>
 class c { }";
 
             Verify(text, expected, '>');
@@ -222,11 +222,11 @@ class c { }";
         public void MultipleNestedIdenticalTags()
         {
             var text = @"
-/// <foo><foo><foo$$</foo></foo>
+/// <goo><goo><goo$$</goo></goo>
 class c { }";
 
             var expected = @"
-/// <foo><foo><foo>$$</foo></foo></foo>
+/// <goo><goo><goo>$$</goo></goo></goo>
 class c { }";
 
             Verify(text, expected, '>');

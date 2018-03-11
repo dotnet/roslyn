@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (rewrittenLeft.IsDefaultValue())
             {
-                return rewrittenRight;
+                return EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenRight);
             }
 
             if (rewrittenLeft.ConstantValue != null)
@@ -130,7 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenConsequence: convertedLeft,
                 rewrittenAlternative: rewrittenRight,
                 constantValueOpt: null,
-                rewrittenType: rewrittenResultType);
+                rewrittenType: rewrittenResultType,
+                isRef: false);
 
             Debug.Assert(conditionalExpression.ConstantValue == null); // we shouldn't have hit this else case otherwise
             Debug.Assert(conditionalExpression.Type.Equals(rewrittenResultType, TypeCompareKind.IgnoreDynamicAndTupleNames));

@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Diagnostics;
@@ -14,6 +14,13 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
         public override bool Include(StackFrame frame)
         {
             var method = frame.GetMethod();
+
+            // TODO (https://github.com/dotnet/roslyn/issues/23101): investigate which submission frames *can* be excluded
+            if (method.DeclaringType?.FullName.StartsWith("Submission#0").ToThreeState() == ThreeState.True)
+            {
+                return true;
+            }
+
             if (IsHiddenMember(method))
             {
                 return false;

@@ -32,7 +32,10 @@ namespace Microsoft.CodeAnalysis.Completion
                 case Glyph.EnumProtected: return WellKnownTagArrays.EnumProtected;
                 case Glyph.EnumPrivate: return WellKnownTagArrays.EnumPrivate;
                 case Glyph.EnumInternal: return WellKnownTagArrays.EnumInternal;
-                case Glyph.EnumMember: return WellKnownTagArrays.EnumMember;
+                case Glyph.EnumMemberPublic: return WellKnownTagArrays.EnumMemberPublic;
+                case Glyph.EnumMemberProtected: return WellKnownTagArrays.EnumMemberProtected;
+                case Glyph.EnumMemberPrivate: return WellKnownTagArrays.EnumMemberPrivate;
+                case Glyph.EnumMemberInternal: return WellKnownTagArrays.EnumMemberInternal;
                 case Glyph.Error: return WellKnownTagArrays.Error;
                 case Glyph.EventPublic: return WellKnownTagArrays.EventPublic;
                 case Glyph.EventProtected: return WellKnownTagArrays.EventProtected;

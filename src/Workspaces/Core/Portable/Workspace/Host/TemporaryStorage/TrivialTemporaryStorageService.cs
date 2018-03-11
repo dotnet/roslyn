@@ -15,12 +15,12 @@ namespace Microsoft.CodeAnalysis
     [ExportWorkspaceService(typeof(ITemporaryStorageService)), Shared]
     internal sealed class TrivialTemporaryStorageService : ITemporaryStorageService
     {
-        public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken = default(CancellationToken))
+        public ITemporaryStreamStorage CreateTemporaryStreamStorage(CancellationToken cancellationToken = default)
         {
             return new StreamStorage();
         }
 
-        public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken = default(CancellationToken))
+        public ITemporaryTextStorage CreateTemporaryTextStorage(CancellationToken cancellationToken = default)
         {
             return new TextStorage();
         }
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
                 _stream = null;
             }
 
-            public Stream ReadStream(CancellationToken cancellationToken = default(CancellationToken))
+            public Stream ReadStream(CancellationToken cancellationToken = default)
             {
                 if (_stream == null)
                 {
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
                 return _stream;
             }
 
-            public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default(CancellationToken))
+            public Task<Stream> ReadStreamAsync(CancellationToken cancellationToken = default)
             {
                 if (_stream == null)
                 {
@@ -57,14 +57,14 @@ namespace Microsoft.CodeAnalysis
                 return Task.FromResult((Stream)_stream);
             }
 
-            public void WriteStream(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+            public void WriteStream(Stream stream, CancellationToken cancellationToken = default)
             {
                 var newStream = new MemoryStream();
                 stream.CopyTo(newStream);
                 _stream = newStream;
             }
 
-            public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default(CancellationToken))
+            public async Task WriteStreamAsync(Stream stream, CancellationToken cancellationToken = default)
             {
                 var newStream = new MemoryStream();
                 await stream.CopyToAsync(newStream).ConfigureAwait(false);
@@ -81,17 +81,17 @@ namespace Microsoft.CodeAnalysis
                 _sourceText = null;
             }
 
-            public SourceText ReadText(CancellationToken cancellationToken = default(CancellationToken))
+            public SourceText ReadText(CancellationToken cancellationToken = default)
             {
                 return _sourceText;
             }
 
-            public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default(CancellationToken))
+            public Task<SourceText> ReadTextAsync(CancellationToken cancellationToken = default)
             {
                 return Task.FromResult(ReadText(cancellationToken));
             }
 
-            public void WriteText(SourceText text, CancellationToken cancellationToken = default(CancellationToken))
+            public void WriteText(SourceText text, CancellationToken cancellationToken = default)
             {
                 // This is a trivial implementation, indeed. Note, however, that we retain a strong
                 // reference to the source text, which defeats the intent of RecoverableTextAndVersion, but
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis
                 _sourceText = text;
             }
 
-            public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default(CancellationToken))
+            public Task WriteTextAsync(SourceText text, CancellationToken cancellationToken = default)
             {
                 WriteText(text, cancellationToken);
                 return SpecializedTasks.EmptyTask;

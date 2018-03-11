@@ -139,14 +139,14 @@ End Class";
                 var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
 
                 // add host analyzer as global assets
-                var snapshotService = workspace.Services.GetService<ISolutionSynchronizationService>();
+                var snapshotService = workspace.Services.GetService<IRemotableDataService>();
                 var assetBuilder = new CustomAssetBuilder(workspace);
 
                 var asset = assetBuilder.Build(analyzerReference, CancellationToken.None);
                 snapshotService.AddGlobalAsset(analyzerReference, asset, CancellationToken.None);
 
                 var client = await workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(CancellationToken.None);
-                await client.RunOnRemoteHostAsync(
+                await client.TryRunRemoteAsync(
                     WellKnownRemoteHostServices.RemoteHostService, workspace.CurrentSolution,
                     nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync), (object)(new Checksum[] { asset.Checksum }), CancellationToken.None);
 
@@ -157,14 +157,63 @@ End Class";
                 var project = workspace.CurrentSolution.Projects.First();
 
                 var executor = (ICodeAnalysisDiagnosticAnalyzerExecutor)new DiagnosticAnalyzerExecutor(new MyUpdateSource(workspace)).CreateService(workspace.Services);
-                var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray());
-                var result = await executor.AnalyzeAsync(analyzerDriver, project, CancellationToken.None);
+                var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
+                        analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
+                        new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution));
+
+                var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
 
                 var analyzerResult = result.AnalysisResult[analyzerDriver.Analyzers[0]];
 
                 // check result
                 var diagnostics = analyzerResult.SemanticLocals[analyzerResult.DocumentIds.First()];
                 Assert.Equal(IDEDiagnosticIds.UseExplicitTypeDiagnosticId, diagnostics[0].Id);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]
+        public async Task TestDuplicatedAnalyzers()
+        {
+            var code = @"class Test
+{
+    void Method()
+    {
+        var t = new Test();
+    }
+}";
+
+            using (var workspace = CreateWorkspace(LanguageNames.CSharp, code))
+            {
+                var analyzerType = typeof(DuplicateAnalyzer);
+                var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
+
+                // add host analyzer as global assets
+                var snapshotService = workspace.Services.GetService<IRemotableDataService>();
+                var assetBuilder = new CustomAssetBuilder(workspace);
+
+                var asset = assetBuilder.Build(analyzerReference, CancellationToken.None);
+                snapshotService.AddGlobalAsset(analyzerReference, asset, CancellationToken.None);
+
+                var client = await workspace.Services.GetService<IRemoteHostClientService>().TryGetRemoteHostClientAsync(CancellationToken.None);
+                await client.TryRunRemoteAsync(
+                    WellKnownRemoteHostServices.RemoteHostService, workspace.CurrentSolution,
+                    nameof(IRemoteHostService.SynchronizeGlobalAssetsAsync), (object)(new Checksum[] { asset.Checksum }), CancellationToken.None);
+
+                // run analysis
+                var project = workspace.CurrentSolution.Projects.First().AddAnalyzerReference(analyzerReference);
+
+                var executor = (ICodeAnalysisDiagnosticAnalyzerExecutor)new DiagnosticAnalyzerExecutor(new MyUpdateSource(workspace)).CreateService(workspace.Services);
+                var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
+                        analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
+                        new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution));
+
+                var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: false, cancellationToken: CancellationToken.None);
+
+                var analyzerResult = result.AnalysisResult[analyzerDriver.Analyzers[0]];
+
+                // check result
+                var diagnostics = analyzerResult.SyntaxLocals[analyzerResult.DocumentIds.First()];
+                Assert.Equal("test", diagnostics[0].Id);
             }
         }
 
@@ -175,8 +224,11 @@ End Class";
             var analyzerReference = new AnalyzerFileReference(analyzerType.Assembly.Location, new TestAnalyzerAssemblyLoader());
             var project = workspace.CurrentSolution.GetProject(projectId).AddAnalyzerReference(analyzerReference);
 
-            var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray());
-            var result = await executor.AnalyzeAsync(analyzerDriver, project, cancellationToken);
+            var analyzerDriver = (await project.GetCompilationAsync()).WithAnalyzers(
+                    analyzerReference.GetAnalyzers(project.Language).Where(a => a.GetType() == analyzerType).ToImmutableArray(),
+                    new WorkspaceAnalyzerOptions(project.AnalyzerOptions, project.Solution.Options, project.Solution));
+
+            var result = await executor.AnalyzeAsync(analyzerDriver, project, forcedAnalysis: true, cancellationToken: cancellationToken);
 
             return result.AnalysisResult[analyzerDriver.Analyzers[0]];
         }
@@ -210,6 +262,23 @@ End Class";
                     {
                         c.ReportDiagnostic(Diagnostic.Create(_supportedDiagnostics[0], c.Tree.GetLocation(TextSpan.FromBounds(0, 1))));
                     }
+                });
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp)]
+        private class DuplicateAnalyzer : DiagnosticAnalyzer
+        {
+            private readonly ImmutableArray<DiagnosticDescriptor> _supportedDiagnostics =
+                ImmutableArray.Create(new DiagnosticDescriptor("test", "test", "test", "test", DiagnosticSeverity.Error, isEnabledByDefault: true));
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => _supportedDiagnostics;
+
+            public override void Initialize(AnalysisContext context)
+            {
+                context.RegisterSyntaxTreeAction(c =>
+                {
+                    c.ReportDiagnostic(Diagnostic.Create(_supportedDiagnostics[0], c.Tree.GetLocation(TextSpan.FromBounds(0, 1))));
                 });
             }
         }

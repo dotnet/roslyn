@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
             await TestInRegularAndScriptAsync(CreateTreeText("[||]" + initial), CreateTreeText(expected), index: (int)refactoring);
         }
 
-        private string CreateTreeText(string initial)
+        private static string CreateTreeText(string initial)
         {
             return @"class X { void F() { var x = " + initial + @"; } }";
         }
@@ -95,6 +95,70 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertNume
         public async Task TestTypeCharacter()
         {
             await TestFixOneAsync("0x1e5UL", "0b111100101UL", Refactoring.ChangeBase2);
+        }
+
+        [WorkItem(19225, "https://github.com/dotnet/roslyn/issues/19225")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)]
+        public async Task TestPreserveWhitespaces()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Program
+{
+    void M()
+    {
+        var numbers = new int[] {
+            [||]0x1, 0x2
+        };
+    }
+}",
+@"class Program
+{
+    void M()
+    {
+        var numbers = new int[] {
+            0b1, 0x2
+        };
+    }
+}", index: (int)Refactoring.ChangeBase2);
+        }
+
+        [WorkItem(19369, "https://github.com/dotnet/roslyn/issues/19369")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)]
+        public async Task TestCaretPositionAtTheEnd()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int a = 42[||];
+}",
+@"class C
+{
+    int a = 0b101010;
+}", index: (int)Refactoring.ChangeBase1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)]
+        public async Task TestSelectionMatchesToken()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int a = [|42|];
+}",
+@"class C
+{
+    int a = 0b101010;
+}", index: (int)Refactoring.ChangeBase1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertNumericLiteral)]
+        public async Task TestSelectionDoesntMatchToken()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class C
+{
+    int a = [|42 * 2|];
+}");
         }
     }
 }

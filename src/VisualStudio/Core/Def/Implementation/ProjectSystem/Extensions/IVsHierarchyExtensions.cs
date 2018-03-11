@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             if (ErrorHandler.Failed(hierarchy.GetProperty(itemId, propertyId, out var property)) ||
                 !(property is T))
             {
-                value = default(T);
+                value = default;
                 return false;
             }
 
@@ -75,6 +75,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public static bool TryGetTypeGuid(this IVsHierarchy hierarchy, out Guid typeGuid)
         {
             return hierarchy.TryGetGuidProperty(__VSHPROPID.VSHPROPID_TypeGuid, out typeGuid);
+        }
+
+        public static bool TryGetTargetFrameworkMoniker(this IVsHierarchy hierarchy, uint itemId, out string targetFrameworkMoniker)
+        {
+            return hierarchy.TryGetItemProperty(itemId, (int)__VSHPROPID4.VSHPROPID_TargetFrameworkMoniker, out targetFrameworkMoniker);
         }
     }
 }

@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports System.Runtime.CompilerServices
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Xunit
 
 Friend Module Extensions
@@ -297,4 +298,28 @@ Friend Module Extensions
         Return ret
     End Function
 
+    <Extension>
+    Public Function BaseType(symbol As TypeSymbol) As NamedTypeSymbol
+        Return symbol.BaseTypeNoUseSiteDiagnostics
+    End Function
+
+    <Extension>
+    Public Function Interfaces(symbol As TypeSymbol) As ImmutableArray(Of NamedTypeSymbol)
+        Return symbol.InterfacesNoUseSiteDiagnostics
+    End Function
+
+    <Extension>
+    Public Function AllInterfaces(symbol As TypeSymbol) As ImmutableArray(Of NamedTypeSymbol)
+        Return symbol.AllInterfacesNoUseSiteDiagnostics
+    End Function
+
+    <Extension>
+    Public Function TypeArguments(symbol As NamedTypeSymbol) As ImmutableArray(Of TypeSymbol)
+        Return symbol.TypeArgumentsNoUseSiteDiagnostics
+    End Function
+
+    <Extension>
+    Public Function ConstraintTypes(symbol As TypeParameterSymbol) As ImmutableArray(Of TypeSymbol)
+        Return symbol.ConstraintTypesNoUseSiteDiagnostics
+    End Function
 End Module

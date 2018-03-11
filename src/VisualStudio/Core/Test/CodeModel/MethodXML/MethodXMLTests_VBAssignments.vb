@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Globalization
 Imports System.Threading
@@ -427,10 +427,10 @@ End Class
         <Document>
 Public Class C
     $$Sub M()
-        Me.Foo = (CType(((AnchorStyles.Top Or AnchorStyles.Left) Or AnchorStyles.Right), AnchorStyles))
+        Me.Goo = (CType(((AnchorStyles.Top Or AnchorStyles.Left) Or AnchorStyles.Right), AnchorStyles))
     End Sub
 
-    Public Property Foo As AnchorStyles
+    Public Property Goo As AnchorStyles
 End Class
 
 Enum AnchorStyles
@@ -453,7 +453,7 @@ End Enum
                         <Expression>
                             <ThisReference/>
                         </Expression>
-                        <Name>Foo</Name>
+                        <Name>Goo</Name>
                     </NameRef>
                 </Expression>
                 <Expression>

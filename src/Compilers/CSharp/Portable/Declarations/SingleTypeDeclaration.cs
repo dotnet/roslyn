@@ -26,7 +26,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             HasBaseDeclarations = 1 << 3,
             AnyMemberHasAttributes = 1 << 4,
             HasAnyNontypeMembers = 1 << 5,
-            HasConstraints = 1 << 6,
         }
 
         internal SingleTypeDeclaration(
@@ -38,10 +37,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxReference syntaxReference,
             SourceLocation nameLocation,
             ICollection<string> memberNames,
-            ImmutableArray<SingleTypeDeclaration> children)
-            : base(name,
-                   syntaxReference,
-                   nameLocation)
+            ImmutableArray<SingleTypeDeclaration> children,
+            ImmutableArray<Diagnostic> diagnostics)
+            : base(name, syntaxReference, nameLocation, diagnostics)
         {
             Debug.Assert(kind != DeclarationKind.Namespace);
 
@@ -124,8 +122,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return (_flags & TypeDeclarationFlags.AnyMemberHasAttributes) != 0;
             }
         }
-
-        public bool HasConstraints => (_flags & TypeDeclarationFlags.HasConstraints) != 0;
 
         public bool HasAnyNontypeMembers
         {

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Test.Utilities
@@ -49,19 +49,6 @@ End Class
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
-        <method containingType="C1" name="FooInvisible">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <scope startOffset="0x0" endOffset="0x19">
-                <namespace name="System" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="str" il_index="0" il_start="0x0" il_end="0x19" attributes="0"/>
-            </scope>
-        </method>
         <method containingType="C1" name="Main">
             <sequencePoints>
                 <entry offset="0x0" hidden="true" document="1"/>
@@ -71,7 +58,9 @@ End Class
                 <entry offset="0x22" hidden="true" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x23">
-                <importsforward declaringType="C1" methodName="FooInvisible"/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Collections.Generic" importlevel="file"/>
+                <currentnamespace name=""/>
             </scope>
         </method>
     </methods>
@@ -134,19 +123,6 @@ End Class
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
-        <method containingType="C1" name="FooInvisible">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <scope startOffset="0x0" endOffset="0x19">
-                <namespace name="System" importlevel="file"/>
-                <namespace name="System.Collections.Generic" importlevel="file"/>
-                <currentnamespace name=""/>
-                <local name="str" il_index="0" il_start="0x0" il_end="0x19" attributes="0"/>
-            </scope>
-        </method>
         <method containingType="C1" name="Main">
             <customDebugInfo>
                 <encLocalSlotMap>
@@ -182,7 +158,9 @@ End Class
                 <entry offset="0xab" hidden="true" document="2"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0xac">
-                <importsforward declaringType="C1" methodName="FooInvisible"/>
+                <namespace name="System" importlevel="file"/>
+                <namespace name="System.Collections.Generic" importlevel="file"/>
+                <currentnamespace name=""/>
                 <local name="i" il_index="0" il_start="0x0" il_end="0xac" attributes="0"/>
             </scope>
         </method>
@@ -383,26 +361,16 @@ End Class
 <symbols>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
-        <method containingType="C1" name="FooInvisible">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <scope startOffset="0x0" endOffset="0x19">
+        <method containingType="C1" name="Main" format="windows">
+            <scope startOffset="0x0" endOffset="0x18">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="str" il_index="0" il_start="0x0" il_end="0x19" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="C1" name="Main">
-            <scope startOffset="0x0" endOffset="0x18">
-                <importsforward declaringType="C1" methodName="FooInvisible"/>
             </scope>
         </method>
     </methods>
-</symbols>)
+</symbols>, ' Since the CDI is not emitted to Portable PDB it won't be present in the converted Windows PDB.
+            options:=PdbValidationOptions.SkipConversionValidation)
         End Sub
 
         <Fact>
@@ -452,26 +420,17 @@ End Class
 <symbols>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
-        <method containingType="C1" name="FooInvisible">
-            <customDebugInfo>
-                <encLocalSlotMap>
-                    <slot kind="0" offset="4"/>
-                </encLocalSlotMap>
-            </customDebugInfo>
-            <scope startOffset="0x0" endOffset="0x19">
+        <method containingType="C1" name="Main" format="windows">
+            <scope startOffset="0x0" endOffset="0x23">
                 <namespace name="System" importlevel="file"/>
                 <namespace name="System.Collections.Generic" importlevel="file"/>
                 <currentnamespace name=""/>
-                <local name="str" il_index="0" il_start="0x0" il_end="0x19" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="C1" name="Main">
-            <scope startOffset="0x0" endOffset="0x23">
-                <importsforward declaringType="C1" methodName="FooInvisible"/>
             </scope>
         </method>
     </methods>
-</symbols>)
+</symbols>, options:=PdbValidationOptions.SkipConversionValidation)
+            ' When converting from Portable to Windows the PDB writer doesn't create an entry for the Main method 
+            ' and thus there Is no entry point record either.
         End Sub
 
         <Fact()>
@@ -584,11 +543,6 @@ End Class
             <scope startOffset="0x0" endOffset="0xf">
                 <importsforward declaringType="C1" methodName=".ctor"/>
                 <local name="c" il_index="0" il_start="0x0" il_end="0xf" attributes="0"/>
-            </scope>
-        </method>
-        <method containingType="InActual" name=".ctor">
-            <scope startOffset="0x0" endOffset="0x10">
-                <importsforward declaringType="C1" methodName=".ctor"/>
             </scope>
         </method>
     </methods>

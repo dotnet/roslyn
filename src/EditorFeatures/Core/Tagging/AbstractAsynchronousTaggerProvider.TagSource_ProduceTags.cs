@@ -55,9 +55,26 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 RaiseResumed();
             }
 
-            private void OnChanged(object sender, TaggerEventArgs e)
+            private void OnEventSourceChanged(object sender, TaggerEventArgs e)
             {
-                RecalculateTagsOnChanged(e);
+                var result = Interlocked.CompareExchange(ref _seenEventSourceChanged, value: 1, comparand: 0);
+                if (result == 0)
+                {
+                    // this is the first time we're hearing about changes from our event-source.
+                    // Don't have any delay here.  We want to just compute the tags and display
+                    // them as soon as we possibly can.
+                    ComputeInitialTags();
+                }
+                else
+                {
+                    // First, cancel any previous requests (either still queued, or started).  We no longer
+                    // want to continue it if new changes have come in.
+                    _workQueue.CancelCurrentWork();
+                    RegisterNotification(
+                        () => RecomputeTagsForeground(initialTags: false),
+                        (int)e.Delay.ComputeTimeDelay().TotalMilliseconds,
+                        GetCancellationToken(initialTags: false));
+                }
             }
 
             private void OnCaretPositionChanged(object sender, CaretPositionChangedEventArgs e)
@@ -70,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 if (caret.HasValue)
                 {
                     // If it changed position and we're still in a tag, there's nothing more to do
-                    var currentTags = GetTagIntervalTreeForBuffer(caret.Value.Snapshot.TextBuffer);
+                    var currentTags = TryGetTagIntervalTreeForBuffer(caret.Value.Snapshot.TextBuffer);
                     if (currentTags != null && currentTags.GetIntersectingSpans(new SnapshotSpan(caret.Value, 0)).Count > 0)
                     {
                         // Caret is inside a tag.  No need to do anything.
@@ -263,9 +280,15 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             /// <summary>
-            /// Called on the foreground thread.
+            /// Called on the foreground thread.  Passed a boolean to say if we're computing the
+            /// initial set of tags or not.  If we're computing the initial set of tags, we lower
+            /// all our delays so that we can get results to the screen as quickly as possible.
+            /// 
+            /// This gives a good experience when a document is opened as the document appears
+            /// complete almost immediately.  Once open though, our normal delays come into play
+            /// so as to not cause a flashy experience.
             /// </summary>
-            private void RecomputeTagsForeground()
+            private void RecomputeTagsForeground(bool initialTags)
             {
                 _workQueue.AssertIsForeground();
 
@@ -277,8 +300,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     // Mark that we're not up to date. We'll remain in that state until the next 
                     // tag production stage finally completes.
                     this.UpToDate = false;
-                    var cancellationToken = _workQueue.CancellationToken;
 
+                    var cancellationToken = GetCancellationToken(initialTags);
                     var spansToTag = GetSpansAndDocumentsToTag();
 
                     // Make a copy of all the data we need while we're on the foreground.  Then
@@ -290,12 +313,29 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     var oldState = this.State;
 
                     _workQueue.EnqueueBackgroundTask(
-                        ct => this.RecomputeTagsAsync(oldState, caretPosition, textChangeRange, spansToTag, oldTagTrees, ct),
+                        ct => this.RecomputeTagsAsync(
+                            oldState, caretPosition, textChangeRange, spansToTag, oldTagTrees, initialTags, ct),
                         GetType().Name + ".RecomputeTags", cancellationToken);
                 }
             }
 
-            private List<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
+            /// <summary>
+            /// Get's the cancellation token that will control the processing of this set of
+            /// tags. If this is the initial set of tags, we have a single cancellation token
+            /// that can't be interrupted *unless* the entire tagger is shut down.  If this
+            /// is anything after the initial set of tags, then we'll control things with a
+            /// cancellation token that is triggered every time we hear about new changes.
+            /// 
+            /// This is a 'kick the can down the road' approach whereby we keep delaying
+            /// producing tags (and updating the UI) until a reasonable pause has happened.
+            /// This approach helps prevent flashing in the UI.
+            /// </summary>
+            private CancellationToken GetCancellationToken(bool initialTags)
+                => initialTags
+                    ? _initialComputationCancellationTokenSource.Token
+                    : _workQueue.CancellationToken;
+
+            private ImmutableArray<DocumentSnapshotSpan> GetSpansAndDocumentsToTag()
             {
                 _workQueue.AssertIsForeground();
 
@@ -316,9 +356,8 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     // document can be null if the buffer the given span is part of is not part of our workspace.
                     return new DocumentSnapshotSpan(document, span);
-                }).ToList();
+                }).ToImmutableArray();
 
-                Debug.Assert(spansAndDocumentsToTag.Count > 0);
                 return spansAndDocumentsToTag;
             }
 
@@ -533,8 +572,9 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 object oldState,
                 SnapshotPoint? caretPosition,
                 TextChangeRange? textChangeRange,
-                List<DocumentSnapshotSpan> spansToTag,
+                ImmutableArray<DocumentSnapshotSpan> spansToTag,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
+                bool initialTags,
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -543,7 +583,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                     oldState, spansToTag, caretPosition, textChangeRange, oldTagTrees, cancellationToken);
                 await ProduceTagsAsync(context).ConfigureAwait(false);
 
-                ProcessContext(spansToTag, oldTagTrees, context);
+                ProcessContext(spansToTag, oldTagTrees, context, initialTags);
             }
 
             private bool ShouldSkipTagProduction()
@@ -577,9 +617,10 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             }
 
             private void ProcessContext(
-                List<DocumentSnapshotSpan> spansToTag,
+                ImmutableArray<DocumentSnapshotSpan> spansToTag,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
-                TaggerContext<TTag> context)
+                TaggerContext<TTag> context,
+                bool initialTags)
             {
                 var buffersToTag = spansToTag.Select(dss => dss.SnapshotSpan.Snapshot.TextBuffer).ToSet();
 
@@ -587,43 +628,45 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 var newTagsByBuffer = context.tagSpans.Where(ts => buffersToTag.Contains(ts.Span.Snapshot.TextBuffer))
                                                       .ToLookup(t => t.Span.Snapshot.TextBuffer);
 
-
                 var newTagTrees = ConvertToTagTrees(oldTagTrees, newTagsByBuffer, context._spansTagged);
-                ProcessNewTagTrees(spansToTag, oldTagTrees, newTagTrees, context.State, context.CancellationToken);
+                ProcessNewTagTrees(
+                    spansToTag, oldTagTrees, newTagTrees, 
+                    context.State, initialTags, context.CancellationToken);
             }
 
             private void ProcessNewTagTrees(
-                List<DocumentSnapshotSpan> spansToTag,
+                ImmutableArray<DocumentSnapshotSpan> spansToTag,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> oldTagTrees,
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
                 object newState,
+                bool initialTags,
                 CancellationToken cancellationToken)
             {
                 var bufferToChanges = new Dictionary<ITextBuffer, DiffResult>();
                 using (Logger.LogBlock(FunctionId.Tagger_TagSource_ProcessNewTags, cancellationToken))
                 {
-                    foreach (var latestBuffer in newTagTrees.Keys)
+                    foreach (var (latestBuffer, latestSpans) in newTagTrees)
                     {
                         var snapshot = spansToTag.First(s => s.SnapshotSpan.Snapshot.TextBuffer == latestBuffer).SnapshotSpan.Snapshot;
 
-                        if (oldTagTrees.ContainsKey(latestBuffer))
+                        if (oldTagTrees.TryGetValue(latestBuffer, out var previousSpans))
                         {
-                            var difference = ComputeDifference(snapshot, newTagTrees[latestBuffer], oldTagTrees[latestBuffer]);
+                            var difference = ComputeDifference(snapshot, latestSpans, previousSpans);
                             bufferToChanges[latestBuffer] = difference;
                         }
                         else
                         {
                             // It's a new buffer, so report all spans are changed
-                            bufferToChanges[latestBuffer] = new DiffResult(added: newTagTrees[latestBuffer].GetSpans(snapshot).Select(t => t.Span), removed: null);
+                            bufferToChanges[latestBuffer] = new DiffResult(added: latestSpans.GetSpans(snapshot).Select(t => t.Span), removed: null);
                         }
                     }
 
-                    foreach (var oldBuffer in oldTagTrees.Keys)
+                    foreach (var (oldBuffer, previousSpans) in oldTagTrees)
                     {
                         if (!newTagTrees.ContainsKey(oldBuffer))
                         {
                             // This buffer disappeared, so let's notify that the old tags are gone
-                            bufferToChanges[oldBuffer] = new DiffResult(added: null, removed: oldTagTrees[oldBuffer].GetSpans(oldBuffer.CurrentSnapshot).Select(t => t.Span));
+                            bufferToChanges[oldBuffer] = new DiffResult(added: null, removed: previousSpans.GetSpans(oldBuffer.CurrentSnapshot).Select(t => t.Span));
                         }
                     }
                 }
@@ -631,20 +674,24 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 if (_workQueue.IsForeground())
                 {
                     // If we're on the foreground already, we can just update our internal state directly.
-                    UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState);
+                    UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState, initialTags);
                 }
                 else
                 {
                     // Otherwise report back on the foreground asap to update the state and let our 
                     // clients know about the change.
-                    RegisterNotification(() => UpdateStateAndReportChanges(newTagTrees, bufferToChanges, newState), 0, cancellationToken);
+                    RegisterNotification(() => UpdateStateAndReportChanges(
+                        newTagTrees, bufferToChanges, newState, initialTags),
+                        delay: 0,
+                        cancellationToken: cancellationToken);
                 }
             }
 
             private void UpdateStateAndReportChanges(
                 ImmutableDictionary<ITextBuffer, TagSpanIntervalTree<TTag>> newTagTrees,
                 Dictionary<ITextBuffer, DiffResult> bufferToChanges,
-                object newState)
+                object newState,
+                bool initialTags)
             {
                 _workQueue.AssertIsForeground();
 
@@ -673,7 +720,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
                 // AsynchronousTagger's BatchChangeNotifier.  If we tell it about enough changes
                 // to a file, it will coalesce them into one large change to keep chattiness with
                 // the editor down.
-                RaiseTagsChanged(bufferToChanges);
+                RaiseTagsChanged(bufferToChanges, initialTags);
             }
 
             private DiffResult ComputeDifference(
@@ -688,7 +735,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
             /// Returns the TagSpanIntervalTree containing the tags for the given buffer. If no tags
             /// exist for the buffer at all, null is returned.
             /// </summary>
-            public TagSpanIntervalTree<TTag> GetTagIntervalTreeForBuffer(ITextBuffer buffer)
+            public TagSpanIntervalTree<TTag> TryGetTagIntervalTreeForBuffer(ITextBuffer buffer)
             {
                 _workQueue.AssertIsForeground();
 
@@ -730,7 +777,7 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
                     ProduceTagsSynchronously(context);
 
-                    ProcessContext(spansToTag, oldTagTrees, context);
+                    ProcessContext(spansToTag, oldTagTrees, context, initialTags: false);
                 }
 
                 Debug.Assert(this.UpToDate);

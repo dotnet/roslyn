@@ -151,6 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         {
             if (EqualConstness(x.Modifiers, y.Modifiers, out var result) &&
                 EqualStaticness(x.Modifiers, y.Modifiers, out result) &&
+                EqualReadOnlyness(x.Modifiers, y.Modifiers, out result) &&
                 EqualAccessibility(x, x.Modifiers, y, y.Modifiers, out result))
             {
                 if (_includeName)
@@ -316,6 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             Protected,
             ProtectedInternal,
             Internal,
+            PrivateProtected,
             Private
         }
 
@@ -330,6 +332,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 if (ContainsToken(modifiers, SyntaxKind.InternalKeyword))
                 {
                     return (int)Accessibility.ProtectedInternal;
+                }
+
+                if (ContainsToken(modifiers, SyntaxKind.PrivateKeyword))
+                {
+                    return (int)Accessibility.PrivateProtected;
                 }
 
                 return (int)Accessibility.Protected;
@@ -378,14 +385,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         }
 
         private static bool EqualStaticness(SyntaxTokenList x, SyntaxTokenList y, out int comparisonResult)
-        {
-            return BothHaveModifier(x, y, SyntaxKind.StaticKeyword, out comparisonResult);
-        }
+            => BothHaveModifier(x, y, SyntaxKind.StaticKeyword, out comparisonResult);
 
         private static bool EqualConstness(SyntaxTokenList x, SyntaxTokenList y, out int comparisonResult)
-        {
-            return BothHaveModifier(x, y, SyntaxKind.ConstKeyword, out comparisonResult);
-        }
+            => BothHaveModifier(x, y, SyntaxKind.ConstKeyword, out comparisonResult);
+
+        private static bool EqualReadOnlyness(SyntaxTokenList x, SyntaxTokenList y, out int comparisonResult)
+            => BothHaveModifier(x, y, SyntaxKind.ReadOnlyKeyword, out comparisonResult);
 
         private static bool EqualAccessibility(SyntaxNode x, SyntaxTokenList xModifiers, SyntaxNode y, SyntaxTokenList yModifiers, out int comparisonResult)
         {

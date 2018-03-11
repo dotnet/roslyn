@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
 using System.Threading;
@@ -19,18 +19,18 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
         {
             var src1 = @"using System;
 
-public delegate void DFoo(int p1, string p2);
+public delegate void DGoo(int p1, string p2);
 
 namespace N1.N2
 {
-    public interface IFoo { }
+    public interface IGoo { }
     namespace N3
     {
-        public class CFoo 
+        public class CGoo 
         {
-            public struct SFoo 
+            public struct SGoo 
             {
-                public enum EFoo { Zero, One }
+                public enum EGoo { Zero, One }
             }
         }
     }
@@ -39,24 +39,24 @@ namespace N1.N2
 
             var src2 = @"using System;
 
-public delegate void DFoo(int p1, string p2);
+public delegate void DGoo(int p1, string p2);
 
 namespace N1.N2
 {
-    public interface IFoo 
+    public interface IGoo 
     {
         // Add member
-        N3.CFoo GetClass();
+        N3.CGoo GetClass();
     }
 
     namespace N3
     {
-        public class CFoo 
+        public class CGoo 
         {
-            public struct SFoo 
+            public struct SGoo 
             {
                 // Update member
-                public enum EFoo { Zero, One, Two }
+                public enum EGoo { Zero, One, Two }
             }
             // Add member
             public void M(int n) { Console.WriteLine(n); }
@@ -65,8 +65,8 @@ namespace N1.N2
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(src1, assemblyName: "Test");
-            var comp2 = CreateCompilationWithMscorlib(src2, assemblyName: "Test");
+            var comp1 = CreateStandardCompilation(src1, assemblyName: "Test");
+            var comp2 = CreateStandardCompilation(src2, assemblyName: "Test");
 
             var originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
             var newSymbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType | SymbolCategory.DeclaredNamespace).OrderBy(s => s.Name);
@@ -86,8 +86,8 @@ public void Method()
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(src1);
-            var comp2 = CreateCompilationWithMscorlib(src2);
+            var comp1 = CreateStandardCompilation(src1);
+            var comp2 = CreateStandardCompilation(src2);
 
             var symbol01 = comp1.SourceModule.GlobalNamespace.GetMembers().FirstOrDefault() as NamedTypeSymbol;
             var symbol02 = comp1.SourceModule.GlobalNamespace.GetMembers().FirstOrDefault() as NamedTypeSymbol;
@@ -119,7 +119,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(src, assemblyName: "Test");
+            var comp = CreateStandardCompilation(src, assemblyName: "Test");
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type = ns.GetTypeMembers("C1").FirstOrDefault() as NamedTypeSymbol;
@@ -164,7 +164,7 @@ class C<T> : I<T>, I
 
 ";
 
-            var compilation = CreateCompilationWithMscorlib(src, assemblyName: "Test");
+            var compilation = CreateStandardCompilation(src, assemblyName: "Test");
 
             var type = compilation.SourceModule.GlobalNamespace.GetTypeMembers("C").Single() as NamedTypeSymbol;
             var indexer1 = type.GetMembers().Where(m => m.MetadataName == "I.Item").Single() as IPropertySymbol;
@@ -190,8 +190,8 @@ class C
     }
 }";
 
-            var comp1 = CreateCompilationWithMscorlib(src1);
-            var comp2 = CreateCompilationWithMscorlib(src1);
+            var comp1 = CreateStandardCompilation(src1);
+            var comp2 = CreateStandardCompilation(src1);
 
             var symbols1 = GetSourceSymbols(comp1, includeLocal: true).ToList();
             var symbols2 = GetSourceSymbols(comp1, includeLocal: true).ToList();
@@ -218,19 +218,19 @@ class C
         {
             var src1 = @"using System;
 
-public delegate void DFoo(int p1);
+public delegate void DGoo(int p1);
 
 namespace N1.N2
 {
     public interface IBase { }
-    public interface IFoo { }
+    public interface IGoo { }
     namespace N3
     {
-        public class CFoo 
+        public class CGoo 
         {
-            public struct SFoo 
+            public struct SGoo 
             {
-                public enum EFoo { Zero, One }
+                public enum EGoo { Zero, One }
             }
         }
     }
@@ -239,30 +239,30 @@ namespace N1.N2
 
             var src2 = @"using System;
 
-public delegate void DFoo(int p1, string p2); // add 1 more parameter
+public delegate void DGoo(int p1, string p2); // add 1 more parameter
 
 namespace N1.N2
 {
     public interface IBase { }
-    public interface IFoo : IBase // add base interface
+    public interface IGoo : IBase // add base interface
     {
     }
 
     namespace N3
     {
-        public class CFoo : IFoo // impl interface
+        public class CGoo : IGoo // impl interface
         {
-            private struct SFoo // change modifier
+            private struct SGoo // change modifier
             {
-                internal enum EFoo : long { Zero, One } // change base class, and modifier
+                internal enum EGoo : long { Zero, One } // change base class, and modifier
             }
         }
     }
 }
 ";
 
-            var comp1 = CreateCompilationWithMscorlib(src1, assemblyName: "Test");
-            var comp2 = CreateCompilationWithMscorlib(src2, assemblyName: "Test");
+            var comp1 = CreateStandardCompilation(src1, assemblyName: "Test");
+            var comp2 = CreateStandardCompilation(src2, assemblyName: "Test");
 
             var originalSymbols = GetSourceSymbols(comp1, SymbolCategory.DeclaredType);
             var newSymbols = GetSourceSymbols(comp2, SymbolCategory.DeclaredType);
@@ -297,8 +297,8 @@ namespace NS
     }
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(src1, assemblyName: "Test");
-            var comp2 = CreateCompilationWithMscorlib(src2, assemblyName: "Test");
+            var comp1 = CreateStandardCompilation(src1, assemblyName: "Test");
+            var comp2 = CreateStandardCompilation(src2, assemblyName: "Test");
 
             var namespace1 = comp1.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var typeSym00 = namespace1.GetTypeMembers("C1").FirstOrDefault() as NamedTypeSymbol;
@@ -344,8 +344,8 @@ public class Test
     }
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(src1, assemblyName: "Test");
-            var comp2 = CreateCompilationWithMscorlib(src2, assemblyName: "Test");
+            var comp1 = CreateStandardCompilation(src1, assemblyName: "Test");
+            var comp2 = CreateStandardCompilation(src2, assemblyName: "Test");
 
             var originalSymbols = GetSourceSymbols(comp1, SymbolCategory.NonTypeMember | SymbolCategory.Parameter)
                                       .Where(s => !s.IsAccessor()).OrderBy(s => s.Name);
@@ -377,8 +377,8 @@ public class Test
     protected long this[long p1] { get { return 0; } set { } }  // add 'get'
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(src1, assemblyName: "Test");
-            var comp2 = CreateCompilationWithMscorlib(src2, assemblyName: "Test");
+            var comp1 = CreateStandardCompilation(src1, assemblyName: "Test");
+            var comp2 = CreateStandardCompilation(src2, assemblyName: "Test");
 
             var typeSym1 = comp1.SourceModule.GlobalNamespace.GetTypeMembers("Test").Single() as NamedTypeSymbol;
             var originalSymbols = typeSym1.GetMembers(WellKnownMemberNames.Indexer);
@@ -402,8 +402,8 @@ namespace NS
     }
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib(src, assemblyName: "Assembly1");
-            var comp2 = CreateCompilationWithMscorlib(src, assemblyName: "Assembly2");
+            var comp1 = CreateStandardCompilation(src, assemblyName: "Assembly1");
+            var comp2 = CreateStandardCompilation(src, assemblyName: "Assembly2");
 
             var namespace1 = comp1.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var typeSym01 = namespace1.GetTypeMembers("C1").FirstOrDefault() as NamedTypeSymbol;
@@ -424,8 +424,8 @@ namespace NS
             var src = @"[assembly: System.Reflection.AssemblyVersion(""1.2.3.4"")] public class C {}";
 
             // same identity
-            var comp1 = CreateCompilationWithMscorlib(src, assemblyName: "Assembly");
-            var comp2 = CreateCompilationWithMscorlib(src, assemblyName: "Assembly");
+            var comp1 = CreateStandardCompilation(src, assemblyName: "Assembly");
+            var comp2 = CreateStandardCompilation(src, assemblyName: "Assembly");
 
             Symbol sym1 = comp1.Assembly;
             Symbol sym2 = comp2.Assembly;
@@ -453,8 +453,8 @@ namespace NS
 
             // -------------------------------------------------------
             // different name
-            var compilation1 = CreateCompilationWithMscorlib(src, assemblyName: "Assembly1");
-            var compilation2 = CreateCompilationWithMscorlib(src, assemblyName: "Assembly2");
+            var compilation1 = CreateStandardCompilation(src, assemblyName: "Assembly1");
+            var compilation2 = CreateStandardCompilation(src, assemblyName: "Assembly2");
 
             ISymbol assembly1 = compilation1.Assembly;
             ISymbol assembly2 = compilation2.Assembly;
@@ -497,8 +497,8 @@ public class C {}
 ";
 
             // different versions
-            var comp1 = CreateCompilationWithMscorlib(src, assemblyName: "Assembly");
-            var comp2 = CreateCompilationWithMscorlib(src2, assemblyName: "Assembly");
+            var comp1 = CreateStandardCompilation(src, assemblyName: "Assembly");
+            var comp2 = CreateStandardCompilation(src2, assemblyName: "Assembly");
 
             Symbol sym1 = comp1.Assembly;
             Symbol sym2 = comp2.Assembly;

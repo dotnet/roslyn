@@ -239,9 +239,9 @@ namespace Microsoft.CodeAnalysis
         /// to their dependencies. Projects that depend on other projects will always show up later in this sequence
         /// than the projects they depend on.
         /// </summary>
-        public IEnumerable<ProjectId> GetTopologicallySortedProjects(CancellationToken cancellationToken = default(CancellationToken))
+        public IEnumerable<ProjectId> GetTopologicallySortedProjects(CancellationToken cancellationToken = default)
         {
-            if (_lazyTopologicallySortedProjects == null)
+            if (_lazyTopologicallySortedProjects.IsDefault)
             {
                 using (_dataLock.DisposableWait(cancellationToken))
                 {
@@ -252,9 +252,9 @@ namespace Microsoft.CodeAnalysis
             return _lazyTopologicallySortedProjects;
         }
 
-        private IEnumerable<ProjectId> GetTopologicallySortedProjects_NoLock(CancellationToken cancellationToken)
+        private void GetTopologicallySortedProjects_NoLock(CancellationToken cancellationToken)
         {
-            if (_lazyTopologicallySortedProjects == null)
+            if (_lazyTopologicallySortedProjects.IsDefault)
             {
                 using (var seenProjects = SharedPools.Default<HashSet<ProjectId>>().GetPooledObject())
                 using (var resultList = SharedPools.Default<List<ProjectId>>().GetPooledObject())
@@ -263,8 +263,6 @@ namespace Microsoft.CodeAnalysis
                     _lazyTopologicallySortedProjects = resultList.Object.ToImmutableArray();
                 }
             }
-
-            return _lazyTopologicallySortedProjects;
         }
 
         private void TopologicalSort(
@@ -295,7 +293,7 @@ namespace Microsoft.CodeAnalysis
         /// Returns a sequence of sets, where each set contains items with shared interdependency,
         /// and there is no dependency between sets.
         /// </summary>
-        public IEnumerable<IEnumerable<ProjectId>> GetDependencySets(CancellationToken cancellationToken = default(CancellationToken))
+        public IEnumerable<IEnumerable<ProjectId>> GetDependencySets(CancellationToken cancellationToken = default)
         {
             if (_lazyDependencySets == null)
             {
@@ -308,7 +306,7 @@ namespace Microsoft.CodeAnalysis
             return _lazyDependencySets;
         }
 
-        private IEnumerable<IEnumerable<ProjectId>> GetDependencySets_NoLock(CancellationToken cancellationToken)
+        private ImmutableArray<IEnumerable<ProjectId>> GetDependencySets_NoLock(CancellationToken cancellationToken)
         {
             if (_lazyDependencySets == null)
             {

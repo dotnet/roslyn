@@ -1,9 +1,10 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.ComponentModel.Composition;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
@@ -75,6 +76,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                         value = subKey.GetValue(key, defaultValue: (bool)optionKey.Option.DefaultValue ? 1 : 0).Equals(1);
                         return true;
                     }
+                    else if (optionKey.Option.Type == typeof(long))
+                    {
+                        var untypedValue = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
+                        switch (untypedValue)
+                        {
+                            case string stringValue:
+                                {
+                                    // Due to a previous bug we were accidentally serializing longs as strings.
+                                    // Gracefully convert those back.
+                                    var suceeded = long.TryParse(stringValue, out long longValue);
+                                    value = longValue;
+                                    return suceeded;
+                                }
+
+                            case long longValue:
+                                value = longValue;
+                                return true;
+                        }
+                    }
+                    else if (optionKey.Option.Type == typeof(int))
+                    {
+                        var untypedValue = subKey.GetValue(key, defaultValue: optionKey.Option.DefaultValue);
+                        switch (untypedValue)
+                        {
+                            case string stringValue:
+                                {
+                                    // Due to a previous bug we were accidentally serializing ints as strings. 
+                                    // Gracefully convert those back.
+                                    var suceeded = int.TryParse(stringValue, out int intValue);
+                                    value = intValue;
+                                    return suceeded;
+                                }
+
+                            case int intValue:
+                                value = intValue;
+                                return true;
+                        }
+                    }
                     else
                     {
                         // Otherwise we can just store normally
@@ -83,6 +122,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     }
                 }
             }
+
+            value = null;
+            return false;
         }
 
         bool IOptionPersister.TryPersist(OptionKey optionKey, object value)
@@ -106,6 +148,24 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
                     if (optionKey.Option.Type == typeof(bool))
                     {
                         subKey.SetValue(key, (bool)value ? 1 : 0, RegistryValueKind.DWord);
+                        return true;
+                    }
+                    else if (optionKey.Option.Type == typeof(long))
+                    {
+                        subKey.SetValue(key, value, RegistryValueKind.QWord);
+                        return true;
+                    }
+                    else if (optionKey.Option.Type.IsEnum)
+                    {
+                        // If the enum is larger than an int, store as a QWord
+                        if (Marshal.SizeOf(Enum.GetUnderlyingType(optionKey.Option.Type)) > Marshal.SizeOf(typeof(int)))
+                        {
+                            subKey.SetValue(key, (long)value, RegistryValueKind.QWord);
+                        }
+                        else
+                        {
+                            subKey.SetValue(key, (int)value, RegistryValueKind.DWord);
+                        }
                         return true;
                     }
                     else

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "4.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class CSharpEditorResources {
@@ -75,6 +75,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         internal static string Smart_Indenting {
             get {
                 return ResourceManager.GetString("Smart_Indenting", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Split string.
+        /// </summary>
+        internal static string Split_string {
+            get {
+                return ResourceManager.GetString("Split_string", resourceCulture);
             }
         }
     }

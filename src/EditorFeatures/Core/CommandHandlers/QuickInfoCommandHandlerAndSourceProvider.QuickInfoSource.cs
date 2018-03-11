@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                     var args = new InvokeQuickInfoCommandArgs(textView, _subjectBuffer);
                     if (_commandHandler.TryGetController(args, out var controller))
                     {
-                        controller.InvokeQuickInfo(position.Value, trackMouse: true, augmentSession: session);
+                        controller.InvokeQuickInfo(position.Value, trackMouse: session.TrackMouse, augmentSession: session);
                     }
                 }
             }

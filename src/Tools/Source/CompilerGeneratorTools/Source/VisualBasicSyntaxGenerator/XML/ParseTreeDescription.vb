@@ -138,7 +138,7 @@ Public Class ParseTree
             Return Enumerations(enumString)
         End If
 
-        ReportError(referencingElement, "{0} is not a valid field type", enumString)
+        ReportError(referencingElement, "{0} is not a valid field type. You should add a node-kind entry in the syntax.xml.", enumString)
         Return Nothing
     End Function
 

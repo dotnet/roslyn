@@ -28,7 +28,7 @@ End Class
 Class D
     Inherits B
 
-    Public Sub foo()
+    Public Sub goo()
         Console.WriteLine() 'BIND:"WriteLine"
     End Sub
 End Class

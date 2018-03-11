@@ -46,7 +46,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Imports System
             Imports System.Collections
 
-            Namespace Foo.Bar
+            Namespace Goo.Bar
                 ' ClassA
                 Public Class Apple(Of TBravo)
                     Public alpha As Integer 'alpha
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Imports System
             Imports System.Collections
 
-            Namespace Foo.Bar
+            Namespace Goo.Bar
                 ' ClassA
                 Public Class Apple(Of TBravo)
                     ' this is before mango

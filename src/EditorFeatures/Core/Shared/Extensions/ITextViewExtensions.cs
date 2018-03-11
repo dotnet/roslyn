@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
             return mappedPoint.HasValue
                 ? new VirtualSnapshotPoint(mappedPoint.Value)
-                : default(VirtualSnapshotPoint);
+                : default;
         }
 
         public static ITextBuffer GetBufferContainingCaret(this ITextView textView, string contentType = ContentTypeNames.RoslynContentType)
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 return true;
             }
 
-            surfaceBufferSpan = default(VirtualSnapshotSpan);
+            surfaceBufferSpan = default;
             return false;
         }
 

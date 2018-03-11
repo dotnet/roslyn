@@ -43,7 +43,7 @@ Friend Module Program
 
         outputText.AppendLine("    End Module")
         outputText.AppendLine("End Namespace")
-        File.WriteAllText(outputPath, outputText.ToString())
+        File.WriteAllText(outputPath, outputText.ToString(), Encoding.UTF8)
 
         Return 0
     End Function

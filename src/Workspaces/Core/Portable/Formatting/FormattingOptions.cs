@@ -9,17 +9,17 @@ namespace Microsoft.CodeAnalysis.Formatting
     {
         public static PerLanguageOption<bool> UseTabs { get; } =
             new PerLanguageOption<bool>(nameof(FormattingOptions), nameof(UseTabs), defaultValue: false,
-                storageLocations: new EditorConfigStorageLocation("indent_style", s => s == "tab"));
+                storageLocations: new EditorConfigStorageLocation<bool>("indent_style", s => s == "tab"));
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption<int> TabSize { get; } = 
             new PerLanguageOption<int>(nameof(FormattingOptions), nameof(TabSize), defaultValue: 4,
-                storageLocations: new EditorConfigStorageLocation("tab_width"));
+                storageLocations: EditorConfigStorageLocation.ForInt32Option("tab_width"));
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption<int> IndentationSize { get; } =
             new PerLanguageOption<int>(nameof(FormattingOptions), nameof(IndentationSize), defaultValue: 4,
-                storageLocations: new EditorConfigStorageLocation("indent_size"));
+                storageLocations: EditorConfigStorageLocation.ForInt32Option("indent_size"));
 
         // This is also serialized by the Visual Studio-specific LanguageSettingsPersister
         public static PerLanguageOption<IndentStyle> SmartIndent { get; } =
@@ -27,13 +27,13 @@ namespace Microsoft.CodeAnalysis.Formatting
 
         public static PerLanguageOption<string> NewLine { get; } =
             new PerLanguageOption<string>(nameof(FormattingOptions), nameof(NewLine), defaultValue: "\r\n",
-                storageLocations: new EditorConfigStorageLocation("end_of_line", ParseEditorConfigEndOfLine));
+                storageLocations: new EditorConfigStorageLocation<string>("end_of_line", ParseEditorConfigEndOfLine));
 
         internal static Option<bool> InsertFinalNewLine { get; } =
             new Option<bool>(nameof(FormattingOptions), nameof(InsertFinalNewLine), defaultValue: false,
-                storageLocations: new EditorConfigStorageLocation("insert_final_newline"));
+                storageLocations: EditorConfigStorageLocation.ForBoolOption("insert_final_newline"));
 
-        private static object ParseEditorConfigEndOfLine(string endOfLineValue)
+        private static Optional<string> ParseEditorConfigEndOfLine(string endOfLineValue)
         {
             switch (endOfLineValue)
             {

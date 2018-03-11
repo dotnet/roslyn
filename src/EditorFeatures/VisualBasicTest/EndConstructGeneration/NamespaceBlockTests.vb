@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
@@ -6,9 +6,9 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyAfterNamespace()
             VerifyStatementEndConstructApplied(
-                before:="Namespace foo",
+                before:="Namespace goo",
                 beforeCaret:={0, -1},
-                after:="Namespace foo
+                after:="Namespace goo
 
 End Namespace",
                 afterCaret:={1, -1})
@@ -17,11 +17,11 @@ End Namespace",
         <WpfFact, Trait(Traits.Feature, Traits.Features.EndConstructGeneration)>
         Public Sub TestApplyAfterNestedNamespace()
             VerifyStatementEndConstructApplied(
-                before:="Namespace foo
+                before:="Namespace goo
 Namespace bar
 End Namespace",
                 beforeCaret:={1, -1},
-                after:="Namespace foo
+                after:="Namespace goo
 Namespace bar
 
 End Namespace

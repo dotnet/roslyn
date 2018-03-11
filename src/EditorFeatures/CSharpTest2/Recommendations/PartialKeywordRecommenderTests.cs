@@ -43,7 +43,7 @@ $$");
         public async Task TestNotInUsingAlias()
         {
             await VerifyAbsenceAsync(
-@"using Foo = $$");
+@"using Goo = $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -64,7 +64,7 @@ $$");
         public async Task TestAfterExtern()
         {
             await VerifyKeywordAsync(
-@"extern alias Foo;
+@"extern alias Goo;
 $$");
         }
 
@@ -72,7 +72,7 @@ $$");
         public async Task TestAfterUsing()
         {
             await VerifyKeywordAsync(
-@"using Foo;
+@"using Goo;
 $$");
         }
 
@@ -96,7 +96,7 @@ $$");
         public async Task TestAfterDelegateDeclaration()
         {
             await VerifyKeywordAsync(
-@"delegate void Foo();
+@"delegate void Goo();
 $$");
         }
 
@@ -105,7 +105,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"class C {
-  void Foo() {}
+  void Goo() {}
   $$");
         }
 
@@ -114,7 +114,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"partial class C {
-  void Foo() {}
+  void Goo() {}
   $$");
         }
 
@@ -141,7 +141,7 @@ $$");
         {
             await VerifyAbsenceAsync(SourceCodeKind.Regular,
 @"$$
-using Foo;");
+using Goo;");
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/9880"), Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
@@ -149,14 +149,14 @@ using Foo;");
         {
             await VerifyAbsenceAsync(SourceCodeKind.Script,
 @"$$
-using Foo;");
+using Goo;");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterAssemblyAttribute()
         {
             await VerifyKeywordAsync(
-@"[assembly: foo]
+@"[assembly: goo]
 $$");
         }
 
@@ -164,7 +164,7 @@ $$");
         public async Task TestAfterRootAttribute()
         {
             await VerifyKeywordAsync(
-@"[foo]
+@"[goo]
 $$");
         }
 
@@ -173,7 +173,7 @@ $$");
         {
             await VerifyKeywordAsync(
 @"partial class C {
-  [foo]
+  [goo]
   $$");
         }
 
@@ -307,7 +307,7 @@ $$");
         public async Task TestNotBetweenUsings()
         {
             await VerifyAbsenceAsync(AddInsideMethod(
-@"using Foo;
+@"using Goo;
 $$
 using Bar;"));
         }

@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -123,22 +124,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public bool HasConstraints
-        {
-            get
-            {
-                foreach (var decl in this.Declarations)
-                {
-                    if (decl.HasConstraints)
-                    {
-                        return true;
-                    }
-                }
-
-                return false;
-            }
-        }
-
         public LexicalSortKey GetLexicalSortKey(CSharpCompilation compilation)
         {
             LexicalSortKey sortKey = new LexicalSortKey(Declarations[0].NameLocation, compilation);
@@ -226,7 +211,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return StaticCast<Declaration>.From(this.Children);
         }
 
-        public IEnumerable<string> MemberNames
+        public ICollection<string> MemberNames
         {
             get
             {

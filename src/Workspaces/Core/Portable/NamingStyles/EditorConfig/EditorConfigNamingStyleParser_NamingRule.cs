@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
                 return true;
             }
 
-            severity = default(DiagnosticSeverity);
+            severity = default;
             return false;
         }
 
@@ -49,7 +49,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
         {
             switch (ruleSeverity)
             {
-                case EditorConfigSeverityStrings.Silent: return DiagnosticSeverity.Hidden;
+                case EditorConfigSeverityStrings.None:
+                case EditorConfigSeverityStrings.Silent:
+                    return DiagnosticSeverity.Hidden;
+
                 case EditorConfigSeverityStrings.Suggestion: return DiagnosticSeverity.Info;
                 case EditorConfigSeverityStrings.Warning: return DiagnosticSeverity.Warning;
                 case EditorConfigSeverityStrings.Error: return DiagnosticSeverity.Error;

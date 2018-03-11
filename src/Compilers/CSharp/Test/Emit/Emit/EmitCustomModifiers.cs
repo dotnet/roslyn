@@ -35,11 +35,11 @@ public class A
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib(source,
+            var c = CreateStandardCompilation(source,
                 new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
                 options: TestOptions.UnsafeReleaseExe);
 
-            CompileAndVerify(c, expectedOutput:
+            CompileAndVerify(c, verify: Verification.Passes, expectedOutput:
 @"F1
 F2
 F3
@@ -701,7 +701,7 @@ class Test
 }";
             var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation);
+            CompileAndVerify(compilation, verify: Verification.Fails);
         }
 
         [Fact]
@@ -735,7 +735,7 @@ class Test
 }";
             var compilation = CreateCompilationWithCustomILSource(source, ilSource, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
-            CompileAndVerify(compilation);
+            CompileAndVerify(compilation, verify: Verification.Fails);
         }
     }
 }

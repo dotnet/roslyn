@@ -267,7 +267,7 @@ class C
     {
         class Type
         {
-            void Foo()
+            void Goo()
             {
                 int x = 1 "" + Sign + @"" "" + Sign + @""3;
             }

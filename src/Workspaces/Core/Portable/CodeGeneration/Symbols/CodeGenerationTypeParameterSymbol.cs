@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             bool hasReferenceConstraint,
             bool hasValueConstraint,
             int ordinal)
-            : base(containingType, attributes, Accessibility.NotApplicable, default(DeclarationModifiers), name, SpecialType.None)
+            : base(containingType, attributes, Accessibility.NotApplicable, default, name, SpecialType.None)
         {
             this.Variance = varianceKind;
             this.ConstraintTypes = constraintTypes;

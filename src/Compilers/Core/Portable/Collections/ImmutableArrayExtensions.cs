@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -56,7 +57,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (items == null)
             {
-                return default(ImmutableArray<T>);
+                return default;
             }
 
             return ImmutableArray.CreateRange<T>(items);
@@ -85,7 +86,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (items == null)
             {
-                return default(ImmutableArray<T>);
+                return default;
             }
 
             return ImmutableArray.Create<T>(items);

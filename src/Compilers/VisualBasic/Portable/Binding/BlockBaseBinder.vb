@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim locals = Me.Locals
             If Not locals.IsEmpty AndAlso (options And (LookupOptions.NamespacesOrTypesOnly Or LookupOptions.LabelsOnly)) = 0 Then
                 For Each localSymbol In locals
-                    If originalBinder.CanAddLookupSymbolInfo(localSymbol, options, Nothing) Then
+                    If originalBinder.CanAddLookupSymbolInfo(localSymbol, options, nameSet, Nothing) Then
                         nameSet.AddSymbol(localSymbol, localSymbol.Name, 0)
                     End If
                 Next

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGeneration
@@ -7,13 +7,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         Public Sub TestVerifyForWithIndex()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-  Sub foo()
+  Sub goo()
     For i = 1 To 10
   End Sub
 End Class",
                 beforeCaret:={2, -1},
                 after:="Class c1
-  Sub foo()
+  Sub goo()
     For i = 1 To 10
 
     Next
@@ -26,13 +26,13 @@ End Class",
         Public Sub TestVerifyForEach()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-  Sub foo()
+  Sub goo()
     For Each i In collection
   End Sub
 End Class",
                 beforeCaret:={2, -1},
                 after:="Class c1
-  Sub foo()
+  Sub goo()
     For Each i In collection
 
     Next
@@ -45,7 +45,7 @@ End Class",
         Public Sub VerifyIndexMatchedInner1()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-  Sub foo()
+  Sub goo()
     For i = 1 To 10
       For j = 1 To 10
       Next j
@@ -58,7 +58,7 @@ End Class",
         Public Sub TestVerifyIndexMatchedInner2()
             VerifyStatementEndConstructApplied(
                 before:="Class c1
-  Sub foo()
+  Sub goo()
     For i = 1 To 10
       For j = 1 To 10
       Next j
@@ -66,7 +66,7 @@ End Class",
 End Class",
                 beforeCaret:={2, -1},
                 after:="Class c1
-  Sub foo()
+  Sub goo()
     For i = 1 To 10
 
     Next
@@ -81,7 +81,7 @@ End Class",
         Public Sub VerifyIndexSharedNext()
             VerifyStatementEndConstructNotApplied(
                 text:="Class c1
-  Sub foo()
+  Sub goo()
     For i = 1 To 10
       For j = 1 To 10
     Next j, i

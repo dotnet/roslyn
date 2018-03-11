@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Returns <c>true</c> if the provided position is in a hidden region inaccessible to the user.
         /// </summary>
-        public static bool IsHiddenPosition(this SyntaxTree tree, int position, CancellationToken cancellationToken = default(CancellationToken))
+        public static bool IsHiddenPosition(this SyntaxTree tree, int position, CancellationToken cancellationToken = default)
         {
             if (!tree.HasHiddenRegions())
             {

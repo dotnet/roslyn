@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 
@@ -46,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             languageVersion As LanguageVersion,
             documentationMode As DocumentationMode,
             kind As SourceCodeKind,
-            preprocessorSymbols As IEnumerable(Of KeyValuePair(Of String, Object)),
+            preprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object)),
             features As ImmutableDictionary(Of String, String))
 
             MyBase.New(kind, documentationMode)

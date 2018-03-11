@@ -1,6 +1,7 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -14,7 +15,26 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
     {
         private class DesignerAttributeState : AbstractDocumentAnalyzerState<Data>
         {
-            private const string FormatVersion = "1";
+            private const string FormatVersion = "2";
+
+            /// <summary>
+            /// remember last time what we reported
+            /// </summary>
+            private readonly ConcurrentDictionary<DocumentId, string> _lastReported = new ConcurrentDictionary<DocumentId, string>(concurrencyLevel: 2, capacity: 10);
+
+            public bool Update(DocumentId id, string designerAttributeArgument)
+            {
+                if (_lastReported.TryGetValue(id, out string lastReported) && 
+                    lastReported == designerAttributeArgument)
+                {
+                    // nothing is actually updated
+                    return false;
+                }
+
+                // value updated
+                _lastReported[id] = designerAttributeArgument;
+                return true;
+            }
 
             protected override string StateName
             {
@@ -59,6 +79,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     data.SemanticVersion.WriteTo(writer);
                     writer.WriteString(data.DesignerAttributeArgument);
                 }
+            }
+
+            public override bool Remove(DocumentId id)
+            {
+                // forget what I have reported
+                _lastReported.TryRemove(id, out _);
+
+                return base.Remove(id);
             }
         }
     }

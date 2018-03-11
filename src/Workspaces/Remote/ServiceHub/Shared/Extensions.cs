@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.VisualStudio.Telemetry;
 using Roslyn.Utilities;
 using StreamJsonRpc;
 
@@ -15,16 +16,18 @@ namespace Microsoft.CodeAnalysis.Remote
     internal static partial class Extensions
     {
         public static async Task InvokeAsync(
-            this JsonRpc rpc, string targetName, IEnumerable<object> arguments,
+            this JsonRpc rpc, string targetName, IReadOnlyList<object> arguments,
             Func<Stream, CancellationToken, Task> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
+            Task task = null;
+
             using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
             using (var stream = new ServerDirectStream())
             {
                 try
                 {
                     // send request by adding direct stream name to end of arguments
-                    var task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
+                    task = rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(stream.Name).ToArray(), cancellationToken);
 
                     // if invoke throws an exception, make sure we raise cancellation.
                     RaiseCancellationIfInvokeFailed(task, mergedCancellation, cancellationToken);
@@ -47,22 +50,29 @@ namespace Microsoft.CodeAnalysis.Remote
                     // but we need merged one to cancel operation if InvokeAsync has failed. if it failed without
                     // cancellation token is raised, then we do want to have watson report
                     cancellationToken.ThrowIfCancellationRequested();
+
+                    // record reason why task got aborted. use NFW here since we don't want to
+                    // crash VS on explicitly killing OOP.
+                    task.Exception.ReportServiceHubNFW("JsonRpc Invoke Failed");
+
                     throw;
                 }
             }
         }
 
         public static async Task<T> InvokeAsync<T>(
-            this JsonRpc rpc, string targetName, IEnumerable<object> arguments,
+            this JsonRpc rpc, string targetName, IReadOnlyList<object> arguments,
             Func<Stream, CancellationToken, Task<T>> funcWithDirectStreamAsync, CancellationToken cancellationToken)
         {
+            Task task = null;
+
             using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
             using (var stream = new ServerDirectStream())
             {
                 try
                 {
                     // send request to asset source
-                    var task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
+                    task = rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(stream.Name).ToArray(), cancellationToken);
 
                     // if invoke throws an exception, make sure we raise cancellation.
                     RaiseCancellationIfInvokeFailed(task, mergedCancellation, cancellationToken);
@@ -85,22 +95,29 @@ namespace Microsoft.CodeAnalysis.Remote
                     // is raised, it can cause one to be in cancelled mode and the other is not. here, one we
                     // actually care is the cancellation token given in, not the merged cancellation token.
                     cancellationToken.ThrowIfCancellationRequested();
+
+                    // record reason why task got aborted. use NFW here since we don't want to
+                    // crash VS on explicitly killing OOP.
+                    task.Exception.ReportServiceHubNFW("JsonRpc Invoke Failed");
+
                     throw;
                 }
             }
         }
 
         public static async Task InvokeAsync(
-            this JsonRpc rpc, string targetName, IEnumerable<object> arguments,
+            this JsonRpc rpc, string targetName, IReadOnlyList<object> arguments,
             Action<Stream, CancellationToken> actionWithDirectStream, CancellationToken cancellationToken)
         {
+            Task task = null;
+
             using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
             using (var stream = new ServerDirectStream())
             {
                 try
                 {
                     // send request by adding direct stream name to end of arguments
-                    var task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
+                    task = rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(stream.Name).ToArray(), cancellationToken);
 
                     // if invoke throws an exception, make sure we raise cancellation.
                     RaiseCancellationIfInvokeFailed(task, mergedCancellation, cancellationToken);
@@ -121,22 +138,29 @@ namespace Microsoft.CodeAnalysis.Remote
                     // is raised, it can cause one to be in cancelled mode and the other is not. here, one we
                     // actually care is the cancellation token given in, not the merged cancellation token.
                     cancellationToken.ThrowIfCancellationRequested();
+
+                    // record reason why task got aborted. use NFW here since we don't want to
+                    // crash VS on explicitly killing OOP.
+                    task.Exception.ReportServiceHubNFW("JsonRpc Invoke Failed");
+
                     throw;
                 }
             }
         }
 
         public static async Task<T> InvokeAsync<T>(
-            this JsonRpc rpc, string targetName, IEnumerable<object> arguments,
+            this JsonRpc rpc, string targetName, IReadOnlyList<object> arguments,
             Func<Stream, CancellationToken, T> funcWithDirectStream, CancellationToken cancellationToken)
         {
+            Task task = null;
+
             using (var mergedCancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
             using (var stream = new ServerDirectStream())
             {
                 try
                 {
                     // send request to asset source
-                    var task = rpc.InvokeAsync(targetName, arguments.Concat(stream.Name).ToArray());
+                    task = rpc.InvokeWithCancellationAsync(targetName, arguments.Concat(stream.Name).ToArray(), cancellationToken);
 
                     // if invoke throws an exception, make sure we raise cancellation.
                     RaiseCancellationIfInvokeFailed(task, mergedCancellation, cancellationToken);
@@ -159,6 +183,11 @@ namespace Microsoft.CodeAnalysis.Remote
                     // is raised, it can cause one to be in cancelled mode and the other is not. here, one we
                     // actually care is the cancellation token given in, not the merged cancellation token.
                     cancellationToken.ThrowIfCancellationRequested();
+
+                    // record reason why task got aborted. use NFW here since we don't want to
+                    // crash VS on explicitly killing OOP.
+                    task.Exception.ReportServiceHubNFW("JsonRpc Invoke Failed");
+
                     throw;
                 }
             }
@@ -203,7 +232,9 @@ namespace Microsoft.CodeAnalysis.Remote
                 try
                 {
                     // now, we allow user to kill OOP process, when that happen, 
-                    // just raise cancellation 
+                    // just raise cancellation. 
+                    // otherwise, stream.WaitForDirectConnectionAsync can stuck there forever since
+                    // cancellation from user won't be raised
                     mergedCancellation.Cancel();
                 }
                 catch (ObjectDisposedException)
@@ -211,6 +242,53 @@ namespace Microsoft.CodeAnalysis.Remote
                     // merged cancellation is already disposed
                 }
             }, cancellationToken, TaskContinuationOptions.NotOnRanToCompletion | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+        }
+
+        public static void ReportServiceHubNFW(this Exception exception, string message)
+        {
+            if (exception == null)
+            {
+                return;
+            }
+
+            WatsonReporter.Report(message, exception, ReportDetailServiceHubLogs);
+        }
+
+        private static int ReportDetailServiceHubLogs(IFaultUtility faultUtility)
+        {
+            // 0 means send watson, otherwise, cancel watson
+            // we always send watson since dump itself can have valuable data
+            var exitCode = 0;
+
+            try
+            {
+                var logPath = Path.Combine(Path.GetTempPath(), "servicehub", "logs");
+                if (!Directory.Exists(logPath))
+                {
+                    return exitCode;
+                }
+
+                // attach all log files that are modified less than 1 day before.
+                var now = DateTime.UtcNow;
+                var oneDay = TimeSpan.FromDays(1);
+
+                foreach (var file in Directory.EnumerateFiles(logPath, "*.log"))
+                {
+                    var lastWrite = File.GetLastWriteTimeUtc(file);
+                    if (now - lastWrite > oneDay)
+                    {
+                        continue;
+                    }
+
+                    faultUtility.AddFile(file);
+                }
+            }
+            catch (Exception)
+            {
+                // it is okay to fail on reporting watson
+            }
+
+            return exitCode;
         }
     }
 }

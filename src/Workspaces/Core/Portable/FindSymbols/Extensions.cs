@@ -69,8 +69,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         internal static bool TextMatch(this ISyntaxFactsService syntaxFacts, string text1, string text2)
-        {
-            return syntaxFacts.IsCaseSensitive ? text1 == text2 : string.Equals(text1, text2, StringComparison.OrdinalIgnoreCase);
-        }
+            => syntaxFacts.StringComparer.Equals(text1, text2);
     }
 }

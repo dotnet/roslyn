@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -350,11 +350,11 @@ interface $$I { }
 <Code>
 interface I
 {
-    void Foo();
+    void Goo();
 }
 </Code>
 
-            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Foo", .Type = "void"})
+            Await TestAddFunction(code, expected, New FunctionData With {.Name = "Goo", .Type = "void"})
         End Function
 
 #End Region
@@ -396,7 +396,7 @@ interface I : B { }
         Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
-interface $$Foo
+interface $$Goo
 {
 }
 </Code>

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.Analyzers.NamingStyles
             }
 
             var optionSet = await context.Options.GetDocumentOptionSetAsync(location.SourceTree, context.CancellationToken).ConfigureAwait(false);
-            return optionSet.GetOption(SimplificationOptions.NamingPreferences, context.Compilation.Language);
+            return optionSet?.GetOption(SimplificationOptions.NamingPreferences, context.Compilation.Language);
         }
     }
 }

@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Roslyn.Test.Utilities
@@ -30,6 +30,9 @@ End Class
 
             compilation.VerifyPdb("C.M",
 <symbols>
+    <files>
+      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+    </files>
     <methods>
         <method containingType="C" name="M" parameterNames="c">
             <customDebugInfo>
@@ -43,18 +46,18 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="48"/>
-                <entry offset="0x1" startLine="4" startColumn="9" endLine="4" endColumn="24"/>
-                <entry offset="0x5" hidden="true"/>
-                <entry offset="0x10" startLine="5" startColumn="13" endLine="5" endColumn="36"/>
-                <entry offset="0x16" hidden="true"/>
-                <entry offset="0x1a" startLine="5" startColumn="37" endLine="5" endColumn="48"/>
-                <entry offset="0x1e" startLine="6" startColumn="9" endLine="6" endColumn="13"/>
-                <entry offset="0x1f" hidden="true"/>
-                <entry offset="0x23" hidden="true"/>
-                <entry offset="0x2b" hidden="true"/>
-                <entry offset="0x2f" startLine="7" startColumn="9" endLine="7" endColumn="21"/>
-                <entry offset="0x33" startLine="8" startColumn="5" endLine="8" endColumn="17"/>
+                <entry offset="0x0" startLine="3" startColumn="5" endLine="3" endColumn="48" document="1"/>
+                <entry offset="0x1" startLine="4" startColumn="9" endLine="4" endColumn="24" document="1"/>
+                <entry offset="0x5" hidden="true" document="1"/>
+                <entry offset="0x10" startLine="5" startColumn="13" endLine="5" endColumn="36" document="1"/>
+                <entry offset="0x16" hidden="true" document="1"/>
+                <entry offset="0x1a" startLine="5" startColumn="37" endLine="5" endColumn="48" document="1"/>
+                <entry offset="0x1e" startLine="6" startColumn="9" endLine="6" endColumn="13" document="1"/>
+                <entry offset="0x1f" hidden="true" document="1"/>
+                <entry offset="0x23" hidden="true" document="1"/>
+                <entry offset="0x2b" hidden="true" document="1"/>
+                <entry offset="0x2f" startLine="7" startColumn="9" endLine="7" endColumn="21" document="1"/>
+                <entry offset="0x33" startLine="8" startColumn="5" endLine="8" endColumn="17" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x35">
                 <currentnamespace name=""/>
@@ -94,6 +97,9 @@ Imports System
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("C1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
         <method containingType="C1" name="Main">
@@ -107,18 +113,18 @@ Imports System
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="13" endLine="6" endColumn="37"/>
-                <entry offset="0x1" startLine="7" startColumn="21" endLine="7" endColumn="57"/>
-                <entry offset="0x8" startLine="8" startColumn="17" endLine="8" endColumn="28"/>
-                <entry offset="0xd" startLine="9" startColumn="17" endLine="9" endColumn="28"/>
-                <entry offset="0x12" startLine="11" startColumn="17" endLine="11" endColumn="51"/>
-                <entry offset="0x16" hidden="true"/>
-                <entry offset="0x1c" startLine="12" startColumn="21" endLine="12" endColumn="47"/>
-                <entry offset="0x23" startLine="13" startColumn="17" endLine="13" endColumn="21"/>
-                <entry offset="0x24" hidden="true"/>
-                <entry offset="0x28" hidden="true"/>
-                <entry offset="0x30" hidden="true"/>
-                <entry offset="0x34" startLine="14" startColumn="13" endLine="14" endColumn="20"/>
+                <entry offset="0x0" startLine="6" startColumn="13" endLine="6" endColumn="37" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="21" endLine="7" endColumn="57" document="1"/>
+                <entry offset="0x8" startLine="8" startColumn="17" endLine="8" endColumn="28" document="1"/>
+                <entry offset="0xd" startLine="9" startColumn="17" endLine="9" endColumn="28" document="1"/>
+                <entry offset="0x12" startLine="11" startColumn="17" endLine="11" endColumn="51" document="1"/>
+                <entry offset="0x16" hidden="true" document="1"/>
+                <entry offset="0x1c" startLine="12" startColumn="21" endLine="12" endColumn="47" document="1"/>
+                <entry offset="0x23" startLine="13" startColumn="17" endLine="13" endColumn="21" document="1"/>
+                <entry offset="0x24" hidden="true" document="1"/>
+                <entry offset="0x28" hidden="true" document="1"/>
+                <entry offset="0x30" hidden="true" document="1"/>
+                <entry offset="0x34" startLine="14" startColumn="13" endLine="14" endColumn="20" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x35">
                 <namespace name="System" importlevel="file"/>
@@ -157,6 +163,9 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("C1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
         <method containingType="C1" name="Main">
@@ -170,16 +179,16 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="29"/>
-                <entry offset="0x1" startLine="7" startColumn="13" endLine="7" endColumn="36"/>
-                <entry offset="0x7" startLine="9" startColumn="9" endLine="9" endColumn="40"/>
-                <entry offset="0xb" hidden="true"/>
-                <entry offset="0x15" startLine="10" startColumn="13" endLine="10" endColumn="39"/>
-                <entry offset="0x1c" startLine="11" startColumn="9" endLine="11" endColumn="13"/>
-                <entry offset="0x1d" hidden="true"/>
-                <entry offset="0x21" hidden="true"/>
-                <entry offset="0x2c" hidden="true"/>
-                <entry offset="0x30" startLine="12" startColumn="5" endLine="12" endColumn="12"/>
+                <entry offset="0x0" startLine="6" startColumn="5" endLine="6" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="7" startColumn="13" endLine="7" endColumn="36" document="1"/>
+                <entry offset="0x7" startLine="9" startColumn="9" endLine="9" endColumn="40" document="1"/>
+                <entry offset="0xb" hidden="true" document="1"/>
+                <entry offset="0x15" startLine="10" startColumn="13" endLine="10" endColumn="39" document="1"/>
+                <entry offset="0x1c" startLine="11" startColumn="9" endLine="11" endColumn="13" document="1"/>
+                <entry offset="0x1d" hidden="true" document="1"/>
+                <entry offset="0x21" hidden="true" document="1"/>
+                <entry offset="0x2c" hidden="true" document="1"/>
+                <entry offset="0x30" startLine="12" startColumn="5" endLine="12" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x31">
                 <namespace name="System" importlevel="file"/>
@@ -233,6 +242,9 @@ End Structure
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("C.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <entryPoint declaringType="C" methodName="Main"/>
     <methods>
         <method containingType="C" name="Main">
@@ -244,14 +256,14 @@ End Structure
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="29"/>
-                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="39"/>
-                <entry offset="0xc" hidden="true"/>
-                <entry offset="0x16" startLine="6" startColumn="13" endLine="6" endColumn="40"/>
-                <entry offset="0x1d" startLine="7" startColumn="9" endLine="7" endColumn="13"/>
-                <entry offset="0x1e" hidden="true"/>
-                <entry offset="0x26" hidden="true"/>
-                <entry offset="0x29" startLine="8" startColumn="5" endLine="8" endColumn="12"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="39" document="1"/>
+                <entry offset="0xc" hidden="true" document="1"/>
+                <entry offset="0x16" startLine="6" startColumn="13" endLine="6" endColumn="40" document="1"/>
+                <entry offset="0x1d" startLine="7" startColumn="9" endLine="7" endColumn="13" document="1"/>
+                <entry offset="0x1e" hidden="true" document="1"/>
+                <entry offset="0x26" hidden="true" document="1"/>
+                <entry offset="0x29" startLine="8" startColumn="5" endLine="8" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x2a">
                 <currentnamespace name=""/>
@@ -301,6 +313,9 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("C.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <entryPoint declaringType="C" methodName="Main"/>
     <methods>
         <method containingType="C" name="Main">
@@ -312,15 +327,15 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="7" startColumn="5" endLine="7" endColumn="29"/>
-                <entry offset="0x1" startLine="8" startColumn="9" endLine="8" endColumn="54"/>
-                <entry offset="0x1d" hidden="true"/>
-                <entry offset="0x26" startLine="9" startColumn="13" endLine="9" endColumn="33"/>
-                <entry offset="0x2d" startLine="10" startColumn="9" endLine="10" endColumn="13"/>
-                <entry offset="0x2e" hidden="true"/>
-                <entry offset="0x35" hidden="true"/>
-                <entry offset="0x3a" hidden="true"/>
-                <entry offset="0x45" startLine="11" startColumn="5" endLine="11" endColumn="12"/>
+                <entry offset="0x0" startLine="7" startColumn="5" endLine="7" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="8" startColumn="9" endLine="8" endColumn="54" document="1"/>
+                <entry offset="0x1d" hidden="true" document="1"/>
+                <entry offset="0x26" startLine="9" startColumn="13" endLine="9" endColumn="33" document="1"/>
+                <entry offset="0x2d" startLine="10" startColumn="9" endLine="10" endColumn="13" document="1"/>
+                <entry offset="0x2e" hidden="true" document="1"/>
+                <entry offset="0x35" hidden="true" document="1"/>
+                <entry offset="0x3a" hidden="true" document="1"/>
+                <entry offset="0x45" startLine="11" startColumn="5" endLine="11" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x46">
                 <namespace name="System.Collections.Generic" importlevel="file"/>
@@ -367,6 +382,9 @@ End Class
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb("C.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <entryPoint declaringType="C" methodName="Main"/>
     <methods>
         <method containingType="C" name="Main">
@@ -378,15 +396,15 @@ End Class
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="29"/>
-                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="39"/>
-                <entry offset="0xc" hidden="true"/>
-                <entry offset="0x1a" startLine="6" startColumn="13" endLine="6" endColumn="40"/>
-                <entry offset="0x26" startLine="7" startColumn="9" endLine="7" endColumn="13"/>
-                <entry offset="0x27" hidden="true"/>
-                <entry offset="0x2e" hidden="true"/>
-                <entry offset="0x33" hidden="true"/>
-                <entry offset="0x48" startLine="8" startColumn="5" endLine="8" endColumn="12"/>
+                <entry offset="0x0" startLine="4" startColumn="5" endLine="4" endColumn="29" document="1"/>
+                <entry offset="0x1" startLine="5" startColumn="9" endLine="5" endColumn="39" document="1"/>
+                <entry offset="0xc" hidden="true" document="1"/>
+                <entry offset="0x1a" startLine="6" startColumn="13" endLine="6" endColumn="40" document="1"/>
+                <entry offset="0x26" startLine="7" startColumn="9" endLine="7" endColumn="13" document="1"/>
+                <entry offset="0x27" hidden="true" document="1"/>
+                <entry offset="0x2e" hidden="true" document="1"/>
+                <entry offset="0x33" hidden="true" document="1"/>
+                <entry offset="0x48" startLine="8" startColumn="5" endLine="8" endColumn="12" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x49">
                 <currentnamespace name=""/>
@@ -430,6 +448,9 @@ End Module
             ' It's now the scope of the complete loop and not just the body
             compilation.VerifyPdb("M1.Main",
  <symbols>
+     <files>
+         <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+     </files>
      <entryPoint declaringType="M1" methodName="Main"/>
      <methods>
          <method containingType="M1" name="Main">
@@ -440,13 +461,13 @@ End Module
                  </encLocalSlotMap>
              </customDebugInfo>
              <sequencePoints>
-                 <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="15"/>
-                 <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="22"/>
-                 <entry offset="0x8" startLine="8" startColumn="9" endLine="8" endColumn="23"/>
-                 <entry offset="0xa" startLine="9" startColumn="13" endLine="9" endColumn="26"/>
-                 <entry offset="0xe" startLine="10" startColumn="9" endLine="10" endColumn="15"/>
-                 <entry offset="0x13" hidden="true"/>
-                 <entry offset="0x17" startLine="11" startColumn="5" endLine="11" endColumn="12"/>
+                 <entry offset="0x0" startLine="5" startColumn="5" endLine="5" endColumn="15" document="1"/>
+                 <entry offset="0x1" startLine="6" startColumn="13" endLine="6" endColumn="22" document="1"/>
+                 <entry offset="0x8" startLine="8" startColumn="9" endLine="8" endColumn="23" document="1"/>
+                 <entry offset="0xa" startLine="9" startColumn="13" endLine="9" endColumn="26" document="1"/>
+                 <entry offset="0xe" startLine="10" startColumn="9" endLine="10" endColumn="15" document="1"/>
+                 <entry offset="0x13" hidden="true" document="1"/>
+                 <entry offset="0x17" startLine="11" startColumn="5" endLine="11" endColumn="12" document="1"/>
              </sequencePoints>
              <scope startOffset="0x0" endOffset="0x18">
                  <namespace name="System" importlevel="file"/>
@@ -484,6 +505,9 @@ End Module
             ' It 's now the scope of the complete loop and not just the body            
             compilation.VerifyPdb("M1.Main",
 <symbols>
+    <files>
+        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+    </files>
     <entryPoint declaringType="M1" methodName="Main"/>
     <methods>
         <method containingType="M1" name="Main">
@@ -496,13 +520,13 @@ End Module
                 </encLocalSlotMap>
             </customDebugInfo>
             <sequencePoints>
-                <entry offset="0x0" startLine="5" startColumn="3" endLine="5" endColumn="13"/>
-                <entry offset="0x1" startLine="6" startColumn="5" endLine="6" endColumn="36"/>
-                <entry offset="0x1e" hidden="true"/>
-                <entry offset="0x21" startLine="7" startColumn="5" endLine="7" endColumn="31"/>
-                <entry offset="0x2c" startLine="8" startColumn="5" endLine="8" endColumn="9"/>
-                <entry offset="0x36" hidden="true"/>
-                <entry offset="0x39" startLine="9" startColumn="4" endLine="9" endColumn="11"/>
+                <entry offset="0x0" startLine="5" startColumn="3" endLine="5" endColumn="13" document="1"/>
+                <entry offset="0x1" startLine="6" startColumn="5" endLine="6" endColumn="36" document="1"/>
+                <entry offset="0x1e" hidden="true" document="1"/>
+                <entry offset="0x21" startLine="7" startColumn="5" endLine="7" endColumn="31" document="1"/>
+                <entry offset="0x2c" startLine="8" startColumn="5" endLine="8" endColumn="9" document="1"/>
+                <entry offset="0x36" hidden="true" document="1"/>
+                <entry offset="0x39" startLine="9" startColumn="4" endLine="9" endColumn="11" document="1"/>
             </sequencePoints>
             <scope startOffset="0x0" endOffset="0x3a">
                 <namespace name="System" importlevel="file"/>

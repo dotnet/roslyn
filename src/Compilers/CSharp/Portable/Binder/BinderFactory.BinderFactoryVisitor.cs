@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         resultBinder = VisitCore(methodDecl.Parent);
                     }
 
-                    SourceMethodSymbol method = null;
+                    SourceMemberMethodSymbol method = null;
 
                     if (usage != NodeUsage.Normal && methodDecl.TypeParameterList != null)
                     {
@@ -450,11 +450,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Get the correct methods symbol within container that corresponds to the given method syntax.
-            private SourceMethodSymbol GetMethodSymbol(BaseMethodDeclarationSyntax baseMethodDeclarationSyntax, Binder outerBinder)
+            private SourceMemberMethodSymbol GetMethodSymbol(BaseMethodDeclarationSyntax baseMethodDeclarationSyntax, Binder outerBinder)
             {
                 if (baseMethodDeclarationSyntax == _memberDeclarationOpt)
                 {
-                    return (SourceMethodSymbol)_memberOpt;
+                    return (SourceMemberMethodSymbol)_memberOpt;
                 }
 
                 NamedTypeSymbol container = GetContainerType(outerBinder, baseMethodDeclarationSyntax);
@@ -464,16 +464,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 string methodName = GetMethodName(baseMethodDeclarationSyntax, outerBinder);
-                return (SourceMethodSymbol)GetMemberSymbol(methodName, baseMethodDeclarationSyntax.FullSpan, container, SymbolKind.Method);
+                return (SourceMemberMethodSymbol)GetMemberSymbol(methodName, baseMethodDeclarationSyntax.FullSpan, container, SymbolKind.Method);
             }
 
             private SourcePropertySymbol GetPropertySymbol(BasePropertyDeclarationSyntax basePropertyDeclarationSyntax, Binder outerBinder)
             {
-                if (basePropertyDeclarationSyntax == _memberDeclarationOpt)
-                {
-                    return (SourcePropertySymbol)_memberOpt;
-                }
-
                 Debug.Assert(basePropertyDeclarationSyntax.Kind() == SyntaxKind.PropertyDeclaration || basePropertyDeclarationSyntax.Kind() == SyntaxKind.IndexerDeclaration);
 
                 if (basePropertyDeclarationSyntax == _memberDeclarationOpt)

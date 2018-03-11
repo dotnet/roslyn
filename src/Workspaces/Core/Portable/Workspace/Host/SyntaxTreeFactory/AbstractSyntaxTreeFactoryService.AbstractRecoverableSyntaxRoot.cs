@@ -82,6 +82,8 @@ namespace Microsoft.CodeAnalysis.Host
                 IRecoverableSyntaxTree<TRoot> containingTree)
                 : base(originalRoot)
             {
+                Contract.ThrowIfNull(originalRoot._storage);
+
                 _service = originalRoot._service;
                 _storage = originalRoot._storage;
                 _containingTree = containingTree;
@@ -89,14 +91,15 @@ namespace Microsoft.CodeAnalysis.Host
 
             public RecoverableSyntaxRoot<TRoot> WithSyntaxTree(IRecoverableSyntaxTree<TRoot> containingTree)
             {
+                // at this point, we should either have strongly held root or _storage should not be null
                 if (this.TryGetValue(out var root))
                 {
-                    var result = new RecoverableSyntaxRoot<TRoot>(_service, root, containingTree);
-                    result._storage = _storage;
-                    return result;
+                    // we have strongly held root
+                    return new RecoverableSyntaxRoot<TRoot>(_service, root, containingTree);
                 }
                 else
                 {
+                    // we have _storage here. _storage != null is checked inside
                     return new RecoverableSyntaxRoot<TRoot>(this, containingTree);
                 }
             }

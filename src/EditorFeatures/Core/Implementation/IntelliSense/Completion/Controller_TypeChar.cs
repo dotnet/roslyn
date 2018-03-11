@@ -258,18 +258,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private Document GetDocument()
         {
-            return this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            // Documents can be closed while we are computing in the background.
+            // This can only be called from the foreground.
+            AssertIsForeground();
+
+            // Crash if we don't find a document, we're already in a bad state.
+            var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            Contract.ThrowIfNull(document, nameof(document));
+            return document;
         }
 
-        private CompletionHelper GetCompletionHelper()
+        private CompletionHelper GetCompletionHelper(Document document)
         {
-            var document = GetDocument();
-            if (document != null)
-            {
-                return CompletionHelper.GetHelper(document);
-            }
-
-            return null;
+            return CompletionHelper.GetHelper(document);
         }
 
         private bool IsTextualTriggerCharacter(CompletionService completionService, char ch, OptionSet options)

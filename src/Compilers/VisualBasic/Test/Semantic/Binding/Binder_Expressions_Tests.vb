@@ -24,7 +24,7 @@ Imports System
 Module M1
     Sub Main()
         Dim x as Integer
-        x = .foo
+        x = .goo
     End Sub
 End Module
     </file>
@@ -33,7 +33,7 @@ End Module
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30157: Leading '.' or '!' can only appear inside a 'With' statement.
-        x = .foo
+        x = .goo
             ~~~~
 </expected>)
         End Sub
@@ -62,7 +62,7 @@ expectedOutput:="123")
         End Sub
 
         <WorkItem(679765, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/679765")>
-        <Fact>
+        <NoIOperationValidationFact>
         Public Sub Bug679765()
             CompileAndVerify(
 <compilation>
@@ -118,7 +118,7 @@ Module M1
         x = System.Collections(Of Decimal)
     End Sub
 
-    Sub foo(y as string)
+    Sub goo(y as string)
         dim z as string
         z = y(of Boolean)
     End Sub
@@ -262,7 +262,7 @@ BC30512: Option Strict On disallows implicit conversions from 'UInteger' to 'Int
 Imports System        
 
 Module M1
-    Sub Foo(xParam as Integer, ByRef yParam As Long)
+    Sub Goo(xParam as Integer, ByRef yParam As Long)
         Console.WriteLine("xParam = {0}", xParam)
         Console.WriteLine("yParam = {0}", yParam)
         xParam = 17
@@ -278,7 +278,7 @@ Module M1
         y = 16442
         Console.WriteLine("x = {0}", x)
         Console.WriteLine("y = {0}", y)
-        Foo(x,y)
+        Goo(x,y)
         Console.WriteLine("x = {0}", x)
         Console.WriteLine("y = {0}", y)
     End Sub
@@ -309,8 +309,8 @@ Class C1
     Public Sub New()
     End Sub
 
-    Sub Foo()
-        Console.WriteLine("Called C1.Foo")
+    Sub Goo()
+        Console.WriteLine("Called C1.Goo")
     End Sub
 End Class     
 
@@ -318,12 +318,12 @@ Module M1
     Sub Main()
         dim c as C1
         c = new C1()
-        c.Foo()
+        c.Goo()
     End Sub
 End Module
     </file>
 </compilation>,
-    expectedOutput:="Called C1.Foo")
+    expectedOutput:="Called C1.Goo")
         End Sub
 
         ' Test object creation expression
@@ -365,7 +365,7 @@ Imports System
 Module M1
     Sub Main()
         Dim x as Integer
-        x = foo
+        x = goo
     End Sub
 End Module
     </file>
@@ -373,8 +373,8 @@ End Module
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC30451: 'foo' is not declared. It may be inaccessible due to its protection level.
-        x = foo
+BC30451: 'goo' is not declared. It may be inaccessible due to its protection level.
+        x = goo
             ~~~
 </expected>)
         End Sub
@@ -430,10 +430,10 @@ Module M1
         Dim x as Integer
         Dim cInstance as C
         cInstance = Nothing
-        x = N.foo
-        x = C.foo
-        x = cInstance.foo
-        x = M1.foo
+        x = N.goo
+        x = C.goo
+        x = cInstance.goo
+        x = M1.goo
     End Sub
 End Module
     </file>
@@ -441,17 +441,17 @@ End Module
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC30456: 'foo' is not a member of 'N'.
-        x = N.foo
+BC30456: 'goo' is not a member of 'N'.
+        x = N.goo
             ~~~~~
-BC30456: 'foo' is not a member of 'C'.
-        x = C.foo
+BC30456: 'goo' is not a member of 'C'.
+        x = C.goo
             ~~~~~
-BC30456: 'foo' is not a member of 'C'.
-        x = cInstance.foo
+BC30456: 'goo' is not a member of 'C'.
+        x = cInstance.goo
             ~~~~~~~~~~~~~
-BC30456: 'foo' is not a member of 'M1'.
-        x = M1.foo
+BC30456: 'goo' is not a member of 'M1'.
+        x = M1.goo
             ~~~~~~
 </expected>)
         End Sub
@@ -467,7 +467,7 @@ Imports System
 Class C(Of T)
     Public Sub f()
         dim x as Integer
-        x = T.foo
+        x = T.goo
     End Sub
 End Class
 
@@ -477,7 +477,7 @@ End Class
             AssertTheseDiagnostics(compilation,
 <expected>
 BC32098: Type parameters cannot be used as qualifiers.
-        x = T.foo
+        x = T.goo
             ~~~~~
 </expected>)
         End Sub
@@ -490,14 +490,14 @@ BC32098: Type parameters cannot be used as qualifiers.
     <file name="a.vb">
 Imports System
 
-Class Foo(Of T)
+Class Goo(Of T)
     Shared Public x As Integer
 End Class
 
 Module Module1
     Sub Main()
         Dim y As Integer
-        y = Foo.x
+        y = Goo.x
     End Sub
 End Module
     </file>
@@ -505,8 +505,8 @@ End Module
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC32042: Too few type arguments to 'Foo(Of T)'.
-        y = Foo.x
+BC32042: Too few type arguments to 'Goo(Of T)'.
+        y = Goo.x
             ~~~
 </expected>)
         End Sub
@@ -519,13 +519,13 @@ BC32042: Too few type arguments to 'Foo(Of T)'.
     <file name="a.vb">
 Imports System
 Namespace N
-    Class Foo(Of T)
+    Class Goo(Of T)
         Shared Public x As Integer
     End Class
 End Namespace
 
 Class C
-    Class Foo(Of T)
+    Class Goo(Of T)
         Shared Public x As Integer
     End Class
 End Class
@@ -535,10 +535,10 @@ Module Module1
         Dim y As Integer
         Dim cInstance as C
         cInstance = Nothing
-        y = N.Foo.x
-        y = C.Foo.x
-        y = cInstance.Foo.x
-        y = cInstance.Foo(Of Integer).x
+        y = N.Goo.x
+        y = C.Goo.x
+        y = cInstance.Goo.x
+        y = cInstance.Goo(Of Integer).x
     End Sub
 End Module
     </file>
@@ -547,17 +547,17 @@ End Module
             ' Note that we produce different (but I think better) error messages than Dev10.
             AssertTheseDiagnostics(compilation,
 <expected>
-BC32042: Too few type arguments to 'Foo(Of T)'.
-        y = N.Foo.x
+BC32042: Too few type arguments to 'Goo(Of T)'.
+        y = N.Goo.x
             ~~~~~
-BC32042: Too few type arguments to 'C.Foo(Of T)'.
-        y = C.Foo.x
+BC32042: Too few type arguments to 'C.Goo(Of T)'.
+        y = C.Goo.x
             ~~~~~
-BC32042: Too few type arguments to 'C.Foo(Of T)'.
-        y = cInstance.Foo.x
+BC32042: Too few type arguments to 'C.Goo(Of T)'.
+        y = cInstance.Goo.x
             ~~~~~~~~~~~~~
 BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
-        y = cInstance.Foo(Of Integer).x
+        y = cInstance.Goo(Of Integer).x
             ~~~~~~~~~~~~~~~~~~~~~~~~~
 </expected>)
         End Sub
@@ -578,7 +578,7 @@ Class K
         End Sub
         Public xx As Integer
 
-        Public Shared Sub foo()
+        Public Shared Sub goo()
             Dim v As Integer
             Dim zInstance As Z
             zInstance = Nothing
@@ -639,7 +639,7 @@ Class K
         End Sub
         Public Shared xx As Integer
 
-        Public Sub foo()
+        Public Sub goo()
             Dim v As Integer
             Dim zInstance As Z
             zInstance = Nothing
@@ -778,7 +778,7 @@ Imports System
 Module M1
     Sub Main()
         Dim x as boolean
-        x = Integer?.Equals("foo", "f" + "oo")
+        x = Integer?.Equals("goo", "g" + "oo")
         Console.WriteLine(x)
     End Sub
 End Module
@@ -796,8 +796,8 @@ End Module
 Option Strict On
 
 Module M
-  Function Foo(x As Integer) As Integer()
-    Foo(1) = Nothing
+  Function Goo(x As Integer) As Integer()
+    Goo(1) = Nothing
   End Function
 End Module
     </file>
@@ -808,9 +808,9 @@ End Module
             AssertTheseDiagnostics(compilation,
 <expected>
 BC30068: Expression is a value and therefore cannot be the target of an assignment.
-    Foo(1) = Nothing
+    Goo(1) = Nothing
     ~~~~~~
-BC42105: Function 'Foo' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
+BC42105: Function 'Goo' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
   End Function
   ~~~~~~~~~~~~
 </expected>)
@@ -821,12 +821,12 @@ BC42105: Function 'Foo' doesn't return a value on all code paths. A null referen
 Module Module1
 
     Sub Main()
-        Foo()
+        Goo()
     End Sub
 
     Private val As TestClass
 
-    Function Foo() As TestClass
+    Function Goo() As TestClass
         If val Is Nothing Then
             System.Console.WriteLine("Nothing")
             val = New TestClass()
@@ -839,14 +839,14 @@ Module Module1
         Dim x As TestClass = New TestClass()
         x.Field = 1
 
-        Foo = x
-        System.Console.WriteLine(Foo.Field)
-        System.Console.WriteLine(Foo.GetField())
-        System.Console.WriteLine(Foo().Field)
-        System.Console.WriteLine(Foo(3))
+        Goo = x
+        System.Console.WriteLine(Goo.Field)
+        System.Console.WriteLine(Goo.GetField())
+        System.Console.WriteLine(Goo().Field)
+        System.Console.WriteLine(Goo(3))
     End Function
 
-    Function Foo(x As Integer) As Integer
+    Function Goo(x As Integer) As Integer
         Return x
     End Function
 End Module
@@ -879,16 +879,16 @@ val
     <file name="a.vb">
 Option Strict On
 Module M
-  Function Foo(x As Integer) As Integer()
-    Dim y As Integer() = Foo(1)
+  Function Goo(x As Integer) As Integer()
+    Dim y As Integer() = Goo(1)
   End Function
 End Module
 
 Module M1
-    Function Foo(x As Object) As Integer
-        Return Foo(1)
+    Function Goo(x As Object) As Integer
+        Return Goo(1)
     End Function
-    Function Foo(x As Integer) As Integer
+    Function Goo(x As Integer) As Integer
         Return 1
     End Function
 End Module
@@ -899,7 +899,7 @@ End Module
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC42105: Function 'Foo' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
+BC42105: Function 'Goo' doesn't return a value on all code paths. A null reference exception could occur at run time when the result is used.
   End Function
   ~~~~~~~~~~~~    
 </expected>)
@@ -915,10 +915,10 @@ BC42105: Function 'Foo' doesn't return a value on all code paths. A null referen
 Imports System
 
 Public Class C1
-    Private Shared Sub foo(x as String)
+    Private Shared Sub goo(x as String)
         Console.Writeline("Private")
     End Sub
-    Public Shared Sub foo(x as Object)
+    Public Shared Sub goo(x as Object)
         Console.Writeline("Public")
     End Sub
 End class
@@ -926,7 +926,7 @@ End class
 Module Program
     Sub Main()
         'Below call should bind to public overload that takes object
-        c1.foo("")
+        c1.goo("")
     End Sub
 End Module
     </file>
@@ -967,11 +967,11 @@ BC30491: Expression does not produce a value.
     <file name="a.vb">
 Module Program
   Sub Main()
-    System.Console.WriteLine(Foo.ToString)
+    System.Console.WriteLine(Goo.ToString)
     System.Console.WriteLine(Bar(Of Integer).ToString)
   End Sub
  
-  Function Foo() as Integer
+  Function Goo() as Integer
     return 123
   End Function
 
@@ -994,10 +994,10 @@ End Module
     <file name="a.vb">
 Module Program
   Sub Main()
-    System.Console.WriteLine(Foo.ToString)
+    System.Console.WriteLine(Goo.ToString)
   End Sub
  
-  Function Foo(x as Integer) as Integer
+  Function Goo(x as Integer) as Integer
     return 321
   End Function
 End Module
@@ -1008,8 +1008,8 @@ End Module
 
             AssertTheseDiagnostics(compilation,
 <expected>
-BC30455: Argument not specified for parameter 'x' of 'Public Function Foo(x As Integer) As Integer'.
-    System.Console.WriteLine(Foo.ToString)
+BC30455: Argument not specified for parameter 'x' of 'Public Function Goo(x As Integer) As Integer'.
+    System.Console.WriteLine(Goo.ToString)
                              ~~~
 </expected>)
 
@@ -1036,7 +1036,7 @@ End Class
  
 Class A(Of T)
   Inherits B
- Sub Foo()
+ Sub Goo()
    T()
  End Sub
 End Class
@@ -1047,7 +1047,7 @@ Class C
     End Sub
 
     Class A(Of S)
-        Sub Foo()
+        Sub Goo()
             S()
         End Sub
     End Class
@@ -1132,12 +1132,12 @@ BC32059: Array lower bounds can be only '0'.
     <file name="a.vb">
 Class Y
     Sub f()
-        Dim foo As Integer
+        Dim goo As Integer
 
-        foo(Of Integer)()
+        goo(Of Integer)()
     End Sub
 
-    Public Sub foo(Of T)()
+    Public Sub goo(Of T)()
 
     End Sub
 End Class
@@ -1148,11 +1148,11 @@ End Class
 
             AssertTheseDiagnostics(compilation,
                                                <errors>
-BC42024: Unused local variable: 'foo'.
-        Dim foo As Integer
+BC42024: Unused local variable: 'goo'.
+        Dim goo As Integer
             ~~~
-BC32045: 'foo' has no type parameters and so cannot have type arguments.
-        foo(Of Integer)()
+BC32045: 'goo' has no type parameters and so cannot have type arguments.
+        goo(Of Integer)()
            ~~~~~~~~~~~~
                                                </errors>)
 
@@ -1918,7 +1918,7 @@ Imports Bar = NS1.Bar
 
 Module Module1
     Public Sub Main()
-        Dim o as Foo = New Foo()
+        Dim o as Goo = New Goo()
         Console.WriteLine(o.M())
     End Sub
 End Module
@@ -1929,7 +1929,7 @@ Namespace NS1
     End Class
 End Namespace
 
-Class Foo
+Class Goo
   ReadOnly Property Bar As Bar
     Get 
       Console.WriteLine("property called")
@@ -1951,7 +1951,7 @@ End Class
             AssertNoDiagnostics(compilation)
 
             CompileAndVerify(compilationDef, expectedOutput:="48").
-                VerifyIL("Foo.M",
+                VerifyIL("Goo.M",
             <![CDATA[
 {
   // Code size        6 (0x6)
@@ -1973,8 +1973,8 @@ Imports Bar2 = NS1.Bar
 
 Module Module1
     Public Sub Main()
-        Dim o As Foo = New Foo()
-        Console.WriteLine(Foo.M())
+        Dim o As Goo = New Goo()
+        Console.WriteLine(Goo.M())
     End Sub
 End Module
 
@@ -1986,7 +1986,7 @@ Namespace NS1
     End Class
 End Namespace
 
-Class Foo
+Class Goo
 
     ReadOnly Property Bar2 As Bar2
         Get
@@ -2141,10 +2141,10 @@ Imports System
 
 Module M
     Sub Main()
-        Foo(Sub(x) x.New())
+        Goo(Sub(x) x.New())
     End Sub
 
-    Sub Foo(x As Action(Of Object()))
+    Sub Goo(x As Action(Of Object()))
         System.Console.WriteLine("Action(Of Object())")
         x(New Object() {})
     End Sub
@@ -2168,7 +2168,7 @@ End Namespace
 
             Dim expectedErrors1 = <errors>
 BC30251: Type 'Object()' has no constructors.
-        Foo(Sub(x) x.New())
+        Goo(Sub(x) x.New())
                    ~~~~~
                  </errors>
             AssertTheseDiagnostics(compilation1, expectedErrors1)
@@ -2185,13 +2185,13 @@ Imports System
 
 Module M
     Sub Main()
-        Foo(Sub(x) x.New())
+        Goo(Sub(x) x.New())
     End Sub
 
     Class TC1
     End Class
 
-    Sub Foo(x As Action(Of TC1))
+    Sub Goo(x As Action(Of TC1))
     End Sub
 
     &lt;Extension()&gt;
@@ -2213,7 +2213,7 @@ End Namespace
 
             Dim expectedErrors1 = <errors>
 BC30282: Constructor call is valid only as the first statement in an instance constructor.
-        Foo(Sub(x) x.New())
+        Goo(Sub(x) x.New())
                    ~~~~~
                  </errors>
             AssertTheseDiagnostics(compilation1, expectedErrors1)
@@ -2230,15 +2230,15 @@ Imports System
 
 Module M
     Sub Main()
-        Foo(Sub(x) x.New())
+        Goo(Sub(x) x.New())
     End Sub
 
-    Sub Foo(x As Action(Of IEnumerable))
+    Sub Goo(x As Action(Of IEnumerable))
         System.Console.WriteLine("Action(Of IEnumerable)")
         x(New Object() {})
     End Sub
 
-    Sub Foo(x As Action(Of Object()))
+    Sub Goo(x As Action(Of Object()))
         System.Console.WriteLine("Action(Of Object())")
         x(New Object() {})
     End Sub
@@ -2403,7 +2403,7 @@ Class Frame
                 Return Nothing
             End Get
         End Property
-  Function Foo() As Integer
+  Function Goo() As Integer
     Return TypeSubstitution.Create()
   End Function
 End Class
@@ -2434,7 +2434,7 @@ Class InstanceTypeSymbol
 End Class
 Class Frame
       Inherits InstanceTypeSymbol
-      Function Foo() As Integer
+      Function Goo() As Integer
          Return TypeSubstitution.Create()
       End Function
 End Class
@@ -2474,7 +2474,7 @@ Class InstanceTypeSymbol
 End Class
 Class Frame
       Inherits InstanceTypeSymbol
-      Function Foo() As Integer
+      Function Goo() As Integer
          Return TypeSubstitution.Create()
       End Function
 End Class

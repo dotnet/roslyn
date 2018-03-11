@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.InteropServices
 Imports System.Threading.Tasks
@@ -281,7 +281,7 @@ End Interface
         Public Async Function TestSetName1() As Task
             Dim code =
 <Code>
-Interface $$Foo
+Interface $$Goo
 End Interface
 </Code>
 
@@ -314,13 +314,13 @@ End Interface
 <Code>
 Namespace N
     Interface I$$
-        Inherits IFoo(Of Integer)
+        Inherits IGoo(Of Integer)
     End Interface
 
     Interface IBar
     End Interface
 
-    Interface IFoo(Of T)
+    Interface IGoo(Of T)
         Inherits IBar
     End Interface
 End Namespace
@@ -346,19 +346,19 @@ End Interface
 <Code>
 Namespace N
     Interface I$$
-        Inherits IFoo(Of System.Int32)
+        Inherits IGoo(Of System.Int32)
     End Interface
 
     Interface IBar
     End Interface
 
-    Interface IFoo(Of T)
+    Interface IGoo(Of T)
         Inherits IBar
     End Interface
 End Namespace
 </Code>
 
-            TestGenericNameExtender_GetBaseGenericName(code, 1, "N.IFoo(Of Integer)")
+            TestGenericNameExtender_GetBaseGenericName(code, 1, "N.IGoo(Of Integer)")
         End Sub
 
         <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
@@ -378,13 +378,13 @@ End Interface
 <Code>
 Namespace N
     Interface I$$
-        Inherits IFoo(Of Integer)
+        Inherits IGoo(Of Integer)
     End Interface
 
     Interface IBar
     End Interface
 
-    Interface IFoo(Of T)
+    Interface IGoo(Of T)
         Inherits IBar
     End Interface
 End Namespace
@@ -410,13 +410,13 @@ End Interface
 <Code>
 Namespace N
     Interface I$$
-        Inherits IFoo(Of Integer)
+        Inherits IGoo(Of Integer)
     End Interface
 
     Interface IBar
     End Interface
 
-    Interface IFoo(Of T)
+    Interface IGoo(Of T)
         Inherits IBar
     End Interface
 End Namespace

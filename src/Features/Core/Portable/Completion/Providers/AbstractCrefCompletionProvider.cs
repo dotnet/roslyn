@@ -11,7 +11,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
     {
         protected const string HideAdvancedMembers = nameof(HideAdvancedMembers);
 
-        protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        protected override async Task<CompletionDescription> GetDescriptionWorkerAsync(
+            Document document, CompletionItem item, CancellationToken cancellationToken)
         {
             var position = SymbolCompletionItem.GetContextPosition(item);
 

@@ -1,6 +1,1 @@
-Microsoft.CodeAnalysis.Scripting.Script.ContinueWith(System.IO.Stream code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null) -> Microsoft.CodeAnalysis.Scripting.Script<object>
-Microsoft.CodeAnalysis.Scripting.Script.ContinueWith<TResult>(System.IO.Stream code, Microsoft.CodeAnalysis.Scripting.ScriptOptions options = null) -> Microsoft.CodeAnalysis.Scripting.Script<TResult>
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.EmitDebugInformation.get -> bool
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.FileEncoding.get -> System.Text.Encoding
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithEmitDebugInformation(bool emitDebugInformation) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
-Microsoft.CodeAnalysis.Scripting.ScriptOptions.WithFileEncoding(System.Text.Encoding encoding) -> Microsoft.CodeAnalysis.Scripting.ScriptOptions
+

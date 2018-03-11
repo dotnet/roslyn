@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
             }
         }
 
-        private TXmlElementSyntax GetParamNode(SyntaxNode root, TextSpan span, CancellationToken cancellationToken = default(CancellationToken))
+        private TXmlElementSyntax GetParamNode(SyntaxNode root, TextSpan span, CancellationToken cancellationToken = default)
         {
             // First, we get the node the diagnostic fired on
             // Then, we climb the tree to the first parent that is of the type XMLElement
@@ -92,8 +92,7 @@ namespace Microsoft.CodeAnalysis.DiagnosticComments.CodeFixes
                     if (paramNodeIndex + 1 < paramNodeSiblings.Count)
                     {
                         var nextSibling = paramNodeSiblings[paramNodeIndex + 1];
-                        var textSyntax = nextSibling as TXmlTextSyntax;
-                        if (textSyntax != null)
+                        if (nextSibling is TXmlTextSyntax textSyntax)
                         {
                             // Walk the next text block forward, making sure we only see whitespace
                             // until we hit the next newline.  If that's all we can remove the preceding

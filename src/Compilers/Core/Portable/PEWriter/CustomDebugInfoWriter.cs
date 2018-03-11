@@ -9,6 +9,7 @@ using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
@@ -83,14 +84,6 @@ namespace Microsoft.Cci
             var pooledBuilder = PooledBlobBuilder.GetInstance();
             var encoder = new CustomDebugInfoEncoder(pooledBuilder);
 
-            // NOTE: This is an attempt to match Dev10's apparent behavior.  For iterator methods (i.e. the method
-            // that appears in source, not the synthesized ones), Dev10 only emits the StateMachineTypeName
-            // custom debug info (e.g. there will be no information about the usings that were in scope).
-            // NOTE: There seems to be an unusual behavior in ISymUnmanagedWriter where, if all the methods in a type are
-            // iterator methods, no custom debug info is emitted for any method.  Adding a single non-iterator
-            // method causes the custom debug info to be produced for all methods (including the iterator methods).
-            // Since we are making the same ISymUnmanagedWriter calls as Dev10, we see the same behavior (i.e. this
-            // is not a regression).
             if (methodBody.StateMachineTypeName != null)
             {
                 encoder.AddStateMachineTypeName(methodBody.StateMachineTypeName);
@@ -149,21 +142,21 @@ namespace Microsoft.Cci
         {
             ArrayBuilder<T> builder = null;
 
-            foreach (var local in methodBody.LocalVariables)
-            {
-                Debug.Assert(local.SlotIndex >= 0);
-                if (filter(local))
-                {
-                    if (builder == null)
-                    {
-                        builder = ArrayBuilder<T>.GetInstance();
-                    }
-                    builder.Add(getInfo(default(LocalScope), local));
-                }
-            }
-
             foreach (var currentScope in methodBody.LocalScopes)
             {
+                foreach (var local in currentScope.Variables)
+                {
+                    Debug.Assert(local.SlotIndex >= 0);
+                    if (filter(local))
+                    {
+                        if (builder == null)
+                        {
+                            builder = ArrayBuilder<T>.GetInstance();
+                        }
+                        builder.Add(getInfo(default(LocalScope), local));
+                    }
+                }
+
                 foreach (var localConstant in currentScope.Constants)
                 {
                     Debug.Assert(localConstant.SlotIndex < 0);
@@ -194,7 +187,7 @@ namespace Microsoft.Cci
                 var flags = new byte[CustomDebugInfoEncoder.DynamicAttributeSize];
                 for (int k = 0; k < dynamicTransformFlags.Length; k++)
                 {
-                    if ((bool)dynamicTransformFlags[k].Value)
+                    if (dynamicTransformFlags[k])
                     {
                         flags[k] = 1;
                     }
@@ -228,39 +221,16 @@ namespace Microsoft.Cci
             var locals = GetLocalInfoToSerialize(
                 methodBody,
                 local => !local.TupleElementNames.IsEmpty,
-                (scope, local) => (local, scope));
+                (scope, local) => (local.Name, local.SlotIndex, scope.StartOffset, scope.EndOffset, local.TupleElementNames));
 
             if (locals == null)
             {
                 return;
             }
 
-            encoder.AddRecord(CustomDebugInfoKind.TupleElementNames, locals, SerializeTupleElementNames);
+            encoder.AddTupleElementNames(locals);
+
             locals.Free();
-        }
-
-        private static void SerializeTupleElementNames(ArrayBuilder<(ILocalDefinition, LocalScope)> locals, BlobBuilder builder)
-        {
-            builder.WriteInt32(locals.Count);
-            foreach (var t in locals)
-            {
-                // bug in C# compiler (https://github.com/dotnet/roslyn/issues/17518):
-                var (local, scope) = t;
-
-                var tupleElementNames = local.TupleElementNames;
-                builder.WriteInt32(tupleElementNames.Length);
-                foreach (var tupleElementName in tupleElementNames)
-                {
-                    builder.WriteUTF8((string)tupleElementName.Value ?? string.Empty);
-                    builder.WriteByte(0);
-                }
-
-                builder.WriteInt32(local.SlotIndex);
-                builder.WriteInt32(scope.StartOffset);
-                builder.WriteInt32(scope.EndOffset);
-                builder.WriteUTF8(local.Name);
-                builder.WriteByte(0);
-            }
         }
 
         private void SerializeNamespaceScopeMetadata(ref CustomDebugInfoEncoder encoder, EmitContext context, IMethodBody methodBody)

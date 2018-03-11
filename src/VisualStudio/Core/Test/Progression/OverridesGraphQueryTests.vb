@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Microsoft.VisualStudio.GraphModel
@@ -21,7 +21,7 @@ abstract class Base
     public abstract int $$CompareTo(object obj);
 }
 
-class Foo : Base, IComparable
+class Goo : Base, IComparable
 {
     public override int CompareTo(object obj)
     {
@@ -40,10 +40,10 @@ class Foo : Base, IComparable
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
                             <Node Id="(@1 Type=Base Member=(Name=CompareTo OverloadingParameters=[(@2 Namespace=System Type=Object)]))" Category="CodeSchema_Method" CodeSchemaProperty_IsAbstract="True" CodeSchemaProperty_IsPublic="True" CommonLabel="CompareTo" Icon="Microsoft.VisualStudio.Method.Public" Label="CompareTo"/>
-                            <Node Id="(@1 Type=Foo Member=(Name=CompareTo OverloadingParameters=[(@2 Namespace=System Type=Object)]))" Category="CodeSchema_Method" CodeSchemaProperty_IsPublic="True" CommonLabel="CompareTo" Icon="Microsoft.VisualStudio.Method.Public" IsOverloaded="True" Label="CompareTo"/>
+                            <Node Id="(@1 Type=Goo Member=(Name=CompareTo OverloadingParameters=[(@2 Namespace=System Type=Object)]))" Category="CodeSchema_Method" CodeSchemaProperty_IsPublic="True" CommonLabel="CompareTo" Icon="Microsoft.VisualStudio.Method.Public" IsOverloaded="True" Label="CompareTo"/>
                         </Nodes>
                         <Links>
-                            <Link Source="(@1 Type=Foo Member=(Name=CompareTo OverloadingParameters=[(@2 Namespace=System Type=Object)]))" Target="(@1 Type=Base Member=(Name=CompareTo OverloadingParameters=[(@2 Namespace=System Type=Object)]))"/>
+                            <Link Source="(@1 Type=Goo Member=(Name=CompareTo OverloadingParameters=[(@2 Namespace=System Type=Object)]))" Target="(@1 Type=Base Member=(Name=CompareTo OverloadingParameters=[(@2 Namespace=System Type=Object)]))"/>
                         </Links>
                         <IdentifierAliases>
                             <Alias n="1" Uri="Assembly=file:///Z:/CSharpAssembly1.dll"/>
@@ -66,7 +66,7 @@ abstract class Base
     public abstract int CompareTo(object obj);
 }
 
-class Foo : Base, IComparable
+class Goo : Base, IComparable
 {
     public override int $$CompareTo(object obj)
     {
@@ -84,7 +84,7 @@ class Foo : Base, IComparable
                     outputContext.Graph,
                     <DirectedGraph xmlns="http://schemas.microsoft.com/vs/2009/dgml">
                         <Nodes>
-                            <Node Id="(@1 Type=Foo Member=(Name=CompareTo OverloadingParameters=[(@2 Namespace=System Type=Object)]))" Category="CodeSchema_Method" CodeSchemaProperty_IsPublic="True" CommonLabel="CompareTo" Icon="Microsoft.VisualStudio.Method.Public" IsOverloaded="True" Label="CompareTo"/>
+                            <Node Id="(@1 Type=Goo Member=(Name=CompareTo OverloadingParameters=[(@2 Namespace=System Type=Object)]))" Category="CodeSchema_Method" CodeSchemaProperty_IsPublic="True" CommonLabel="CompareTo" Icon="Microsoft.VisualStudio.Method.Public" IsOverloaded="True" Label="CompareTo"/>
                         </Nodes>
                         <Links/>
                         <IdentifierAliases>

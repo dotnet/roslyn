@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
             else
             {
-                return default(TLanguageService);
+                return default;
             }
         }
 
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
 
             // no service
-            return default(Lazy<ILanguageService, LanguageServiceMetadata>);
+            return default;
         }
 
         private static bool TryGetServiceByLayer(string layer, IEnumerable<Lazy<ILanguageService, LanguageServiceMetadata>> services, out Lazy<ILanguageService, LanguageServiceMetadata> service)

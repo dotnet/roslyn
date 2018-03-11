@@ -259,8 +259,7 @@ namespace Microsoft.CodeAnalysis
         public bool TryGetTextVersion(out VersionStamp version)
         {
             // try fast path first
-            var versionable = this.textAndVersionSource as ITextVersionable;
-            if (versionable != null)
+            if (this.textAndVersionSource is ITextVersionable versionable)
             {
                 return versionable.TryGetTextVersion(out version);
             }
@@ -272,7 +271,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                version = default(VersionStamp);
+                version = default;
                 return false;
             }
         }

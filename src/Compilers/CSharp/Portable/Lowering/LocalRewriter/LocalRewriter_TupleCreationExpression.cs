@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.PooledObjects;
 using System.Collections.Immutable;
 using System.Diagnostics;
 
@@ -60,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 MethodSymbol smallestConstructor = smallestCtor.AsMember(smallestType);
-                BoundObjectCreationExpression currentCreation = new BoundObjectCreationExpression(syntax, smallestConstructor, smallestCtorArguments);
+                BoundObjectCreationExpression currentCreation = new BoundObjectCreationExpression(syntax, smallestConstructor, null, smallestCtorArguments);
 
                 if (underlyingTupleTypeChain.Count > 0)
                 {
@@ -83,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                       .Add(currentCreation);
 
                         MethodSymbol constructor = tuple8Ctor.AsMember(underlyingTupleTypeChain.Pop());
-                        currentCreation = new BoundObjectCreationExpression(syntax, constructor, ctorArguments);
+                        currentCreation = new BoundObjectCreationExpression(syntax, constructor, null, ctorArguments);
                     }
                     while (underlyingTupleTypeChain.Count > 0);
                 }
@@ -96,7 +97,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     currentCreation.Expanded, 
                     currentCreation.ArgsToParamsOpt, 
                     currentCreation.ConstantValue, 
-                    currentCreation.InitializerExpressionOpt, 
+                    currentCreation.InitializerExpressionOpt,
+                    currentCreation.BinderOpt,
                     type);
 
                 return currentCreation;

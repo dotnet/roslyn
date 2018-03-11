@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
@@ -324,7 +324,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -357,7 +356,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -395,7 +393,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -438,7 +435,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -527,7 +523,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -570,7 +565,6 @@ class D
     {
         return 0;
     }
-
     private void SetProp(int value)
     {
         var v = value;
@@ -636,7 +630,7 @@ class D
     {
         return 1; // Comment
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
@@ -645,7 +639,7 @@ class D
             await TestInRegularAndScriptAsync(
 @"class C
 {
-    int [||]Foo
+    int [||]Goo
     {
         get
         {
@@ -660,7 +654,7 @@ class D
 }",
 @"class C
 {
-    private int GetFoo()
+    private int GetGoo()
     {
         int count;
         foreach (var x in y)
@@ -669,8 +663,7 @@ class D
         }
         return count;
     }
-}",
-ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -688,7 +681,7 @@ ignoreTrivia: false);
         /* return 42 */
         return 42;
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -1005,7 +998,7 @@ ignoreTrivia: false);
 
         SetProp(GetProp() + 1);
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -1041,7 +1034,7 @@ ignoreTrivia: false);
         /* Leading */
         SetProp(GetProp() + 1); /* Trailing */
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -1077,7 +1070,7 @@ ignoreTrivia: false);
         /* Leading */
         SetProp(GetProp() + 1 /* Trailing */ );
     }
-}", ignoreTrivia: false);
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
@@ -1153,17 +1146,17 @@ ignoreTrivia: false);
         public async Task TestWithConditionalBinding1()
         {
             await TestInRegularAndScriptAsync(
-@"public class Foo
+@"public class Goo
 {
     public bool [||]Any { get; } // Replace 'Any' with method
 
     public static void Bar()
     {
-        var foo = new Foo();
-        bool f = foo?.Any == true;
+        var goo = new Goo();
+        bool f = goo?.Any == true;
     }
 }",
-@"public class Foo
+@"public class Goo
 {
     private readonly bool any;
 
@@ -1174,8 +1167,8 @@ ignoreTrivia: false);
 
     public static void Bar()
     {
-        var foo = new Foo();
-        bool f = foo?.GetAny() == true;
+        var goo = new Goo();
+        bool f = goo?.GetAny() == true;
     }
 }");
         }
@@ -1198,7 +1191,7 @@ ignoreTrivia: false);
 @"class C
 {
     private int GetProp() => 0;
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1225,7 +1218,7 @@ ignoreTrivia: false);
 {
     private int GetProp() => 0;
     private void SetProp(int value) => throw e;
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1246,7 +1239,7 @@ ignoreTrivia: false);
 {
     private int GetProp() => 0;
     private void SetProp(int value) => throw e;
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1261,7 +1254,7 @@ ignoreTrivia: false);
 @"class C
 {
     private int GetProp() => 0;
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1278,7 +1271,7 @@ ignoreTrivia: false);
     private readonly int prop;
 
     private int GetProp() => prop;
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1296,7 +1289,7 @@ ignoreTrivia: false);
 
     private int GetProp() => prop;
     private void SetProp(int value) => prop = value;
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
         }
 
         [WorkItem(16980, "https://github.com/dotnet/roslyn/issues/16980")]
@@ -1322,10 +1315,374 @@ ignoreTrivia: false);
         A();
         return B();
     }
-}", ignoreTrivia: false, options: PreferExpressionBodiedMethods);
+}", options: PreferExpressionBodiedMethods);
+        }
+
+        [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestDocumentationComment1()
+        {
+            await TestInRegularAndScriptAsync(
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Gets the active workspace project context that provides access to the language service for the active configured project.
+    /// </summary>
+    /// <value>
+    ///     An value that provides access to the language service for the active configured project.
+    /// </value>
+    object [||]ActiveProjectContext
+    {
+        get;
+    }
+}",
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Gets the active workspace project context that provides access to the language service for the active configured project.
+    /// </summary>
+    /// <returns>
+    ///     An value that provides access to the language service for the active configured project.
+    /// </returns>
+    object GetActiveProjectContext();
+}");
+        }
+
+        [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestDocumentationComment2()
+        {
+            await TestInRegularAndScriptAsync(
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Sets the active workspace project context that provides access to the language service for the active configured project.
+    /// </summary>
+    /// <value>
+    ///     An value that provides access to the language service for the active configured project.
+    /// </value>
+    object [||]ActiveProjectContext
+    {
+        set;
+    }
+}",
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Sets the active workspace project context that provides access to the language service for the active configured project.
+    /// </summary>
+    /// <param name=""value"">
+    ///     An value that provides access to the language service for the active configured project.
+    /// </param>
+    void SetActiveProjectContext(object value);
+}");
+        }
+
+        [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestDocumentationComment3()
+        {
+            await TestInRegularAndScriptAsync(
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Gets or sets the active workspace project context that provides access to the language service for the active configured project.
+    /// </summary>
+    /// <value>
+    ///     An value that provides access to the language service for the active configured project.
+    /// </value>
+    object [||]ActiveProjectContext
+    {
+        get; set;
+    }
+}",
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Gets or sets the active workspace project context that provides access to the language service for the active configured project.
+    /// </summary>
+    /// <returns>
+    ///     An value that provides access to the language service for the active configured project.
+    /// </returns>
+    object GetActiveProjectContext();
+
+    /// <summary>
+    ///     Gets or sets the active workspace project context that provides access to the language service for the active configured project.
+    /// </summary>
+    /// <param name=""value"">
+    ///     An value that provides access to the language service for the active configured project.
+    /// </param>
+    void SetActiveProjectContext(object value);
+}");
+        }
+
+        [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestDocumentationComment4()
+        {
+            await TestInRegularAndScriptAsync(
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Sets <see cref=""ActiveProjectContext""/>.
+    /// </summary>
+    /// <seealso cref=""ActiveProjectContext""/>
+    object [||]ActiveProjectContext
+    {
+        set;
+    }
+}
+internal struct AStruct
+{
+    /// <seealso cref=""ILanguageServiceHost.ActiveProjectContext""/>
+    private int x;
+}",
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Sets <see cref=""SetActiveProjectContext(object)""/>.
+    /// </summary>
+    /// <seealso cref=""SetActiveProjectContext(object)""/>
+    void SetActiveProjectContext(object value);
+}
+internal struct AStruct
+{
+    /// <seealso cref=""ILanguageServiceHost.SetActiveProjectContext(object)""/>
+    private int x;
+}");
+        }
+
+        [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestDocumentationComment5()
+        {
+            await TestInRegularAndScriptAsync(
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Gets or sets <see cref=""ActiveProjectContext""/>.
+    /// </summary>
+    /// <seealso cref=""ActiveProjectContext""/>
+    object [||]ActiveProjectContext
+    {
+        get; set;
+    }
+}
+internal struct AStruct
+{
+    /// <seealso cref=""ILanguageServiceHost.ActiveProjectContext""/>
+    private int x;
+}",
+@"internal interface ILanguageServiceHost
+{
+    /// <summary>
+    ///     Gets or sets <see cref=""GetActiveProjectContext()""/>.
+    /// </summary>
+    /// <seealso cref=""GetActiveProjectContext()""/>
+    object GetActiveProjectContext();
+
+    /// <summary>
+    ///     Gets or sets <see cref=""GetActiveProjectContext()""/>.
+    /// </summary>
+    /// <seealso cref=""GetActiveProjectContext()""/>
+    void SetActiveProjectContext(object value);
+}
+internal struct AStruct
+{
+    /// <seealso cref=""ILanguageServiceHost.GetActiveProjectContext()""/>
+    private int x;
+}");
+        }
+
+        [WorkItem(18234, "https://github.com/dotnet/roslyn/issues/18234")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestDocumentationComment6()
+        {
+            await TestInRegularAndScriptAsync(
+@"internal interface ISomeInterface<T>
+{
+    /// <seealso cref=""Context""/>
+    ISomeInterface<T> [||]Context
+    {
+        set;
+    }
+}
+internal struct AStruct
+{
+    /// <seealso cref=""ISomeInterface{T}.Context""/>
+    private int x;
+}",
+@"internal interface ISomeInterface<T>
+{
+    /// <seealso cref=""SetContext(ISomeInterface{T})""/>
+    void SetContext(ISomeInterface<T> value);
+}
+internal struct AStruct
+{
+    /// <seealso cref=""ISomeInterface{T}.SetContext(ISomeInterface{T})""/>
+    private int x;
+}");
+        }
+
+        [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestWithDirectives1()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int [||]Prop
+    {
+        get
+        {
+#if true
+            return 0;
+#else
+            return 1;
+#endif
+        }
+    }
+}",
+    @"class C
+{
+    private int GetProp()
+    {
+#if true
+        return 0;
+#else
+            return 1;
+#endif
+    }
+}");
+        }
+
+        [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestWithDirectives2()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int [||]Prop
+    {
+        get
+        {
+#if true
+            return 0;
+#else
+            return 1;
+#endif
+        }
+    }
+}",
+    @"class C
+{
+    private int GetProp() =>
+#if true
+            0;
+#else
+            return 1;
+#endif
+}",
+    options: PreferExpressionBodiedMethods);
+        }
+
+        [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestWithDirectives3()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int [||]Prop =>
+#if true
+        0;
+#else
+        1;
+#endif
+}",
+@"class C
+{
+    private int GetProp() =>
+#if true
+        0;
+#else
+        1;
+#endif
+}");
+        }
+
+        [WorkItem(19235, "https://github.com/dotnet/roslyn/issues/19235")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestWithDirectives4()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    int [||]Prop =>
+#if true
+        0;
+#else
+        1;
+#endif
+}",
+@"class C
+{
+    private int GetProp() =>
+#if true
+        0;
+#else
+        1;
+#endif
+}",
+    options: PreferExpressionBodiedMethods);
+        }
+
+        [WorkItem(440371, "https://devdiv.visualstudio.com/DevDiv/_workitems/edit/440371")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestExplicitInterfaceImplementation()
+        {
+            await TestInRegularAndScriptAsync(
+@"interface IGoo
+{
+    int [||]Goo { get; set; }
+}
+
+class C : IGoo
+{
+    int IGoo.Goo
+    {
+        get
+        {
+            throw new System.NotImplementedException();
+        }
+
+        set
+        {
+            throw new System.NotImplementedException();
+        }
+    }
+}",
+@"interface IGoo
+{
+    int GetGoo();
+    void SetGoo(int value);
+}
+
+class C : IGoo
+{
+    int IGoo.GetGoo()
+    {
+        throw new System.NotImplementedException();
+    }
+    void IGoo.SetGoo(int value)
+    {
+        throw new System.NotImplementedException();
+    }
+}");
         }
 
         private IDictionary<OptionKey, object> PreferExpressionBodiedMethods =>
-            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CodeStyleOptions.TrueWithSuggestionEnforcement));
+            OptionsSet(SingleOption(CSharpCodeStyleOptions.PreferExpressionBodiedMethods, CSharpCodeStyleOptions.WhenPossibleWithSuggestionEnforcement));
     }
 }

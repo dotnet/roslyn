@@ -8,6 +8,9 @@ namespace Roslyn.Utilities
 {
     internal static class ImmutableArrayExtensions
     {
+        internal static bool Contains<T>(this ImmutableArray<T> items, T item, IEqualityComparer<T> equalityComparer)
+            => items.IndexOf(item, 0, equalityComparer) >= 0;
+
         internal static ImmutableArray<T> ToImmutableArrayOrEmpty<T>(this T[] items)
         {
             if (items == null)

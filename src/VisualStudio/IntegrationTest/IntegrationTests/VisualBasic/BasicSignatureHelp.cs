@@ -1,6 +1,7 @@
-﻿using Microsoft.CodeAnalysis;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
-using Microsoft.VisualStudio.IntegrationTest.Utilities.Common;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -71,11 +72,11 @@ End Class
         {
             SetUpEditor(Baseline);
 
-            SendKeys("Dim m=Method(1,");
-            InvokeSignatureHelp();
-            VerifyCurrentSignature("C.Method(i As Integer, i2 As Integer) As C\r\nHello World 2.0!");
-            VerifyCurrentParameter("i2", "an integer, anything you like.");
-            VerifyParameters(
+            VisualStudio.Editor.SendKeys("Dim m=Method(1,");
+            VisualStudio.Editor.InvokeSignatureHelp();
+            VisualStudio.Editor.Verify.CurrentSignature("C.Method(i As Integer, i2 As Integer) As C\r\nHello World 2.0!");
+            VisualStudio.Editor.Verify.CurrentParameter("i2", "an integer, anything you like.");
+            VisualStudio.Editor.Verify.Parameters(
                 ("i", "an integer, preferably 42."),
                 ("i2", "an integer, anything you like."));
         }
@@ -85,12 +86,12 @@ End Class
         {
             SetUpEditor(Baseline);
 
-            SendKeys("Dim gm = GenericMethod");
-            SendKeys(VirtualKey.Escape);
-            SendKeys("(");
-            VerifyCurrentSignature("C.GenericMethod(Of T1)(i As T1) As C\r\nHello Generic World!");
-            VerifyCurrentParameter("i", "Param 1 of type T1");
-            VerifyParameters(
+            VisualStudio.Editor.SendKeys("Dim gm = GenericMethod");
+            VisualStudio.Editor.SendKeys(VirtualKey.Escape);
+            VisualStudio.Editor.SendKeys("(");
+            VisualStudio.Editor.Verify.CurrentSignature("C.GenericMethod(Of T1)(i As T1) As C\r\nHello Generic World!");
+            VisualStudio.Editor.Verify.CurrentParameter("i", "Param 1 of type T1");
+            VisualStudio.Editor.Verify.Parameters(
                 ("i", "Param 1 of type T1"));
         }
 
@@ -126,12 +127,12 @@ Class C(Of T, R)
     End Function
 End Class");
 
-            SendKeys("GenericMethod");
-            SendKeys(VirtualKey.Escape);
-            SendKeys("(Of ");
-            VerifyCurrentSignature("C(Of T, R).GenericMethod(Of T1)(i As T1)\r\nGeneric Method with 1 Type Param");
-            VerifyCurrentParameter("T1", "Type Parameter");
-            VerifyParameters(
+            VisualStudio.Editor.SendKeys("GenericMethod");
+            VisualStudio.Editor.SendKeys(VirtualKey.Escape);
+            VisualStudio.Editor.SendKeys("(Of ");
+            VisualStudio.Editor.Verify.CurrentSignature("C(Of T, R).GenericMethod(Of T1)(i As T1)\r\nGeneric Method with 1 Type Param");
+            VisualStudio.Editor.Verify.CurrentParameter("T1", "Type Parameter");
+            VisualStudio.Editor.Verify.Parameters(
                 ("T1", "Type Parameter"));
         }
 
@@ -154,10 +155,10 @@ Class C
     End Function
 End Class");
 
-            InvokeSignatureHelp();
-            VerifyCurrentSignature("C.GenericMethod(Of T1, T2)(i As T1, i2 As T2) As C");
-            VerifyCurrentParameter("T2", "");
-            VerifyParameters(
+            VisualStudio.Editor.InvokeSignatureHelp();
+            VisualStudio.Editor.Verify.CurrentSignature("C.GenericMethod(Of T1, T2)(i As T1, i2 As T2) As C");
+            VisualStudio.Editor.Verify.CurrentParameter("T2", "");
+            VisualStudio.Editor.Verify.Parameters(
                 ("T1", ""),
                 ("T2", ""));
         }
@@ -172,33 +173,34 @@ Module M
     End Sub
 End Module");
 
-            SendKeys("Method(");
-            VerifyCurrentSignature("M.Method(a As Integer, b As Integer)");
-            VerifyCurrentParameter("a", "");
-            SendKeys("1, ");
-            VerifyCurrentParameter("b", "");
+            VisualStudio.Editor.SendKeys("Method(");
+            VisualStudio.Editor.Verify.CurrentSignature("M.Method(a As Integer, b As Integer)");
+            VisualStudio.Editor.Verify.CurrentParameter("a", "");
+            VisualStudio.Editor.SendKeys("1, ");
+            VisualStudio.Editor.Verify.CurrentParameter("b", "");
         }
 
+        [WorkItem(741415, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?id=741415&fullScreen=true&_a=edit")]
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
-        public void BufferTextReplacedWithSigHelpActiveWithLengthOfUpdatedTextLessThanPositionOfInvocationExpression()
+        public void HandleBufferTextChangesDuringComputation()
         {
             SetUpEditor(@"
 Class C
-    Sub Foo()
+    Sub Goo()
     End Sub
     Sub Test()
         $$
     End Sub
 End Class");
 
-            SendKeys("Foo(");
-            VerifyCurrentSignature("C.Foo()");
+            VisualStudio.Editor.SendKeys("Goo(");
+            VisualStudio.Editor.Verify.CurrentSignature("C.Goo()");
 
-            Editor.SetText(@"
+            VisualStudio.Editor.SetText(@"
 Class C
     'Marker");
 
-            Assert.False(Editor.IsSignatureHelpActive());
+            Assert.False(VisualStudio.Editor.IsSignatureHelpActive());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
@@ -206,10 +208,10 @@ Class C
         {
             SetUpEditor(Baseline);
 
-            SendKeys("Dim op = OutAndParam(");
-            VerifyCurrentSignature("C.OutAndParam(ByRef strings As String()(,), ByRef outArr As String(), ParamArray d As Object)\r\nComplex Method Params");
-            VerifyCurrentParameter("strings", "Jagged MultiDimensional Array");
-            VerifyParameters(
+            VisualStudio.Editor.SendKeys("Dim op = OutAndParam(");
+            VisualStudio.Editor.Verify.CurrentSignature("C.OutAndParam(ByRef strings As String()(,), ByRef outArr As String(), ParamArray d As Object)\r\nComplex Method Params");
+            VisualStudio.Editor.Verify.CurrentParameter("strings", "Jagged MultiDimensional Array");
+            VisualStudio.Editor.Verify.Parameters(
                 ("strings", "Jagged MultiDimensional Array"),
                 ("outArr", "Out Array"),
                 ("d", "Dynamic and Params param"));

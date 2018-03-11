@@ -11,8 +11,8 @@ using Microsoft.CodeAnalysis.Serialization;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
-    [ExportWorkspaceServiceFactory(typeof(ISolutionSynchronizationService)), Shared]
-    internal class SolutionSynchronizationServiceFactory : IWorkspaceServiceFactory
+    [ExportWorkspaceServiceFactory(typeof(IRemotableDataService)), Shared]
+    internal class RemotableDataServiceFactory : IWorkspaceServiceFactory
     {
         private readonly AssetStorages _assetStorages = new AssetStorages();
 
@@ -21,17 +21,17 @@ namespace Microsoft.CodeAnalysis.Execution
             return new Service(workspaceServices, _assetStorages);
         }
 
-        internal class Service : ISolutionSynchronizationService
+        internal class Service : IRemotableDataService
         {
             private readonly HostWorkspaceServices _workspaceServices;
             private readonly AssetStorages _assetStorages;
 
             public Serializer Serializer_TestOnly => new Serializer(_workspaceServices);
 
-            public Service(HostWorkspaceServices workspaceServices, AssetStorages trees)
+            public Service(HostWorkspaceServices workspaceServices, AssetStorages storages)
             {
                 _workspaceServices = workspaceServices;
-                _assetStorages = trees;
+                _assetStorages = storages;
             }
 
             public void AddGlobalAsset(object value, CustomAsset asset, CancellationToken cancellationToken)
@@ -61,20 +61,25 @@ namespace Microsoft.CodeAnalysis.Execution
                 }
             }
 
-            public RemotableData GetRemotableData(Checksum checksum, CancellationToken cancellationToken)
+            public RemotableData GetRemotableData(int scopeId, Checksum checksum, CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(FunctionId.SolutionSynchronizationService_GetRemotableData, Checksum.GetChecksumLogInfo, checksum, cancellationToken))
                 {
-                    return _assetStorages.GetRemotableData(scope: null, checksum: checksum, cancellationToken: cancellationToken);
+                    return _assetStorages.GetRemotableData(scopeId, checksum, cancellationToken);
                 }
             }
 
-            public IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
+            public IReadOnlyDictionary<Checksum, RemotableData> GetRemotableData(int scopeId, IEnumerable<Checksum> checksums, CancellationToken cancellationToken)
             {
                 using (Logger.LogBlock(FunctionId.SolutionSynchronizationService_GetRemotableData, Checksum.GetChecksumsLogInfo, checksums, cancellationToken))
                 {
-                    return _assetStorages.GetRemotableData(scope: null, checksums: checksums, cancellationToken: cancellationToken);
+                    return _assetStorages.GetRemotableData(scopeId, checksums, cancellationToken);
                 }
+            }
+
+            public RemotableData GetRemotableData_TestOnly(Checksum checksum, CancellationToken cancellationToken)
+            {
+                return _assetStorages.GetRemotableData_TestOnly(checksum, cancellationToken);
             }
         }
     }

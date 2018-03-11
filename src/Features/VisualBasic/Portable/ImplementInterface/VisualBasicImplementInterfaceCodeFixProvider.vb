@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ImplementInterface
     Friend Class VisualBasicImplementInterfaceCodeFixProvider
         Inherits CodeFixProvider
 
-        Friend Const BC30149 As String = "BC30149" ' Class 'bar' must implement 'Sub foo()' for interface 'ifoo'.
+        Friend Const BC30149 As String = "BC30149" ' Class 'bar' must implement 'Sub goo()' for interface 'igoo'.
 
         Public NotOverridable Overrides ReadOnly Property FixableDiagnosticIds As ImmutableArray(Of String)
             Get

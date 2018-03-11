@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// Gets the service corresponding to the specified document.
         /// </summary>
         public static CompletionService GetService(Document document)
-            => document.GetLanguageService<CompletionService>();
+            => document?.GetLanguageService<CompletionService>();
 
         /// <summary>
         /// The language from <see cref="LanguageNames"/> this service corresponds to.
@@ -85,21 +86,22 @@ namespace Microsoft.CodeAnalysis.Completion
         public abstract Task<CompletionList> GetCompletionsAsync(
             Document document,
             int caretPosition,
-            CompletionTrigger trigger = default(CompletionTrigger),
+            CompletionTrigger trigger = default,
             ImmutableHashSet<string> roles = null,
             OptionSet options = null,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Gets the description of the item.
         /// </summary>
-        /// <param name="document">The document that completion is occurring within.</param>
+        /// <param name="document">This will be the  original document that
+        /// <paramref name="item"/> was created against.</param>
         /// <param name="item">The item to get the description for.</param>
         /// <param name="cancellationToken"></param>
         public virtual Task<CompletionDescription> GetDescriptionAsync(
             Document document,
             CompletionItem item,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return Task.FromResult(CompletionDescription.Empty);
         }
@@ -117,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Document document,
             CompletionItem item,
             char? commitCharacter = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return Task.FromResult(CompletionChange.Create(new TextChange(item.Span, item.DisplayText)));
         }
@@ -167,6 +169,33 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return bestItems.ToImmutableAndFree();
+        }
+
+        internal async Task<CompletionList> GetCompletionsAndSetItemDocumentAsync(
+            Document documentOpt, int caretPosition, CompletionTrigger trigger = default,
+            ImmutableHashSet<string> roles = null, OptionSet options = null, CancellationToken cancellationToken = default)
+        {
+            if (documentOpt == null)
+            {
+                return null;
+            }
+
+            var completions = await this.GetCompletionsAsync(
+                documentOpt, caretPosition, trigger, roles, options, cancellationToken).ConfigureAwait(false);
+            if (completions != null)
+            {
+                foreach (var item in completions.Items)
+                {
+                    item.Document = documentOpt;
+                }
+
+                if (completions.SuggestionModeItem != null)
+                {
+                    completions.SuggestionModeItem.Document = documentOpt;
+                }
+            }
+
+            return completions;
         }
     }
 }

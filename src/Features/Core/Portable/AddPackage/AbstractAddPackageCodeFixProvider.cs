@@ -7,12 +7,15 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.AddPackage
 {
+#pragma warning disable RS1016 // Code fix providers should provide FixAll support. https://github.com/dotnet/roslyn/issues/23528
     internal abstract partial class AbstractAddPackageCodeFixProvider : CodeFixProvider
+#pragma warning restore RS1016 // Code fix providers should provide FixAll support.
     {
         private readonly IPackageInstallerService _packageInstallerService;
         private readonly ISymbolSearchService _symbolSearchService;
@@ -51,7 +54,7 @@ namespace Microsoft.CodeAnalysis.AddPackage
             if (symbolSearchService != null &&
                 installerService != null &&
                 searchNugetPackages &&
-                installerService.IsEnabled)
+                installerService.IsEnabled(document.Project.Id))
             {
                 foreach (var packageSource in installerService.PackageSources)
                 {

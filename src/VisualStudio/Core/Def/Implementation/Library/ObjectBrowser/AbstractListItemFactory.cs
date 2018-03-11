@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -263,14 +264,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             var builder = ImmutableArray.CreateBuilder<ObjectListItem>();
 
-            var parentProjectItem = parentListItem as ProjectListItem;
-            if (parentProjectItem != null)
+            if (parentListItem is ProjectListItem parentProjectItem)
             {
                 builder.Add(new FolderListItem(parentListItem.ProjectId, ServicesVSResources.Project_References));
             }
 
-            var parentTypeItem = parentListItem as TypeListItem;
-            if (parentTypeItem != null)
+            if (parentListItem is TypeListItem parentTypeItem)
             {
                 var typeSymbol = parentTypeItem.ResolveTypedSymbol(compilation);
 
@@ -520,8 +519,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var referenceAssembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                        if (referenceAssembly != null)
+                        if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol referenceAssembly)
                         {
                             set.Add(Tuple.Create(projectId, referenceAssembly));
                         }
@@ -551,8 +549,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        var referenceAssembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                        if (referenceAssembly != null)
+                        if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol referenceAssembly)
                         {
                             set.Add(Tuple.Create(project.Id, referenceAssembly));
                         }
@@ -628,8 +625,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
                     foreach (var reference in project.MetadataReferences)
                     {
-                        var portableExecutableReference = reference as PortableExecutableReference;
-                        if (portableExecutableReference != null)
+                        if (reference is PortableExecutableReference portableExecutableReference)
                         {
                             var assemblyIdentity = AssemblyIdentityUtils.TryGetAssemblyIdentity(portableExecutableReference.FilePath);
                             if (assemblyIdentity != null && !assemblyIdentitySet.Contains(assemblyIdentity))
@@ -664,9 +660,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.ObjectB
 
             foreach (var reference in compilation.References)
             {
-                var assemblySymbol = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
 
-                if (assemblySymbol != null)
+                if (compilation.GetAssemblyOrModuleSymbol(reference) is IAssemblySymbol assemblySymbol)
                 {
                     builder.Add(new ReferenceListItem(parentListItem.ProjectId, assemblySymbol.Name, reference));
                 }

@@ -1,7 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System;
+using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -35,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override string ToString()
         {
-            return $"kind: {this.Kind} left: {this.LeftType} right: {this.RightType} return: {this.ReturnType}";
+            return $"kind: {this.Kind} leftType: {this.LeftType} leftRefKind: {this.LeftRefKind} rightType: {this.RightType} rightRefKind: {this.RightRefKind} return: {this.ReturnType}";
         }
 
         public bool Equals(BinaryOperatorSignature other)
@@ -69,6 +70,46 @@ namespace Microsoft.CodeAnalysis.CSharp
                    Hash.Combine(LeftType,
                    Hash.Combine(RightType,
                    Hash.Combine(Method, (int)Kind))));
+        }
+
+        public RefKind LeftRefKind
+        {
+            get
+            {
+                if ((object)Method != null)
+                {
+                    Debug.Assert(Method.ParameterCount == 2);
+
+                    if (!Method.ParameterRefKinds.IsDefaultOrEmpty)
+                    {
+                        Debug.Assert(Method.ParameterRefKinds.Length == 2);
+
+                        return Method.ParameterRefKinds[0];
+                    }
+                }
+
+                return RefKind.None;
+            }
+        }
+
+        public RefKind RightRefKind
+        {
+            get
+            {
+                if ((object)Method != null)
+                {
+                    Debug.Assert(Method.ParameterCount == 2);
+
+                    if (!Method.ParameterRefKinds.IsDefaultOrEmpty)
+                    {
+                        Debug.Assert(Method.ParameterRefKinds.Length == 2);
+
+                        return Method.ParameterRefKinds[1];
+                    }
+                }
+
+                return RefKind.None;
+            }
         }
     }
 }

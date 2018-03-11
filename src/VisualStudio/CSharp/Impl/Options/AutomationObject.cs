@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Runtime.InteropServices;
@@ -19,6 +19,8 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
+    using Workspace = Microsoft.CodeAnalysis.Workspace;
+
     [ComVisible(true)]
     public class AutomationObject
     {
@@ -163,6 +165,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetBooleanOption(CSharpFormattingOptions.IndentSwitchCaseSection); }
             set { SetBooleanOption(CSharpFormattingOptions.IndentSwitchCaseSection, value); }
+        }
+
+        public int Indent_CaseContentsWhenBlock
+        {
+            get { return GetBooleanOption(CSharpFormattingOptions.IndentSwitchCaseSectionWhenBlock); }
+            set { SetBooleanOption(CSharpFormattingOptions.IndentSwitchCaseSectionWhenBlock, value); }
         }
 
         public int Indent_CaseLabels
@@ -614,6 +622,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetXmlOption(CodeStyleOptions.PreferExplicitTupleNames, value); }
         }
 
+        public string Style_PreferInferredTupleNames
+        {
+            get { return GetXmlOption(CodeStyleOptions.PreferInferredTupleNames); }
+            set { SetXmlOption(CodeStyleOptions.PreferInferredTupleNames, value); }
+        }
+
+        public string Style_PreferInferredAnonymousTypeMemberNames
+        {
+            get { return GetXmlOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames); }
+            set { SetXmlOption(CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, value); }
+        }
+
         [Obsolete("Use Style_UseImplicitTypeWherePossible, Style_UseImplicitTypeWhereApparent or Style_UseImplicitTypeForIntrinsicTypes", error: true)]
         public int Style_UseVarWhenDeclaringLocals
         {
@@ -771,14 +791,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             return option.Value ? 1 : 0;
         }
 
-        private string GetXmlOption(Option<CodeStyleOption<bool>> option)
+        private string GetXmlOption<T>(Option<CodeStyleOption<T>> option)
         {
             return _workspace.Options.GetOption(option).ToXElement().ToString();
         }
 
         private void SetBooleanOption(PerLanguageOption<bool?> key, int value)
         {
-            bool? boolValue = (value < 0) ? (bool?)null : (value > 0);
+            var boolValue = (value < 0) ? (bool?)null : (value > 0);
             _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.CSharp, boolValue);
         }
 
@@ -787,9 +807,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             return _workspace.Options.GetOption(option, LanguageNames.CSharp).ToXElement().ToString();
         }
 
-        private void SetXmlOption(Option<CodeStyleOption<bool>> option, string value)
+        private void SetXmlOption<T>(Option<CodeStyleOption<T>> option, string value)
         {
-            var convertedValue = CodeStyleOption<bool>.FromXElement(XElement.Parse(value));
+            var convertedValue = CodeStyleOption<T>.FromXElement(XElement.Parse(value));
             _workspace.Options = _workspace.Options.WithChangedOption(option, convertedValue);
         }
 

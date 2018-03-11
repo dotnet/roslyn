@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -36,12 +37,42 @@ namespace Microsoft.CodeAnalysis
             Index = 0;
         }
 
-        internal SyntaxTriviaList(SyntaxTrivia trivia)
+        public SyntaxTriviaList(SyntaxTrivia trivia)
         {
             Token = default(SyntaxToken);
             Node = trivia.UnderlyingNode;
             Position = 0;
             Index = 0;
+        }
+
+        /// <summary>
+        /// Creates a list of trivia.
+        /// </summary>
+        /// <param name="trivias">An array of trivia.</param>
+        public SyntaxTriviaList(params SyntaxTrivia[] trivias)
+            : this(default, CreateNode(trivias), 0, 0)
+        {
+        }
+
+        /// <summary>
+        /// Creates a list of trivia.
+        /// </summary>
+        /// <param name="trivias">A sequence of trivia.</param>
+        public SyntaxTriviaList(IEnumerable<SyntaxTrivia> trivias)
+            : this(default, SyntaxTriviaListBuilder.Create(trivias).Node, 0, 0)
+        {
+        }
+
+        private static GreenNode CreateNode(SyntaxTrivia[] trivias)
+        {
+            if (trivias == null)
+            {
+                return null;
+            }
+
+            var builder = new SyntaxTriviaListBuilder(trivias.Length);
+            builder.Add(trivias);
+            return builder.ToList().Node;
         }
 
         internal SyntaxToken Token { get; }

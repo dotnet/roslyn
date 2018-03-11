@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.Completion
             string displayText,
             CompletionItemRules rules,
             Glyph? glyph = null,
-            ImmutableArray<SymbolDisplayPart> description = default(ImmutableArray<SymbolDisplayPart>),
+            ImmutableArray<SymbolDisplayPart> description = default,
             string sortText = null,
             string filterText = null,
             bool showsWarningIcon = false,
             ImmutableDictionary<string, string> properties = null,
-            ImmutableArray<string> tags = default(ImmutableArray<string>))
+            ImmutableArray<string> tags = default)
         {
             tags = tags.NullToEmpty();
 

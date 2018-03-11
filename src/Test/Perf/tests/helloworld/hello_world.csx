@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 #r "../../Perf.Utilities/Roslyn.Test.Performance.Utilities.dll"
 
@@ -26,7 +26,7 @@ class HelloWorldTest : PerfTest
     
     public override void Test() 
     {
-        ShellOutVital(Path.Combine(MyBinaries(), "Exes", "csc", @"csc.exe"), _pathToHelloWorld + " /out:" + _pathToOutput, MyWorkingDirectory);
+        ShellOutVital(Path.Combine(MyBinaries(), "Exes", "csc", "net46", @"csc.exe"), _pathToHelloWorld + " /out:" + _pathToOutput, MyWorkingDirectory);
         _logger.Flush();
     }
     

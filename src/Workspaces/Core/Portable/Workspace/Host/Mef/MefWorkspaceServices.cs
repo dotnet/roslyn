@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
             else
             {
-                return default(TWorkspaceService);
+                return default;
             }
         }
 
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             }
 
             // no service.
-            return default(Lazy<IWorkspaceService, WorkspaceServiceMetadata>);
+            return default;
         }
 
         private static bool TryGetServiceByLayer(string layer, IEnumerable<Lazy<IWorkspaceService, WorkspaceServiceMetadata>> services, out Lazy<IWorkspaceService, WorkspaceServiceMetadata> service)

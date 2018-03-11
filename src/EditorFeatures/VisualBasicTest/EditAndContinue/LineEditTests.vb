@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.EditAndContinue
@@ -46,7 +46,7 @@ End Class
         Public Sub Method_Reorder1()
             Dim src1 = ToCode(<text>
 Class C
-    Shared Sub Foo()
+    Shared Sub Goo()
         Console.ReadLine(1)
     End Sub
 
@@ -62,7 +62,7 @@ Class C
         Console.ReadLine(2)
     End Sub
 
-    Shared Sub Foo()
+    Shared Sub Goo()
         Console.ReadLine(1)
     End Sub
 End Class
@@ -77,11 +77,11 @@ End Class
             Dim src1 = ToCode(<text>
 Class Program
     Shared Sub Main()
-        Foo()
+        Goo()
         Bar()
     End Sub
 
-    Shared Function Foo() As Integer
+    Shared Function Goo() As Integer
         Return 1
     End Function
 
@@ -93,12 +93,12 @@ End Class
 
             Dim src2 = ToCode(<text>
 Class Program
-    Shared Function Foo() As Integer
+    Shared Function Goo() As Integer
         Return 1
     End Function
 
     Shared Sub Main()
-        Foo()
+        Goo()
         Bar()
     End Sub
 
@@ -453,14 +453,14 @@ End Class
         Public Sub Field_Init_Reorder1()
             Dim src1 = ToCode(<text>
 Class C
-    Shared Foo As Integer = 1
+    Shared Goo As Integer = 1
     Shared Bar As Integer = 2
 End Class
 </text>)
             Dim src2 = ToCode(<text>
 Class C
     Shared Bar As Integer = 2
-    Shared Foo As Integer = 1
+    Shared Goo As Integer = 1
 End Class
 </text>)
             Dim edits = GetTopEdits(src1, src2)
@@ -512,7 +512,7 @@ End Class
         Public Sub Field_Init_LineChange1()
             Dim src1 = ToCode(<text>
 Class C
-    Dim Foo = 1
+    Dim Goo = 1
 End Class
 </text>)
 
@@ -520,7 +520,7 @@ End Class
 Class C
 
 
-    Dim Foo = 1
+    Dim Goo = 1
 End Class
 </text>)
             Dim edits = GetTopEdits(src1, src2)
@@ -531,14 +531,14 @@ End Class
         Public Sub Field_Init_LineChange2()
             Dim src1 = ToCode(<text>
 Class C
-    Dim Foo = 1
+    Dim Goo = 1
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
     Dim _
-        Foo = 1
+        Goo = 1
 End Class
 </text>)
             Dim edits = GetTopEdits(src1, src2)
@@ -549,14 +549,14 @@ End Class
         Public Sub Field_AsNew_LineChange1()
             Dim src1 = ToCode(<text>
 Class C
-    Dim Foo As New D()
+    Dim Goo As New D()
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
     Dim _
-        Foo As New D()
+        Goo As New D()
 End Class
 </text>)
 
@@ -568,14 +568,14 @@ End Class
         Public Sub Field_AsNew_LineChange2()
             Dim src1 = ToCode(<text>
 Class C
-    Private Shared Foo As New D()
+    Private Shared Goo As New D()
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
     Private _
-            Shared Foo As New D()
+            Shared Goo As New D()
 End Class
 </text>)
 
@@ -587,26 +587,26 @@ End Class
         Public Sub Field_AsNew_LineChange_WithLambda()
             Dim src1 = ToCode(<text>
 Class C
-    Dim Foo, Bar As New D(Function() 1)
+    Dim Goo, Bar As New D(Function() 1)
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Dim Foo, _
+    Dim Goo, _
              Bar As New D(Function() 1)
 End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({New LineChange(2, 3)}, {"Foo"})
+            edits.VerifyLineEdits({New LineChange(2, 3)}, {"Goo"})
         End Sub
 
         <Fact>
         Public Sub Field_ArrayInit_LineChange1()
             Dim src1 = ToCode(<text>
 Class C
-    Dim Foo(1)
+    Dim Goo(1)
 End Class
 </text>)
 
@@ -614,7 +614,7 @@ End Class
 Class C
 
 
-    Dim Foo(1)
+    Dim Goo(1)
 End Class
 </text>)
             Dim edits = GetTopEdits(src1, src2)
@@ -625,14 +625,14 @@ End Class
         Public Sub Field_ArrayInit_LineChange2()
             Dim src1 = ToCode(<text>
 Class C
-    Dim Foo(1)
+    Dim Goo(1)
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
     Dim _
-        Foo(1)
+        Goo(1)
 End Class
 </text>)
             Dim edits = GetTopEdits(src1, src2)
@@ -643,144 +643,144 @@ End Class
         Public Sub Field_Init_Recompile1a()
             Dim src1 = ToCode(<text>
 Class C
-    Dim Foo = 1
+    Dim Goo = 1
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Dim Foo = _
+    Dim Goo = _
               1
 End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Foo = _"})
+            edits.VerifyLineEdits({}, {"Goo = _"})
         End Sub
 
         <Fact>
         Public Sub Field_Init_Recompile1b()
             Dim src1 = ToCode(<text>
 Class C
-    Dim Foo = 1
+    Dim Goo = 1
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Dim Foo _ 
+    Dim Goo _ 
             = 1
 End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Foo _ "})
+            edits.VerifyLineEdits({}, {"Goo _ "})
         End Sub
 
         <Fact>
         Public Sub Field_Init_Recompile1c()
             Dim src1 = ToCode(<text>
 Class C
-    Dim Foo ? = 1
+    Dim Goo ? = 1
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Dim Foo _
+    Dim Goo _
             ? = 1
 End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Foo _"})
+            edits.VerifyLineEdits({}, {"Goo _"})
         End Sub
 
         <Fact>
         Public Sub Field_Init_Recompile1()
             Dim src1 = ToCode(<text>
 Class C
-    Dim Foo = 1
+    Dim Goo = 1
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Dim Foo =  1
+    Dim Goo =  1
 End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Foo =  1"})
+            edits.VerifyLineEdits({}, {"Goo =  1"})
         End Sub
 
         <Fact>
         Public Sub Field_Init_Recompile2()
             Dim src1 = ToCode(<text>
 Class C
-    Dim Foo As Integer = 1 + 1
+    Dim Goo As Integer = 1 + 1
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Dim Foo As Integer = 1 +  1
+    Dim Goo As Integer = 1 +  1
 End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Foo As Integer = 1 +  1"})
+            edits.VerifyLineEdits({}, {"Goo As Integer = 1 +  1"})
         End Sub
 
         <Fact>
         Public Sub Field_SingleAsNew_Recompile1()
             Dim src1 = ToCode(<text>
 Class C
-    Dim Foo As New D()
+    Dim Goo As New D()
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Dim Foo As _
+    Dim Goo As _
                New D()
 End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Foo As _"})
+            edits.VerifyLineEdits({}, {"Goo As _"})
         End Sub
 
         <Fact>
         Public Sub Field_SingleAsNew_Recompile2()
             Dim src1 = ToCode(<text>
 Class C
-    Dim Foo As New D()
+    Dim Goo As New D()
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Dim Foo _
+    Dim Goo _
             As New D()
 End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Foo _"})
+            edits.VerifyLineEdits({}, {"Goo _"})
         End Sub
 
         <Fact>
         Public Sub Field_MultiAsNew_Recompile1()
             Dim src1 = ToCode(<text>
 Class C
-    Dim Foo, Bar As New D()
+    Dim Goo, Bar As New D()
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Dim Foo, _
+    Dim Goo, _
              Bar As New D()
 End Class
 </text>)
@@ -788,100 +788,100 @@ End Class
             Dim edits = GetTopEdits(src1, src2)
 
             ' to make it simpler, we recompile the constructor (by reporting a field as a node update)
-            edits.VerifyLineEdits({New LineChange(2, 3)}, {"Foo"})
+            edits.VerifyLineEdits({New LineChange(2, 3)}, {"Goo"})
         End Sub
 
         <Fact>
         Public Sub Field_MultiAsNew_Recompile2()
             Dim src1 = ToCode(<text>
 Class C
-    Dim Foo, Bar As New D()
+    Dim Goo, Bar As New D()
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Dim Foo,  Bar As New D()
+    Dim Goo,  Bar As New D()
 End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
 
-            ' we treat "Foo + New D()" as a whole for simplicity
-            edits.VerifyLineEdits({}, {"Foo", "Bar"})
+            ' we treat "Goo + New D()" as a whole for simplicity
+            edits.VerifyLineEdits({}, {"Goo", "Bar"})
         End Sub
 
         <Fact>
         Public Sub Field_MultiAsNew_Recompile3()
             Dim src1 = ToCode(<text>
 Class C
-    Dim  Foo, Bar As New D()
+    Dim  Goo, Bar As New D()
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Dim Foo, Bar As New D()
+    Dim Goo, Bar As New D()
 End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Foo", "Bar"})
+            edits.VerifyLineEdits({}, {"Goo", "Bar"})
         End Sub
 
         <Fact>
         Public Sub Field_MultiAsNew_Recompile4()
             Dim src1 = ToCode(<text>
 Class C
-    Dim Foo, Bar As New D()
+    Dim Goo, Bar As New D()
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Dim Foo, Bar As _
+    Dim Goo, Bar As _
                     New D()
 End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Foo", "Bar"})
+            edits.VerifyLineEdits({}, {"Goo", "Bar"})
         End Sub
 
         <Fact>
         Public Sub Field_ArrayInit_Recompile1()
             Dim src1 = ToCode(<text>
 Class C
-    Dim Foo(1)
+    Dim Goo(1)
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Dim  Foo(1)
+    Dim  Goo(1)
 End Class
 </text>)
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Foo(1)"})
+            edits.VerifyLineEdits({}, {"Goo(1)"})
         End Sub
 
         <Fact>
         Public Sub Field_RudeRecompile1()
             Dim src1 = ToCode(<text>
 Class C(Of T)
-    Dim Foo As Integer = 1 + 1
+    Dim Goo As Integer = 1 + 1
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C(Of T)
-    Dim Foo As Integer = 1 +  1
+    Dim Goo As Integer = 1 +  1
 End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
             edits.VerifyLineEdits({},
-                                  {"Foo As Integer = 1 +  1"},
+                                  {"Goo As Integer = 1 +  1"},
                                   Diagnostic(RudeEditKind.GenericTypeTriviaUpdate, "  ", FeaturesResources.field))
         End Sub
 #End Region
@@ -891,13 +891,13 @@ End Class
         Public Sub Property_NoChange1()
             Dim src1 = ToCode(<text>
 Class C
-    Property Foo As Integer = 1 Implements I.P
+    Property Goo As Integer = 1 Implements I.P
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Property Foo As Integer = 1 _
+    Property Goo As Integer = 1 _
                                 Implements I.P
 End Class
 </text>)
@@ -910,13 +910,13 @@ End Class
         Public Sub PropertyTypeChar_NoChange1()
             Dim src1 = ToCode(<text>
 Class C
-    Property Foo$ = "" Implements I.P
+    Property Goo$ = "" Implements I.P
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Property Foo$ = "" _
+    Property Goo$ = "" _
                        Implements I.P
 End Class
 </text>)
@@ -929,13 +929,13 @@ End Class
         Public Sub PropertyAsNew_NoChange1()
             Dim src1 = ToCode(<text>
 Class C
-    Property Foo As New C() Implements I.P
+    Property Goo As New C() Implements I.P
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Property Foo As New C() _
+    Property Goo As New C() _
                             Implements I.P
 End Class
 </text>)
@@ -948,14 +948,14 @@ End Class
         Public Sub Property_LineChange1()
             Dim src1 = ToCode(<text>
 Class C
-    Property Foo As Integer = 1
+    Property Goo As Integer = 1
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
 
-    Property Foo As Integer = 1
+    Property Goo As Integer = 1
 End Class
 </text>)
 
@@ -967,14 +967,14 @@ End Class
         Public Sub Property_LineChange2()
             Dim src1 = ToCode(<text>
 Class C
-    Property Foo As Integer = 1
+    Property Goo As Integer = 1
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
     Property _
-             Foo As Integer = 1
+             Goo As Integer = 1
 End Class
 </text>)
 
@@ -986,14 +986,14 @@ End Class
         Public Sub PropertyTypeChar_LineChange2()
             Dim src1 = ToCode(<text>
 Class C
-    Property Foo$ = ""
+    Property Goo$ = ""
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
     Property _
-             Foo$ = ""
+             Goo$ = ""
 End Class
 </text>)
 
@@ -1005,14 +1005,14 @@ End Class
         Public Sub PropertyAsNew_LineChange1()
             Dim src1 = ToCode(<text>
 Class C
-    Property Foo As New C()
+    Property Goo As New C()
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
     Property _
-             Foo As New C()
+             Goo As New C()
 End Class
 </text>)
 
@@ -1024,114 +1024,114 @@ End Class
         Public Sub Property_Recompile1()
             Dim src1 = ToCode(<text>
 Class C
-    Property Foo As Integer = 1
+    Property Goo As Integer = 1
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Property Foo _
+    Property Goo _
                  As Integer = 1
 End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Property Foo _"})
+            edits.VerifyLineEdits({}, {"Property Goo _"})
         End Sub
 
         <Fact>
         Public Sub Property_Recompile2()
             Dim src1 = ToCode(<text>
 Class C
-    Property Foo As Integer = 1
+    Property Goo As Integer = 1
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Property Foo As _
+    Property Goo As _
                     Integer = 1
 End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Property Foo As _"})
+            edits.VerifyLineEdits({}, {"Property Goo As _"})
         End Sub
 
         <Fact>
         Public Sub Property_Recompile3()
             Dim src1 = ToCode(<text>
 Class C
-    Property Foo As Integer = 1
+    Property Goo As Integer = 1
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Property Foo As Integer _
+    Property Goo As Integer _
                             = 1
 End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Property Foo As Integer _"})
+            edits.VerifyLineEdits({}, {"Property Goo As Integer _"})
         End Sub
 
         <Fact>
         Public Sub Property_Recompile4()
             Dim src1 = ToCode(<text>
 Class C
-    Property Foo As Integer = 1
+    Property Goo As Integer = 1
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Property Foo As Integer = _
+    Property Goo As Integer = _
                               1
 End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Property Foo As Integer = _"})
+            edits.VerifyLineEdits({}, {"Property Goo As Integer = _"})
         End Sub
 
         <Fact>
         Public Sub PropertyAsNew_Recompile1()
             Dim src1 = ToCode(<text>
 Class C
-    Property Foo As New C()
+    Property Goo As New C()
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Property Foo As _
+    Property Goo As _
                     New C()
 End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Property Foo As _"})
+            edits.VerifyLineEdits({}, {"Property Goo As _"})
         End Sub
 
         <Fact>
         Public Sub PropertyTypeChar_Recompile1()
             Dim src1 = ToCode(<text>
 Class C
-    Property Foo$ = ""
+    Property Goo$ = ""
 End Class
 </text>)
 
             Dim src2 = ToCode(<text>
 Class C
-    Property Foo$ = _
+    Property Goo$ = _
                     ""
 End Class
 </text>)
 
             Dim edits = GetTopEdits(src1, src2)
-            edits.VerifyLineEdits({}, {"Property Foo$ = _"})
+            edits.VerifyLineEdits({}, {"Property Goo$ = _"})
         End Sub
 #End Region
 

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
                 }
             }
 
-            match = default(SyntaxToken);
+            match = default;
             return false;
         }
 

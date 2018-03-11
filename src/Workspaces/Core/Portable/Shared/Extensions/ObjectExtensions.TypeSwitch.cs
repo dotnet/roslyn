@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                return default(TResult);
+                return default;
             }
         }
 
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                return default(TResult);
+                return default;
             }
         }
 
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                return default(TResult);
+                return default;
             }
         }
 
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                return default(TResult);
+                return default;
             }
         }
 
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                return default(TResult);
+                return default;
             }
         }
 
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                return default(TResult);
+                return default;
             }
         }
 
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                return default(TResult);
+                return default;
             }
         }
 
@@ -648,7 +648,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
             else
             {
-                return default(TResult);
+                return default;
             }
         }
     }

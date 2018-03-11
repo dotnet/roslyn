@@ -1643,10 +1643,10 @@ imports System.Collections.Generic
 imports stdole
 
 public class A
-    public shared Sub Foo(func As Func(Of X)) 
+    public shared Sub Goo(func As Func(Of X)) 
         System.Console.WriteLine("X")
     end Sub
-    public shared Sub Foo(func As Func(Of Y)) 
+    public shared Sub Goo(func As Func(Of Y)) 
         System.Console.WriteLine("Y")
     end Sub
 End Class
@@ -1664,7 +1664,7 @@ public delegate Sub Y(addin As List(Of string))
     <file name="a.vb"><![CDATA[
 public module Program
     public Sub Main()
-        A.Foo(Function() Sub(x) x.ToString())
+        A.Goo(Function() Sub(x) x.ToString())
     End Sub
 End Module
     ]]></file>

@@ -189,6 +189,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
+        Friend Function IsAsyncSupportedFunctionSyntax(node As SyntaxNode) As Boolean
+            Select Case node?.Kind()
+                Case _
+                SyntaxKind.FunctionBlock,
+                SyntaxKind.SubBlock,
+                SyntaxKind.MultiLineFunctionLambdaExpression,
+                SyntaxKind.MultiLineSubLambdaExpression,
+                SyntaxKind.SingleLineFunctionLambdaExpression,
+                SyntaxKind.SingleLineSubLambdaExpression
+                    Return True
+            End Select
+            Return False
+        End Function
+
+        <Extension()>
         Friend Function IsMultiLineLambda(node As SyntaxNode) As Boolean
             Return SyntaxFacts.IsMultiLineLambdaExpression(node.Kind())
         End Function
@@ -257,7 +272,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     ' this node that belongs to a span of pp directives that
                     ' is not entirely contained within the node.  i.e.:
                     '
-                    '   void Foo() {
+                    '   void Goo() {
                     '      #if ...
                     '   }
                     '
@@ -274,7 +289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     ' We have a PP directive before us.  i.e.:
                     ' 
                     '   #if ...
-                    '      void Foo() {
+                    '      void Goo() {
                     '
                     ' That means we start a new group that is contained between
                     ' the above directive and the following directive.
@@ -305,30 +320,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' 
         ''' i.e. The following returns false:
         ''' 
-        '''   void Foo() {
+        '''   void Goo() {
         ''' #if true
         ''' #endif
         '''   }
         ''' 
         ''' #if true
-        '''   void Foo() {
+        '''   void Goo() {
         '''   }
         ''' #endif
         ''' 
         ''' but these return true:
         ''' 
         ''' #if true
-        '''   void Foo() {
+        '''   void Goo() {
         ''' #endif
         '''   }
         ''' 
-        '''   void Foo() {
+        '''   void Goo() {
         ''' #if true
         '''   }
         ''' #endif
         ''' 
         ''' #if true
-        '''   void Foo() {
+        '''   void Goo() {
         ''' #else
         '''   }
         ''' #endif
@@ -340,20 +355,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' </summary>
         <Extension()>
         Public Function ContainsInterleavedDirective(node As SyntaxNode, cancellationToken As CancellationToken) As Boolean
-            ' Check if this node contains a start or end pp construct whose
-            ' matching construct is not contained within this node.  If so, 
-            ' this node must be pinned and cannot move.
-            '
-            ' Also, keep track of those spans so that if we see #else/#elif we
-            ' can tell if they belong to a pp span that is entirely within the
-            ' node.
-            Dim span = node.Span
-            Return node.DescendantTokens().Any(Function(token) ContainsInterleavedDirective(span, token, cancellationToken))
+            Return VisualBasicSyntaxFactsService.Instance.ContainsInterleavedDirective(node, cancellationToken)
         End Function
 
-        Private Function ContainsInterleavedDirective(
-            textSpan As TextSpan,
+        <Extension>
+        Public Function ContainsInterleavedDirective(
             token As SyntaxToken,
+            textSpan As TextSpan,
             cancellationToken As CancellationToken) As Boolean
 
             Return ContainsInterleavedDirective(textSpan, token.LeadingTrivia, cancellationToken) OrElse

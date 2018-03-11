@@ -1,4 +1,4 @@
-' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Threading.Tasks
 Imports Roslyn.Test.Utilities
@@ -15,10 +15,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.MethodXML
         <Document>
 Public Class Class1
     $$Sub M()
-        Foo()
+        Goo()
     End Sub
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
         </Document>
@@ -35,7 +35,7 @@ End Class
                         <Expression>
                             <ThisReference/>
                         </Expression>
-                        <Name>Foo</Name>
+                        <Name>Goo</Name>
                     </NameRef>
                 </Expression>
             </MethodCall>
@@ -55,10 +55,10 @@ End Class
         <Document>
 Public Class Class1
     $$Sub M()
-        Me.Foo()
+        Me.Goo()
     End Sub
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 End Class
         </Document>
@@ -75,7 +75,7 @@ End Class
                         <Expression>
                             <ThisReference/>
                         </Expression>
-                        <Name>Foo</Name>
+                        <Name>Goo</Name>
                     </NameRef>
                 </Expression>
             </MethodCall>
@@ -95,7 +95,7 @@ End Class
         <Document>
 Public Class C
     $$Sub M()
-        Me.list.AddRange(New String() { "foo", "bar", "baz" })
+        Me.list.AddRange(New String() { "goo", "bar", "baz" })
     End Sub
 
     Dim list As System.Collections.ArrayList
@@ -137,7 +137,7 @@ End Class
                             </Bound>
                             <Expression>
                                 <Literal>
-                                    <String>foo</String>
+                                    <String>goo</String>
                                 </Literal>
                             </Expression>
                             <Expression>

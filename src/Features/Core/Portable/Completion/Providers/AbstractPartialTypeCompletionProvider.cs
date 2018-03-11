@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
@@ -30,31 +31,36 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public async sealed override Task ProvideCompletionsAsync(CompletionContext completionContext)
         {
-            var document = completionContext.Document;
-            var position = completionContext.Position;
-            var options = completionContext.Options;
-            var cancellationToken = completionContext.CancellationToken;
-
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var node = GetPartialTypeSyntaxNode(tree, position, cancellationToken);
-
-            if (node != null)
+            try
             {
-                var semanticModel = await document.GetSemanticModelForNodeAsync(node, cancellationToken).ConfigureAwait(false);
-                var syntaxContext = await CreateSyntaxContextAsync(document, semanticModel, position, cancellationToken).ConfigureAwait(false);
+                var document = completionContext.Document;
+                var position = completionContext.Position;
+                var options = completionContext.Options;
+                var cancellationToken = completionContext.CancellationToken;
 
-                var declaredSymbol = semanticModel.GetDeclaredSymbol(node, cancellationToken) as INamedTypeSymbol;
+                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var node = GetPartialTypeSyntaxNode(tree, position, cancellationToken);
 
-                if (declaredSymbol != null)
+                if (node != null)
                 {
-                    var symbols = LookupCandidateSymbols(syntaxContext, declaredSymbol, cancellationToken);
-                    var items = symbols?.Select(s => CreateCompletionItem(s, syntaxContext, options));
+                    var semanticModel = await document.GetSemanticModelForNodeAsync(node, cancellationToken).ConfigureAwait(false);
+                    var syntaxContext = await CreateSyntaxContextAsync(document, semanticModel, position, cancellationToken).ConfigureAwait(false);
 
-                    if (items != null)
+                    if (semanticModel.GetDeclaredSymbol(node, cancellationToken) is INamedTypeSymbol declaredSymbol)
                     {
-                        completionContext.AddItems(items);
+                        var symbols = LookupCandidateSymbols(syntaxContext, declaredSymbol, cancellationToken);
+                        var items = symbols?.Select(s => CreateCompletionItem(s, syntaxContext, options));
+
+                        if (items != null)
+                        {
+                            completionContext.AddItems(items);
+                        }
                     }
                 }
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
+            {
+                // nop
             }
         }
 
@@ -64,8 +70,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var displayAndInsertionText = _format.GetMinimalDisplayAndInsertionText(symbol, context, options);
 
             return SymbolCompletionItem.CreateWithSymbolId(
-                displayText: displayAndInsertionText.Item1,
-                insertionText: displayAndInsertionText.Item2,
+                displayText: displayAndInsertionText.displayText,
+                insertionText: displayAndInsertionText.insertionText,
                 symbols: ImmutableArray.Create(symbol),
                 contextPosition: context.Position,
                 rules: CompletionItemRules.Default);

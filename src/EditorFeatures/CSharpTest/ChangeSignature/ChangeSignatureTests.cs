@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ChangeSignature
             var markup = @"
 class Ext
 {
-    void Foo(int a, int b) => [||]0;
+    void Goo(int a, int b) => [||]0;
 }";
 
             await TestChangeSignatureViaCodeActionAsync(markup, expectedCodeAction: false);
@@ -24,14 +24,14 @@ class Ext
 
         [WorkItem(1905, "https://github.com/dotnet/roslyn/issues/1905")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
-        public async Task TestAfterSemicolonForInvocationInExpressionStatement()
+        public async Task TestAfterSemicolonForInvocationInExpressionStatement_ViaCommand()
         {
             var markup = @"
 class Program
 {
     static void Main(string[] args)
     {
-        M1(1, 2);[||]
+        M1(1, 2);$$
         M2(1, 2, 3);
     }
 
@@ -53,10 +53,31 @@ class Program
     static void M2(int x, int y, int z) { }
 }";
 
-            await TestChangeSignatureViaCodeActionAsync(
+            await TestChangeSignatureViaCommandAsync(
+                LanguageNames.CSharp,
                 markup: markup, 
                 updatedSignature: new[] { 1, 0 },
-                expectedCode: expectedCode);
+                expectedUpdatedInvocationDocumentCode: expectedCode);
+        }
+        
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        public async Task TestAfterSemicolonForInvocationInExpressionStatement_ViaCodeAction()
+        {
+            var markup = @"
+class Program
+{
+    static void Main(string[] args)
+    {
+        M1(1, 2);[||]
+        M2(1, 2, 3);
+    }
+
+    static void M1(int x, int y) { }
+
+    static void M2(int x, int y, int z) { }
+}";
+
+            await TestMissingAsync(markup);
         }
 
         [WorkItem(17309, "https://github.com/dotnet/roslyn/issues/17309")]
@@ -67,7 +88,7 @@ class Program
 class Ext
 {
     [||]
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -83,7 +104,7 @@ class Ext
 class Ext
 {
     // [||]
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -99,7 +120,7 @@ class Ext
 class Ext
 {
     [||]//
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -115,7 +136,7 @@ class Ext
 class Ext
 {
     /// [||]
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -131,7 +152,7 @@ class Ext
 class Ext
 {
     [||]///
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -147,7 +168,7 @@ class Ext
 class Ext
 {
     [||][X]
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -163,7 +184,7 @@ class Ext
 class Ext
 {
     [[||]X]
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -179,7 +200,7 @@ class Ext
 class Ext
 {
     [X][||]
-    void Foo(int a, int b)
+    void Goo(int a, int b)
     {
     };
 }";
@@ -194,7 +215,7 @@ class Ext
             var markup = @"
 class Ext
 {
-    void Foo<T>(int a, int b) where [||]T : class
+    void Goo<T>(int a, int b) where [||]T : class
     {
     };
 }";

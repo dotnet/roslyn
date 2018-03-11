@@ -40,12 +40,12 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected abstract string Escape(string identifier, SyntaxContext context);
 
-        public ValueTuple<string, string> GetMinimalDisplayAndInsertionText(ISymbol symbol, SyntaxContext context, OptionSet options)
+        public (string displayText, string insertionText) GetMinimalDisplayAndInsertionText(ISymbol symbol, SyntaxContext context, OptionSet options)
         {
             var displayText = GetMinimalDisplayText(symbol, context, options);
             var insertionText = GetMinimalInsertionText(symbol, context, options);
 
-            return ValueTuple.Create(displayText, insertionText);
+            return (displayText, insertionText);
         }
 
         private string GetMinimalDisplayText(ISymbol symbol, SyntaxContext context, OptionSet options)
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         {
             if (symbol is IAliasSymbol)
             {
-                // Using SymbolDisplayFormat would result in somthing like "alias = type",
+                // Using SymbolDisplayFormat would result in something like "alias = type",
                 // so this needs to be special-cased here
                 return (format.MiscellaneousOptions & SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers) != SymbolDisplayMiscellaneousOptions.None
                     ? Escape(symbol.Name, context)

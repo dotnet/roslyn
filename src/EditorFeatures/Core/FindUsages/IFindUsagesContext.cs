@@ -12,12 +12,12 @@ namespace Microsoft.CodeAnalysis.FindUsages
         /// <summary>
         /// Report a message to be displayed to the user.
         /// </summary>
-        void ReportMessage(string message);
+        Task ReportMessageAsync(string message);
 
         /// <summary>
         /// Set the title of the window that results are displayed in.
         /// </summary>
-        void SetSearchTitle(string title);
+        Task SetSearchTitleAsync(string title);
 
         Task OnDefinitionFoundAsync(DefinitionItem definition);
         Task OnReferenceFoundAsync(SourceReferenceItem reference);

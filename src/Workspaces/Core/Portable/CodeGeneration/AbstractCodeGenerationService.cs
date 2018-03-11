@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
 using System.Collections.Generic;
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public abstract TDeclarationNode UpdateDeclarationModifiers<TDeclarationNode>(TDeclarationNode declaration, IEnumerable<SyntaxToken> newModifiers, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode;
         public abstract TDeclarationNode UpdateDeclarationAccessibility<TDeclarationNode>(TDeclarationNode declaration, Accessibility newAccessibility, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode;
         public abstract TDeclarationNode UpdateDeclarationType<TDeclarationNode>(TDeclarationNode declaration, ITypeSymbol newType, CodeGenerationOptions options, CancellationToken cancellationToken) where TDeclarationNode : SyntaxNode;
-        public abstract TDeclarationNode UpdateDeclarationMembers<TDeclarationNode>(TDeclarationNode declaration, IList<ISymbol> newMembers, CodeGenerationOptions options = null, CancellationToken cancellationToken = default(CancellationToken)) where TDeclarationNode : SyntaxNode;
+        public abstract TDeclarationNode UpdateDeclarationMembers<TDeclarationNode>(TDeclarationNode declaration, IList<ISymbol> newMembers, CodeGenerationOptions options = null, CancellationToken cancellationToken = default) where TDeclarationNode : SyntaxNode;
 
         public abstract CodeGenerationDestination GetDestination(SyntaxNode node);
         public abstract SyntaxNode CreateEventDeclaration(IEventSymbol @event, CodeGenerationDestination destination, CodeGenerationOptions options);
@@ -178,9 +178,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             options = options ?? CodeGenerationOptions.Default;
 
-            var result = await this.FindMostRelevantDeclarationAsync(solution, destination, options, cancellationToken).ConfigureAwait(false);
-            SyntaxNode destinationDeclaration = result.Item1;
-            IList<bool> availableIndices = result.Item2;
+            var (destinationDeclaration, availableIndices) =
+                await this.FindMostRelevantDeclarationAsync(solution, destination, options, cancellationToken).ConfigureAwait(false);
 
             if (destinationDeclaration == null)
             {
@@ -199,10 +198,18 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
             if (options.AddImports)
             {
-                var adder = this.CreateImportsAdder(newDocument);
-                newDocument = await adder.AddAsync(members, options.PlaceSystemNamespaceFirst, options, cancellationToken).ConfigureAwait(false);
+                newDocument = await AddImportsAsync(
+                    newDocument, options, cancellationToken).ConfigureAwait(false);
             }
 
+            return newDocument;
+        }
+
+        public async Task<Document> AddImportsAsync(Document document, CodeGenerationOptions options, CancellationToken cancellationToken)
+        {
+            options = options ?? CodeGenerationOptions.Default;
+            var adder = this.CreateImportsAdder(document);
+            var newDocument = await adder.AddAsync(options.PlaceSystemNamespaceFirst, options, cancellationToken).ConfigureAwait(false);
             return newDocument;
         }
 

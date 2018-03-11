@@ -1,4 +1,4 @@
-// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
 using System.IO;
@@ -6,13 +6,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.TestHooks
 {
-    internal partial class AsynchronousOperationListener
+    internal sealed partial class AsynchronousOperationListener
     {
         /// <summary>
         /// Stores the source information for an <see cref="IAsyncToken"/> value.  Helpful when 
         /// tracking down tokens which aren't properly disposed.
         /// </summary>
-        protected internal sealed class DiagnosticAsyncToken : AsyncToken
+        internal sealed class DiagnosticAsyncToken : AsyncToken
         {
             public string Name { get; }
             public string FilePath { get; }

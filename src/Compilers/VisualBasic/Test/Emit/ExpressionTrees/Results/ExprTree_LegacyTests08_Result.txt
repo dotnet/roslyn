@@ -1,4 +1,4 @@
-﻿Lambda(
+Lambda(
   body {
     SubtractChecked(
       MemberAccess(
@@ -280,7 +280,7 @@ Lambda(
       )
       method: Boolean get_MyProperty(System.String) in Form1+Class1 (
         Constant(
-          Foo
+          Goo
           type: System.String
         )
       )
@@ -848,13 +848,13 @@ Lambda(
   body {
     Call(
       <NULL>
-      method: Boolean Bar(Foo) in Form1 (
+      method: Boolean Bar(Goo) in Form1 (
         Convert(
           Call(
             <NULL>
             method: System.Delegate CreateDelegate(System.Type, System.Object, System.Reflection.MethodInfo, Boolean) in System.Delegate (
               Constant(
-                Form1+Foo
+                Form1+Goo
                 type: System.Type
               )
               Constant(
@@ -872,7 +872,7 @@ Lambda(
             )
             type: System.Delegate
           )
-          type: Form1+Foo
+          type: Form1+Goo
         )
       )
       type: System.Boolean
@@ -905,14 +905,14 @@ Lambda(
   body {
     Call(
       <NULL>
-      method: Boolean Bar(Foo) in Form1 (
+      method: Boolean Bar(Goo) in Form1 (
         MemberAccess(
           Constant(
             Form1+_Closure$__18-0
             type: Form1+_Closure$__18-0
           )
           -> $VB$Local_d
-          type: Form1+Foo
+          type: Form1+Goo
         )
       )
       type: System.Boolean

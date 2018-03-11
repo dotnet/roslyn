@@ -10,20 +10,20 @@ Imports System.Linq.Expressions
 Imports System.Text
 Imports M = System.Math
 Imports System.Collections
-Imports <xmlns:ns="foo">
-Imports <xmlns="foo">
+Imports <xmlns:ns="goo">
+Imports <xmlns="goo">
 
 #Const line = 6
-#Const foo = True
-#If foo Then
+#Const goo = True
+#If goo Then
 #Else
 #End If
 ' There is no equivalent to #undef in VB.NET:
-'#undef foo
-'#warning foo
-'#error foo
+'#undef goo
+'#warning goo
+'#error goo
 ' There is no equivalent to 'extern alias' in VB:
-'extern alias Foo;
+'extern alias Goo;
 
 #If DEBUG OrElse TRACE Then
 Imports System.Diagnostics
@@ -59,7 +59,7 @@ Namespace My
         Inherits CSType1
         Implements I
         <Obsolete()>
-        Public Sub New(<Obsolete()> ByVal foo As Integer)
+        Public Sub New(<Obsolete()> ByVal goo As Integer)
             MyBase.New(1)
 L:
             Dim i As Integer = Len(New Integer)
@@ -241,7 +241,7 @@ CaseLabel2:
         Private ReadOnly f1 As Integer
         ' There is no VB.NET equivalent to 'volatile':
 
-        <Obsolete(), NonExisting(), Foo.NonExisting(var, 5), Obsolete(), NonSerialized(), CLSCompliant(True OrElse False And True)>
+        <Obsolete(), NonExisting(), Goo.NonExisting(var, 5), Obsolete(), NonSerialized(), CLSCompliant(True OrElse False And True)>
         Private f2 As Integer
 
         <Obsolete()>
@@ -451,7 +451,7 @@ Namespace Boo
     Public Class Bar(Of T As IComparable)
         Public f As T
 
-        Public Class Foo(Of U)
+        Public Class Goo(Of U)
             Implements IEnumerator(Of T)
 
             Public Sub Method(Of K As {IList(Of V), IList(Of T), IList(Of U)}, V As IList(Of K))(ByVal k1 As K, ByVal t1 As T, ByVal u1 As U)
@@ -505,7 +505,7 @@ End Namespace
 
 Friend Class Test2
     Private Sub Bar3()
-        Dim x = New Boo.Bar(Of Integer).Foo(Of Object)()
+        Dim x = New Boo.Bar(Of Integer).Goo(Of Object)()
         x.Method(Of String, String)(" ", 5, New Object())
 
         Dim q = From i In New Integer() {1, 2, 3, 4}
@@ -521,10 +521,10 @@ Friend Class Test2
         Return New Test2()
     End Operator
 
-    Public foo As Integer = 5
+    Public goo As Integer = 5
     Private Sub Bar2()
-        foo = 6
-        Me.foo = 5.GetType()
+        goo = 6
+        Me.goo = 5.GetType()
         Dim t As Test2 = "sss"
     End Sub
     Private Sub Blah()
@@ -534,7 +534,7 @@ Friend Class Test2
         Dim e As Expression(Of Func(Of Integer)) = Function() i
     End Sub
 
-    Public Property FFoo() As Type
+    Public Property FGoo() As Type
         Get
             Return GetType(System.Int32)
         End Get
@@ -590,7 +590,7 @@ End Class
 
 Friend Class yield
     ''INSTANT VB TODO TASK: There is no equivalent to the undocumented C# '__arglist' keyword in VB:
-    'Private Sub Foo(Of U)(ByVal __arglist)
+    'Private Sub Goo(Of U)(ByVal __arglist)
     '    Dim c1 As C(Of U) = Nothing
     '    c1.M(Of Integer)(5, Nothing)
     '    Dim tr As TypedReference = __makeref(c1)
@@ -614,7 +614,7 @@ Friend Class yield
         ' YES []
         Dim var() As Integer = {1, 2, 3, 4, 5} ',;
         Dim i As Integer = a(i) '[]
-        Dim f As New Foo(Of T)() '<> ()
+        Dim f As New Goo(Of T)() '<> ()
         f.method()
         i = i + i - i * i \ i Mod i And i Or i Xor i '+ - * / % & | ^
 
@@ -670,17 +670,17 @@ End Class
 
 'Extension Method
 Module Module1
-    <Runtime.CompilerServices.Extension()> Function FooExtension(ByVal x As String) As String
+    <Runtime.CompilerServices.Extension()> Function GooExtension(ByVal x As String) As String
         Return x & "test"
     End Function
 
-    <Runtime.CompilerServices.Extension()> Function FooExtension(ByVal x As String,
+    <Runtime.CompilerServices.Extension()> Function GooExtension(ByVal x As String,
                                                                  ByVal y As Integer) As String
         'With Implicit Line Continuation
         Return x & "test2"
     End Function
 
-    Sub Foo()
+    Sub Goo()
         'Collections
         Dim i As New List(Of String) From {"test", "item"}
         Dim i1 As New Dictionary(Of Integer, String) From {{1, "test"}, {2, "item"}}
@@ -824,7 +824,7 @@ Public Class Animals
 
 End Class
 Public Interface IVariance(Of In T)
-    Sub Foo(ByVal a As T)
+    Sub Goo(ByVal a As T)
     Property InterProperty() As IVariance(Of Cheetah)
     Property InterProperty2() As IVariance(Of Animals)
 End Interface
@@ -834,18 +834,18 @@ Delegate Sub Func(Of In T)(ByVal a As T)
 
 Public Delegate Function Func2(Of Out T)() As T
 Public Interface IVariance2(Of Out T)
-    Function Foo() As T
+    Function Goo() As T
 End Interface
 
 Public Class Variance2(Of T As New) : Implements IVariance2(Of T)
 
     Dim type As IVariance2(Of Animals)
 
-    Public Function Foo() As T Implements IVariance2(Of T).Foo
+    Public Function Goo() As T Implements IVariance2(Of T).Goo
         Return New T
     End Function
 
-    Function Foo(ByVal arg As IVariance2(Of T)) As String
+    Function Goo(ByVal arg As IVariance2(Of T)) As String
         Return arg.GetType.ToString
     End Function
 
@@ -867,7 +867,7 @@ Module Mod1Orcas
     Delegate Sub delfoo()
     Delegate Sub delfoo1(ByVal sender As Object, ByVal e As System.EventArgs)
 
-    Sub Foo()
+    Sub Goo()
     End Sub
 
     Sub Method1(ByVal sender As Object, ByVal e As System.EventArgs)
@@ -876,7 +876,7 @@ Module Mod1Orcas
     End Sub
 
     Sub AssignDelegate()
-        Dim d As delfoo = AddressOf Foo
+        Dim d As delfoo = AddressOf Goo
         d.Invoke()
 
 
@@ -958,7 +958,7 @@ Class Customer
     Public Property age2 As Integer
 End Class
 
-Class Foo
+Class Goo
     Structure Bar
         Dim x As Integer
 
@@ -987,7 +987,7 @@ Class Foo
     End Structure
 End Class
 
-Class FooGen(Of t)
+Class GooGen(Of t)
     Structure BarGen(Of u)
         Dim x As t
         Dim z As u
@@ -1065,17 +1065,17 @@ Public Class Bar
 End Class
 
 Public Class ClsPPMTest003
-    Partial Private Sub Foo3()
+    Partial Private Sub Goo3()
     End Sub
 End Class
 
 Partial Public Class ClsPPMTest003
-    Private Sub Foo3()
+    Private Sub Goo3()
     End Sub
 
-    Public Sub CallFooFromClass()
-        Me.Foo3()
-        Dim x1 As New Foo
+    Public Sub CallGooFromClass()
+        Me.Goo3()
+        Dim x1 As New Goo
         Dim y1 As New Bar
 
         If x1 Is y1 Then

@@ -1,45 +1,44 @@
-Param(
-    [string]$version = ""
-)
+[CmdletBinding(PositionalBinding=$false)]
+Param([string]$version = "")
 
-set-strictmode -version 2.0
-$ErrorActionPreference="Stop"
+Set-StrictMode -version 2.0
+$ErrorActionPreference = "Stop"
 
 try {
     if ($version -eq "") { 
-        write-host "Need a -version"
+        Write-Host "Need a -version"
         exit 1
     }
 
-    $rootPath = resolve-path (join-path $PSScriptRoot "..\..\..\")
-    $repoUtil = join-path $rootPath "Binaries\Debug\Exes\RepoUtil\RepoUtil.exe"
-    if (-not (test-path $repoUtil)) { 
-        write-host "RepoUtil not found $repoUtil"
+    $rootPath = Resolve-Path (Join-Path $PSScriptRoot "..\..\..\")
+    $repoUtil = Join-Path $rootPath "Binaries\Debug\Exes\RepoUtil\RepoUtil.exe"
+    if (-not (Test-Path $repoUtil)) { 
+        Write-Host "RepoUtil not found $repoUtil"
         exit 1
     }
 
-    $fileList = gc (join-path $PSScriptRoot "files.txt")
+    $fileList = Get-Content (Join-Path $PSScriptRoot "files.txt")
     $shortVersion = $version.Substring(0, $version.IndexOf('.'))
     $packageVersion = "15.0.$shortVersion-alpha"
     $changeList = @()
 
-    write-host "Moving version to $packageVersion"
+    Write-Host "Moving version to $packageVersion"
     foreach ($item in $fileList) { 
-        $name = split-path -leaf $item
+        $name = Split-Path -leaf $item
         $simpleName = [IO.Path]::GetFileNameWithoutExtension($name) 
         $changeList += "$simpleName $packageVersion"
     }
 
     $changeFilePath = [IO.Path]::GetTempFileName()
-    $changeList -join [Environment]::NewLine | out-file $changeFilePath
-    write-host (gc -raw $changeFilePath)
+    $changeList -join [Environment]::NewLine | Out-File $changeFilePath
+    Write-Host (gc -raw $changeFilePath)
 
-    $fullSln = join-path $rootPath "..\Roslyn.sln"
-    if (test-path $fullSln) {
+    $fullSln = Join-Path $rootPath "..\Roslyn.sln"
+    if (Test-Path $fullSln) {
         # Running as a part of the full enlisment.  Need to add some extra paramteers
-        $sourcesPath = resolve-path (join-path $rootPath "..")
+        $sourcesPath = Resolve-Path (Join-Path $rootPath "..")
         $generatePath = $rootPath
-        $configPath = join-path $rootPath "build\config\RepoUtilData.json"
+        $configPath = Join-Path $rootPath "build\config\RepoUtilData.json"
         & $repoUtil -sourcesPath $sourcesPath -generatePath $generatePath -config $configPath change -version $changeFilePath
     }
     else {
@@ -48,7 +47,8 @@ try {
     }
 
 }
-catch [exception] {
-    write-host $_.Exception
-    exit -1
+catch {
+    Write-Host $_
+    Write-Host $_.Exception
+    exit 1
 }

@@ -26,7 +26,7 @@ namespace RunTests.Cache
         }
 
         /// <summary>
-        /// There are some DLLs whose abscence is expected and should not be considered an error.  These
+        /// There are some DLLs whose absence is expected and should not be considered an error.  These
         /// are assemblies which are either light up components or are a part of the VS reference graph
         /// which are never deployed for our tests.
         ///
@@ -40,6 +40,9 @@ namespace RunTests.Cache
             {
                 case "System.Runtime.Loader":
                     // This light up probing is done by the scripting layer. 
+                    return true;
+                case "Microsoft.Diagnostics.Tracing.EventSource":
+                    // Part of ETW tracing and not used by suites at this time.
                     return true;
                 case "Microsoft.VisualStudio.CodeAnalysis":
                 case "Microsoft.VisualStudio.CodeAnalysis.Sdk":

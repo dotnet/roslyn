@@ -21,13 +21,13 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
         public void VerifyOpen()
         {
             // FindDialog will wait until the dialog is open, so the return value is unused.
-            DialogHelpers.FindDialog(GetMainWindowHWnd(), ChangeSignatureDialogAutomationId, isOpen: true);
+            DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), ChangeSignatureDialogAutomationId, isOpen: true);
         }
   
         public void VerifyClosed()
         {
             // FindDialog will wait until the dialog is closed, so the return value is unused.
-            DialogHelpers.FindDialog(GetMainWindowHWnd(), ChangeSignatureDialogAutomationId, isOpen: false);
+            DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), ChangeSignatureDialogAutomationId, isOpen: false);
         }
 
         public void Invoke()
@@ -53,7 +53,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
 
         public void SelectParameter(string parameterName)
         {
-            var dialogAutomationElement = DialogHelpers.FindDialog(GetMainWindowHWnd(), ChangeSignatureDialogAutomationId, isOpen: true);
+            var dialogAutomationElement = DialogHelpers.FindDialogByAutomationId(GetMainWindowHWnd(), ChangeSignatureDialogAutomationId, isOpen: true);
 
             Condition propertyCondition = new PropertyCondition(AutomationElement.AutomationIdProperty, "MemberSelectionList");
             var grid = dialogAutomationElement.FindFirst(TreeScope.Descendants, propertyCondition);
@@ -72,8 +72,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.OutOfProcess
                     // The parent of a cell is of DataItem control type, which support SelectionItemPattern.
                     TreeWalker walker = TreeWalker.ControlViewWalker;
                     var parent = walker.GetParent(item);
-                    object pattern;
-                    if (parent.TryGetCurrentPattern(SelectionItemPattern.Pattern, out pattern))
+                    if (parent.TryGetCurrentPattern(SelectionItemPattern.Pattern, out var pattern))
                     {
                         (pattern as SelectionItemPattern).Select();
                     }

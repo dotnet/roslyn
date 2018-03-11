@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
+Imports Microsoft.CodeAnalysis.PooledObjects
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -15,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ''' it will affect inference of stack behavior
         ''' it will also affect when expressions can be dup-reused
         '''     Example:
-        '''         Foo(x, ref x)     x cannot be duped as it is used in different context  
+        '''         Goo(x, ref x)     x cannot be duped as it is used in different context  
         ''' </summary>
         Private Enum ExprContext
             None
