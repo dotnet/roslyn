@@ -6,27 +6,25 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor;
-using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
-using Microsoft.VisualStudio.LanguageServices.Experimentation;
 using Microsoft.VisualStudio.LanguageServices.Telemetry;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Task = System.Threading.Tasks.Task;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
@@ -35,8 +33,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
     [ProvideMenuResource("Menus.ctmenu", version: 16)]
     internal class RoslynPackage : AbstractPackage
     {
-        private LibraryManager _libraryManager;
-        private uint _libraryManagerCookie;
         private VisualStudioWorkspace _workspace;
         private WorkspaceFailureOutputPane _outputPane;
         private IComponentModel _componentModel;
@@ -61,8 +57,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             var componentModel = (IComponentModel)this.GetService(typeof(SComponentModel));
             _workspace = componentModel.GetService<VisualStudioWorkspace>();
             _workspace.Services.GetService<IExperimentationService>();
-
-            RegisterFindResultsLibraryManager();
 
             // Ensure the options persisters are loaded since we have to fetch options from the shell
             componentModel.GetExtensions<IOptionPersister>();
@@ -100,8 +94,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             this.ComponentModel.GetService<VisualStudioTodoListTable>();
             this.ComponentModel.GetService<VisualStudioDiagnosticListTableCommandHandler>().Initialize(this);
 
-            this.ComponentModel.GetExtensions<IDefinitionsAndReferencesPresenter>();
-            this.ComponentModel.GetExtensions<INavigableItemsPresenter>();
             this.ComponentModel.GetService<VisualStudioMetadataAsSourceFileSupportService>();
             this.ComponentModel.GetService<VirtualMemoryNotificationListener>();
 
@@ -159,8 +151,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         protected override void Dispose(bool disposing)
         {
-            UnregisterFindResultsLibraryManager();
-
             DisposeVisualStudioServices();
 
             UnregisterAnalyzerTracker();
@@ -181,36 +171,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         {
             PersistedVersionStampLogger.LogSummary();
             LinkedFileDiffMergingLogger.ReportTelemetry();
-        }
-
-        private void RegisterFindResultsLibraryManager()
-        {
-            if (this.GetService(typeof(SVsObjectManager)) is IVsObjectManager2 objectManager)
-            {
-                _libraryManager = new LibraryManager(_workspace, this);
-
-                if (ErrorHandler.Failed(objectManager.RegisterSimpleLibrary(_libraryManager, out _libraryManagerCookie)))
-                {
-                    _libraryManagerCookie = 0;
-                }
-
-                ((IServiceContainer)this).AddService(typeof(LibraryManager), _libraryManager, promote: true);
-            }
-        }
-
-        private void UnregisterFindResultsLibraryManager()
-        {
-            if (_libraryManagerCookie != 0)
-            {
-                if (this.GetService(typeof(SVsObjectManager)) is IVsObjectManager2 objectManager)
-                {
-                    objectManager.UnregisterLibrary(_libraryManagerCookie);
-                    _libraryManagerCookie = 0;
-                }
-
-                ((IServiceContainer)this).RemoveService(typeof(LibraryManager), promote: true);
-                _libraryManager = null;
-            }
         }
 
         private void DisposeVisualStudioServices()

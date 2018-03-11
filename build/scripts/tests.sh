@@ -23,7 +23,6 @@ if [[ "${runtime}" == "dotnet" ]]; then
     file_list=( "${unittest_dir}"/*/netcoreapp2.0/*.UnitTests.dll )
     xunit_console="${nuget_dir}"/xunit.runner.console/"${xunit_console_version}"/tools/${target_framework}/xunit.console.dll
 elif [[ "${runtime}" == "mono" ]]; then
-    source ${root_path}/build/scripts/obtain_mono.sh
     file_list=(
         "${unittest_dir}/CSharpCompilerSymbolTest/net461/Roslyn.Compilers.CSharp.Symbol.UnitTests.dll"
         "${unittest_dir}/CSharpCompilerSyntaxTest/net461/Roslyn.Compilers.CSharp.Syntax.UnitTests.dll"
@@ -67,7 +66,7 @@ do
         continue
     fi
 
-    echo Running "${file_name[@]}"
+    echo Running "${runtime} ${file_name[@]}"
     if [[ "${runtime}" == "dotnet" ]]; then
         runner="dotnet exec --depsfile ${deps_json} --runtimeconfig ${runtimeconfig_json}"
     elif [[ "${runtime}" == "mono" ]]; then

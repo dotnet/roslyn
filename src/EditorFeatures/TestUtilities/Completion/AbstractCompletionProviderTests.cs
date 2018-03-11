@@ -272,12 +272,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             int? glyph, int? matchPriority, bool? hasSuggestionModeItem,
             IDictionary<OptionKey, object> options)
         {
-            Glyph? expectedGlyph = null;
-            if (glyph.HasValue)
-            {
-                expectedGlyph = (Glyph)glyph.Value;
-            }
-
             var workspace = WorkspaceFixture.GetWorkspace();
 
             OptionSet defaultOptions = null;

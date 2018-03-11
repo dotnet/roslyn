@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         internal static void LogErrorOutput(string output, TaskLoggingHelper log)
         {
-            string[] lines = output.Split(new string[] { "\r\n" }, StringSplitOptions.RemoveEmptyEntries);
+            string[] lines = output.Split(new string[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             foreach (string line in lines)
             {
                 string trimmedMessage = line.Trim();

@@ -1398,7 +1398,7 @@ Funkcja „Uproszczone ładowanie rozwiązania” jest włączona dla bieżąceg
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
+        <source>Prefer local function over anonymous function</source>
         <target state="translated">Preferuj funkcję lokalną zamiast funkcji anonimowej</target>
         <note />
       </trans-unit>
@@ -1500,12 +1500,12 @@ Wyrażam zgodę na wszystkie następujące postanowienia:</target>
       </trans-unit>
       <trans-unit id="Live_code_analysis">
         <source>Live code analysis</source>
-        <target state="new">Live code analysis</target>
+        <target state="translated">Analiza kodu na żywo</target>
         <note />
       </trans-unit>
       <trans-unit id="Analyzing_0">
         <source>Analyzing '{0}'</source>
-        <target state="new">Analyzing '{0}'</target>
+        <target state="translated">Analizowanie elementu „{0}”</target>
         <note />
       </trans-unit>
     </body>
