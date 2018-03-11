@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
+extern alias DSR;
 using System.Collections.Immutable;
 using System.Linq;
+using DSR::Microsoft.DiaSymReader;
+using Microsoft.CodeAnalysis.Debugging;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using Microsoft.DiaSymReader;
 using Xunit;
-using Microsoft.CodeAnalysis.Debugging;
 
-namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
+namespace Roslyn.Test.Utilities
 {
     internal sealed class MethodDebugInfoBytes
     {

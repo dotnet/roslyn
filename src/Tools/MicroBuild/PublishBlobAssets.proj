@@ -19,24 +19,39 @@
   This is for the internal orchestrated build scenarios and will likely never be run on a
   developer's machine.  The official build definition builds this file directly.
   -->
-
-  <Import Project="$(NuGetPackageRoot)\Microsoft.DotNet.Build.Tasks.Feed\$(MicrosoftDotNetBuildTasksFeedVersion)\build\Microsoft.DotNet.Build.Tasks.Feed.targets" />
+  <Import Project="$(NuGetPackageRoot)microsoft.dotnet.build.tasks.feed\$(MicrosoftDotNetBuildTasksFeedVersion)\build\Microsoft.DotNet.Build.Tasks.Feed.props" />
+  <Import Project="$(NuGetPackageRoot)microsoft.dotnet.build.tasks.feed\$(MicrosoftDotNetBuildTasksFeedVersion)\build\Microsoft.DotNet.Build.Tasks.Feed.targets" />
 
   <ItemGroup>
-    <ItemsToPush Include="$(OutputPath)\NuGet\PerBuildPreRelease\*.nupkg" Condition="'$(PublishStableVersions)'=='false'"/>
-    <ItemsToPush Include="$(OutputPath)\NuGet\Release\*.nupkg" Condition="'$(PublishStableVersions)'=='true' and '$(VersionStampToPublish)'==''"/>
-    <ItemsToPush Include="$(OutputPath)\NuGet\PreRelease\*.nupkg" Condition="'$(PublishStableVersions)'=='true' and '$(VersionStampToPublish)'!=''"/>
+    <PackagesToPublish Include="$(OutputPath)\NuGet\PerBuildPreRelease\*.nupkg" Condition="'$(PublishStableVersions)'=='false'"/>
+    <PackagesToPublish Include="$(OutputPath)\NuGet\Release\*.nupkg" Condition="'$(PublishStableVersions)'=='true' and '$(VersionStampToPublish)'==''"/>
+    <PackagesToPublish Include="$(OutputPath)\NuGet\PreRelease\*.nupkg" Condition="'$(PublishStableVersions)'=='true' and '$(VersionStampToPublish)'!=''"/>
   </ItemGroup>
 
   <Target Name="Build">
     <Error Text="Invalid combination of PublishStableVersions and VersionStampToPublish" Condition="'$(PublishStableVersions)'=='false' and '$(VersionStampToPublish)'==''" />
     <Error Text="Missing storage account key as PB_PublishBlobFeedKey" Condition="'$(PB_PublishBlobFeedKey)'==''" />
     <Error Text="Missing expected feed url as PB_PublishBlobFeedUrl" Condition="'$(PB_PublishBlobFeedUrl)'==''" />
-    <Error Text="No Items to push at $(OutputPath)" Condition="'@(ItemsToPush)'==''" />
+    <Error Text="No Items to push at $(OutputPath)" Condition="'@(PackagesToPublish)'==''" />
+
+    <PropertyGroup>
+      <SymbolPackagesDir>$(RepoRoot)Binaries\SymbolPackages\</SymbolPackagesDir>
+    </PropertyGroup>
+
+    <!--
+      We expect .nupkg to contain Portable PDBs. Such packages can act as symbol packages since they have the same structure.
+      We just need to rename them to *.symbols.nupkg.
+    -->
+    <ItemGroup>
+      <SymbolPackagesToPublish Include="@(PackagesToPublish->'$(SymbolPackagesDir)%(Filename).symbols.nupkg')"/>
+    </ItemGroup>
+
+    <MakeDir Directories="$(SymbolPackagesDir)" />
+    <Copy SourceFiles="@(PackagesToPublish)" DestinationFiles="@(SymbolPackagesToPublish)" />
 
     <PushToBlobFeed ExpectedFeedUrl="$(PB_PublishBlobFeedUrl)"
                     AccountKey="$(PB_PublishBlobFeedKey)"
-                    ItemsToPush="@(ItemsToPush)"
+                    ItemsToPush="@(PackagesToPublish);@(SymbolPackagesToPublish)"
                     Overwrite="$(PublishOverwrite)"
                     ManifestBranch="$(BUILD_SOURCEBRANCH)"
                     ManifestBuildId="$(BUILD_BUILDNUMBER)"
