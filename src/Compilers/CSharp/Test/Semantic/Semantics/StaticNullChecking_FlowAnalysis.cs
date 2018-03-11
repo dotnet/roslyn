@@ -457,6 +457,7 @@ class C
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (18,9): warning CS8602: Possible dereference of a null reference.
                 //         (b ? x : y)/*T:A<object?>!*/.F.ToString();

@@ -278,5 +278,76 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     : model.LookupSymbols(position, container);
             return symbols.Select(s => s.Name).Distinct().ToList();
         }
+
+        internal static void VerifyTypes(this CSharpCompilation compilation)
+        {
+            foreach (var tree in compilation.SyntaxTrees)
+            {
+                VerifyTypes(compilation, tree);
+            }
+        }
+
+        internal static void VerifyTypes(this CSharpCompilation compilation, SyntaxTree tree)
+        {
+            var root = tree.GetRoot();
+            var annotations = GetAnnotations(root);
+            if (annotations.IsEmpty)
+            {
+                return;
+            }
+            var model = compilation.GetSemanticModel(tree);
+            var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
+            var actualTypes = annotations.SelectAsArray(
+                annotation => ((CSharpDataFlowAnalysis)model.AnalyzeDataFlow(annotation.Expression)).TypeAndNullability.ToDisplayString(TypeSymbolWithAnnotations.DebuggerDisplayFormat));
+            // Consider reporting the correct source with annotations on mismatch.
+            AssertEx.Equal(expectedTypes, actualTypes);
+        }
+
+        private static ImmutableArray<(ExpressionSyntax Expression, string Text)> GetAnnotations(SyntaxNode root)
+        {
+            var builder = ArrayBuilder<(ExpressionSyntax, string)>.GetInstance();
+            foreach (var token in root.DescendantTokens())
+            {
+                foreach (var trivia in token.TrailingTrivia)
+                {
+                    if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+                    {
+                        var expr = getEnclosingExpression(token);
+                        if (expr is null)
+                        {
+                            continue;
+                        }
+                        var text = trivia.ToFullString();
+                        const string prefix = "/*T:";
+                        const string suffix = "*/";
+                        if (text.StartsWith(prefix) && text.EndsWith(suffix))
+                        {
+                            var content = text.Substring(prefix.Length, text.Length - prefix.Length - suffix.Length);
+                            builder.Add((expr, content));
+                        }
+                    }
+                }
+            }
+            return builder.ToImmutableAndFree();
+
+            ExpressionSyntax getEnclosingExpression(SyntaxToken token)
+            {
+                var node = token.Parent;
+                while (true)
+                {
+                    var expr = node as ExpressionSyntax;
+                    if (expr != null)
+                    {
+                        return expr;
+                    }
+                    if (node == root)
+                    {
+                        break;
+                    }
+                    node = node.Parent;
+                }
+                return null;
+            }
+        }
     }
 }

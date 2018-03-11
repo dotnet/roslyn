@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.UnitTests;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -426,14 +425,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             string assemblyName = "",
-            bool skipUsesIsNullable = false,
-            bool skipVerify = false)
+            bool skipUsesIsNullable = false)
         {
             if (CoreClrShim.IsRunningOnCoreClr)
             {
                 references = references?.Except(s_desktopRefsToRemove);
             }
-            return CreateCompilation(trees, (references != null) ? s_stdRefs.Concat(references) : s_stdRefs, options, assemblyName, skipUsesIsNullable: skipUsesIsNullable, skipVerify: skipVerify);
+            return CreateCompilation(trees, (references != null) ? s_stdRefs.Concat(references) : s_stdRefs, options, assemblyName, skipUsesIsNullable: skipUsesIsNullable);
         }
 
         public static CSharpCompilation CreateCompilationWithMscorlibAndSystemCore(
@@ -502,8 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             IEnumerable<MetadataReference> references = null,
             CSharpCompilationOptions options = null,
             string assemblyName = "",
-            bool skipUsesIsNullable = false,
-            bool skipVerify = false)
+            bool skipUsesIsNullable = false)
         {
             if (options == null)
             {
@@ -531,25 +528,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             {
                 VerifyNoNullability(compilation.SourceModule.GlobalNamespace);
             }
-            if (!skipVerify)
-            {
-                foreach (var tree in trees)
-                {
-                    VerifyTypes(compilation, tree);
-                }
-            }
             return compilation;
         }
 
         internal static bool IsNullableEnabled(CSharpCompilation compilation)
         {
             var trees = compilation.SyntaxTrees;
-            return !trees.IsDefaultOrEmpty && IsNullableEnabled(trees[0]);
-        }
-
-        private static bool IsNullableEnabled(SyntaxTree tree)
-        {
-            var options = (CSharpParseOptions)tree.Options;
+            if (trees.IsDefaultOrEmpty)
+            {
+                return false;
+            }
+            var options = (CSharpParseOptions)trees[0].Options;
             return options.IsFeatureEnabled(MessageID.IDS_FeatureStaticNullChecking);
         }
 
@@ -561,69 +550,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             // Use AssertEx.Equal(Empty, symbols) rather than Assert.True(symbols.IsEmpty)
             // so  the exception message includes the list of symbols.
             AssertEx.Equal(ImmutableArray<Symbol>.Empty, symbols);
-        }
-
-        private static void VerifyTypes(CSharpCompilation compilation, SyntaxTree tree)
-        {
-            var root = tree.GetRoot();
-            var annotations = GetAnnotations(root);
-            if (annotations.IsEmpty)
-            {
-                return;
-            }
-            var model = compilation.GetSemanticModel(tree);
-            var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
-            var actualTypes = annotations.SelectAsArray(
-                annotation => ((CSharpDataFlowAnalysis)model.AnalyzeDataFlow(annotation.Expression)).TypeAndNullability.ToDisplayString(TypeSymbolWithAnnotations.DebuggerDisplayFormat));
-            // Consider reporting the correct source with annotations on mismatch.
-            AssertEx.Equal(expectedTypes, actualTypes);
-        }
-
-        private static ImmutableArray<(ExpressionSyntax Expression, string Text)> GetAnnotations(SyntaxNode root)
-        {
-            var builder = ArrayBuilder<(ExpressionSyntax, string)>.GetInstance();
-            foreach (var token in root.DescendantTokens())
-            {
-                foreach (var trivia in token.TrailingTrivia)
-                {
-                    if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
-                    {
-                        var expr = getEnclosingExpression(token);
-                        if (expr is null)
-                        {
-                            continue;
-                        }
-                        var text = trivia.ToFullString();
-                        const string prefix = "/*T:";
-                        const string suffix = "*/";
-                        if (text.StartsWith(prefix) && text.EndsWith(suffix))
-                        {
-                            var content = text.Substring(prefix.Length, text.Length - prefix.Length - suffix.Length);
-                            builder.Add((expr, content));
-                        }
-                    }
-                }
-            }
-            return builder.ToImmutableAndFree();
-
-            ExpressionSyntax getEnclosingExpression(SyntaxToken token)
-            {
-                var node = token.Parent;
-                while (true)
-                {
-                    var expr = node as ExpressionSyntax;
-                    if (expr != null)
-                    {
-                        return expr;
-                    }
-                    if (node == root)
-                    {
-                        break;
-                    }
-                    node = node.Parent;
-                }
-                return null;
-            }
         }
 
         public static CSharpCompilation CreateCompilation(
