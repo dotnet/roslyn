@@ -66,7 +66,7 @@ class C
             Assert.True(rxSymbol.IsRef);
             Assert.Equal(RefKind.RefReadOnly, rxSymbol.RefKind);
             var rxDecl = root.DescendantNodes().OfType<ForStatementSyntax>().Single().Declaration;
-            Assert.Equal(model.GetDeclaredSymbol(rxDecl.Variables.Single()), rxSymbol);
+            Assert.Same(model.GetDeclaredSymbol(rxDecl.Variables.Single()), rxSymbol);
         }
 
         [Fact]
@@ -98,7 +98,7 @@ class C
             Assert.True(rxSymbol.IsRef);
             Assert.Equal(RefKind.RefReadOnly, rxSymbol.RefKind);
             var rxDecl = root.DescendantNodes().OfType<ForEachStatementSyntax>().Single();
-            Assert.Equal(model.GetDeclaredSymbol(rxDecl), rxSymbol);
+            Assert.Same(model.GetDeclaredSymbol(rxDecl), rxSymbol);
         }
 
         [Fact]
