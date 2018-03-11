@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private TextSpan GetBodyDiagnosticSpan(SyntaxNode body, EditKind editKind) => GetDiagnosticSpan(IsMethod(body) ? body : body.Parent, EditKind.Update);
 
         protected abstract string GetTopLevelDisplayName(SyntaxNode node, EditKind editKind);
-        protected abstract string GetStatementDisplayName(SyntaxNode node, EditKind editKind);
+        protected abstract string GetStatementDisplayName(SyntaxNode node, EditKind editKind, SemanticModel model = null);
         protected abstract string GetLambdaDisplayName(SyntaxNode lambda);
         protected abstract SymbolDisplayFormat ErrorDisplayFormat { get; }
         protected abstract List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, bool isLeaf);
@@ -1665,13 +1665,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        protected void AddRudeUpdateAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, SyntaxNode newNode)
+        protected void AddRudeUpdateAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, SyntaxNode newNode, SemanticModel newModel = null)
         {
             diagnostics.Add(new RudeEditDiagnostic(
                 RudeEditKind.UpdateAroundActiveStatement,
                 GetDiagnosticSpan(newNode, EditKind.Update),
                 newNode,
-                new[] { GetStatementDisplayName(newNode, EditKind.Update) }));
+                new[] { GetStatementDisplayName(newNode, EditKind.Update, newModel) }));
         }
 
         protected void AddRudeInsertAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, SyntaxNode newNode)

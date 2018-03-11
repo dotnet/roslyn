@@ -1285,6 +1285,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ArrowExpressionClause:
                     return node.Span;
 
+                case SyntaxKind.EqualsExpression:
+                case SyntaxKind.NotEqualsExpression:
+                    var equals = (BinaryExpressionSyntax)node;
+                    return equals.OperatorToken.Span;
+
                 // We only need a diagnostic span if reporting an error for a child statement.
                 // The following statements may have child statements.
 
@@ -1476,9 +1481,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return GetTopLevelDisplayNameImpl(node, editKind);
         }
 
-        protected override string GetStatementDisplayName(SyntaxNode node, EditKind editKind)
+        protected override string GetStatementDisplayName(SyntaxNode node, EditKind editKind, SemanticModel model = null)
         {
-            return GetStatementDisplayNameImpl(node);
+            return GetStatementDisplayNameImpl(node, model);
         }
 
         protected override string GetLambdaDisplayName(SyntaxNode lambda)
@@ -1609,7 +1614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         // internal for testing
-        internal static string GetStatementDisplayNameImpl(SyntaxNode node)
+        internal static string GetStatementDisplayNameImpl(SyntaxNode node, SemanticModel model = null)
         {
             switch (node.Kind())
             {
@@ -1696,6 +1701,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     if (((AssignmentExpressionSyntax)node).IsDeconstruction())
                     {
                         return CSharpFeaturesResources.deconstruction;
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(node.Kind());
+                    }
+
+                case SyntaxKind.EqualsExpression:
+                case SyntaxKind.NotEqualsExpression:
+                    if (IsTupleEquality((BinaryExpressionSyntax)node, model))
+                    {
+                        return CSharpFeaturesResources.tuple_equality;
                     }
                     else
                     {
@@ -3217,58 +3233,20 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             SyntaxNode newActiveStatement,
             bool isLeaf)
         {
-            ReportRudeEditsForUnsupportedCSharpFeatures(diagnostics, match);
             ReportRudeEditsForAncestorsDeclaringInterStatementTemps(diagnostics, match, oldActiveStatement, newActiveStatement, isLeaf);
             ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isLeaf);
         }
 
         /// <summary>
-        /// If either trees (after or before the edit) contain unsupported C# features around the active statement, report it.
-        /// This method should remain even when EnC is updated to support all current C# features. It will be useful when new (yet unsupported) features are added.
-        /// </summary>
-        private void ReportRudeEditsForUnsupportedCSharpFeatures(List<RudeEditDiagnostic> diagnostics, Match<SyntaxNode> match)
-        {
-            SyntaxNode foundUnsupportedCSharpSyntax = match.NewRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharpEnCNode(n));
-            if (foundUnsupportedCSharpSyntax != null)
-            {
-                AddRudeUpdateAroundActiveStatement(diagnostics, foundUnsupportedCSharpSyntax);
-                return;
-            }
-
-            foundUnsupportedCSharpSyntax = match.OldRoot.DescendantNodesAndSelf().FirstOrDefault(n => IsUnsupportedCSharpEnCNode(n));
-            if (foundUnsupportedCSharpSyntax != null)
-            {
-                AddRudeUpdateInUnsupportedCSharpMethod(diagnostics, foundUnsupportedCSharpSyntax);
-            }
-        }
-
-        /// <summary>
         /// If the active method used unsupported C# features before the edit, it needs to be reported.
         /// </summary>
-        private void AddRudeUpdateInUnsupportedCSharpMethod(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldUnsupportedCSharpSyntax)
+        private void AddRudeUpdateInUnsupportedCSharpMethod(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldUnsupportedCSharpSyntax, SemanticModel oldModel)
         {
             diagnostics.Add(new RudeEditDiagnostic(
                 RudeEditKind.UpdateAroundActiveStatement,
                 span: default, // no span since the offending node is in the old syntax
                 oldUnsupportedCSharpSyntax,
-                new[] { GetStatementDisplayName(oldUnsupportedCSharpSyntax, EditKind.Update) }));
-        }
-
-        private static bool IsUnsupportedCSharpEnCNode(SyntaxNode n)
-        {
-            switch (n.Kind())
-            {
-                case SyntaxKind.EqualsExpression:
-                case SyntaxKind.NotEqualsExpression:
-                    return isTupleBinaryOperation((BinaryExpressionSyntax)n);
-                default:
-                    return false;
-            }
-
-            bool isTupleBinaryOperation(BinaryExpressionSyntax equals)
-            {
-
-            }
+                new[] { GetStatementDisplayName(oldUnsupportedCSharpSyntax, EditKind.Update, oldModel) }));
         }
 
         private void ReportRudeEditsForCheckedStatements(
@@ -3388,68 +3366,48 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
         internal override void ReportMemberBodySemanticRudeEdits(SemanticModel oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, List<RudeEditDiagnostic> diagnostics)
         {
-            var foundNode = FindUnsupportedV7Switch(oldModel, oldNode, diagnostics);
+            var foundNode = FindTupleEquality(oldModel, oldNode, diagnostics);
             if (foundNode != null)
             {
-                AddRudeUpdateInUnsupportedCSharpMethod(diagnostics, foundNode);
+                AddRudeUpdateInUnsupportedCSharpMethod(diagnostics, foundNode, oldModel);
             }
-            else if ((foundNode = FindUnsupportedV7Switch(newModel, newNode, diagnostics)) != null)
+            else if ((foundNode = FindTupleEquality(newModel, newNode, diagnostics)) != null)
             {
-                AddRudeUpdateAroundActiveStatement(diagnostics, foundNode);
+                AddRudeUpdateAroundActiveStatement(diagnostics, foundNode, newModel);
             }
         }
 
-        private SyntaxNode FindUnsupportedV7Switch(SemanticModel model, SyntaxNode syntaxNode, List<RudeEditDiagnostic> diagnostics)
+        private SyntaxNode FindTupleEquality(SemanticModel model, SyntaxNode syntaxNode, List<RudeEditDiagnostic> diagnostics)
         {
-            foreach (var node in syntaxNode.DescendantNodesAndSelf().Where(n => n.Kind() == SyntaxKind.SwitchStatement))
+            foreach (var node in syntaxNode.DescendantNodesAndSelf()
+                .Where(n => n.Kind() == SyntaxKind.EqualsExpression || n.Kind() == SyntaxKind.NotEqualsExpression))
             {
-                var switchExpression = ((SwitchStatementSyntax)node).Expression;
-                ITypeSymbol governingType = model.GetTypeInfo(switchExpression).Type;
-
-                if (!IsValidV6SwitchGoverningType(governingType))
+                var binaryExpression = (BinaryExpressionSyntax)node;
+                if (IsTupleEquality(binaryExpression, model))
                 {
-                    return node;
+                    return binaryExpression;
                 }
             }
+
             return null;
         }
 
-        /// <summary>
-        /// Returns true iff the supplied type is sbyte, byte, short, ushort, int, uint,
-        /// long, ulong, bool, char, string, or an enum-type, or if it is the nullable type
-        /// corresponding to one of those types. These types were permitted as the governing
-        /// type of a switch statement in C# 6.
-        /// </summary>
-        private static bool IsValidV6SwitchGoverningType(ITypeSymbol type)
+        private static bool IsTupleEquality(BinaryExpressionSyntax binaryExpression, SemanticModel model)
         {
-            Debug.Assert(type != null);
+            var left = binaryExpression.Left;
+            var right = binaryExpression.Right;
 
-            if (type.OriginalDefinition.SpecialType == SpecialType.System_Nullable_T)
-            {
-                type = ((INamedTypeSymbol)type).TypeArguments[0];
-            }
+            return isTupleOrDefaultOrTupleType(left) && isTupleOrDefaultOrTupleType(right);
 
-            if (type.TypeKind == TypeKind.Enum)
+            bool isTupleOrDefaultOrTupleType(SyntaxNode expr)
             {
-                type = ((INamedTypeSymbol)type).EnumUnderlyingType;
-            }
-
-            switch (type.SpecialType)
-            {
-                case SpecialType.System_SByte:
-                case SpecialType.System_Byte:
-                case SpecialType.System_Int16:
-                case SpecialType.System_UInt16:
-                case SpecialType.System_Int32:
-                case SpecialType.System_UInt32:
-                case SpecialType.System_Int64:
-                case SpecialType.System_UInt64:
-                case SpecialType.System_Char:
-                case SpecialType.System_String:
-                case SpecialType.System_Boolean:
+                if (expr.Kind() == SyntaxKind.TupleExpression || expr.Kind() == SyntaxKind.DefaultLiteralExpression)
+                {
                     return true;
-                default:
-                    return false;
+                }
+
+                ITypeSymbol type = model.GetTypeInfo(expr).Type;
+                return type.IsTupleType;
             }
         }
 

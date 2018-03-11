@@ -1474,7 +1474,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return GetTopLevelDisplayNameImpl(node)
         End Function
 
-        Protected Overrides Function GetStatementDisplayName(node As SyntaxNode, editKind As EditKind) As String
+        Protected Overrides Function GetStatementDisplayName(node As SyntaxNode, editKind As EditKind, Optional model As SemanticModel = Nothing) As String
             Return GetStatementDisplayNameImpl(node, editKind)
         End Function
 

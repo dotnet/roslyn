@@ -9197,42 +9197,15 @@ class C
     }
 }
 ";
-            var edits = GetTopEdits(src1, src2);
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3));
 
             CSharpEditAndContinueTestHelpers.Instance.VerifySemantics(
                 edits,
                 ActiveStatementsDescription.Empty,
                 expectedDiagnostics: new[]
                 {
-                    Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, CSharpFeaturesResources.v7_switch)
+                    Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, CSharpFeaturesResources.tuple_equality)
                 });
-        }
-
-        [Fact]
-        public void TupleEquality_Update1()
-        {
-            var src1 = @"
-class C
-{
-    static void F()
-    {
-        _ = (1, 2) == (3, 4);
-    }
-}
-";
-            var src2 = @"
-class C
-{
-    static void F()
-    {
-        _ = (10, 20) == (3, 4);
-    }
-}
-";
-            var edits = GetTopEdits(src1, src2);
-
-            edits.VerifyRudeDiagnostics(
-                Diagnostic(RudeEditKind.Update, "yield return 4;", CSharpFeaturesResources.yield_statement));
         }
 
         #endregion

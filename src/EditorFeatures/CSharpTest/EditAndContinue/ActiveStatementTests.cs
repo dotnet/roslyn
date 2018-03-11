@@ -8854,7 +8854,7 @@ class C
             string src1 = @"
 class C
 {
-    static void F(object o1, object o2)
+    static void F()
     {
         <AS:0>System.Console.WriteLine(1);</AS:0>
         _ = (1, 2) == (3, 4);
@@ -8864,7 +8864,7 @@ class C
             string src2 = @"
 class C
 {
-    static void F(object o1, object o2)
+    static void F()
     {
         <AS:0>System.Console.WriteLine(1);</AS:0>
         _ = (10, 20) == (3, 4);
@@ -8875,7 +8875,244 @@ class C
             var active = GetActiveStatements(src1, src2);
 
             edits.VerifyRudeDiagnostics(active);
-            edits.VerifySemanticDiagnostics(Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, "C# 7 enhanced switch statement"));
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, "tuple == or != operator")
+                );
+        }
+
+        [Fact]
+        public void MethodUpdate_TupleInequality()
+        {
+            // Can't make an edit in a method containing a tuple equality while the active statment is in that method
+            string src1 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>System.Console.WriteLine(1);</AS:0>
+        _ = (1, 2) != (3, 4);
+    }
+}
+";
+            string src2 = @"
+class C
+{
+    static void F()
+    {
+        <AS:0>System.Console.WriteLine(1);</AS:0>
+        _ = (10, 20) != (3, 4);
+    }
+}
+";
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3));
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, "tuple == or != operator")
+                );
+        }
+
+        [Fact]
+        public void MethodUpdate_TupleEquality_WithTupleType()
+        {
+            string trivial2uple = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+
+            // Can't make an edit in a method containing a tuple equality while the active statment is in that method
+            string src1 = @"
+class C
+{
+    static void F((int, int) t)
+    {
+        <AS:0>System.Console.WriteLine(1);</AS:0>
+        _ = t == t;
+    }
+}
+" + trivial2uple;
+
+            string src2 = @"
+class C
+{
+    static void F((int, int) t)
+    {
+        <AS:0>System.Console.WriteLine(1);</AS:0>
+        _ = t == (3, 4);
+    }
+}
+" + trivial2uple;
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3));
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, "tuple == or != operator")
+                );
+        }
+
+        [Fact]
+        public void MethodUpdate_TupleEquality_WithTupleType2()
+        {
+            string trivial2uple = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+
+            // Can't make an edit in a method containing a tuple equality while the active statment is in that method
+            string src1 = @"
+class C
+{
+    static void F((int, int) t)
+    {
+        <AS:0>System.Console.WriteLine(1);</AS:0>
+        _ = t == t;
+    }
+}
+" + trivial2uple;
+
+            string src2 = @"
+class C
+{
+    static void F((int, int) t)
+    {
+        <AS:0>System.Console.WriteLine(1);</AS:0>
+        _ = (1, 2) == t;
+    }
+}
+" + trivial2uple;
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3));
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, "tuple == or != operator")
+                );
+        }
+
+        [Fact]
+        public void MethodUpdate_TupleEquality_WithDefault()
+        {
+            string trivial2uple = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+
+            // Can't make an edit in a method containing a tuple equality while the active statment is in that method
+            string src1 = @"
+class C
+{
+    static void F((int, int) t)
+    {
+        <AS:0>System.Console.WriteLine(1);</AS:0>
+    }
+}
+" + trivial2uple;
+
+            string src2 = @"
+class C
+{
+    static void F((int, int) t)
+    {
+        <AS:0>System.Console.WriteLine(1);</AS:0>
+        _ = t != default;
+    }
+}
+" + trivial2uple;
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3));
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, "!=", "tuple == or != operator")
+                );
+        }
+
+        [Fact]
+        public void MethodUpdate_TupleEquality_WithDefault2()
+        {
+            string trivial2uple = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+
+            // Can't make an edit in a method containing a tuple equality while the active statment is in that method
+            string src1 = @"
+class C
+{
+    static void F((int, int) t)
+    {
+        <AS:0>System.Console.WriteLine(1);</AS:0>
+        _ = t == default;
+    }
+}
+" + trivial2uple;
+
+            string src2 = @"
+class C
+{
+    static void F((int, int) t)
+    {
+        <AS:0>System.Console.WriteLine(1);</AS:0>
+    }
+}
+" + trivial2uple;
+
+            var edits = GetTopEdits(src1, src2, CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp7_3));
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+            edits.VerifySemanticDiagnostics(
+                Diagnostic(RudeEditKind.UpdateAroundActiveStatement, null, "tuple == or != operator")
+                );
         }
 
         #endregion

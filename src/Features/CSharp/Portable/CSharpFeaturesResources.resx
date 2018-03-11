@@ -387,6 +387,9 @@
     <value>ref local or expression</value>
     <comment>{Locked="ref"} "ref" is a C# keyword and should not be localized.</comment>
   </data>
+  <data name="tuple_equality" xml:space="preserve">
+    <value>tuple == or != operator</value>
+  </data>
   <data name="v7_switch" xml:space="preserve">
     <value>C# 7 enhanced switch statement</value>
   </data>
