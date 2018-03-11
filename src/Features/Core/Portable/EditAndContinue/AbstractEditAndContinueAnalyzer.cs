@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         private TextSpan GetBodyDiagnosticSpan(SyntaxNode body, EditKind editKind) => GetDiagnosticSpan(IsMethod(body) ? body : body.Parent, EditKind.Update);
 
         protected abstract string GetTopLevelDisplayName(SyntaxNode node, EditKind editKind);
-        protected abstract string GetStatementDisplayName(SyntaxNode node, EditKind editKind);
+        protected abstract string GetStatementDisplayName(SyntaxNode node, EditKind editKind, SemanticModel model = null);
         protected abstract string GetLambdaDisplayName(SyntaxNode lambda);
         protected abstract SymbolDisplayFormat ErrorDisplayFormat { get; }
         protected abstract List<SyntaxNode> GetExceptionHandlingAncestors(SyntaxNode node, bool isLeaf);
@@ -242,6 +242,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
         internal abstract void ReportMemberUpdateRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode newMember, TextSpan? span);
         internal abstract void ReportInsertedMemberSymbolRudeEdits(List<RudeEditDiagnostic> diagnostics, ISymbol newSymbol);
         internal abstract void ReportStateMachineSuspensionPointRudeEdits(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldNode, SyntaxNode newNode);
+
+        internal abstract void ReportMemberBodySemanticRudeEdits(SemanticModel oldModel, SyntaxNode oldMemberBody, SemanticModel newModel, SyntaxNode newMemberBody, List<RudeEditDiagnostic> diagnostics);
 
         internal abstract bool IsMethod(SyntaxNode declaration);
         internal abstract bool IsLambda(SyntaxNode node);
@@ -1663,13 +1665,13 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        protected void AddRudeUpdateAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, SyntaxNode newNode)
+        protected void AddRudeUpdateAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, SyntaxNode newNode, SemanticModel newModel = null)
         {
             diagnostics.Add(new RudeEditDiagnostic(
                 RudeEditKind.UpdateAroundActiveStatement,
                 GetDiagnosticSpan(newNode, EditKind.Update),
                 newNode,
-                new[] { GetStatementDisplayName(newNode, EditKind.Update) }));
+                new[] { GetStatementDisplayName(newNode, EditKind.Update, newModel) }));
         }
 
         protected void AddRudeInsertAroundActiveStatement(List<RudeEditDiagnostic> diagnostics, SyntaxNode newNode)
@@ -2338,6 +2340,8 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                             if (updatedMemberIndex < updatedMembers.Count && updatedMembers[updatedMemberIndex].EditOrdinal == i)
                             {
                                 var updatedMember = updatedMembers[updatedMemberIndex];
+
+                                ReportMemberBodySemanticRudeEdits(oldModel, updatedMember.OldBody, newModel, updatedMember.NewBody, diagnostics);
 
                                 ReportStateMachineRudeEdits(oldModel.Compilation, updatedMember, oldSymbol, diagnostics);
 

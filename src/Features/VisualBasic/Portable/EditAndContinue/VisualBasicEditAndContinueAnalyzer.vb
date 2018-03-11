@@ -1474,7 +1474,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             Return GetTopLevelDisplayNameImpl(node)
         End Function
 
-        Protected Overrides Function GetStatementDisplayName(node As SyntaxNode, editKind As EditKind) As String
+        Protected Overrides Function GetStatementDisplayName(node As SyntaxNode, editKind As EditKind, Optional model As SemanticModel = Nothing) As String
             Return GetStatementDisplayNameImpl(node, editKind)
         End Function
 
@@ -3171,6 +3171,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
                 areEquivalent:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(n1.ForOrForEachStatement, n2.ForOrForEachStatement),
                 areSimilar:=Function(n1, n2) AreEquivalentIgnoringLambdaBodies(DirectCast(n1.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable,
                                                                          DirectCast(n2.ForOrForEachStatement, ForEachStatementSyntax).ControlVariable))
+        End Sub
+
+        Friend Overrides Sub ReportMemberBodySemanticRudeEdits(oldModel As SemanticModel, oldMemberBody As SyntaxNode, newModel As SemanticModel, newMemberBody As SyntaxNode, diagnostics As List(Of RudeEditDiagnostic))
         End Sub
 
 #End Region

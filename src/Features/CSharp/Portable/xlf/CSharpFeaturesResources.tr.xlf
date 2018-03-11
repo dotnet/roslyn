@@ -632,6 +632,11 @@
         <target state="new">Add parentheses</target>
         <note />
       </trans-unit>
+      <trans-unit id="tuple_equality">
+        <source>tuple == or != operator</source>
+        <target state="new">tuple == or != operator</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

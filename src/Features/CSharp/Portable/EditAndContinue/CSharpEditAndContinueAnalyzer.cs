@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
@@ -1284,6 +1285,11 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case SyntaxKind.ArrowExpressionClause:
                     return node.Span;
 
+                case SyntaxKind.EqualsExpression:
+                case SyntaxKind.NotEqualsExpression:
+                    var equals = (BinaryExpressionSyntax)node;
+                    return equals.OperatorToken.Span;
+
                 // We only need a diagnostic span if reporting an error for a child statement.
                 // The following statements may have child statements.
 
@@ -1475,9 +1481,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             return GetTopLevelDisplayNameImpl(node, editKind);
         }
 
-        protected override string GetStatementDisplayName(SyntaxNode node, EditKind editKind)
+        protected override string GetStatementDisplayName(SyntaxNode node, EditKind editKind, SemanticModel model = null)
         {
-            return GetStatementDisplayNameImpl(node);
+            return GetStatementDisplayNameImpl(node, model);
         }
 
         protected override string GetLambdaDisplayName(SyntaxNode lambda)
@@ -1608,7 +1614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         }
 
         // internal for testing
-        internal static string GetStatementDisplayNameImpl(SyntaxNode node)
+        internal static string GetStatementDisplayNameImpl(SyntaxNode node, SemanticModel model = null)
         {
             switch (node.Kind())
             {
@@ -1695,6 +1701,17 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     if (((AssignmentExpressionSyntax)node).IsDeconstruction())
                     {
                         return CSharpFeaturesResources.deconstruction;
+                    }
+                    else
+                    {
+                        throw ExceptionUtilities.UnexpectedValue(node.Kind());
+                    }
+
+                case SyntaxKind.EqualsExpression:
+                case SyntaxKind.NotEqualsExpression:
+                    if (IsTupleEquality((BinaryExpressionSyntax)node, model))
+                    {
+                        return CSharpFeaturesResources.tuple_equality;
                     }
                     else
                     {
@@ -3220,6 +3237,18 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             ReportRudeEditsForCheckedStatements(diagnostics, oldActiveStatement, newActiveStatement, isLeaf);
         }
 
+        /// <summary>
+        /// If the active method used unsupported C# features before the edit, it needs to be reported.
+        /// </summary>
+        private void AddRudeUpdateInUnsupportedCSharpMethod(List<RudeEditDiagnostic> diagnostics, SyntaxNode oldUnsupportedCSharpSyntax, SemanticModel oldModel)
+        {
+            diagnostics.Add(new RudeEditDiagnostic(
+                RudeEditKind.UpdateAroundActiveStatement,
+                span: default, // no span since the offending node is in the old syntax
+                oldUnsupportedCSharpSyntax,
+                new[] { GetStatementDisplayName(oldUnsupportedCSharpSyntax, EditKind.Update, oldModel) }));
+        }
+
         private void ReportRudeEditsForCheckedStatements(
             List<RudeEditDiagnostic> diagnostics,
             SyntaxNode oldActiveStatement,
@@ -3333,6 +3362,53 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             }
 
             return true;
+        }
+
+        internal override void ReportMemberBodySemanticRudeEdits(SemanticModel oldModel, SyntaxNode oldNode, SemanticModel newModel, SyntaxNode newNode, List<RudeEditDiagnostic> diagnostics)
+        {
+            var foundNode = FindTupleEquality(oldModel, oldNode, diagnostics);
+            if (foundNode != null)
+            {
+                AddRudeUpdateInUnsupportedCSharpMethod(diagnostics, foundNode, oldModel);
+            }
+            else if ((foundNode = FindTupleEquality(newModel, newNode, diagnostics)) != null)
+            {
+                AddRudeUpdateAroundActiveStatement(diagnostics, foundNode, newModel);
+            }
+        }
+
+        private SyntaxNode FindTupleEquality(SemanticModel model, SyntaxNode syntaxNode, List<RudeEditDiagnostic> diagnostics)
+        {
+            foreach (var node in syntaxNode.DescendantNodesAndSelf()
+                .Where(n => n.Kind() == SyntaxKind.EqualsExpression || n.Kind() == SyntaxKind.NotEqualsExpression))
+            {
+                var binaryExpression = (BinaryExpressionSyntax)node;
+                if (IsTupleEquality(binaryExpression, model))
+                {
+                    return binaryExpression;
+                }
+            }
+
+            return null;
+        }
+
+        private static bool IsTupleEquality(BinaryExpressionSyntax binaryExpression, SemanticModel model)
+        {
+            var left = binaryExpression.Left;
+            var right = binaryExpression.Right;
+
+            return isTupleOrDefaultOrTupleType(left) && isTupleOrDefaultOrTupleType(right);
+
+            bool isTupleOrDefaultOrTupleType(SyntaxNode expr)
+            {
+                if (expr.Kind() == SyntaxKind.TupleExpression || expr.Kind() == SyntaxKind.DefaultLiteralExpression)
+                {
+                    return true;
+                }
+
+                ITypeSymbol type = model.GetTypeInfo(expr).Type;
+                return type.IsTupleType;
+            }
         }
 
         #endregion

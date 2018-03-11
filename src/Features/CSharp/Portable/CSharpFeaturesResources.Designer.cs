@@ -468,15 +468,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;implicit array creation&gt;.
-        /// </summary>
-        internal static string implicit_array_creation {
-            get {
-                return ResourceManager.GetString("implicit_array_creation", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to indexer.
         /// </summary>
         internal static string indexer {
@@ -1069,6 +1060,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string tuple {
             get {
                 return ResourceManager.GetString("tuple", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to tuple == or != operator.
+        /// </summary>
+        internal static string tuple_equality {
+            get {
+                return ResourceManager.GetString("tuple_equality", resourceCulture);
             }
         }
         
