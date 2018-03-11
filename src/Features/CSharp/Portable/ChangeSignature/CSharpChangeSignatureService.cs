@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
             SyntaxKind.IndexerDeclaration,
             SyntaxKind.DelegateDeclaration,
             SyntaxKind.SimpleLambdaExpression,
-            SyntaxKind.ParenthesizedLambdaExpression);
+            SyntaxKind.ParenthesizedLambdaExpression,
+            SyntaxKind.LocalFunctionStatement);
 
         private static readonly ImmutableArray<SyntaxKind> _declarationAndInvocableKinds =
             _declarationKinds.Concat(ImmutableArray.Create(
@@ -56,6 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
 
         private static readonly ImmutableArray<SyntaxKind> _updatableNodeKinds = ImmutableArray.Create(
             SyntaxKind.MethodDeclaration,
+            SyntaxKind.LocalFunctionStatement,
             SyntaxKind.ConstructorDeclaration,
             SyntaxKind.IndexerDeclaration,
             SyntaxKind.InvocationExpression,
@@ -256,6 +258,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ChangeSignature
                 var method = updatedNode as MethodDeclarationSyntax;
                 var updatedParameters = PermuteDeclaration(method.ParameterList.Parameters, signaturePermutation);
                 return method.WithParameterList(method.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
+            }
+
+            if (updatedNode.IsKind(SyntaxKind.LocalFunctionStatement))
+            {
+                var localFunction = updatedNode as LocalFunctionStatementSyntax;
+                var updatedParameters = PermuteDeclaration(localFunction.ParameterList.Parameters, signaturePermutation);
+                return localFunction.WithParameterList(localFunction.ParameterList.WithParameters(updatedParameters).WithAdditionalAnnotations(changeSignatureFormattingAnnotation));
             }
 
             if (updatedNode.IsKind(SyntaxKind.ConstructorDeclaration))
