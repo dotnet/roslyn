@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddParameter
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddParameter), Shared]
     [ExtensionOrder(Before = PredefinedCodeFixProviderNames.GenerateConstructor)]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateMethod)]
     internal class CSharpAddParameterCodeFixProvider : AbstractAddParameterCodeFixProvider<
         ArgumentSyntax,
         AttributeArgumentSyntax,
