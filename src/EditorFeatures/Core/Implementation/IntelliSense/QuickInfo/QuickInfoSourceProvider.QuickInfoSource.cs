@@ -19,60 +19,57 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
     internal partial class QuickInfoSourceProvider
     {
         private class QuickInfoSource : IAsyncQuickInfoSource
-        {
-            private readonly QuickInfoSourceProvider _quickInfoSourceProvider;
-            private readonly ITextBuffer _subjectBuffer;            
-            private IDocumentProvider _documentProvider = new DocumentProvider();
+        {            
+            private readonly ITextBuffer _subjectBuffer;
 
-            public QuickInfoSource(QuickInfoSourceProvider quickInfoSourceProvider, ITextBuffer subjectBuffer)
-            {
-                _quickInfoSourceProvider = quickInfoSourceProvider;
+            public QuickInfoSource(ITextBuffer subjectBuffer)
+            {   
                 _subjectBuffer = subjectBuffer;
             }
 
             public async Task<IntellisenseQuickInfoItem> GetQuickInfoItemAsync(IAsyncQuickInfoSession session, CancellationToken cancellationToken)
             {
                 var triggerPoint = session.GetTriggerPoint(_subjectBuffer.CurrentSnapshot);
-                if (triggerPoint.HasValue)
+                if (!triggerPoint.HasValue)
                 {
-                    var snapshot = _subjectBuffer.CurrentSnapshot;
-                    var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                    if (document == null)
-                    {
-                        return null;
-                    }
-
-                    var service = QuickInfoService.GetService(document);
-                    if (service == null)
-                    {
-                        return null;
-                    }
-                    
-                    try
-                    {
-                        using (Internal.Log.Logger.LogBlock(FunctionId.QuickInfo_ModelComputation_ComputeModelInBackground, cancellationToken))
-                        {
-                            cancellationToken.ThrowIfCancellationRequested();                            
-
-                            var item = await service.GetQuickInfoAsync(document, triggerPoint.Value, cancellationToken).ConfigureAwait(false);
-                            if (item != null)
-                            {
-                                var textVersion = snapshot.Version;
-                                var trackingSpan = textVersion.CreateTrackingSpan(item.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
-                                return IntellisenseQuickInfoBuilder.BuildItem(trackingSpan, item);
-                            }
-
-                            return null;
-                        }
-                    }
-                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-                    {
-                        throw ExceptionUtilities.Unreachable;
-                    }
+                    return null;
                 }
 
-                return null;
-            }
+                var snapshot = triggerPoint.Value.Snapshot;
+                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                if (document == null)
+                {
+                    return null;
+                }
+
+                var service = QuickInfoService.GetService(document);
+                if (service == null)
+                {
+                    return null;
+                }
+                    
+                try
+                {
+                    using (Internal.Log.Logger.LogBlock(FunctionId.QuickInfo_ModelComputation_ComputeModelInBackground, cancellationToken))
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();                            
+
+                        var item = await service.GetQuickInfoAsync(document, triggerPoint.Value, cancellationToken).ConfigureAwait(false);
+                        if (item != null)
+                        {
+                            var textVersion = snapshot.Version;
+                            var trackingSpan = textVersion.CreateTrackingSpan(item.Span.ToSpan(), SpanTrackingMode.EdgeInclusive);
+                            return IntellisenseQuickInfoBuilder.BuildItem(trackingSpan, item);
+                        }
+
+                        return null;
+                    }
+                }
+                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+                {
+                    throw ExceptionUtilities.Unreachable;
+                }
+            }            
            
             public void Dispose()
             {

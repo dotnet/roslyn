@@ -30,10 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 firstLineElements.Add(new ImageElement(warningGlyph.GetImageId()));
             }
 
-            var descSection = quickInfoItem.Sections.Where(s => s.Kind == QuickInfoSectionKinds.Description);
-            if (descSection.Count() > 0)
+            var descSection = quickInfoItem.Sections.Where(s => s.Kind == QuickInfoSectionKinds.Description).FirstOrDefault();
+            if (descSection != null)
             {
-                firstLineElements.Add(BuildClassifiedTextElement(descSection.First()));
+                firstLineElements.Add(BuildClassifiedTextElement(descSection));
             }
 
             var elements = new List<object>

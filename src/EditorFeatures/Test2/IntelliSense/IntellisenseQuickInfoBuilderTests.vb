@@ -4,21 +4,15 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.QuickInfo
-Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Adornments
-Imports Microsoft.VisualStudio.Text.Editor
 Imports Moq
 Imports QuickInfoItem = Microsoft.CodeAnalysis.QuickInfo.QuickInfoItem
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
     Public Class IntellisenseQuickInfoBuilderTests
-
-        Public Sub New()
-            TestWorkspace.ResetThreadAffinity()
-        End Sub
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.QuickInfo)>
         Public Sub BuildQuickInfoItem()
@@ -59,14 +53,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                     New TaggedText("Punctuation", "."),
                                     New TaggedText("Class", "IOException")}))}))
 
-            Dim view = New Mock(Of ITextView) With {
+            Dim trackingSpan = New Mock(Of ITrackingSpan) With {
                 .DefaultValue = DefaultValue.Mock
             }
 
-            Dim textVersion = view.Object.TextSnapshot.Version
-            Dim trackingSpan = textVersion.CreateTrackingSpan(codeAnalysisQuickInfoItem.Span.ToSpan(), SpanTrackingMode.EdgeInclusive)
-
-            Dim intellisenseQuickInfo = IntellisenseQuickInfoBuilder.BuildItem(trackingSpan, codeAnalysisQuickInfoItem)
+            Dim intellisenseQuickInfo = IntellisenseQuickInfoBuilder.BuildItem(trackingSpan.Object, codeAnalysisQuickInfoItem)
 
             Assert.NotNull(intellisenseQuickInfo)
 
@@ -75,13 +66,10 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.Equal(3, container.Elements.Count())
             Assert.Equal(ContainerElementStyle.Stacked, container.Style)
 
-
             Assert.IsType(Of Adornments.ContainerElement)(container.Elements.ElementAt(0))
             Dim firstRowContainer = CType(container.Elements.ElementAt(0), Adornments.ContainerElement)
             Assert.Equal(2, firstRowContainer.Elements.Count())
             Assert.Equal(ContainerElementStyle.Wrapped, firstRowContainer.Style)
-
-
 
             Assert.IsType(Of ImageElement)(firstRowContainer.Elements.ElementAt(0))
             Dim element00 = CType(firstRowContainer.Elements.ElementAt(0), ImageElement)
@@ -101,19 +89,5 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Assert.Equal(8, element2.Runs.Count())
 
         End Sub
-
-        Private Shared ReadOnly s_document As Document =
-            (Function()
-                 Dim workspace = TestWorkspace.CreateWorkspace(
-                     <Workspace>
-                         <Project Language="C#">
-                             <Document>
-                             </Document>
-                         </Project>
-                     </Workspace>)
-                 Return workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
-             End Function)()
-        Private Shared ReadOnly s_bufferFactory As ITextBufferFactoryService = DirectCast(s_document.Project.Solution.Workspace, TestWorkspace).GetService(Of ITextBufferFactoryService)
-
     End Class
 End Namespace
