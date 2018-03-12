@@ -1695,8 +1695,12 @@ public class C
 {
     public static void Main()
     {
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
         dynamic d1 = 1;
         dynamic d2 = 2;
+
         try
         {
             bool b = ((d1, 2) == (""hello"", d2));
@@ -1704,6 +1708,10 @@ public class C
         catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
         {
             System.Console.Write(e.Message);
+        }
+        finally
+        {
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
         }
     }
 }";
@@ -1985,24 +1993,33 @@ public class C
 {
     public static void Main()
     {
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
         dynamic d1 = (1, 1);
 
         try
         {
-            _ = d1 == (1, 1);
-        }
-        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
-        {
-            System.Console.WriteLine(e.Message);
-        }
+            try
+            {
+                _ = d1 == (1, 1);
+            }
+            catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
+            {
+                System.Console.WriteLine(e.Message);
+            }
 
-        try
-        {
-            _ = d1 != (1, 2);
+            try
+            {
+                _ = d1 != (1, 2);
+            }
+            catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
+            {
+                System.Console.WriteLine(e.Message);
+            }
         }
-        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
+        finally
         {
-            System.Console.WriteLine(e.Message);
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
         }
     }
 }
@@ -2023,24 +2040,33 @@ public class C
 {
     public static void Main()
     {
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
         dynamic d1 = (1, 1, 1);
 
         try
         {
-            _ = (2, d1) == (2, (1, 1, 1));
-        }
-        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
-        {
-            System.Console.WriteLine(e.Message);
-        }
+            try
+            {
+                _ = (2, d1) == (2, (1, 1, 1));
+            }
+            catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
+            {
+                System.Console.WriteLine(e.Message);
+            }
 
-        try
-        {
-            _ = (3, d1) != (3, (1, 2, 3));
+            try
+            {
+                _ = (3, d1) != (3, (1, 2, 3));
+            }
+            catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
+            {
+                System.Console.WriteLine(e.Message);
+            }
         }
-        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
+        finally
         {
-            System.Console.WriteLine(e.Message);
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
         }
     }
 }
@@ -4367,6 +4393,9 @@ public class C
     }
     public static void PrintException(System.Func<bool> action)
     {
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
         try
         {
             action();
@@ -4374,6 +4403,10 @@ public class C
         catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
         {
             System.Console.WriteLine(e.Message);
+        }
+        finally
+        {
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
         }
     }
 }

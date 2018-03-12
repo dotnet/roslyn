@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Operations;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -166,6 +168,32 @@ ITupleBinaryOperation (BinaryOperatorKind.Equals) (OperationKind.BinaryOperator,
 ";
 
             VerifyOperationTreeForTest<BinaryExpressionSyntax>(source, expectedOperationTree);
+        }
+
+        [Fact]
+        public void VerifyTupleEqualityBinaryOperator_VerifyChildren()
+        {
+            string source = @"
+class C
+{
+    void M1((int, int) t1, long l)
+    {
+        _ = /*<bind>*/t1 == (l, l)/*</bind>*/;
+    }
+}
+";
+            var compilation = CreateEmptyCompilation(source);
+            (var operation, _) = GetOperationAndSyntaxForTest<BinaryExpressionSyntax>(compilation);
+            var equals = (ITupleBinaryOperation)operation;
+            Assert.Equal(OperationKind.SimpleAssignment, equals.Parent.Kind);
+            Assert.Equal(2, equals.Children.Count());
+
+            var left = equals.Children.ElementAt(0);
+            Assert.Equal(OperationKind.Conversion, left.Kind);
+            Assert.Equal(OperationKind.ParameterReference, left.Children.Single().Kind);
+
+            var right = equals.Children.ElementAt(1);
+            Assert.Equal(OperationKind.Tuple, right.Kind);
         }
     }
 }

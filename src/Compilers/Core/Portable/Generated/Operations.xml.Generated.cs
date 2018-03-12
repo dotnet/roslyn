@@ -884,14 +884,11 @@ namespace Microsoft.CodeAnalysis.Operations
         /// <summary>
         /// Left operand.
         /// </summary>
-        public IOperation LeftOperand => Operation.SetParentOperation(LeftOperandImpl, this);
+        public abstract IOperation LeftOperand { get; }
         /// <summary>
         /// Right operand.
         /// </summary>
-        public IOperation RightOperand => Operation.SetParentOperation(RightOperandImpl, this);
-
-        protected abstract IOperation LeftOperandImpl { get; }
-        protected abstract IOperation RightOperandImpl { get; }
+        public abstract IOperation RightOperand { get; }
 
         public override IEnumerable<IOperation> Children
         {
@@ -918,6 +915,7 @@ namespace Microsoft.CodeAnalysis.Operations
             return visitor.VisitTupleBinaryOperator(this, argument);
         }
     }
+
     /// <summary>
     /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
     /// </summary>
@@ -926,12 +924,12 @@ namespace Microsoft.CodeAnalysis.Operations
         public TupleBinaryOperatorExpression(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
         {
-            LeftOperandImpl = leftOperand;
-            RightOperandImpl = rightOperand;
+            LeftOperand = SetParentOperation(leftOperand, this);
+            RightOperand = SetParentOperation(rightOperand, this);
         }
 
-        protected override IOperation LeftOperandImpl { get; }
-        protected override IOperation RightOperandImpl { get; }
+        public override IOperation LeftOperand { get; }
+        public override IOperation RightOperand { get; }
     }
 
     /// <summary>
@@ -949,8 +947,8 @@ namespace Microsoft.CodeAnalysis.Operations
             _lazyRightOperand = rightOperand ?? throw new System.ArgumentNullException(nameof(rightOperand));
         }
 
-        protected override IOperation LeftOperandImpl => _lazyLeftOperand.Value;
-        protected override IOperation RightOperandImpl => _lazyRightOperand.Value;
+        public override IOperation LeftOperand => SetParentOperation(_lazyLeftOperand.Value, this);
+        public override IOperation RightOperand => SetParentOperation(_lazyRightOperand.Value, this);
     }
 
     /// <summary>
