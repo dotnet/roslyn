@@ -94,6 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             internal readonly ImmutableArray<TupleBinaryOperatorInfo> Operators;
 
+            static internal Multiple ErrorInstance =
+                new Multiple(operators: ImmutableArray<TupleBinaryOperatorInfo>.Empty, leftConvertedTypeOpt: null, rightConvertedTypeOpt: null);
+
             internal Multiple(ImmutableArray<TupleBinaryOperatorInfo> operators, TypeSymbol leftConvertedTypeOpt, TypeSymbol rightConvertedTypeOpt)
                 : base(leftConvertedTypeOpt, rightConvertedTypeOpt)
             {
@@ -103,14 +106,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(operators.IsEmpty || operators.Length > 1); // an empty array is used for error cases, otherwise tuples must have cardinality > 1
 
                 Operators = operators;
-            }
-
-            /// <summary>
-            /// Used for error scenarios
-            /// </summary>
-            internal Multiple()
-                : this(operators: ImmutableArray<TupleBinaryOperatorInfo>.Empty, leftConvertedTypeOpt: null, rightConvertedTypeOpt: null)
-            {
             }
 
             internal override TupleBinaryOperatorInfoKind InfoKind

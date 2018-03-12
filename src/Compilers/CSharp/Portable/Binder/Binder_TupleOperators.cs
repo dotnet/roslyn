@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (right.Type is null && right.IsLiteralDefault()))
             {
                 Error(diagnostics, ErrorCode.ERR_AmbigBinaryOps, node, node.OperatorToken.Text, left.Display, right.Display);
-                return new TupleBinaryOperatorInfo.Multiple();
+                return TupleBinaryOperatorInfo.Multiple.ErrorInstance;
             }
 
             // Aside from default (which we fixed or ruled out above) and tuple literals,
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leftCardinality != rightCardinality)
             {
                 Error(diagnostics, ErrorCode.ERR_TupleSizesMismatchForBinOps, node, leftCardinality, rightCardinality);
-                return new TupleBinaryOperatorInfo.Multiple();
+                return TupleBinaryOperatorInfo.Multiple.ErrorInstance;
             }
 
             var (leftParts, leftNames) = GetTupleArgumentsOrPlaceholders(left);
@@ -255,12 +255,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// If an element in a tuple literal has an explicit name which doesn't match the name on the other side, we'll warn.
         /// The user can either remove the name, or fix it.
-        /// 
+        ///
         /// This method handles two expressions, each of which is either a tuple literal or an expression with tuple type.
         /// In a tuple literal, each element can have an explicit name, an inferred name or no name.
         /// In an expression of tuple type, each element can have a name or not.
         /// </summary>
-        private void ReportNamesMismatchesIfAny(BoundExpression left, BoundExpression right, DiagnosticBag diagnostics)
+        private static void ReportNamesMismatchesIfAny(BoundExpression left, BoundExpression right, DiagnosticBag diagnostics)
         {
             bool leftIsTupleLiteral = left.Kind == BoundKind.TupleLiteral;
             bool rightIsTupleLiteral = right.Kind == BoundKind.TupleLiteral;
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 diagnostics.Add(ErrorCode.WRN_TupleBinopLiteralNameMismatch, location.Syntax.Parent.Location, complaintName);
             }
 
-            (ImmutableArray<string> namesOpt, ImmutableArray<bool> inferredOpt, ImmutableArray<BoundExpression> locationsOpt) getDetails(BoundExpression expr)
+            (ImmutableArray<string> NamesOpt, ImmutableArray<bool> InferredOpt, ImmutableArray<BoundExpression> LocationsOpt) getDetails(BoundExpression expr)
             {
                 ImmutableArray<string> names;
                 ImmutableArray<bool> inferredNames;
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// - the elements from the literal, or some placeholder with proper type (for tuple expressions)
         /// - the elements' names
         /// </summary>
-        private static (ImmutableArray<BoundExpression> elements, ImmutableArray<string> names) GetTupleArgumentsOrPlaceholders(BoundExpression expr)
+        private static (ImmutableArray<BoundExpression> Elements, ImmutableArray<string> Names) GetTupleArgumentsOrPlaceholders(BoundExpression expr)
         {
             if (expr.Kind == BoundKind.TupleLiteral)
             {
