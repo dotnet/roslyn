@@ -224,9 +224,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return TupleBinaryOperatorInfo.Multiple.ErrorInstance;
             }
 
-            var (leftParts, leftNames) = GetTupleArgumentsOrPlaceholders(left);
-            var (rightParts, rightNames) = GetTupleArgumentsOrPlaceholders(right);
-            ReportNamesMismatchesIfAny(left, right, diagnostics);
+            (ImmutableArray<BoundExpression> leftParts, ImmutableArray<string> leftNames) = GetTupleArgumentsOrPlaceholders(left);
+            (ImmutableArray<BoundExpression> rightParts, ImmutableArray<string> rightNames) = GetTupleArgumentsOrPlaceholders(right);
+            ReportNamesMismatchesIfAny(left, right, leftNames, rightNames, diagnostics);
 
             int length = leftParts.Length;
             Debug.Assert(length == rightParts.Length);
@@ -260,7 +260,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// In a tuple literal, each element can have an explicit name, an inferred name or no name.
         /// In an expression of tuple type, each element can have a name or not.
         /// </summary>
-        private static void ReportNamesMismatchesIfAny(BoundExpression left, BoundExpression right, DiagnosticBag diagnostics)
+        private static void ReportNamesMismatchesIfAny(BoundExpression left, BoundExpression right,
+            ImmutableArray<string> leftNames, ImmutableArray<string> rightNames, DiagnosticBag diagnostics)
         {
             bool leftIsTupleLiteral = left.Kind == BoundKind.TupleLiteral;
             bool rightIsTupleLiteral = right.Kind == BoundKind.TupleLiteral;
@@ -270,12 +271,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var (leftNames, leftInferred, leftLocations) = getDetails(left);
-            bool leftNoInferredNames = leftInferred.IsDefault;
             bool leftNoNames = leftNames.IsDefault;
-
-            var (rightNames, rightInferred, rightLocations) = getDetails(right);
-            bool rightNoInferredNames = rightInferred.IsDefault;
             bool rightNoNames = rightNames.IsDefault;
 
             if (leftNoNames && rightNoNames)
@@ -285,20 +281,26 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(leftNoNames || rightNoNames || leftNames.Length == rightNames.Length);
 
+            ImmutableArray<bool> leftInferred = leftIsTupleLiteral ? ((BoundTupleLiteral)left).InferredNamesOpt : default;
+            bool leftNoInferredNames = leftInferred.IsDefault;
+
+            ImmutableArray<bool> rightInferred = rightIsTupleLiteral ? ((BoundTupleLiteral)right).InferredNamesOpt : default;
+            bool rightNoInferredNames = rightInferred.IsDefault;
+
             int length = leftNoNames ? rightNames.Length : leftNames.Length;
             for (int i = 0; i < length; i++)
             {
                 string leftName = leftNoNames ? null : leftNames[i];
-                bool leftWasInferred = leftNoInferredNames ? false : leftInferred[i];
-
                 string rightName = rightNoNames ? null : rightNames[i];
-                bool rightWasInferred = rightNoInferredNames ? false : rightInferred[i];
 
                 bool different = string.CompareOrdinal(rightName, leftName) != 0;
                 if (!different)
                 {
                     continue;
                 }
+
+                bool leftWasInferred = leftNoInferredNames ? false : leftInferred[i];
+                bool rightWasInferred = rightNoInferredNames ? false : rightInferred[i];
 
                 bool leftComplaint = leftIsTupleLiteral && leftName != null && !leftWasInferred;
                 bool rightComplaint = rightIsTupleLiteral && rightName != null && !rightWasInferred;
@@ -311,35 +313,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // When in doubt, we'll complain on the right side if it's a literal
                 bool useRight = (leftComplaint && rightComplaint) ? rightIsTupleLiteral : rightComplaint;
-                BoundExpression location = useRight ? rightLocations[i] : leftLocations[i];
+                Location location = ((BoundTupleLiteral)(useRight ? right : left)).Arguments[i].Syntax.Parent.Location;
                 string complaintName = useRight ? rightName : leftName;
 
-                diagnostics.Add(ErrorCode.WRN_TupleBinopLiteralNameMismatch, location.Syntax.Parent.Location, complaintName);
-            }
-
-            (ImmutableArray<string> NamesOpt, ImmutableArray<bool> InferredOpt, ImmutableArray<BoundExpression> LocationsOpt) getDetails(BoundExpression expr)
-            {
-                ImmutableArray<string> names;
-                ImmutableArray<bool> inferredNames;
-                ImmutableArray<BoundExpression> locations;
-                if (expr.Kind == BoundKind.TupleLiteral)
-                {
-                    var tuple = (BoundTupleLiteral)expr;
-                    names = tuple.ArgumentNamesOpt;
-                    inferredNames = tuple.InferredNamesOpt;
-                    locations = tuple.Arguments;
-                }
-                else
-                {
-                    names = expr.Type.TupleElementNames;
-                    inferredNames = default;
-                    locations = default; // no warnings can be reported on this side
-                }
-
-                Debug.Assert(inferredNames.IsDefault || names.IsDefault || inferredNames.Length == names.Length);
-                Debug.Assert(locations.IsDefault || names.IsDefault || locations.Length == names.Length);
-
-                return (names, inferredNames, locations);
+                diagnostics.Add(ErrorCode.WRN_TupleBinopLiteralNameMismatch, location, complaintName);
             }
         }
 

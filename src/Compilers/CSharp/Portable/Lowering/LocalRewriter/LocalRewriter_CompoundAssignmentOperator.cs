@@ -665,8 +665,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static bool CanChangeValueBetweenReads(
             BoundExpression expression,
-            bool localsMayBeAssignedOrCaptured = true,
-            bool userCodeCanExecuteBetweenReads = false)
+            bool localsMayBeAssignedOrCaptured = true)
         {
             if (expression.IsDefaultValue())
             {
@@ -682,17 +681,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (expression.Kind)
             {
                 case BoundKind.ThisReference:
-                    if (userCodeCanExecuteBetweenReads)
-                    {
-                        // if user code could execute between reads, then the value of `this` on a struct can change
-                        var @this = (BoundThisReference)expression;
-                        return @this.Type.IsStructType();
-                    }
-                    else
-                    {
-                        return false;
-                    }
-
                 case BoundKind.BaseReference:
                     return false;
 
