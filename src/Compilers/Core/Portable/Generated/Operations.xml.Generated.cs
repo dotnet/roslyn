@@ -870,7 +870,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
     /// </summary>
-    internal abstract partial class BaseTupleBinaryOperatorExpression : Operation, ITupleBinaryOperation
+    internal abstract class BaseTupleBinaryOperatorExpression : Operation, ITupleBinaryOperation
     {
         public BaseTupleBinaryOperatorExpression(BinaryOperatorKind operatorKind, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(OperationKind.BinaryOperator, semanticModel, syntax, type, constantValue, isImplicit)
@@ -921,7 +921,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
     /// </summary>
-    internal sealed partial class TupleBinaryOperatorExpression : BaseTupleBinaryOperatorExpression, ITupleBinaryOperation
+    internal sealed class TupleBinaryOperatorExpression : BaseTupleBinaryOperatorExpression, ITupleBinaryOperation
     {
         public TupleBinaryOperatorExpression(BinaryOperatorKind operatorKind, IOperation leftOperand, IOperation rightOperand, SemanticModel semanticModel, SyntaxNode syntax, ITypeSymbol type, Optional<object> constantValue, bool isImplicit)
             : base(operatorKind, semanticModel, syntax, type, constantValue, isImplicit)
@@ -937,7 +937,7 @@ namespace Microsoft.CodeAnalysis.Operations
     /// <summary>
     /// Represents an operation with two operands that produces a result with the same type as at least one of the operands.
     /// </summary>
-    internal sealed partial class LazyTupleBinaryOperatorExpression : BaseTupleBinaryOperatorExpression, ITupleBinaryOperation
+    internal sealed class LazyTupleBinaryOperatorExpression : BaseTupleBinaryOperatorExpression, ITupleBinaryOperation
     {
         private readonly Lazy<IOperation> _lazyLeftOperand;
         private readonly Lazy<IOperation> _lazyRightOperand;
