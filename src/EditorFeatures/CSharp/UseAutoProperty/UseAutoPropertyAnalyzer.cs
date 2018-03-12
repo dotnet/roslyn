@@ -80,12 +80,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
                 {
                     foreach (var argument in typeDeclaration.DescendantNodesAndSelf().OfType<ArgumentSyntax>())
                     {
-                        AnalyzeArgument(semanticModel, argument, ineligibleFields, cancellationToken);
+                        // An argument will disqualify a field if that field is used in a ref/out position.  
+                        // We can't change such field references to be property references in C#.
+                        if (argument.RefKindKeyword.Kind() != SyntaxKind.None)
+                        {
+                            AddIneligibleFields(semanticModel, argument.Expression, ineligibleFields, cancellationToken);
+                        }
                     }
 
                     foreach (var refExpression in typeDeclaration.DescendantNodesAndSelf().OfType<RefExpressionSyntax>())
                     {
-                        AnalyzeRefExpression(semanticModel, refExpression, ineligibleFields, cancellationToken);
+                        AddIneligibleFields(semanticModel, refExpression.Expression, ineligibleFields, cancellationToken);
                     }
                 }
             }
@@ -96,42 +101,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             return variable.Initializer?.Value;
         }
 
-        private static void AnalyzeArgument(
-            SemanticModel semanticModel, ArgumentSyntax argument,
+        private static void AddIneligibleFields(
+            SemanticModel semanticModel, ExpressionSyntax expression,
             HashSet<IFieldSymbol> ineligibleFields, CancellationToken cancellationToken)
         {
-            // An argument will disqualify a field if that field is used in a ref/out position.  
-            // We can't change such field references to be property references in C#.
-            if (argument.RefKindKeyword.Kind() == SyntaxKind.None)
-            {
-                return;
-            }
-
-            var symbolInfo = semanticModel.GetSymbolInfo(argument.Expression, cancellationToken);
-            AddIneligibleField(symbolInfo.Symbol, ineligibleFields);
+            var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
+            AddSymbol(symbolInfo.Symbol);
             foreach (var symbol in symbolInfo.CandidateSymbols)
             {
-                AddIneligibleField(symbol, ineligibleFields);
+                AddSymbol(symbol);
             }
-        }
 
-        private static void AnalyzeRefExpression(
-            SemanticModel semanticModel, RefExpressionSyntax refExpression,
-            HashSet<IFieldSymbol> ineligibleFields, CancellationToken cancellationToken)
-        {
-            var symbolInfo = semanticModel.GetSymbolInfo(refExpression.Expression, cancellationToken);
-            AddIneligibleField(symbolInfo.Symbol, ineligibleFields);
-            foreach (var symbol in symbolInfo.CandidateSymbols)
+            void AddSymbol(ISymbol symbol)
             {
-                AddIneligibleField(symbol, ineligibleFields);
-            }
-        }
-
-        private static void AddIneligibleField(ISymbol symbol, HashSet<IFieldSymbol> ineligibleFields)
-        {
-            if (symbol is IFieldSymbol field)
-            {
-                ineligibleFields.Add(field);
+                if (symbol is IFieldSymbol field)
+                {
+                    ineligibleFields.Add(field);
+                }
             }
         }
 
