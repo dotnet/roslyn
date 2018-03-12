@@ -420,7 +420,7 @@
       />
 
     <Error 
-      Text="The $(dotnetSdkVersion) SDK is required to build this repo but found $(NETCoreSdkVersion) instead. The correct SDK can be install here https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.2.0-preview1-007622/dotnet-sdk-2.2.0-preview1-007622-win-x64.exe"
+      Text="The $(dotnetSdkVersion) SDK is required to build this repo but found $(NETCoreSdkVersion) instead. The correct SDK can be install here https://dotnetcli.blob.core.windows.net/dotnet/Sdk/$(dotnetSdkVersion)/dotnet-sdk-$(dotnetSdkVersion)-win-x64.exe"
       Condition="'$(NETCoreSdkVersion)' != '$(dotnetSdkVersion)'" />
   </Target> 
 

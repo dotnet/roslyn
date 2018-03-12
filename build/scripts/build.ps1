@@ -636,31 +636,6 @@ function Stop-VSProcesses() {
     Get-Process -Name "devenv" -ErrorAction SilentlyContinue | Stop-Process
 }
 
-# Manually verify that the correct SDK is installed. This is necessary to guard 
-# against MSBuild silently downgrading to a different SDK.
-#
-# Issue tracking removing this check: https://github.com/dotnet/roslyn/issues/25378
-# Relevant issues:
-#   https://github.com/dotnet/announcements/issues/57
-#   https://github.com/dotnet/core-setup/issues/3805
-#   https://github.com/dotnet/core-setup/issues/3807
-function Check-BadDotnetSdkVersion() {
-    $all = Exec-command $dotnet "--list-sdks"
-    $sdkVersion = Get-ToolVersion "dotnetSdk"
-    $foundVersion = $false
-    foreach ($version in $all) { 
-        if ($version -match "^$sdkVersion") {
-            $foundVersion = $true
-        }
-    }
-
-    if (-not $foundVersion) { 
-        Write-Host -ForegroundColor Red "Error! Need to install the $sdkVersion version of the .NET SDK"
-        Write-Host -ForegroundColor Red "https://dotnetcli.blob.core.windows.net/dotnet/Sdk/$($sdkVersion)/dotnet-sdk-$($sdkVersion)-win-x64.exe"
-        throw "Missing $sdkVersion SDK"
-    }
-}
-
 try {
     . (Join-Path $PSScriptRoot "build-utils.ps1")
     Push-Location $repoDir
@@ -679,8 +654,6 @@ try {
     # Ensure the main output directories exist as a number of tools will fail when they don't exist. 
     Create-Directory $binariesDir
     Create-Directory $configDir 
-
-    Check-BadDotnetSdkVersion
 
     if ($cibuild) { 
         List-VSProcesses
