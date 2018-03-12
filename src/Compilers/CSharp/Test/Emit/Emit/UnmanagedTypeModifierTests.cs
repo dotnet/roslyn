@@ -860,6 +860,7 @@ public class TestRef
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("D`1").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
+                Assert.True(typeParameter.HasConstructorConstraint);
 
                 AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
             });
@@ -886,6 +887,7 @@ public class Program
                     var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Program").GetTypeMember("<>c__DisplayClass0_0").TypeParameters.Single();
                     Assert.True(typeParameter.HasValueTypeConstraint);
                     Assert.True(typeParameter.HasUnmanagedTypeConstraint);
+                    Assert.True(typeParameter.HasConstructorConstraint);
 
                     AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
                 });
@@ -1027,7 +1029,7 @@ public class Test
        extends [mscorlib]System.Object
 {
   .method public hidebysig instance void
-          M<valuetype .ctor(class [mscorlib]System.IComparable, class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T>() cil managed
+          M<valuetype .ctor (class [mscorlib]System.IComparable, class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T>() cil managed
   {
     .param type T
     .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = ( 01 00 00 00 )
@@ -1072,6 +1074,69 @@ public class Test
                 //         new TestRef().M<S1>();
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "M<S1>").WithArguments("TestRef.M<T>()", "System.IComparable", "T", "Test.S1").WithLocation(10, 23)
                 );
+        }
+
+        [Fact]
+        public void UnmanagedConstraintWithNoCtorConstraint_IL()
+        {
+            var ilSource = IsUnmanagedAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance void
+          M<valuetype (class [mscorlib]System.IComparable, class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T>() cil managed
+  {
+    .param type T
+    .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = ( 01 00 00 00 )
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method TestRef::M
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method TestRef::.ctor
+
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        // OK
+        new TestRef().M<int>();
+
+        // Not IComparable
+        new TestRef().M<S1>();
+    }
+
+    struct S1{}
+}";
+
+            var c = CreateCompilation(code, references: new[] { reference });
+            
+            c.VerifyDiagnostics(
+                // (10,23): error CS0315: The type 'Test.S1' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M<T>()'. There is no boxing conversion from 'Test.S1' to 'System.IComparable'.
+                //         new TestRef().M<S1>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "M<S1>").WithArguments("TestRef.M<T>()", "System.IComparable", "T", "Test.S1").WithLocation(10, 23)
+                );
+
+            var typeParameter = c.GlobalNamespace.GetTypeMember("TestRef").GetMethod("M").TypeParameters.Single();
+            Assert.True(typeParameter.HasUnmanagedTypeConstraint);
+            Assert.True(typeParameter.HasValueTypeConstraint);
+            Assert.False(typeParameter.HasReferenceTypeConstraint);
+            Assert.False(typeParameter.HasConstructorConstraint);
         }
 
         private const string IsUnmanagedAttributeIL = @"

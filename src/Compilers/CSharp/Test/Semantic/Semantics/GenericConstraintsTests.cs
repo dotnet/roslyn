@@ -1666,19 +1666,37 @@ public abstract class Test2<U, W> where U : unmanaged
         [Fact]
         public void UnmanagedConstraint_Compilation_ReferenceType()
         {
-            CreateCompilation("public class Test<T> where T : class, unmanaged {}").VerifyDiagnostics(
+            var c = CreateCompilation("public class Test<T> where T : class, unmanaged {}");
+            
+            c.VerifyDiagnostics(
                 // (1,39): error CS8374: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T> where T : class, unmanaged {}
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 39));
+
+            var typeParameter = c.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+            Assert.False(typeParameter.HasUnmanagedTypeConstraint);
+            Assert.False(typeParameter.HasValueTypeConstraint);
+            Assert.True(typeParameter.HasReferenceTypeConstraint);
+            Assert.False(typeParameter.HasConstructorConstraint);
+            Assert.Empty(typeParameter.ConstraintTypes());
         }
 
         [Fact]
         public void UnmanagedConstraint_Compilation_ValueType()
         {
-            CreateCompilation("public class Test<T> where T : struct, unmanaged {}").VerifyDiagnostics(
+            var c = CreateCompilation("public class Test<T> where T : struct, unmanaged {}");
+
+            c.VerifyDiagnostics(
                 // (1,40): error CS8374: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T> where T : struct, unmanaged {}
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 40));
+
+            var typeParameter = c.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+            Assert.False(typeParameter.HasUnmanagedTypeConstraint);
+            Assert.True(typeParameter.HasValueTypeConstraint);
+            Assert.False(typeParameter.HasReferenceTypeConstraint);
+            Assert.False(typeParameter.HasConstructorConstraint);
+            Assert.Empty(typeParameter.ConstraintTypes());
         }
 
         [Fact]
@@ -1694,9 +1712,9 @@ public abstract class Test2<U, W> where U : unmanaged
         public void UnmanagedConstraint_Compilation_AnotherType_Before()
         {
             CreateCompilation("public class Test<T> where T : unmanaged, System.Exception { }").VerifyDiagnostics(
-                // (1,19): error CS0455: Type parameter 'T' inherits conflicting constraints 'Exception' and 'ValueType'
+                // (1,43): error CS8378: 'Exception': cannot specify both a constraint class and the 'unmanaged' constraint
                 // public class Test<T> where T : unmanaged, System.Exception { }
-                Diagnostic(ErrorCode.ERR_BaseConstraintConflict, "T").WithArguments("T", "System.Exception", "System.ValueType").WithLocation(1, 19)
+                Diagnostic(ErrorCode.ERR_UnmanagedBoundWithClass, "System.Exception").WithArguments("System.Exception").WithLocation(1, 43)
             );
         }
 
@@ -1706,9 +1724,9 @@ public abstract class Test2<U, W> where U : unmanaged
             CreateCompilation("public class Test<T> where T : unmanaged, System.Enum { }").VerifyDiagnostics();
 
             CreateCompilation("public class Test<T> where T : unmanaged, System.Delegate { }").VerifyDiagnostics(
-                // (1,19): error CS0455: Type parameter 'T' inherits conflicting constraints 'Delegate' and 'ValueType'
+                // (1,43): error CS8378: 'Delegate': cannot specify both a constraint class and the 'unmanaged' constraint
                 // public class Test<T> where T : unmanaged, System.Delegate { }
-                Diagnostic(ErrorCode.ERR_BaseConstraintConflict, "T").WithArguments("T", "System.Delegate", "System.ValueType").WithLocation(1, 19)
+                Diagnostic(ErrorCode.ERR_UnmanagedBoundWithClass, "System.Delegate").WithArguments("System.Delegate").WithLocation(1, 43)
                 );
         }
 
@@ -2340,6 +2358,26 @@ unsafe class Test
   IL_001d:  stloc.0
   IL_001e:  ret
 }");
+        }
+
+        [Fact]
+        public void UnmanagedConstraints_CtorAndValueTypeAreEmitted()
+        {
+            CompileAndVerify(@"
+using System.Linq;
+class Program
+{
+    public static void M<T>() where T: unmanaged
+    {
+    }
+
+    static void Main(string[] args)
+    {
+        var typeParam = typeof(Program).GetMethod(""M"").GetGenericArguments().First();
+        System.Console.WriteLine(typeParam.GenericParameterAttributes);
+    }
+}",
+    options: TestOptions.UnsafeReleaseExe, verify: Verification.Passes, expectedOutput: "NotNullableValueTypeConstraint, DefaultConstructorConstraint");
         }
 
         [Fact]

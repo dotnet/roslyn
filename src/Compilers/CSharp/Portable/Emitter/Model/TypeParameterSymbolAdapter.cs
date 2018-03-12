@@ -227,9 +227,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var seenValueType = false;
             if (this.HasUnmanagedTypeConstraint)
             {
-                var typeRef = moduleBeingBuilt.GetSpecialType(SpecialType.System_ValueType,
-                                                                syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
-                                                                diagnostics: context.Diagnostics);
+                var typeRef = moduleBeingBuilt.GetSpecialType(
+                    SpecialType.System_ValueType,                  
+                    syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
+                    diagnostics: context.Diagnostics);
 
                 var modifier = CSharpCustomModifier.CreateRequired(
                     moduleBeingBuilt.Compilation.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_UnmanagedType));

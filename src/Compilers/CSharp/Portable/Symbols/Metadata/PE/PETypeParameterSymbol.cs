@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private DiagnosticInfo _lazyConstraintsUseSiteErrorInfo = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
 
-        private GenericParameterAttributes _lazyFlags;
+        private readonly GenericParameterAttributes _flags;
         private ThreeState _lazyHasIsUnmanagedConstraint;
         private TypeParameterBounds _lazyBounds = TypeParameterBounds.Unset;
         private ImmutableArray<TypeSymbol> _lazyDeclaredConstraintTypes;
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // Clear the '.ctor' flag if both '.ctor' and 'valuetype' are
             // set since '.ctor' is redundant in that case.
-            _lazyFlags = ((flags & GenericParameterAttributes.NotNullableValueTypeConstraint) == 0) ? flags : (flags & ~GenericParameterAttributes.DefaultConstructorConstraint);
+            _flags = ((flags & GenericParameterAttributes.NotNullableValueTypeConstraint) == 0) ? flags : (flags & ~GenericParameterAttributes.DefaultConstructorConstraint);
 
             _ordinal = ordinal;
             _handle = handle;
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             }
 
                             // Drop 'System.ValueType' constraint type if the 'valuetype' constraint was also specified.
-                            if (((_lazyFlags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0))
+                            if (((_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0))
                             {
                                 continue;
                             }
@@ -225,11 +225,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 // - presence of unmanaged pattern has to be matched with `valuetype`
-                // - IsUnmanagedAttribute is alloweed iif there is an unmanaged pattern
-                if (hasUnmanagedModreqPattern && (_lazyFlags & GenericParameterAttributes.NotNullableValueTypeConstraint) == 0 ||
+                // - IsUnmanagedAttribute is allowed iif there is an unmanaged pattern
+                if (hasUnmanagedModreqPattern && (_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) == 0 ||
                     hasUnmanagedModreqPattern != moduleSymbol.Module.HasIsUnmanagedAttribute(_handle))
                 {
-                    // we do not recognize thse combinations as "unmanaged"
+                    // we do not recognize these combinations as "unmanaged"
                     hasUnmanagedModreqPattern = false;
                     Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
                 }
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (_lazyFlags & GenericParameterAttributes.DefaultConstructorConstraint) != 0;
+                return (_flags & GenericParameterAttributes.DefaultConstructorConstraint) != 0;
             }
         }
 
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (_lazyFlags & GenericParameterAttributes.ReferenceTypeConstraint) != 0;
+                return (_flags & GenericParameterAttributes.ReferenceTypeConstraint) != 0;
             }
         }
 
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (_lazyFlags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0;
+                return (_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0;
             }
         }
 
@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return (VarianceKind)(_lazyFlags & GenericParameterAttributes.VarianceMask);
+                return (VarianceKind)(_flags & GenericParameterAttributes.VarianceMask);
             }
         }
 

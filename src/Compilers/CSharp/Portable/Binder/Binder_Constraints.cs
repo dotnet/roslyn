@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             Error(diagnostics, ErrorCode.ERR_RefValBoundWithClass, syntax, type);
                                             continue;
                                         }
-                                        else if ((constraints & TypeParameterConstraintKind.ValueType) != 0)
+                                        else if ((constraints & TypeParameterConstraintKind.Unmanaged) != 0)
                                         {
                                             // "'{0}': cannot specify both a constraint class and the 'unmanaged' constraint"
                                             Error(diagnostics, ErrorCode.ERR_UnmanagedBoundWithClass, syntax, type);
