@@ -12,6 +12,7 @@
     <DefineConstants>$(DefineConstants);DNX</DefineConstants>
     <NoStdLib>true</NoStdLib>
     <RootNamespace></RootNamespace>
+    <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Test\Resources\Core\CompilerTestResources.csproj" />
@@ -95,36 +96,15 @@
     <PackageReference Include="Microsoft.DiaSymReader.Converter.Xml" Version="$(MicrosoftDiaSymReaderConverterXmlVersion)" />
     <PackageReference Include="Microsoft.Metadata.Visualizer" Version="$(MicrosoftMetadataVisualizerVersion)" />
     <PackageReference Include="Microsoft.NETCore.Platforms" Version="$(MicrosoftNETCorePlatformsVersion)" />
-    <PackageReference Include="Microsoft.Win32.Primitives" Version="$(MicrosoftWin32PrimitivesVersion)" />
-    <PackageReference Include="System.AppContext" Version="$(SystemAppContextVersion)" />
-    <PackageReference Include="System.Collections.Concurrent" Version="$(SystemCollectionsConcurrentVersion)" />
-    <PackageReference Include="System.Console" Version="$(SystemConsoleVersion)" />
-    <PackageReference Include="System.Data.Common" Version="$(SystemDataCommonVersion)" />
-    <PackageReference Include="System.Diagnostics.Debug" Version="$(SystemDiagnosticsDebugVersion)" />
-    <PackageReference Include="System.Diagnostics.Tools" Version="$(SystemDiagnosticsToolsVersion)" />
-    <PackageReference Include="System.Diagnostics.TraceSource" Version="$(SystemDiagnosticsTraceSourceVersion)" />
-    <PackageReference Include="System.Diagnostics.Process" Version="$(SystemDiagnosticsProcessVersion)" />
-    <PackageReference Include="System.IO.FileSystem" Version="$(SystemIOFileSystemVersion)" />
-    <PackageReference Include="System.Net.Primitives" Version="$(SystemNetPrimitivesVersion)" />
-    <PackageReference Include="System.Reflection.TypeExtensions" Version="$(SystemReflectionTypeExtensionsVersion)" />
-    <PackageReference Include="System.Security.Cryptography.Algorithms" Version="$(SystemSecurityCryptographyAlgorithmsVersion)" />
-    <PackageReference Include="System.Text.RegularExpressions" Version="$(SystemTextRegularExpressionsVersion)" />
-    <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
-    <PackageReference Include="System.Xml.XDocument" Version="$(SystemXmlXDocumentVersion)" />
-    <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentVersion)" />
-    <PackageReference Include="System.Runtime.Loader" Version="$(SystemRuntimeLoaderVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'" />
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
-
-    <!-- This reference is necessary to pull down the assemblies we compile + run against 
-         in the compiler layer when running on CoreClr. Don't actually want to reference 
-         anything here, just have it available -->
-    <PackageReference Include="NETStandard.Library" Version="$(NETStandardLibraryFixedVersion)" Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
-      <PrivateAssets>all</PrivateAssets>
-      <ExcludeAssets>all</ExcludeAssets>
-    </PackageReference>
   </ItemGroup>
-  <ProjectExtensions />
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.3'">
+    <PackageReference Include="System.Reflection.TypeExtensions" Version="$(SystemReflectionTypeExtensionsVersion)" />
+    <PackageReference Include="System.Diagnostics.TraceSource" Version="$(SystemDiagnosticsTraceSourceVersion)" />
+    <PackageReference Include="System.Diagnostics.Process" Version="$(SystemDiagnosticsProcessVersion)" />
+    <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
+    <PackageReference Include="System.Xml.XmlDocument" Version="$(SystemXmlXmlDocumentVersion)" />
+  </ItemGroup>
 </Project>
