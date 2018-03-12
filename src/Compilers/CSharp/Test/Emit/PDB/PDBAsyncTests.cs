@@ -188,7 +188,7 @@ sequencePoints: "TestCase+<Run>d__1.MoveNext");
             v.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""DynamicMembers"" name=""get_Prop"">
@@ -375,7 +375,7 @@ namespace ConsoleApplication1
             compilation.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""ConsoleApplication1.Program"" name=""Main"" parameterNames=""args"">
@@ -531,7 +531,7 @@ class TestCase
             compilation.VerifyPdb(@"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""TestCase"" name=""Await"" parameterNames=""d"">
@@ -752,7 +752,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -789,7 +789,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""b"">
@@ -842,7 +842,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -884,7 +884,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""b"">
@@ -943,7 +943,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -979,7 +979,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""b"">
@@ -1031,7 +1031,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -1074,7 +1074,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"" parameterNames=""b"">
@@ -1146,7 +1146,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -1252,7 +1252,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -1356,7 +1356,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -1400,7 +1400,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -1448,7 +1448,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -1488,7 +1488,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -1535,7 +1535,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">
@@ -1579,7 +1579,7 @@ class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -1679,7 +1679,7 @@ class C
             v.VerifyPdb("C.G", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""G"">
@@ -1837,7 +1837,7 @@ class C
             v.VerifyPdb("C+<G>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;G&gt;d__0"" name=""MoveNext"">
@@ -1940,7 +1940,7 @@ class C
             v.VerifyPdb("C.G", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""G"">
@@ -1982,7 +1982,7 @@ public partial class C
             v.VerifyPdb("C.M", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name=""M"">
@@ -2063,7 +2063,7 @@ class C
             v.VerifyPdb("C+<M>d__0.MoveNext", @"
 <symbols>
   <files>
-    <file id=""1"" name=""test"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name=""test"" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;M&gt;d__0"" name=""MoveNext"">

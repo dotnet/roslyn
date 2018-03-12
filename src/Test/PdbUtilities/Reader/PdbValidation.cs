@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Emit;
 using Microsoft.DiaSymReader;
 using Microsoft.DiaSymReader.Tools;
 using Microsoft.Metadata.Tools;
+using Roslyn.Reflection.PortableExecutable;
 using Roslyn.Test.PdbUtilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
