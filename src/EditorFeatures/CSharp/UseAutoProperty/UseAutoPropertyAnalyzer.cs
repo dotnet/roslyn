@@ -107,13 +107,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             HashSet<IFieldSymbol> ineligibleFields, CancellationToken cancellationToken)
         {
             var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
-            AddSymbol(symbolInfo.Symbol);
+            AddIneligibleField(symbolInfo.Symbol);
             foreach (var symbol in symbolInfo.CandidateSymbols)
             {
-                AddSymbol(symbol);
+                AddIneligibleField(symbol);
             }
 
-            void AddSymbol(ISymbol symbol)
+            void AddIneligibleField(ISymbol symbol)
             {
                 if (symbol is IFieldSymbol field)
                 {
