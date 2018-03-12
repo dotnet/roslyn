@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
             // Add header to match output of metadata-only view.
             // (This also makes debugging easier, because you can see which assembly was decompiled inside VS.)
-            var header = $"#region Assembly {assemblyDefinition.FullName}" + Environment.NewLine
+            var header = $"#region {FeaturesResources.Assembly} {assemblyDefinition.FullName}" + Environment.NewLine
                 + $"// {assemblyDefinition.MainModule.FileName}" + Environment.NewLine
                 + $"// Decompiled with ICSharpCode.Decompiler {decompilerVersion.FileVersion}" + Environment.NewLine
                 + "#endregion" + Environment.NewLine;
