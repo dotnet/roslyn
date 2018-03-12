@@ -31,6 +31,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsAddConstructorParametersFromMembers = "CodeActions.AddConstructorParametersFromMembers";
             public const string CodeActionsAddDocCommentNodes = "CodeActions.AddDocCommentParamNodes";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
+            public const string CodeActionsAddRequiredParentheses = "CodeActions.AddRequiredParentheses";
             public const string CodeActionsUpgradeProject = "CodeActions.UpgradeProject";
             public const string CodeActionsAddAccessibilityModifiers = "CodeActions.AddAccessibilityModifiers";
             public const string CodeActionsAddBraces = "CodeActions.AddBraces";
@@ -95,6 +96,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsRemoveUnnecessaryCast = "CodeActions.RemoveUnnecessaryCast";
             public const string CodeActionsRemoveUnusedLocalFunction = "CodeActions.RemoveUnusedLocalFunction";
             public const string CodeActionsRemoveUnusedVariable = "CodeActions.RemoveUnusedVariable";
+            public const string CodeActionsRemoveUnnecessaryParentheses = "CodeActions.RemoveUnnecessaryParentheses";
             public const string CodeActionsRemoveUnnecessaryImports = "CodeActions.RemoveUnnecessaryImports";
             public const string CodeActionsRemoveUnreachableCode = "CodeActions.RemoveUnreachableCode";
             public const string CodeActionsResolveConflictMarker = "CodeActions.ResolveConflictMarker";

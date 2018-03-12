@@ -2,7 +2,6 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
@@ -37,6 +36,29 @@ namespace Microsoft.CodeAnalysis.LanguageServices
             out SyntaxNode left, out SyntaxNode right)
         {
             syntaxFacts.GetPartsOfAssignmentStatement(statement, out left, out _, out right);
+        }
+
+        public static SyntaxNode Unparenthesize(
+            this ISyntaxFactsService syntaxFacts, SyntaxNode node)
+        {
+            syntaxFacts.GetPartsOfParenthesizedExpression(node,
+                out var openParenToken, out var expression, out var closeParenToken);
+
+            var leadingTrivia = openParenToken.LeadingTrivia
+                .Concat(openParenToken.TrailingTrivia)
+                .Where(t => !syntaxFacts.IsElastic(t))
+                .Concat(expression.GetLeadingTrivia());
+
+            var trailingTrivia = expression.GetTrailingTrivia()
+                .Concat(closeParenToken.LeadingTrivia)
+                .Where(t => !syntaxFacts.IsElastic(t))
+                .Concat(closeParenToken.TrailingTrivia);
+
+            var resultNode = expression
+                .WithLeadingTrivia(leadingTrivia)
+                .WithTrailingTrivia(trailingTrivia);
+
+            return resultNode;
         }
     }
 }

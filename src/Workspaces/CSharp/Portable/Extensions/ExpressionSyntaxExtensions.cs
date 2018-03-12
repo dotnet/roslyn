@@ -43,13 +43,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return expression;
         }
 
-        public static ExpressionSyntax Parenthesize(this ExpressionSyntax expression, bool includeElasticTrivia = true)
+        public static ExpressionSyntax Parenthesize(
+            this ExpressionSyntax expression, bool includeElasticTrivia = true, bool addSimplfierAnnotation = true)
+        {
+            var result = ParenthesizeWorker(expression, includeElasticTrivia);
+            return addSimplfierAnnotation
+                ? result.WithAdditionalAnnotations(Simplifier.Annotation)
+                : result;
+        }
+
+        private static ExpressionSyntax ParenthesizeWorker(
+            this ExpressionSyntax expression, bool includeElasticTrivia)
         {
             if (includeElasticTrivia)
             {
                 return SyntaxFactory.ParenthesizedExpression(expression.WithoutTrivia())
-                                    .WithTriviaFrom(expression)
-                                    .WithAdditionalAnnotations(Simplifier.Annotation);
+                                    .WithTriviaFrom(expression);
             }
             else
             {
@@ -59,8 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                     expression.WithoutTrivia(),
                     SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty)
                 )
-                .WithTriviaFrom(expression)
-                .WithAdditionalAnnotations(Simplifier.Annotation);
+                .WithTriviaFrom(expression);
             }
         }
 

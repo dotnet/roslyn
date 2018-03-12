@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
-using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -29,8 +30,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
-            // int Prop => (x); -> int Prop => x;
-            if (node.Parent is ArrowExpressionClauseSyntax arrowExpressionClause && arrowExpressionClause.Expression == node)
+            if (node.IsParentKind(SyntaxKind.ArrowExpressionClause))
+            {
+                return true;
+            }
+
+            // checked((x)) -> checked(x)
+            if (node.IsParentKind(SyntaxKind.CheckedExpression) ||
+                node.IsParentKind(SyntaxKind.UncheckedExpression))
             {
                 return true;
             }
@@ -175,9 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             // Operator precedence cases:
             // - If the parent is not an expression, do not remove parentheses
             // - Otherwise, parentheses may be removed if doing so does not change operator associations.
-            return parentExpression != null
-                ? !RemovalChangesAssociation(node, expression, parentExpression, semanticModel)
-                : false;
+            return parentExpression != null && !RemovalChangesAssociation(node, expression, parentExpression, semanticModel);
         }
 
         private static readonly ObjectPool<Stack<SyntaxNode>> s_nodeStackPool = new ObjectPool<Stack<SyntaxNode>>(() => new Stack<SyntaxNode>());
@@ -243,7 +248,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return false;
         }
 
-        private static bool RemovalChangesAssociation(ParenthesizedExpressionSyntax node, ExpressionSyntax expression, ExpressionSyntax parentExpression, SemanticModel semanticModel)
+        private static bool RemovalChangesAssociation(
+            ParenthesizedExpressionSyntax node, ExpressionSyntax expression,
+            ExpressionSyntax parentExpression, SemanticModel semanticModel)
         {
             var precedence = expression.GetOperatorPrecedence();
             var parentPrecedence = parentExpression.GetOperatorPrecedence();
@@ -277,41 +284,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 if (parentExpression is BinaryExpressionSyntax parentBinaryExpression)
                 {
                     // If both the expression and its parent are binary expressions and their kinds
-                    // are the same, check to see if they are commutative (e.g. + or *).
-                    if (parentBinaryExpression.IsKind(SyntaxKind.AddExpression, SyntaxKind.MultiplyExpression) &&
-                        node.Expression.Kind() == parentBinaryExpression.Kind())
+                    // are the same, and the parenthesized expression is on hte right and the 
+                    // operation is associative, it can sometimes be safe to remove these parens.
+                    //
+                    // i.e. if you have "a && (b && c)" it can be converted to "a && b && c" 
+                    // as that new interpretation "(a && b) && c" operates the exact same way at 
+                    // runtime.
+                    //
+                    // Specifically: 
+                    //  1) the operands are still executed in the same order: a, b, then c.
+                    //     So even if they have side effects, it will not matter.
+                    //  2) the same shortcircuiting happens.
+                    //  3) the result will always be the same (for logical operators, there are 
+                    //     additional conditions that are checked for non-logical operators).
+                    if (IsAssociative(parentBinaryExpression.Kind()) &&
+                        node.Expression.Kind() == parentBinaryExpression.Kind() &&
+                        parentBinaryExpression.Right == node)
                     {
-                        // At this point, we know our parenthesized expression contains a binary expression.
-                        var binaryExpression = (BinaryExpressionSyntax)node.Expression;
-
-                        // Now we'll perform a few semantic checks to determine whether removal of the parentheses
-                        // might break semantics. Note that we'll try and be fairly conservative with these. For example,
-                        // we'll assume that failing any of these checks results in the parentheses being declared as
-                        // necessary -- even if they could be removed depending on whether the parenthesized expression
-                        // appears on the left or right side of the parent binary expression.
-
-                        // First, does the binary expression result in an operator overload being called?
-                        var symbolInfo = semanticModel.GetSymbolInfo(binaryExpression);
-                        if (symbolInfo.Symbol != null)
-                        {
-                            if (symbolInfo.Symbol is IMethodSymbol methodSymbol &&
-                                methodSymbol.MethodKind == MethodKind.UserDefinedOperator)
-                            {
-                                return true;
-                            }
-                        }
-
-                        // Second, check the type and converted type of the binary expression. Are they the same?
-                        var typeInfo = semanticModel.GetTypeInfo(binaryExpression);
-                        if (typeInfo.Type != null && typeInfo.ConvertedType != null)
-                        {
-                            if (!typeInfo.Type.Equals(typeInfo.ConvertedType))
-                            {
-                                return true;
-                            }
-                        }
-
-                        return false;
+                        return !node.IsSafeToChangeAssociativity(node.Expression, semanticModel);
                     }
 
                     // Null-coalescing is right associative; removing parens from the LHS changes the association.
@@ -335,6 +325,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             throw ExceptionUtilities.Unreachable;
+        }
+
+        private static bool IsAssociative(SyntaxKind kind)
+        {
+            switch (kind)
+            {
+                case SyntaxKind.AddExpression:
+                case SyntaxKind.MultiplyExpression:
+                case SyntaxKind.BitwiseOrExpression:
+                case SyntaxKind.ExclusiveOrExpression:
+                case SyntaxKind.LogicalOrExpression:
+                case SyntaxKind.BitwiseAndExpression:
+                case SyntaxKind.LogicalAndExpression:
+                    return true;
+            }
+
+            return false;
         }
 
         private static bool RemovalMayIntroduceCastAmbiguity(ParenthesizedExpressionSyntax node)

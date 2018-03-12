@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
         private static readonly CodeStyleOption<AccessibilityModifiersRequired> s_requireAccessibilityModifiersDefault =
             new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.ForNonInterfaceMembers, NotificationOption.None);
 
-        internal static readonly PerLanguageOption<CodeStyleOption<AccessibilityModifiersRequired>> RequireAccessibilityModifiers = 
+        internal static readonly PerLanguageOption<CodeStyleOption<AccessibilityModifiersRequired>> RequireAccessibilityModifiers =
             new PerLanguageOption<CodeStyleOption<AccessibilityModifiersRequired>>(
                 nameof(CodeStyleOptions), nameof(RequireAccessibilityModifiers), defaultValue: s_requireAccessibilityModifiersDefault,
                 storageLocations: new OptionStorageLocation[]{
@@ -212,6 +212,104 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             }
 
             return s_requireAccessibilityModifiersDefault;
+        }
+
+        private static readonly CodeStyleOption<ParenthesesPreference> s_defaultOperationParenthesesPreference =
+            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.Ignore, NotificationOption.None);
+
+        private static readonly CodeStyleOption<ParenthesesPreference> s_defaultOtherOperationParenthesesPreference =
+            new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.RemoveIfUnnecessary, NotificationOption.None);
+
+        private static PerLanguageOption<CodeStyleOption<ParenthesesPreference>> CreateParenthesesOption(
+            string fieldName, CodeStyleOption<ParenthesesPreference> defaultValue, bool allowRequireForClarityOption)
+        {
+            var shortName = fieldName.Substring(0, fieldName.Length - "OperationParentheses".Length).ToLowerInvariant();
+
+            return new PerLanguageOption<CodeStyleOption<ParenthesesPreference>>(
+                nameof(CodeStyleOptions), fieldName, defaultValue,
+                storageLocations: new OptionStorageLocation[]{
+                    new EditorConfigStorageLocation<CodeStyleOption<ParenthesesPreference>>(
+                        $"dotnet_style_{shortName}_operation_parentheses",
+                        s => ParseParenthesesPreference(s, defaultValue, allowRequireForClarityOption)),
+                    new RoamingProfileStorageLocation($"TextEditor.%LANGUAGE%.Specific.{fieldName}Preference")});
+        }
+
+        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> ArithmeticOperationParentheses =
+            CreateParenthesesOption(
+                nameof(ArithmeticOperationParentheses),
+                s_defaultOperationParenthesesPreference,
+                allowRequireForClarityOption: true);
+
+        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> ShiftOperationParentheses =
+            CreateParenthesesOption(
+                nameof(ShiftOperationParentheses),
+                s_defaultOperationParenthesesPreference,
+                allowRequireForClarityOption: true);
+
+        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> RelationalOperationParentheses =
+            CreateParenthesesOption(
+                nameof(RelationalOperationParentheses),
+                s_defaultOperationParenthesesPreference,
+                allowRequireForClarityOption: true);
+
+        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> EqualityOperationParentheses =
+            CreateParenthesesOption(
+                nameof(EqualityOperationParentheses),
+                s_defaultOperationParenthesesPreference,
+                allowRequireForClarityOption: true);
+
+        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> BitwiseOperationParentheses =
+            CreateParenthesesOption(
+                nameof(BitwiseOperationParentheses),
+                s_defaultOperationParenthesesPreference,
+                allowRequireForClarityOption: true);
+
+        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> LogicalOperationParentheses =
+            CreateParenthesesOption(
+                nameof(LogicalOperationParentheses),
+                s_defaultOperationParenthesesPreference,
+                allowRequireForClarityOption: true);
+
+        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> CoalesceOperationParentheses =
+            CreateParenthesesOption(
+                nameof(CoalesceOperationParentheses),
+                s_defaultOperationParenthesesPreference,
+                allowRequireForClarityOption: true);
+
+        internal static readonly PerLanguageOption<CodeStyleOption<ParenthesesPreference>> OtherOperationParentheses =
+            CreateParenthesesOption(
+                nameof(OtherOperationParentheses),
+                s_defaultOtherOperationParenthesesPreference,
+                allowRequireForClarityOption: false);
+
+        private static Optional<CodeStyleOption<ParenthesesPreference>> ParseParenthesesPreference(
+            string optionString, Optional<CodeStyleOption<ParenthesesPreference>> defaultValue, 
+            bool allowRequireForClarityOption)
+        {
+            if (TryGetCodeStyleValueAndOptionalNotification(optionString,
+                    out var value, out var notificationOpt))
+            {
+                if (value == "ignore")
+                {
+                    // If they provide 'ignore', they don't need a notification level.
+                    notificationOpt = notificationOpt ?? NotificationOption.None;
+                }
+
+                if (notificationOpt != null)
+                {
+                    switch (value)
+                    {
+                        case "ignore":
+                            return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.Ignore, notificationOpt);
+                        case "require_for_precedence_clarity" when allowRequireForClarityOption:
+                            return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.RequireForPrecedenceClarity, notificationOpt);
+                        case "remove_if_unnecessary":
+                            return new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.RemoveIfUnnecessary, notificationOpt);
+                    }
+                }
+            }
+
+            return defaultValue;
         }
     }
 }

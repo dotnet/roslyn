@@ -234,6 +234,10 @@ namespace Microsoft.CodeAnalysis.Execution
             WriteOptionTo(options, language, CodeStyleOptions.PreferObjectInitializer, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferThrowExpression, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.RequireAccessibilityModifiers, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.ArithmeticOperationParentheses, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.LogicalOperationParentheses, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.ShiftOperationParentheses, writer, cancellationToken);
+            WriteOptionTo(options, language, CodeStyleOptions.OtherOperationParentheses, writer, cancellationToken);
             WriteOptionTo(options, language, SimplificationOptions.NamingPreferences, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferInferredTupleNames, writer, cancellationToken);
             WriteOptionTo(options, language, CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, writer, cancellationToken);
@@ -259,6 +263,10 @@ namespace Microsoft.CodeAnalysis.Execution
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferObjectInitializer, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferThrowExpression, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.RequireAccessibilityModifiers, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.ArithmeticOperationParentheses, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.LogicalOperationParentheses, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.ShiftOperationParentheses, reader, cancellationToken);
+            options = ReadOptionFrom(options, language, CodeStyleOptions.OtherOperationParentheses, reader, cancellationToken);
             options = ReadOptionFrom(options, language, SimplificationOptions.NamingPreferences, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferInferredTupleNames, reader, cancellationToken);
             options = ReadOptionFrom(options, language, CodeStyleOptions.PreferInferredAnonymousTypeMemberNames, reader, cancellationToken);

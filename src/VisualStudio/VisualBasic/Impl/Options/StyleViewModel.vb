@@ -4,7 +4,6 @@ Imports System.Windows.Data
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeStyle
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
@@ -310,6 +309,187 @@ Class Customer
     End Sub
 End Class"
 
+        Private Shared ReadOnly s_arithmeticParenthesesIgnore As String = $"
+class C
+    sub M()
+//[
+        ' {ServicesVSResources.Keep_all_parentheses_in_colon}
+        Dim v = a + (b + c)
+//]
+    end sub
+end class
+"
+
+        Private Shared ReadOnly s_arithmeticParenthesesRequireForPrecedenceClarity As String = $"
+class C
+    sub M()
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        Dim v = a + (b * c)
+
+        ' {ServicesVSResources.Over_colon}
+        Dim v = a + b * c
+//]
+    end sub
+end class
+"
+
+        Private Shared ReadOnly s_arithmeticParenthesesRemoveIfUnnecessary As String = $"
+class C
+    sub M()
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        Dim v = a + b * c
+
+        ' {ServicesVSResources.Over_colon}
+        Dim v = a + (b * c)
+//]
+    end sub
+end class
+"
+
+        Private Shared ReadOnly s_logicalParenthesesIgnore As String = $"
+class C
+    sub M()
+//[
+        ' {ServicesVSResources.Keep_all_parentheses_in_colon}
+        Dim v = a OrElse (b OrElse c)
+//]
+    end sub
+end class
+"
+
+        Private Shared ReadOnly s_logicalParenthesesRequireForPrecedenceClarity As String = $"
+class C
+    sub M()
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        Dim v = a OrElse (b AndAlso c)
+
+        ' {ServicesVSResources.Over_colon}
+        Dim v = a OrElse b AndAlso c
+//]
+    end sub
+end class
+"
+
+        Private Shared ReadOnly s_logicalParenthesesRemoveIfUnnecessary As String = $"
+class C
+    sub M()
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        Dim v = a OrElse b AndAlso c
+
+        ' {ServicesVSResources.Over_colon}
+        Dim v = a OrElse (b AndAlso c)
+//]
+    end sub
+end class
+"
+
+        Private ReadOnly s_relationalParenthesesIgnore As String = $"
+class C
+    sub M()
+//[
+        // {ServicesVSResources.Keep_all_parentheses_in_colon}
+        dim v = (a + b) <= c
+//]
+    end sub
+end class
+"
+
+        Private ReadOnly s_relationalParenthesesRequireForPrecedenceClarity As String = $"
+class C
+    sub M()
+//[
+        // {ServicesVSResources.Prefer_colon}
+        dim v = (a + b) <= c
+
+        // {ServicesVSResources.Over_colon}
+        dim v = a + b <= c
+//]
+    end sub
+end class
+"
+
+        Private ReadOnly s_relationalParenthesesRemoveIfUnnecessary As String = $"
+class C
+    sub M()
+//[
+        // {ServicesVSResources.Prefer_colon}
+        dim v = a + b <= c
+
+        // {ServicesVSResources.Over_colon}
+        dim v = (a + b) <= c
+//]
+    end sub
+end class
+"
+
+        Private Shared ReadOnly s_shiftParenthesesIgnore As String = $"
+class C
+    sub M()
+//[
+        ' {ServicesVSResources.Keep_all_parentheses_in_colon}
+        Dim v = (a + b) << c
+//]
+    end sub
+end class
+"
+
+        Private Shared ReadOnly s_shiftParenthesesRequireForPrecedenceClarity As String = $"
+class C
+    sub M()
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        Dim v = (a + b) << c
+
+        ' {ServicesVSResources.Over_colon}
+        Dim v = a + b << c
+//]
+    end sub
+end class
+"
+
+        Private Shared ReadOnly s_shiftParenthesesRemoveIfUnnecessary As String = $"
+class C
+    sub M()
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        Dim v = a + b << c
+
+        ' {ServicesVSResources.Over_colon}
+        Dim v = (a + b) << c
+//]
+    end sub
+end class
+"
+
+        Private Shared ReadOnly s_otherParenthesesIgnore As String = $"
+class C
+    sub M()
+//[
+        ' {ServicesVSResources.Keep_all_parentheses_in_colon}
+        Dim v = (a.b).Length
+//]
+    end sub
+end class
+"
+
+        Private Shared ReadOnly s_otherParenthesesRemoveIfUnnecessary As String = $"
+class C
+    sub M()
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        Dim v = a.b.Length
+
+        ' {ServicesVSResources.Over_colon}
+        Dim v = (a.b).Length
+//]
+    end sub
+end class
+"
+
 #End Region
 
         Public Sub New(optionSet As OptionSet, serviceProvider As IServiceProvider)
@@ -346,6 +526,8 @@ End Class"
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, ServicesVSResources.For_locals_parameters_and_members, _intrinsicDeclarationPreviewTrue, _intrinsicDeclarationPreviewFalse, Me, optionSet, predefinedTypesGroupTitle, predefinedTypesPreferences))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, ServicesVSResources.For_member_access_expressions, _intrinsicMemberAccessPreviewTrue, _intrinsicMemberAccessPreviewFalse, Me, optionSet, predefinedTypesGroupTitle, predefinedTypesPreferences))
 
+            AddParenthesesOptions(Options)
+
             ' Code block
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferAutoProperties, ServicesVSResources.analyzer_Prefer_auto_properties, s_preferAutoProperties, s_preferAutoProperties, Me, optionSet, codeBlockPreferencesGroupTitle))
 
@@ -360,6 +542,43 @@ End Class"
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, Me, optionSet, nothingPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, Me, optionSet, nothingPreferencesGroupTitle))
             Me.CodeStyleItems.Add(New BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, BasicVSResources.Prefer_Is_Nothing_over_ReferenceEquals, s_preferIsNothingCheckOverReferenceEquals, s_preferIsNothingCheckOverReferenceEquals, Me, optionSet, nothingPreferencesGroupTitle))
+        End Sub
+
+        Private Sub AddParenthesesOptions(optionSet As OptionSet)
+            AddParenthesesOption(
+                LanguageNames.VisualBasic, optionSet, CodeStyleOptions.ArithmeticOperationParentheses,
+                BasicVSResources.Arithmetic_operations,
+                {s_arithmeticParenthesesIgnore, s_arithmeticParenthesesRequireForPrecedenceClarity, s_arithmeticParenthesesRemoveIfUnnecessary},
+                allowRequireForClarity:=True,
+                recommended:=True)
+
+            AddParenthesesOption(
+                LanguageNames.VisualBasic, optionSet, CodeStyleOptions.ShiftOperationParentheses,
+                BasicVSResources.Shift_operations,
+                 {s_shiftParenthesesIgnore, s_shiftParenthesesRequireForPrecedenceClarity, s_shiftParenthesesRemoveIfUnnecessary},
+                allowRequireForClarity:=True,
+                recommended:=False)
+
+            AddParenthesesOption(
+                LanguageNames.VisualBasic, optionSet, CodeStyleOptions.RelationalOperationParentheses,
+                BasicVSResources.Relational_operations,
+                {s_relationalParenthesesIgnore, s_relationalParenthesesRequireForPrecedenceClarity, s_relationalParenthesesRemoveIfUnnecessary},
+                allowRequireForClarity:=True,
+                recommended:=True)
+
+            AddParenthesesOption(
+                LanguageNames.VisualBasic, optionSet, CodeStyleOptions.LogicalOperationParentheses,
+                BasicVSResources.Logical_operations,
+                {s_logicalParenthesesIgnore, s_logicalParenthesesRequireForPrecedenceClarity, s_logicalParenthesesRemoveIfUnnecessary},
+                allowRequireForClarity:=True,
+                recommended:=True)
+
+            AddParenthesesOption(
+                LanguageNames.VisualBasic, optionSet, CodeStyleOptions.OtherOperationParentheses,
+                ServicesVSResources.Other_operations,
+                 {s_otherParenthesesIgnore, s_otherParenthesesRemoveIfUnnecessary},
+                allowRequireForClarity:=False,
+                recommended:=True)
         End Sub
     End Class
 End Namespace

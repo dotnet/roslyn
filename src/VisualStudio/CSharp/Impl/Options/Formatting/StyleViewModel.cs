@@ -783,6 +783,350 @@ class List<T>
 //]
 ";
 
+        private readonly string s_arithmeticParenthesesIgnore = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Keep_all_parentheses_in_colon}
+        var v = a + (b + c);
+//]
+    }}
+}}
+";
+
+        private readonly string s_arithmeticParenthesesRequireForPrecedenceClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a + (b * c);
+
+        // {ServicesVSResources.Over_colon}
+        var v = a + b * c;
+//]
+    }}
+}}
+";
+
+        private readonly string s_arithmeticParenthesesRemoveIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a + b * c;
+
+        // {ServicesVSResources.Over_colon}
+        var v = a + (b * c);
+//]
+    }}
+}}
+";
+
+        private readonly string s_shiftParenthesesIgnore = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Keep_all_parentheses_in_colon}
+        var v = (a + b) << c;
+//]
+    }}
+}}
+";
+
+        private readonly string s_shiftParenthesesRequireForPrecedenceClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = (a + b) << c;
+
+        // {ServicesVSResources.Over_colon}
+        var v = a + b << c;
+//]
+    }}
+}}
+";
+
+        private readonly string s_shiftParenthesesRemoveIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a + b << c;
+
+        // {ServicesVSResources.Over_colon}
+        var v = (a + b) << c;
+//]
+    }}
+}}
+";
+
+        private readonly string s_relationalParenthesesIgnore = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Keep_all_parentheses_in_colon}
+        var v = (a + b) <= c;
+//]
+    }}
+}}
+";
+
+        private readonly string s_relationalParenthesesRequireForPrecedenceClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = (a + b) <= c;
+
+        // {ServicesVSResources.Over_colon}
+        var v = a + b <= c;
+//]
+    }}
+}}
+";
+
+        private readonly string s_relationalParenthesesRemoveIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a + b <= c;
+
+        // {ServicesVSResources.Over_colon}
+        var v = (a + b) <= c;
+//]
+    }}
+}}
+";
+
+        private readonly string s_equalityParenthesesIgnore = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Keep_all_parentheses_in_colon}
+        var v = (a || b) == (c || d);
+//]
+    }}
+}}
+";
+
+        private readonly string s_equalityParenthesesRequireForPrecedenceClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = (a || b) == (c || d);
+
+        // {ServicesVSResources.Over_colon}
+        var v = a || b == c || d;
+//]
+    }}
+}}
+";
+
+        private readonly string s_equalityParenthesesRemoveIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a || b == c || d;
+
+        // {ServicesVSResources.Over_colon}
+        var v = (a || b) == (c || d);
+//]
+    }}
+}}
+";
+
+        private readonly string s_bitwiseParenthesesIgnore = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Keep_all_parentheses_in_colon}
+        var v = (a + b) & c;
+//]
+    }}
+}}
+";
+
+        private readonly string s_bitwiseParenthesesRequireForPrecedenceClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = (a + b) & c;
+
+        // {ServicesVSResources.Over_colon}
+        var v = a + b & c;
+//]
+    }}
+}}
+";
+
+        private readonly string s_bitwiseParenthesesRemoveIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a + b & c;
+
+        // {ServicesVSResources.Over_colon}
+        var v = (a + b) & c;
+//]
+    }}
+}}
+";
+
+        private readonly string s_logicalParenthesesIgnore = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Keep_all_parentheses_in_colon}
+        var v = a || (b || c);
+//]
+    }}
+}}
+";
+
+        private readonly string s_logicalParenthesesRequireForPrecedenceClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a || (b && c);
+
+        // {ServicesVSResources.Over_colon}
+        var v = a || b && c;
+//]
+    }}
+}}
+";
+
+        private readonly string s_logicalParenthesesRemoveIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a || b && c;
+
+        // {ServicesVSResources.Over_colon}
+        var v = a || (b && c);
+//]
+    }}
+}}
+";
+
+        private readonly string s_coalesceParenthesesIgnore = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Keep_all_parentheses_in_colon}
+        var v = (a + b) ?? c
+//]
+    }}
+}}
+";
+
+        private readonly string s_coalesceParenthesesRequireForPrecedenceClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = (a + b) ?? c
+
+        // {ServicesVSResources.Over_colon}
+        var v = a + b ?? c
+//]
+    }}
+}}
+";
+
+        private readonly string s_coalesceParenthesesRemoveIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a + b ?? c
+
+        // {ServicesVSResources.Over_colon}
+        var v = (a + b) ?? c
+//]
+    }}
+}}
+";
+
+        private readonly string s_otherParenthesesIgnore = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Keep_all_parentheses_in_colon}
+        var v = (a.b).Length;
+//]
+    }}
+}}
+";
+
+        private readonly string s_otherParenthesesRemoveIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        var v = a.b.Length;
+
+        // {ServicesVSResources.Over_colon}
+        var v = (a.b).Length;
+//]
+    }}
+}}
+";
+
         #endregion
 
         internal StyleViewModel(OptionSet optionSet, IServiceProvider serviceProvider) : base(optionSet, serviceProvider, LanguageNames.CSharp)
@@ -833,6 +1177,8 @@ class List<T>
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CSharpCodeStyleOptions.PreferBraces, ServicesVSResources.Prefer_braces, s_preferBraces, s_preferBraces, this, optionSet, codeBlockPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferAutoProperties, ServicesVSResources.analyzer_Prefer_auto_properties, s_preferAutoProperties, s_preferAutoProperties, this, optionSet, codeBlockPreferencesGroupTitle));
 
+            AddParenthesesOptions(Options);
+
             // Expression preferences
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferObjectInitializer, ServicesVSResources.Prefer_object_initializer, s_preferObjectInitializer, s_preferObjectInitializer, this, optionSet, expressionPreferencesGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCollectionInitializer, ServicesVSResources.Prefer_collection_initializer, s_preferCollectionInitializer, s_preferCollectionInitializer, this, optionSet, expressionPreferencesGroupTitle));
@@ -856,6 +1202,65 @@ class List<T>
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferCoalesceExpression, ServicesVSResources.Prefer_coalesce_expression, s_preferCoalesceExpression, s_preferCoalesceExpression, this, optionSet, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferNullPropagation, ServicesVSResources.Prefer_null_propagation, s_preferNullPropagation, s_preferNullPropagation, this, optionSet, nullCheckingGroupTitle));
             CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(CodeStyleOptions.PreferIsNullCheckOverReferenceEqualityMethod, CSharpVSResources.Prefer_is_null_over_ReferenceEquals, s_preferIsNullOverReferenceEquals, s_preferIsNullOverReferenceEquals, this, optionSet, nullCheckingGroupTitle));
+        }
+
+        private void AddParenthesesOptions(OptionSet optionSet)
+        {
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.ArithmeticOperationParentheses,
+                CSharpVSResources.Arithmetic_operations,
+                new[] { s_arithmeticParenthesesIgnore, s_arithmeticParenthesesRequireForPrecedenceClarity, s_arithmeticParenthesesRemoveIfUnnecessary },
+                allowRequireForClarity: true,
+                recommended: true);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.ShiftOperationParentheses,
+                CSharpVSResources.Shift_operations,
+                new[] { s_shiftParenthesesIgnore, s_shiftParenthesesRequireForPrecedenceClarity, s_shiftParenthesesRemoveIfUnnecessary },
+                allowRequireForClarity: true,
+                recommended: false);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.RelationalOperationParentheses,
+                CSharpVSResources.Relational_operations,
+                new[] { s_relationalParenthesesIgnore, s_relationalParenthesesRequireForPrecedenceClarity, s_relationalParenthesesRemoveIfUnnecessary },
+                allowRequireForClarity: true,
+                recommended: true);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.EqualityOperationParentheses,
+                CSharpVSResources.Equality_operations,
+                new[] { s_equalityParenthesesIgnore, s_equalityParenthesesRequireForPrecedenceClarity, s_equalityParenthesesRemoveIfUnnecessary },
+                allowRequireForClarity: true,
+                recommended: true);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.BitwiseOperationParentheses,
+                CSharpVSResources.Bitwise_operations,
+                new[] { s_bitwiseParenthesesIgnore, s_bitwiseParenthesesRequireForPrecedenceClarity, s_bitwiseParenthesesRemoveIfUnnecessary },
+                allowRequireForClarity: true,
+                recommended: false);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.LogicalOperationParentheses,
+                CSharpVSResources.Logical_operations,
+                new[] { s_logicalParenthesesIgnore, s_logicalParenthesesRequireForPrecedenceClarity, s_logicalParenthesesRemoveIfUnnecessary },
+                allowRequireForClarity: true,
+                recommended: true);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.CoalesceOperationParentheses,
+                CSharpVSResources.Coalesce_operations,
+                new[] { s_coalesceParenthesesIgnore, s_coalesceParenthesesRequireForPrecedenceClarity, s_coalesceParenthesesRemoveIfUnnecessary },
+                allowRequireForClarity: true,
+                recommended: false);
+
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.OtherOperationParentheses,
+                ServicesVSResources.Other_operations,
+                new[] { s_otherParenthesesIgnore, s_otherParenthesesRemoveIfUnnecessary },
+                allowRequireForClarity: false,
+                recommended: true);
         }
 
         private void AddExpressionBodyOptions(OptionSet optionSet, string expressionPreferencesGroupTitle)
