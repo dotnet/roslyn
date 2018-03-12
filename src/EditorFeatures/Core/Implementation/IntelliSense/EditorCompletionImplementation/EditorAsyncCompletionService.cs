@@ -71,6 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             ITextView view, 
             CancellationToken cancellationToken)
         {
+            var documentSnapshot = sortedList[0].Properties.GetProperty<ITextBuffer>("TriggerBuffer").CurrentSnapshot;
+
             var filterText = applicableToSpan.GetText(snapshot);
 
             // Check if the user is typing a number. If so, only proceed if it's a number
@@ -141,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             return HandleNormalFiltering(
                 sortedList,
-                snapshot,
+                documentSnapshot,
                 caretPosition,
                 filterText, 
                 filters, 
@@ -327,6 +329,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 var listWithSelections = GetHighlightedList(itemsInList, filterText, patternMatcherMap);
                 return Task.FromResult(new FilteredCompletionModel(listWithSelections.ToImmutableArray(), 0));
             }
+
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();            
 
             var matchingItems = itemsInList
                 .Where(r => r.MatchedFilterText)
