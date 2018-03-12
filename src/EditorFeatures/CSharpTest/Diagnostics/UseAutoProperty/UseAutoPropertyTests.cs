@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public async Task TestFieldUseInRefArgument1()
+        public async Task TestNotIfFieldUsedInRefArgument1()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Class
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public async Task TestFieldUseInRefArgument2()
+        public async Task TestNotIfFieldUsedInRefArgument2()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Class
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
-        public async Task TestFieldUseInOutArgument()
+        public async Task TestNotIfFieldUsedInOutArgument()
         {
             await TestMissingInRegularAndScriptAsync(
 @"class Class
@@ -426,10 +426,56 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
     }
 
-    void M(out x)
+    void M(out int x)
     {
         M(out i);
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestNotIfFieldUsedInInArgument()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|int i|];
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+
+    void M(in int x)
+    {
+        M(in i);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestNotIfFieldUsedInRefExpression()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|int i|];
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+
+	void M()
+	{
+		ref int x = ref i;
+	}
 }");
         }
 

@@ -82,6 +82,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
                     {
                         AnalyzeArgument(semanticModel, argument, ineligibleFields, cancellationToken);
                     }
+
+                    foreach (var refExpression in typeDeclaration.DescendantNodesAndSelf().OfType<RefExpressionSyntax>())
+                    {
+                        AnalyzeRefExpression(semanticModel, refExpression, ineligibleFields, cancellationToken);
+                    }
                 }
             }
         }
@@ -91,13 +96,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             return variable.Initializer?.Value;
         }
 
-        private void AnalyzeArgument(
+        private static void AnalyzeArgument(
             SemanticModel semanticModel, ArgumentSyntax argument,
             HashSet<IFieldSymbol> ineligibleFields, CancellationToken cancellationToken)
         {
             // An argument will disqualify a field if that field is used in a ref/out position.  
             // We can't change such field references to be property references in C#.
-            if (argument.RefOrOutKeyword.Kind() == SyntaxKind.None)
+            if (argument.RefKindKeyword.Kind() == SyntaxKind.None)
             {
                 return;
             }
@@ -108,6 +113,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             {
                 AddIneligibleField(symbol, ineligibleFields);
             }
+        }
+
+        private static void AnalyzeRefExpression(
+            SemanticModel semanticModel, RefExpressionSyntax refExpression,
+            HashSet<IFieldSymbol> ineligibleFields, CancellationToken cancellationToken)
+        {
+            var symbolInfo = semanticModel.GetSymbolInfo(refExpression.Expression, cancellationToken);
+            AddIneligibleField(symbolInfo.Symbol, ineligibleFields);
         }
 
         private static void AddIneligibleField(ISymbol symbol, HashSet<IFieldSymbol> ineligibleFields)
