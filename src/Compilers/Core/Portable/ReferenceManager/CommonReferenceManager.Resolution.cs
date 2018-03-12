@@ -837,7 +837,7 @@ namespace Microsoft.CodeAnalysis
             var references = compilation.Options.MetadataReferenceResolver.ResolveReference(reference, basePath, MetadataReferenceProperties.Assembly.WithRecursiveAliases(true));
             if (references.IsDefaultOrEmpty)
             {
-                return Array.Empty<PortableExecutableReference>();
+                return null;
             }
 
             return references.ToArray();
