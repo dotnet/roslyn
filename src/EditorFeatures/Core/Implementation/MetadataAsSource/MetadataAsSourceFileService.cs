@@ -3,17 +3,17 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.Decompiler;
 using ICSharpCode.Decompiler.CSharp;
+using ICSharpCode.Decompiler.CSharp.Transforms;
 using ICSharpCode.Decompiler.TypeSystem;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -230,11 +230,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             var decompiler = new CSharpDecompiler(assemblyDefinition.MainModule, new DecompilerSettings());
             // Escape invalid identifiers to prevent Roslyn from failing to parse the generated code.
             // (This happens for example, when there is compiler-generated code that is not yet recognized/transformed by the decompiler.)
-            decompiler.AstTransforms.Add(new ICSharpCode.Decompiler.CSharp.Transforms.EscapeInvalidIdentifiers());
+            decompiler.AstTransforms.Add(new EscapeInvalidIdentifiers());
 
             var fullTypeName = new FullTypeName(fullName);
 
-            var decompilerVersion = System.Diagnostics.FileVersionInfo.GetVersionInfo(typeof(CSharpDecompiler).Assembly.Location);
+            var decompilerVersion = FileVersionInfo.GetVersionInfo(typeof(CSharpDecompiler).Assembly.Location);
 
             // Add header to match output of metadata-only view.
             // (This also makes debugging easier, because you can see which assembly was decompiled inside VS.)
