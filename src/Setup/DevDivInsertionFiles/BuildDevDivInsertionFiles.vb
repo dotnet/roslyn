@@ -470,26 +470,6 @@ Public Class BuildDevDivInsertionFiles
             Me.IsNative = isNative
             Me.IsFacade = isFacade
         End Sub
-
-        ' TODO: remove (https://github.com/dotnet/roslyn/issues/13204)
-        ' Don't update CoreXT incompatible packages. They are inserted manually until CoreXT updates to NuGet 3.5 RTM.
-        Public ReadOnly Property IsCoreXTCompatible As Boolean
-            Get
-                Select Case PackageName
-                    Case "System.Security.Cryptography.Algorithms",
-                          "System.Security.Cryptography.X509Certificates",
-                          "System.Reflection.TypeExtensions",
-                          "System.Net.Security",
-                          "System.Diagnostics.Process",
-                          "System.AppContext",
-                          "System.IO.Compression"
-
-                        Return False
-                    Case Else
-                        Return True
-                End Select
-            End Get
-        End Property
     End Class
 
     Private Function BuildDependencyMap(inputDirectory As String) As Dictionary(Of String, DependencyInfo)
@@ -617,12 +597,6 @@ Public Class BuildDevDivInsertionFiles
 
     Private Sub CopyDependencies(dependencies As IReadOnlyDictionary(Of String, DependencyInfo))
         For Each dependency In dependencies.Values
-            ' TODO: remove (https://github.com/dotnet/roslyn/issues/13204)
-            ' Don't update CoreXT incompatible packages. They are inserted manually until CoreXT updates to NuGet 3.5 RTM.
-            If Not dependency.IsCoreXTCompatible Then
-                Continue For
-            End If
-
             Dim nupkg = $"{dependency.PackageName}.{dependency.PackageVersion}.nupkg"
             Dim srcPath = Path.Combine(_nugetPackageRoot, dependency.PackageName, dependency.PackageVersion, nupkg)
             Dim dstDir = Path.Combine(_outputPackageDirectory, If(dependency.IsNative, "NativeDependencies", "ManagedDependencies"))
