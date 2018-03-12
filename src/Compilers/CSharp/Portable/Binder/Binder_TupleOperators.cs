@@ -308,24 +308,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                BoundExpression location = null;
-                string complaintName = null;
-                if (leftComplaint && rightComplaint)
-                {
-                    // When in doubt, we'll complain on the right side
-                    location = isRightBestSide ? rightLocations[i] : leftLocations[i];
-                    complaintName = isRightBestSide ? rightName : leftName;
-                }
-                else if (rightComplaint)
-                {
-                    location = rightLocations[i];
-                    complaintName = rightName;
-                }
-                else if (leftComplaint)
-                {
-                    location = leftLocations[i];
-                    complaintName = leftName;
-                }
+                // When in doubt, we'll complain on the right side
+                bool useRight = (leftComplaint && rightComplaint) ? isRightBestSide : rightComplaint;
+                BoundExpression location = useRight ? rightLocations[i] : leftLocations[i];
+                string complaintName = useRight ? rightName : leftName;
 
                 diagnostics.Add(ErrorCode.WRN_TupleBinopLiteralNameMismatch, location.Syntax.Parent.Location, complaintName);
             }
