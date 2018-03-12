@@ -749,7 +749,7 @@ class C
             Assert.Equal("(s, null)", tuple1.ToString());
             var tupleType1 = model.GetTypeInfo(tuple1);
             Assert.Null(tupleType1.Type);
-            Assert.Equal("(System.String, System.String)", tupleType1.ConvertedType.ToTestDisplayString());
+            Assert.Equal("(System.String s, System.String)", tupleType1.ConvertedType.ToTestDisplayString());
 
             var tuple1Null = tuple1.Arguments[1].Expression;
             var tuple1NullTypeInfo = model.GetTypeInfo(tuple1Null);
@@ -762,7 +762,7 @@ class C
             Assert.Equal("(null, s)", tuple2.ToString());
             var tupleType2 = model.GetTypeInfo(tuple2);
             Assert.Null(tupleType2.Type);
-            Assert.Equal("(System.String, System.String)", tupleType2.ConvertedType.ToTestDisplayString());
+            Assert.Equal("(System.String, System.String s)", tupleType2.ConvertedType.ToTestDisplayString());
 
             var tuple2Null = tuple2.Arguments[0].Expression;
             var tuple2NullTypeInfo = model.GetTypeInfo(tuple2Null);
@@ -866,7 +866,7 @@ class C
             Assert.Equal("(1L, t2)", tuple.ToString());
             var tupleType = model.GetTypeInfo(tuple);
             Assert.Equal("(System.Int64, (System.Int32, System.String) t2)", tupleType.Type.ToTestDisplayString());
-            Assert.Equal("(System.Int64, (System.Int64, System.String))", tupleType.ConvertedType.ToTestDisplayString());
+            Assert.Equal("(System.Int64, (System.Int64, System.String) t2)", tupleType.ConvertedType.ToTestDisplayString());
 
             var t2 = tuple.Arguments[1].Expression;
             Assert.Equal("t2", t2.ToString());
@@ -1368,7 +1368,7 @@ class C
 
             var tupleType = model.GetTypeInfo(tuple);
             Assert.Null(tupleType.Type);
-            Assert.Equal("((System.String, System.String), (System.String, System.String))",
+            Assert.Equal("((System.String, System.String), (System.String, System.String) t)",
                 tupleType.ConvertedType.ToTestDisplayString());
 
             // ... its t ...
@@ -1736,13 +1736,13 @@ public class C
             Assert.Equal("(d1, null)", tuple1.ToString());
             var tupleType1 = model.GetTypeInfo(tuple1);
             Assert.Null(tupleType1.Type);
-            Assert.Equal("(dynamic, dynamic)", tupleType1.ConvertedType.ToTestDisplayString());
+            Assert.Equal("(dynamic d1, dynamic)", tupleType1.ConvertedType.ToTestDisplayString());
 
             var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
             Assert.Equal("(null, d2)", tuple2.ToString());
             var tupleType2 = model.GetTypeInfo(tuple2);
             Assert.Null(tupleType2.Type);
-            Assert.Equal("(dynamic, dynamic)", tupleType2.ConvertedType.ToTestDisplayString());
+            Assert.Equal("(dynamic, dynamic d2)", tupleType2.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -3971,6 +3971,92 @@ public class A
                 //         if (a == a) { }
                 Diagnostic(ErrorCode.WRN_ComparisonToSelf, "a == a").WithLocation(7, 13)
                 );
+        }
+
+        [Fact]
+        public void TestElementNames()
+        {
+            var source = @"
+#pragma warning disable CS0219
+using static System.Console;
+public class C
+{
+    public static void Main()
+    {
+        int a = 1;
+        int b = 2;
+        int c = 3;
+        int d = 4;
+        int x = 5;
+        int y = 6;
+        (int x, int y) t1 = (1, 2);
+        (int, int) t2 = (1, 2);
+        Write($""{REPLACE}"");
+    }
+}
+";
+
+            // tuple expression vs tuple expression
+            validate("t1 == t2");
+
+            // tuple expression vs tuple literal
+            validate("t1 == (x: 1, y: 2)");
+            validate("t1 == (1, 2)");
+            validate("(1, 2) == t1");
+            validate("(x: 1, d) == t1");
+
+            validate("t2 == (x: 1, y: 2)",
+                // (16,25): warning CS8375: The tuple element name 'x' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.
+                //         Write($"{t2 == (x: 1, y: 2)}");
+                Diagnostic(ErrorCode.WRN_TupleBinopLiteralNameMismatch, "x: 1").WithArguments("x").WithLocation(16, 25),
+                // (16,31): warning CS8375: The tuple element name 'y' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.
+                //         Write($"{t2 == (x: 1, y: 2)}");
+                Diagnostic(ErrorCode.WRN_TupleBinopLiteralNameMismatch, "y: 2").WithArguments("y").WithLocation(16, 31)
+                );
+
+            // tuple literal vs tuple literal
+            // - warnings reported on the right when both sides could complain
+            // - no warnings on inferred names
+
+            validate("((a, b), c: 3) == ((1, x: 2), 3)",
+                // (16,27): warning CS8375: The tuple element name 'c' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.
+                //         Write($"{((a, b), c: 3) == ((1, x: 2), 3)}");
+                Diagnostic(ErrorCode.WRN_TupleBinopLiteralNameMismatch, "c: 3").WithArguments("c").WithLocation(16, 27),
+                // (16,41): warning CS8375: The tuple element name 'x' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.
+                //         Write($"{((a, b), c: 3) == ((1, x: 2), 3)}");
+                Diagnostic(ErrorCode.WRN_TupleBinopLiteralNameMismatch, "x: 2").WithArguments("x").WithLocation(16, 41)
+                );
+
+            validate("(a, b) == (a: 1, b: 2)");
+            validate("(a, b) == (c: 1, d)",
+                // (16,29): warning CS8375: The tuple element name 'c' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.
+                //         Write($"{(a, b) == (c: 1, d)}");
+                Diagnostic(ErrorCode.WRN_TupleBinopLiteralNameMismatch, "c: 1").WithArguments("c").WithLocation(16, 29)
+                );
+
+            validate("(a: 1, b: 2) == (c: 1, d)",
+                // (16,35): warning CS8375: The tuple element name 'c' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.
+                //         Write($"{(a: 1, b: 2) == (c: 1, d)}");
+                Diagnostic(ErrorCode.WRN_TupleBinopLiteralNameMismatch, "c: 1").WithArguments("c").WithLocation(16, 35),
+                // (16,25): warning CS8375: The tuple element name 'b' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.
+                //         Write($"{(a: 1, b: 2) == (c: 1, d)}");
+                Diagnostic(ErrorCode.WRN_TupleBinopLiteralNameMismatch, "b: 2").WithArguments("b").WithLocation(16, 25)
+                );
+
+            validate("(null, b) == (c: null, d: 2)",
+                // (16,32): warning CS8375: The tuple element name 'c' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.
+                //         Write($"{(null, b) == (c: null, d: 2)}");
+                Diagnostic(ErrorCode.WRN_TupleBinopLiteralNameMismatch, "c: null").WithArguments("c").WithLocation(16, 32),
+                // (16,41): warning CS8375: The tuple element name 'd' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.
+                //         Write($"{(null, b) == (c: null, d: 2)}");
+                Diagnostic(ErrorCode.WRN_TupleBinopLiteralNameMismatch, "d: 2").WithArguments("d").WithLocation(16, 41)
+                );
+
+            void validate(string expression, params DiagnosticDescription[] diagnostics)
+            {
+                var comp = CreateCompilation(source.Replace("REPLACE", expression));
+                comp.VerifyDiagnostics(diagnostics);
+            }
         }
 
         [Fact]

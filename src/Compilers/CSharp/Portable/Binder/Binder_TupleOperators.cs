@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (right.Type is null && right.IsLiteralDefault()))
             {
                 Error(diagnostics, ErrorCode.ERR_AmbigBinaryOps, node, node.OperatorToken.Text, left.Display, right.Display);
-                return new TupleBinaryOperatorInfo.Multiple(ImmutableArray<TupleBinaryOperatorInfo>.Empty, left.Type, right.Type);
+                return TupleBinaryOperatorInfo.Multiple.ErrorInstance;
             }
 
             // Aside from default (which we fixed or ruled out above) and tuple literals,
@@ -221,11 +221,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (leftCardinality != rightCardinality)
             {
                 Error(diagnostics, ErrorCode.ERR_TupleSizesMismatchForBinOps, node, leftCardinality, rightCardinality);
-                return new TupleBinaryOperatorInfo.Multiple(ImmutableArray<TupleBinaryOperatorInfo>.Empty, leftConvertedTypeOpt: null, rightConvertedTypeOpt: null);
+                return TupleBinaryOperatorInfo.Multiple.ErrorInstance;
             }
 
-            ImmutableArray<BoundExpression> leftParts = GetTupleArgumentsOrPlaceholders(left);
-            ImmutableArray<BoundExpression> rightParts = GetTupleArgumentsOrPlaceholders(right);
+            (ImmutableArray<BoundExpression> leftParts, ImmutableArray<string> leftNames) = GetTupleArgumentsOrPlaceholders(left);
+            (ImmutableArray<BoundExpression> rightParts, ImmutableArray<string> rightNames) = GetTupleArgumentsOrPlaceholders(right);
+            ReportNamesMismatchesIfAny(left, right, leftNames, rightNames, diagnostics);
 
             int length = leftParts.Length;
             Debug.Assert(length == rightParts.Length);
@@ -245,10 +246,78 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool rightNullable = right.Type?.IsNullableType() == true;
             bool isNullable = leftNullable || rightNullable;
 
-            TypeSymbol leftTupleType = MakeConvertedType(operators.SelectAsArray(o => o.LeftConvertedTypeOpt), node.Left, leftParts, isNullable, compilation, diagnostics);
-            TypeSymbol rightTupleType = MakeConvertedType(operators.SelectAsArray(o => o.RightConvertedTypeOpt), node.Right, rightParts, isNullable, compilation, diagnostics);
+            TypeSymbol leftTupleType = MakeConvertedType(operators.SelectAsArray(o => o.LeftConvertedTypeOpt), node.Left, leftParts, leftNames, isNullable, compilation, diagnostics);
+            TypeSymbol rightTupleType = MakeConvertedType(operators.SelectAsArray(o => o.RightConvertedTypeOpt), node.Right, rightParts, rightNames, isNullable, compilation, diagnostics);
 
             return new TupleBinaryOperatorInfo.Multiple(operators, leftTupleType, rightTupleType);
+        }
+
+        /// <summary>
+        /// If an element in a tuple literal has an explicit name which doesn't match the name on the other side, we'll warn.
+        /// The user can either remove the name, or fix it.
+        ///
+        /// This method handles two expressions, each of which is either a tuple literal or an expression with tuple type.
+        /// In a tuple literal, each element can have an explicit name, an inferred name or no name.
+        /// In an expression of tuple type, each element can have a name or not.
+        /// </summary>
+        private static void ReportNamesMismatchesIfAny(BoundExpression left, BoundExpression right,
+            ImmutableArray<string> leftNames, ImmutableArray<string> rightNames, DiagnosticBag diagnostics)
+        {
+            bool leftIsTupleLiteral = left.Kind == BoundKind.TupleLiteral;
+            bool rightIsTupleLiteral = right.Kind == BoundKind.TupleLiteral;
+
+            if (!leftIsTupleLiteral && !rightIsTupleLiteral)
+            {
+                return;
+            }
+
+            bool leftNoNames = leftNames.IsDefault;
+            bool rightNoNames = rightNames.IsDefault;
+
+            if (leftNoNames && rightNoNames)
+            {
+                return;
+            }
+
+            Debug.Assert(leftNoNames || rightNoNames || leftNames.Length == rightNames.Length);
+
+            ImmutableArray<bool> leftInferred = leftIsTupleLiteral ? ((BoundTupleLiteral)left).InferredNamesOpt : default;
+            bool leftNoInferredNames = leftInferred.IsDefault;
+
+            ImmutableArray<bool> rightInferred = rightIsTupleLiteral ? ((BoundTupleLiteral)right).InferredNamesOpt : default;
+            bool rightNoInferredNames = rightInferred.IsDefault;
+
+            int length = leftNoNames ? rightNames.Length : leftNames.Length;
+            for (int i = 0; i < length; i++)
+            {
+                string leftName = leftNoNames ? null : leftNames[i];
+                string rightName = rightNoNames ? null : rightNames[i];
+
+                bool different = string.CompareOrdinal(rightName, leftName) != 0;
+                if (!different)
+                {
+                    continue;
+                }
+
+                bool leftWasInferred = leftNoInferredNames ? false : leftInferred[i];
+                bool rightWasInferred = rightNoInferredNames ? false : rightInferred[i];
+
+                bool leftComplaint = leftIsTupleLiteral && leftName != null && !leftWasInferred;
+                bool rightComplaint = rightIsTupleLiteral && rightName != null && !rightWasInferred;
+
+                if (!leftComplaint && !rightComplaint)
+                {
+                    // No complaints, let's move on
+                    continue;
+                }
+
+                // When in doubt, we'll complain on the right side if it's a literal
+                bool useRight = (leftComplaint && rightComplaint) ? rightIsTupleLiteral : rightComplaint;
+                Location location = ((BoundTupleLiteral)(useRight ? right : left)).Arguments[i].Syntax.Parent.Location;
+                string complaintName = useRight ? rightName : leftName;
+
+                diagnostics.Add(ErrorCode.WRN_TupleBinopLiteralNameMismatch, location, complaintName);
+            }
         }
 
         internal static BoundExpression GiveTupleTypeToDefaultLiteralIfNeeded(BoundExpression expr, TypeSymbol targetType)
@@ -298,16 +367,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             return -1;
         }
 
-        private static ImmutableArray<BoundExpression> GetTupleArgumentsOrPlaceholders(BoundExpression expr)
+        /// <summary>
+        /// Given a tuple literal or expression, we'll get two arrays:
+        /// - the elements from the literal, or some placeholder with proper type (for tuple expressions)
+        /// - the elements' names
+        /// </summary>
+        private static (ImmutableArray<BoundExpression> Elements, ImmutableArray<string> Names) GetTupleArgumentsOrPlaceholders(BoundExpression expr)
         {
             if (expr.Kind == BoundKind.TupleLiteral)
             {
-                return ((BoundTupleLiteral)expr).Arguments;
+                var tuple = (BoundTupleLiteral)expr;
+                return (tuple.Arguments, tuple.ArgumentNamesOpt);
             }
 
             // placeholder bound nodes with the proper types are sufficient to bind the element-wise binary operators
-            return expr.Type.StrippedType().TupleElementTypes
+            TypeSymbol tupleType = expr.Type.StrippedType();
+            ImmutableArray<BoundExpression> placeholders = tupleType.TupleElementTypes
                 .SelectAsArray((t, s) => (BoundExpression)new BoundTupleOperandPlaceholder(s, t), expr.Syntax);
+
+            return (placeholders, tupleType.TupleElementNames);
         }
 
         /// <summary>
@@ -316,7 +394,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// If any of the elements is typeless, then the tuple is typeless too.
         /// </summary>
         private TypeSymbol MakeConvertedType(ImmutableArray<TypeSymbol> convertedTypes, CSharpSyntaxNode syntax,
-            ImmutableArray<BoundExpression> elements, bool isNullable, CSharpCompilation compilation, DiagnosticBag diagnostics)
+            ImmutableArray<BoundExpression> elements, ImmutableArray<string> names,
+            bool isNullable, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
             foreach (var convertedType in convertedTypes)
             {
@@ -330,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // PROTOTYPE(tuple-equality) Add test for violated tuple constraint
             var tuple = TupleTypeSymbol.Create(locationOpt: null, elementTypes: convertedTypes,
-                elementLocations, elementNames: default, compilation,
+                elementLocations, elementNames: names, compilation,
                 shouldCheckConstraints: true, errorPositions: default, syntax, diagnostics);
 
             if (!isNullable)

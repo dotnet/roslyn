@@ -1562,6 +1562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_TupleSizesMismatchForBinOps = 8373,
         ERR_ExpressionTreeContainsTupleBinOp = 8374,
+        WRN_TupleBinopLiteralNameMismatch = 8375,
         #endregion diagnostics introduced for C# 7.3
 
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
