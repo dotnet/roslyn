@@ -501,13 +501,6 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotInForEach()
-        {
-            await VerifyAbsenceWithRefsAsync(AddInsideMethod(
-@"foreach ($$"));
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestNotInUsing()
         {
             await VerifyAbsenceWithRefsAsync(AddInsideMethod(
@@ -831,6 +824,37 @@ ref int y = ref true ? ref x : $$"));
             await VerifyKeywordWithRefsAsync(AddInsideMethod(
 @" void Goo(int test, $$) "));
 
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestRefInFor()
+        {
+            await VerifyKeywordWithRefsAsync(AddInsideMethod(@"
+for ($$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestRefForeachVariable()
+        {
+            await VerifyKeywordWithRefsAsync(AddInsideMethod(@"
+foreach ($$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestRefExpressionInAssignment()
+        {
+            await VerifyKeywordWithRefsAsync(AddInsideMethod(@"
+int x = 0;
+ref int y = ref x;
+y = $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestRefExpressionAfterReturn()
+        {
+            await VerifyKeywordWithRefsAsync(AddInsideMethod(@"
+ref int x = ref (new int[1])[0];
+return ref (x = $$"));
         }
     }
 }
