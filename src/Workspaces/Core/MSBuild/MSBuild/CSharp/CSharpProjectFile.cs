@@ -70,6 +70,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 outputFilePath = this.GetAbsolutePath(outputFilePath);
             }
 
+            var outputRefFilePath = project.ReadPropertyString("TargetRefPath");
+            if (!string.IsNullOrWhiteSpace(outputRefFilePath))
+            {
+                outputRefFilePath = this.GetAbsolutePath(outputRefFilePath);
+            }
+
+            var targetFramework = project.ReadPropertyString("TargetFramework");
+            if (string.IsNullOrWhiteSpace(targetFramework))
+            {
+                targetFramework = null;
+            }
+
             var docs = this.GetDocumentsFromModel(project)
                 .Where(s => !IsTemporaryGeneratedFile(s.ItemSpec))
                 .Select(s => MakeDocumentFileInfo(projectDirectory, s))
@@ -83,6 +95,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.Language,
                 project.FullPath,
                 outputFilePath,
+                outputRefFilePath,
+                targetFramework,
                 commandLineArgs,
                 docs,
                 additionalDocs,

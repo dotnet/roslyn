@@ -67,14 +67,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
             /// </summary>
             private readonly bool _preferMetadataForReferencedProjects;
 
-            /// <summary>
-            /// A list of <see cref="ProjectId"/>s and <see cref="ProjectFileInfo"/>s that were discovered as the requested
-            /// projects were loaded.
-            /// </summary>
-            private readonly List<(ProjectId id, ProjectFileInfo fileInfo)> _discoveredProjects;
-
             private readonly Dictionary<ProjectId, ProjectFileInfo> _projectIdToFileInfoMap;
             private readonly Dictionary<ProjectId, List<ProjectReference>> _projectIdToProjectReferencesMap;
+            private readonly Dictionary<string, ImmutableArray<ProjectInfo>> _pathToProjectInfosMap;
+
 
             public Worker(
                 MSBuildProjectLoader owner,
@@ -98,12 +94,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 _requestedProjectOptions = requestedProjectOptions;
                 _discoveredProjectOptions = discoveredProjectOptions;
                 _preferMetadataForReferencedProjects = preferMetadataForReferencedProjects;
-                _discoveredProjects = new List<(ProjectId id, ProjectFileInfo fileInfo)>();
                 _projectIdToFileInfoMap = new Dictionary<ProjectId, ProjectFileInfo>();
+                _pathToProjectInfosMap = new Dictionary<string, ImmutableArray<ProjectInfo>>(PathUtilities.Comparer);
                 _projectIdToProjectReferencesMap = new Dictionary<ProjectId, List<ProjectReference>>();
             }
 
-            private async Task<TResult> DoOperationAndReportProgressAsync<TResult>(ProjectLoadOperation operation, string projectPath, Func<Task<TResult>> doFunc)
+            private async Task<TResult> DoOperationAndReportProgressAsync<TResult>(ProjectLoadOperation operation, string projectPath, string targetFramework, Func<Task<TResult>> doFunc)
             {
                 var watch = _progress != null
                     ? Stopwatch.StartNew()
@@ -114,24 +110,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 if (_progress != null)
                 {
                     watch.Stop();
-                    _progress.Report(new ProjectLoadProgress(projectPath, operation, watch.Elapsed));
-                }
-
-                return result;
-            }
-
-            private TResult DoOperationAndReportProgress<TResult>(ProjectLoadOperation operation, string projectPath, Func<TResult> doFunc)
-            {
-                var watch = _progress != null
-                    ? Stopwatch.StartNew()
-                    : null;
-
-                var result = doFunc();
-
-                if (_progress != null)
-                {
-                    watch.Stop();
-                    _progress.Report(new ProjectLoadProgress(projectPath, operation, watch.Elapsed));
+                    _progress.Report(new ProjectLoadProgress(projectPath, operation, targetFramework, watch.Elapsed));
                 }
 
                 return result;
@@ -142,65 +121,30 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var results = ImmutableArray.CreateBuilder<ProjectInfo>();
                 var processedPaths = new HashSet<string>(PathUtilities.Comparer);
 
-                var requestedProjectFileInfos = new List<ProjectFileInfo>();
-
                 foreach (var projectPath in _requestedProjectPaths)
                 {
-                    if (!processedPaths.Add(projectPath))
-                    {
-                        // TODO: Report warning if there are duplicate project paths.
-                        continue;
-                    }
-
                     if (!_owner.TryGetAbsoluteProjectPath(projectPath, _baseDirectory, _requestedProjectOptions.OnPathFailure, out var fullProjectPath))
                     {
                         continue; // Failure should already be reported.
                     }
 
-                    var projectFileInfos = await LoadProjectFileInfosAsync(fullProjectPath, _requestedProjectOptions, cancellationToken).ConfigureAwait(false);
-
-                    requestedProjectFileInfos.AddRange(projectFileInfos);
-                }
-
-                var requestedIdsAndFileInfos = new List<(ProjectId id, ProjectFileInfo fileInfo)>();
-
-                foreach (var projectFileInfo in requestedProjectFileInfos)
-                {
-                    var projectId = _projectMap.GetOrCreateProjectId(projectFileInfo);
-
-                    if (_projectIdToFileInfoMap.ContainsKey(projectId))
+                    if (!processedPaths.Add(fullProjectPath))
                     {
-                        // There are multiple projects with the same project path and output path. This can happen
-                        // if a multi-TFM project does not have unique output file paths for each TFM. In that case,
-                        // we'll create a new ProjectId to ensure that the project is added to the workspace.
-
-                        _owner.ReportFailure(
-                            ReportMode.Log,
-                            string.Format(WorkspaceMSBuildResources.Found_project_with_the_same_file_path_and_output_path_as_another_project_0, projectFileInfo.FilePath));
-
-                        projectId = ProjectId.CreateNewId(debugName: projectFileInfo.FilePath);
+                        // TODO: Report warning if there are duplicate project paths.
+                        continue;
                     }
 
-                    _projectIdToFileInfoMap.Add(projectId, projectFileInfo);
-                    requestedIdsAndFileInfos.Add((projectId, projectFileInfo));
+                    var projectFileInfos = await LoadProjectInfosFromPathAsync(fullProjectPath, _requestedProjectOptions, cancellationToken).ConfigureAwait(false);
+
+                    results.AddRange(projectFileInfos);
                 }
 
-                foreach (var (id, projectFileInfo) in requestedIdsAndFileInfos)
+                foreach (var (projectPath, projectInfos) in _pathToProjectInfosMap)
                 {
-                    var projectInfo = projectFileInfo.IsEmpty
-                        ? CreateEmptyProjectInfo(projectFileInfo, id)
-                        : await CreateProjectInfoAsync(projectFileInfo, id, cancellationToken).ConfigureAwait(false);
-
-                    results.Add(projectInfo);
-                }
-
-                foreach (var (id, projectFileInfo) in _discoveredProjects)
-                {
-                    var projectInfo = projectFileInfo.IsEmpty
-                        ? CreateEmptyProjectInfo(projectFileInfo, id)
-                        : await CreateProjectInfoAsync(projectFileInfo, id, cancellationToken).ConfigureAwait(false);
-
-                    results.Add(projectInfo);
+                    if (!processedPaths.Contains(projectPath))
+                    {
+                        results.AddRange(projectInfos);
+                    }
                 }
 
                 return results.ToImmutable();
@@ -216,6 +160,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var projectFile = await DoOperationAndReportProgressAsync(
                     ProjectLoadOperation.Evaluate,
                     projectPath,
+                    targetFramework: null,
                     () => loader.LoadProjectFileAsync(projectPath, _globalProperties, _owner.BuildManager, cancellationToken)
                 ).ConfigureAwait(false);
 
@@ -231,6 +176,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var projectFileInfos = await DoOperationAndReportProgressAsync(
                     ProjectLoadOperation.Build,
                     projectPath,
+                    targetFramework: null,
                     () => projectFile.GetProjectFileInfosAsync(cancellationToken)
                 ).ConfigureAwait(false);
 
@@ -252,7 +198,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             private async Task<ImmutableArray<ProjectInfo>> LoadProjectInfosFromPathAsync(string projectPath, ReportingOptions reportingOptions, CancellationToken cancellationToken)
             {
-                var results = ImmutableArray.CreateBuilder<ProjectInfo>();
+                if (_pathToProjectInfosMap.TryGetValue(projectPath, out var results))
+                {
+                    return results;
+                }
+
+                var builder = ImmutableArray.CreateBuilder<ProjectInfo>();
 
                 var projectFileInfos = await LoadProjectFileInfosAsync(projectPath, reportingOptions, cancellationToken).ConfigureAwait(false);
 
@@ -261,38 +212,49 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 foreach (var projectFileInfo in projectFileInfos)
                 {
                     var projectId = _projectMap.GetOrCreateProjectId(projectFileInfo);
-                    idsAndFileInfos.Add((projectId, projectFileInfo));
 
-                    if (!_projectIdToFileInfoMap.ContainsKey(projectId))
+                    if (_projectIdToFileInfoMap.ContainsKey(projectId))
                     {
-                        _projectIdToFileInfoMap.Add(projectId, projectFileInfo);
-                        _discoveredProjects.Add((projectId, projectFileInfo));
+                        // There are multiple projects with the same project path and output path. This can happen
+                        // if a multi-TFM project does not have unique output file paths for each TFM. In that case,
+                        // we'll create a new ProjectId to ensure that the project is added to the workspace.
+
+                        _owner.ReportFailure(
+                            ReportMode.Log,
+                            string.Format(WorkspaceMSBuildResources.Found_project_with_the_same_file_path_and_output_path_as_another_project_0, projectFileInfo.FilePath));
+
+                        projectId = ProjectId.CreateNewId(debugName: projectFileInfo.FilePath);
                     }
+
+                    idsAndFileInfos.Add((projectId, projectFileInfo));
+                    _projectIdToFileInfoMap.Add(projectId, projectFileInfo);
                 }
 
                 foreach (var (id, fileInfo) in idsAndFileInfos)
                 {
-                    var projectInfo = fileInfo.IsEmpty
-                        ? CreateEmptyProjectInfo(fileInfo, id)
-                        : await CreateProjectInfoAsync(fileInfo, id, cancellationToken).ConfigureAwait(false);
+                    var projectInfo = await CreateProjectInfoAsync(fileInfo, id, cancellationToken).ConfigureAwait(false);
 
-                    results.Add(projectInfo);
+                    builder.Add(projectInfo);
                 }
 
-                return results.ToImmutable();
+                results = builder.ToImmutable();
+
+                _pathToProjectInfosMap.Add(projectPath, results);
+
+                return results;
             }
 
-            private ProjectInfo CreateEmptyProjectInfo(ProjectFileInfo projectFileInfo, ProjectId projectId)
+            private Task<ProjectInfo> CreateProjectInfoAsync(ProjectFileInfo projectFileInfo, ProjectId projectId, CancellationToken cancellationToken)
             {
                 var language = projectFileInfo.Language;
                 Debug.Assert(_owner.IsSupportedLanguage(language));
 
                 var projectPath = projectFileInfo.FilePath;
+                var projectName = Path.GetFileNameWithoutExtension(projectPath);
+                var version = GetProjectVersion(projectPath);
 
-                return DoOperationAndReportProgress(ProjectLoadOperation.Resolve, projectPath, () =>
+                if (projectFileInfo.IsEmpty)
                 {
-                    var version = GetProjectVersion(projectPath);
-                    var projectName = Path.GetFileNameWithoutExtension(projectPath);
                     var assemblyName = GetAssemblyNameFromProjectPath(projectPath);
 
                     var parseOptions = _owner.GetLanguageService<ISyntaxTreeFactoryService>(language)
@@ -300,35 +262,30 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     var compilationOptions = _owner.GetLanguageService<ICompilationFactoryService>(language)
                         .GetDefaultCompilationOptions();
 
-                    return ProjectInfo.Create(
-                        projectId,
-                        version,
-                        projectName,
-                        assemblyName: assemblyName,
-                        language: language,
-                        filePath: projectPath,
-                        outputFilePath: string.Empty,
-                        compilationOptions: compilationOptions,
-                        parseOptions: parseOptions,
-                        documents: SpecializedCollections.EmptyEnumerable<DocumentInfo>(),
-                        projectReferences: SpecializedCollections.EmptyEnumerable<ProjectReference>(),
-                        metadataReferences: SpecializedCollections.EmptyEnumerable<MetadataReference>(),
-                        analyzerReferences: SpecializedCollections.EmptyEnumerable<AnalyzerReference>(),
-                        additionalDocuments: SpecializedCollections.EmptyEnumerable<DocumentInfo>(),
-                        isSubmission: false,
-                        hostObjectType: null);
-                });
-            }
+                    return Task.FromResult(
+                        ProjectInfo.Create(
+                            projectId,
+                            version,
+                            projectName,
+                            assemblyName: assemblyName,
+                            language: language,
+                            filePath: projectPath,
+                            outputFilePath: string.Empty,
+                            outputRefFilePath: string.Empty,
+                            compilationOptions: compilationOptions,
+                            parseOptions: parseOptions,
+                            documents: SpecializedCollections.EmptyEnumerable<DocumentInfo>(),
+                            projectReferences: SpecializedCollections.EmptyEnumerable<ProjectReference>(),
+                            metadataReferences: SpecializedCollections.EmptyEnumerable<MetadataReference>(),
+                            analyzerReferences: SpecializedCollections.EmptyEnumerable<AnalyzerReference>(),
+                            additionalDocuments: SpecializedCollections.EmptyEnumerable<DocumentInfo>(),
+                            isSubmission: false,
+                            hostObjectType: null));
+                }
 
-            private Task<ProjectInfo> CreateProjectInfoAsync(ProjectFileInfo projectFileInfo, ProjectId projectId, CancellationToken cancellationToken)
-            {
-                var projectPath = projectFileInfo.FilePath;
-
-                return DoOperationAndReportProgressAsync(ProjectLoadOperation.Resolve, projectPath, async () =>
+                return DoOperationAndReportProgressAsync(ProjectLoadOperation.Resolve, projectPath, projectFileInfo.TargetFramework, async () =>
                 {
                     var projectDirectory = Path.GetDirectoryName(projectPath);
-                    var projectName = Path.GetFileNameWithoutExtension(projectPath);
-                    var version = GetProjectVersion(projectPath);
 
                     // parse command line arguments
                     var commandLineParser = _owner.GetLanguageService<ICommandLineParserService>(projectFileInfo.Language);
@@ -378,9 +335,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
                         version,
                         projectName,
                         assemblyName,
-                        projectFileInfo.Language,
+                        language,
                         projectPath,
-                        projectFileInfo.OutputFilePath,
+                        outputFilePath: projectFileInfo.OutputFilePath,
+                        outputRefFilePath: projectFileInfo.OutputRefFilePath,
                         compilationOptions: compilationOptions,
                         parseOptions: parseOptions,
                         documents: documents,
@@ -551,8 +509,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
                 public void Remove(string filePath)
                 {
-                    var indexSet = _pathToIndexMap[filePath];
-                    _indecesToRemove.AddRange(indexSet);
+                    if (filePath != null && _pathToIndexMap.TryGetValue(filePath, out var indexSet))
+                    {
+                        _indecesToRemove.AddRange(indexSet);
+                    }
                 }
 
                 public ImmutableArray<MetadataReference> GetRemaining()
@@ -577,7 +537,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     foreach (var projectInfo in projectInfos)
                     {
-                        if (_pathToIndexMap.ContainsKey(projectInfo.OutputFilePath))
+                        if ((projectInfo.OutputRefFilePath != null && _pathToIndexMap.ContainsKey(projectInfo.OutputRefFilePath)) ||
+                            (projectInfo.OutputFilePath != null && _pathToIndexMap.ContainsKey(projectInfo.OutputFilePath)))
                         {
                             return projectInfo;
                         }
@@ -590,7 +551,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     foreach (var projectInfo in projectFileInfos)
                     {
-                        if (_pathToIndexMap.ContainsKey(projectInfo.OutputFilePath))
+                        if ((projectInfo.OutputRefFilePath != null && _pathToIndexMap.ContainsKey(projectInfo.OutputRefFilePath)) ||
+                            (projectInfo.OutputFilePath != null && _pathToIndexMap.ContainsKey(projectInfo.OutputFilePath)))
                         {
                             return projectInfo;
                         }
@@ -684,6 +646,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
                             if (projectRefInfo.ProjectReferences.Any(pr => pr.ProjectId == id))
                             {
                                 // If the metadata doesn't exist on disk, we'll have to remove it from the metadata references.
+
+                                if (!File.Exists(projectRefInfo.OutputRefFilePath))
+                                {
+                                    metadataReferenceSet.Remove(projectRefInfo.OutputRefFilePath);
+                                }
+
                                 if (!File.Exists(projectRefInfo.OutputFilePath))
                                 {
                                     metadataReferenceSet.Remove(projectRefInfo.OutputFilePath);
@@ -692,6 +660,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                             else
                             {
                                 projectReferences.Add(CreateProjectReference(id, projectRefInfo.Id, projectFileReference.Aliases));
+                                metadataReferenceSet.Remove(projectRefInfo.OutputRefFilePath);
                                 metadataReferenceSet.Remove(projectRefInfo.OutputFilePath);
                             }
 

@@ -10,11 +10,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
     {
         private readonly Dictionary<string, HashSet<ProjectId>> _projectPathToProjectIdsMap;
         private readonly Dictionary<ProjectId, string> _projectIdToOutputFilePathMap;
+        private readonly Dictionary<ProjectId, string> _projectIdToOutputRefFilePathMap;
 
         private ProjectMap()
         {
             _projectPathToProjectIdsMap = new Dictionary<string, HashSet<ProjectId>>(PathUtilities.Comparer);
             _projectIdToOutputFilePathMap = new Dictionary<ProjectId, string>();
+            _projectIdToOutputRefFilePathMap = new Dictionary<ProjectId, string>();
         }
 
         public static ProjectMap Create() => new ProjectMap();
@@ -33,10 +35,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public void Add(Project project)
         {
-            Add(project.Id, project.FilePath, project.OutputFilePath);
+            Add(project.Id, project.FilePath, project.OutputFilePath, project.OutputRefFilePath);
         }
 
-        private void Add(ProjectId id, string projectPath, string outputFilePath)
+        private void Add(ProjectId id, string projectPath, string outputFilePath, string outputRefFilePath)
         {
             if (!_projectPathToProjectIdsMap.TryGetValue(projectPath, out var projectPathIdSet))
             {
@@ -49,6 +51,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (!string.IsNullOrEmpty(outputFilePath))
             {
                 _projectIdToOutputFilePathMap.Add(id, outputFilePath);
+            }
+
+            if (!string.IsNullOrEmpty(outputRefFilePath))
+            {
+                _projectIdToOutputRefFilePathMap.Add(id, outputRefFilePath);
             }
         }
 
@@ -67,7 +74,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             else
             {
                 var id = ProjectId.CreateNewId(debugName: projectPath);
-                Add(id, projectPath, outputFilePath: null);
+                Add(id, projectPath, outputFilePath: null, outputRefFilePath: null);
                 return id;
             }
         }
@@ -77,6 +84,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ProjectId result = null;
             var projectPath = projectFileInfo.FilePath;
             var outputFilePath = projectFileInfo.OutputFilePath;
+            var outputRefFilePath = projectFileInfo.OutputRefFilePath;
 
             if (TryGetIdsByProjectPath(projectPath, out var ids))
             {
@@ -84,10 +92,31 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 {
                     var id = ids.Single();
 
-                    if (string.IsNullOrWhiteSpace(outputFilePath) ||
-                        (TryGetOutputFilePathById(id, out var path) && PathUtilities.Comparer.Equals(path, outputFilePath)))
+                    if (!string.IsNullOrWhiteSpace(outputRefFilePath) &&
+                        TryGetOutputRefFilePathById(id, out var path) &&
+                        PathUtilities.Comparer.Equals(path, outputRefFilePath))
                     {
                         result = id;
+                    }
+
+                    if (result == null &&
+                        !string.IsNullOrWhiteSpace(outputFilePath) &&
+                        TryGetOutputFilePathById(id, out path) &&
+                        PathUtilities.Comparer.Equals(path, outputFilePath))
+                    {
+                        result = id;
+                    }
+                }
+
+                if (result == null && !string.IsNullOrEmpty(outputRefFilePath))
+                {
+                    foreach (var id in ids)
+                    {
+                        if (TryGetOutputRefFilePathById(id, out var path) && PathUtilities.Comparer.Equals(path, outputRefFilePath))
+                        {
+                            result = id;
+                            break;
+                        }
                     }
                 }
 
@@ -107,7 +136,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
             if (result == null)
             {
                 result = ProjectId.CreateNewId(debugName: projectPath);
-                Add(result, projectPath, outputFilePath);
+                Add(result, projectPath, outputFilePath, outputRefFilePath);
             }
 
             return result;
@@ -118,5 +147,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         internal bool TryGetOutputFilePathById(ProjectId id, out string outputFilePath)
             => _projectIdToOutputFilePathMap.TryGetValue(id, out outputFilePath);
+
+        internal bool TryGetOutputRefFilePathById(ProjectId id, out string outputRefFilePath)
+            => _projectIdToOutputRefFilePathMap.TryGetValue(id, out outputRefFilePath);
     }
 }

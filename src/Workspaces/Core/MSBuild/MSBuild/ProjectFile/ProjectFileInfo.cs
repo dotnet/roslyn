@@ -30,6 +30,16 @@ namespace Microsoft.CodeAnalysis.MSBuild
         public string OutputFilePath { get; }
 
         /// <summary>
+        /// The path to the reference assembly output file this project generates.
+        /// </summary>
+        public string OutputRefFilePath { get; }
+
+        /// <summary>
+        /// The target framework of this project.
+        /// </summary>
+        public string TargetFramework { get; }
+
+        /// <summary>
         /// The command line args used to compile the project.
         /// </summary>
         public IReadOnlyList<string> CommandLineArgs { get; }
@@ -60,6 +70,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string language,
             string filePath,
             string outputFilePath,
+            string outputRefFilePath,
+            string targetFramework,
             IEnumerable<string> commandLineArgs,
             IEnumerable<DocumentFileInfo> documents,
             IEnumerable<DocumentFileInfo> additionalDocuments,
@@ -72,6 +84,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             this.Language = language;
             this.FilePath = filePath;
             this.OutputFilePath = outputFilePath;
+            this.OutputRefFilePath = outputRefFilePath;
+            this.TargetFramework = targetFramework;
             this.CommandLineArgs = commandLineArgs.ToImmutableArrayOrEmpty();
             this.Documents = documents.ToImmutableReadOnlyListOrEmpty();
             this.AdditionalDocuments = additionalDocuments.ToImmutableArrayOrEmpty();
@@ -83,6 +97,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
             string language,
             string filePath,
             string outputFilePath,
+            string outputRefFilePath,
+            string targetFramework,
             IEnumerable<string> commandLineArgs,
             IEnumerable<DocumentFileInfo> documents,
             IEnumerable<DocumentFileInfo> additionalDocuments,
@@ -93,6 +109,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 language,
                 filePath,
                 outputFilePath,
+                outputRefFilePath,
+                targetFramework,
                 commandLineArgs,
                 documents,
                 additionalDocuments,
@@ -105,6 +123,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 language,
                 filePath,
                 outputFilePath: null,
+                outputRefFilePath: null,
+                targetFramework: null,
                 commandLineArgs: SpecializedCollections.EmptyEnumerable<string>(),
                 documents: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
                 additionalDocuments: SpecializedCollections.EmptyEnumerable<DocumentFileInfo>(),
