@@ -194,41 +194,96 @@ namespace Microsoft.CodeAnalysis.AddParameter
             SeparatedSyntaxList<TArgumentSyntax> arguments,
             ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
         {
-            var codeActions = CreateCodeActions(context.Document, arguments, methodsAndArgumentsToAdd);
-            context.RegisterFixes(codeActions, context.Diagnostics);
+            var codeFixData = PrepareCreationOfCodeActions(context.Document, arguments, methodsAndArgumentsToAdd);
+            var fixes = codeFixData.Length <= 2
+                ? NestByOverload()
+                : NestByCascading();
+
+            context.RegisterFixes(fixes, context.Diagnostics);
+
+            ImmutableArray<CodeAction> NestByOverload()
+            {
+                var builder = ImmutableArray.CreateBuilder<CodeAction>(codeFixData.Length);
+                foreach (var data in codeFixData)
+                {
+                    var title = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, data.Method, includeParameters: true);
+                    CodeAction codeAction = new MyCodeAction(
+                        title: title,
+                        data.CreateChangedSolutionNonCascading);
+                    if (data.CreateChangedSolutionCascading != null)
+                    {
+                        var titleForNesting = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, data.Method, includeParameters: true);
+                        var titleCascading = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_including_overrides_implementations, data.Method, includeParameters: true);
+                        codeAction = new CodeAction.CodeActionWithNestedActions(
+                            title: titleForNesting,
+                            ImmutableArray.Create(
+                                codeAction,
+                                new MyCodeAction(
+                                    title: titleCascading,
+                                    data.CreateChangedSolutionCascading)),
+                            isInlinable: true);
+                    }
+
+                    builder.Add(codeAction);
+                }
+
+                return builder.ToImmutable();
+            }
+
+            ImmutableArray<CodeAction> NestByCascading()
+            {
+                var builder = ImmutableArray.CreateBuilder<CodeAction>(2);
+
+                var nonCascadingActions = ImmutableArray.CreateRange<CodeAction>(codeFixData.Select(data =>
+                {
+                    var title = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, data.Method, true);
+                    return new MyCodeAction(title: title, data.CreateChangedSolutionNonCascading);
+                }));
+
+                var cascading = codeFixData.Where(data => data.CreateChangedSolutionCascading != null);
+                var cascadingActions = ImmutableArray.CreateRange<CodeAction>(cascading.Select(data =>
+                {
+                    var title = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, data.Method, true);
+                    return new MyCodeAction(title: title, data.CreateChangedSolutionCascading);
+                }));
+
+                var aMethod = codeFixData.First().Method;
+                var nestedNonCascadingTitle = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, aMethod, false);
+
+                builder.Add(new CodeAction.CodeActionWithNestedActions(nestedNonCascadingTitle, nonCascadingActions, isInlinable: false));
+
+                if (cascadingActions.Length > 0)
+                {
+                    var nestedCascadingTitle = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_including_overrides_implementations, aMethod, false);
+                    builder.Add(new CodeAction.CodeActionWithNestedActions(nestedCascadingTitle, cascadingActions, isInlinable: false));
+                }
+
+                return builder.ToImmutable();
+            }
         }
 
-        private ImmutableArray<CodeAction> CreateCodeActions(Document document, SeparatedSyntaxList<TArgumentSyntax> arguments, ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
+        private ImmutableArray<CodeFixData> PrepareCreationOfCodeActions(Document document, SeparatedSyntaxList<TArgumentSyntax> arguments, ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
         {
+            var builder = ImmutableArray.CreateBuilder<CodeFixData>(methodsAndArgumentsToAdd.Length);
+
             // Order by the furthest argument index to the nearest argument index.  The ones with
             // larger argument indexes mean that we matched more earlier arguments (and thus are
             // likely to be the correct match).
-            var builder = ImmutableArray.CreateBuilder<CodeAction>(methodsAndArgumentsToAdd.Length);
             foreach (var argumentInsertPositionData in methodsAndArgumentsToAdd.OrderByDescending(t => t.ArgumentInsertionIndex))
             {
                 var methodToUpdate = argumentInsertPositionData.MethodToUpdate;
                 var argumentToInsert = argumentInsertPositionData.ArgumentToInsert;
-                var parameters = methodToUpdate.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
 
-                var title = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, methodToUpdate, parameters);
-                var hasCascadingDeclarations = HasCascadingDeclarations(methodToUpdate);
-                CodeAction codeAction = new MyCodeAction(title,
-                    c => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, c));
-                if (hasCascadingDeclarations)
-                {
-                    // Offer another alternative code action. Wrap both options so the IDE can collapse them.
-                    var titleForCascadingFix = GetCodeFixTitle(
-                        FeaturesResources.Add_parameter_to_0_including_overrides_implementations, methodToUpdate, parameters);
-                    codeAction = new CodeAction.CodeActionWithNestedActions(
-                        title: title,
-                        isInlinable: true,
-                        nestedActions: ImmutableArray.Create<CodeAction>(
-                            codeAction,
-                            new MyCodeAction(titleForCascadingFix,
-                                c => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, c))));
-                }
+                var cascadingFix = HasCascadingDeclarations(methodToUpdate)
+                    ? new Func<CancellationToken, Task<Solution>>(c => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: true, c))
+                    : null;
 
-                builder.Add(codeAction);
+                var codeFixData = new CodeFixData(
+                    methodToUpdate,
+                    c => FixAsync(document, methodToUpdate, argumentToInsert, arguments, fixAllReferences: false, c),
+                    cascadingFix);
+
+                builder.Add(codeFixData);
             }
 
             return builder.ToImmutable();
@@ -280,7 +335,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
             return false;
         }
 
-        private static string GetCodeFixTitle(string resourceString, IMethodSymbol methodToUpdate, IEnumerable<string> parameters)
+        private static string GetCodeFixTitle(string resourceString, IMethodSymbol methodToUpdate, bool includeParameters)
         {
             var methodDisplay = methodToUpdate.ToDisplayString(new SymbolDisplayFormat(
                 typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
@@ -290,7 +345,10 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     ? SymbolDisplayMemberOptions.None
                     : SymbolDisplayMemberOptions.IncludeContainingType));
 
-            var signature = $"{methodDisplay}({string.Join(", ", parameters)})";
+            var parameters = methodToUpdate.Parameters.Select(p => p.ToDisplayString(SimpleFormat));
+            var signature = includeParameters
+                ? $"{methodDisplay}({string.Join(", ", parameters)})"
+                : methodDisplay;
             var title = string.Format(resourceString, signature);
             return title;
         }
