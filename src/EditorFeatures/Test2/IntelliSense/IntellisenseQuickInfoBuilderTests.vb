@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.QuickInfo
 Imports Microsoft.VisualStudio.Imaging
 Imports Microsoft.VisualStudio.Text
@@ -61,33 +60,39 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Assert.NotNull(intellisenseQuickInfo)
 
-            Assert.IsType(Of Adornments.ContainerElement)(intellisenseQuickInfo.Item)
-            Dim container = CType(intellisenseQuickInfo.Item, Adornments.ContainerElement)
+            Dim container = Assert.IsType(Of Adornments.ContainerElement)(intellisenseQuickInfo.Item)
             Assert.Equal(3, container.Elements.Count())
             Assert.Equal(ContainerElementStyle.Stacked, container.Style)
 
-            Assert.IsType(Of Adornments.ContainerElement)(container.Elements.ElementAt(0))
-            Dim firstRowContainer = CType(container.Elements.ElementAt(0), Adornments.ContainerElement)
-            Assert.Equal(2, firstRowContainer.Elements.Count())
-            Assert.Equal(ContainerElementStyle.Wrapped, firstRowContainer.Style)
+            Assert.Collection(container.Elements,
+                    New Action(Of Object)() {
+                        Sub(row0 As Object)
+                            Dim firstRowContainer = Assert.IsType(Of Adornments.ContainerElement)(row0)
+                            Assert.Equal(2, firstRowContainer.Elements.Count())
+                            Assert.Equal(ContainerElementStyle.Wrapped, firstRowContainer.Style)
 
-            Assert.IsType(Of ImageElement)(firstRowContainer.Elements.ElementAt(0))
-            Dim element00 = CType(firstRowContainer.Elements.ElementAt(0), ImageElement)
-            Assert.Equal(KnownImageIds.ImageCatalogGuid, element00.ImageId.Guid)
-            Assert.Equal(KnownImageIds.MethodPublic, element00.ImageId.Id)
-
-            Assert.IsType(Of ClassifiedTextElement)(firstRowContainer.Elements.ElementAt(1))
-            Dim element01 = CType(firstRowContainer.Elements.ElementAt(1), ClassifiedTextElement)
-            Assert.Equal(18, element01.Runs.Count())
-
-            Assert.IsType(Of ClassifiedTextElement)(container.Elements.ElementAt(1))
-            Dim element1 = CType(container.Elements.ElementAt(1), ClassifiedTextElement)
-            Assert.Equal(1, element1.Runs.Count())
-
-            Assert.IsType(Of ClassifiedTextElement)(container.Elements.ElementAt(2))
-            Dim element2 = CType(container.Elements.ElementAt(2), ClassifiedTextElement)
-            Assert.Equal(8, element2.Runs.Count())
+                            Assert.Collection(firstRowContainer.Elements,
+                                    New Action(Of Object)() {
+                                    Sub(row0col0 As Object)
+                                        Dim element00 = Assert.IsType(Of ImageElement)(row0col0)
+                                        Assert.Equal(KnownImageIds.ImageCatalogGuid, element00.ImageId.Guid)
+                                        Assert.Equal(KnownImageIds.MethodPublic, element00.ImageId.Id)
+                                    End Sub,
+                                    Sub(row0col1 As Object)
+                                        Dim element01 = Assert.IsType(Of ClassifiedTextElement)(row0col1)
+                                        Assert.Equal(18, element01.Runs.Count())
+                                    End Sub})
+                        End Sub,
+                        Sub(row1 As Object)
+                            Dim element1 = Assert.IsType(Of ClassifiedTextElement)(row1)
+                            Assert.Equal(1, element1.Runs.Count())
+                        End Sub,
+                        Sub(row2 As Object)
+                            Dim element2 = Assert.IsType(Of ClassifiedTextElement)(row2)
+                            Assert.Equal(8, element2.Runs.Count())
+                        End Sub})
 
         End Sub
+
     End Class
 End Namespace
