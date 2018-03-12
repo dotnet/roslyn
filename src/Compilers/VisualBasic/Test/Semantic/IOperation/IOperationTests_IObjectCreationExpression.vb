@@ -1310,22 +1310,22 @@ Block[B0] - Entry
 
 .locals {R1}
 {
-    Locals: [c As ClassLibrary2.C]
+    Locals: [c As C]
     Block[B1] - Block
         Predecessors: [B0]
         Statements (4)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
               Value: 
-                IObjectCreationOperation (Constructor: Sub ClassLibrary2.C..ctor()) (OperationKind.ObjectCreation, Type: ClassLibrary2.C) (Syntax: 'New C With  ... 1, .B = .A}')
+                IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C With  ... 1, .B = .A}')
                   Arguments(0)
                   Initializer: 
                     null
 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.A = 1')
               Left: 
-                IPropertyReferenceOperation: Property ClassLibrary2.C.A As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'A')
+                IPropertyReferenceOperation: Property C.A As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'A')
                   Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
               Right: 
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1335,19 +1335,19 @@ Block[B0] - Entry
 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.B = .A')
               Left: 
-                IPropertyReferenceOperation: Property ClassLibrary2.C.B As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'B')
+                IPropertyReferenceOperation: Property C.B As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'B')
                   Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
               Right: 
-                IPropertyReferenceOperation: Property ClassLibrary2.C.A As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: '.A')
+                IPropertyReferenceOperation: Property C.A As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: '.A')
                   Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'c As C = Ne ... 1, .B = .A}')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c As C = Ne ... 1, .B = .A}')
               Left: 
-                ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'c')
+                ILocalReferenceOperation: c (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c')
               Right: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
 
         Next (Regular) Block[B2]
             Leaving: {R1}
@@ -1384,22 +1384,22 @@ Block[B0] - Entry
 
 .locals {R1}
 {
-    Locals: [c1 As ClassLibrary2.C] [c2 As ClassLibrary2.C]
+    Locals: [c1 As C] [c2 As C]
     Block[B1] - Block
         Predecessors: [B0]
         Statements (8)
             IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
               Value: 
-                IObjectCreationOperation (Constructor: Sub ClassLibrary2.C..ctor()) (OperationKind.ObjectCreation, Type: ClassLibrary2.C) (Syntax: 'New C With  ... 1, .B = .A}')
+                IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C With  ... 1, .B = .A}')
                   Arguments(0)
                   Initializer: 
                     null
 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.A = 1')
               Left: 
-                IPropertyReferenceOperation: Property ClassLibrary2.C.A As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'A')
+                IPropertyReferenceOperation: Property C.A As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'A')
                   Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
               Right: 
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1409,32 +1409,32 @@ Block[B0] - Entry
 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.B = .A')
               Left: 
-                IPropertyReferenceOperation: Property ClassLibrary2.C.B As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'B')
+                IPropertyReferenceOperation: Property C.B As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'B')
                   Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
               Right: 
-                IPropertyReferenceOperation: Property ClassLibrary2.C.A As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: '.A')
+                IPropertyReferenceOperation: Property C.A As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: '.A')
                   Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'c1, c2 As N ... 1, .B = .A}')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c1, c2 As N ... 1, .B = .A}')
               Left: 
-                ILocalReferenceOperation: c1 (IsDeclaration: True) (OperationKind.LocalReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'c1')
+                ILocalReferenceOperation: c1 (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c1')
               Right: 
-                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
+                IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
 
             IFlowCaptureOperation: 1 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
               Value: 
-                IObjectCreationOperation (Constructor: Sub ClassLibrary2.C..ctor()) (OperationKind.ObjectCreation, Type: ClassLibrary2.C) (Syntax: 'New C With  ... 1, .B = .A}')
+                IObjectCreationOperation (Constructor: Sub C..ctor()) (OperationKind.ObjectCreation, Type: C) (Syntax: 'New C With  ... 1, .B = .A}')
                   Arguments(0)
                   Initializer: 
                     null
 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.A = 1')
               Left: 
-                IPropertyReferenceOperation: Property ClassLibrary2.C.A As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'A')
+                IPropertyReferenceOperation: Property C.A As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'A')
                   Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
               Right: 
                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: '1')
                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1444,19 +1444,19 @@ Block[B0] - Entry
 
             ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.B = .A')
               Left: 
-                IPropertyReferenceOperation: Property ClassLibrary2.C.B As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'B')
+                IPropertyReferenceOperation: Property C.B As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: 'B')
                   Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
               Right: 
-                IPropertyReferenceOperation: Property ClassLibrary2.C.A As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: '.A')
+                IPropertyReferenceOperation: Property C.A As System.Object (OperationKind.PropertyReference, Type: System.Object) (Syntax: '.A')
                   Instance Receiver: 
-                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
+                    IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
 
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'c1, c2 As N ... 1, .B = .A}')
+            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: C, IsImplicit) (Syntax: 'c1, c2 As N ... 1, .B = .A}')
               Left: 
-                ILocalReferenceOperation: c2 (IsDeclaration: True) (OperationKind.LocalReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'c2')
+                ILocalReferenceOperation: c2 (IsDeclaration: True) (OperationKind.LocalReference, Type: C, IsImplicit) (Syntax: 'c2')
               Right: 
-                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: ClassLibrary2.C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
+                IFlowCaptureReferenceOperation: 1 (OperationKind.FlowCaptureReference, Type: C, IsImplicit) (Syntax: 'New C With  ... 1, .B = .A}')
 
         Next (Regular) Block[B2]
             Leaving: {R1}
