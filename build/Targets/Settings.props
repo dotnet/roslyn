@@ -189,12 +189,8 @@
     <DevEnvDir>$([System.IO.Path]::GetFullPath('$(DevEnvDir)'))</DevEnvDir>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(BootstrapBuildPath)' != ''">
-    <CSharpCoreTargetsPath>$(BootstrapBuildPath)\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
-    <VisualBasicCoreTargetsPath>$(BootstrapBuildPath)\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
-  </PropertyGroup>
-
-  <Import Project="$(BootstrapBuildPath)\Microsoft.Net.Compilers.props" Condition="'$(BootstrapBuildPath)' != ''" />
+  <Import Project="$(BootstrapBuildPath)\Microsoft.Net.Compilers.props" Condition="'$(BootstrapBuildPath)' != '' AND '$(MSBuildRuntimeType)' != 'Core'" />
+  <Import Project="$(BootstrapBuildPath)\Microsoft.NETCore.Compilers.props" Condition="'$(BootstrapBuildPath)' != '' AND '$(MSBuildRuntimeType)' == 'Core'" />
 
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ValidateBootstrap"
              AssemblyFile="$(BootstrapBuildPath)\..\tools\Microsoft.Build.Tasks.CodeAnalysis.dll"

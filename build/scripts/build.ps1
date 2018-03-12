@@ -193,16 +193,35 @@ function Restore-Packages() {
 # building the bootstrap.
 function Make-BootstrapBuild() {
     $dir = Join-Path $binariesDir "Bootstrap"
+    $bootstrapPackageFilePath = Join-Path $dir "BootstrapCompiler.nupkg"
     Write-Host "Building Bootstrap compiler"
     $bootstrapArgs = "/p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP"
     Remove-Item -re $dir -ErrorAction SilentlyContinue
     Create-Directory $dir
     if ($buildCoreClr) {
         $bootstrapFramework = "netcoreapp2.0"
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/CSharp/csc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logsDir/BootstrapCsc.binlog"
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/VisualBasic/vbc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logsDir/BootstrapVbc.binlog"
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/Server/VBCSCompiler -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logsDir/BootstrapVBCSCompiler.binlog"
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/Core/MSBuildTask -o `"$dir`" --framework $bootstrapFramework $bootstrapArgs -bl:$logsDir/BootstrapMSBuildTask.binlog"
+        $projectFiles = @(
+            'src/Compilers/CSharp/csc/csc.csproj',
+            'src/Compilers/VisualBasic/vbc/vbc.csproj',
+            'src/Compilers/Server/VBCSCompiler/VBCSCompiler.csproj',
+            'src/Compilers/Core/MSBuildTask/MSBuildTask.csproj'
+        )
+
+        foreach ($projectFilePath in $projectFiles) { 
+            $fileName = [IO.Path]::GetFileNameWithoutExtension((Split-Path -leaf $projectFilePath))
+            $logFileName = "Bootstrap$($fileName).binlog"
+            Exec-Console "dotnet" "publish --no-restore $projectFilePath --framework netcoreapp2.0 $bootstrapArgs -v:m -m -bl:$logsDir/$logFileName"
+        }
+
+        Exec-Console "dotnet" "build --no-restore src/Interactive/csi/csi.csproj -v:m -m -bl:$logsDir/BootstrapCsi.binlog"
+
+        Ensure-NuGet | Out-Null
+        Exec-Console "$binariesDir\Debug\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 1.0.0-bootstrap $dir `"<developer build>`" Microsoft.NETCore.Compilers.nuspec"
+        Move-Item "$dir\Microsoft.NETCore.Compilers.1.0.0-bootstrap.nupkg" $bootstrapPackageFilePath
+
+        foreach ($projectFilePath in $projectFiles) { 
+            Exec-Console "dotnet" "clean $projectFilePath -v:m -m"
+        }
         Stop-BuildProcesses
     }
     else {
@@ -212,17 +231,16 @@ function Make-BootstrapBuild() {
 
         Ensure-NuGet | Out-Null
         Exec-Console "$binariesDir\Debug\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 1.0.0-bootstrap $dir `"<developer build>`" Microsoft.Net.Compilers.nuspec"
-        $packageFilePath = Join-Path $dir "Microsoft.Net.Compilers.1.0.0-bootstrap.nupkg"
-        $dir = Join-Path $dir "Microsoft.Net.Compilers"
-        Unzip-File $packageFilePath $dir
-        $dir = Join-Path $dir "build"
+        Move-Item "$dir\Microsoft.Net.Compilers.1.0.0-bootstrap.nupkg" $bootstrapPackageFilePath
 
         Write-Host "Cleaning Bootstrap compiler artifacts"
         Run-MSBuild "build\Toolset\Toolset.csproj" "/t:Clean" -logFileName "BootstrapClean"
         Stop-BuildProcesses
     }
 
-    return $dir
+    $dir = Join-Path $dir "Microsoft.Net.Compilers"
+    Unzip-File $bootstrapPackageFilePath $dir
+    return (Join-Path $dir "build")
 }
 
 function Build-Artifacts() { 
