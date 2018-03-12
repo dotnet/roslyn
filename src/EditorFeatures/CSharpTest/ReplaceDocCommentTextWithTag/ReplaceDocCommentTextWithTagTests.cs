@@ -426,7 +426,7 @@ class C<TKey>
         {
             await TestMissingAsync(
 @"
-/// Testing keyword inside <see lang=""nu[||]ll""/>
+/// Testing keyword inside <see langword =""nu[||]ll""/>
 class C
 {
     void WriteLine<TKey>(TKey value) { }
@@ -439,7 +439,7 @@ class C
         {
             await TestMissingAsync(
 @"
-/// Testing keyword inside <see lang=""nu[||]ll""
+/// Testing keyword inside <see langword =""nu[||]ll""
 class C
 {
     void WriteLine<TKey>(TKey value) { }

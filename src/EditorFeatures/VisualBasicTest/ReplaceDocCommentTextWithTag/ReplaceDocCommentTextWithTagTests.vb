@@ -331,7 +331,7 @@ end class")
         Public Async Function TestInXMLAttribute() As Task
             Await TestMissingAsync(
 "
-''' Testing keyword inside <see lang=""nu[||]ll"">
+''' Testing keyword inside <see langword=""Noth[||]ing"">
 class C
     sub WriteLine(Of TKey)(value as TKey)
     end sub
@@ -343,7 +343,7 @@ end class")
         Public Async Function TestInXMLAttribute2() As Task
             Await TestMissingAsync(
 "
-''' Testing keyword inside <see lang=""nu[||]ll""
+''' Testing keyword inside <see langword=""Not[||]hing""
 class C
     sub WriteLine(Of TKey)(value as TKey)
     end sub

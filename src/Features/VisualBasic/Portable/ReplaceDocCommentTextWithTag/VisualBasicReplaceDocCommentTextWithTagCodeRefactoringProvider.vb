@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReplaceDocCommentTextWithTag
     Friend Class VisualBasicReplaceDocCommentTextWithTagCodeRefactoringProvider
         Inherits AbstractReplaceDocCommentTextWithTagCodeRefactoringProvider
 
-        Private Shared s_keywords As New HashSet(Of String) From
+        Private Shared ReadOnly s_keywords As New HashSet(Of String) From
             {
             SyntaxFacts.GetText(SyntaxKind.NothingKeyword),
             SyntaxFacts.GetText(SyntaxKind.SharedKeyword),
