@@ -285,9 +285,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(leftNoNames || rightNoNames || leftNames.Length == rightNames.Length);
 
-            // The only case where the right side is not preferred is when we have a tuple literal on the left, but not the right
-            bool isRightBestSide = !(leftIsTupleLiteral && !rightIsTupleLiteral);
-
             int length = leftNoNames ? rightNames.Length : leftNames.Length;
             for (int i = 0; i < length; i++)
             {
@@ -298,9 +295,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool rightWasInferred = rightNoInferredNames ? false : rightInferred[i];
 
                 bool different = string.CompareOrdinal(rightName, leftName) != 0;
+                if (!different)
+                {
+                    continue;
+                }
 
-                bool leftComplaint = leftIsTupleLiteral && leftName != null && !leftWasInferred && (rightNoNames || different);
-                bool rightComplaint = rightIsTupleLiteral && rightName != null && !rightWasInferred && (leftNoNames || different);
+                bool leftComplaint = leftIsTupleLiteral && leftName != null && !leftWasInferred;
+                bool rightComplaint = rightIsTupleLiteral && rightName != null && !rightWasInferred;
 
                 if (!leftComplaint && !rightComplaint)
                 {
@@ -308,8 +309,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                // When in doubt, we'll complain on the right side
-                bool useRight = (leftComplaint && rightComplaint) ? isRightBestSide : rightComplaint;
+                // When in doubt, we'll complain on the right side if it's a literal
+                bool useRight = (leftComplaint && rightComplaint) ? rightIsTupleLiteral : rightComplaint;
                 BoundExpression location = useRight ? rightLocations[i] : leftLocations[i];
                 string complaintName = useRight ? rightName : leftName;
 
