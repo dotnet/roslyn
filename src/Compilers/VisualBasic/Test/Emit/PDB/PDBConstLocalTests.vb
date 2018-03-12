@@ -24,7 +24,7 @@ Public Class C
 end class
     </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                 source,
                 TestOptions.DebugDll)
 
@@ -160,7 +160,7 @@ Public Class C
 End Class
 </file>
                          </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                 source,
                 TestOptions.DebugDll)
 

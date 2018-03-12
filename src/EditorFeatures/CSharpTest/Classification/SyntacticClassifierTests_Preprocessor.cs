@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
@@ -171,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("#"),
                 PPKeyword("if"),
                 Identifier("GOO"),
-                Operators.DoublePipe,
+                Operators.BarBar,
                 Identifier("BAR"),
                 PPKeyword("#"),
                 PPKeyword("endif"));
@@ -188,7 +189,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("#"),
                 PPKeyword("if"),
                 Identifier("GOO"),
-                Operators.DoubleAmpersand,
+                Operators.AmpersandAmpersand,
                 Identifier("BAR"),
                 PPKeyword("#"),
                 PPKeyword("endif"));
@@ -205,9 +206,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("#"),
                 PPKeyword("if"),
                 Identifier("GOO"),
-                Operators.DoublePipe,
+                Operators.BarBar,
                 Identifier("BAR"),
-                Operators.DoubleAmpersand,
+                Operators.AmpersandAmpersand,
                 Identifier("BAZ"),
                 PPKeyword("#"),
                 PPKeyword("endif"));
@@ -225,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("if"),
                 Punctuation.OpenParen,
                 Identifier("GOO"),
-                Operators.DoublePipe,
+                Operators.BarBar,
                 Identifier("BAR"),
                 Punctuation.CloseParen,
                 PPKeyword("#"),
@@ -244,7 +245,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("if"),
                 Punctuation.OpenParen,
                 Identifier("GOO"),
-                Operators.DoubleAmpersand,
+                Operators.AmpersandAmpersand,
                 Identifier("BAR"),
                 Punctuation.CloseParen,
                 PPKeyword("#"),
@@ -262,10 +263,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 PPKeyword("#"),
                 PPKeyword("if"),
                 Identifier("GOO"),
-                Operators.DoublePipe,
+                Operators.BarBar,
                 Punctuation.OpenParen,
                 Identifier("BAR"),
-                Operators.DoubleAmpersand,
+                Operators.AmpersandAmpersand,
                 Identifier("BAZ"),
                 Punctuation.CloseParen,
                 PPKeyword("#"),
@@ -385,11 +386,11 @@ aeu";
                 PPKeyword("#"),
                 PPKeyword("else"),
                 Identifier("aoeu"),
-                Identifier("aoeu"),
+                Field("aoeu"),
                 Identifier("aou"),
                 PPKeyword("#"),
                 PPKeyword("endif"),
-                Identifier("aeu"));
+                Field("aeu"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -411,12 +412,12 @@ aeu";
                 PPKeyword("else"),
                 Comment("//Goo2"),
                 Identifier("aoeu"),
-                Identifier("aoeu"),
+                Field("aoeu"),
                 Identifier("aou"),
                 PPKeyword("#"),
                 PPKeyword("endif"),
                 Comment("//Goo3"),
-                Identifier("aeu"));
+                Field("aeu"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -970,7 +971,7 @@ aeu";
         {
             await TestInMethodAsync(
                 code: @"int x; (_, x) = (1, 2);",
-                expected: Classifications(Keyword("int"), Identifier("x"), Punctuation.Semicolon, Punctuation.OpenParen,
+                expected: Classifications(Keyword("int"), Local("x"), Punctuation.Semicolon, Punctuation.OpenParen,
                     Identifier("_"), Punctuation.Comma, Identifier("x"), Punctuation.CloseParen, Operators.Equals,
                     Punctuation.OpenParen, Number("1"), Punctuation.Comma, Number("2"), Punctuation.CloseParen,
                     Punctuation.Semicolon));
@@ -997,7 +998,7 @@ aeu";
         public async Task UnderscoreInAssignment()
         {
             await TestInMethodAsync(code: @"int _; _ = 1;" ,
-                expected: Classifications(Keyword("int"), Identifier("_"), Punctuation.Semicolon, Identifier("_"), Operators.Equals,
+                expected: Classifications(Keyword("int"), Local("_"), Punctuation.Semicolon, Identifier("_"), Operators.Equals,
                     Number("1"), Punctuation.Semicolon));
         }
     }

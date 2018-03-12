@@ -502,13 +502,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                 SetOptions(lastCompilationOptions.WithGlobalImports(_imports), CurrentParseOptions)
             End If
         End Sub
-
-#If DEBUG Then
-        Public Overrides ReadOnly Property Debug_VBEmbeddedCoreOptionOn As Boolean
-            Get
-                Return DirectCast(CurrentCompilationOptions, VisualBasicCompilationOptions).EmbedVbCoreRuntime
-            End Get
-        End Property
-#End If
     End Class
 End Namespace

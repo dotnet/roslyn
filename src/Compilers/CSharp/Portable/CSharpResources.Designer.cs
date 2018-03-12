@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot use ref or out parameter &apos;{0}&apos; inside an anonymous method, lambda expression, query expression, or local function.
+        ///   Looks up a localized string similar to Cannot use ref, out, or in parameter &apos;{0}&apos; inside an anonymous method, lambda expression, query expression, or local function.
         /// </summary>
         internal static string ERR_AnonDelegateCantUse {
             get {
@@ -1844,7 +1844,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /platform; must be anycpu, x86, Itanium or x64.
+        ///   Looks up a localized string similar to Invalid option &apos;{0}&apos; for /platform; must be anycpu, x86, Itanium, arm, arm64 or x64.
         /// </summary>
         internal static string ERR_BadPlatformType {
             get {
@@ -4841,7 +4841,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public definition for &apos;{1}&apos;.
+        ///   Looks up a localized string similar to foreach statement cannot operate on variables of type &apos;{0}&apos; because &apos;{0}&apos; does not contain a public instance definition for &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_ForEachMissingMember {
             get {
@@ -5588,6 +5588,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos; cannot implement interface member &apos;{1}&apos; in type &apos;{2}&apos; because it has an __arglist parameter.
+        /// </summary>
+        internal static string ERR_InterfaceImplementedImplicitlyByVariadic {
+            get {
+                return ResourceManager.GetString("ERR_InterfaceImplementedImplicitlyByVariadic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: interface members cannot have a definition.
         /// </summary>
         internal static string ERR_InterfaceMemberHasBody {
@@ -5845,6 +5854,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_InvalidGotoCase {
             get {
                 return ResourceManager.GetString("ERR_InvalidGotoCase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Invalid hash algorithm name: &apos;{0}&apos;.
+        /// </summary>
+        internal static string ERR_InvalidHashAlgorithmName {
+            get {
+                return ResourceManager.GetString("ERR_InvalidHashAlgorithmName", resourceCulture);
             }
         }
         
@@ -11093,15 +11111,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_SK_VARIABLE {
             get {
                 return ResourceManager.GetString("IDS_SK_VARIABLE", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to stackalloc {0}[{1}].
-        /// </summary>
-        internal static string IDS_StackAllocExpression {
-            get {
-                return ResourceManager.GetString("IDS_StackAllocExpression", resourceCulture);
             }
         }
         

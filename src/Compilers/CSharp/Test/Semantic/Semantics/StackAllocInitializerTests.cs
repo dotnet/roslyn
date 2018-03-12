@@ -286,7 +286,7 @@ unsafe class Test
     {
         var obj1 = c ? default : stackalloc[] { """" };
         var obj2 = c ? default : stackalloc[] { new {} };
-        var obj3 = c ? default : stackalloc[] { s }; // Should be an error, see https://github.com/dotnet/roslyn/issues/25086
+        var obj3 = c ? default : stackalloc[] { s };
     }
 }", TestOptions.UnsafeReleaseDll);
 
@@ -296,7 +296,10 @@ unsafe class Test
                 Diagnostic(ErrorCode.ERR_ManagedAddr, @"stackalloc[] { """" }").WithArguments("string").WithLocation(7, 34),
                 // (8,34): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('<empty anonymous type>')
                 //         var obj2 = c ? default : stackalloc[] { new {} };
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new {} }").WithArguments("<empty anonymous type>").WithLocation(8, 34)
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "stackalloc[] { new {} }").WithArguments("<empty anonymous type>").WithLocation(8, 34),
+                // (9,34): error CS0306: The type 'Test.S' may not be used as a type argument
+                //         var obj3 = c ? default : stackalloc[] { s };
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "stackalloc[] { s }").WithArguments("Test.S").WithLocation(9, 34)
                 );
         }
 
@@ -895,7 +898,7 @@ class Test
         [Fact]
         public void MissingSpanType()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     void M()
@@ -929,7 +932,7 @@ class Test
         [Fact]
         public void MissingSpanConstructor()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 namespace System
 {
     ref struct Span<T>
@@ -944,7 +947,7 @@ namespace System
             Span<int> a3 = stackalloc     [ ] { 1, 2, 3 };
         }
     }
-}").VerifyDiagnostics(
+}").VerifyEmitDiagnostics(
                 // (11,28): error CS0656: Missing compiler required member 'System.Span`1..ctor'
                 //             Span<int> a1 = stackalloc int [3] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "stackalloc int [3] { 1, 2, 3 }").WithArguments("System.Span`1", ".ctor").WithLocation(11, 28),
@@ -1149,7 +1152,7 @@ class Test
         [Fact]
         public void StackAllocSyntaxProducesUnsafeErrorInSafeCode()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Test
 {
     void M()
@@ -1272,7 +1275,7 @@ unsafe public class Test
     }
 }
 ";
-            CreateStandardCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
+            CreateCompilation(test, options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, allowUnsafe: true)).VerifyDiagnostics(
                 // (6,15): error CS0283: The type 'int*' cannot be declared const
                 //         const int* p1 = stackalloc int[1] { 1 };
                 Diagnostic(ErrorCode.ERR_BadConstType, "int*").WithArguments("int*").WithLocation(6, 15),
@@ -1457,7 +1460,7 @@ unsafe public class Test
         [Fact]
         public void StackAllocWithDynamic()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Program
 {
     static void Main()
@@ -1519,7 +1522,7 @@ class Program
         [Fact]
         public void StackAllocAsArgument()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Program
 {
     static void N(object p) { }
@@ -1546,7 +1549,7 @@ class Program
         [Fact]
         public void StackAllocInParenthesis()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Program
 {
     static void Main()
@@ -1571,7 +1574,7 @@ class Program
         [Fact]
         public void StackAllocInNullConditionalOperator()
         {
-            CreateStandardCompilation(@"
+            CreateCompilation(@"
 class Program
 {
     static void Main()
@@ -1729,7 +1732,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (23,34): error CS0255: stackalloc may not be used in a catch or finally block
                 //                     int* err11 = stackalloc int [3] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [3] { 1, 2, 3 }").WithLocation(23, 34),
@@ -1893,7 +1896,7 @@ unsafe class C
     }
 }
 ";
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (23,34): error CS0255: stackalloc may not be used in a catch or finally block
                 //                     int* err11 = stackalloc int [3] { 1, 2, 3 };
                 Diagnostic(ErrorCode.ERR_StackallocInCatchFinally, "stackalloc int [3] { 1, 2, 3 }").WithLocation(23, 34),

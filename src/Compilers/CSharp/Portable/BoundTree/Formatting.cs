@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -79,20 +79,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var pooledBuilder = PooledStringBuilder.GetInstance();
                 var builder = pooledBuilder.Builder;
                 var arguments = this.Arguments;
-
+                var argumentDisplays = new object[arguments.Length];
 
                 builder.Append('(');
-                builder.Append(arguments[0].Display);
+                builder.Append("{0}");
+                argumentDisplays[0] = arguments[0].Display;
 
-                for(int i = 1; i < arguments.Length; i++)
+                for (int i = 1; i < arguments.Length; i++)
                 {
-                    builder.Append(", ");
-                    builder.Append(arguments[i].Display);
+                    builder.Append(", {" + i + "}");
+                    argumentDisplays[i] = arguments[i].Display;
                 }
 
                 builder.Append(')');
 
-                return pooledBuilder.ToStringAndFree();
+                var format = pooledBuilder.ToStringAndFree();
+                return FormattableStringFactory.Create(format, argumentDisplays);
             }
         }
     }
@@ -148,8 +150,11 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundStackAllocArrayCreation
     {
         public override object Display
-        {
-            get { return string.Format(MessageID.IDS_StackAllocExpression.Localize().ToString(), ElementType, Count.WasCompilerGenerated ? null : Count.Syntax); }
-        }
+            => FormattableStringFactory.Create("stackalloc {0}[{1}]", ElementType, Count.WasCompilerGenerated ? null : Count.Syntax.ToString());
+    }
+
+    internal partial class BoundPassByCopy
+    {
+        public override object Display => Expression.Display;
     }
 }

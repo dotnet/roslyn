@@ -4141,8 +4141,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_ForEachMissingMember">
-        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public definition for '{1}'</source>
-        <target state="translated">Příkaz foreach nejde použít pro proměnné typu {0}, protože {0} neobsahuje veřejnou definici pro {1}.</target>
+        <source>foreach statement cannot operate on variables of type '{0}' because '{0}' does not contain a public instance definition for '{1}'</source>
+        <target state="needs-review-translation">Příkaz foreach nejde použít pro proměnné typu {0}, protože {0} neobsahuje veřejnou definici pro {1}.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_BadXMLRefParamType">
@@ -4386,7 +4386,7 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUse">
-        <source>Cannot use ref or out parameter '{0}' inside an anonymous method, lambda expression, query expression, or local function</source>
+        <source>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, query expression, or local function</source>
         <target state="needs-review-translation">Parametr ref nebo out {0} uvnitř anonymní metody, lambda výrazu nebo výrazu dotazu</target>
         <note />
       </trans-unit>
@@ -4656,8 +4656,8 @@ Blok catch() po bloku catch (System.Exception e) může zachytit výjimky, kter�
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPlatformType">
-        <source>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium or x64</source>
-        <target state="translated">Neplatná možnost {0} pro /platform. Musí být anycpu, x86, Itanium nebo x64.</target>
+        <source>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium, arm, arm64 or x64</source>
+        <target state="needs-review-translation">Neplatná možnost {0} pro /platform. Musí být anycpu, x86, Itanium nebo x64.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
@@ -7224,7 +7224,7 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
  /doc:&lt;file&gt;                   XML Documentation file to generate
  /refout:&lt;file&gt;                Reference assembly output to generate
  /platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
-                               Itanium, x64, arm, anycpu32bitpreferred, or
+                               Itanium, x64, arm, arm64, anycpu32bitpreferred, or
                                anycpu. The default is anycpu.
 
                         - INPUT FILES -
@@ -7346,7 +7346,7 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
                                a part of
  /modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Parametry kompilátoru Visual C#
 
                         – VÝSTUPNÍ SOUBORY –
@@ -8520,11 +8520,6 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
         <target state="translated">Převod výrazu stackalloc typu {0} na typ {1} není možný.</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_StackAllocExpression">
-        <source>stackalloc {0}[{1}]</source>
-        <target state="translated">stackalloc {0}[{1}]</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne">
         <source>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</source>
         <target state="translated">První parametr rozšiřující metody ref {0} musí být typem hodnoty nebo obecným typem omezeným na strukturu.</target>
@@ -8582,7 +8577,7 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
-        <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>
+        <target state="translated">Argumenty s modifikátorem in se nedají použít v dynamicky odbavených výrazech.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
@@ -8607,7 +8602,17 @@ Pokud chcete odstranit toto varování, můžete místo toho použít /reference
       </trans-unit>
       <trans-unit id="IDS_FeatureRefConditional">
         <source>ref conditional expression</source>
-        <target state="new">ref conditional expression</target>
+        <target state="translated">referenční podmínka</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
+        <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
+        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidHashAlgorithmName">
+        <source>Invalid hash algorithm name: '{0}'</source>
+        <target state="new">Invalid hash algorithm name: '{0}'</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureStackAllocInitializer">

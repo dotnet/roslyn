@@ -40,7 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 if (_codeModelCache == null)
                 {
                     var project = VisualStudioWorkspace.CurrentSolution.GetProject(VSProject.Id);
-                    if (project == null && !VSProject.PushingChangesToWorkspaceHosts)
+                    if (project == null && !VSProject.PushingChangesToWorkspace)
                     {
                         // if this project hasn't been pushed yet, push it now so that the user gets a useful experience here.
                         VSProject.StartPushingToWorkspaceAndNotifyOfOpenDocuments();
