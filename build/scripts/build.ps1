@@ -450,12 +450,11 @@ function Test-XUnit() {
     $xunitDir = Join-Path (Get-PackageDir "xunit.runner.console") "tools\net452"
     $useCodecov = $cibuild -and $env:CODECOV_TOKEN -and $testDesktop -and $test32 -and -not $release
     $useOpenCover = $useCodecov
-    $args = "$xunitDir"
-    $args += " -log:$logFilePath"
-    $args += " -nocache"
+    $args = @("$xunitDir")
+    $args += "-log:$logFilePath"
+    $args += "-nocache"
     if ($useOpenCover) {
         $openCoverPath = Join-Path (Get-PackageDir "OpenCover") "tools\OpenCover.Console.exe"
-        $args += " -openCoverPath:$openCoverPath"
     }
 
     if ($testDesktop) {
@@ -471,7 +470,7 @@ function Test-XUnit() {
     }
     else {
         $dlls = Get-ChildItem -re -in "*.IntegrationTests.dll" $unitDir
-        $args += " -trait:Feature=NetCore"
+        $args += "-trait:Feature=NetCore"
     }
 
     # Exclude out the multi-targetted netcore app projects
@@ -483,14 +482,14 @@ function Test-XUnit() {
 
     if ($cibuild -or $official) {
         # Use a 50 minute timeout on CI
-        $args += " -xml -timeout:50"
+        $args += @('-xml', '-timeout:50')
 
         $procdumpPath = Ensure-ProcDump
-        $args += " -procdumppath:$procDumpPath"
+        $args += "-procdumppath:$procDumpPath"
     }
 
     if ($test64) {
-        $args += " -test64"
+        $args += "-test64"
     }
 
     $pdb2pdb = Join-Path (Get-PackageDir 'Microsoft.DiaSymReader.Pdb2Pdb') 'tools\Pdb2Pdb.exe'
@@ -521,9 +520,30 @@ function Test-XUnit() {
             }
         }
 
-        $args += " $dll"
+        $args += "$dll"
     }
-    
+
+    if ($useOpenCover) {
+        # Wrap the call to RunTests.exe in a call to OpenCover.Console.exe
+        $rewrittenArgs = @(
+            '-register:user'
+            '-threshold:1'
+            '-oldStyle'
+            '-returntargetcode'
+            #'-hideskipped:All'
+            '-filter:"+[*]*"'
+            '-excludebyattribute:*.ExcludeFromCodeCoverage*'
+            '-excludebyfile:*\*Designer.cs'
+            '-mergebyhash'
+            "-output:$unitDir\RunTests.OpenCover.coverage"
+            "-target:`"$runTests`""
+            "-targetargs:`"$args`""
+        )
+
+        $runTests = $openCoverPath
+        $args = $rewrittenArgs
+    }
+
     try {
         Exec-Console $runTests $args
     }
@@ -537,8 +557,7 @@ function Test-XUnit() {
             $codecovArgs = @()
             if ($coverageFiles) {
                 $codecovArgs += '-f'
-                # TODO: Merge files before submitting.
-                $codecovArgs += $coverageFiles[1]
+                $codecovArgs += $coverageFiles
             }
 
             if ($env:QualifiedRepoName) {

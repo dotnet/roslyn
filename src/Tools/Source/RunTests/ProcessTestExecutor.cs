@@ -70,7 +70,7 @@ namespace RunTests
         {
             try
             {
-                var xunitCommandLineArguments = GetCommandLineArguments(assemblyInfo);
+                var commandLineArguments = GetCommandLineArguments(assemblyInfo);
                 var resultsFilePath = GetResultsFilePath(assemblyInfo);
                 var resultsDir = Path.GetDirectoryName(resultsFilePath);
 
@@ -100,35 +100,10 @@ namespace RunTests
                 }
 
                 var start = DateTime.UtcNow;
-
-                string executable;
-                string arguments;
-                if (_options.EnableCoverage)
-                {
-                    executable = _options.OpenCoverPath;
-                    var argumentsList = new List<string>();
-                    argumentsList.Add("-register:user");
-                    argumentsList.Add("-threshold:1");
-                    argumentsList.Add("-oldStyle");
-                    argumentsList.Add("-returntargetcode");
-                    //argumentsList.Add("-hideskipped:All");
-                    argumentsList.Add("-filter:\"+[*]*\"");
-                    argumentsList.Add("-excludebyattribute:*.ExcludeFromCodeCoverage*");
-                    argumentsList.Add(@"-excludebyfile:*\*Designer.cs");
-                    argumentsList.Add($@"-output:""{Path.Combine(Path.GetDirectoryName(GetResultsFilePath(assemblyInfo)), assemblyInfo.CoverageFileName)}""");
-                    argumentsList.Add($@"-target:""{_options.XunitPath}""");
-                    argumentsList.Add($@"-targetargs:""{xunitCommandLineArguments.Replace("\"", "\\\"")}""");
-                    arguments = string.Join(" ", argumentsList);
-                }
-                else
-                {
-                    executable = _options.XunitPath;
-                    arguments = xunitCommandLineArguments;
-                }
-
+                var xunitPath = _options.XunitPath;
                 var processOutput = await ProcessRunner.RunProcessAsync(
-                    executable,
-                    arguments,
+                    xunitPath,
+                    commandLineArguments,
                     lowPriority: false,
                     displayWindow: false,
                     captureOutput: true,
@@ -181,7 +156,7 @@ namespace RunTests
             }
             catch (Exception ex)
             {
-                throw new Exception($"Unable to run {assemblyInfo.AssemblyPath} with {(_options.EnableCoverage ? _options.OpenCoverPath : _options.XunitPath)}. {ex}");
+                throw new Exception($"Unable to run {assemblyInfo.AssemblyPath} with {_options.XunitPath}. {ex}");
             }
         }
     }

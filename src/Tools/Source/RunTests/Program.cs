@@ -330,9 +330,7 @@ namespace RunTests
                 noTrait: options.NoTrait,
                 useHtml: options.UseHtml,
                 test64: options.Test64,
-                testVsi: options.TestVsi,
-                enableCoverage: options.EnableCoverage,
-                openCoverPath: options.OpenCoverPath);
+                testVsi: options.TestVsi);
             var processTestExecutor = new ProcessTestExecutor(testExecutionOptions);
             if (!options.UseCachedResults)
             {
