@@ -16,7 +16,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
 {
     [Export]
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAnalyzer<PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ExpressionSyntax>
+    internal class CSharpUseAutoPropertyAnalyzer : AbstractUseAutoPropertyAnalyzer<
+        PropertyDeclarationSyntax, FieldDeclarationSyntax, VariableDeclaratorSyntax, ExpressionSyntax>
     {
         protected override bool SupportsReadOnlyProperties(Compilation compilation)
             => ((CSharpCompilation)compilation).LanguageVersion >= LanguageVersion.CSharp6;
@@ -71,12 +72,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
                                         .Distinct()
                                         .GroupBy(n => n.SyntaxTree);
 
-            foreach (var group in groups)
+            foreach (var (tree, typeDeclarations) in groups)
             {
-                var tree = group.Key;
                 var semanticModel = compilation.GetSemanticModel(tree);
 
-                foreach (var typeDeclaration in group)
+                foreach (var typeDeclaration in typeDeclarations)
                 {
                     foreach (var argument in typeDeclaration.DescendantNodesAndSelf().OfType<ArgumentSyntax>())
                     {
@@ -96,7 +96,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             }
         }
 
-        protected override ExpressionSyntax GetFieldInitializer(VariableDeclaratorSyntax variable, CancellationToken cancellationToken)
+        protected override ExpressionSyntax GetFieldInitializer(VariableDeclaratorSyntax variable,
+            CancellationToken cancellationToken)
         {
             return variable.Initializer?.Value;
         }
@@ -183,7 +184,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             return null;
         }
 
-        protected override ExpressionSyntax GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken)
+        protected override ExpressionSyntax GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel,
+            CancellationToken cancellationToken)
         {
             // Setter has to be of the form:
             //
@@ -210,7 +212,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
             => setAccessor?.ExpressionBody?.Expression ??
                GetSingleStatementFromAccessor<ExpressionStatementSyntax>(setAccessor)?.Expression;
 
-        protected override SyntaxNode GetNodeToFade(FieldDeclarationSyntax fieldDeclaration, VariableDeclaratorSyntax variableDeclarator)
+        protected override SyntaxNode GetNodeToFade(FieldDeclarationSyntax fieldDeclaration,
+            VariableDeclaratorSyntax variableDeclarator)
         {
             return fieldDeclaration.Declaration.Variables.Count == 1
                 ? fieldDeclaration
