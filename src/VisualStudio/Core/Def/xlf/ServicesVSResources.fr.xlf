@@ -1508,6 +1508,46 @@ Je suis d'accord avec tout ce qui précède :</target>
         <target state="translated">Analyse de '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Keep_all_parentheses_in_colon">
+        <source>Keep all parentheses in:</source>
+        <target state="new">Keep all parentheses in:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="When_clarifying_precedence">
+        <source>When clarifying precedence</source>
+        <target state="new">When clarifying precedence</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Ignore">
+        <source>Ignore</source>
+        <target state="new">Ignore</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Other_operations">
+        <source>Other operations</source>
+        <target state="new">Other operations</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_if_unnecessary">
+        <source>Remove if unnecessary</source>
+        <target state="new">Remove if unnecessary</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_preferences_colon">
+        <source>Parentheses preferences:</source>
+        <target state="new">Parentheses preferences:</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_if_unnecessary_not_recommended">
+        <source>Remove if unnecessary (not recommended)</source>
+        <target state="new">Remove if unnecessary (not recommended)</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Require_for_clarity">
+        <source>Require for clarity</source>
+        <target state="new">Require for clarity</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -968,6 +968,30 @@ Additional information: {1}</value>
   <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
     <value>Prefer local function over anonymous function</value>
   </data>
+  <data name="Keep_all_parentheses_in_colon" xml:space="preserve">
+    <value>Keep all parentheses in:</value>
+  </data>
+  <data name="When_clarifying_precedence" xml:space="preserve">
+    <value>When clarifying precedence</value>
+  </data>
+  <data name="Ignore" xml:space="preserve">
+    <value>Ignore</value>
+  </data>
+  <data name="Other_operations" xml:space="preserve">
+    <value>Other operations</value>
+  </data>
+  <data name="Remove_if_unnecessary" xml:space="preserve">
+    <value>Remove if unnecessary</value>
+  </data>
+  <data name="Require_for_clarity" xml:space="preserve">
+    <value>Require for clarity</value>
+  </data>
+  <data name="Parentheses_preferences_colon" xml:space="preserve">
+    <value>Parentheses preferences:</value>
+  </data>
+  <data name="Remove_if_unnecessary_not_recommended" xml:space="preserve">
+    <value>Remove if unnecessary (not recommended)</value>
+  </data>
   <data name="ModuleHasBeenUnloaded" xml:space="preserve">
     <value>Module has been unloaded.</value>
   </data>

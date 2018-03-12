@@ -692,6 +692,41 @@
         <target state="translated">Namensv_orschläge anzeigen</target>
         <note />
       </trans-unit>
+      <trans-unit id="Arithmetic_operations">
+        <source>Arithmetic operations:   *   /   %   +   -</source>
+        <target state="new">Arithmetic operations:   *   /   %   +   -</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Bitwise_operations">
+        <source>Bitwise operations:   &amp;   |   ^</source>
+        <target state="new">Bitwise operations:   &amp;   |   ^</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Coalesce_operations">
+        <source>Coalesce operations:   ??</source>
+        <target state="new">Coalesce operations:   ??</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Equality_operations">
+        <source>Equality operations:   ==   !=</source>
+        <target state="new">Equality operations:   ==   !=</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Logical_operations">
+        <source>Logical operations:   &amp;&amp;   ||</source>
+        <target state="new">Logical operations:   &amp;&amp;   ||</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Relational_operations">
+        <source>Relational operations:   &lt;   &lt;=   &gt;   &gt;=   is   as</source>
+        <target state="new">Relational operations:   &lt;   &lt;=   &gt;   &gt;=   is   as</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Shift_operations">
+        <source>Shift operations:   &lt;&lt;   &gt;&gt;</source>
+        <target state="new">Shift operations:   &lt;&lt;   &gt;&gt;</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

@@ -243,6 +243,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add parentheses for clarity.
+        /// </summary>
+        internal static string Add_parentheses_for_clarity {
+            get {
+                return ResourceManager.GetString("Add_parentheses_for_clarity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Add project reference to &apos;{0}&apos;..
         /// </summary>
         internal static string Add_project_reference_to_0 {
@@ -2401,6 +2410,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Parentheses can be removed.
+        /// </summary>
+        internal static string Parentheses_can_be_removed {
+            get {
+                return ResourceManager.GetString("Parentheses_can_be_removed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parentheses should be added for clarity.
+        /// </summary>
+        internal static string Parentheses_should_be_added_for_clarity {
+            get {
+                return ResourceManager.GetString("Parentheses_should_be_added_for_clarity", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Pascal Case.
         /// </summary>
         internal static string Pascal_Case {
@@ -2613,6 +2640,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string Remove_Unnecessary_Cast {
             get {
                 return ResourceManager.GetString("Remove_Unnecessary_Cast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove unnecessary parentheses.
+        /// </summary>
+        internal static string Remove_unnecessary_parentheses {
+            get {
+                return ResourceManager.GetString("Remove_unnecessary_parentheses", resourceCulture);
             }
         }
         

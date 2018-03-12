@@ -92,6 +92,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Arithmetic operations:   ^   *   /   \   Mod   +   -   &amp;.
+        '''</summary>
+        Friend Shared ReadOnly Property Arithmetic_operations() As String
+            Get
+                Return ResourceManager.GetString("Arithmetic_operations", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Automatic _insertion of Interface and MustOverride members.
         '''</summary>
         Friend Shared ReadOnly Property Automatic_insertion_of_Interface_and_MustOverride_members() As String
@@ -268,6 +277,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Large() As String
             Get
                 Return ResourceManager.GetString("Large", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Logical operations:   And   AndAlso   Or   OrElse.
+        '''</summary>
+        Friend Shared ReadOnly Property Logical_operations() As String
+            Get
+                Return ResourceManager.GetString("Logical_operations", resourceCulture)
             End Get
         End Property
         
@@ -452,6 +470,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Relational operations:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like.
+        '''</summary>
+        Friend Shared ReadOnly Property Relational_operations() As String
+            Get
+                Return ResourceManager.GetString("Relational_operations", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Report invalid placeholders in &apos;String.Format&apos; calls.
         '''</summary>
         Friend Shared ReadOnly Property Report_invalid_placeholders_in_string_dot_format_calls() As String
@@ -466,6 +493,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Separate_import_directive_groups() As String
             Get
                 Return ResourceManager.GetString("Separate_import_directive_groups", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Shift operations:   &lt;&lt;   &gt;&gt;.
+        '''</summary>
+        Friend Shared ReadOnly Property Shift_operations() As String
+            Get
+                Return ResourceManager.GetString("Shift_operations", resourceCulture)
             End Get
         End Property
         

@@ -528,6 +528,27 @@
   <data name="Separate_using_directive_groups" xml:space="preserve">
     <value>Separate using directive groups</value>
   </data>
+  <data name="Arithmetic_operations" xml:space="preserve">
+    <value>Arithmetic operations:   *   /   %   +   -</value>
+  </data>
+  <data name="Bitwise_operations" xml:space="preserve">
+    <value>Bitwise operations:   &amp;   |   ^</value>
+  </data>
+  <data name="Coalesce_operations" xml:space="preserve">
+    <value>Coalesce operations:   ??</value>
+  </data>
+  <data name="Equality_operations" xml:space="preserve">
+    <value>Equality operations:   ==   !=</value>
+  </data>
+  <data name="Logical_operations" xml:space="preserve">
+    <value>Logical operations:   &amp;&amp;   ||</value>
+  </data>
+  <data name="Relational_operations" xml:space="preserve">
+    <value>Relational operations:   &lt;   &lt;=   &gt;   &gt;=   is   as</value>
+  </data>
+  <data name="Shift_operations" xml:space="preserve">
+    <value>Shift operations:   &lt;&lt;   &gt;&gt;</value>
+  </data>
   <data name="Show_name_suggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>
   </data>

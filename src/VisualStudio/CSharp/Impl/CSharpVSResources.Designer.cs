@@ -79,6 +79,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Arithmetic operations:   *   /   %   +   -.
+        /// </summary>
+        internal static string Arithmetic_operations {
+            get {
+                return ResourceManager.GetString("Arithmetic_operations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Automatically format _block on }.
         /// </summary>
         internal static string Automatically_format_block_on_close_brace {
@@ -120,6 +129,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Automatically_format_when_typing {
             get {
                 return ResourceManager.GetString("Automatically_format_when_typing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bitwise operations:   &amp;   |   ^.
+        /// </summary>
+        internal static string Bitwise_operations {
+            get {
+                return ResourceManager.GetString("Bitwise_operations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Coalesce operations:   ??.
+        /// </summary>
+        internal static string Coalesce_operations {
+            get {
+                return ResourceManager.GetString("Coalesce_operations", resourceCulture);
             }
         }
         
@@ -192,6 +219,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Enter_outlining_mode_when_files_open {
             get {
                 return ResourceManager.GetString("Enter_outlining_mode_when_files_open", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Equality operations:   ==   !=.
+        /// </summary>
+        internal static string Equality_operations {
+            get {
+                return ResourceManager.GetString("Equality_operations", resourceCulture);
             }
         }
         
@@ -606,6 +642,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Leave_statements_and_member_declarations_on_the_same_line {
             get {
                 return ResourceManager.GetString("Leave_statements_and_member_declarations_on_the_same_line", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Logical operations:   &amp;&amp;   ||.
+        /// </summary>
+        internal static string Logical_operations {
+            get {
+                return ResourceManager.GetString("Logical_operations", resourceCulture);
             }
         }
         
@@ -1033,6 +1078,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Relational operations:   &lt;   &lt;=   &gt;   &gt;=   is   as.
+        /// </summary>
+        internal static string Relational_operations {
+            get {
+                return ResourceManager.GetString("Relational_operations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove spaces before and after binary operators.
         /// </summary>
         internal static string Remove_spaces_before_and_after_binary_operators {
@@ -1119,6 +1173,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Set_spacing_for_operators {
             get {
                 return ResourceManager.GetString("Set_spacing_for_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shift operations:   &lt;&lt;   &gt;&gt;.
+        /// </summary>
+        internal static string Shift_operations {
+            get {
+                return ResourceManager.GetString("Shift_operations", resourceCulture);
             }
         }
         

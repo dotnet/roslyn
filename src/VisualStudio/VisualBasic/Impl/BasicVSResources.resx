@@ -279,4 +279,16 @@
   <data name="Separate_import_directive_groups" xml:space="preserve">
     <value>Separate import directive groups</value>
   </data>
+  <data name="Arithmetic_operations" xml:space="preserve">
+    <value>Arithmetic operations:   ^   *   /   \   Mod   +   -   &amp;</value>
+  </data>
+  <data name="Logical_operations" xml:space="preserve">
+    <value>Logical operations:   And   AndAlso   Or   OrElse</value>
+  </data>
+  <data name="Relational_operations" xml:space="preserve">
+    <value>Relational operations:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like</value>
+  </data>
+  <data name="Shift_operations" xml:space="preserve">
+    <value>Shift operations:   &lt;&lt;   &gt;&gt;</value>
+  </data>
 </root>

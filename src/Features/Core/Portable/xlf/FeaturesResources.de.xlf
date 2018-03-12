@@ -1985,6 +1985,26 @@ Diese Version wird verwendet in: {2}</target>
         <target state="translated">Indexer</target>
         <note />
       </trans-unit>
+      <trans-unit id="Parentheses_can_be_removed">
+        <source>Parentheses can be removed</source>
+        <target state="new">Parentheses can be removed</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Remove_unnecessary_parentheses">
+        <source>Remove unnecessary parentheses</source>
+        <target state="new">Remove unnecessary parentheses</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parentheses_for_clarity">
+        <source>Add parentheses for clarity</source>
+        <target state="new">Add parentheses for clarity</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Parentheses_should_be_added_for_clarity">
+        <source>Parentheses should be added for clarity</source>
+        <target state="new">Parentheses should be added for clarity</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

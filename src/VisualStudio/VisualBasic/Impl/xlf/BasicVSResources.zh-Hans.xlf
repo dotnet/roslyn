@@ -272,6 +272,26 @@
         <target state="translated">单独的导入指令组</target>
         <note />
       </trans-unit>
+      <trans-unit id="Arithmetic_operations">
+        <source>Arithmetic operations:   ^   *   /   \   Mod   +   -   &amp;</source>
+        <target state="new">Arithmetic operations:   ^   *   /   \   Mod   +   -   &amp;</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Logical_operations">
+        <source>Logical operations:   And   AndAlso   Or   OrElse</source>
+        <target state="new">Logical operations:   And   AndAlso   Or   OrElse</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Relational_operations">
+        <source>Relational operations:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like</source>
+        <target state="new">Relational operations:   =   &lt;&gt;   &lt;   &lt;=   &gt;   &gt;=   Is   Like</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Shift_operations">
+        <source>Shift operations:   &lt;&lt;   &gt;&gt;</source>
+        <target state="new">Shift operations:   &lt;&lt;   &gt;&gt;</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

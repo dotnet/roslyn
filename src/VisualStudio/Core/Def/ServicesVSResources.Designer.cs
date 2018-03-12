@@ -1090,6 +1090,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Ignore.
+        /// </summary>
+        internal static string Ignore {
+            get {
+                return ResourceManager.GetString("Ignore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Illegal characters in path..
         /// </summary>
         internal static string Illegal_characters_in_path {
@@ -1214,6 +1223,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Invalid_access {
             get {
                 return ResourceManager.GetString("Invalid_access", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Keep all parentheses in:.
+        /// </summary>
+        internal static string Keep_all_parentheses_in_colon {
+            get {
+                return ResourceManager.GetString("Keep_all_parentheses_in_colon", resourceCulture);
             }
         }
         
@@ -1552,6 +1570,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Other operations.
+        /// </summary>
+        internal static string Other_operations {
+            get {
+                return ResourceManager.GetString("Other_operations", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Outlining.
         /// </summary>
         internal static string Outlining {
@@ -1638,6 +1665,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Parent_Rule_colon {
             get {
                 return ResourceManager.GetString("Parent_Rule_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Parentheses preferences:.
+        /// </summary>
+        internal static string Parentheses_preferences_colon {
+            get {
+                return ResourceManager.GetString("Parentheses_preferences_colon", resourceCulture);
             }
         }
         
@@ -1999,6 +2035,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Remove if unnecessary.
+        /// </summary>
+        internal static string Remove_if_unnecessary {
+            get {
+                return ResourceManager.GetString("Remove_if_unnecessary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove if unnecessary (not recommended).
+        /// </summary>
+        internal static string Remove_if_unnecessary_not_recommended {
+            get {
+                return ResourceManager.GetString("Remove_if_unnecessary_not_recommended", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove item.
         /// </summary>
         internal static string Remove_item {
@@ -2040,6 +2094,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Reorder {
             get {
                 return ResourceManager.GetString("Reorder", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Require for clarity.
+        /// </summary>
+        internal static string Require_for_clarity {
+            get {
+                return ResourceManager.GetString("Require_for_clarity", resourceCulture);
             }
         }
         
@@ -2649,6 +2712,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread {
             get {
                 return ResourceManager.GetString("VisualStudioWorkspace_TryApplyChanges_cannot_be_called_from_a_background_thread", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When clarifying precedence.
+        /// </summary>
+        internal static string When_clarifying_precedence {
+            get {
+                return ResourceManager.GetString("When_clarifying_precedence", resourceCulture);
             }
         }
         
