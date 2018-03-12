@@ -686,16 +686,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override string ToDisplayString(SymbolDisplayFormat format)
             {
                 var str = _typeSymbol.ToDisplayString(format);
-                switch (IsNullable)
+                if (IsNullable == false &&
+                    format != null &&
+                    (format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) != 0)
                 {
-                    case true:
-                        return str + "?";
-                    case false:
-                        if (format != null && (format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) != 0)
-                        {
-                            return str + "!";
-                        }
-                        break;
+                    return str + "!";
                 }
                 return str;
             }
@@ -751,6 +746,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             public override TypeSymbolWithAnnotations AsNotNullableReferenceType()
             {
                 return new WithoutCustomModifiers(_typeSymbol);
+            }
+
+            public override string ToDisplayString(SymbolDisplayFormat format)
+            {
+                return _typeSymbol.ToDisplayString(format) + "?";
             }
         }
 
@@ -1002,6 +1002,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return base.TypeSymbolEquals(other, comparison);
+            }
+
+            public override string ToDisplayString(SymbolDisplayFormat format)
+            {
+                return _underlying.TypeSymbol.ToDisplayString(format) + "?";
             }
         }
 
