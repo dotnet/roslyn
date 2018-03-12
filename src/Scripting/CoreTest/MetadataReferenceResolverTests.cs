@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         private static PortableExecutableReference MicrosoftCodeAnalysisMetadataReference = MetadataReference.CreateFromFile(typeof(MetadataReferenceProperties).Assembly.Location);
 
         [Fact]
-        public void ReferenceDirectiveTo0MetadataReferences()
+        public void NoReferenceDirectives()
         {
             var scriptCode = "1+1";
             var scriptOptions = ScriptOptions.Default.WithMetadataResolver(new TestFakeMetadataResolver());
@@ -26,9 +26,21 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         }
 
         [Fact]
+        public void ReferenceDirectiveTo0MetadataReferences()
+        {
+            var scriptCode = "#r \"0 references\""; ;
+            var scriptOptions = ScriptOptions.Default.WithMetadataResolver(new TestFakeMetadataResolver());
+            var compilation = CSharpScript.Create(scriptCode, scriptOptions).GetCompilation();
+            var metadataReferences = compilation.References.ToArray();
+
+            Assert.DoesNotContain(CurrentAssemblyMetadataReference, metadataReferences);
+            Assert.DoesNotContain(MicrosoftCodeAnalysisMetadataReference, metadataReferences);
+        }
+
+        [Fact]
         public void ReferenceDirectiveTo1MetadataReference()
         {
-            var scriptCode = "#r \"1.dll\"";
+            var scriptCode = "#r \"1 reference\"";
             var scriptOptions = ScriptOptions.Default.WithMetadataResolver(new TestFakeMetadataResolver());
             var compilation = CSharpScript.Create(scriptCode, scriptOptions).GetCompilation();
             var metadataReferences = compilation.References.ToArray();
@@ -40,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         [Fact]
         public void ReferenceDirectiveToManyMetadataReferences()
         {
-            var scriptCode = "#r \"2.dll\"";
+            var scriptCode = "#r \"2 references\"";
             var scriptOptions = ScriptOptions.Default.WithMetadataResolver(new TestFakeMetadataResolver());
             var compilation = CSharpScript.Create(scriptCode, scriptOptions).GetCompilation();
             var metadataReferences = compilation.References.ToArray();
@@ -59,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
 
             public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
             {
-                if (reference.Equals("1.dll"))
+                if (reference.Equals("1 reference"))
                 {
                     return new PortableExecutableReference[]
                     {
@@ -67,11 +79,16 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
                     }.AsImmutable();
                 }
 
-                return new PortableExecutableReference[]
+                if (reference.Equals("2 references"))
                 {
-                    CurrentAssemblyMetadataReference,
-                    MicrosoftCodeAnalysisMetadataReference
-                }.AsImmutable();
+                    return new PortableExecutableReference[]
+                    {
+                        CurrentAssemblyMetadataReference,
+                        MicrosoftCodeAnalysisMetadataReference
+                    }.AsImmutable();
+                }
+
+                return Array.Empty<PortableExecutableReference>().ToImmutableArray();
             }
         }
     }
