@@ -456,6 +456,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }");
         }
 
+        [WorkItem(25429, "https://github.com/dotnet/roslyn/issues/25429")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestNotIfFieldUsedInRefExpression()
         {
