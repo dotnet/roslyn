@@ -121,6 +121,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty
         {
             var symbolInfo = semanticModel.GetSymbolInfo(refExpression.Expression, cancellationToken);
             AddIneligibleField(symbolInfo.Symbol, ineligibleFields);
+            foreach (var symbol in symbolInfo.CandidateSymbols)
+            {
+                AddIneligibleField(symbol, ineligibleFields);
+            }
         }
 
         private static void AddIneligibleField(ISymbol symbol, HashSet<IFieldSymbol> ineligibleFields)

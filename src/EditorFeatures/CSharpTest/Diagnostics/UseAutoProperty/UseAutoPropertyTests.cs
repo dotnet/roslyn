@@ -472,10 +472,74 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
         }
     }
 
-	void M()
-	{
-		ref int x = ref i;
-	}
+    void M()
+    {
+        ref int x = ref i;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestNotIfFieldUsedInRefExpression_AsCandidateSymbol()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|int i|];
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+
+    void M()
+    {
+        // because we refer to 'i' statically, it only gets resolved as a candidate symbol
+        // let's be conservative here and disable the analyzer if we're not sure
+        ref int x = ref Class.i;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestIfUnrelatedSymbolUsedInRefExpression()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|int i|];
+    int j;
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+
+    void M()
+    {
+        int i;
+        ref int x = ref i;
+        ref int y = ref j;
+    }
+}",
+@"class Class
+{
+    int j;
+
+    int P { get; }
+
+    void M()
+    {
+        int i;
+        ref int x = ref i;
+        ref int y = ref j;
+    }
 }");
         }
 
