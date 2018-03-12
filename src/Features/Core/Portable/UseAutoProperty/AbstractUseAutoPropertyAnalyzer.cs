@@ -163,8 +163,8 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
-            // Don't want to remove constants.
-            if (getterField.IsConst)
+            // Don't want to remove constants and volatile fields.
+            if (getterField.IsConst || getterField.IsVolatile)
             {
                 return;
             }

@@ -469,6 +469,25 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseAutoProp
 }");
         }
 
+        [WorkItem(25379, "https://github.com/dotnet/roslyn/issues/25379")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        public async Task TestNotWithVolatileField()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"class Class
+{
+    [|volatile int i|];
+
+    int P
+    {
+        get
+        {
+            return i;
+        }
+    }
+}");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
         public async Task TestFieldWithMultipleDeclarators1()
         {
