@@ -151,8 +151,7 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
         $args += " /p:BootstrapBuildPath=$bootstrapDir"
     }
 
-    if ($testIOperation)
-    {
+    if ($testIOperation) {
         $args += " /p:TestIOperationInterface=true"
     }
 
@@ -210,7 +209,13 @@ function Make-BootstrapBuild() {
         Run-MSBuild "build\Toolset\Toolset.csproj" $bootstrapArgs -logFileName "Bootstrap"
         Remove-Item -re $dir -ErrorAction SilentlyContinue
         Create-Directory $dir
-        Move-Item "$configDir\Exes\Toolset\*" $dir
+
+        Ensure-NuGet | Out-Null
+        Exec-Console "$binariesDir\Debug\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 1.0.0-bootstrap $dir `"<developer build>`" Microsoft.Net.Compilers.nuspec"
+        $packageFilePath = Join-Path $dir "Microsoft.Net.Compilers.1.0.0-bootstrap.nupkg"
+        $dir = Join-Path $dir "Microsoft.Net.Compilers"
+        Unzip-File $packageFilePath $dir
+        $dir = Join-Path $dir "build"
 
         Write-Host "Cleaning Bootstrap compiler artifacts"
         Run-MSBuild "build\Toolset\Toolset.csproj" "/t:Clean" -logFileName "BootstrapClean"
