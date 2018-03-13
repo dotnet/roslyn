@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement BindDeclarationStatementParts(LocalDeclarationStatementSyntax node, DiagnosticBag diagnostics)
         {
-            var typeSyntax = node.Declaration.Type.SkipRef(out RefKind _);
+            var typeSyntax = node.Declaration.Type.SkipRef(out _);
             bool isConst = node.IsConst;
 
             bool isVar;
@@ -640,8 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // or it might not; if it is not then we do not want to report an error. If it is, then
             // we want to treat the declaration as an explicitly typed declaration.
 
-            RefKind refKind;
-            TypeSymbol declType = BindTypeOrVarKeyword(typeSyntax.SkipRef(out refKind), diagnostics, out isVar, out alias);
+            TypeSymbol declType = BindTypeOrVarKeyword(typeSyntax.SkipRef(out _), diagnostics, out isVar, out alias);
             Debug.Assert((object)declType != null || isVar);
 
             if (isVar)
@@ -740,7 +739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (expression is BoundStackAllocArrayCreation boundStackAlloc)
             {
                 var type = new PointerTypeSymbol(boundStackAlloc.ElementType);
-                expression = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics, refKind: refKind);
+                expression = GenerateConversionForAssignment(type, boundStackAlloc, diagnostics, isRefAssignment: refKind != RefKind.None);
             }
 
             // Certain expressions (null literals, method groups and anonymous functions) have no type of 
@@ -754,7 +753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expression;
         }
 
-        protected static bool IsInitializerRefKindValid(
+        private static bool IsInitializerRefKindValid(
             EqualsValueClauseSyntax initializer,
             CSharpSyntaxNode node,
             RefKind variableRefKind,
@@ -903,7 +902,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (kind != LocalDeclarationKind.FixedVariable)
                     {
                         // If this is for a fixed statement, we'll do our own conversion since there are some special cases.		
-                        initializerOpt = GenerateConversionForAssignment(declTypeOpt, initializerOpt, localDiagnostics, refKind: localSymbol.RefKind);
+                        initializerOpt = GenerateConversionForAssignment(
+                            declTypeOpt,
+                            initializerOpt,
+                            localDiagnostics,
+                            isRefAssignment: localSymbol.RefKind != RefKind.None);
                     }
                 }
             }
@@ -1175,15 +1178,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindDeconstruction(node, diagnostics);
             }
 
-            var op1 = BindValue(node.Left, diagnostics, BindValueKind.Assignable); // , BIND_MEMBERSET);
-            var op2 = BindValue(node.Right, diagnostics, BindValueKind.RValue); // , BIND_RVALUEREQUIRED);
+            BindValueKind lhsKind;
+            BindValueKind rhsKind;
+            ExpressionSyntax rhsExpr;
+            bool isRef = false;
+
+            if (node.Right.Kind() == SyntaxKind.RefExpression)
+            {
+                isRef = true;
+                lhsKind = BindValueKind.RefAssignable;
+                rhsKind = BindValueKind.RefersToLocation;
+                rhsExpr = ((RefExpressionSyntax)node.Right).Expression;
+            }
+            else
+            {
+                lhsKind = BindValueKind.Assignable;
+                rhsKind = BindValueKind.RValue;
+                rhsExpr = node.Right;
+            }
+
+            var op1 = BindValue(node.Left, diagnostics, lhsKind);
+
+            var lhsRefKind = RefKind.None;
+            // If the LHS is a ref (not ref-readonly), the rhs
+            // must also be value-assignable
+            if (lhsKind == BindValueKind.RefAssignable && !op1.HasErrors)
+            {
+                // We should now know that op1 is a valid lvalue
+                lhsRefKind = op1.GetRefKind();
+                if (lhsRefKind == RefKind.Ref || lhsRefKind == RefKind.Out)
+                {
+                    rhsKind |= BindValueKind.Assignable;
+                }
+            }
+
+            var op2 = BindValue(rhsExpr, diagnostics, rhsKind);
 
             if (op1.Kind == BoundKind.DiscardExpression)
             {
                 op1 = InferTypeForDiscardAssignment((BoundDiscardExpression)op1, op2, diagnostics);
             }
 
-            return BindAssignment(node, op1, op2, diagnostics);
+            return BindAssignment(node, op1, op2, isRef, diagnostics);
         }
 
         private BoundExpression InferTypeForDiscardAssignment(BoundDiscardExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
@@ -1202,7 +1238,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return op1.SetInferredType(inferredType);
         }
 
-        private BoundAssignmentOperator BindAssignment(SyntaxNode node, BoundExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
+        private BoundAssignmentOperator BindAssignment(
+            SyntaxNode node,
+            BoundExpression op1,
+            BoundExpression op2,
+            bool isRef,
+            DiagnosticBag diagnostics)
         {                      
             Debug.Assert(op1 != null);
             Debug.Assert(op2 != null);
@@ -1213,7 +1254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // Build bound conversion. The node might not be used if this is a dynamic conversion 
                 // but diagnostics should be reported anyways.
-                var conversion = GenerateConversionForAssignment(op1.Type, op2, diagnostics);
+                var conversion = GenerateConversionForAssignment(op1.Type, op2, diagnostics, isRefAssignment: isRef);
 
                 // If the result is a dynamic assignment operation (SetMember or SetIndex), 
                 // don't generate the boxing conversion to the dynamic type.
@@ -1225,10 +1266,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     op2 = conversion;
                 }
 
+                if (isRef)
+                {
+                    var leftEscape = GetRefEscape(op1, LocalScopeDepth);
+                    var rightEscape = GetRefEscape(op2, LocalScopeDepth);
+                    if (leftEscape < rightEscape)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_RefAssignNarrower, node, op1.ExpressionSymbol.Name, op2.Syntax);
+                        op2 = ToBadExpression(op2);
+                    }
+                }
+
                 if (op1.Type.IsByRefLikeType)
                 {
-                    var leftEscape = GetValEscape(op1, this.LocalScopeDepth);
-                    op2 = ValidateEscape(op2, leftEscape, isByRef: false, diagnostics: diagnostics);
+                    var leftEscape = GetValEscape(op1, LocalScopeDepth);
+                    op2 = ValidateEscape(op2, leftEscape, isByRef: false, diagnostics);
                 }
             }
 
@@ -1244,7 +1296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type = op1.Type;
             }
 
-            return new BoundAssignmentOperator(node, op1, op2, type, hasErrors: hasErrors);
+            return new BoundAssignmentOperator(node, op1, op2, isRef, type, hasErrors);
         }
 
         private static PropertySymbol GetPropertySymbol(BoundExpression expr, out BoundExpression receiver, out SyntaxNode propertySyntax)
@@ -1473,7 +1525,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 boundStatements.ToImmutableAndFree());
         }
 
-        internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, DiagnosticBag diagnostics, bool isDefaultParameter = false, RefKind refKind = RefKind.None)
+        internal BoundExpression GenerateConversionForAssignment(TypeSymbol targetType, BoundExpression expression, DiagnosticBag diagnostics, bool isDefaultParameter = false, bool isRefAssignment = false)
         {
             Debug.Assert((object)targetType != null);
             Debug.Assert(expression != null);
@@ -1495,8 +1547,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var conversion = this.Conversions.ClassifyConversionFromExpression(expression, targetType, ref useSiteDiagnostics);
             diagnostics.Add(expression.Syntax, useSiteDiagnostics);
 
-            // UNDONE: cast in code
-            if (refKind != RefKind.None)
+            if (isRefAssignment)
             {
                 if (conversion.Kind != ConversionKind.Identity)
                 {
@@ -2150,6 +2201,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var typeSyntax = nodeOpt.Type;
+            // Fixed and using variables are not allowed to be ref-like, but regular variables are
+            if (localKind == LocalDeclarationKind.RegularVariable)
+            {
+                typeSyntax = typeSyntax.SkipRef(out _);
+            }
 
             AliasSymbol alias;
             bool isVar;

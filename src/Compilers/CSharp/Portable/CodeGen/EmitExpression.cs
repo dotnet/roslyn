@@ -2245,7 +2245,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.Parameter:
                     {
                         var left = (BoundParameter)assignmentTarget;
-                        if (left.ParameterSymbol.RefKind != RefKind.None)
+                        if (left.ParameterSymbol.RefKind != RefKind.None &&
+                            !assignmentOperator.IsRef)
                         {
                             _builder.EmitLoadArgumentOpcode(ParameterSlot(left));
                             lhsUsesStack = true;
@@ -2398,6 +2399,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case BoundKind.InstrumentationPayloadRoot:
                     break;
 
+                case BoundKind.AssignmentOperator:
+                    var assignment = (BoundAssignmentOperator)assignmentTarget;
+                    if (!assignment.IsRef)
+                    {
+                        goto default;
+                    }
+                    EmitAssignmentExpression(assignment, UseKind.UsedAsAddress);
+                    break;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(assignmentTarget.Kind);
             }
@@ -2414,22 +2424,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             else
             {
                 int exprTempsBefore = _expressionTemps?.Count ?? 0;
-                var local = ((BoundLocal)assignmentOperator.Left).LocalSymbol;
+                BoundExpression lhs = assignmentOperator.Left;
 
                 // NOTE: passing "ReadOnlyStrict" here. 
                 //       we should not get an address of a copy if at all possible
-                LocalDefinition temp = EmitAddress(assignmentOperator.Right, local.RefKind == RefKind.RefReadOnly ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
+                LocalDefinition temp = EmitAddress(assignmentOperator.Right, lhs.GetRefKind() == RefKind.RefReadOnly ? AddressKind.ReadOnlyStrict : AddressKind.Writeable);
 
                 // Generally taking a ref for the purpose of ref assignment should not be done on homeless values
                 // however, there are very rare cases when we need to get a ref off a temp in synthetic code.
                 // Retain those temps for the extent of the encompassing expression.
                 AddExpressionTemp(temp);
 
-                // are we, by the way, ref-assigning to something that lives longer than encompassing expression?
-                if (local.SynthesizedKind.IsLongLived())
-                {
-                    var exprTempsAfter = _expressionTemps?.Count ?? 0;
+                var exprTempsAfter = _expressionTemps?.Count ?? 0;
 
+                // are we, by the way, ref-assigning to something that lives longer than encompassing expression?
+                Debug.Assert(lhs.Kind != BoundKind.Parameter || exprTempsAfter <= exprTempsBefore);
+
+                if (lhs.Kind == BoundKind.Local && ((BoundLocal)lhs).LocalSymbol.SynthesizedKind.IsLongLived())
+                {
                     // This situation is extremely rare. We are assigning a ref to a local with unknown lifetime
                     // while computing that ref required expression temps.
                     //
@@ -2459,9 +2471,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     // int sum = addr + 10;
                     // addr = sum;
                     //
-                    // In "Redhawk" we can write this sort of code directly as well. However, we should
-                    // never have a case where the value of the assignment is "used", either in our own
-                    // lowering passes or in Redhawk. We never have something like:
+                    // If we have something like:
                     //
                     // ref int t1 = (ref int t2 = ref M().s); 
                     //
@@ -2469,17 +2479,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     //
                     // int t1 = (ref int t2 = ref M().s);
                     //
-                    // Therefore we don't have to worry about what if the temporary value we are stashing
-                    // away is of ref type.
-                    //
-                    // If we ever do implement this sort of feature then we will need to figure out which
-                    // of the situations above we are in, and ensure that the correct kind of temporary
-                    // is created here. And also that either its value or its indirected value is read out
-                    // after the store, in EmitAssignmentPostfix, below.
+                    // We need to figure out which of the situations above we are in, and ensure that the
+                    // correct kind of temporary is created here. And also that either its value or its
+                    // indirected value is read out after the store, in EmitAssignmentPostfix, below.
 
-                    Debug.Assert(!assignmentOperator.IsRef);
-
-                    temp = AllocateTemp(assignmentOperator.Left.Type, assignmentOperator.Left.Syntax);
+                    temp = AllocateTemp(
+                        assignmentOperator.Left.Type,
+                        assignmentOperator.Left.Syntax,
+                        assignmentOperator.IsRef ? LocalSlotConstraints.ByRef : LocalSlotConstraints.None);
                     _builder.EmitLocalStore(temp);
                 }
             }
@@ -2533,7 +2540,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     break;
 
                 case BoundKind.Parameter:
-                    EmitParameterStore((BoundParameter)expression);
+                    EmitParameterStore((BoundParameter)expression, assignment.IsRef);
                     break;
 
                 case BoundKind.Dup:
@@ -2572,6 +2579,15 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitInstrumentationPayloadRootStore((BoundInstrumentationPayloadRoot)expression);
                     break;
 
+                case BoundKind.AssignmentOperator:
+                    var nested = (BoundAssignmentOperator)expression;
+                    if (!nested.IsRef)
+                    {
+                        goto default;
+                    }
+                    EmitIndirectStore(nested.Type, expression.Syntax);
+                    break;
+
                 case BoundKind.PreviousSubmissionReference:
                 // Script references are lowered to a this reference and a field access.
                 default:
@@ -2583,7 +2599,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             if (temp != null)
             {
-                _builder.EmitLocalLoad(temp);
+                if (useKind == UseKind.UsedAsAddress)
+                {
+                    _builder.EmitLocalAddress(temp);
+                }
+                else
+                {
+                    _builder.EmitLocalLoad(temp);
+                }
                 FreeTemp(temp);
             }
 
@@ -2691,19 +2714,19 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             EmitSymbolToken(field, fieldAccess.Syntax);
         }
 
-        private void EmitParameterStore(BoundParameter parameter)
+        private void EmitParameterStore(BoundParameter parameter, bool refAssign)
         {
             int slot = ParameterSlot(parameter);
 
-            if (parameter.ParameterSymbol.RefKind == RefKind.None)
-            {
-                _builder.EmitStoreArgumentOpcode(slot);
-            }
-            else
+            if (parameter.ParameterSymbol.RefKind != RefKind.None && !refAssign)
             {
                 //NOTE: we should have the actual parameter already loaded, 
                 //now need to do a store to where it points to
                 EmitIndirectStore(parameter.ParameterSymbol.Type, parameter.Syntax);
+            }
+            else
+            {
+                _builder.EmitStoreArgumentOpcode(slot);
             }
         }
 

@@ -20,6 +20,7 @@ using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
@@ -232,6 +233,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         public VersionStamp Version { get; }
 
         public IMetadataService MetadataService { get; }
+
+        public IProjectCodeModel ProjectCodeModel { get; protected set; }
 
         /// <summary>
         /// The containing directory of the project. Null if none exists (consider Venus.)
@@ -1098,7 +1101,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 }
 
                 UninitializeDocument(document);
-                OnDocumentRemoved(document.Key.Moniker);
+                ProjectCodeModel?.OnSourceFileRemoved(document.Key.Moniker);
             }
         }
 
@@ -1159,6 +1162,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     ChangedReferencesPendingUpdate.Clear();
 
+                    ProjectCodeModel?.OnProjectClosed();
+
                     var wasPushing = PushingChangesToWorkspace;
 
                     // disable pushing down to workspaces, so we don't get redundant workspace document removed events
@@ -1200,8 +1205,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                     if (_projectsReferencingMe.Count > 0)
                     {
-                        FatalError.ReportWithoutCrash(new Exception("We still have projects referencing us. That's not expected."));
-
+                        // We shouldn't be able to get here, but for reasons we don't entirely
+                        // understand we sometimes do. We've long assumed that by the time a project is
+                        // disconnected, all references to that project have been removed. However, it
+                        // appears that this isn't always true when closing a solution (which includes
+                        // reloading the solution, or opening a different solution) or when reloading a
+                        // project that has changed on disk, or when deleting a project from a
+                        // solution.
+                        
                         // Clear just so we don't cause a leak
                         _projectsReferencingMe.Clear();
                     }
@@ -1349,10 +1360,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             document.UpdatedOnDisk -= s_additionalDocumentUpdatedOnDiskEventHandler;
 
             document.Dispose();
-        }
-
-        protected virtual void OnDocumentRemoved(string filePath)
-        {
         }
 
         internal void StartPushingToWorkspaceAndNotifyOfOpenDocuments()

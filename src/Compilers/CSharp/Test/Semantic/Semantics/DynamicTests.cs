@@ -2688,7 +2688,7 @@ class Program
     static void Goo<T>(ref T x) { }
 }
 ";
-            CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef });
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp);
         }
 
         #endregion
