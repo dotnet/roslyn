@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var originalNodes = diagnostics.SelectAsArray(
-                d => (TParenthesizedExpressionSyntax)d.AdditionalLocations[0].FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken: cancellationToken));
+                d => (TParenthesizedExpressionSyntax)d.AdditionalLocations[0].FindNode(
+                    findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken));
 
             await editor.ApplyExpressionLevelSemanticEditsAsync(
                 document, originalNodes,
