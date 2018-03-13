@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             else
             {
                 var root = tree.GetRoot();
-                var annotations = GetAnnotations(root);
+                var annotations = getAnnotations();
                 if (annotations.IsEmpty)
                 {
                     return;
@@ -306,53 +306,53 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     annotation => ((CSharpDataFlowAnalysis)model.AnalyzeDataFlow(annotation.Expression)).TypeAndNullability.ToDisplayString(TypeSymbolWithAnnotations.DebuggerDisplayFormat));
                 // Consider reporting the correct source with annotations on mismatch.
                 AssertEx.Equal(expectedTypes, actualTypes);
-            }
-        }
 
-        private static ImmutableArray<(ExpressionSyntax Expression, string Text)> GetAnnotations(SyntaxNode root)
-        {
-            var builder = ArrayBuilder<(ExpressionSyntax, string)>.GetInstance();
-            foreach (var token in root.DescendantTokens())
-            {
-                foreach (var trivia in token.TrailingTrivia)
+                ImmutableArray<(ExpressionSyntax Expression, string Text)> getAnnotations()
                 {
-                    if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+                    var builder = ArrayBuilder<(ExpressionSyntax, string)>.GetInstance();
+                    foreach (var token in root.DescendantTokens())
                     {
-                        var expr = getEnclosingExpression(token);
-                        if (expr is null)
+                        foreach (var trivia in token.TrailingTrivia)
                         {
-                            continue;
-                        }
-                        var text = trivia.ToFullString();
-                        const string prefix = "/*T:";
-                        const string suffix = "*/";
-                        if (text.StartsWith(prefix) && text.EndsWith(suffix))
-                        {
-                            var content = text.Substring(prefix.Length, text.Length - prefix.Length - suffix.Length);
-                            builder.Add((expr, content));
+                            if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+                            {
+                                var expr = getEnclosingExpression(token);
+                                if (expr is null)
+                                {
+                                    continue;
+                                }
+                                var text = trivia.ToFullString();
+                                const string prefix = "/*T:";
+                                const string suffix = "*/";
+                                if (text.StartsWith(prefix) && text.EndsWith(suffix))
+                                {
+                                    var content = text.Substring(prefix.Length, text.Length - prefix.Length - suffix.Length);
+                                    builder.Add((expr, content));
+                                }
+                            }
                         }
                     }
+                    return builder.ToImmutableAndFree();
                 }
-            }
-            return builder.ToImmutableAndFree();
 
-            ExpressionSyntax getEnclosingExpression(SyntaxToken token)
-            {
-                var node = token.Parent;
-                while (true)
+                ExpressionSyntax getEnclosingExpression(SyntaxToken token)
                 {
-                    var expr = node as ExpressionSyntax;
-                    if (expr != null)
+                    var node = token.Parent;
+                    while (true)
                     {
-                        return expr;
+                        var expr = node as ExpressionSyntax;
+                        if (expr != null)
+                        {
+                            return expr;
+                        }
+                        if (node == root)
+                        {
+                            break;
+                        }
+                        node = node.Parent;
                     }
-                    if (node == root)
-                    {
-                        break;
-                    }
-                    node = node.Parent;
+                    return null;
                 }
-                return null;
             }
         }
     }
