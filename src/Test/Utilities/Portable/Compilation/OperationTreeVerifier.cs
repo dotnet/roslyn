@@ -1626,6 +1626,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             VisitArguments(operation.Arguments);
         }
 
+        public override void VisitStaticLocalInitialzationSemaphore(IStaticLocalInitializationSemaphoreOperation operation)
+        {
+            LogString(nameof(IStaticLocalInitializationSemaphoreOperation));
+            LogSymbol(operation.Local, " (Local Symbol");
+            LogString(")");
+            LogCommonPropertiesAndNewLine(operation);
+        }
+
         #endregion
     }
 }

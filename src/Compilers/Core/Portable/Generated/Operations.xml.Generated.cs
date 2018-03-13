@@ -6531,4 +6531,30 @@ namespace Microsoft.CodeAnalysis.Operations
             return visitor.VisitCaughtException(this, argument);
         }
     }
+
+    internal sealed class StaticLocalInitializationSemaphoreOperation : Operation, IStaticLocalInitializationSemaphoreOperation
+    {
+        public StaticLocalInitializationSemaphoreOperation(ILocalSymbol local, SyntaxNode syntax, ITypeSymbol type) :
+            base(OperationKind.StaticLocalInitializationSemaphore, semanticModel: null, syntax, type, constantValue: default, isImplicit: true)
+        {
+            Local = local;
+        }
+
+        public ILocalSymbol Local { get; }
+
+        public override IEnumerable<IOperation> Children
+        {
+            get => Array.Empty<IOperation>();
+        }
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitStaticLocalInitialzationSemaphore(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitStaticLocalInitializationSemaphore(this, argument);
+        }
+    }
 }

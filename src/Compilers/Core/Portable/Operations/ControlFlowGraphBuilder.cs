@@ -168,6 +168,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     case ControlFlowGraph.RegionKind.Catch:
                     case ControlFlowGraph.RegionKind.Finally:
                     case ControlFlowGraph.RegionKind.Locals:
+                    case ControlFlowGraph.RegionKind.StaticLocalInitializer:
 
                         if (region.Regions?.Count == 1)
                         {
@@ -311,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 ref BasicBlock.Branch next = ref block.InternalNext.Branch;
 
                 Debug.Assert((block.InternalNext.Value != null) == (next.Kind == BasicBlock.BranchKind.Return || next.Kind == BasicBlock.BranchKind.Throw));
-                Debug.Assert((next.Destination == null) == 
+                Debug.Assert((next.Destination == null) ==
                              (next.Kind == BasicBlock.BranchKind.ProgramTermination ||
                               next.Kind == BasicBlock.BranchKind.Throw ||
                               next.Kind == BasicBlock.BranchKind.ReThrow ||
@@ -1969,6 +1970,28 @@ namespace Microsoft.CodeAnalysis.Operations
             {
                 ILocalSymbol localSymbol = declarator.Symbol;
 
+                // We skip constants in the control flow graph, as they're not actually involved in any control flow.
+                if (localSymbol.IsConst)
+                {
+                    continue;
+                }
+
+                // If the local is a static (possible in VB), then we create a semaphore for conditional execution of the initializer.
+                BasicBlock afterInitialization = null;
+                if (localSymbol.IsStatic && (declarator.Initializer != null || operation.Initializer != null))
+                {
+                    afterInitialization = new BasicBlock(BasicBlockKind.Block);
+
+                    ITypeSymbol booleanType = ((Operation)operation).SemanticModel.Compilation.GetSpecialType(SpecialType.System_Boolean);
+                    var initializationSemaphore = new StaticLocalInitializationSemaphoreOperation(localSymbol, declarator.Syntax, booleanType);
+                    Operation.SetParentOperation(initializationSemaphore, null);
+
+                    LinkBlocks(CurrentBasicBlock, (initializationSemaphore, JumpIfTrue: false, RegularBranch(afterInitialization)));
+
+                    _currentBasicBlock = null;
+                    EnterRegion(new RegionBuilder(ControlFlowGraph.RegionKind.StaticLocalInitializer));
+                }
+
                 IOperation initializer = null;
                 SyntaxNode assignmentSyntax = null;
                 if (declarator.Initializer != null)
@@ -1998,6 +2021,9 @@ namespace Microsoft.CodeAnalysis.Operations
                     }
                 }
 
+                // If we have an afterInitialization, then we must have static local and an initializer to ensure we don't create empty regions that can't be cleaned up.
+                Debug.Assert(afterInitialization == null || (localSymbol.IsStatic && initializer != null));
+
                 if (initializer != null)
                 {
                     // We can't use the IdentifierToken as the syntax for the local reference, so we use the
@@ -2005,6 +2031,12 @@ namespace Microsoft.CodeAnalysis.Operations
                     var localRef = new LocalReferenceExpression(localSymbol, isDeclaration: true, semanticModel: null, declarator.Syntax, localSymbol.Type, constantValue: default, isImplicit: true);
                     var assignment = new SimpleAssignmentExpression(localRef, isRef: localSymbol.IsRef, initializer, semanticModel: null, assignmentSyntax, localRef.Type, constantValue: default, isImplicit: true);
                     AddStatement(assignment);
+
+                    if (localSymbol.IsStatic)
+                    {
+                        LeaveRegion();
+                        AppendNewBlock(afterInitialization);
+                    }
                 }
             }
         }

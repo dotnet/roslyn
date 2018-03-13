@@ -299,6 +299,13 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                         Assert.Empty(region.Locals);
                         Assert.Null(region.ExceptionType);
                         break;
+
+                    case ControlFlowGraph.RegionKind.StaticLocalInitializer:
+                        Assert.Null(region.ExceptionType);
+                        Assert.Empty(region.Locals);
+                        enterRegion($".static initializer {{R{regionMap[region]}}}");
+                        break;
+
                     default:
                         Assert.False(true, $"Unexpected region kind {region.Kind}");
                         break;
@@ -331,6 +338,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                     case ControlFlowGraph.RegionKind.Try:
                     case ControlFlowGraph.RegionKind.Finally:
                     case ControlFlowGraph.RegionKind.FilterAndHandler:
+                    case ControlFlowGraph.RegionKind.StaticLocalInitializer:
                         indent -= 4;
                         appendLine("}");
                         break;
@@ -531,6 +539,7 @@ endRegion:
                 case OperationKind.FlowCaptureReference:
                 case OperationKind.IsNull:
                 case OperationKind.CaughtException:
+                case OperationKind.StaticLocalInitializationSemaphore:
                     return true;
             }
 

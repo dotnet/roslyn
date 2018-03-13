@@ -3085,25 +3085,32 @@ Block[B0] - Entry
     Locals: [a As System.Int32] [b As System.Int32]
     Block[B1] - Block
         Predecessors: [B0]
-        Statements (2)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'a As Integer = 1')
-              Left: 
-                ILocalReferenceOperation: a (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'a')
-              Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'b As Integer = 1')
-              Left: 
-                ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
-              Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            IStaticLocalInitializationSemaphoreOperation (Local Symbol: b As System.Int32) (OperationKind.StaticLocalInitializationSemaphore, Type: System.Boolean, IsImplicit) (Syntax: 'b')
+            Leaving: {R1}
 
         Next (Regular) Block[B2]
-            Leaving: {R1}
+            Entering: {R2}
+
+    .static initializer {R2}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'b As Integer = 1')
+                  Left: 
+                    ILocalReferenceOperation: b (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'b')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+            Next (Regular) Block[B3]
+                Leaving: {R2} {R1}
+    }
 }
 
-Block[B2] - Exit
-    Predecessors: [B1]
+Block[B3] - Exit
+    Predecessors: [B1] [B2]
     Statements (0)
 ]]>.Value
 
@@ -3462,6 +3469,343 @@ Block[B0] - Entry
 
 Block[B2] - Exit
     Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub VariableDeclaration_13()
+            Dim source = <![CDATA[
+Imports System
+Class C
+    Public Property A As Object
+    Public Property B As Object
+
+    Public Sub M(b As Boolean)'BIND:"Public Sub M(b As Boolean)"
+        Static m As Integer = If(b, 1, 2)
+        Console.WriteLine(m)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [m As System.Int32]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B6]
+            IStaticLocalInitializationSemaphoreOperation (Local Symbol: m As System.Int32) (OperationKind.StaticLocalInitializationSemaphore, Type: System.Boolean, IsImplicit) (Syntax: 'm')
+
+        Next (Regular) Block[B2]
+            Entering: {R2}
+
+    .static initializer {R2}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (0)
+            Jump if False (Regular) to Block[B4]
+                IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+
+            Next (Regular) Block[B3]
+        Block[B3] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '1')
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+            Next (Regular) Block[B5]
+        Block[B4] - Block
+            Predecessors: [B2]
+            Statements (1)
+                IFlowCaptureOperation: 0 (OperationKind.FlowCapture, Type: null, IsImplicit) (Syntax: '2')
+                  Value: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
+
+            Next (Regular) Block[B5]
+        Block[B5] - Block
+            Predecessors: [B3] [B4]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'm As Intege ... If(b, 1, 2)')
+                  Left: 
+                    ILocalReferenceOperation: m (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'm')
+                  Right: 
+                    IFlowCaptureReferenceOperation: 0 (OperationKind.FlowCaptureReference, Type: System.Int32, IsImplicit) (Syntax: 'If(b, 1, 2)')
+
+            Next (Regular) Block[B6]
+                Leaving: {R2}
+    }
+
+    Block[B6] - Block
+        Predecessors: [B1] [B5]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(m)')
+              Expression: 
+                IInvocationOperation (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(m)')
+                  Instance Receiver: 
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'm')
+                        ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        Next (Regular) Block[B7]
+            Leaving: {R1}
+}
+
+Block[B7] - Exit
+    Predecessors: [B6]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub VariableDeclaration_14()
+            Dim source = <![CDATA[
+Imports System
+Class C
+    Public Property A As Object
+    Public Property B As Object
+
+    Public Sub M(b As Boolean)'BIND:"Public Sub M(b As Boolean)"
+        Static m As Integer
+        Console.WriteLine(m)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [m As System.Int32]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(m)')
+              Expression: 
+                IInvocationOperation (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(m)')
+                  Instance Receiver: 
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'm')
+                        ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        Next (Regular) Block[B2]
+            Leaving: {R1}
+}
+
+Block[B2] - Exit
+    Predecessors: [B1]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub VariableDeclaration_15()
+            Dim source = <![CDATA[
+Imports System
+Class C
+    Public Property A As Object
+    Public Property B As Object
+
+    Public Sub M(b As Boolean)'BIND:"Public Sub M(b As Boolean)"
+        Console.WriteLine(b)
+        Static m As Integer = 1
+        Console.WriteLine(m)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [m As System.Int32]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(b)')
+              Expression: 
+                IInvocationOperation (Sub System.Console.WriteLine(value As System.Boolean)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(b)')
+                  Instance Receiver: 
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'b')
+                        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Boolean) (Syntax: 'b')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        Jump if False (Regular) to Block[B3]
+            IStaticLocalInitializationSemaphoreOperation (Local Symbol: m As System.Int32) (OperationKind.StaticLocalInitializationSemaphore, Type: System.Boolean, IsImplicit) (Syntax: 'm')
+
+        Next (Regular) Block[B2]
+            Entering: {R2}
+
+    .static initializer {R2}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'm As Integer = 1')
+                  Left: 
+                    ILocalReferenceOperation: m (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'm')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+            Next (Regular) Block[B3]
+                Leaving: {R2}
+    }
+
+    Block[B3] - Block
+        Predecessors: [B1] [B2]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(m)')
+              Expression: 
+                IInvocationOperation (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(m)')
+                  Instance Receiver: 
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'm')
+                        ILocalReferenceOperation: m (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        Next (Regular) Block[B4]
+            Leaving: {R1}
+}
+
+Block[B4] - Exit
+    Predecessors: [B3]
+    Statements (0)
+]]>.Value
+
+            VerifyFlowGraphAndDiagnosticsForTest(Of MethodBlockSyntax)(source, expectedFlowGraph, expectedDiagnostics)
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation, CompilerFeature.Dataflow)>
+        <Fact()>
+        Public Sub VariableDeclaration_16()
+            Dim source = <![CDATA[
+Imports System
+Class C
+    Public Sub M(b As Boolean)'BIND:"Public Sub M(b As Boolean)"
+        Static m1 As Integer = 1
+        Static m2 As Integer = 1
+        Console.WriteLine(m1)
+    End Sub
+End Class]]>.Value
+
+            Dim expectedDiagnostics = String.Empty
+
+            Dim expectedFlowGraph = <![CDATA[
+Block[B0] - Entry
+    Statements (0)
+    Next (Regular) Block[B1]
+        Entering: {R1}
+
+.locals {R1}
+{
+    Locals: [m1 As System.Int32] [m2 As System.Int32]
+    Block[B1] - Block
+        Predecessors: [B0]
+        Statements (0)
+        Jump if False (Regular) to Block[B3]
+            IStaticLocalInitializationSemaphoreOperation (Local Symbol: m1 As System.Int32) (OperationKind.StaticLocalInitializationSemaphore, Type: System.Boolean, IsImplicit) (Syntax: 'm1')
+
+        Next (Regular) Block[B2]
+            Entering: {R2}
+
+    .static initializer {R2}
+    {
+        Block[B2] - Block
+            Predecessors: [B1]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'm1 As Integer = 1')
+                  Left: 
+                    ILocalReferenceOperation: m1 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'm1')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+            Next (Regular) Block[B3]
+                Leaving: {R2}
+    }
+
+    Block[B3] - Block
+        Predecessors: [B1] [B2]
+        Statements (0)
+        Jump if False (Regular) to Block[B5]
+            IStaticLocalInitializationSemaphoreOperation (Local Symbol: m2 As System.Int32) (OperationKind.StaticLocalInitializationSemaphore, Type: System.Boolean, IsImplicit) (Syntax: 'm2')
+
+        Next (Regular) Block[B4]
+            Entering: {R3}
+
+    .static initializer {R3}
+    {
+        Block[B4] - Block
+            Predecessors: [B3]
+            Statements (1)
+                ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'm2 As Integer = 1')
+                  Left: 
+                    ILocalReferenceOperation: m2 (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'm2')
+                  Right: 
+                    ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+
+            Next (Regular) Block[B5]
+                Leaving: {R3}
+    }
+
+    Block[B5] - Block
+        Predecessors: [B3] [B4]
+        Statements (1)
+            IExpressionStatementOperation (OperationKind.ExpressionStatement, Type: null) (Syntax: 'Console.WriteLine(m1)')
+              Expression: 
+                IInvocationOperation (Sub System.Console.WriteLine(value As System.Int32)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Console.WriteLine(m1)')
+                  Instance Receiver: 
+                    null
+                  Arguments(1):
+                      IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: value) (OperationKind.Argument, Type: null) (Syntax: 'm1')
+                        ILocalReferenceOperation: m1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'm1')
+                        InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+                        OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+
+        Next (Regular) Block[B6]
+            Leaving: {R1}
+}
+
+Block[B6] - Exit
+    Predecessors: [B5]
     Statements (0)
 ]]>.Value
 
