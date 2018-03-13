@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
         private static CodeStyleOption<ParenthesesPreference> RemoveIfUnnecessaryPreference =
             new CodeStyleOption<ParenthesesPreference>(ParenthesesPreference.RemoveIfUnnecessary, NotificationOption.Suggestion);
 
-        private IEnumerable<PerLanguageOption<CodeStyleOption<ParenthesesPreference>>> GetAllExceptOtherParenthesesOptions()
+        private static IEnumerable<PerLanguageOption<CodeStyleOption<ParenthesesPreference>>> GetAllExceptOtherParenthesesOptions()
         {
             yield return CodeStyleOptions.ArithmeticOperationParentheses;
             yield return CodeStyleOptions.ShiftOperationParentheses;
