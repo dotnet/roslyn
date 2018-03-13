@@ -4435,7 +4435,14 @@ public class C
 ";
 
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (7,55): warning CS8375: The tuple element name 'Bob' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.
+                //         System.Console.Write((Alice: 0, (Bob, 2)) == (Bob: 0, (1, Other: 2)));
+                Diagnostic(ErrorCode.WRN_TupleBinopLiteralNameMismatch, "Bob: 0").WithArguments("Bob").WithLocation(7, 55),
+                // (7,67): warning CS8375: The tuple element name 'Other' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.
+                //         System.Console.Write((Alice: 0, (Bob, 2)) == (Bob: 0, (1, Other: 2)));
+                Diagnostic(ErrorCode.WRN_TupleBinopLiteralNameMismatch, "Other: 2").WithArguments("Other").WithLocation(7, 67)
+                );
 
             CompileAndVerify(comp, expectedOutput: "True");
 
@@ -4448,13 +4455,13 @@ public class C
             var leftTuple = equals.Left;
             var leftInfo = model.GetTypeInfo(leftTuple);
             Assert.Equal("(System.Int32 Alice, (System.Int32 Bob, System.Int32))", leftInfo.Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32, (System.Int32, System.Int32))", leftInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("(System.Int32 Alice, (System.Int32 Bob, System.Int32))", leftInfo.ConvertedType.ToTestDisplayString());
 
             // check right tuple
             var rightTuple = equals.Right;
             var rightInfo = model.GetTypeInfo(rightTuple);
             Assert.Equal("(System.Int32 Bob, (System.Int32, System.Int32 Other))", rightInfo.Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32, (System.Int32, System.Int32))", rightInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal("(System.Int32 Bob, (System.Int32, System.Int32 Other))", rightInfo.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
