@@ -294,7 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool IsLocalFunction(ISymbol symbol)
+        private static bool IsLocalFunction(ISymbol symbol)
         {
             if (symbol.Kind != SymbolKind.Method)
             {
