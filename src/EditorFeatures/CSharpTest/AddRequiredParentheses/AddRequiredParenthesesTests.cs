@@ -438,5 +438,57 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
     }
 }", RequireAllParenthesesForClarity);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestNotForEqualityAfterEquals()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M()
+    {
+        int x = 1 $$== 2;
+    }
+}", RequireAllParenthesesForClarity);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestNotForAssignmentEqualsAfterLocal()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(int a)
+    {
+        int x = a $$+= 2;
+    }
+}", RequireAllParenthesesForClarity);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestForAssignmentAndEquality1()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(bool x, bool y, bool z)
+    {
+        x $$= y == z;
+    }
+}", RequireAllParenthesesForClarity);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
+        public async Task TestForAssignmentAndEquality2()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(bool x, bool y, bool z)
+    {
+        x = y $$== z;
+    }
+}", RequireAllParenthesesForClarity);
+        }
     }
 }
