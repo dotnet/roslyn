@@ -206,7 +206,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
-                            // PROTOTYPE(patterns2): combine null test and type test when possible for improved code
                             return _localRewriter.MakeNullCheck(d.Syntax, input, input.Type.IsNullableType() ? BinaryOperatorKind.NullableNullNotEqual : BinaryOperatorKind.NotEqual);
                         }
 
@@ -214,6 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundTypeDecision d:
                         {
+                            // Note that this tests for non-null as a side-effect. We depend on that to sometimes avoid the null check.
                             return _factory.Is(input, d.Type);
                         }
 

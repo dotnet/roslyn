@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             /// <summary>
             /// Generate a switch disspatch for a contiguous sequence of dag nodes if applicable. Returns true if it was
-            /// applicable, and modifies i to the index of the last translated node.
+            /// applicable.
             /// </summary>
             private bool GenerateSwitchDispatch(BoundDecisionDag node, HashSet<BoundDecisionDag> loweredNodes)
             {
@@ -257,11 +257,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var whenFalse = whenClause.WhenFalse;
+                var trueLabel = GetDagNodeLabel(whenTrue);
                 if (whenClause.WhenExpression != null && whenClause.WhenExpression.ConstantValue != ConstantValue.True)
                 {
                     // PROTOTYPE(patterns2): there should perhaps be a sequence point (for e.g. a breakpoint) on the when clause.
                     // However, it is not clear that is wanted for the switch expression as that would be a breakpoint where the stack is nonempty.
-                    sectionBuilder.Add(_factory.ConditionalGoto(_localRewriter.VisitExpression(whenClause.WhenExpression), whenTrue.Label, jumpIfTrue: true));
+                    sectionBuilder.Add(_factory.ConditionalGoto(_localRewriter.VisitExpression(whenClause.WhenExpression), trueLabel, jumpIfTrue: true));
                     Debug.Assert(whenFalse != null);
                     Debug.Assert(_backwardLabels.Contains(whenFalse));
                     sectionBuilder.Add(_factory.Goto(GetDagNodeLabel(whenFalse)));
@@ -269,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     Debug.Assert(whenFalse == null);
-                    sectionBuilder.Add(_factory.Goto(whenTrue.Label));
+                    sectionBuilder.Add(_factory.Goto(trueLabel));
                 }
             }
 
@@ -278,6 +279,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private void LowerDecisionDagNode(BoundDecisionDag node, BoundDecisionDag nextNode)
             {
+                if (this._dagNodeLabels.TryGetValue(node, out LabelSymbol label))
+                {
+                    _loweredDecisionDag.Add(_factory.Label(label));
+                }
+
                 switch (node)
                 {
                     case BoundEvaluationPoint evaluationPoint:

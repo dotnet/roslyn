@@ -69,12 +69,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             public static BoundNode Rewrite(LocalRewriter localRewriter, BoundPatternSwitchStatement node)
             {
                 var rewriter = new PatternSwitchLocalRewriter(node, localRewriter);
-                BoundStatement result = rewriter.LowerPatternSwitchStatement2(node);
+                BoundStatement result = rewriter.LowerPatternSwitchStatement(node);
                 rewriter.Free();
                 return result;
             }
 
-            private BoundStatement LowerPatternSwitchStatement2(BoundPatternSwitchStatement node)
+            private BoundStatement LowerPatternSwitchStatement(BoundPatternSwitchStatement node)
             {
                 var reachableLabels = node.DecisionDag.ReachableLabels;
 

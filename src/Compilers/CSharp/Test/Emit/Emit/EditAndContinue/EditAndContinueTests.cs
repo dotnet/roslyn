@@ -7585,7 +7585,7 @@ class C
 ");
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2): code quality")]
+        [Fact]
         public void PatternVariable_TypeChange()
         {
             var source0 = MarkedSource(@"
@@ -7617,19 +7617,19 @@ class C
             v0.VerifyIL("C.F", @"
 {
   // Code size       37 (0x25)
-  .maxstack  2
+  .maxstack  1
   .locals init (int V_0, //i
                 bool V_1,
-                object V_2,
+                int V_2,
                 int V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  dup
-  IL_0003:  stloc.2
-  IL_0004:  isinst     ""int""
-  IL_0009:  brfalse.s  IL_0015
-  IL_000b:  ldloc.2
-  IL_000c:  unbox.any  ""int""
+  IL_0002:  isinst     ""int""
+  IL_0007:  brfalse.s  IL_0015
+  IL_0009:  ldarg.0
+  IL_000a:  unbox.any  ""int""
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
   IL_0011:  stloc.0
   IL_0012:  ldc.i4.1
   IL_0013:  br.s       IL_0016
@@ -7659,23 +7659,23 @@ class C
             diff1.VerifyIL("C.F", @"
 {
   // Code size       52 (0x34)
-  .maxstack  2
+  .maxstack  1
   .locals init ([int] V_0,
                 [bool] V_1,
-                [object] V_2,
+                [int] V_2,
                 [int] V_3,
                 bool V_4, //i
                 bool V_5,
-                object V_6,
+                bool V_6,
                 int V_7)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  dup
-  IL_0003:  stloc.s    V_6
-  IL_0005:  isinst     ""bool""
-  IL_000a:  brfalse.s  IL_0018
-  IL_000c:  ldloc.s    V_6
-  IL_000e:  unbox.any  ""bool""
+  IL_0002:  isinst     ""bool""
+  IL_0007:  brfalse.s  IL_0018
+  IL_0009:  ldarg.0
+  IL_000a:  unbox.any  ""bool""
+  IL_000f:  stloc.s    V_6
+  IL_0011:  ldloc.s    V_6
   IL_0013:  stloc.s    V_4
   IL_0015:  ldc.i4.1
   IL_0016:  br.s       IL_0019
@@ -7706,27 +7706,27 @@ class C
             diff2.VerifyIL("C.F", @"
 {
   // Code size       46 (0x2e)
-  .maxstack  2
+  .maxstack  1
   .locals init ([int] V_0,
                 [bool] V_1,
-                [object] V_2,
+                [int] V_2,
                 [int] V_3,
                 [bool] V_4,
                 [bool] V_5,
-                [object] V_6,
+                [bool] V_6,
                 [int] V_7,
                 int V_8, //j
                 bool V_9,
-                object V_10,
+                int V_10,
                 int V_11)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  dup
-  IL_0003:  stloc.s    V_10
-  IL_0005:  isinst     ""int""
-  IL_000a:  brfalse.s  IL_0018
-  IL_000c:  ldloc.s    V_10
-  IL_000e:  unbox.any  ""int""
+  IL_0002:  isinst     ""int""
+  IL_0007:  brfalse.s  IL_0018
+  IL_0009:  ldarg.0
+  IL_000a:  unbox.any  ""int""
+  IL_000f:  stloc.s    V_10
+  IL_0011:  ldloc.s    V_10
   IL_0013:  stloc.s    V_8
   IL_0015:  ldc.i4.1
   IL_0016:  br.s       IL_0019
@@ -7746,7 +7746,7 @@ class C
 }");
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2): code quality")]
+        [Fact]
         public void PatternVariable_DeleteInsert()
         {
             var source0 = MarkedSource(@"
@@ -7778,19 +7778,19 @@ class C
             v0.VerifyIL("C.F", @"
 {
   // Code size       37 (0x25)
-  .maxstack  2
+  .maxstack  1
   .locals init (int V_0, //i
                 bool V_1,
-                object V_2,
+                int V_2,
                 int V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  dup
-  IL_0003:  stloc.2
-  IL_0004:  isinst     ""int""
-  IL_0009:  brfalse.s  IL_0015
-  IL_000b:  ldloc.2
-  IL_000c:  unbox.any  ""int""
+  IL_0002:  isinst     ""int""
+  IL_0007:  brfalse.s  IL_0015
+  IL_0009:  ldarg.0
+  IL_000a:  unbox.any  ""int""
+  IL_000f:  stloc.2
+  IL_0010:  ldloc.2
   IL_0011:  stloc.0
   IL_0012:  ldc.i4.1
   IL_0013:  br.s       IL_0016
@@ -7823,7 +7823,7 @@ class C
   .maxstack  2
   .locals init ([int] V_0,
                 [bool] V_1,
-                [object] V_2,
+                [int] V_2,
                 [int] V_3,
                 bool V_4,
                 int V_5)
@@ -7855,25 +7855,25 @@ class C
             diff2.VerifyIL("C.F", @"
 {
   // Code size       46 (0x2e)
-  .maxstack  2
+  .maxstack  1
   .locals init ([int] V_0,
                 [bool] V_1,
-                [object] V_2,
+                [int] V_2,
                 [int] V_3,
                 [bool] V_4,
                 [int] V_5,
                 int V_6, //i
                 bool V_7,
-                object V_8,
+                int V_8,
                 int V_9)
   IL_0000:  nop
   IL_0001:  ldarg.0
-  IL_0002:  dup
-  IL_0003:  stloc.s    V_8
-  IL_0005:  isinst     ""int""
-  IL_000a:  brfalse.s  IL_0018
-  IL_000c:  ldloc.s    V_8
-  IL_000e:  unbox.any  ""int""
+  IL_0002:  isinst     ""int""
+  IL_0007:  brfalse.s  IL_0018
+  IL_0009:  ldarg.0
+  IL_000a:  unbox.any  ""int""
+  IL_000f:  stloc.s    V_8
+  IL_0011:  ldloc.s    V_8
   IL_0013:  stloc.s    V_6
   IL_0015:  ldc.i4.1
   IL_0016:  br.s       IL_0019
