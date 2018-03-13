@@ -40,8 +40,8 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         private void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
         {
             var syntaxTree = context.SemanticModel.SyntaxTree;
-            var cancellationTokan = context.CancellationToken;
-            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationTokan).GetAwaiter().GetResult();
+            var cancellationToken = context.CancellationToken;
+            var optionSet = context.Options.GetDocumentOptionSetAsync(syntaxTree, cancellationToken).GetAwaiter().GetResult();
             if (optionSet == null)
             {
                 return;
