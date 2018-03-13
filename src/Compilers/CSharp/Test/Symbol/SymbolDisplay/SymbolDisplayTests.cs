@@ -5880,7 +5880,7 @@ class C
             var root = srcTree.GetRoot();
             var comp = CreateCompilation(srcTree);
 
-            var semanticModel = comp.GetSemanticModel(comp.SyntaxTrees.Single());
+            var semanticModel = comp.GetSemanticModel(srcTree);
             var local = root.DescendantNodes()
                 .Where(n => n.Kind() == SyntaxKind.LocalFunctionStatement)
                 .Single();
