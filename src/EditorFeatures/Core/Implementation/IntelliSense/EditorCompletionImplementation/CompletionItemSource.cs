@@ -254,6 +254,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 return null;
             }
 
+            // TODO: Check CompletionOptions.TriggerOnTyping
+            // TODO: Check CompletionOptions.TriggerOnDeletion
+
             return new SnapshotSpan(location.Snapshot, service.GetDefaultCompletionListSpan(text, location.Position).ToSpan());
         }
 
