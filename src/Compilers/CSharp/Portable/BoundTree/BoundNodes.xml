@@ -323,7 +323,7 @@
     <Field Name="Left" Type="BoundExpression"/>
     <Field Name="Right" Type="BoundExpression"/>
 
-    <!-- Converted nodes are meant for semantic model use only -->
+    <!-- Converted nodes are meant for semantic model and IOperation use only -->
     <Field Name="ConvertedLeft" Type="BoundExpression" SkipInVisitor="true"/>
     <Field Name="ConvertedRight" Type="BoundExpression" SkipInVisitor="true"/>
 

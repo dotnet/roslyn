@@ -1339,7 +1339,7 @@ public struct S
                 Assert.Null(model.GetTypeInfo(defaultLiteral).Type);
                 Assert.Null(model.GetTypeInfo(defaultLiteral).ConvertedType);
                 // https://github.com/dotnet/roslyn/issues/25318
-                // PROTOTYPE(tuple-equality) default should become int
+                // default should become int
             }
         }
 
@@ -1695,8 +1695,12 @@ public class C
 {
     public static void Main()
     {
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
         dynamic d1 = 1;
         dynamic d2 = 2;
+
         try
         {
             bool b = ((d1, 2) == (""hello"", d2));
@@ -1704,6 +1708,10 @@ public class C
         catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
         {
             System.Console.Write(e.Message);
+        }
+        finally
+        {
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
         }
     }
 }";
@@ -1817,7 +1825,7 @@ public class C
         }
 
         [Fact]
-        public void TestCustomOperatorPreferred()
+        public void TestTupleEqualityPreferredOverCustomOperator()
         {
             var source = @"
 namespace System
@@ -1859,6 +1867,45 @@ public class C
             comp.VerifyDiagnostics();
             // Note: tuple equality picked ahead of custom operator== (small compat break)
             CompileAndVerify(comp, expectedOutput: "FalseTrue");
+        }
+
+        [Fact]
+        public void TestCustomOperatorPlusAllowed()
+        {
+            var source = @"
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public static ValueTuple<T1, T2> operator +(ValueTuple<T1, T2> t1, ValueTuple<T1, T2> t2)
+            => (default(T1), default(T2));
+
+        public override string ToString()
+            => $""({Item1}, {Item2})"";
+    }
+}
+public class C
+{
+    public static void Main()
+    {
+        var t1 = (0, 1);
+        var t2 = (2, 3);
+        System.Console.Write(t1 + t2);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "(0, 0)");
         }
 
         [Fact]
@@ -1946,24 +1993,33 @@ public class C
 {
     public static void Main()
     {
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
         dynamic d1 = (1, 1);
 
         try
         {
-            _ = d1 == (1, 1);
-        }
-        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
-        {
-            System.Console.WriteLine(e.Message);
-        }
+            try
+            {
+                _ = d1 == (1, 1);
+            }
+            catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
+            {
+                System.Console.WriteLine(e.Message);
+            }
 
-        try
-        {
-            _ = d1 != (1, 2);
+            try
+            {
+                _ = d1 != (1, 2);
+            }
+            catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
+            {
+                System.Console.WriteLine(e.Message);
+            }
         }
-        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
+        finally
         {
-            System.Console.WriteLine(e.Message);
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
         }
     }
 }
@@ -1984,24 +2040,33 @@ public class C
 {
     public static void Main()
     {
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
         dynamic d1 = (1, 1, 1);
 
         try
         {
-            _ = (2, d1) == (2, (1, 1, 1));
-        }
-        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
-        {
-            System.Console.WriteLine(e.Message);
-        }
+            try
+            {
+                _ = (2, d1) == (2, (1, 1, 1));
+            }
+            catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
+            {
+                System.Console.WriteLine(e.Message);
+            }
 
-        try
-        {
-            _ = (3, d1) != (3, (1, 2, 3));
+            try
+            {
+                _ = (3, d1) != (3, (1, 2, 3));
+            }
+            catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
+            {
+                System.Console.WriteLine(e.Message);
+            }
         }
-        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
+        finally
         {
-            System.Console.WriteLine(e.Message);
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
         }
     }
 }
@@ -2147,7 +2212,6 @@ public class Y : Base
 
             validate("(new A(1), new A(2)) != (new X(1), new Y(2))", "A:1, A:2, X:1, Y:2, X -> Y:1, A(1) != Y(1), A(2) != Y(2), False");
             validate("(new A(1), new A(2)) != (new Y(1), new X(2))", "A:1, A:2, Y:1, X:2, A(1) != Y(1), X -> Y:2, A(2) != Y(2), False");
-            // PROTOTYPE(tuple-equality) test case where conversion is on last tuple element on the left side
 
             validate("(new A(1), new A(2)) != (new X(30), new Y(40))", "A:1, A:2, X:30, Y:40, X -> Y:30, A(1) != Y(30), True");
             validate("(new A(1), new A(2)) != (new X(50), new Y(2))", "A:1, A:2, X:50, Y:2, X -> Y:50, A(1) != Y(50), True");
@@ -2246,6 +2310,148 @@ public class C
             var comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "A:1, GetTuple, A:30, A:40, ValueTuple2, A:4, X:5, X:6, Y:7, Y:8, X -> Y:5, A(1) == Y(5), X -> Y:6, A(30) == Y(6), A(40) == Y(7), A(4) == Y(8), True");
+        }
+
+        [Fact]
+        public void TestConstrainedValueTuple()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        _ = (this, this) == (0, 1); // constraint violated by tuple in source
+        _ = (this, this) == (this, this); // constraint violated by converted tuple
+    }
+    public static bool operator ==(C c, int i)
+        => throw null;
+    public static bool operator !=(C c, int i)
+        => throw null;
+    public override bool Equals(object o)
+        => throw null;
+    public override int GetHashCode()
+        => throw null;
+    public static implicit operator int(C c)
+        => throw null;
+}
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+        where T1 : class
+        where T2 : class
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+            throw null;
+        }
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,30): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'
+                //         _ = (this, this) == (0, 1); // constraint violated by tuple in source
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "0").WithArguments("System.ValueTuple<T1, T2>", "T1", "int").WithLocation(6, 30),
+                // (6,33): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
+                //         _ = (this, this) == (0, 1); // constraint violated by tuple in source
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "1").WithArguments("System.ValueTuple<T1, T2>", "T2", "int").WithLocation(6, 33),
+                // (6,30): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'
+                //         _ = (this, this) == (0, 1); // constraint violated by tuple in source
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "0").WithArguments("System.ValueTuple<T1, T2>", "T1", "int").WithLocation(6, 30),
+                // (6,33): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
+                //         _ = (this, this) == (0, 1); // constraint violated by tuple in source
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "1").WithArguments("System.ValueTuple<T1, T2>", "T2", "int").WithLocation(6, 33),
+                // (7,30): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'
+                //         _ = (this, this) == (this, this); // constraint violated by converted tuple
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "this").WithArguments("System.ValueTuple<T1, T2>", "T1", "int").WithLocation(7, 30),
+                // (7,36): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T2' in the generic type or method 'ValueTuple<T1, T2>'
+                //         _ = (this, this) == (this, this); // constraint violated by converted tuple
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "this").WithArguments("System.ValueTuple<T1, T2>", "T2", "int").WithLocation(7, 36)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            // check the int tuple
+            var firstEquals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+            var intTuple = firstEquals.Right;
+            Assert.Equal("(0, 1)", intTuple.ToString());
+            var intTupleType = model.GetTypeInfo(intTuple);
+            Assert.Equal("(System.Int32, System.Int32)", intTupleType.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32)", intTupleType.ConvertedType.ToTestDisplayString());
+
+            // check the last tuple
+            var secondEquals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
+            var lastTuple = secondEquals.Right;
+            Assert.Equal("(this, this)", lastTuple.ToString());
+            var lastTupleType = model.GetTypeInfo(lastTuple);
+            Assert.Equal("(C, C)", lastTupleType.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.Int32)", lastTupleType.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TestConstrainedNullable()
+        {
+            var source = @"
+class C
+{
+    void M((int, int)? t1, (long, long)? t2)
+    {
+        _ = t1 == t2;
+    }
+}
+public interface IInterface { }
+namespace System
+{
+    public class Object { }
+    public abstract class ValueType { }
+    public struct Void { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct Int64 { }
+    public struct Nullable<T> where T : struct, IInterface { public T GetValueOrDefault() => default(T); }
+
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+            throw null;
+        }
+    }
+}
+";
+
+            var comp = CreateEmptyCompilation(source);
+            comp.VerifyDiagnostics(
+                // (4,24): error CS0315: The type '(int, int)' cannot be used as type parameter 'T' in the generic type or method 'Nullable<T>'. There is no boxing conversion from '(int, int)' to 'IInterface'.
+                //     void M((int, int)? t1, (long, long)? t2)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "t1").WithArguments("System.Nullable<T>", "IInterface", "T", "(int, int)").WithLocation(4, 24),
+                // (4,42): error CS0315: The type '(long, long)' cannot be used as type parameter 'T' in the generic type or method 'Nullable<T>'. There is no boxing conversion from '(long, long)' to 'IInterface'.
+                //     void M((int, int)? t1, (long, long)? t2)
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "t2").WithArguments("System.Nullable<T>", "IInterface", "T", "(long, long)").WithLocation(4, 42)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            // check t1
+            var equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
+            var t1 = equals.Left;
+            Assert.Equal("t1", t1.ToString());
+            var t1Type = model.GetTypeInfo(t1);
+            Assert.Equal("(System.Int32, System.Int32)?", t1Type.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int64, System.Int64)?", t1Type.ConvertedType.ToTestDisplayString());
         }
 
         [Fact]
@@ -3403,7 +3609,7 @@ class C
             var left = model.GetTypeInfo(comparison.Left);
             Assert.Equal("ValueTuple<System.Int32?>", left.Type.ToTestDisplayString());
             Assert.Equal("ValueTuple<System.Int32?>", left.ConvertedType.ToTestDisplayString());
-            Assert.True(left.Type.IsTupleType); // PROTOTYPE(tuple-equality) Need to investigate this
+            Assert.True(left.Type.IsTupleType);
         }
 
         [Fact]
@@ -4136,9 +4342,196 @@ public class C
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsTupleBinOp, "t != t").WithLocation(9, 57)
                 );
         }
+
+        [Fact]
+        public void TestComparisonOfDynamicAndTuple()
+        {
+            var source = @"
+public class C
+{
+    (long, string) _t;
+    public C(long l, string s) { _t = (l, s); }
+
+    public static void Main()
+    {
+        dynamic d = new C(1, ""hello"");
+        (long, string) tuple1 = (1, ""hello"");
+        (long, string) tuple2 = (2, ""world"");
+        System.Console.Write($""{d == tuple1} {d != tuple1} {d == tuple2} {d != tuple2}"");
+    }
+    public static bool operator==(C c, (long, string) t)
+    {
+        return c._t.Item1 == t.Item1 && c._t.Item2 == t.Item2;
+    }
+    public static bool operator!=(C c, (long, string) t)
+    {
+        return !(c == t);
+    }
+    public override bool Equals(object o) => throw null;
+    public override int GetHashCode() => throw null;
+}
+";
+
+            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "True False False True");
+        }
+
+        [Fact]
+        public void TestComparisonOfDynamicTuple()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        dynamic d1 = (1, ""hello"");
+        dynamic d2 = (1, ""hello"");
+        dynamic d3 = ((byte)1, 2);
+        PrintException(() => d1 == d2);
+        PrintException(() => d1 == d3);
+    }
+    public static void PrintException(System.Func<bool> action)
+    {
+        System.Globalization.CultureInfo saveUICulture = System.Threading.Thread.CurrentThread.CurrentUICulture;
+        System.Threading.Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
+
+        try
+        {
+            action();
+        }
+        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException e)
+        {
+            System.Console.WriteLine(e.Message);
+        }
+        finally
+        {
+            System.Threading.Thread.CurrentThread.CurrentUICulture = saveUICulture;
+        }
     }
 }
+";
 
-// PROTOTYPE(tuple-equality)
-// Test with tuple element names (semantic model)
-// Test tuples with casts or nested casts
+            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput:
+@"Operator '==' cannot be applied to operands of type 'System.ValueTuple<int,string>' and 'System.ValueTuple<int,string>'
+Operator '==' cannot be applied to operands of type 'System.ValueTuple<int,string>' and 'System.ValueTuple<byte,int>'");
+        }
+
+        [Fact]
+        public void TestComparisonWithTupleElementNames()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        int Bob = 1;
+        System.Console.Write((Alice: 0, (Bob, 2)) == (Bob: 0, (1, Other: 2)));
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (7,55): warning CS8375: The tuple element name 'Bob' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.
+                //         System.Console.Write((Alice: 0, (Bob, 2)) == (Bob: 0, (1, Other: 2)));
+                Diagnostic(ErrorCode.WRN_TupleBinopLiteralNameMismatch, "Bob: 0").WithArguments("Bob").WithLocation(7, 55),
+                // (7,67): warning CS8375: The tuple element name 'Other' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.
+                //         System.Console.Write((Alice: 0, (Bob, 2)) == (Bob: 0, (1, Other: 2)));
+                Diagnostic(ErrorCode.WRN_TupleBinopLiteralNameMismatch, "Other: 2").WithArguments("Other").WithLocation(7, 67)
+                );
+
+            CompileAndVerify(comp, expectedOutput: "True");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+
+            // check left tuple
+            var leftTuple = equals.Left;
+            var leftInfo = model.GetTypeInfo(leftTuple);
+            Assert.Equal("(System.Int32 Alice, (System.Int32 Bob, System.Int32))", leftInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32 Alice, (System.Int32 Bob, System.Int32))", leftInfo.ConvertedType.ToTestDisplayString());
+
+            // check right tuple
+            var rightTuple = equals.Right;
+            var rightInfo = model.GetTypeInfo(rightTuple);
+            Assert.Equal("(System.Int32 Bob, (System.Int32, System.Int32 Other))", rightInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32 Bob, (System.Int32, System.Int32 Other))", rightInfo.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TestComparisonWithCastedTuples()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        System.Console.Write( ((string, (byte, long))) (null, (1, 2L)) == ((string, (long, byte))) (null, (1L, 2)) );
+    }
+}
+";
+
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+
+            CompileAndVerify(comp, expectedOutput: "True");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+
+            var equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+
+            // check left cast ...
+            var leftCast = (CastExpressionSyntax)equals.Left;
+            Assert.Equal("((string, (byte, long))) (null, (1, 2L))", leftCast.ToString());
+            var leftCastInfo = model.GetTypeInfo(leftCast);
+            Assert.Equal("(System.String, (System.Byte, System.Int64))", leftCastInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.String, (System.Int64, System.Int64))", leftCastInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTuple, model.GetConversion(leftCast).Kind);
+
+            // ... its tuple ...
+            var leftTuple = (TupleExpressionSyntax)leftCast.Expression;
+            Assert.Equal("(null, (1, 2L))", leftTuple.ToString());
+            var leftTupleInfo = model.GetTypeInfo(leftTuple);
+            Assert.Null(leftTupleInfo.Type);
+            Assert.Equal("(System.String, (System.Byte, System.Int64))", leftTupleInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(leftTuple).Kind);
+
+            // ... its null ...
+            var leftNull = leftTuple.Arguments[0].Expression;
+            Assert.Equal("null", leftNull.ToString());
+            var leftNullInfo = model.GetTypeInfo(leftNull);
+            Assert.Null(leftNullInfo.Type);
+            Assert.Equal("System.String", leftNullInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitReference, model.GetConversion(leftNull).Kind);
+
+            // ... its nested tuple
+            var leftNestedTuple = leftTuple.Arguments[1].Expression;
+            Assert.Equal("(1, 2L)", leftNestedTuple.ToString());
+            var leftNestedTupleInfo = model.GetTypeInfo(leftNestedTuple);
+            Assert.Equal("(System.Int32, System.Int64)", leftNestedTupleInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.Byte, System.Int64)", leftNestedTupleInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.Identity, model.GetConversion(leftNestedTuple).Kind);
+
+            // check right cast ...
+            var rightCast = (CastExpressionSyntax)equals.Right;
+            var rightCastInfo = model.GetTypeInfo(rightCast);
+            Assert.Equal("(System.String, (System.Int64, System.Byte))", rightCastInfo.Type.ToTestDisplayString());
+            Assert.Equal("(System.String, (System.Int64, System.Int64))", rightCastInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTuple, model.GetConversion(rightCast).Kind);
+
+            // ... its tuple
+            var rightTuple = rightCast.Expression;
+            var rightTupleInfo = model.GetTypeInfo(rightTuple);
+            Assert.Null(rightTupleInfo.Type);
+            Assert.Equal("(System.String, (System.Int64, System.Byte))", rightTupleInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(rightTuple).Kind);
+        }
+    }
+}

@@ -126,6 +126,8 @@ namespace Microsoft.CodeAnalysis.Operations
                     return CreateBoundUnaryOperatorOperation((BoundUnaryOperator)boundNode);
                 case BoundKind.BinaryOperator:
                     return CreateBoundBinaryOperatorOperation((BoundBinaryOperator)boundNode);
+                case BoundKind.TupleBinaryOperator:
+                    return CreateBoundTupleBinaryOperatorOperation((BoundTupleBinaryOperator)boundNode);
                 case BoundKind.ConditionalOperator:
                     return CreateBoundConditionalOperatorOperation((BoundConditionalOperator)boundNode);
                 case BoundKind.NullCoalescingOperator:
@@ -1110,6 +1112,18 @@ namespace Microsoft.CodeAnalysis.Operations
             bool isCompareText = false;
             bool isImplicit = boundBinaryOperator.WasCompilerGenerated;
             return new LazyBinaryOperatorExpression(operatorKind, leftOperand, rightOperand, isLifted, isChecked, isCompareText, operatorMethod, _semanticModel, syntax, type, constantValue, isImplicit);
+        }
+
+        private ITupleBinaryOperation CreateBoundTupleBinaryOperatorOperation(BoundTupleBinaryOperator boundTupleBinaryOperator)
+        {
+            BinaryOperatorKind operatorKind = Helper.DeriveBinaryOperatorKind(boundTupleBinaryOperator.OperatorKind);
+            Lazy<IOperation> leftOperand = new Lazy<IOperation>(() => Create(boundTupleBinaryOperator.ConvertedLeft));
+            Lazy<IOperation> rightOperand = new Lazy<IOperation>(() => Create(boundTupleBinaryOperator.ConvertedRight));
+            SyntaxNode syntax = boundTupleBinaryOperator.Syntax;
+            ITypeSymbol type = boundTupleBinaryOperator.Type;
+            Optional<object> constantValue = ConvertToOptional(boundTupleBinaryOperator.ConstantValue);
+            bool isImplicit = boundTupleBinaryOperator.WasCompilerGenerated;
+            return new LazyTupleBinaryOperatorExpression(operatorKind, leftOperand, rightOperand, _semanticModel, syntax, type, constantValue, isImplicit);
         }
 
         private IConditionalOperation CreateBoundConditionalOperatorOperation(BoundConditionalOperator boundConditionalOperator)
