@@ -1,10 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Roslyn.Utilities;
-using System.Collections.Generic;
-
 namespace Microsoft.CodeAnalysis.Extensions
 {
     internal static class CommonParenthesizedExpressionSyntaxExtensions
@@ -22,13 +17,9 @@ namespace Microsoft.CodeAnalysis.Extensions
             // First, does the binary expression result in an operator overload being 
             // called?
             var symbolInfo = semanticModel.GetSymbolInfo(innerExpression);
-            if (symbolInfo.Symbol != null)
+            if (AnySymbolIsUserDefinedOperator(symbolInfo))
             {
-                if (symbolInfo.Symbol is IMethodSymbol methodSymbol &&
-                    methodSymbol.MethodKind == MethodKind.UserDefinedOperator)
-                {
-                    return false;
-                }
+                return false;
             }
 
             // Second, check the type and converted type of the binary expression.
@@ -55,6 +46,28 @@ namespace Microsoft.CodeAnalysis.Extensions
 
             return true;
         }
+
+        private static bool AnySymbolIsUserDefinedOperator(SymbolInfo symbolInfo)
+        {
+            if (IsUserDefinedOperator(symbolInfo.Symbol))
+            {
+                return true;
+            }
+
+            foreach (var symbol in symbolInfo.CandidateSymbols)
+            {
+                if (IsUserDefinedOperator(symbol))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static bool IsUserDefinedOperator(ISymbol symbol)
+            => symbol is IMethodSymbol methodSymbol &&
+               methodSymbol.MethodKind == MethodKind.UserDefinedOperator;
 
         private static bool IsFloatingPoint(TypeInfo typeInfo)
             => IsFloatingPoint(typeInfo.Type) || IsFloatingPoint(typeInfo.ConvertedType);
