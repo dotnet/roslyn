@@ -241,6 +241,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ((BoundPropertyAccess)expr).PropertySymbol.Type.IsNullable;
                 case BoundKind.Call:
                     return ((BoundCall)expr).Method.ReturnType.IsNullable;
+                case BoundKind.Conversion:
+                    return ((BoundConversion)expr).IsNullable;
                 case BoundKind.BinaryOperator:
                     return ((BoundBinaryOperator)expr).MethodOpt?.ReturnType.IsNullable;
                 case BoundKind.NullCoalescingOperator:

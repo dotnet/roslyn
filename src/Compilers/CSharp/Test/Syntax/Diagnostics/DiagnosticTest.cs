@@ -263,7 +263,7 @@ class X
                         case ErrorCode.WRN_UnreferencedLocalFunction:
                             Assert.Equal(3, ErrorFacts.GetWarningLevel(errorCode));
                             break;
-                        case ErrorCode.WRN_NullAsNonNullable:
+                        case ErrorCode.WRN_ConvertingNullableToNonNullable:
                         case ErrorCode.WRN_NullReferenceAssignment:
                         case ErrorCode.WRN_NullReferenceReceiver:
                         case ErrorCode.WRN_NullReferenceReturn:
@@ -283,6 +283,7 @@ class X
                         case ErrorCode.WRN_NullabilityMismatchInArgument:
                         case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
                         case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
+                        case ErrorCode.WRN_NullAsNonNullable:
                         case ErrorCode.WRN_NoBestNullabilityConditionalExpression:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;

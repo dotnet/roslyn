@@ -151,15 +151,27 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Nullable
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (5,39): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         var a = new[] { new object(), (string)null };
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(5, 39),
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         a[0].ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "a[0]").WithLocation(6, 9),
+                // (7,25): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         var b = new[] { (object)null, s };
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)null").WithLocation(7, 25),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         b[0].ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b[0]").WithLocation(8, 9),
+                // (9,28): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         var c = new[] { s, (object)null };
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(object)null").WithLocation(9, 28),
                 // (10,9): warning CS8602: Possible dereference of a null reference.
                 //         c[0].ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "c[0]").WithLocation(10, 9),
+                // (11,25): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         var d = new[] { (string)null, new object() };
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(string)null").WithLocation(11, 25),
                 // (12,9): warning CS8602: Possible dereference of a null reference.
                 //         d[0].ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "d[0]").WithLocation(12, 9));
@@ -454,19 +466,19 @@ class C
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
-                // (13,10): warning CS8625: No best nullability for operands of conditional expression 'A<object>' and 'B1'.
+                // (13,10): warning CS8626: No best nullability for operands of conditional expression 'A<object>' and 'B1'.
                 //         (b ? x : y)/*T:A<object!>!*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? x : y").WithArguments("A<object>", "B1").WithLocation(13, 10),
-                // (14,10): warning CS8625: No best nullability for operands of conditional expression 'B1' and 'A<object>'.
+                // (14,10): warning CS8626: No best nullability for operands of conditional expression 'B1' and 'A<object>'.
                 //         (b ? y : x).P.ToString();
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? y : x").WithArguments("B1", "A<object>").WithLocation(14, 10),
-                // (18,10): warning CS8625: No best nullability for operands of conditional expression 'A<object?>' and 'B2'.
+                // (18,10): warning CS8626: No best nullability for operands of conditional expression 'A<object?>' and 'B2'.
                 //         (b ? x : y)/*T:A<object?>!*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? x : y").WithArguments("A<object?>", "B2").WithLocation(18, 10),
                 // (18,9): warning CS8602: Possible dereference of a null reference.
                 //         (b ? x : y)/*T:A<object?>!*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(b ? x : y)/*T:A<object?>!*/.F").WithLocation(18, 9),
-                // (19,10): warning CS8625: No best nullability for operands of conditional expression 'B2' and 'A<object?>'.
+                // (19,10): warning CS8626: No best nullability for operands of conditional expression 'B2' and 'A<object?>'.
                 //         (b ? y : x).P.ToString();
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? y : x").WithArguments("B2", "A<object?>").WithLocation(19, 10),
                 // (19,9): warning CS8602: Possible dereference of a null reference.
@@ -1285,10 +1297,10 @@ class C
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (21,27): warning CS8600: Cannot convert null to non-nullable reference.
+                // (21,27): warning CS8625: Cannot convert null literal to non-nullable reference.
                 //             Create(x).F = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(21, 27),
-                // (23,19): warning CS8600: Cannot convert null to non-nullable reference.
+                // (23,19): warning CS8625: Cannot convert null literal to non-nullable reference.
                 //             y.F = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(23, 19));
         }
@@ -1807,28 +1819,28 @@ class C
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (9,13): warning CS8625: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
+                // (9,13): warning CS8626: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
                 //         a = c ? x : y;
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "c ? x : y").WithArguments("I<object>", "I<object?>").WithLocation(9, 13),
-                // (10,13): warning CS8625: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
+                // (10,13): warning CS8626: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
                 //         a = false ? x : y;
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "false ? x : y").WithArguments("I<object>", "I<object?>").WithLocation(10, 13),
-                // (11,13): warning CS8625: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
+                // (11,13): warning CS8626: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
                 //         a = true ? x : y;
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "true ? x : y").WithArguments("I<object>", "I<object?>").WithLocation(11, 13),
-                // (13,13): warning CS8625: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
+                // (13,13): warning CS8626: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
                 //         b = c ? x : y;
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "c ? x : y").WithArguments("I<object>", "I<object?>").WithLocation(13, 13),
                 // (13,13): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
                 //         b = c ? x : y;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c ? x : y").WithArguments("I<object>", "I<object?>").WithLocation(13, 13),
-                // (14,13): warning CS8625: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
+                // (14,13): warning CS8626: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
                 //         b = false ? x : y;
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "false ? x : y").WithArguments("I<object>", "I<object?>").WithLocation(14, 13),
                 // (14,13): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
                 //         b = false ? x : y;
                 Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "false ? x : y").WithArguments("I<object>", "I<object?>").WithLocation(14, 13),
-                // (15,13): warning CS8625: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
+                // (15,13): warning CS8626: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
                 //         b = true ? x : y;
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "true ? x : y").WithArguments("I<object>", "I<object?>").WithLocation(15, 13),
                 // (15,13): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.

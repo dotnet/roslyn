@@ -899,6 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: node.Checked,
                     explicitCastInCode: node.ExplicitCastInCode,
                     constantValueOpt: node.ConstantValueOpt,
+                    isNullable: node.IsNullable,
                     type: node.Type));
         }
 

@@ -171,9 +171,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,20): warning CS8600: Cannot convert null to non-nullable reference.
+                // (5,20): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         string s = default;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(5, 20),
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(5, 20),
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         s.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(6, 9));
@@ -277,9 +277,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (5,15): warning CS8600: Cannot convert null to non-nullable reference.
+                // (5,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         T s = default;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(5, 15),
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(5, 15),
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         s.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(6, 9),
@@ -318,9 +318,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (7,13): warning CS8600: Cannot convert null to non-nullable reference.
+                // (7,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         s = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(7, 13),
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(7, 13),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         s.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "s").WithLocation(8, 9));
@@ -440,9 +440,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (11,13): warning CS8600: Cannot convert null to non-nullable reference.
+                // (11,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         t = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 13));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(11, 13));
 
             var tree = comp.SyntaxTrees[0];
             var model = comp.GetSemanticModel(tree);
@@ -1480,9 +1480,9 @@ static class E
                 // (6,9): warning CS8602: Possible dereference of a null reference.
                 //         x.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(6, 9),
-                // (9,13): warning CS8600: Cannot convert null to non-nullable reference.
+                // (9,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(9, 13));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(9, 13));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Deconstruction declaration ignores nullability.
@@ -1510,9 +1510,9 @@ static class E
                 // (7,9): warning CS8602: Possible dereference of a null reference.
                 //         x.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(7, 9),
-                // (10,13): warning CS8600: Cannot convert null to non-nullable reference.
+                // (10,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(10, 13));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(10, 13));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Deconstruction declaration ignores nullability.
@@ -1544,9 +1544,9 @@ static class E
                 // (11,9): warning CS8602: Possible dereference of a null reference.
                 //         x.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x").WithLocation(11, 9),
-                // (14,13): warning CS8600: Cannot convert null to non-nullable reference.
+                // (14,13): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         y = null;
-                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(14, 13));
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "null").WithLocation(14, 13));
         }
 
         [Fact]
@@ -1572,7 +1572,7 @@ static class E
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (11,15): warning CS8600: Cannot convert null to non-nullable reference.
+                // (11,15): warning CS8625: Cannot convert null literal to non-nullable reference.
                 //         t.x = null;
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(11, 15));
         }

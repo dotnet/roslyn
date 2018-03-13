@@ -320,6 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             @checked: false,
                             explicitCastInCode: explicitCastInCode,
                             constantValueOpt: constantValueOpt,
+                            isNullable: false,
                             type: rewrittenType);
                     }
 
@@ -366,6 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: @checked,
                     explicitCastInCode: explicitCastInCode,
                     constantValueOpt: constantValueOpt,
+                    isNullable: oldNode.IsNullable,
                     type: rewrittenType) :
                 new BoundConversion(
                     syntax,
@@ -375,6 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: @checked,
                     explicitCastInCode: explicitCastInCode,
                     constantValueOpt: constantValueOpt,
+                    isNullable: false,
                     type: rewrittenType);
         }
 

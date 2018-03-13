@@ -1558,7 +1558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_FeatureNotAvailableInVersion8 = 8400,
 
-        WRN_NullAsNonNullable = 8600,
+        WRN_ConvertingNullableToNonNullable = 8600,
         WRN_NullReferenceAssignment = 8601,
         WRN_NullReferenceReceiver = 8602,
         WRN_NullReferenceReturn = 8603,
@@ -1583,6 +1583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WRN_NullabilityMismatchInParameterTypeOfTargetDelegate = 8622,
         ERR_ExplicitNullableAttribute = 8623,
         ERR_NotNullableOperatorNotReferenceType = 8624,
-        WRN_NoBestNullabilityConditionalExpression = 8625,
+        WRN_NullAsNonNullable = 8625,
+        WRN_NoBestNullabilityConditionalExpression = 8626,
     }
 }

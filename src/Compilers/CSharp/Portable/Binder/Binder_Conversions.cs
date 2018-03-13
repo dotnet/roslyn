@@ -53,7 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isCast,
             bool wasCompilerGenerated,
             TypeSymbol destination,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool isNullable = false)
         {
             Debug.Assert(source != null);
             Debug.Assert((object)destination != null);
@@ -108,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (conversion.IsUserDefined)
             {
-                return CreateUserDefinedConversion(syntax, source, conversion, isCast, destination, diagnostics);
+                return CreateUserDefinedConversion(syntax, source, conversion, isCast: isCast, isNullable: isNullable, destination, diagnostics);
             }
 
             ConstantValue constantValue = this.FoldConstantConversion(syntax, source, conversion, destination, diagnostics);
@@ -124,11 +125,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 @checked: CheckOverflowAtRuntime,
                 explicitCastInCode: isCast && !wasCompilerGenerated,
                 constantValueOpt: constantValue,
-                type: destination)
+                type: destination,
+                isNullable: isNullable)
             { WasCompilerGenerated = wasCompilerGenerated };
         }
 
-        protected BoundExpression CreateUserDefinedConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression CreateUserDefinedConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, bool isNullable, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             if (!conversion.IsValid)
             {
@@ -142,7 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     explicitCastInCode: isCast,
                     constantValueOpt: ConstantValue.NotAvailable,
                     type: destination,
-                    hasErrors: true)
+                    hasErrors: true,
+                    isNullable: isNullable)
                 { WasCompilerGenerated = source.WasCompilerGenerated };
             }
 
@@ -218,7 +221,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: false, // There are no checked user-defined conversions, but the conversions on either side might be checked.
                     explicitCastInCode: isCast,
                     constantValueOpt: ConstantValue.NotAvailable,
-                    type: conversionReturnType)
+                    type: conversionReturnType,
+                    isNullable: isNullable)
                 { WasCompilerGenerated = true };
 
                 if (conversionToType.IsNullableType() && conversionToType.GetNullableUnderlyingType() == conversionReturnType)
@@ -253,7 +257,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: false,
                     explicitCastInCode: isCast,
                     constantValueOpt: ConstantValue.NotAvailable,
-                    type: conversionToType)
+                    type: conversionToType,
+                    isNullable: isNullable)
                 { WasCompilerGenerated = true };
             }
 

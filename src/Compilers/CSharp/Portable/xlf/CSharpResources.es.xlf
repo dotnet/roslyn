@@ -8606,13 +8606,13 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable">
-        <source>Cannot convert null to non-nullable reference.</source>
-        <target state="new">Cannot convert null to non-nullable reference.</target>
+        <source>Cannot convert null literal to non-nullable reference.</source>
+        <target state="new">Cannot convert null literal to non-nullable reference.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullAsNonNullable_Title">
-        <source>Cannot convert null to non-nullable reference.</source>
-        <target state="new">Cannot convert null to non-nullable reference.</target>
+        <source>Cannot convert null literal to non-nullable reference.</source>
+        <target state="new">Cannot convert null literal to non-nullable reference.</target>
         <note />
       </trans-unit>
       <trans-unit id="WRN_NullReferenceAssignment">
@@ -8853,6 +8853,16 @@ Para eliminar la advertencia puede usar /reference (establezca la propiedad Embe
       <trans-unit id="WRN_NoBestNullabilityConditionalExpression_Title">
         <source>No best nullability for operands of conditional expression.</source>
         <target state="new">No best nullability for operands of conditional expression.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingNullableToNonNullable">
+        <source>Converting null literal or possible null value to non-nullable type.</source>
+        <target state="new">Converting null literal or possible null value to non-nullable type.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_ConvertingNullableToNonNullable_Title">
+        <source>Converting null literal or possible null value to non-nullable type.</source>
+        <target state="new">Converting null literal or possible null value to non-nullable type.</target>
         <note />
       </trans-unit>
     </body>
