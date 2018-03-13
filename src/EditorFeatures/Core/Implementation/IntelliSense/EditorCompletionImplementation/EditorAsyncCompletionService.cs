@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 return Task.FromResult(new FilteredCompletionModel(listWithSelections.ToImmutableArray(), 0));
             }
 
-            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();            
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
 
             var matchingItems = itemsInList
                 .Where(r => r.MatchedFilterText)
