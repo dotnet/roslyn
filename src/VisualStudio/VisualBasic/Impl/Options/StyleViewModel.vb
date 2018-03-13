@@ -555,7 +555,7 @@ end class
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.ShiftOperationParentheses,
                 BasicVSResources.Shift_operations,
-                 {s_shiftParenthesesIgnore, s_shiftParenthesesRequireForPrecedenceClarity, s_shiftParenthesesRemoveIfUnnecessary},
+                {s_shiftParenthesesIgnore, s_shiftParenthesesRequireForPrecedenceClarity, s_shiftParenthesesRemoveIfUnnecessary},
                 allowRequireForClarity:=True,
                 recommended:=False)
 
@@ -576,7 +576,7 @@ end class
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.OtherOperationParentheses,
                 ServicesVSResources.Other_operations,
-                 {s_otherParenthesesIgnore, s_otherParenthesesRemoveIfUnnecessary},
+                {s_otherParenthesesIgnore, s_otherParenthesesRemoveIfUnnecessary},
                 allowRequireForClarity:=False,
                 recommended:=True)
         End Sub
