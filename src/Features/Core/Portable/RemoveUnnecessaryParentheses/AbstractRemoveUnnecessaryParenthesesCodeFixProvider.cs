@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             return SpecializedTasks.EmptyTask;
         }
 
-        protected override async Task FixAllAsync(
+        protected override Task FixAllAsync(
             Document document, ImmutableArray<Diagnostic> diagnostics,
             SyntaxEditor editor, CancellationToken cancellationToken)
         {
@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 d => (TParenthesizedExpressionSyntax)d.AdditionalLocations[0].FindNode(
                     findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken));
 
-            await editor.ApplyExpressionLevelSemanticEditsAsync(
+            return editor.ApplyExpressionLevelSemanticEditsAsync(
                 document, originalNodes,
                 (semanticModel, current) => current != null && CanRemoveParentheses(current, semanticModel),
                 (_, currentRoot, current) => currentRoot.ReplaceNode(current, syntaxFacts.Unparenthesize(current)),
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
