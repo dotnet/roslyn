@@ -2542,26 +2542,8 @@ class C
 Block[B0] - Entry
     Statements (0)
     Next (Regular) Block[B1]
-        Entering: {R1}
-
-.locals {R1}
-{
-    Locals: [System.Int32 d]
-    Block[B1] - Block
-        Predecessors: [B0]
-        Statements (1)
-            ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Int32, IsImplicit) (Syntax: 'd = 1')
-              Left: 
-                ILocalReferenceOperation: d (IsDeclaration: True) (OperationKind.LocalReference, Type: System.Int32, IsImplicit) (Syntax: 'd = 1')
-              Right: 
-                ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
-
-        Next (Regular) Block[B2]
-            Leaving: {R1}
-}
-
-Block[B2] - Exit
-    Predecessors: [B1]
+Block[B1] - Exit
+    Predecessors: [B0]
     Statements (0)
 ";
             VerifyFlowGraphAndDiagnosticsForTest<BlockSyntax>(source, expectedFlowGraph, expectedDiagnostics);

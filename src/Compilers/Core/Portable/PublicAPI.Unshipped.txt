@@ -13,6 +13,7 @@ Microsoft.CodeAnalysis.OperationKind.CaughtException = 90 -> Microsoft.CodeAnaly
 Microsoft.CodeAnalysis.OperationKind.FlowCapture = 87 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.FlowCaptureReference = 88 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.IsNull = 89 -> Microsoft.CodeAnalysis.OperationKind
+Microsoft.CodeAnalysis.OperationKind.StaticLocalInitializationSemaphore = 91 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.Operations.BasicBlock
 Microsoft.CodeAnalysis.Operations.BasicBlock.BasicBlock(Microsoft.CodeAnalysis.Operations.BasicBlockKind kind) -> void
 Microsoft.CodeAnalysis.Operations.BasicBlock.Branch
@@ -58,6 +59,7 @@ Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.FilterAndHandler =
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.Finally = 7 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.Locals = 1 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.Root = 0 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
+Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.StaticLocalInitializer = 9 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.Try = 2 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.TryAndCatch = 6 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
 Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind.TryAndFinally = 8 -> Microsoft.CodeAnalysis.Operations.ControlFlowGraph.RegionKind
@@ -73,6 +75,8 @@ Microsoft.CodeAnalysis.Operations.IIsNullOperation
 Microsoft.CodeAnalysis.Operations.IIsNullOperation.Operand.get -> Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.Operations.ILoopOperation.ContinueLabel.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Operations.ILoopOperation.ExitLabel.get -> Microsoft.CodeAnalysis.ILabelSymbol
+Microsoft.CodeAnalysis.Operations.IStaticLocalInitializationSemaphoreOperation
+Microsoft.CodeAnalysis.Operations.IStaticLocalInitializationSemaphoreOperation.Local.get -> Microsoft.CodeAnalysis.ILocalSymbol
 Microsoft.CodeAnalysis.Operations.ISwitchOperation.ExitLabel.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Operations.ITryOperation.ExitLabel.get -> Microsoft.CodeAnalysis.ILabelSymbol
 Microsoft.CodeAnalysis.Operations.ITupleOperation.NaturalType.get -> Microsoft.CodeAnalysis.ITypeSymbol
@@ -85,7 +89,9 @@ virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitCaughtException(
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFlowCapture(Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitFlowCaptureReference(Microsoft.CodeAnalysis.Operations.IFlowCaptureReferenceOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitIsNull(Microsoft.CodeAnalysis.Operations.IIsNullOperation operation) -> void
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor.VisitStaticLocalInitialzationSemaphore(Microsoft.CodeAnalysis.Operations.IStaticLocalInitializationSemaphoreOperation operation) -> void
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitCaughtException(Microsoft.CodeAnalysis.Operations.ICaughtExceptionOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFlowCapture(Microsoft.CodeAnalysis.Operations.IFlowCaptureOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitFlowCaptureReference(Microsoft.CodeAnalysis.Operations.IFlowCaptureReferenceOperation operation, TArgument argument) -> TResult
 virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitIsNull(Microsoft.CodeAnalysis.Operations.IIsNullOperation operation, TArgument argument) -> TResult
+virtual Microsoft.CodeAnalysis.Operations.OperationVisitor<TArgument, TResult>.VisitStaticLocalInitializationSemaphore(Microsoft.CodeAnalysis.Operations.IStaticLocalInitializationSemaphoreOperation operation, TArgument argument) -> TResult

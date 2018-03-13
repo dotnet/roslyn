@@ -190,6 +190,8 @@ namespace Microsoft.CodeAnalysis
         IsNull = 0x59,
         /// <summary>Indicates an <see cref="ICaughtExceptionOperation"/>.</summary>
         CaughtException = 0x5a,
+        /// <summary>Indicates an <see cref="IStaticLocalInitializationSemaphoreOperation"/>.</summary>
+        StaticLocalInitializationSemaphore = 0x5b,
 
         // /// <summary>Indicates an <see cref="IFixedOperation"/>.</summary>
         // https://github.com/dotnet/roslyn/issues/21281

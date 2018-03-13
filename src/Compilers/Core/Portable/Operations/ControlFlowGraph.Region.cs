@@ -65,6 +65,12 @@ namespace Microsoft.CodeAnalysis.Operations
             /// at the same time is mapped to a <see cref="TryAndFinally"/> region with <see cref="TryAndCatch"/> region inside its <see cref="Try"/> region.
             /// </summary>
             TryAndFinally,
+
+            /// <summary>
+            /// Region representing the initialization for a VB <code>Static</code> local variable. This region will only be executed
+            /// the first time a function is called.
+            /// </summary>
+            StaticLocalInitializer,
         }
 
         /// <summary>
@@ -167,6 +173,7 @@ namespace Microsoft.CodeAnalysis.Operations
                     case RegionKind.Filter:
                     case RegionKind.Catch:
                     case RegionKind.Finally:
+                    case RegionKind.StaticLocalInitializer:
                         previousLast = firstBlockOrdinal - 1;
 
                         foreach (Region r in Regions)
