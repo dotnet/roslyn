@@ -16,10 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = nameof(CSharpForeachToForCodeRefactoringProvider)), Shared]
     internal sealed class CSharpForeachToForCodeRefactoringProvider : AbstractForeachToForCodeRefactoringProvider
     {
-        public CSharpForeachToForCodeRefactoringProvider()
-        {
-        }
-
         protected override SyntaxNode GetForeachStatement(SyntaxToken token)
         {
             var foreachStatement = token.Parent.FirstAncestorOrSelf<ForEachStatementSyntax>();
