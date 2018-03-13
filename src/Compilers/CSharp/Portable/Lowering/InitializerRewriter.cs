@@ -96,13 +96,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             boundReceiver,
                             fieldInit.Field,
                             constantValueOpt: null),
-                        fieldInit.Locals.IsEmpty ? 
-                            fieldInit.Value : 
-                            new BoundSequence(fieldInit.Syntax, fieldInit.Locals, ImmutableArray<BoundExpression>.Empty, fieldInit.Value, fieldInit.Value.Type)
-                                             { WasCompilerGenerated = true },
+                            fieldInit.Value,
                         fieldInit.Field.Type)
                     { WasCompilerGenerated = true })
-                { WasCompilerGenerated = fieldInit.WasCompilerGenerated };
+                { WasCompilerGenerated = !fieldInit.Locals.IsEmpty || fieldInit.WasCompilerGenerated };
+
+            if (!fieldInit.Locals.IsEmpty)
+            {
+                boundStatement = new BoundBlock(syntax, fieldInit.Locals, ImmutableArray.Create(boundStatement)) { WasCompilerGenerated = fieldInit.WasCompilerGenerated };
+            }
 
             Debug.Assert(LocalRewriter.IsFieldOrPropertyInitializer(boundStatement)); 
             return boundStatement;
