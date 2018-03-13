@@ -1,6 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Collections.Concurrent
 Imports System.ComponentModel.Composition
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -8,8 +7,7 @@ Imports Microsoft.CodeAnalysis.UseAutoProperty
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
-    <Export>
-    <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
+    <Export, DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Friend Class VisualBasicUseAutoPropertyAnalyzer
         Inherits AbstractUseAutoPropertyAnalyzer(Of PropertyBlockSyntax, FieldDeclarationSyntax, ModifiedIdentifierSyntax, ExpressionSyntax)
 
@@ -66,6 +64,24 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
             ' a property.  In C# you can't use a property in a ref/out position.  But that restriction
             ' doesn't apply to VB.
         End Sub
+
+        Protected Overrides Function CanConvert(prop As IPropertySymbol) As Boolean
+            ' VB auto props cannot specify accessibility for accessors.  So if the original
+            ' code had different accessibility between the accessors and property then we 
+            ' can't convert it.
+
+            If prop.GetMethod IsNot Nothing AndAlso
+               prop.GetMethod.DeclaredAccessibility <> prop.DeclaredAccessibility Then
+                Return False
+            End If
+
+            If prop.SetMethod IsNot Nothing AndAlso
+               prop.SetMethod.DeclaredAccessibility <> prop.DeclaredAccessibility Then
+                Return False
+            End If
+
+            Return True
+        End Function
 
         Protected Overrides Function GetFieldInitializer(variable As ModifiedIdentifierSyntax, cancellationToken As CancellationToken) As ExpressionSyntax
             Dim declarator = TryCast(variable.Parent, VariableDeclaratorSyntax)

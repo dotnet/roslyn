@@ -10,8 +10,7 @@ Imports Microsoft.CodeAnalysis.UseAutoProperty
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UseAutoProperty
-    <[Shared]>
-    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicUseAutoPropertyCodeFixProvider))>
+    <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=NameOf(VisualBasicUseAutoPropertyCodeFixProvider)), [Shared]>
     Friend Class VisualBasicUseAutoPropertyCodeFixProvider
         Inherits AbstractUseAutoPropertyCodeFixProvider(Of PropertyBlockSyntax, FieldDeclarationSyntax, ModifiedIdentifierSyntax, ConstructorBlockSyntax, ExpressionSyntax)
 
