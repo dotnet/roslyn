@@ -55,21 +55,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static ExpressionSyntax ParenthesizeWorker(
             this ExpressionSyntax expression, bool includeElasticTrivia)
         {
-            if (includeElasticTrivia)
-            {
-                return SyntaxFactory.ParenthesizedExpression(expression.WithoutTrivia())
-                                    .WithTriviaFrom(expression);
-            }
-            else
-            {
-                return SyntaxFactory.ParenthesizedExpression
-                (
+            var withoutTrivia = expression.WithoutTrivia();
+            var parenthesized = includeElasticTrivia
+                ? SyntaxFactory.ParenthesizedExpression(withoutTrivia)
+                : SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.OpenParenToken, SyntaxTriviaList.Empty),
-                    expression.WithoutTrivia(),
-                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty)
-                )
-                .WithTriviaFrom(expression);
-            }
+                    withoutTrivia,
+                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty));
+
+            return parenthesized.WithTriviaFrom(expression);
         }
 
         public static CastExpressionSyntax Cast(
