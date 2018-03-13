@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Roslyn.Test.Utilities;
 using Xunit;
 using Xunit.Abstractions;
 
@@ -1911,6 +1912,87 @@ async () => {
                 }
             }
             EOF();
+        }
+
+        [WorkItem(25410, "https://github.com/dotnet/roslyn/issues/25410")]
+        [Fact]
+        public void AwaitIdentifierExpressionStatementInSyncContextWithinAsyncMethod()
+        {
+            UsingTree(@"
+class C
+{
+    async void M()
+    {
+        () => {
+            await goo;
+        };
+    }
+}
+");
+
+            N(SyntaxKind.CompilationUnit);
+            {
+                N(SyntaxKind.ClassDeclaration);
+                {
+                    N(SyntaxKind.ClassKeyword);
+                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.OpenBraceToken);
+                    N(SyntaxKind.MethodDeclaration);
+                    {
+                        N(SyntaxKind.AsyncKeyword);
+                        N(SyntaxKind.PredefinedType);
+                        {
+                            N(SyntaxKind.VoidKeyword);
+                        }
+                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.ParameterList);
+                        {
+                            N(SyntaxKind.OpenParenToken);
+                            N(SyntaxKind.CloseParenToken);
+                        }
+                        N(SyntaxKind.Block);
+                        {
+                            N(SyntaxKind.OpenBraceToken);
+                            N(SyntaxKind.ExpressionStatement);
+                            {
+                                N(SyntaxKind.ParenthesizedLambdaExpression);
+                                {
+                                    N(SyntaxKind.ParameterList);
+                                    {
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.CloseParenToken);
+                                    }
+                                    N(SyntaxKind.EqualsGreaterThanToken);
+                                    N(SyntaxKind.Block);
+                                    {
+                                        N(SyntaxKind.OpenBraceToken);
+                                        N(SyntaxKind.LocalDeclarationStatement);
+                                        {
+                                            N(SyntaxKind.VariableDeclaration);
+                                            {
+                                                N(SyntaxKind.IdentifierName);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken);
+                                                }
+                                                N(SyntaxKind.VariableDeclarator);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken);
+                                                }
+                                            }
+                                            N(SyntaxKind.SemicolonToken);
+                                        }
+                                        N(SyntaxKind.CloseBraceToken);
+                                    }
+                                }
+                                N(SyntaxKind.SemicolonToken);
+                            }
+                            N(SyntaxKind.CloseBraceToken);
+                        }
+                    }
+                    N(SyntaxKind.CloseBraceToken);
+                }
+                N(SyntaxKind.EndOfFileToken);
+            }
         }
 
         #endregion AwaitExpressionStatementInSyncContext

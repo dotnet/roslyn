@@ -1339,7 +1339,7 @@ class C
             // DEVNOTE: Although we parse async user defined conversions, operators, etc. here,
             // anything other than async methods are detected as erroneous later, during the define phase
 
-            Action<SyntaxKind> Check = memberKind =>
+            void Check(SyntaxKind memberKind)
             {
                 N(SyntaxKind.CompilationUnit);
                 N(SyntaxKind.ClassDeclaration);
@@ -1348,7 +1348,7 @@ class C
                 N(SyntaxKind.OpenBraceToken);
                 N(memberKind);
                 N(SyntaxKind.AsyncKeyword);
-            };
+            }
 
             // ... 'async' <typedecl> ...
             UsingTree(@"

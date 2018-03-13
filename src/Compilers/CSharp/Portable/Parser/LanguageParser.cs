@@ -10762,6 +10762,7 @@ tryAgain:
         private LambdaExpressionSyntax ParseLambdaExpression()
         {
             bool parentScopeIsInAsync = IsInAsync;
+            IsInAsync = false;
             SyntaxToken asyncToken = null;
             if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword &&
                 PeekToken(1).Kind != SyntaxKind.EqualsGreaterThanToken)
