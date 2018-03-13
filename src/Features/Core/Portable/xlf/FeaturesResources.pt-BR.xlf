@@ -1985,6 +1985,11 @@ Essa versão é usada no: {2}</target>
         <target state="translated">indexador</target>
         <note />
       </trans-unit>
+      <trans-unit id="Convert_foreach_to_for">
+        <source>Convert foreach to for</source>
+        <target state="new">Convert foreach to for</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
