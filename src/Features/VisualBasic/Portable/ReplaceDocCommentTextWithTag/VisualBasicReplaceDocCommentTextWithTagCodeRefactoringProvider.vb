@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ReplaceDocCommentTextWithTag
         End Function
 
         Protected Overrides Function IsInXMLAttribute(token As SyntaxToken) As Boolean
-            Return token.Parent.IsKind(SyntaxKind.XmlAttribute)
+            Return token.Parent.IsKind(SyntaxKind.XmlAttribute) Or token.Parent.IsKind(SyntaxKind.XmlString)
         End Function
 
         Protected Overrides Function IsKeyword(text As String) As Boolean
