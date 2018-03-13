@@ -159,8 +159,7 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
     $args += " $projectFilePath"
 
     if ($useDotnetBuild) {
-        $args = " build --no-restore " + $args
-        $args += " -m:1"
+        $args = " msbuild $args"
         Exec-Console $dotnet $args
     }
     else {
@@ -209,19 +208,17 @@ function Make-BootstrapBuild() {
 
         foreach ($projectFilePath in $projectFiles) { 
             $fileName = [IO.Path]::GetFileNameWithoutExtension((Split-Path -leaf $projectFilePath))
-            $logFileName = "Bootstrap$($fileName).binlog"
-            Exec-Console "dotnet" "publish --no-restore $projectFilePath --framework netcoreapp2.0 $bootstrapArgs -v:m -m -bl:$logsDir/$logFileName"
+            $logFileName = "Bootstrap$($fileName)"
+            Run-MSBuild $projectFilePath "/t:Publish /p:TargetFramework=netcoreapp2.0 $bootstrapArgs" -logFileName $logFileName -useDotnetBuild
         }
 
-        Exec-Console "dotnet" "build --no-restore src/Interactive/csi/csi.csproj -v:m -m $bootstrapArgs -bl:$logsDir/BootstrapCsi.binlog"
+        Run-MSBuild "src/Interactive/csi/csi.csproj" -logFileName "BootstrapCsi" -useDotnetBuild
 
         Ensure-NuGet | Out-Null
         Exec-Console "$configDir\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 1.0.0-bootstrap $dir `"<developer build>`" Microsoft.NETCore.Compilers.nuspec"
         Move-Item "$dir\Microsoft.NETCore.Compilers.1.0.0-bootstrap.nupkg" $bootstrapPackageFilePath
 
-        foreach ($projectFilePath in $projectFiles) { 
-            Exec-Console "dotnet" "clean $projectFilePath -v:m -m"
-        }
+        Run-MSBuild "Compilers.sln" "/t:Clean"
         Stop-BuildProcesses
     }
     else {
