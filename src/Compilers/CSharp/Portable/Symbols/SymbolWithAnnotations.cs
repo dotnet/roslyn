@@ -351,6 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public virtual bool IsVoid => TypeSymbol.SpecialType == SpecialType.System_Void;
         public virtual bool IsSZArray() => TypeSymbol.IsSZArray();
 
+        public abstract override string ToDisplayString(SymbolDisplayFormat format = null);
         internal string GetDebuggerDisplay() => ToDisplayString(DebuggerDisplayFormat);
 
         public bool Equals(TypeSymbolWithAnnotations other, TypeCompareKind comparison)
@@ -1006,7 +1007,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override string ToDisplayString(SymbolDisplayFormat format)
             {
-                return _underlying.TypeSymbol.ToDisplayString(format) + "?";
+                var underlyingType = _underlying.TypeSymbol;
+                var str = underlyingType.ToDisplayString(format);
+                return underlyingType.IsValueType ? str : str + "?";
             }
         }
 

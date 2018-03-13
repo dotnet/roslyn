@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         (MethodSymbol)_context.Member,
                         _context.BoundNode,
                         diagnostics,
-                        (expr, exprType) =>
+                        (BoundExpression expr, TypeSymbolWithAnnotations exprType) =>
                         {
                             if (expr == _context.FirstInRegion)
                             {

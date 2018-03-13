@@ -279,28 +279,34 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return symbols.Select(s => s.Name).Distinct().ToList();
         }
 
-        internal static void VerifyTypes(this CSharpCompilation compilation)
+        /// <summary>
+        /// Verify the type and nullability inferred by NullabilityWalker of all expressions in the source
+        /// that are followed by specific annotations. Annotations are of the form /*T:type*/.
+        /// </summary>
+        internal static void VerifyTypes(this CSharpCompilation compilation, SyntaxTree tree = null)
         {
-            foreach (var tree in compilation.SyntaxTrees)
+            if (tree == null)
             {
-                VerifyTypes(compilation, tree);
+                foreach (var syntaxTree in compilation.SyntaxTrees)
+                {
+                    VerifyTypes(compilation, syntaxTree);
+                }
             }
-        }
-
-        internal static void VerifyTypes(this CSharpCompilation compilation, SyntaxTree tree)
-        {
-            var root = tree.GetRoot();
-            var annotations = GetAnnotations(root);
-            if (annotations.IsEmpty)
+            else
             {
-                return;
+                var root = tree.GetRoot();
+                var annotations = GetAnnotations(root);
+                if (annotations.IsEmpty)
+                {
+                    return;
+                }
+                var model = compilation.GetSemanticModel(tree);
+                var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
+                var actualTypes = annotations.SelectAsArray(
+                    annotation => ((CSharpDataFlowAnalysis)model.AnalyzeDataFlow(annotation.Expression)).TypeAndNullability.ToDisplayString(TypeSymbolWithAnnotations.DebuggerDisplayFormat));
+                // Consider reporting the correct source with annotations on mismatch.
+                AssertEx.Equal(expectedTypes, actualTypes);
             }
-            var model = compilation.GetSemanticModel(tree);
-            var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
-            var actualTypes = annotations.SelectAsArray(
-                annotation => ((CSharpDataFlowAnalysis)model.AnalyzeDataFlow(annotation.Expression)).TypeAndNullability.ToDisplayString(TypeSymbolWithAnnotations.DebuggerDisplayFormat));
-            // Consider reporting the correct source with annotations on mismatch.
-            AssertEx.Equal(expectedTypes, actualTypes);
         }
 
         private static ImmutableArray<(ExpressionSyntax Expression, string Text)> GetAnnotations(SyntaxNode root)
