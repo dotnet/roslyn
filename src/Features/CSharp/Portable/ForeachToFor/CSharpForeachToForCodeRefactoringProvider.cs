@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ForeachToFor
 
         protected override SyntaxNode GetForeachStatement(SyntaxToken token)
         {
-            var foreachStatement = token.Parent.AncestorsAndSelf().OfType<ForEachStatementSyntax>().FirstOrDefault();
+            var foreachStatement = token.Parent.FirstAncestorOrSelf<ForEachStatementSyntax>();
             if (foreachStatement == null)
             {
                 return null;
