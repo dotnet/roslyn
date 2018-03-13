@@ -235,6 +235,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             string filterText, 
             Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> patternMatcherMap)
         {
+            /*
+            // See which filters might be enabled based on the typed code
+            var textFilteredFilters = filteredList.SelectMany(n => n.CompletionItem.Filters).Distinct();
+
+            // When no items are available for a given filter, it becomes unavailable
+            var updatedFilters = ImmutableArray.CreateRange(filters.Select(n => n.WithAvailability(textFilteredFilters.Contains(n.Filter))));
+
+            return updatedFilters;
+            */
+            
             var missingItems = new List<EditorCompletion.CompletionItem>();
             int filteredListIndex = 0;
             var filtersPresentInIncludedItems = new HashSet<CompletionFilter>();
