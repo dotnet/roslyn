@@ -291,68 +291,93 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     VerifyTypes(compilation, syntaxTree);
                 }
+                return;
             }
-            else
+
+            var root = tree.GetRoot();
+            var allAnnotations = getAnnotations();
+            if (allAnnotations.IsEmpty)
             {
-                var root = tree.GetRoot();
-                var annotations = getAnnotations();
-                if (annotations.IsEmpty)
-                {
-                    return;
-                }
-                var model = compilation.GetSemanticModel(tree);
+                return;
+            }
+
+            var model = compilation.GetSemanticModel(tree);
+            var annotationsByMethod = allAnnotations.GroupBy(annotation => annotation.Expression.Ancestors().OfType<BaseMethodDeclarationSyntax>().First()).ToArray();
+            foreach (var annotations in annotationsByMethod)
+            {
+                var method = (MethodSymbol)model.GetDeclaredSymbol(annotations.Key);
+                var diagnostics = DiagnosticBag.GetInstance();
+                var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
+                var dictionary = new Dictionary<SyntaxNode, TypeSymbolWithAnnotations>();
+                NullableWalker.Analyze(
+                    compilation,
+                    method,
+                    block,
+                    diagnostics,
+                    (BoundExpression expr, TypeSymbolWithAnnotations exprType) => dictionary[expr.Syntax] = exprType);
+                diagnostics.Free();
                 var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
-                var actualTypes = annotations.SelectAsArray(
-                    annotation => ((CSharpDataFlowAnalysis)model.AnalyzeDataFlow(annotation.Expression)).TypeAndNullability.ToDisplayString(TypeSymbolWithAnnotations.DebuggerDisplayFormat));
+                var actualTypes = annotations.SelectAsArray(annotation => toDisplayString(annotation.Expression));
                 // Consider reporting the correct source with annotations on mismatch.
                 AssertEx.Equal(expectedTypes, actualTypes);
 
-                ImmutableArray<(ExpressionSyntax Expression, string Text)> getAnnotations()
+                string toDisplayString(SyntaxNode syntaxOpt)
                 {
-                    var builder = ArrayBuilder<(ExpressionSyntax, string)>.GetInstance();
-                    foreach (var token in root.DescendantTokens())
+                    return (syntaxOpt != null) && dictionary.TryGetValue(syntaxOpt, out var type) ?
+                        type.ToDisplayString(TypeSymbolWithAnnotations.DebuggerDisplayFormat) :
+                        null;
+                }
+            }
+
+            ImmutableArray<(ExpressionSyntax Expression, string Text)> getAnnotations()
+            {
+                var builder = ArrayBuilder<(ExpressionSyntax, string)>.GetInstance();
+                foreach (var token in root.DescendantTokens())
+                {
+                    foreach (var trivia in token.TrailingTrivia)
                     {
-                        foreach (var trivia in token.TrailingTrivia)
+                        if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
                         {
-                            if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+                            var expr = getEnclosingExpression(token);
+                            if (expr is null)
                             {
-                                var expr = getEnclosingExpression(token);
-                                if (expr is null)
-                                {
-                                    continue;
-                                }
-                                var text = trivia.ToFullString();
-                                const string prefix = "/*T:";
-                                const string suffix = "*/";
-                                if (text.StartsWith(prefix) && text.EndsWith(suffix))
-                                {
-                                    var content = text.Substring(prefix.Length, text.Length - prefix.Length - suffix.Length);
-                                    builder.Add((expr, content));
-                                }
+                                continue;
+                            }
+                            var text = trivia.ToFullString();
+                            const string prefix = "/*T:";
+                            const string suffix = "*/";
+                            if (text.StartsWith(prefix) && text.EndsWith(suffix))
+                            {
+                                var content = text.Substring(prefix.Length, text.Length - prefix.Length - suffix.Length);
+                                builder.Add((expr, content));
                             }
                         }
                     }
-                    return builder.ToImmutableAndFree();
                 }
+                return builder.ToImmutableAndFree();
+            }
 
-                ExpressionSyntax getEnclosingExpression(SyntaxToken token)
+            ExpressionSyntax getEnclosingExpression(SyntaxToken token)
+            {
+                var node = token.Parent;
+                while (true)
                 {
-                    var node = token.Parent;
-                    while (true)
+                    var expr = node as ExpressionSyntax;
+                    if (expr != null)
                     {
-                        var expr = node as ExpressionSyntax;
-                        if (expr != null)
+                        if (expr.Kind() == SyntaxKind.ParenthesizedExpression)
                         {
-                            return expr;
+                            return ((ParenthesizedExpressionSyntax)expr).Expression;
                         }
-                        if (node == root)
-                        {
-                            break;
-                        }
-                        node = node.Parent;
+                        return expr;
                     }
-                    return null;
+                    if (node == root)
+                    {
+                        break;
+                    }
+                    node = node.Parent;
                 }
+                return null;
             }
         }
     }
