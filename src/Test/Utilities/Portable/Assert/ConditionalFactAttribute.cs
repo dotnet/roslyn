@@ -109,4 +109,11 @@ namespace Roslyn.Test.Utilities
 
         public override string SkipReason => "Test not supported in TEST_IOPERATION_INTERFACE";
     }
+
+    public class NoOpenCover : ExecutionCondition
+    {
+        public override bool ShouldSkip => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("OpenCover_Profiler_Key"));
+
+        public override string SkipReason => "Test behavior is affected by code coverage tooling.";
+    }
 }
