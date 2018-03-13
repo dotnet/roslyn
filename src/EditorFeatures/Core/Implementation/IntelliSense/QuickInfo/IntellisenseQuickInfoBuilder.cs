@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 firstLineElements.Add(new ImageElement(warningGlyph.GetImageId()));
             }
 
-            var descSection = quickInfoItem.Sections.Where(s => s.Kind == QuickInfoSectionKinds.Description).FirstOrDefault();
+            var descSection = quickInfoItem.Sections.FirstOrDefault(s => s.Kind == QuickInfoSectionKinds.Description);
             if (descSection != null)
             {
                 firstLineElements.Add(BuildClassifiedTextElement(descSection));
@@ -44,7 +45,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             // Add the remaining sections as Stacked style
             elements.AddRange(
                 quickInfoItem.Sections.Where(s => s.Kind != QuickInfoSectionKinds.Description)
-                                      .Select(section => BuildClassifiedTextElement(section)));
+                                      .Select(BuildClassifiedTextElement));
 
             var content = new ContainerElement(
                                 ContainerElementStyle.Stacked,

@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Internal.Log
         TPLTask_TaskStarted,
         TPLTask_TaskCompleted,
 
-        GET_QUICKINFO_ASYNC,        
+        Get_QuickInfo_Async,
 
         Completion_ModelComputer_DoInBackground,
         Completion_ModelComputation_FilterModelInBackground,

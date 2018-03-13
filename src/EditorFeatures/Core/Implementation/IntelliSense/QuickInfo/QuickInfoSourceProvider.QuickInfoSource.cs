@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     
                 try
                 {
-                    using (Internal.Log.Logger.LogBlock(FunctionId.GET_QUICKINFO_ASYNC, cancellationToken))
+                    using (Internal.Log.Logger.LogBlock(FunctionId.Get_QuickInfo_Async, cancellationToken))
                     {
                         cancellationToken.ThrowIfCancellationRequested();                            
 
