@@ -8358,6 +8358,363 @@ class C
 }
 ");
         }
+
+        [Fact]
+        public void ExpressionVariable_InConstructorInitializer()
+        {
+            var baseClass = "public class Base { public Base(int x) { } }";
+
+            var source0 = MarkedSource(@"
+public class C : Base
+{
+    public C() : base(M(out int <N:0>x</N:0>) + x + M(out int <N:1>y</N:1>)) { System.Console.Write(y); }
+    static int M(out int x) => throw null;
+}" + baseClass);
+            var source1 = MarkedSource(@"
+public class C : Base
+{
+    public C() : base(M(out int <N:0>x</N:0>) + x) { }
+    static int M(out int x) => throw null;
+}" + baseClass);
+
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source0.Tree);
+
+            var ctor0 = compilation0.GetMember<MethodSymbol>("C..ctor");
+            var ctor1 = compilation1.GetMember<MethodSymbol>("C..ctor");
+            var ctor2 = compilation2.GetMember<MethodSymbol>("C..ctor");
+
+            var v0 = CompileAndVerify(compilation0);
+            v0.VerifyIL("C..ctor", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  3
+  .locals init (int V_0, //x
+                int V_1) //y
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  call       ""int C.M(out int)""
+  IL_0008:  ldloc.0
+  IL_0009:  add
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  call       ""int C.M(out int)""
+  IL_0011:  add
+  IL_0012:  call       ""Base..ctor(int)""
+  IL_0017:  nop
+  IL_0018:  nop
+  IL_0019:  ldloc.1
+  IL_001a:  call       ""void System.Console.Write(int)""
+  IL_001f:  nop
+  IL_0020:  ret
+}
+");
+
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C..ctor", @"
+{
+  // Code size       18 (0x12)
+  .maxstack  3
+  .locals init (int V_0, //x
+                [int] V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  call       ""int C.M(out int)""
+  IL_0008:  ldloc.0
+  IL_0009:  add
+  IL_000a:  call       ""Base..ctor(int)""
+  IL_000f:  nop
+  IL_0010:  nop
+  IL_0011:  ret
+}
+");
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, ctor1, ctor2, GetSyntaxMapFromMarkers(source1, source0), preserveLocalVariables: true)));
+
+            diff2.VerifyIL("C..ctor", @"
+{
+  // Code size       33 (0x21)
+  .maxstack  3
+  .locals init (int V_0, //x
+                [int] V_1,
+                int V_2) //y
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  call       ""int C.M(out int)""
+  IL_0008:  ldloc.0
+  IL_0009:  add
+  IL_000a:  ldloca.s   V_2
+  IL_000c:  call       ""int C.M(out int)""
+  IL_0011:  add
+  IL_0012:  call       ""Base..ctor(int)""
+  IL_0017:  nop
+  IL_0018:  nop
+  IL_0019:  ldloc.2
+  IL_001a:  call       ""void System.Console.Write(int)""
+  IL_001f:  nop
+  IL_0020:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ExpressionVariable_InFieldInitializer()
+        {
+            var source0 = MarkedSource(@"
+public class C
+{
+    public int field = M(out int <N:0>x</N:0>) + x + M(out int <N:1>y</N:1>);
+    static int M(out int x) => throw null;
+}");
+            var source1 = MarkedSource(@"
+public class C
+{
+    public int field = M(out int <N:0>x</N:0>) + x;
+    static int M(out int x) => throw null;
+}");
+
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source0.Tree);
+
+            var ctor0 = compilation0.GetMember<MethodSymbol>("C..ctor");
+            var ctor1 = compilation1.GetMember<MethodSymbol>("C..ctor");
+            var ctor2 = compilation2.GetMember<MethodSymbol>("C..ctor");
+
+            var v0 = CompileAndVerify(compilation0);
+            v0.VerifyIL("C..ctor", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  3
+  .locals init (int V_0, //x
+                int V_1) //y
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  call       ""int C.M(out int)""
+  IL_0008:  ldloc.0
+  IL_0009:  add
+  IL_000a:  ldloca.s   V_1
+  IL_000c:  call       ""int C.M(out int)""
+  IL_0011:  add
+  IL_0012:  stfld      ""int C.field""
+  IL_0017:  ldarg.0
+  IL_0018:  call       ""object..ctor()""
+  IL_001d:  nop
+  IL_001e:  ret
+}
+");
+
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifyIL("C..ctor", @"
+{
+  // Code size       23 (0x17)
+  .maxstack  3
+  .locals init (int V_0, //x
+                [int] V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  call       ""int C.M(out int)""
+  IL_0008:  ldloc.0
+  IL_0009:  add
+  IL_000a:  stfld      ""int C.field""
+  IL_000f:  ldarg.0
+  IL_0010:  call       ""object..ctor()""
+  IL_0015:  nop
+  IL_0016:  ret
+}
+");
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, ctor1, ctor2, GetSyntaxMapFromMarkers(source1, source0), preserveLocalVariables: true)));
+
+            diff2.VerifyIL("C..ctor", @"
+{
+  // Code size       31 (0x1f)
+  .maxstack  3
+  .locals init (int V_0, //x
+                [int] V_1,
+                int V_2) //y
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  call       ""int C.M(out int)""
+  IL_0008:  ldloc.0
+  IL_0009:  add
+  IL_000a:  ldloca.s   V_2
+  IL_000c:  call       ""int C.M(out int)""
+  IL_0011:  add
+  IL_0012:  stfld      ""int C.field""
+  IL_0017:  ldarg.0
+  IL_0018:  call       ""object..ctor()""
+  IL_001d:  nop
+  IL_001e:  ret
+}
+");
+        }
+
+        [Fact]
+        public void ExpressionVariable_InQuery()
+        {
+            var source0 = MarkedSource(@"
+using System.Linq;
+public class Program
+{
+    static int M(int x, out int y) { y = 42; return 43; }
+    static void N()
+    {
+        var query =
+            from a in new int[] { 1, 2 }
+            select M(a, out int <N:0>x</N:0>) + x + M(a, out int <N:1>y</N:1>);
+    }
+}");
+            var source1 = MarkedSource(@"
+using System.Linq;
+public class Program
+{
+    static int M(int x, out int y) { y = 42; return 43; }
+    static void N()
+    {
+        var query =
+            from a in new int[] { 1, 2 }
+            select M(a, out int <N:0>x</N:0>) + x;
+    }
+}");
+             var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source0.Tree);
+
+            var n0 = compilation0.GetMember<MethodSymbol>("Program.N");
+            var n1 = compilation1.GetMember<MethodSymbol>("Program.N");
+            var n2 = compilation2.GetMember<MethodSymbol>("Program.N");
+
+            var v0 = CompileAndVerify(compilation0);
+            v0.VerifyIL("Program.N()", @"
+{
+  // Code size       53 (0x35)
+  .maxstack  4
+  .locals init (System.Collections.Generic.IEnumerable<int> V_0) //query
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  newarr     ""int""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  stelem.i4
+  IL_000b:  dup
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldc.i4.2
+  IL_000e:  stelem.i4
+  IL_000f:  ldsfld     ""System.Func<int, int> Program.<>c.<>9__1_0""
+  IL_0014:  dup
+  IL_0015:  brtrue.s   IL_002e
+  IL_0017:  pop
+  IL_0018:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_001d:  ldftn      ""int Program.<>c.<N>b__1_0(int)""
+  IL_0023:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_0028:  dup
+  IL_0029:  stsfld     ""System.Func<int, int> Program.<>c.<>9__1_0""
+  IL_002e:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Select<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)""
+  IL_0033:  stloc.0
+  IL_0034:  ret
+}
+");
+
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, n0, n1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifyIL("Program.N()", @"
+{
+  // Code size       53 (0x35)
+  .maxstack  4
+  .locals init ([unchanged] V_0,
+                System.Collections.Generic.IEnumerable<int> V_1) //query
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  newarr     ""int""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  stelem.i4
+  IL_000b:  dup
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldc.i4.2
+  IL_000e:  stelem.i4
+  IL_000f:  ldsfld     ""System.Func<int, int> Program.<>c.<>9__1_0#1""
+  IL_0014:  dup
+  IL_0015:  brtrue.s   IL_002e
+  IL_0017:  pop
+  IL_0018:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_001d:  ldftn      ""int Program.<>c.<N>b__1_0#1(int)""
+  IL_0023:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_0028:  dup
+  IL_0029:  stsfld     ""System.Func<int, int> Program.<>c.<>9__1_0#1""
+  IL_002e:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Select<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)""
+  IL_0033:  stloc.1
+  IL_0034:  ret
+}
+");
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, n1, n2, GetSyntaxMapFromMarkers(source1, source0), preserveLocalVariables: true)));
+
+            diff2.VerifyIL("Program.N()", @"
+{
+  // Code size       53 (0x35)
+  .maxstack  4
+  .locals init ([unchanged] V_0,
+                [unchanged] V_1,
+                System.Collections.Generic.IEnumerable<int> V_2) //query
+  IL_0000:  nop
+  IL_0001:  ldc.i4.2
+  IL_0002:  newarr     ""int""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  stelem.i4
+  IL_000b:  dup
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldc.i4.2
+  IL_000e:  stelem.i4
+  IL_000f:  ldsfld     ""System.Func<int, int> Program.<>c.<>9__1_0#2""
+  IL_0014:  dup
+  IL_0015:  brtrue.s   IL_002e
+  IL_0017:  pop
+  IL_0018:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_001d:  ldftn      ""int Program.<>c.<N>b__1_0#2(int)""
+  IL_0023:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_0028:  dup
+  IL_0029:  stsfld     ""System.Func<int, int> Program.<>c.<>9__1_0#2""
+  IL_002e:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Select<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)""
+  IL_0033:  stloc.2
+  IL_0034:  ret
+}
+");
+        }
     }
 }
 

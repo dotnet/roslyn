@@ -8920,5 +8920,294 @@ class Program
 }
 ", sequencePoints: "Program+<Test>d__0.MoveNext", source: source);
         }
+
+        [Fact]
+        public void ExpressionVariable_InFieldInitializer()
+        {
+            string source =
+@"public class Program
+{
+    public int field = M(out int x) + x;
+    public Program() { System.Console.Write(1); }
+    static int M(out int x) { x = 42; return 43; }
+}";
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CompileAndVerify(c).VerifyIL("Program..ctor",
+@"{
+  // Code size       31 (0x1f)
+  .maxstack  3
+  .locals init (int V_0) //x
+  // sequence point: public int field = M(out int x) + x;
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  call       ""int Program.M(out int)""
+  IL_0008:  ldloc.0
+  IL_0009:  add
+  IL_000a:  stfld      ""int Program.field""
+  // sequence point: public Program()
+  IL_000f:  ldarg.0
+  IL_0010:  call       ""object..ctor()""
+  IL_0015:  nop
+  // sequence point: {
+  IL_0016:  nop
+  // sequence point: System.Console.Write(1);
+  IL_0017:  ldc.i4.1
+  IL_0018:  call       ""void System.Console.Write(int)""
+  IL_001d:  nop
+  // sequence point: }
+  IL_001e:  ret
+}", sequencePoints: "Program..ctor", source: source);
+
+            c.VerifyPdb(
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""Program"" name="".ctor"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""-6"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""3"" startColumn=""5"" endLine=""3"" endColumn=""41"" document=""1"" />
+        <entry offset=""0xf"" startLine=""4"" startColumn=""5"" endLine=""4"" endColumn=""21"" document=""1"" />
+        <entry offset=""0x16"" startLine=""4"" startColumn=""22"" endLine=""4"" endColumn=""23"" document=""1"" />
+        <entry offset=""0x17"" startLine=""4"" startColumn=""24"" endLine=""4"" endColumn=""48"" document=""1"" />
+        <entry offset=""0x1e"" startLine=""4"" startColumn=""49"" endLine=""4"" endColumn=""50"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x1f"">
+        <scope startOffset=""0x1"" endOffset=""0xa"">
+          <local name=""x"" il_index=""0"" il_start=""0x1"" il_end=""0xa"" attributes=""0"" />
+        </scope>
+      </scope>
+    </method>
+    <method containingType=""Program"" name=""M"" parameterNames=""x"">
+      <customDebugInfo>
+        <forward declaringType=""Program"" methodName="".ctor"" />
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""29"" endLine=""5"" endColumn=""30"" document=""1"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""31"" endLine=""5"" endColumn=""38"" document=""1"" />
+        <entry offset=""0x5"" startLine=""5"" startColumn=""39"" endLine=""5"" endColumn=""49"" document=""1"" />
+        <entry offset=""0xa"" startLine=""5"" startColumn=""50"" endLine=""5"" endColumn=""51"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void ExpressionVariable_InConstructorInitializer()
+        {
+            string source =
+@"public class Program
+{
+    public Program(int i) { }
+    public Program() : this(M(out int x, out int y) + x + y) { System.Console.Write(x); }
+    static int M(out int x, out int y) { x = 42; y = 43; return 100; }
+}";
+            var c = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugDll);
+            CompileAndVerify(c).VerifyIL("Program..ctor",
+@"{
+  // Code size       29 (0x1d)
+  .maxstack  3
+  .locals init (int V_0, //x
+                int V_1) //y
+  // sequence point: public Program(int i), sequence point: this(M(out int x, out int y) + x + y)
+  IL_0000:  ldarg.0
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  ldloca.s   V_1
+  IL_0005:  call       ""int Program.M(out int, out int)""
+  IL_000a:  ldloc.0
+  IL_000b:  add
+  IL_000c:  ldloc.1
+  IL_000d:  add
+  IL_000e:  call       ""Program..ctor(int)""
+  IL_0013:  nop
+  // sequence point: {
+  IL_0014:  nop
+  // sequence point: System.Console.Write(x);
+  IL_0015:  ldloc.0
+  IL_0016:  call       ""void System.Console.Write(int)""
+  IL_001b:  nop
+  // sequence point: }
+  IL_001c:  ret
+}", sequencePoints: "Program..ctor", source: source);
+
+            c.VerifyPdb(
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""Program"" name="".ctor"" parameterNames=""i"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""0"" />
+        </using>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""3"" startColumn=""5"" endLine=""3"" endColumn=""26"" document=""1"" />
+        <entry offset=""0x7"" startLine=""3"" startColumn=""27"" endLine=""3"" endColumn=""28"" document=""1"" />
+        <entry offset=""0x8"" startLine=""3"" startColumn=""29"" endLine=""3"" endColumn=""30"" document=""1"" />
+      </sequencePoints>
+    </method>
+    <method containingType=""Program"" name="".ctor"">
+      <customDebugInfo>
+        <forward declaringType=""Program"" methodName="".ctor"" parameterNames=""i"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""-22"" />
+          <slot kind=""0"" offset=""-11"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""24"" endLine=""4"" endColumn=""61"" document=""1"" />
+        <entry offset=""0x14"" startLine=""4"" startColumn=""62"" endLine=""4"" endColumn=""63"" document=""1"" />
+        <entry offset=""0x15"" startLine=""4"" startColumn=""64"" endLine=""4"" endColumn=""88"" document=""1"" />
+        <entry offset=""0x1c"" startLine=""4"" startColumn=""89"" endLine=""4"" endColumn=""90"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x1d"">
+        <local name=""x"" il_index=""0"" il_start=""0x0"" il_end=""0x1d"" attributes=""0"" />
+        <local name=""y"" il_index=""1"" il_start=""0x0"" il_end=""0x1d"" attributes=""0"" />
+      </scope>
+    </method>
+    <method containingType=""Program"" name=""M"" parameterNames=""x, y"">
+      <customDebugInfo>
+        <forward declaringType=""Program"" methodName="".ctor"" parameterNames=""i"" />
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""5"" startColumn=""40"" endLine=""5"" endColumn=""41"" document=""1"" />
+        <entry offset=""0x1"" startLine=""5"" startColumn=""42"" endLine=""5"" endColumn=""49"" document=""1"" />
+        <entry offset=""0x5"" startLine=""5"" startColumn=""50"" endLine=""5"" endColumn=""57"" document=""1"" />
+        <entry offset=""0x9"" startLine=""5"" startColumn=""58"" endLine=""5"" endColumn=""69"" document=""1"" />
+        <entry offset=""0xe"" startLine=""5"" startColumn=""70"" endLine=""5"" endColumn=""71"" document=""1"" />
+      </sequencePoints>
+    </method>
+  </methods>
+</symbols>");
+        }
+
+        [Fact]
+        public void ExpressionVariable_InQuery()
+        {
+            string source =
+@"using System.Linq;
+public class Program
+{
+    static int M(int x, out int y) { y = 42; return 43; }
+    static void N()
+    {
+        var query =
+            from a in new int[] { 1, 2 }
+            select M(a, out int b) + b;
+    }
+}";
+            var c = CreateCompilation(source, options: TestOptions.DebugDll);
+            CompileAndVerify(c).VerifyIL("Program.N",
+@"{
+  // Code size       53 (0x35)
+  .maxstack  4
+  .locals init (System.Collections.Generic.IEnumerable<int> V_0) //query
+  // sequence point: {
+  IL_0000:  nop
+  // sequence point: var query = ... t int b) + b
+  IL_0001:  ldc.i4.2
+  IL_0002:  newarr     ""int""
+  IL_0007:  dup
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.1
+  IL_000a:  stelem.i4
+  IL_000b:  dup
+  IL_000c:  ldc.i4.1
+  IL_000d:  ldc.i4.2
+  IL_000e:  stelem.i4
+  IL_000f:  ldsfld     ""System.Func<int, int> Program.<>c.<>9__1_0""
+  IL_0014:  dup
+  IL_0015:  brtrue.s   IL_002e
+  IL_0017:  pop
+  IL_0018:  ldsfld     ""Program.<>c Program.<>c.<>9""
+  IL_001d:  ldftn      ""int Program.<>c.<N>b__1_0(int)""
+  IL_0023:  newobj     ""System.Func<int, int>..ctor(object, System.IntPtr)""
+  IL_0028:  dup
+  IL_0029:  stsfld     ""System.Func<int, int> Program.<>c.<>9__1_0""
+  IL_002e:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Select<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)""
+  IL_0033:  stloc.0
+  // sequence point: }
+  IL_0034:  ret
+}", sequencePoints: "Program.N", source: source);
+
+            c.VerifyPdb(
+@"<symbols>
+  <files>
+    <file id=""1"" name="""" language=""C#"" />
+  </files>
+  <methods>
+    <method containingType=""Program"" name=""M"" parameterNames=""x, y"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""21"" offset=""0"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""4"" startColumn=""36"" endLine=""4"" endColumn=""37"" document=""1"" />
+        <entry offset=""0x1"" startLine=""4"" startColumn=""38"" endLine=""4"" endColumn=""45"" document=""1"" />
+        <entry offset=""0x5"" startLine=""4"" startColumn=""46"" endLine=""4"" endColumn=""56"" document=""1"" />
+        <entry offset=""0xa"" startLine=""4"" startColumn=""57"" endLine=""4"" endColumn=""58"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xc"">
+        <namespace name=""System.Linq"" />
+      </scope>
+    </method>
+    <method containingType=""Program"" name=""N"">
+      <customDebugInfo>
+        <forward declaringType=""Program"" methodName=""M"" parameterNames=""x, y"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""15"" />
+        </encLocalSlotMap>
+        <encLambdaMap>
+          <methodOrdinal>1</methodOrdinal>
+          <lambda offset=""85"" />
+        </encLambdaMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""6"" startColumn=""5"" endLine=""6"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x1"" startLine=""7"" startColumn=""9"" endLine=""9"" endColumn=""40"" document=""1"" />
+        <entry offset=""0x34"" startLine=""10"" startColumn=""5"" endLine=""10"" endColumn=""6"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x35"">
+        <local name=""query"" il_index=""0"" il_start=""0x0"" il_end=""0x35"" attributes=""0"" />
+      </scope>
+    </method>
+    <method containingType=""Program+&lt;&gt;c"" name=""&lt;N&gt;b__1_0"" parameterNames=""a"">
+      <customDebugInfo>
+        <forward declaringType=""Program"" methodName=""M"" parameterNames=""x, y"" />
+        <encLocalSlotMap>
+          <slot kind=""0"" offset=""98"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" startLine=""9"" startColumn=""20"" endLine=""9"" endColumn=""39"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0xb"">
+        <local name=""b"" il_index=""0"" il_start=""0x0"" il_end=""0xb"" attributes=""0"" />
+      </scope>
+    </method>
+  </methods>
+</symbols>");
+        }
     }
 }
