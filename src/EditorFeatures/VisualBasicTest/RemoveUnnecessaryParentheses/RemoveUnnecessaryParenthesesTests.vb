@@ -179,6 +179,34 @@ end class", requireAllParenthesesForClarity:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        Public Async Function TestLocalVariable_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity() As Task
+            Await TestAsync(
+"class C
+
+    sub M()
+        dim i = $$(1 + 2)
+    end sub
+end class",
+"class C
+
+    sub M()
+        dim i = 1 + 2
+    end sub
+end class", requireAllParenthesesForClarity:=True)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        Public Async Function TestLocalVariable_TestAvailableWithRequiredForClarity() As Task
+            Await TestMissingAsync(
+"class C
+
+    sub M()
+        dim i = 1 $$= 2
+    end sub
+end class", New TestParameters(options:=RequireAllParenthesesForClarity))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
         Public Async Function TestAssignment_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity() As Task
             Await TestAsync(
 "class C
