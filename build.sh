@@ -25,7 +25,6 @@ usage()
 root_path="$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 binaries_path="${root_path}"/Binaries
 bootstrap_path="${binaries_path}"/Bootstrap
-bootstrap_framework=netcoreapp2.0
 
 args=
 build_in_docker=false
@@ -133,15 +132,29 @@ if [[ "$build_bootstrap" == true ]]
 then
     echo "Building bootstrap toolset"
     bootstrap_build_args="${build_args} /p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP"
-    dotnet publish "${root_path}"/src/Compilers/CSharp/csc -o "${bootstrap_path}/bincore" --framework ${bootstrap_framework} ${bootstrap_build_args} "/bl:${binaries_path}/BootstrapCsc.binlog"
-    dotnet publish "${root_path}"/src/Compilers/VisualBasic/vbc -o "${bootstrap_path}/bincore" --framework ${bootstrap_framework} ${bootstrap_build_args} "/bl:${binaries_path}/BootstrapVbc.binlog"
-    dotnet publish "${root_path}"/src/Compilers/Server/VBCSCompiler -o "${bootstrap_path}/bincore" --framework ${bootstrap_framework} ${bootstrap_build_args} "/bl:${binaries_path}/BootstrapVBCSCompiler.binlog"
-    dotnet publish "${root_path}"/src/Compilers/Core/MSBuildTask -o "${bootstrap_path}" --framework ${bootstrap_framework} ${bootstrap_build_args} "/bl:${binaries_path}/BoostrapMSBuildTask.binlog"
+    bootstrap_files=( 'src/Compilers/CSharp/csc/csc.csproj' 'src/Compilers/VisualBasic/vbc/vbc.csproj' 'src/Compilers/Server/VBCSCompiler/VBCSCompiler.csproj' 'src/Compilers/Core/MSBuildTask/MSBuildTask.csproj')
+    for bootstrap_file in "${bootstrap_files[@]}"
+    do
+        bootstrap_name=$(basename $bootstrap_file)
+        dotnet publish "${bootstrap_file}" --framework netcoreapp2.0 ${bootstrap_build_args} "/bl:${binaries_path}/${bootstrap_name}.binlog"
+    done
+
+    mkdir -p ${bootstrap_path} 
+    dotnet pack src/NuGet/Bootstrap.csproj /p:NuspecBasePath=${binaries_path}/Debug -o ${bootstrap_path}
+    unzip ${bootstrap_path}/Microsoft.NETCore.Compilers.1.0.0-bootstrap.nupkg -d ${bootstrap_path}/Microsoft.NETCore.Compilers
+
+    # exit 1
+    # for bootstrap_file in "${bootstrap_files[@]}"
+    # do
+        # bootstrap_name=$(basename $bootstrap_file)
+        # dotnet clean "${bootstrap_file}"
+    # done
+    # exit 1
 fi
 
 if [[ "${use_bootstrap}" == true ]]
 then
-    build_args+=" /p:BootstrapBuildPath=${bootstrap_path}"
+    build_args+=" /p:BootstrapBuildPath=${bootstrap_path}/Microsoft.NETCore.Compilers/build"
 fi
 
 # https://github.com/dotnet/roslyn/issues/23736
@@ -162,7 +175,7 @@ then
     if [[ "${use_bootstrap}" == true ]]
     then
         echo "Stopping VBCSCompiler"
-        dotnet "${bootstrap_path}"/bincore/VBCSCompiler.dll -shutdown
+        dotnet "${bootstrap_path}"/Microsoft.NETCore.Compilers/tools/bincore/VBCSCompiler.dll -shutdown
     else
         echo "--stop-vbcscompiler requires --use-bootstrap. Aborting."
         exit 1
