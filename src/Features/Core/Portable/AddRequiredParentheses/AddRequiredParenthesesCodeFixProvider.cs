@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
             foreach (var diagnostic in diagnostics)
             {
                 var location = diagnostic.AdditionalLocations[0];
-                var binaryExpression = location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken: cancellationToken);
+                var binaryExpression = location.FindNode(findInsideTrivia: true, getInnermostNodeForTie: true, cancellationToken);
                 editor.ReplaceNode(binaryExpression,
                     (current, _) => syntaxFacts.Parenthesize(current, includeElasticTrivia: false, addSimplifierAnnotation: false));
             }
