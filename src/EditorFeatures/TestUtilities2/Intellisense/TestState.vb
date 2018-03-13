@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             CurrentCompletionPresenterSession.SetSelectedItem(item)
         End Sub
 
-        Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As CompletionItem)
+        Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As CodeAnalysis.Completion.CompletionItem)
             CurrentCompletionPresenterSession.SetSelectedItem(item)
         End Sub
 

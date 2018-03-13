@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private bool StartNewModelComputation(
             CompletionService completionService,
-            CompletionTrigger trigger)
+            CodeAnalysis.Completion.CompletionTrigger trigger)
         {
             AssertIsForeground();
             Contract.ThrowIfTrue(sessionOpt != null);
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 : workspace.Options;
         }
 
-        private void CommitItem(CompletionItem item)
+        private void CommitItem(CodeAnalysis.Completion.CompletionItem item)
         {
             AssertIsForeground();
 

@@ -20,6 +20,7 @@ using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using CompletionTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 {
@@ -74,7 +75,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         internal Task<CompletionList> GetCompletionListAsync(
             CompletionService service,
-            Document document, int position, CompletionTrigger triggerInfo, OptionSet options = null)
+            Document document, int position, 
+            CodeAnalysis.Completion.CompletionTrigger triggerInfo, OptionSet options = null)
         {
             return service.GetCompletionsAsync(document, position, triggerInfo, options: options);
         }
@@ -96,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             var completionService = GetCompletionService(document.Project.Solution.Workspace);
             var completionList = await GetCompletionListAsync(completionService, document, position, trigger);
-            var items = completionList == null ? ImmutableArray<CompletionItem>.Empty : completionList.Items;
+            var items = completionList == null ? ImmutableArray<CodeAnalysis.Completion.CompletionItem>.Empty : completionList.Items;
 
             if (hasSuggestionModeItem != null)
             {
@@ -332,7 +334,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         internal async Task VerifyCustomCommitWorkerAsync(
             CompletionServiceWithProviders service,
             Document document,
-            CompletionItem completionItem,
+            CodeAnalysis.Completion.CompletionItem completionItem,
             string codeBeforeCommit,
             string expectedCodeAfterCommit,
             char? commitChar = null)
@@ -366,7 +368,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         internal virtual void VerifyCustomCommitWorker(
             CompletionService service,
             ICustomCommitCompletionProvider customCommitCompletionProvider,
-            CompletionItem completionItem,
+            CodeAnalysis.Completion.CompletionItem completionItem,
             CompletionHelper completionRules,
             ITextView textView,
             ITextBuffer textBuffer,

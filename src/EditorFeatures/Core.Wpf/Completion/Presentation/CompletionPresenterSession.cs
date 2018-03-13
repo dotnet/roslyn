@@ -12,6 +12,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
+using CACompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
@@ -70,9 +71,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         public void PresentItems(
             ITrackingSpan triggerSpan,
-            IList<CompletionItem> completionItems,
-            CompletionItem selectedItem,
-            CompletionItem suggestionModeItem,
+            IList<CACompletionItem> completionItems,
+            CACompletionItem selectedItem,
+            CACompletionItem suggestionModeItem,
             bool suggestionMode,
             bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
@@ -140,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             this.Dismissed?.Invoke(this, new EventArgs());
         }
 
-        internal void OnCompletionItemCommitted(CompletionItem completionItem)
+        internal void OnCompletionItemCommitted(CACompletionItem completionItem)
         {
             AssertIsForeground();
             this.ItemCommitted?.Invoke(this, new CompletionItemEventArgs(completionItem));
