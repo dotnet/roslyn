@@ -143,13 +143,10 @@ then
     dotnet pack src/NuGet/Bootstrap.csproj /p:NuspecBasePath=${binaries_path}/Debug -o ${bootstrap_path}
     unzip ${bootstrap_path}/Microsoft.NETCore.Compilers.1.0.0-bootstrap.nupkg -d ${bootstrap_path}/Microsoft.NETCore.Compilers
 
-    # exit 1
-    # for bootstrap_file in "${bootstrap_files[@]}"
-    # do
-        # bootstrap_name=$(basename $bootstrap_file)
-        # dotnet clean "${bootstrap_file}"
-    # done
-    # exit 1
+    for bootstrap_file in "${bootstrap_files[@]}"
+    do
+        dotnet clean "${bootstrap_file}"
+    done
 fi
 
 if [[ "${use_bootstrap}" == true ]]
