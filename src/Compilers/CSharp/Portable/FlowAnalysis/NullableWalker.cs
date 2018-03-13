@@ -1328,7 +1328,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Unsplit();
             var alternativeResult = _result;
 
-            bool? getIsNullable(Result result) => (object)result.Type == null ? true : result.Type.IsNullable;
+            bool? getIsNullable(Result result) => result.Type is null ? true : result.Type.IsNullable;
             bool? resultIsNullable;
             if (IsConstantTrue(node.Condition))
             {
@@ -1362,19 +1362,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    BoundExpression createPlaceholderIfNecessary(BoundExpression expr, Result result)
-                    {
-                        var type = result.Type;
-                        return type is null ?
-                            expr :
-                            new BoundValuePlaceholder(expr.Syntax, type.IsNullable, type.TypeSymbol);
-                    }
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                     resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(
                         createPlaceholderIfNecessary(consequence, consequenceResult),
                         createPlaceholderIfNecessary(alternative, alternativeResult),
                         _conversions,
-                        out bool _,
+                        out _,
                         ref useSiteDiagnostics);
                     if (resultType is null)
                     {
@@ -1390,6 +1383,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             _result = resultType;
             return null;
+
+            BoundExpression createPlaceholderIfNecessary(BoundExpression expr, Result result)
+            {
+                var type = result.Type;
+                return type is null ?
+                    expr :
+                    new BoundValuePlaceholder(expr.Syntax, type.IsNullable, type.TypeSymbol);
+            }
         }
 
         private BoundExpression VisitConditionalOperand(LocalState state, BoundExpression operand, bool isByRef)
