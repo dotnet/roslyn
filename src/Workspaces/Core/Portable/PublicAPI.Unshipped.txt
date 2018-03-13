@@ -1,3 +1,6 @@
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AliasImportDeclaration(string aliasIdentifierName, Microsoft.CodeAnalysis.INamespaceOrTypeSymbol symbol) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AliasImportDeclaration(string aliasIdentifierName, Microsoft.CodeAnalysis.SyntaxNode name) -> Microsoft.CodeAnalysis.SyntaxNode
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameExpression(Microsoft.CodeAnalysis.INamespaceOrTypeSymbol namespaceOrTypeSymbol) -> Microsoft.CodeAnalysis.SyntaxNode
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.EnumMemberName = "enum member name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.FieldName = "field name" -> string
 const Microsoft.CodeAnalysis.Classification.ClassificationTypeNames.ConstantName = "constant name" -> string
