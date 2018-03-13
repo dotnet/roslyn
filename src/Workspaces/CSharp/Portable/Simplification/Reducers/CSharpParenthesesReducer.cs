@@ -39,9 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 // Specifically remove the elastic trivia formatting rule doesn't
                 // have any effect.
                 var resultNode = CSharpSyntaxFactsService.Instance.Unparenthesize(node);
-                resultNode = SimplificationHelpers.CopyAnnotations(from: node, to: resultNode);
-
-                return resultNode;
+                return SimplificationHelpers.CopyAnnotations(from: node, to: resultNode);
             }
 
             // We don't know how to simplify this.
