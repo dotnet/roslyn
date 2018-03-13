@@ -251,16 +251,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             hasErrors = true;
                         }
 
-                        var constantValue = pattern.ConstantValue;
-                        if (!hasErrors &&
-                            (object)constantValue != null &&
-                            pattern.Value.Type == SwitchGoverningType &&
-                            this.FindMatchingSwitchCaseLabel(constantValue, caseLabelSyntax) != label)
-                        {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, pattern.ConstantValue.GetValueToDisplay() ?? label.Name);
-                            hasErrors = true;
-                        }
-
                         return new BoundPatternSwitchLabel(node, label, pattern, null, hasErrors);
                     }
 

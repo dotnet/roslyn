@@ -73,6 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitSwitchStatement((BoundSwitchStatement)statement);
                     break;
 
+                case BoundKind.SwitchDispatch:
+                    EmitSwitchDispatch((BoundSwitchDispatch)statement);
+                    break;
+
                 case BoundKind.StateMachineScope:
                     EmitStateMachineScope((BoundStateMachineScope)statement);
                     break;
@@ -1065,6 +1069,25 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.CloseLocalScope();
         }
 
+        private void EmitSwitchDispatch(BoundSwitchDispatch dispatch)
+        {
+            // Switch expression must have a valid switch governing type
+            Debug.Assert((object)dispatch.Expression.Type != null);
+            Debug.Assert(dispatch.Expression.Type.IsValidV6SwitchGoverningType());
+
+            // We must have rewritten nullable switch expression into non-nullable constructs.
+            Debug.Assert(!dispatch.Expression.Type.IsNullableType());
+
+            // This must be used only for nontrivial dispatches.
+            Debug.Assert(dispatch.Cases.Any());
+
+            EmitSwitchHeader(
+                dispatch.Expression,
+                dispatch.Cases.Select(p => new KeyValuePair<ConstantValue, object>(p.value, p.label)).ToArray(),
+                dispatch.DefaultLabel,
+                dispatch.EqualityMethod);
+        }
+
         private void EmitSwitchStatement(BoundSwitchStatement switchStatement)
         {
             var preambleOpt = switchStatement.LoweredPreambleOpt;
@@ -1110,7 +1133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
                 else
                 {
-                    EmitSwitchHeader(switchStatement, expression, switchCaseLabels, fallThroughLabel);
+                    EmitSwitchHeader(expression, switchCaseLabels, fallThroughLabel, switchStatement.StringEquality);
                 }
             }
 
@@ -1159,10 +1182,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         private void EmitSwitchHeader(
-            BoundSwitchStatement switchStatement,
             BoundExpression expression,
             KeyValuePair<ConstantValue, object>[] switchCaseLabels,
-            LabelSymbol fallThroughLabel)
+            LabelSymbol fallThroughLabel,
+            MethodSymbol equalityMethod)
         {
             Debug.Assert(expression.ConstantValue == null);
             Debug.Assert((object)expression.Type != null &&
@@ -1225,7 +1248,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
             else
             {
-                this.EmitStringSwitchJumpTable(switchStatement, switchCaseLabels, fallThroughLabel, key, expression.Syntax);
+                this.EmitStringSwitchJumpTable(switchCaseLabels, fallThroughLabel, key, expression.Syntax, equalityMethod);
             }
 
             if (temp != null)
@@ -1241,11 +1264,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         }
 
         private void EmitStringSwitchJumpTable(
-            BoundSwitchStatement switchStatement,
             KeyValuePair<ConstantValue, object>[] switchCaseLabels,
             LabelSymbol fallThroughLabel,
             LocalOrParameter key,
-            SyntaxNode syntaxNode)
+            SyntaxNode syntaxNode,
+            MethodSymbol equalityMethod)
         {
             LocalDefinition keyHash = null;
 
@@ -1279,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 }
             }
 
-            Cci.IReference stringEqualityMethodRef = _module.Translate(switchStatement.StringEquality, syntaxNode, _diagnostics);
+            Cci.IReference stringEqualityMethodRef = _module.Translate(equalityMethod, syntaxNode, _diagnostics);
 
             Cci.IMethodReference stringLengthRef = null;
             var stringLengthMethod = _module.Compilation.GetSpecialTypeMember(SpecialMember.System_String__Length) as MethodSymbol;
@@ -1674,6 +1697,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 BoundExpression condition = node.Condition;
 
                 return node.Update(condition, node.JumpIfTrue, labelClone);
+            }
+
+            public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
+            {
+                // expressions do not contain labels or branches
+                BoundExpression expression = node.Expression;
+
+                var defaultClone = GetLabelClone(node.DefaultLabel);
+                var casesBuilder = ArrayBuilder<(ConstantValue, LabelSymbol)>.GetInstance();
+                foreach (var (value, label) in node.Cases)
+                {
+                    casesBuilder.Add((value, GetLabelClone(label)));
+                }
+
+                return node.Update(expression, casesBuilder.ToImmutableAndFree(), defaultClone, node.EqualityMethod);
             }
 
             public override BoundNode VisitExpressionStatement(BoundExpressionStatement node)

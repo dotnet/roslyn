@@ -30,7 +30,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static SwitchBinder Create(Binder next, SwitchStatementSyntax switchSyntax)
         {
-            var parseOptions = switchSyntax?.SyntaxTree?.Options as CSharpParseOptions;
             return new PatternSwitchBinder(next, switchSyntax);
         }
 

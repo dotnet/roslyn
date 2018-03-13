@@ -741,7 +741,7 @@ null";
                 //             case "goo": // wrong type
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(11, 18)
                 );
-            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6WithV7SwitchBinder).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular6WithV8SwitchBinder).VerifyDiagnostics(
                 // (11,18): error CS0029: Cannot implicitly convert type 'string' to 'bool'
                 //             case "goo": // wrong type
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""goo""").WithArguments("string", "bool").WithLocation(11, 18)

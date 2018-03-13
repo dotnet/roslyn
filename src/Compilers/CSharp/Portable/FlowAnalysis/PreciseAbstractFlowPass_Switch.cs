@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SetState(StateWhenTrue);
                     }
 
-                    _pendingBranches.Add(new PendingBranch(label, this.State));
+                    _pendingBranches.Add(new PendingBranch(label, this.State, label.Label));
                 }
             }
 

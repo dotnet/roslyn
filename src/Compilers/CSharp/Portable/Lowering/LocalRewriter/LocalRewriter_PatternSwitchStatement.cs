@@ -27,6 +27,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private Dictionary<SyntaxNode, ArrayBuilder<BoundStatement>> _switchSections => base._switchArms;
 
+            /// <summary>
+            /// A map from section syntax to the first label in that section.
+            /// </summary>
+            private Dictionary<SyntaxNode, LabelSymbol> _sectionLabels = PooledDictionary<SyntaxNode, LabelSymbol>.GetInstance();
+
+            /// <summary>
+            /// We revise the returned label for a decision so that all decisions in the same switch section are given the same label.
+            /// This permits all the decisions in a
+            /// section to share the label, which enables the switch emitter to produce better code.
+            /// </summary>
+            protected override LabelSymbol GetDagNodeLabel(BoundDecisionDag dag)
+            {
+                var result = base.GetDagNodeLabel(dag);
+                if (dag is BoundDecision d)
+                {
+                    SyntaxNode section = d.Syntax.Parent;
+
+                    // It is possible that the decision represents a compiler-generated default for a switch statement in the EE.
+                    // In that case d.Syntax is the whole switch statement, and its parent is null. We are only interested
+                    // in decisions that result from explicit switch case labels in a switch section.
+                    if (section?.Kind() == SyntaxKind.SwitchSection)
+                    {
+                        if (_sectionLabels.TryGetValue(section, out LabelSymbol replacementLabel))
+                        {
+                            return replacementLabel;
+                        }
+
+                        _sectionLabels.Add(section, result);
+                    }
+                }
+
+                return result;
+            }
+
             private PatternSwitchLocalRewriter(BoundPatternSwitchStatement node, LocalRewriter localRewriter)
                 : base(localRewriter, localRewriter.VisitExpression(node.Expression), node.SwitchSections.SelectAsArray(section => section.Syntax), node.DecisionDag)
             {

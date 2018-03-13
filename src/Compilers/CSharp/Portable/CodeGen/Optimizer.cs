@@ -1272,6 +1272,20 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             return result;
         }
 
+        public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
+        {
+            var result = base.VisitSwitchDispatch(node);
+            PopEvalStack();  // expression gets consumed.
+            foreach ((_, LabelSymbol label) in node.Cases)
+            {
+                RecordBranch(label);
+            }
+
+            RecordBranch(node.DefaultLabel);
+
+            return result;
+        }
+
         public override BoundNode VisitConditionalOperator(BoundConditionalOperator node)
         {
             var origStack = StackDepth();

@@ -35,8 +35,9 @@ public class Test
         return(ret);
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
-            compVerifier.VerifyIL("Test.Main", @"
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+                compVerifier.VerifyIL("Test.Main", @"
                 {
                     // Code size       12 (0xc)
                     .maxstack  1
@@ -49,8 +50,20 @@ public class Test
                     IL_0005:  call       ""void System.Console.Write(int)""
                     IL_000a:  ldloc.0
                     IL_000b:  ret
-                }"
-            );
+                }");
+            }
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "0", parseOptions: TestOptions.RegularWithV8SwitchBinder);
+                compVerifier.VerifyIL("Test.Main", @"
+                {
+                  // Code size        8 (0x8)
+                  .maxstack  2
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  dup
+                  IL_0002:  call       ""void System.Console.Write(int)""
+                  IL_0007:  ret
+                }");
+            }
         }
 
         [WorkItem(542298, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542298")]
@@ -78,6 +91,7 @@ public class Test
     }
 }
 ";
+
             var compVerifier = CompileAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.Main",
 @"
@@ -94,6 +108,30 @@ public class Test
   IL_0005:  stloc.0
   IL_0006:  ldstr      ""string""
   IL_000b:  stloc.1
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  sub
+  IL_000f:  stloc.0
+  IL_0010:  ldloc.0
+  IL_0011:  call       ""void System.Console.WriteLine(int)""
+  IL_0016:  ret
+}"
+            );
+            compVerifier = CompileAndVerify(text, expectedOutput: "0", parseOptions: TestOptions.RegularWithV8SwitchBinder);
+            compVerifier.VerifyIL("Test.Main",
+@"
+{
+  // Code size       23 (0x17)
+  .maxstack  2
+  .locals init (int V_0) //status
+  IL_0000:  ldc.i4.2
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  sub
+  IL_0005:  stloc.0
+  IL_0006:  ldstr      ""string""
+  IL_000b:  pop
   IL_000c:  ldloc.0
   IL_000d:  ldc.i4.1
   IL_000e:  sub
@@ -125,6 +163,7 @@ public class Test
         return(ret);
     }
 }";
+
             var compVerifier = CompileAndVerify(text, expectedOutput: "0");
             compVerifier.VerifyIL("Test.Main", @"
                 {
@@ -139,6 +178,17 @@ public class Test
                     IL_0005:  call       ""void System.Console.Write(int)""
                     IL_000a:  ldloc.0
                     IL_000b:  ret
+                }"
+            );
+            compVerifier = CompileAndVerify(text, expectedOutput: "0", parseOptions: TestOptions.RegularWithV8SwitchBinder);
+            compVerifier.VerifyIL("Test.Main", @"
+                {
+                  // Code size        8 (0x8)
+                  .maxstack  2
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  dup
+                  IL_0002:  call       ""void System.Console.Write(int)""
+                  IL_0007:  ret
                 }"
             );
         }
@@ -167,8 +217,10 @@ public class Test
   }
 }
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
-            compVerifier.VerifyIL("Test.Main", @"
+
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+                compVerifier.VerifyIL("Test.Main", @"
                 {
                     // Code size       12 (0xc)
                     .maxstack  1
@@ -182,7 +234,21 @@ public class Test
                     IL_000a:  ldloc.0
                     IL_000b:  ret
                 }"
-            );
+                );
+            }
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "0", parseOptions: TestOptions.RegularWithV8SwitchBinder);
+                compVerifier.VerifyIL("Test.Main", @"
+                {
+                  // Code size        8 (0x8)
+                  .maxstack  2
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  dup
+                  IL_0002:  call       ""void System.Console.Write(int)""
+                  IL_0007:  ret
+                }"
+                );
+            }
         }
 
         [Fact]
@@ -207,8 +273,9 @@ public class Test
         return(ret);
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
-            compVerifier.VerifyIL("Test.Main", @"
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+                compVerifier.VerifyIL("Test.Main", @"
                 {
                     // Code size       18 (0x12)
                     .maxstack  2
@@ -228,7 +295,32 @@ public class Test
                     IL_0010:  ldloc.0
                     IL_0011:  ret
                 }"
-            );
+                );
+            }
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "0", parseOptions: TestOptions.RegularWithV8SwitchBinder);
+                compVerifier.VerifyIL("Test.Main", @"
+                {
+                  // Code size       18 (0x12)
+                  .maxstack  2
+                  .locals init (int V_0, //ret
+                                int V_1)
+                  IL_0000:  ldc.i4.0
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4.1
+                  IL_0003:  stloc.1
+                  IL_0004:  ldc.i4.2
+                  IL_0005:  ldloc.1
+                  IL_0006:  bne.un.s   IL_000a
+                  IL_0008:  ldc.i4.1
+                  IL_0009:  stloc.0
+                  IL_000a:  ldloc.0
+                  IL_000b:  call       ""void System.Console.Write(int)""
+                  IL_0010:  ldloc.0
+                  IL_0011:  ret
+                }"
+                );
+            }
         }
 
         [Fact]
@@ -259,8 +351,9 @@ public class Test
 
     const int kValue = 23;
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
-            compVerifier.VerifyIL("Test.Main", @"
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+                compVerifier.VerifyIL("Test.Main", @"
                 {
                     // Code size       24 (0x18)
                     .maxstack  2
@@ -283,7 +376,35 @@ public class Test
                     IL_0016:  ldloc.0
                     IL_0017:  ret
                 }"
-            );
+                );
+            }
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "0", parseOptions: TestOptions.RegularWithV8SwitchBinder);
+                compVerifier.VerifyIL("Test.Main", @"
+                {
+                  // Code size       24 (0x18)
+                  .maxstack  2
+                  .locals init (int V_0, //ret
+                                int V_1)
+                  IL_0000:  ldc.i4.1
+                  IL_0001:  stloc.0
+                  IL_0002:  ldc.i4.s   23
+                  IL_0004:  stloc.1
+                  IL_0005:  ldc.i4.s   23
+                  IL_0007:  ldloc.1
+                  IL_0008:  bne.un.s   IL_000e
+                  IL_000a:  ldc.i4.0
+                  IL_000b:  stloc.0
+                  IL_000c:  br.s       IL_0010
+                  IL_000e:  ldc.i4.1
+                  IL_000f:  stloc.0
+                  IL_0010:  ldloc.0
+                  IL_0011:  call       ""void System.Console.Write(int)""
+                  IL_0016:  ldloc.0
+                  IL_0017:  ret
+                }"
+                );
+            }
         }
 
         [Fact]
@@ -335,8 +456,9 @@ public class Test
     return 0;
   }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "0");
-            compVerifier.VerifyIL("Test.M", @"
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "0");
+                compVerifier.VerifyIL("Test.M", @"
 {
   // Code size       26 (0x1a)
   .maxstack  2
@@ -362,7 +484,37 @@ public class Test
   IL_0019:  ret
 }
 "
-            );
+                );
+            }
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "0", parseOptions: TestOptions.RegularWithV8SwitchBinder);
+                compVerifier.VerifyIL("Test.M", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldc.i4.5
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  sub
+  IL_0005:  ldc.i4.2
+  IL_0006:  ble.un.s   IL_0014
+  IL_0008:  ldloc.0
+  IL_0009:  ldc.i4     0x3e9
+  IL_000e:  sub
+  IL_000f:  ldc.i4.2
+  IL_0010:  ble.un.s   IL_0016
+  IL_0012:  br.s       IL_0018
+  IL_0014:  ldc.i4.1
+  IL_0015:  ret
+  IL_0016:  ldc.i4.2
+  IL_0017:  ret
+  IL_0018:  ldc.i4.0
+  IL_0019:  ret
+}"
+                );
+            }
         }
 
         [Fact]
@@ -383,7 +535,7 @@ public class Test
   {
     switch (i)
     {
-      case 0:       
+      case 0:
       case 1:
       case 2:
       case 3:
@@ -399,8 +551,9 @@ public class Test
     return 0;
   }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "1");
-            compVerifier.VerifyIL("Test.M", @"
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "1");
+                compVerifier.VerifyIL("Test.M", @"
 {
   // Code size       13 (0xd)
   .maxstack  2
@@ -416,7 +569,31 @@ public class Test
   IL_000c:  ret
 }
 "
-            );
+                );
+            }
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "1", parseOptions: TestOptions.RegularWithV8SwitchBinder);
+                compVerifier.VerifyIL("Test.M", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.6
+  IL_0004:  ble.un.s   IL_000b
+  IL_0006:  ldloc.0
+  IL_0007:  ldc.i4.s   100
+  IL_0009:  bne.un.s   IL_000d
+  IL_000b:  ldc.i4.1
+  IL_000c:  ret
+  IL_000d:  ldc.i4.0
+  IL_000e:  ret
+}
+"
+                );
+            }
         }
 
         [Fact]
@@ -453,8 +630,9 @@ public class Test
     return 0;
   }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "1", options: TestOptions.DebugExe);
-            compVerifier.VerifyIL("Test.M", @"
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "1", options: TestOptions.DebugExe);
+                compVerifier.VerifyIL("Test.M", @"
 {
   // Code size       28 (0x1c)
   .maxstack  2
@@ -482,7 +660,43 @@ public class Test
   IL_001b:  ret
 }
 "
-            );
+                );
+            }
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "1", options: TestOptions.DebugExe, parseOptions: TestOptions.RegularWithV8SwitchBinder);
+                compVerifier.VerifyIL("Test.M", @"
+{
+  // Code size       30 (0x1e)
+  .maxstack  2
+  .locals init (int V_0,
+                int V_1,
+                int V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  stloc.1
+  IL_0003:  ldloc.1
+  IL_0004:  stloc.0
+  IL_0005:  ldloc.0
+  IL_0006:  ldc.i4.6
+  IL_0007:  ble.un.s   IL_0012
+  IL_0009:  br.s       IL_000b
+  IL_000b:  ldloc.0
+  IL_000c:  ldc.i4.s   100
+  IL_000e:  beq.s      IL_0016
+  IL_0010:  br.s       IL_0018
+  IL_0012:  ldc.i4.1
+  IL_0013:  stloc.2
+  IL_0014:  br.s       IL_001c
+  IL_0016:  br.s       IL_0012
+  IL_0018:  ldc.i4.0
+  IL_0019:  stloc.2
+  IL_001a:  br.s       IL_001c
+  IL_001c:  ldloc.2
+  IL_001d:  ret
+}
+"
+                );
+            }
         }
 
         [Fact]
@@ -515,8 +729,9 @@ public class Test
     return 0;
   }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "1");
-            compVerifier.VerifyIL("Test.M", @"
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "1");
+                compVerifier.VerifyIL("Test.M", @"
 {
   // Code size       10 (0xa)
   .maxstack  2
@@ -531,7 +746,30 @@ public class Test
   IL_0009:  ret
 }
 "
-            );
+                );
+            }
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "1", parseOptions: TestOptions.RegularWithV8SwitchBinder);
+                compVerifier.VerifyIL("Test.M", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  sub
+  IL_0005:  ldc.i4.5
+  IL_0006:  bgt.un.s   IL_000a
+  IL_0008:  ldc.i4.1
+  IL_0009:  ret
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+"
+                );
+            }
         }
 
         [Fact]
@@ -565,8 +803,9 @@ public class Test
     return 0;
   }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "1");
-            compVerifier.VerifyIL("Test.M", @"
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "1");
+                compVerifier.VerifyIL("Test.M", @"
 {
   // Code size       11 (0xb)
   .maxstack  2
@@ -581,7 +820,30 @@ public class Test
   IL_000a:  ret
 }
 "
-            );
+                );
+            }
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "1", parseOptions: TestOptions.RegularWithV8SwitchBinder);
+                compVerifier.VerifyIL("Test.M", @"
+{
+  // Code size       13 (0xd)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.s   -2
+  IL_0005:  sub
+  IL_0006:  ldc.i4.6
+  IL_0007:  bgt.un.s   IL_000b
+  IL_0009:  ldc.i4.1
+  IL_000a:  ret
+  IL_000b:  ldc.i4.0
+  IL_000c:  ret
+}
+"
+                );
+            }
         }
 
         [Fact]
@@ -613,8 +875,9 @@ public class Test
         return 0;
     }
 }";
-            var compVerifier = CompileAndVerify(text, expectedOutput: "1");
-            compVerifier.VerifyIL("Test.M", @"
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "1");
+                compVerifier.VerifyIL("Test.M", @"
 {
   // Code size       24 (0x18)
   .maxstack  2
@@ -634,7 +897,34 @@ public class Test
   IL_0017:  ret
 }
 "
-            );
+                );
+            }
+            {
+                var compVerifier = CompileAndVerify(text, expectedOutput: "1", parseOptions: TestOptions.RegularWithV8SwitchBinder);
+                compVerifier.VerifyIL("Test.M", @"
+{
+  // Code size       26 (0x1a)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4     0x80000000
+  IL_0008:  sub
+  IL_0009:  ldc.i4.1
+  IL_000a:  ble.un.s   IL_0016
+  IL_000c:  ldloc.0
+  IL_000d:  ldc.i4     0x7ffffffd
+  IL_0012:  sub
+  IL_0013:  ldc.i4.2
+  IL_0014:  bgt.un.s   IL_0018
+  IL_0016:  ldc.i4.1
+  IL_0017:  ret
+  IL_0018:  ldc.i4.0
+  IL_0019:  ret
+}"
+                );
+            }
         }
 
         [Fact]
@@ -891,8 +1181,80 @@ public class Test
   IL_00cc:  ldc.i4.0
   IL_00cd:  ret
 }
-"
-            );
+");
+            compVerifier = CompileAndVerify(text, expectedOutput: "4", parseOptions: TestOptions.Regular6WithV8SwitchBinder);
+            compVerifier.VerifyIL("Test.M", @"
+{
+  // Code size      208 (0xd0)
+  .maxstack  2
+  .locals init (int V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.1
+  IL_0004:  sub
+  IL_0005:  switch    (
+        IL_00c4,
+        IL_00c4,
+        IL_00c4,
+        IL_00c4,
+        IL_00c4,
+        IL_00c4,
+        IL_00ce,
+        IL_00ce,
+        IL_00ce,
+        IL_00ce,
+        IL_00c6,
+        IL_00c6,
+        IL_00c6,
+        IL_00c6,
+        IL_00c6,
+        IL_00c6,
+        IL_00ce,
+        IL_00ce,
+        IL_00ce,
+        IL_00ce,
+        IL_00c8,
+        IL_00c8,
+        IL_00c8,
+        IL_00c8,
+        IL_00c8,
+        IL_00c8,
+        IL_00ce,
+        IL_00ce,
+        IL_00ce,
+        IL_00ce,
+        IL_00ca,
+        IL_00ca,
+        IL_00ca,
+        IL_00ca,
+        IL_00ca,
+        IL_00ca,
+        IL_00ce,
+        IL_00ce,
+        IL_00ce,
+        IL_00ce,
+        IL_00cc,
+        IL_00cc,
+        IL_00cc,
+        IL_00cc,
+        IL_00cc,
+        IL_00cc)
+  IL_00c2:  br.s       IL_00ce
+  IL_00c4:  ldc.i4.1
+  IL_00c5:  ret
+  IL_00c6:  ldc.i4.2
+  IL_00c7:  ret
+  IL_00c8:  ldc.i4.3
+  IL_00c9:  ret
+  IL_00ca:  ldc.i4.4
+  IL_00cb:  ret
+  IL_00cc:  ldc.i4.5
+  IL_00cd:  ret
+  IL_00ce:  ldc.i4.0
+  IL_00cf:  ret
+}
+");
         }
 
         [Fact]
@@ -7654,19 +8016,19 @@ public class Program
   // Code size       28 (0x1c)
   .maxstack  1
   .locals init (object V_0, //o
-                System.StringSplitOptions V_1,
-                object V_2,
+                object V_1,
+                System.StringSplitOptions V_2,
                 System.StringSplitOptions V_3)
   IL_0000:  nop
   IL_0001:  ldc.i4.1
   IL_0002:  stloc.3
   IL_0003:  ldc.i4.1
-  IL_0004:  stloc.1
-  IL_0005:  ldloc.1
+  IL_0004:  stloc.2
+  IL_0005:  ldloc.2
   IL_0006:  box        ""System.StringSplitOptions""
-  IL_000b:  stloc.2
+  IL_000b:  stloc.1
   IL_000c:  br.s       IL_000e
-  IL_000e:  ldloc.2
+  IL_000e:  ldloc.1
   IL_000f:  stloc.0
   IL_0010:  br.s       IL_0012
   IL_0012:  ldloc.0
@@ -7806,19 +8168,19 @@ public class Program
   // Code size       28 (0x1c)
   .maxstack  1
   .locals init (System.IComparable V_0, //i
-                int V_1,
-                System.IComparable V_2,
+                System.IComparable V_1,
+                int V_2,
                 int V_3)
   IL_0000:  nop
   IL_0001:  ldarg.0
   IL_0002:  stloc.3
   IL_0003:  ldloc.3
-  IL_0004:  stloc.1
-  IL_0005:  ldloc.1
+  IL_0004:  stloc.2
+  IL_0005:  ldloc.2
   IL_0006:  box        ""int""
-  IL_000b:  stloc.2
+  IL_000b:  stloc.1
   IL_000c:  br.s       IL_000e
-  IL_000e:  ldloc.2
+  IL_000e:  ldloc.1
   IL_000f:  stloc.0
   IL_0010:  br.s       IL_0012
   IL_0012:  ldloc.0

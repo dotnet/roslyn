@@ -2908,32 +2908,39 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundSwitchDispatch : BoundStatement
     {
-        public BoundSwitchDispatch(SyntaxNode syntax, BoundExpression value, ImmutableArray<(ConstantValue value, LabelSymbol target)> cases, bool hasErrors = false)
-            : base(BoundKind.SwitchDispatch, syntax, hasErrors || value.HasErrors())
+        public BoundSwitchDispatch(SyntaxNode syntax, BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel, MethodSymbol equalityMethod, bool hasErrors = false)
+            : base(BoundKind.SwitchDispatch, syntax, hasErrors || expression.HasErrors())
         {
 
-            Debug.Assert(value != null, "Field 'value' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(expression != null, "Field 'expression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
             Debug.Assert(!cases.IsDefault, "Field 'cases' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+            Debug.Assert(defaultLabel != null, "Field 'defaultLabel' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
 
-            this.Value = value;
+            this.Expression = expression;
             this.Cases = cases;
+            this.DefaultLabel = defaultLabel;
+            this.EqualityMethod = equalityMethod;
         }
 
 
-        public BoundExpression Value { get; }
+        public BoundExpression Expression { get; }
 
-        public ImmutableArray<(ConstantValue value, LabelSymbol target)> Cases { get; }
+        public ImmutableArray<(ConstantValue value, LabelSymbol label)> Cases { get; }
+
+        public LabelSymbol DefaultLabel { get; }
+
+        public MethodSymbol EqualityMethod { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitSwitchDispatch(this);
         }
 
-        public BoundSwitchDispatch Update(BoundExpression value, ImmutableArray<(ConstantValue value, LabelSymbol target)> cases)
+        public BoundSwitchDispatch Update(BoundExpression expression, ImmutableArray<(ConstantValue value, LabelSymbol label)> cases, LabelSymbol defaultLabel, MethodSymbol equalityMethod)
         {
-            if (value != this.Value || cases != this.Cases)
+            if (expression != this.Expression || cases != this.Cases || defaultLabel != this.DefaultLabel || equalityMethod != this.EqualityMethod)
             {
-                var result = new BoundSwitchDispatch(this.Syntax, value, cases, this.HasErrors);
+                var result = new BoundSwitchDispatch(this.Syntax, expression, cases, defaultLabel, equalityMethod, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -8889,7 +8896,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
         {
-            this.Visit(node.Value);
+            this.Visit(node.Expression);
             return null;
         }
         public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
@@ -9810,8 +9817,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
         {
-            BoundExpression value = (BoundExpression)this.Visit(node.Value);
-            return node.Update(value, node.Cases);
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            return node.Update(expression, node.Cases, node.DefaultLabel, node.EqualityMethod);
         }
         public override BoundNode VisitSwitchExpression(BoundSwitchExpression node)
         {
@@ -11103,8 +11110,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new TreeDumperNode("switchDispatch", null, new TreeDumperNode[]
             {
-                new TreeDumperNode("value", null, new TreeDumperNode[] { Visit(node.Value, null) }),
-                new TreeDumperNode("cases", node.Cases, null)
+                new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
+                new TreeDumperNode("cases", node.Cases, null),
+                new TreeDumperNode("defaultLabel", node.DefaultLabel, null),
+                new TreeDumperNode("equalityMethod", node.EqualityMethod, null)
             }
             );
         }

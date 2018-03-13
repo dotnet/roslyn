@@ -584,6 +584,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return UpdateStatement(builder, node.Update(condition, node.JumpIfTrue, node.Label), substituteTemps: true);
         }
 
+        public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
+        {
+            EnterStatement(node);
+
+            BoundSpillSequenceBuilder builder = null;
+            var expression = VisitExpression(ref builder, node.Expression);
+            return UpdateStatement(builder, node.Update(expression, node.Cases, node.DefaultLabel, node.EqualityMethod), substituteTemps: true);
+        }
+
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
             EnterStatement(node);
