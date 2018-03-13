@@ -46,7 +46,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             : this((IOption)option, language, description, enumValues, previews, info,
                    options, groupName, preferences)
         {
-
         }
 
         public EnumCodeStyleOptionViewModel(
