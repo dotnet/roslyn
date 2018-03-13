@@ -9,7 +9,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 {
     [Export(typeof(IAsyncCompletionItemSourceProvider))]
     [Name("C# Item Source Provider")]
-    [ContentType(ContentTypeNames.VisualBasicContentType)]
     [ContentType(ContentTypeNames.CSharpContentType)]
     internal class CSharpCompletionItemSourceProvider : IAsyncCompletionItemSourceProvider
     {
