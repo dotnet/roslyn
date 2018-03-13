@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     // Message IDs may refer to strings that need to be localized.
     // This struct makes an IFormattable wrapper around a MessageID
-    internal struct LocalizableErrorArgument : IFormattable, IMessageSerializable
+    internal struct LocalizableErrorArgument : IFormattable
     {
         private readonly MessageID _id;
 

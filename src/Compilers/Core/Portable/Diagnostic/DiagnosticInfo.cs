@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis
     /// provide access to additional information about the error, such as what symbols were involved in the ambiguity.
     /// </remarks>
     [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
-    internal class DiagnosticInfo : IFormattable, IObjectWritable, IMessageSerializable
+    internal class DiagnosticInfo : IFormattable, IObjectWritable
     {
         private readonly CommonMessageProvider _messageProvider;
         private readonly int _errorCode;
@@ -96,11 +96,6 @@ namespace Microsoft.CodeAnalysis
             foreach (var arg in args)
             {
                 Debug.Assert(arg != null);
-
-                if (arg is IMessageSerializable)
-                {
-                    continue;
-                }
 
                 if (arg is IFormattable)
                 {
