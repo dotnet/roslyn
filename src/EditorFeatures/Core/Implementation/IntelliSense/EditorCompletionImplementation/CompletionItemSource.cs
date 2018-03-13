@@ -23,8 +23,20 @@ using RoslynTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.EditorImplementation
 {
-    internal class CompletionItemSource : IAsyncCompletionItemSource
+    internal class CSharpCompletionItemSource : AbstractCompletionItemSource
     {
+        internal override bool PassEnterThroughToBuffer() => false;
+    }
+
+    internal class VisualBasicCompletionItemSource : AbstractCompletionItemSource
+    {
+        internal override bool PassEnterThroughToBuffer() => true;
+    }
+
+    internal abstract class AbstractCompletionItemSource : IAsyncCompletionItemSource
+    {
+        internal abstract bool PassEnterThroughToBuffer();
+
         private ImmutableArray<char> CommitChars => ImmutableArray.Create(
             ' ', '{', '}', '[', ']', '(', ')', '.', ',', ':',
             ';', '+', '-', '*', '/', '%', '&', '|', '^', '!',

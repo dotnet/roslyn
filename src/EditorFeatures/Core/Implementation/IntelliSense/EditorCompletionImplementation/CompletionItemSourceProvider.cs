@@ -8,17 +8,32 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.EditorImplementation
 {
     [Export(typeof(IAsyncCompletionItemSourceProvider))]
-    [Name("C# and Visual Basic Item Source Provider")]
+    [Name("C# Item Source Provider")]
     [ContentType(ContentTypeNames.VisualBasicContentType)]
     [ContentType(ContentTypeNames.CSharpContentType)]
-    internal class CompletionItemSourceProvider : IAsyncCompletionItemSourceProvider
+    internal class CSharpCompletionItemSourceProvider : IAsyncCompletionItemSourceProvider
     {
-        CompletionItemSource _instance;
+        CSharpCompletionItemSource _instance;
 
         IAsyncCompletionItemSource IAsyncCompletionItemSourceProvider.GetOrCreate(ITextView textView)
         {
             if (_instance == null)
-                _instance = new CompletionItemSource();
+                _instance = new CSharpCompletionItemSource();
+            return _instance;
+        }
+    }
+
+    [Export(typeof(IAsyncCompletionItemSourceProvider))]
+    [Name("Visual Basic Item Source Provider")]
+    [ContentType(ContentTypeNames.VisualBasicContentType)]
+    internal class VisualBasicCompletionItemSourceProvider : IAsyncCompletionItemSourceProvider
+    {
+        VisualBasicCompletionItemSource _instance;
+
+        IAsyncCompletionItemSource IAsyncCompletionItemSourceProvider.GetOrCreate(ITextView textView)
+        {
+            if (_instance == null)
+                _instance = new VisualBasicCompletionItemSource();
             return _instance;
         }
     }
