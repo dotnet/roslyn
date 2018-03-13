@@ -251,7 +251,7 @@ int y = 1;
         }
 
         [WorkItem(729235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/729235")]
-        [Fact]
+        [ConditionalFact(typeof(WindowsOnly))]
         public void NormalizedPath_Tree()
         {
             var source = @"
