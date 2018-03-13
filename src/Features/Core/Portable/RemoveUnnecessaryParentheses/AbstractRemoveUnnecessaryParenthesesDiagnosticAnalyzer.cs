@@ -81,11 +81,5 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
                 CreateUnnecessaryDescriptor(DiagnosticSeverity.Hidden),
                 parenthesizedExpression.GetLastToken().GetLocation(), additionalLocations));
         }
-
-        protected static bool TypeIsBoolean(SyntaxNode node, SemanticModel semanticModel)
-        {
-            var type = semanticModel.GetTypeInfo(node).Type;
-            return type?.SpecialType == SpecialType.System_Boolean;
-        }
     }
 }
