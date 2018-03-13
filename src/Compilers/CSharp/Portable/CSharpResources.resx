@@ -4272,6 +4272,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRefConditional" xml:space="preserve">
     <value>ref conditional expression</value>
   </data>
+  <data name="IDS_FeatureRefReassignment" xml:space="preserve">
+    <value>ref reassignment</value>
+  </data>
+  <data name="IDS_FeatureRefFor" xml:space="preserve">
+    <value>ref for-loop variables</value>
+  </data>
+  <data name="IDS_FeatureRefForEach" xml:space="preserve">
+    <value>ref foreach iteration variables</value>
+  </data>
   <data name="CompilationC" xml:space="preserve">
     <value>Compilation (C#): </value>
   </data>
@@ -5257,6 +5266,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InDynamicMethodArg" xml:space="preserve">
     <value>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</value>
+  </data>
+  <data name="ERR_RefLocalOrParamExpected" xml:space="preserve">
+    <value>The left-hand side of a ref assignment must be a ref local or parameter.</value>
+  </data>
+  <data name="ERR_RefAssignNarrower" xml:space="preserve">
+    <value>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</value>
   </data>
   <data name="IDS_FeatureEnumGenericTypeConstraint" xml:space="preserve">
     <value>enum generic type constraints</value>

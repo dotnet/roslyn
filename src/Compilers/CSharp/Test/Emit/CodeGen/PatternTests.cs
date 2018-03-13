@@ -235,7 +235,7 @@ class IdentityAccessor<T>
         return Guid.Empty;
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll, references: new[] { LinqAssemblyRef });
+            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
             var compVerifier = CompileAndVerify(compilation);
             compVerifier.VerifyIL("X<T>.Y<U>",

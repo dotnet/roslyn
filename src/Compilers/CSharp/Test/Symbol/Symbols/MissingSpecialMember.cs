@@ -841,7 +841,7 @@ namespace System
                 SystemRef_v4_0_30319_17929,
                 SystemCoreRef_v4_0_30319_17929,
                 MsvbRef_v4_0_30319_17929,
-                DesktopCSharpRef,
+                CSharpDesktopRef,
                 SystemXmlRef,
                 SystemXmlLinqRef,
                 SystemWindowsFormsRef,
