@@ -216,7 +216,7 @@ function Make-BootstrapBuild() {
         Exec-Console "dotnet" "build --no-restore src/Interactive/csi/csi.csproj -v:m -m -bl:$logsDir/BootstrapCsi.binlog"
 
         Ensure-NuGet | Out-Null
-        Exec-Console "$binariesDir\Debug\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 1.0.0-bootstrap $dir `"<developer build>`" Microsoft.NETCore.Compilers.nuspec"
+        Exec-Console "$configDir\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 1.0.0-bootstrap $dir `"<developer build>`" Microsoft.NETCore.Compilers.nuspec"
         Move-Item "$dir\Microsoft.NETCore.Compilers.1.0.0-bootstrap.nupkg" $bootstrapPackageFilePath
 
         foreach ($projectFilePath in $projectFiles) { 
@@ -230,7 +230,7 @@ function Make-BootstrapBuild() {
         Create-Directory $dir
 
         Ensure-NuGet | Out-Null
-        Exec-Console "$binariesDir\Debug\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 1.0.0-bootstrap $dir `"<developer build>`" Microsoft.Net.Compilers.nuspec"
+        Exec-Console "$configDir\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 1.0.0-bootstrap $dir `"<developer build>`" Microsoft.Net.Compilers.nuspec"
         Move-Item "$dir\Microsoft.Net.Compilers.1.0.0-bootstrap.nupkg" $bootstrapPackageFilePath
 
         Write-Host "Cleaning Bootstrap compiler artifacts"
