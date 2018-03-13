@@ -370,9 +370,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                                 Return True
                             End If
 
-                            ' If both the expression And its parent are binary expressions And their kinds
-                            ' are the same, And the parenthesized expression Is on hte right And the 
-                            ' operation Is associative, it can sometimes be safe to remove these parens.
+                            ' If both the expression and its parent are binary expressions and their kinds
+                            ' are the same, and the parenthesized expression is on the right and the 
+                            ' operation is associative, it can sometimes be safe to remove these parens.
                             '
                             ' i.e. if you have "a AndAlso (b AndAlso c)" it can be converted to "a AndAlso b AndAlso c" 
                             ' as that New interpretation "(a AndAlso b) AndAlso c" operates the exact same way at 
