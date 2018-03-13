@@ -44,10 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         }
 
         public static ExpressionSyntax Parenthesize(
-            this ExpressionSyntax expression, bool includeElasticTrivia = true, bool addSimplfierAnnotation = true)
+            this ExpressionSyntax expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
         {
             var result = ParenthesizeWorker(expression, includeElasticTrivia);
-            return addSimplfierAnnotation
+            return addSimplifierAnnotation
                 ? result.WithAdditionalAnnotations(Simplifier.Annotation)
                 : result;
         }
