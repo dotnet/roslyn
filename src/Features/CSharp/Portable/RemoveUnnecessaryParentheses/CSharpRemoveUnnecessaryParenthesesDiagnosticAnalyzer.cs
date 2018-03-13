@@ -34,8 +34,8 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
                     case ConditionalExpressionSyntax _:
                         break;
 
-                    case BinaryExpressionSyntax binaryExpression:
-                    case IsPatternExpressionSyntax isPattern:
+                    case BinaryExpressionSyntax _:
+                    case IsPatternExpressionSyntax _:
                         var parentExpression = (ExpressionSyntax)parenthesizedExpression.Parent;
                         precedenceKind = GetPrecedenceKind(parentExpression, semanticModel);
 
