@@ -8961,7 +8961,7 @@ class Program
             c.VerifyPdb(
 @"<symbols>
   <files>
-    <file id=""1"" name="""" language=""C#"" />
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
   </files>
   <methods>
     <method containingType=""Program"" name="".ctor"">
@@ -9045,7 +9045,7 @@ class Program
             c.VerifyPdb(
 @"<symbols>
   <files>
-    <file id=""1"" name="""" language=""C#"" />
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
   </files>
   <methods>
     <method containingType=""Program"" name="".ctor"" parameterNames=""i"">
@@ -9150,7 +9150,7 @@ public class Program
             c.VerifyPdb(
 @"<symbols>
   <files>
-    <file id=""1"" name="""" language=""C#"" />
+    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
   </files>
   <methods>
     <method containingType=""Program"" name=""M"" parameterNames=""x, y"">
