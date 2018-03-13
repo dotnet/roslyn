@@ -1329,6 +1329,9 @@
   <data name="ERR_RefValBoundWithClass" xml:space="preserve">
     <value>'{0}': cannot specify both a constraint class and the 'class' or 'struct' constraint</value>
   </data>
+  <data name="ERR_UnmanagedBoundWithClass" xml:space="preserve">
+    <value>'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</value>
+  </data>
   <data name="ERR_NewBoundWithVal" xml:space="preserve">
     <value>The 'new()' constraint cannot be used with the 'struct' constraint</value>
   </data>
@@ -5267,8 +5270,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_NewBoundWithUnmanaged" xml:space="preserve">
     <value>The 'new()' constraint cannot be used with the 'unmanaged' constraint</value>
   </data>
-  <data name="ERR_UnmanagedConstraintMustBeAlone" xml:space="preserve">
-    <value>The 'unmanaged' constraint cannot be specified with other constraints.</value>
+  <data name="ERR_UnmanagedConstraintMustBeFirst" xml:space="preserve">
+    <value>The 'unmanaged' constraint must come before any other constraints</value>
   </data>
   <data name="ERR_UnmanagedConstraintNotSatisfied" xml:space="preserve">
     <value>The type '{2}' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</value>

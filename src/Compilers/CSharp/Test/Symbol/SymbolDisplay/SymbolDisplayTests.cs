@@ -6488,11 +6488,11 @@ End Structure";
             TestSymbolDescription(@"
 class X
 {
-    void M<T>() where T : unmanaged { }
+    void M<T>() where T : unmanaged, System.IDisposable { }
 }",
                 global => global.GetTypeMember("X").GetMethod("M"),
                 SymbolDisplayFormat.TestFormat.AddGenericsOptions(SymbolDisplayGenericsOptions.IncludeTypeConstraints),
-                "void X.M<T>() where T : unmanaged",
+                "void X.M<T>() where T : unmanaged, System.IDisposable",
                 SymbolDisplayPartKind.Keyword,
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.ClassName,
@@ -6510,7 +6510,12 @@ class X
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.Punctuation,
                 SymbolDisplayPartKind.Space,
-                SymbolDisplayPartKind.Keyword);
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.InterfaceName);
         }
 
         [Fact]

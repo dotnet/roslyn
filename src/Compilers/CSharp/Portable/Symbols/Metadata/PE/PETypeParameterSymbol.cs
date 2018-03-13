@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         /// </summary>
         private DiagnosticInfo _lazyConstraintsUseSiteErrorInfo = CSDiagnosticInfo.EmptyErrorInfo; // Indicates unknown state.
 
-        private GenericParameterAttributes _lazyFlags;
-        private ThreeState _lazyHasIsUnmanagedAttribute;
+        private readonly GenericParameterAttributes _flags;
+        private ThreeState _lazyHasIsUnmanagedConstraint;
         private TypeParameterBounds _lazyBounds = TypeParameterBounds.Unset;
         private ImmutableArray<TypeSymbol> _lazyDeclaredConstraintTypes;
         private ImmutableArray<CSharpAttributeData> _lazyCustomAttributes;
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             // Clear the '.ctor' flag if both '.ctor' and 'valuetype' are
             // set since '.ctor' is redundant in that case.
-            _lazyFlags = ((flags & GenericParameterAttributes.NotNullableValueTypeConstraint) == 0) ? flags : (flags & ~GenericParameterAttributes.DefaultConstructorConstraint);
+            _flags = ((flags & GenericParameterAttributes.NotNullableValueTypeConstraint) == 0) ? flags : (flags & ~GenericParameterAttributes.DefaultConstructorConstraint);
 
             _ordinal = ordinal;
             _handle = handle;
@@ -170,12 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
                 }
 
-                this.GetAttributes();
-                if (_lazyHasIsUnmanagedAttribute.Value() && (_lazyFlags & (GenericParameterAttributes.ReferenceTypeConstraint | GenericParameterAttributes.DefaultConstructorConstraint)) != 0)
-                {
-                    _lazyFlags = _lazyFlags & ~(GenericParameterAttributes.ReferenceTypeConstraint | GenericParameterAttributes.DefaultConstructorConstraint);
-                    _lazyConstraintsUseSiteErrorInfo = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
-                }
+                bool hasUnmanagedModreqPattern = false;
 
                 if (constraints.Count > 0)
                 {
@@ -196,22 +191,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         var constraint = metadataReader.GetGenericParameterConstraint(constraintHandle);
                         var typeSymbol = tokenDecoder.DecodeGenericParameterConstraint(constraint.Type, out bool hasUnmanagedModreq);
 
-                        if (hasUnmanagedModreq != this._lazyHasIsUnmanagedAttribute.Value())
+                        if (typeSymbol.SpecialType == SpecialType.System_ValueType)
                         {
-                            // The presence of UnmanagedType modreq has to match the presence of the IsUnmanagedAttribute
-                            Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
-                            continue;
+                            // recognize "(class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType" pattern as "unmanaged"
+                            if (hasUnmanagedModreq)
+                            {
+                                hasUnmanagedModreqPattern = true;
+                            }
+
+                            // Drop 'System.ValueType' constraint type if the 'valuetype' constraint was also specified.
+                            if (((_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0))
+                            {
+                                continue;
+                            }
                         }
 
                         // Drop 'System.Object' constraint type.
                         if (typeSymbol.SpecialType == SpecialType.System_Object)
-                        {
-                            continue;
-                        }
-
-                        // Drop 'System.ValueType' constraint type if the 'valuetype' constraint was also specified.
-                        if (((_lazyFlags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0) &&
-                            (typeSymbol.SpecialType == SpecialType.System_ValueType))
                         {
                             continue;
                         }
@@ -228,6 +224,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     declaredConstraintTypes = ImmutableArray<TypeSymbol>.Empty;
                 }
 
+                // - presence of unmanaged pattern has to be matched with `valuetype`
+                // - IsUnmanagedAttribute is allowed iif there is an unmanaged pattern
+                if (hasUnmanagedModreqPattern && (_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) == 0 ||
+                    hasUnmanagedModreqPattern != moduleSymbol.Module.HasIsUnmanagedAttribute(_handle))
+                {
+                    // we do not recognize these combinations as "unmanaged"
+                    hasUnmanagedModreqPattern = false;
+                    Interlocked.CompareExchange(ref _lazyConstraintsUseSiteErrorInfo, new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this), CSDiagnosticInfo.EmptyErrorInfo);
+                }
+
+                _lazyHasIsUnmanagedConstraint = hasUnmanagedModreqPattern.ToThreeState();
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyDeclaredConstraintTypes, declaredConstraintTypes);
             }
 
@@ -254,8 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                GetDeclaredConstraintTypes();
-                return (_lazyFlags & GenericParameterAttributes.DefaultConstructorConstraint) != 0;
+                return (_flags & GenericParameterAttributes.DefaultConstructorConstraint) != 0;
             }
         }
 
@@ -263,8 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                GetDeclaredConstraintTypes();
-                return (_lazyFlags & GenericParameterAttributes.ReferenceTypeConstraint) != 0;
+                return (_flags & GenericParameterAttributes.ReferenceTypeConstraint) != 0;
             }
         }
 
@@ -272,8 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                GetDeclaredConstraintTypes();
-                return (_lazyFlags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0 || HasUnmanagedTypeConstraint;
+                return (_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0;
             }
         }
 
@@ -282,7 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 GetDeclaredConstraintTypes();
-                return this._lazyHasIsUnmanagedAttribute.Value();
+                return this._lazyHasIsUnmanagedConstraint.Value();
             }
         }
 
@@ -290,8 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                GetDeclaredConstraintTypes();
-                return (VarianceKind)(_lazyFlags & GenericParameterAttributes.VarianceMask);
+                return (VarianceKind)(_flags & GenericParameterAttributes.VarianceMask);
             }
         }
 
@@ -334,18 +337,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (_lazyCustomAttributes.IsDefault)
             {
-                var loadedCustomAttributes = ((PEModuleSymbol)this.ContainingModule).GetCustomAttributesForToken(
-                    this.Handle,
-                    out CustomAttributeHandle isUnmanagedAttribute,
-                    AttributeDescription.IsUnmanagedAttribute,
-                    out _, 
-                    default,
-                    out _, 
-                    default, 
-                    out _, 
-                    default);
+                var containingPEModuleSymbol = (PEModuleSymbol)this.ContainingModule;
 
-                this._lazyHasIsUnmanagedAttribute = (!isUnmanagedAttribute.IsNil).ToThreeState();
+                var loadedCustomAttributes = containingPEModuleSymbol.GetCustomAttributesForToken(
+                    Handle,
+                    out _,
+                    // Filter out [IsUnmanagedAttribute]
+                    HasUnmanagedTypeConstraint ? AttributeDescription.IsUnmanagedAttribute : default);
 
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyCustomAttributes, loadedCustomAttributes);
             }

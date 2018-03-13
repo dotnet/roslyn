@@ -1560,10 +1560,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DoNotUseFixedBufferAttrOnProperty = 8372,
 
         ERR_NewBoundWithUnmanaged = 8373,
-        ERR_UnmanagedConstraintMustBeAlone = 8374,
+        ERR_UnmanagedConstraintMustBeFirst = 8374,
         ERR_UnmanagedConstraintNotSatisfied = 8375,
         ERR_UnmanagedConstraintWithLocalFunctions = 8376,
         ERR_ConWithUnmanagedCon = 8377,
+
+        ERR_UnmanagedBoundWithClass = 8378,
 
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }

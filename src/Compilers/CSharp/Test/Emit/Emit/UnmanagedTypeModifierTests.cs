@@ -66,9 +66,15 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (9,13): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M2<T>()'. There is no boxing conversion from 'int' to '?'.
+                //         obj.M2<int>();      // invalid
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "M2<int>").WithArguments("TestRef.M2<T>()", "?", "T", "int").WithLocation(9, 13),
                 // (9,13): error CS0570: 'T' is not supported by the language
                 //         obj.M2<int>();      // invalid
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M2<int>").WithArguments("T").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M2<int>").WithArguments("T").WithLocation(9, 13),
+                // (9,13): error CS0648: '' is a type not supported by the language
+                //         obj.M2<int>();      // invalid
+                Diagnostic(ErrorCode.ERR_BogusType, "M2<int>").WithArguments("").WithLocation(9, 13)
                 );
         }
 
@@ -129,9 +135,15 @@ public class Test
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
+                // (9,13): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M2<T>()'. There is no boxing conversion from 'int' to '?'.
+                //         obj.M2<int>();      // invalid
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "M2<int>").WithArguments("TestRef.M2<T>()", "?", "T", "int").WithLocation(9, 13),
                 // (9,13): error CS0570: 'T' is not supported by the language
                 //         obj.M2<int>();      // invalid
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M2<int>").WithArguments("T").WithLocation(9, 13)
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M2<int>").WithArguments("T").WithLocation(9, 13),
+                // (9,13): error CS0648: '' is a type not supported by the language
+                //         obj.M2<int>();      // invalid
+                Diagnostic(ErrorCode.ERR_BogusType, "M2<int>").WithArguments("").WithLocation(9, 13)
                 );
         }
 
@@ -848,6 +860,7 @@ public class TestRef
                 var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("D`1").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
+                Assert.False(typeParameter.HasConstructorConstraint);   // .ctor  is an artifact of emit, we will ignore it on importing.
 
                 AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
             });
@@ -874,6 +887,7 @@ public class Program
                     var typeParameter = module.ContainingAssembly.GetTypeByMetadataName("Program").GetTypeMember("<>c__DisplayClass0_0").TypeParameters.Single();
                     Assert.True(typeParameter.HasValueTypeConstraint);
                     Assert.True(typeParameter.HasUnmanagedTypeConstraint);
+                    Assert.False(typeParameter.HasConstructorConstraint);  // .ctor  is an artifact of emit, we will ignore it on importing.
 
                     AttributeTests_IsUnmanaged.AssertReferencedIsUnmanagedAttribute(Accessibility.Internal, typeParameter, module.ContainingAssembly.Name);
                 });
@@ -941,13 +955,20 @@ public class Test
     public static void Main()
     {
         new TestRef().M<int>();
+        new TestRef().M<string>();
     }
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (6,23): error CS0570: 'T' is not supported by the language
+                // (6,23): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T' in the generic type or method 'TestRef.M<T>()'
                 //         new TestRef().M<int>();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M<int>").WithArguments("T").WithLocation(6, 23)
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "M<int>").WithArguments("TestRef.M<T>()", "T", "int").WithLocation(6, 23),
+                // (7,23): error CS0311: The type 'string' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M<T>()'. There is no implicit reference conversion from 'string' to 'System.ValueType'.
+                //         new TestRef().M<string>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M<string>").WithArguments("TestRef.M<T>()", "System.ValueType", "T", "string").WithLocation(7, 23),
+                // (7,23): error CS0570: 'T' is not supported by the language
+                //         new TestRef().M<string>();
+                Diagnostic(ErrorCode.ERR_BindToBogus, "M<string>").WithArguments("T").WithLocation(7, 23)
                 );
         }
 
@@ -1008,7 +1029,7 @@ public class Test
        extends [mscorlib]System.Object
 {
   .method public hidebysig instance void
-          M<valuetype .ctor(class [mscorlib]System.IComparable, class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T>() cil managed
+          M<valuetype .ctor (class [mscorlib]System.IComparable, class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T>() cil managed
   {
     .param type T
     .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = ( 01 00 00 00 )
@@ -1038,15 +1059,84 @@ public class Test
 {
     public static void Main()
     {
+        // OK
         new TestRef().M<int>();
+
+        // Not IComparable
+        new TestRef().M<S1>();
     }
+
+    struct S1{}
 }";
 
             CreateCompilation(code, references: new[] { reference }).VerifyDiagnostics(
-                // (6,23): error CS0570: 'T' is not supported by the language
-                //         new TestRef().M<int>();
-                Diagnostic(ErrorCode.ERR_BindToBogus, "M<int>").WithArguments("T").WithLocation(6, 23)
+                // (10,23): error CS0315: The type 'Test.S1' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M<T>()'. There is no boxing conversion from 'Test.S1' to 'System.IComparable'.
+                //         new TestRef().M<S1>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "M<S1>").WithArguments("TestRef.M<T>()", "System.IComparable", "T", "Test.S1").WithLocation(10, 23)
                 );
+        }
+
+        [Fact]
+        public void UnmanagedConstraintWithNoCtorConstraint_IL()
+        {
+            var ilSource = IsUnmanagedAttributeIL + @"
+.class public auto ansi beforefieldinit TestRef
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance void
+          M<valuetype (class [mscorlib]System.IComparable, class [mscorlib]System.ValueType modreq([mscorlib]System.Runtime.InteropServices.UnmanagedType)) T>() cil managed
+  {
+    .param type T
+    .custom instance void System.Runtime.CompilerServices.IsUnmanagedAttribute::.ctor() = ( 01 00 00 00 )
+    // Code size       2 (0x2)
+    .maxstack  8
+    IL_0000:  nop
+    IL_0001:  ret
+  } // end of method TestRef::M
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       8 (0x8)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  nop
+    IL_0007:  ret
+  } // end of method TestRef::.ctor
+
+}";
+
+            var reference = CompileIL(ilSource, prependDefaultHeader: false);
+
+            var code = @"
+public class Test
+{
+    public static void Main()
+    {
+        // OK
+        new TestRef().M<int>();
+
+        // Not IComparable
+        new TestRef().M<S1>();
+    }
+
+    struct S1{}
+}";
+
+            var c = CreateCompilation(code, references: new[] { reference });
+            
+            c.VerifyDiagnostics(
+                // (10,23): error CS0315: The type 'Test.S1' cannot be used as type parameter 'T' in the generic type or method 'TestRef.M<T>()'. There is no boxing conversion from 'Test.S1' to 'System.IComparable'.
+                //         new TestRef().M<S1>();
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "M<S1>").WithArguments("TestRef.M<T>()", "System.IComparable", "T", "Test.S1").WithLocation(10, 23)
+                );
+
+            var typeParameter = c.GlobalNamespace.GetTypeMember("TestRef").GetMethod("M").TypeParameters.Single();
+            Assert.True(typeParameter.HasUnmanagedTypeConstraint);
+            Assert.True(typeParameter.HasValueTypeConstraint);
+            Assert.False(typeParameter.HasReferenceTypeConstraint);
+            Assert.False(typeParameter.HasConstructorConstraint);
         }
 
         private const string IsUnmanagedAttributeIL = @"

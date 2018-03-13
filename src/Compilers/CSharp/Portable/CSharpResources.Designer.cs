@@ -9755,11 +9755,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The &apos;unmanaged&apos; constraint cannot be specified with other constraints..
+        ///   Looks up a localized string similar to &apos;{0}&apos;: cannot specify both a constraint class and the &apos;unmanaged&apos; constraint.
         /// </summary>
-        internal static string ERR_UnmanagedConstraintMustBeAlone {
+        internal static string ERR_UnmanagedBoundWithClass {
             get {
-                return ResourceManager.GetString("ERR_UnmanagedConstraintMustBeAlone", resourceCulture);
+                return ResourceManager.GetString("ERR_UnmanagedBoundWithClass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The &apos;unmanaged&apos; constraint must come before any other constraints.
+        /// </summary>
+        internal static string ERR_UnmanagedConstraintMustBeFirst {
+            get {
+                return ResourceManager.GetString("ERR_UnmanagedConstraintMustBeFirst", resourceCulture);
             }
         }
         
