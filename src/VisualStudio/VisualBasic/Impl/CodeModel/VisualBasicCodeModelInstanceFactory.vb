@@ -1,28 +1,22 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports EnvDTE
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
-Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
 Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
 
-    Friend Class VisualBasicProjectCodeModel
-        Inherits AbstractProjectCodeModel
+    Friend NotInheritable Class VisualBasicCodeModelInstanceFactory
+        Implements ICodeModelInstanceFactory
 
-        Private ReadOnly _project As VisualBasicProjectShimWithServices
+        Private ReadOnly _project As VisualBasicProject
 
-        Public Sub New(project As VisualBasicProjectShimWithServices, visualStudioWorkspace As VisualStudioWorkspaceImpl, serviceProvider As IServiceProvider)
-            MyBase.New(project, visualStudioWorkspace, serviceProvider)
-
-            Me._project = project
+        Public Sub New(project As VisualBasicProject)
+            _project = project
         End Sub
 
-        Friend Overrides Function CanCreateFileCodeModelThroughProject(filePath As String) As Boolean
-            Return _project.GetCurrentDocumentFromPath(filePath) IsNot Nothing
-        End Function
-
-        Friend Overrides Function CreateFileCodeModelThroughProject(filePath As String) As Object
+        Public Function TryCreateFileCodeModelThroughProjectSystem(filePath As String) As EnvDTE.FileCodeModel Implements ICodeModelInstanceFactory.TryCreateFileCodeModelThroughProjectSystem
             ' In the Dev11 VB code base, FileCodeModels were created eagerly when a VB SourceFile was created.
             ' In Roslyn, we'll take the same lazy approach that the Dev11 C# language service does.
             '
