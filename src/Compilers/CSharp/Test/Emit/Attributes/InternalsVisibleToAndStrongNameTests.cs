@@ -1145,16 +1145,8 @@ public class C
             using (var metadata = ModuleMetadata.CreateFromStream(moduleContents))
             {
                 var flags = metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags;
-                if (legacyStrongName)
-                {
-                    //confirm file does not claim to be signed
-                    Assert.Equal(0, (int)(flags & CorFlags.StrongNameSigned));
-                }
-                else
-                {
-                    // It should have been signed in the stream
-                    Assert.NotEqual(0, (int)(flags & CorFlags.StrongNameSigned));
-                }
+                //confirm file does not claim to be signed
+                Assert.Equal(0, (int)(flags & CorFlags.StrongNameSigned));
 
                 EntityHandle token = metadata.Module.GetTypeRef(metadata.Module.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere");
                 Assert.False(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
@@ -1630,6 +1622,7 @@ public class C
                 var header = metadata.Module.PEReaderOpt.PEHeaders.CorHeader;
                 //confirm header has expected SN signature size
                 Assert.Equal(256, header.StrongNameSignatureDirectory.Size);
+                Assert.Equal(CorFlags.ILOnly, header.Flags);
             }
         }
 
@@ -1637,11 +1630,6 @@ public class C
         public void DelaySignWithAssemblySignatureKey()
         {
             DelaySignWithAssemblySignatureKeyHelper(s_defaultPortableProvider);
-        }
-
-        [Fact]
-        public void DelaySignWithAssemblySignatureKey_Legacy()
-        {
             DelaySignWithAssemblySignatureKeyHelper(s_defaultDesktopProvider);
         }
 
