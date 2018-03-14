@@ -61,10 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
                             memberAccess = (MemberAccessExpressionSyntax)binaryExpression.Right;
 
                             var incrementor = forStatement.Incrementors[0];
-                            if (TryGetStepValue(iterationVariable, incrementor, out stepValue, cancellationToken))
-                            {
-                                return true;
-                            }
+                            return TryGetStepValue(iterationVariable, incrementor, out stepValue, cancellationToken);
                         }
                     }
                 }
