@@ -1531,7 +1531,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void Constraints_01()
         {
             string source = @"

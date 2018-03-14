@@ -2342,7 +2342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (typeSyntax.IsVar)
             {
                 var ignored = DiagnosticBag.GetInstance();
-                BindTypeOrAlias(typeSyntax, ignored, out isVar);
+                BindTypeOrAliasOrVarKeyword(typeSyntax, ignored, out isVar);
                 ignored.Free();
 
                 if (isVar)
@@ -3131,7 +3131,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var spanType = GetWellKnownType(WellKnownType.System_Span_T, diagnostics, node);
                 if (!spanType.IsErrorType())
                 {
-                    type = spanType.Construct(elementType);
+                    type = ConstructNamedType(
+                        type: spanType,
+                        typeSyntax: node.Type,
+                        typeArgumentsSyntax: default,
+                        typeArguments: ImmutableArray.Create(elementType),
+                        basesBeingResolved: null,
+                        diagnostics: diagnostics);
                 }
             }
 
@@ -3815,7 +3821,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics: diagnostics);
 
                     // Bind member initializer assignment expression
-                    return BindAssignment(initializer, boundLeft, boundRight, diagnostics);
+                    return BindAssignment(initializer, boundLeft, boundRight, isRef: false, diagnostics);
                 }
             }
 

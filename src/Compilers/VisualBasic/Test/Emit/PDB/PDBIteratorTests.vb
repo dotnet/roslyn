@@ -106,7 +106,7 @@ End Module
             compilation.VerifyPdb("Program+_Closure$__+VB$StateMachine___Lambda$__0-0.MoveNext",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+      <file id="1" name="" language="VB" />
     </files>
     <entryPoint declaringType="Program" methodName="Main" parameterNames="args"/>
     <methods>
@@ -176,7 +176,7 @@ End Module
             compilation.VerifyPdb("Module1+VB$StateMachine_1_Goo.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
@@ -269,7 +269,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_Lambda_Hoisted.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_Lambda_Hoisted" name="MoveNext">
@@ -329,7 +329,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_Lambda_NotHoisted.MoveNext",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+      <file id="1" name="" language="VB" />
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_Lambda_NotHoisted" name="MoveNext">
@@ -378,7 +378,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_NoLambda_Hoisted.MoveNext",
 <symbols>
     <files>
-        <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_NoLambda_Hoisted" name="MoveNext">
@@ -435,7 +435,7 @@ End Class
             compilation.VerifyPdb("C+VB$StateMachine_1_Iterator_NoLambda_NotHoisted.MoveNext",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+      <file id="1" name="" language="VB" />
     </files>
     <methods>
         <method containingType="C+VB$StateMachine_1_Iterator_NoLambda_NotHoisted" name="MoveNext">
@@ -494,7 +494,7 @@ End Module
             compilation.VerifyPdb("Module1+VB$StateMachine_1_Goo.MoveNext",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+      <file id="1" name="" language="VB" />
     </files>
     <entryPoint declaringType="Module1" methodName="Main"/>
     <methods>
