@@ -142,6 +142,7 @@ then
     mkdir -p ${bootstrap_path} 
     dotnet pack src/NuGet/Bootstrap.csproj /p:NuspecBasePath=${binaries_path}/Debug -o ${bootstrap_path}
     unzip ${bootstrap_path}/Microsoft.NETCore.Compilers.1.0.0-bootstrap.nupkg -d ${bootstrap_path}/Microsoft.NETCore.Compilers
+    chmod -R 755 ${bootstrap_path}/Microsoft.NETCore.Compilers
 
     for bootstrap_file in "${bootstrap_files[@]}"
     do
