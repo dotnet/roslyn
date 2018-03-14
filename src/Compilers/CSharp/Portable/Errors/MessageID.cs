@@ -149,6 +149,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRefConditional = MessageBase + 12731,
         IDS_FeatureAttributesOnBackingFields = MessageBase + 12732,
         IDS_FeatureImprovedOverloadCandidates = MessageBase + 12733,
+        IDS_FeatureRefReassignment = MessageBase + 12734,
+        IDS_FeatureRefFor = MessageBase + 12735,
+        IDS_FeatureRefForEach = MessageBase + 12736
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -191,6 +194,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // C# 7.3 features.
                 case MessageID.IDS_FeatureAttributesOnBackingFields: // semantic check
                 case MessageID.IDS_FeatureImprovedOverloadCandidates: // semantic check
+                case MessageID.IDS_FeatureRefReassignment:
+                case MessageID.IDS_FeatureRefFor:
+                case MessageID.IDS_FeatureRefForEach:
                     return LanguageVersion.CSharp7_3;
 
                 // C# 7.2 features.

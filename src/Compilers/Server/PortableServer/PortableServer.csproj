@@ -4,8 +4,7 @@
   <PropertyGroup>
     <Platform Condition="'$(Platform)' == ''">x64</Platform>
     <PlatformTarget>AnyCPU</PlatformTarget>
-    <Platforms>AnyCPU;x64</Platforms>
-    <RuntimeIdentifier>x64</RuntimeIdentifier>
+    <Platforms>AnyCPU</Platforms>
     <OutputType>Exe</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.CompilerServer</RootNamespace>
     <AssemblyName>VBCSCompilerPortable</AssemblyName>
