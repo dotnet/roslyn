@@ -757,19 +757,19 @@ class C
         if (c ? b1 && F(x1 = v1) && F(z1 = v1) : b2 && F(y1 = v1) && F(w1 = v1))
         {
             x1.ToString(); // unassigned (if)
-            y1.ToString();  // unassigned (if)
+            y1.ToString(); // unassigned (if)
             z1.ToString(); // may be null (if)
             w1.ToString(); // may be null (if)
         }
         else
         {
             x1.ToString(); // unassigned (no error) (else)
-            y1.ToString();  // unassigned (no error) (else)
+            y1.ToString(); // unassigned (no error) (else)
             z1.ToString(); // may be null (else)
             w1.ToString(); // may be null (else)
         }
     }
-    static void F2A(bool b1, bool b2, object v2)
+    static void F2(bool b1, bool b2, object v2)
     {
         object x2;
         object y2;
@@ -778,19 +778,19 @@ class C
         if (true ? b1 && F(x2 = v2) && F(z2 = v2) : b2 && F(y2 = v2) && F(w2 = v2))
         {
             x2.ToString(); // ok (if)
-            y2.ToString();  // unassigned (if)
+            y2.ToString(); // unassigned (if)
             z2.ToString(); // ok (if)
             w2.ToString(); // may be null (if)
         }
         else
         {
             x2.ToString(); // unassigned (else)
-            y2.ToString();  // unassigned (no error) (else)
+            y2.ToString(); // unassigned (no error) (else)
             z2.ToString(); // may be null (else)
             w2.ToString(); // may be null (else)
         }
     }
-    static void F3A(bool b1, bool b2, object v3)
+    static void F3(bool b1, bool b2, object v3)
     {
         object x3;
         object y3;
@@ -799,14 +799,14 @@ class C
         if (false ? b1 && F(x3 = v3) && F(z3 = v3) : b2 && F(y3 = v3) && F(w3 = v3))
         {
             x3.ToString(); // unassigned (if)
-            y3.ToString();  // ok (if)
+            y3.ToString(); // ok (if)
             z3.ToString(); // may be null (if)
             w3.ToString(); // ok (if)
         }
         else
         {
             x3.ToString(); // unassigned (no error) (else)
-            y3.ToString();  // unassigned (else)
+            y3.ToString(); // unassigned (else)
             z3.ToString(); // may be null (else)
             w3.ToString(); // may be null (else)
         }
@@ -818,7 +818,7 @@ class C
                 //             x1.ToString(); // unassigned (if)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(15, 13),
                 // (16,13): error CS0165: Use of unassigned local variable 'y1'
-                //             y1.ToString();  // unassigned (if)
+                //             y1.ToString(); // unassigned (if)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y1").WithArguments("y1").WithLocation(16, 13),
                 // (17,13): warning CS8602: Possible dereference of a null reference.
                 //             z1.ToString(); // may be null (if)
@@ -833,7 +833,7 @@ class C
                 //             w1.ToString(); // may be null (else)
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w1").WithLocation(25, 13),
                 // (37,13): error CS0165: Use of unassigned local variable 'y2'
-                //             y2.ToString();  // unassigned (if)
+                //             y2.ToString(); // unassigned (if)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y2").WithArguments("y2").WithLocation(37, 13),
                 // (43,13): error CS0165: Use of unassigned local variable 'x2'
                 //             x2.ToString(); // unassigned (else)
@@ -851,7 +851,7 @@ class C
                 //             x3.ToString(); // unassigned (if)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(57, 13),
                 // (65,13): error CS0165: Use of unassigned local variable 'y3'
-                //             y3.ToString();  // unassigned (else)
+                //             y3.ToString(); // unassigned (else)
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "y3").WithArguments("y3").WithLocation(65, 13),
                 // (59,13): warning CS8602: Possible dereference of a null reference.
                 //             z3.ToString(); // may be null (if)
