@@ -1,10 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Composition;
-using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.ConvertForToForEach;
@@ -29,22 +25,21 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
             => CSharpFeaturesResources.Convert_for_to_foreach;
 
         protected override SyntaxList<StatementSyntax> GetBodyStatements(ForStatementSyntax forStatement)
-        {
-            if (forStatement.Statement is BlockSyntax block)
-            {
-                return block.Statements;
-            }
+            => forStatement.Statement is BlockSyntax block
+                ? block.Statements
+                : SyntaxFactory.SingletonList(forStatement.Statement);
 
-            return SyntaxFactory.SingletonList(forStatement.Statement);
-        }
         protected override bool TryGetForStatementComponents(
             ForStatementSyntax forStatement,
             out SyntaxToken iterationVariable, out ExpressionSyntax initializer,
             out MemberAccessExpressionSyntax memberAccess, out ExpressionSyntax stepValue,
             CancellationToken cancellationToken)
         {
+            // Look for very specific forms.  Basically, only minor variations around:
+            // for (var i = 0; i < expr.Lenth; i++)
+
             if (forStatement.Declaration != null &&
-                forStatement.Condition is BinaryExpressionSyntax binaryExpression &&
+                forStatement.Condition.IsKind(SyntaxKind.LessThanExpression) &&
                 forStatement.Incrementors.Count == 1)
             {
                 var declaration = forStatement.Declaration;
@@ -56,16 +51,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
                         iterationVariable = declarator.Identifier;
                         initializer = declarator.Initializer.Value;
 
+                        var binaryExpression = (BinaryExpressionSyntax)forStatement.Condition;
+
                         // Look for:  i < expr.Length
-                        if (binaryExpression.Kind() == SyntaxKind.LessThanExpression &&
-                            binaryExpression.Left is IdentifierNameSyntax identifierName &&
+                        if (binaryExpression.Left is IdentifierNameSyntax identifierName &&
                             identifierName.Identifier.ValueText == iterationVariable.ValueText &&
                             binaryExpression.Right is MemberAccessExpressionSyntax)
                         {
                             memberAccess = (MemberAccessExpressionSyntax)binaryExpression.Right;
 
                             var incrementor = forStatement.Incrementors[0];
-
                             if (TryGetStepValue(iterationVariable, incrementor, out stepValue, cancellationToken))
                             {
                                 return true;
@@ -92,32 +87,32 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
             //  x += constant_1
 
             ExpressionSyntax operand;
-            if (incrementor.Kind() == SyntaxKind.PostIncrementExpression)
+            switch (incrementor.Kind())
             {
+            case SyntaxKind.PostIncrementExpression:
                 operand = ((PostfixUnaryExpressionSyntax)incrementor).Operand;
                 stepValue = default;
-            }
-            else if (incrementor.Kind() == SyntaxKind.PreIncrementExpression)
-            {
+                break;
+
+            case SyntaxKind.PreIncrementExpression:
                 operand = ((PrefixUnaryExpressionSyntax)incrementor).Operand;
                 stepValue = default;
-            }
-            else if (incrementor.Kind() == SyntaxKind.AddAssignmentExpression)
-            {
+                break;
+
+            case SyntaxKind.AddAssignmentExpression:
                 var assignment = (AssignmentExpressionSyntax)incrementor;
                 operand = assignment.Left;
                 stepValue = assignment.Right;
-            }
-            else
-            {
-                stepValue = default;
+                break;
+
+            default:
+                stepValue = null;
                 return false;
             }
 
             return operand is IdentifierNameSyntax identifierName &&
                 identifierName.Identifier.ValueText == iterationVariable.ValueText;
         }
-
 
         protected override SyntaxNode ConvertForNode(
             ForStatementSyntax forStatement, TypeSyntax typeNode, 
@@ -150,6 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
                 forStatement.Statement);
         }
 
+        // C# has no special variable declarator forms that would cause us to not be able to convert.
         protected override bool IsValidVariableDeclarator(VariableDeclaratorSyntax firstVariable)
             => true;
     }
