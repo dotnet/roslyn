@@ -1,20 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
 using MSB = Microsoft.Build;
 
 namespace Microsoft.CodeAnalysis.MSBuild.Logging
 {
     internal class MSBuildDiagnosticLogger : MSB.Framework.ILogger
     {
-        private readonly string _projectFilePath;
-        private readonly DiagnosticLog _log;
+        private string _projectFilePath;
+        private DiagnosticLog _log;
         private MSB.Framework.IEventSource _eventSource;
 
         public string Parameters { get; set; }
         public MSB.Framework.LoggerVerbosity Verbosity { get; set; }
 
-        public MSBuildDiagnosticLogger(DiagnosticLog log, string projectFilePath)
+        public void SetProjectAndLog(string projectFilePath, DiagnosticLog log)
         {
             _projectFilePath = projectFilePath;
             _log = log;

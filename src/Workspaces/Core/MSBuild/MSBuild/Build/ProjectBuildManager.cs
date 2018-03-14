@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         };
 
         private readonly MSB.Evaluation.ProjectCollection _projectCollection;
+        private readonly MSBuildDiagnosticLogger _logger;
+        private bool _started;
 
         public ProjectBuildManager()
         {
@@ -37,6 +39,10 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             };
 
             _projectCollection = new MSB.Evaluation.ProjectCollection(properties);
+            _logger = new MSBuildDiagnosticLogger()
+            {
+                Verbosity = MSB.Framework.LoggerVerbosity.Normal
+            };
         }
 
         private MSB.Evaluation.Project FindProject(string path, IDictionary<string, string> globalProperties)
@@ -158,6 +164,27 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             return project?.GetPropertyValue("TargetPath");
         }
 
+        public void Start()
+        {
+            if (_started)
+            {
+                throw new InvalidOperationException();
+            }
+
+            var buildParameters = new MSB.Execution.BuildParameters(_projectCollection);
+            buildParameters.Loggers = new MSB.Framework.ILogger[] { _logger };
+
+            MSB.Execution.BuildManager.DefaultBuildManager.BeginBuild(buildParameters);
+
+            _started = true;
+        }
+
+        public void Stop()
+        {
+            MSB.Execution.BuildManager.DefaultBuildManager.EndBuild();
+            _started = false;
+        }
+
         public Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
             MSB.Evaluation.Project project, DiagnosticLog log, CancellationToken cancellationToken)
         {
@@ -166,7 +193,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             return BuildProjectAsync(project, targets, log, cancellationToken);
         }
 
-        private static async Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
+        private async Task<MSB.Execution.ProjectInstance> BuildProjectAsync(
             MSB.Evaluation.Project project, string[] targets, DiagnosticLog log, CancellationToken cancellationToken)
         {
             // create a project instance to be executed by build engine.
@@ -183,19 +210,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                 }
             }
 
-            var buildParameters = new MSB.Execution.BuildParameters(project.ProjectCollection);
-
-            // capture errors that are output in the build log
-            var logger = new MSBuildDiagnosticLogger(log, projectInstance.FullPath)
-            {
-                Verbosity = MSB.Framework.LoggerVerbosity.Normal
-            };
-
-            buildParameters.Loggers = new MSB.Framework.ILogger[] { logger };
+            _logger.SetProjectAndLog(projectInstance.FullPath, log);
 
             var buildRequestData = new MSB.Execution.BuildRequestData(projectInstance, targets);
 
-            var result = await BuildAsync(buildParameters, buildRequestData, cancellationToken).ConfigureAwait(false);
+            var result = await BuildAsync(buildRequestData, cancellationToken).ConfigureAwait(false);
 
             if (result.OverallResult == MSB.Execution.BuildResultCode.Failure)
             {
@@ -211,20 +230,18 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
         // this lock is static because we are using the default build manager, and there is only one per process
         private static readonly SemaphoreSlim s_buildManagerLock = new SemaphoreSlim(initialCount: 1);
 
-        private static async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildParameters parameters, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
+        private async Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
         {
             // only allow one build to use the default build manager at a time
             using (await s_buildManagerLock.DisposableWaitAsync(cancellationToken).ConfigureAwait(continueOnCapturedContext: false))
             {
-                return await BuildAsync(MSB.Execution.BuildManager.DefaultBuildManager, parameters, requestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
+                return await BuildAsync(MSB.Execution.BuildManager.DefaultBuildManager, requestData, cancellationToken).ConfigureAwait(continueOnCapturedContext: false);
             }
         }
 
-        private static Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildManager buildManager, MSB.Execution.BuildParameters parameters, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
+        private Task<MSB.Execution.BuildResult> BuildAsync(MSB.Execution.BuildManager buildManager, MSB.Execution.BuildRequestData requestData, CancellationToken cancellationToken)
         {
             var taskSource = new TaskCompletionSource<MSB.Execution.BuildResult>();
-
-            buildManager.BeginBuild(parameters);
 
             // enable cancellation of build
             CancellationTokenRegistration registration = default;
@@ -235,7 +252,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                     try
                     {
                         buildManager.CancelAllSubmissions();
-                        buildManager.EndBuild();
                         registration.Dispose();
                     }
                     finally
@@ -254,7 +270,6 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
                     try
                     {
                         var result = sub.BuildResult;
-                        buildManager.EndBuild();
                         registration.Dispose();
                         taskSource.TrySetResult(result);
                     }

@@ -121,33 +121,41 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 var results = ImmutableArray.CreateBuilder<ProjectInfo>();
                 var processedPaths = new HashSet<string>(PathUtilities.Comparer);
 
-                foreach (var projectPath in _requestedProjectPaths)
+                _owner.BuildManager.Start();
+                try
                 {
-                    if (!_owner.TryGetAbsoluteProjectPath(projectPath, _baseDirectory, _requestedProjectOptions.OnPathFailure, out var fullProjectPath))
+                    foreach (var projectPath in _requestedProjectPaths)
                     {
-                        continue; // Failure should already be reported.
+                        if (!_owner.TryGetAbsoluteProjectPath(projectPath, _baseDirectory, _requestedProjectOptions.OnPathFailure, out var fullProjectPath))
+                        {
+                            continue; // Failure should already be reported.
+                        }
+
+                        if (!processedPaths.Add(fullProjectPath))
+                        {
+                            // TODO: Report warning if there are duplicate project paths.
+                            continue;
+                        }
+
+                        var projectFileInfos = await LoadProjectInfosFromPathAsync(fullProjectPath, _requestedProjectOptions, cancellationToken).ConfigureAwait(false);
+
+                        results.AddRange(projectFileInfos);
                     }
 
-                    if (!processedPaths.Add(fullProjectPath))
+                    foreach (var (projectPath, projectInfos) in _pathToProjectInfosMap)
                     {
-                        // TODO: Report warning if there are duplicate project paths.
-                        continue;
+                        if (!processedPaths.Contains(projectPath))
+                        {
+                            results.AddRange(projectInfos);
+                        }
                     }
 
-                    var projectFileInfos = await LoadProjectInfosFromPathAsync(fullProjectPath, _requestedProjectOptions, cancellationToken).ConfigureAwait(false);
-
-                    results.AddRange(projectFileInfos);
+                    return results.ToImmutable();
                 }
-
-                foreach (var (projectPath, projectInfos) in _pathToProjectInfosMap)
+                finally
                 {
-                    if (!processedPaths.Contains(projectPath))
-                    {
-                        results.AddRange(projectInfos);
-                    }
+                    _owner.BuildManager.Stop();
                 }
-
-                return results.ToImmutable();
             }
 
             private async Task<ImmutableArray<ProjectFileInfo>> LoadProjectFileInfosAsync(string projectPath, ReportingOptions reportingOptions, CancellationToken cancellationToken)
