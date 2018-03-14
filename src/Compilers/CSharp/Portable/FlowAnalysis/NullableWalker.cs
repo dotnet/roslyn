@@ -1328,31 +1328,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             var consequenceState = this.StateWhenTrue;
             var alternativeState = this.StateWhenFalse;
 
-            var consequence = VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
-            Unsplit();
-            consequenceState = this.State;
-            var consequenceResult = _result;
-
-            var alternative = VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
-            Unsplit();
-            var alternativeResult = _result;
-
-            bool? consequenceIsNullable = getIsNullable(consequence, consequenceResult);
-            bool? alternativeIsNullable = getIsNullable(alternative, alternativeResult);
+            BoundExpression consequence;
+            BoundExpression alternative;
+            Result consequenceResult;
+            Result alternativeResult;
             bool? resultIsNullable;
+
             if (IsConstantTrue(node.Condition))
             {
-                SetState(consequenceState);
-                resultIsNullable = consequenceIsNullable;
+                (alternative, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
+                (consequence, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
+                resultIsNullable = getIsNullable(consequence, consequenceResult);
             }
             else if (IsConstantFalse(node.Condition))
             {
-                resultIsNullable = alternativeIsNullable;
+                (consequence, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
+                (alternative, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
+                resultIsNullable = getIsNullable(alternative, alternativeResult);
             }
             else
             {
+                (consequence, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
+                Unsplit();
+                (alternative, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
+                Unsplit();
                 IntersectWith(ref this.State, ref consequenceState);
-                resultIsNullable = (consequenceIsNullable | alternativeIsNullable);
+                resultIsNullable = (getIsNullable(consequence, consequenceResult) | getIsNullable(alternative, alternativeResult));
             }
 
             TypeSymbolWithAnnotations resultType;
@@ -1404,21 +1405,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     expr :
                     new BoundValuePlaceholder(expr.Syntax, type.IsNullable, type.TypeSymbol);
             }
-        }
 
-        private BoundExpression VisitConditionalOperand(LocalState state, BoundExpression operand, bool isByRef)
-        {
-            SetState(state);
-            if (isByRef)
+            (BoundExpression, Result) visitConditionalOperand(LocalState state, BoundExpression operand)
             {
-                VisitLvalue(operand);
+                SetState(state);
+                if (isByRef)
+                {
+                    VisitLvalue(operand);
+                }
+                else
+                {
+                    operand = RemoveImplicitConversions(operand);
+                    Visit(operand);
+                }
+                return (operand, _result);
             }
-            else
-            {
-                operand = RemoveImplicitConversions(operand);
-                VisitRvalue(operand);
-            }
-            return operand;
         }
 
         public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)

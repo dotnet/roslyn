@@ -738,6 +738,132 @@ class C
                 Diagnostic(ErrorCode.ERR_InvalidQM, "b ? throw new Exception() : throw new Exception()").WithArguments("<throw expression>", "<throw expression>").WithLocation(6, 10));
         }
 
+        [Fact]
+        public void ConditionalOperator_13()
+        {
+            var source =
+@"class C
+{
+    static bool F(object? x)
+    {
+        return true;
+    }
+    static void F1(bool c, bool b1, bool b2, object v1)
+    {
+        object x1;
+        object y1;
+        object? z1 = null;
+        object? w1 = null;
+        if (c ? b1 && F(x1 = v1) && F(z1 = v1) : b2 && F(y1 = v1) && F(w1 = v1))
+        {
+            x1.ToString(); // unassigned (if)
+            y1.ToString();  // unassigned (if)
+            z1.ToString(); // may be null (if)
+            w1.ToString(); // may be null (if)
+        }
+        else
+        {
+            x1.ToString(); // unassigned (no error) (else)
+            y1.ToString();  // unassigned (no error) (else)
+            z1.ToString(); // may be null (else)
+            w1.ToString(); // may be null (else)
+        }
+    }
+    static void F2A(bool b1, bool b2, object v2)
+    {
+        object x2;
+        object y2;
+        object? z2 = null;
+        object? w2 = null;
+        if (true ? b1 && F(x2 = v2) && F(z2 = v2) : b2 && F(y2 = v2) && F(w2 = v2))
+        {
+            x2.ToString(); // ok (if)
+            y2.ToString();  // unassigned (if)
+            z2.ToString(); // ok (if)
+            w2.ToString(); // may be null (if)
+        }
+        else
+        {
+            x2.ToString(); // unassigned (else)
+            y2.ToString();  // unassigned (no error) (else)
+            z2.ToString(); // may be null (else)
+            w2.ToString(); // may be null (else)
+        }
+    }
+    static void F3A(bool b1, bool b2, object v3)
+    {
+        object x3;
+        object y3;
+        object? z3 = null;
+        object? w3 = null;
+        if (false ? b1 && F(x3 = v3) && F(z3 = v3) : b2 && F(y3 = v3) && F(w3 = v3))
+        {
+            x3.ToString(); // unassigned (if)
+            y3.ToString();  // ok (if)
+            z3.ToString(); // may be null (if)
+            w3.ToString(); // ok (if)
+        }
+        else
+        {
+            x3.ToString(); // unassigned (no error) (else)
+            y3.ToString();  // unassigned (else)
+            z3.ToString(); // may be null (else)
+            w3.ToString(); // may be null (else)
+        }
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (15,13): error CS0165: Use of unassigned local variable 'x1'
+                //             x1.ToString(); // unassigned (if)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(15, 13),
+                // (16,13): error CS0165: Use of unassigned local variable 'y1'
+                //             y1.ToString();  // unassigned (if)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y1").WithArguments("y1").WithLocation(16, 13),
+                // (17,13): warning CS8602: Possible dereference of a null reference.
+                //             z1.ToString(); // may be null (if)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z1").WithLocation(17, 13),
+                // (18,13): warning CS8602: Possible dereference of a null reference.
+                //             w1.ToString(); // may be null (if)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w1").WithLocation(18, 13),
+                // (24,13): warning CS8602: Possible dereference of a null reference.
+                //             z1.ToString(); // may be null (else)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z1").WithLocation(24, 13),
+                // (25,13): warning CS8602: Possible dereference of a null reference.
+                //             w1.ToString(); // may be null (else)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w1").WithLocation(25, 13),
+                // (37,13): error CS0165: Use of unassigned local variable 'y2'
+                //             y2.ToString();  // unassigned (if)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y2").WithArguments("y2").WithLocation(37, 13),
+                // (43,13): error CS0165: Use of unassigned local variable 'x2'
+                //             x2.ToString(); // unassigned (else)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(43, 13),
+                // (39,13): warning CS8602: Possible dereference of a null reference.
+                //             w2.ToString(); // may be null (if)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w2").WithLocation(39, 13),
+                // (45,13): warning CS8602: Possible dereference of a null reference.
+                //             z2.ToString(); // may be null (else)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z2").WithLocation(45, 13),
+                // (46,13): warning CS8602: Possible dereference of a null reference.
+                //             w2.ToString(); // may be null (else)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w2").WithLocation(46, 13),
+                // (57,13): error CS0165: Use of unassigned local variable 'x3'
+                //             x3.ToString(); // unassigned (if)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(57, 13),
+                // (65,13): error CS0165: Use of unassigned local variable 'y3'
+                //             y3.ToString();  // unassigned (else)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y3").WithArguments("y3").WithLocation(65, 13),
+                // (59,13): warning CS8602: Possible dereference of a null reference.
+                //             z3.ToString(); // may be null (if)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z3").WithLocation(59, 13),
+                // (66,13): warning CS8602: Possible dereference of a null reference.
+                //             z3.ToString(); // may be null (else)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z3").WithLocation(66, 13),
+                // (67,13): warning CS8602: Possible dereference of a null reference.
+                //             w3.ToString(); // may be null (else)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w3").WithLocation(67, 13));
+        }
+
         // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
         [Fact(Skip = "TODO")]
         public void NullCoalescingOperator_01()
