@@ -584,7 +584,7 @@ unsafe class Test
 }", TestOptions.UnsafeReleaseDll);
 
             comp.VerifyDiagnostics(
-                // (7,35): error CS8373: "Invalid rank specifier: expected ']'
+                // (7,35): error CS8381: "Invalid rank specifier: expected ']'
                 //         var obj2 = stackalloc    [,] { 1 };
                 Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, ",").WithLocation(7, 35),
                 // (6,31): error CS1575: A stackalloc expression requires [] after type
