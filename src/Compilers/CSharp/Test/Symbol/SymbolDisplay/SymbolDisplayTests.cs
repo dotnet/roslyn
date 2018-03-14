@@ -6389,5 +6389,196 @@ End Structure";
                 SymbolDisplayPartKind.Space,
                 SymbolDisplayPartKind.StructName);
         }
+
+        [Fact]
+        public void EnumConstraint_Type()
+        {
+            TestSymbolDescription(
+                "class X<T> where T : System.Enum { }",
+                global => global.GetTypeMember("X"),
+                SymbolDisplayFormat.TestFormat.WithGenericsOptions(SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints),
+                "X<T> where T : System.Enum",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+        }
+
+        [Fact]
+        public void EnumConstraint()
+        {
+            TestSymbolDescription(
+                "class X<T> where T : System.Enum { }",
+                global => global.GetTypeMember("X").TypeParameters.Single().ConstraintTypes().Single(),
+                SymbolDisplayFormat.TestFormat,
+                "System.Enum",
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+        }
+
+        [Fact]
+        public void DelegateConstraint_Type()
+        {
+            TestSymbolDescription(
+                "class X<T> where T : System.Delegate { }",
+                global => global.GetTypeMember("X"),
+                SymbolDisplayFormat.TestFormat.WithGenericsOptions(SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints),
+                "X<T> where T : System.Delegate",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+        }
+
+        [Fact]
+        public void DelegateConstraint()
+        {
+            TestSymbolDescription(
+                "class X<T> where T : System.Delegate { }",
+                global => global.GetTypeMember("X").TypeParameters.Single().ConstraintTypes().Single(),
+                SymbolDisplayFormat.TestFormat,
+                "System.Delegate",
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+        }
+
+        [Fact]
+        public void MulticastDelegateConstraint_Type()
+        {
+            TestSymbolDescription(
+                "class X<T> where T : System.MulticastDelegate { }",
+                global => global.GetTypeMember("X"),
+                SymbolDisplayFormat.TestFormat.WithGenericsOptions(SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints),
+                "X<T> where T : System.MulticastDelegate",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+        }
+
+        [Fact]
+        public void MulticastDelegateConstraint()
+        {
+            TestSymbolDescription(
+                "class X<T> where T : System.MulticastDelegate { }",
+                global => global.GetTypeMember("X").TypeParameters.Single().ConstraintTypes().Single(),
+                SymbolDisplayFormat.TestFormat,
+                "System.MulticastDelegate",
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.ClassName);
+        }
+
+        [Fact]
+        public void UnmanagedConstraint_Type()
+        {
+            TestSymbolDescription(
+                "class X<T> where T : unmanaged { }",
+                global => global.GetTypeMember("X"),
+                SymbolDisplayFormat.TestFormat.AddGenericsOptions(SymbolDisplayGenericsOptions.IncludeTypeConstraints),
+                "X<T> where T : unmanaged",
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword);
+        }
+
+        [Fact]
+        public void UnmanagedConstraint_Method()
+        {
+            TestSymbolDescription(@"
+class X
+{
+    void M<T>() where T : unmanaged, System.IDisposable { }
+}",
+                global => global.GetTypeMember("X").GetMethod("M"),
+                SymbolDisplayFormat.TestFormat.AddGenericsOptions(SymbolDisplayGenericsOptions.IncludeTypeConstraints),
+                "void X.M<T>() where T : unmanaged, System.IDisposable",
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.MethodName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.NamespaceName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.InterfaceName);
+        }
+
+        [Fact]
+        public void UnmanagedConstraint_Delegate()
+        {
+            TestSymbolDescription(
+                "delegate void D<T>() where T : unmanaged;",
+                global => global.GetTypeMember("D"),
+                SymbolDisplayFormat.TestFormat.AddGenericsOptions(SymbolDisplayGenericsOptions.IncludeTypeConstraints),
+                "D<T> where T : unmanaged",
+                SymbolDisplayPartKind.DelegateName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.TypeParameterName,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword);
+        }
     }
 }

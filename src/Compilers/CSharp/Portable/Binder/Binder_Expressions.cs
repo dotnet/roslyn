@@ -2342,7 +2342,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (typeSyntax.IsVar)
             {
                 var ignored = DiagnosticBag.GetInstance();
-                BindTypeOrAlias(typeSyntax, ignored, out isVar);
+                BindTypeOrAliasOrVarKeyword(typeSyntax, ignored, out isVar);
                 ignored.Free();
 
                 if (isVar)
