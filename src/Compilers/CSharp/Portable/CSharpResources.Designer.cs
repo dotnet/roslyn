@@ -3284,15 +3284,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A default literal &apos;default&apos; is not valid as a pattern. Use another literal (e.g. &apos;0&apos; or &apos;null&apos;) as appropriate. To match everything, use a discard pattern &apos;var _&apos;..
-        /// </summary>
-        internal static string ERR_DefaultInPattern {
-            get {
-                return ResourceManager.GetString("ERR_DefaultInPattern", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to A default literal &apos;default&apos; is not valid as a case constant. Use another literal (e.g. &apos;0&apos; or &apos;null&apos;) as appropriate. If you intended to write the default label, use &apos;default:&apos; without &apos;case&apos;..
         /// </summary>
         internal static string ERR_DefaultInSwitch {
@@ -7892,15 +7883,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The switch case has already been handled by a previous case..
-        /// </summary>
-        internal static string ERR_PatternIsSubsumed {
-            get {
-                return ResourceManager.GetString("ERR_PatternIsSubsumed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to It is not legal to use nullable type &apos;{0}&apos; in a pattern; use the underlying type &apos;{1}&apos; instead..
         /// </summary>
         internal static string ERR_PatternNullableType {
@@ -9265,6 +9247,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_SubexpressionNotInNameof {
             get {
                 return ResourceManager.GetString("ERR_SubexpressionNotInNameof", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The pattern has already been handled by a previous arm of the switch expression..
+        /// </summary>
+        internal static string ERR_SwitchArmSubsumed {
+            get {
+                return ResourceManager.GetString("ERR_SwitchArmSubsumed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The switch case has already been handled by a previous case..
+        /// </summary>
+        internal static string ERR_SwitchCaseSubsumed {
+            get {
+                return ResourceManager.GetString("ERR_SwitchCaseSubsumed", resourceCulture);
             }
         }
         
@@ -10809,20 +10809,20 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to ref conditional expression.
-        /// </summary>
-        internal static string IDS_FeatureRefConditional {
-            get {
-                return ResourceManager.GetString("IDS_FeatureRefConditional", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to recursive patterns.
         /// </summary>
         internal static string IDS_FeatureRecursivePatterns {
             get {
                 return ResourceManager.GetString("IDS_FeatureRecursivePatterns", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to ref conditional expression.
+        /// </summary>
+        internal static string IDS_FeatureRefConditional {
+            get {
+                return ResourceManager.GetString("IDS_FeatureRefConditional", resourceCulture);
             }
         }
         
@@ -12798,24 +12798,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Did you mean to use the default switch label (&apos;default:&apos;) rather than &apos;case default:&apos;? If you really mean to use the default value, use another literal (&apos;case 0:&apos; or &apos;case null:&apos;) as appropriate..
-        /// </summary>
-        internal static string WRN_DefaultInSwitch {
-            get {
-                return ResourceManager.GetString("WRN_DefaultInSwitch", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Did you mean to use the default switch label (&apos;default:&apos;) rather than &apos;case default:&apos;?.
-        /// </summary>
-        internal static string WRN_DefaultInSwitch_Title {
-            get {
-                return ResourceManager.GetString("WRN_DefaultInSwitch_Title", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The default value specified for parameter &apos;{0}&apos; will have no effect because it applies to a member that is used in contexts that do not allow optional arguments.
         /// </summary>
         internal static string WRN_DefaultValueForUnconsumedLocation {
@@ -14350,6 +14332,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_SequentialOnPartialClass_Title {
             get {
                 return ResourceManager.GetString("WRN_SequentialOnPartialClass_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The switch expression does not handle all possible inputs (it is not exhaustive)..
+        /// </summary>
+        internal static string WRN_SwitchExpressionNotExhaustive {
+            get {
+                return ResourceManager.GetString("WRN_SwitchExpressionNotExhaustive", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The switch expression does not handle all possible inputs (it is not exhaustive)..
+        /// </summary>
+        internal static string WRN_SwitchExpressionNotExhaustive_Title {
+            get {
+                return ResourceManager.GetString("WRN_SwitchExpressionNotExhaustive_Title", resourceCulture);
             }
         }
         

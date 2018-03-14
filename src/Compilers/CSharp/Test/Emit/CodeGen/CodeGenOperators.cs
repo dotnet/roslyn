@@ -268,7 +268,7 @@ class C
             // Debug
             compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.DebugExe);
             compilation.VerifyIL("C.Main", @"{
-  // Code size       27 (0x1b)
+  // Code size       24 (0x18)
   .maxstack  1
   .locals init (bool V_0)
   IL_0000:  nop
@@ -277,14 +277,12 @@ class C
   IL_0007:  nop
   IL_0008:  ldc.i4.1
   IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  brfalse.s  IL_001a
-  IL_000d:  nop
-  IL_000e:  ldstr      "" Branch taken""
-  IL_0013:  call       ""void System.Console.Write(string)""
-  IL_0018:  nop
-  IL_0019:  nop
-  IL_001a:  ret
+  IL_000a:  nop
+  IL_000b:  ldstr      "" Branch taken""
+  IL_0010:  call       ""void System.Console.Write(string)""
+  IL_0015:  nop
+  IL_0016:  nop
+  IL_0017:  ret
 }");
         }
 
@@ -320,7 +318,7 @@ class C
             // Debug
             compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.DebugExe);
             compilation.VerifyIL("C.Main", @"{
-  // Code size       27 (0x1b)
+  // Code size       24 (0x18)
   .maxstack  1
   .locals init (bool V_0)
   IL_0000:  nop
@@ -329,14 +327,12 @@ class C
   IL_0007:  nop
   IL_0008:  ldc.i4.1
   IL_0009:  stloc.0
-  IL_000a:  ldloc.0
-  IL_000b:  brfalse.s  IL_001a
-  IL_000d:  nop
-  IL_000e:  ldstr      "" Branch taken""
-  IL_0013:  call       ""void System.Console.Write(string)""
-  IL_0018:  nop
-  IL_0019:  nop
-  IL_001a:  ret
+  IL_000a:  nop
+  IL_000b:  ldstr      "" Branch taken""
+  IL_0010:  call       ""void System.Console.Write(string)""
+  IL_0015:  nop
+  IL_0016:  nop
+  IL_0017:  ret
 }");
         }
 
