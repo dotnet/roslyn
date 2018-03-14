@@ -37,7 +37,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForToForEach
                 ByRef iterationVariable As SyntaxToken,
                 ByRef initializer As ExpressionSyntax,
                 ByRef memberAccess As MemberAccessExpressionSyntax,
-                ByRef stepValue As ExpressionSyntax,
+                ByRef stepValueExpressionOpt As ExpressionSyntax,
                 cancellationToken As CancellationToken) As Boolean
 
             Dim forStatement As ForStatementSyntax = forBlock.ForStatement
@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForToForEach
 
                             memberAccess = TryCast(subtraction.Left, MemberAccessExpressionSyntax)
                             If memberAccess IsNot Nothing Then
-                                stepValue = forStatement.StepClause?.StepValue
+                                stepValueExpressionOpt = forStatement.StepClause?.StepValue
                                 Return True
                             End If
                         End If

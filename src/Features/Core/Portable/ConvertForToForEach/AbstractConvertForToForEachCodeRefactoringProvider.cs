@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -40,7 +39,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
         protected abstract bool TryGetForStatementComponents(
             TForStatementSyntax forStatement,
             out SyntaxToken iterationVariable, out TExpressionSyntax initializer,
-            out TMemberAccessExpressionSyntax memberAccess, out TExpressionSyntax stepValue,
+            out TMemberAccessExpressionSyntax memberAccess, out TExpressionSyntax stepValueExpressionOpt,
             CancellationToken cancellationToken);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -76,7 +75,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
             if (!TryGetForStatementComponents(forStatement,
                     out var iterationVariable, out var initializer,
-                    out var memberAccess, out var stepValueOpt, cancellationToken))
+                    out var memberAccess, out var stepValueExpressionOpt, cancellationToken))
             {
                 return;
             }
@@ -102,9 +101,9 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             }
 
             // Make sure we're incrementing by 1.
-            if (stepValueOpt != null)
+            if (stepValueExpressionOpt != null)
             {
-                var stepValue = semanticModel.GetConstantValue(stepValueOpt);
+                var stepValue = semanticModel.GetConstantValue(stepValueExpressionOpt);
                 if (!(stepValue.HasValue && stepValue.Value is 1))
                 {
                     return;

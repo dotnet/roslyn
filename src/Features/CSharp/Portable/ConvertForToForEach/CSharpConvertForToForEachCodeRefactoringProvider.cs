@@ -32,7 +32,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
         protected override bool TryGetForStatementComponents(
             ForStatementSyntax forStatement,
             out SyntaxToken iterationVariable, out ExpressionSyntax initializer,
-            out MemberAccessExpressionSyntax memberAccess, out ExpressionSyntax stepValue,
+            out MemberAccessExpressionSyntax memberAccess, 
+            out ExpressionSyntax stepValueExpressionOpt,
             CancellationToken cancellationToken)
         {
             // Look for very specific forms.  Basically, only minor variations around:
@@ -61,7 +62,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
                             memberAccess = (MemberAccessExpressionSyntax)binaryExpression.Right;
 
                             var incrementor = forStatement.Incrementors[0];
-                            return TryGetStepValue(iterationVariable, incrementor, out stepValue, cancellationToken);
+                            return TryGetStepValue(
+                                iterationVariable, incrementor, out stepValueExpressionOpt, cancellationToken);
                         }
                     }
                 }
@@ -70,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
             iterationVariable = default;
             memberAccess = default;
             initializer = default;
-            stepValue = default;
+            stepValueExpressionOpt = default;
             return false;
         }
 
