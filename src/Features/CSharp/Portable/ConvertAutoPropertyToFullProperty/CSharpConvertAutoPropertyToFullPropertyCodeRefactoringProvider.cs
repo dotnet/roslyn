@@ -33,6 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
                 return null;
             }
 
+            if (!(containingProperty.Parent is TypeDeclarationSyntax))
+            {
+                return null;
+            }
+
             var start = containingProperty.AttributeLists.Count > 0
                 ? containingProperty.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart
                 : containingProperty.SpanStart;
@@ -111,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
         }
 
         internal override (SyntaxNode newGetAccessor, SyntaxNode newSetAccessor) GetNewAccessors(
-            DocumentOptionSet options, SyntaxNode property, 
+            DocumentOptionSet options, SyntaxNode property,
             string fieldName, SyntaxGenerator generator)
         {
             // C# might have trivia with the accessors that needs to be preserved.  
@@ -138,12 +143,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             return (newGetAccessor: newGetter, newSetAccessor: newSetter);
         }
 
-        private (AccessorDeclarationSyntax getAccessor, AccessorDeclarationSyntax setAccessor) 
+        private (AccessorDeclarationSyntax getAccessor, AccessorDeclarationSyntax setAccessor)
             GetExistingAccessors(AccessorListSyntax accessorListSyntax)
             => (accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.GetAccessorDeclaration)),
                 accessorListSyntax.Accessors.FirstOrDefault(a => a.IsKind(SyntaxKind.SetAccessorDeclaration)));
 
-        private SyntaxNode GetUpdatedAccessor(DocumentOptionSet options, 
+        private SyntaxNode GetUpdatedAccessor(DocumentOptionSet options,
             SyntaxNode accessor, SyntaxNode statement, SyntaxGenerator generator)
         {
             var newAccessor = AddStatement(accessor, statement);
@@ -214,13 +219,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertAutoPropertyToFullProperty
             => options.GetOption(CSharpCodeStyleOptions.PreferExpressionBodiedProperties).Value;
 
 
-        internal override SyntaxNode GetTypeBlock(SyntaxNode syntaxNode) 
+        internal override SyntaxNode GetTypeBlock(SyntaxNode syntaxNode)
             => syntaxNode;
 
         internal override SyntaxNode GetInitializerValue(SyntaxNode property)
             => ((PropertyDeclarationSyntax)property).Initializer?.Value;
 
-        internal override SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property) 
+        internal override SyntaxNode GetPropertyWithoutInitializer(SyntaxNode property)
             => ((PropertyDeclarationSyntax)property).WithInitializer(null);
     }
 }
