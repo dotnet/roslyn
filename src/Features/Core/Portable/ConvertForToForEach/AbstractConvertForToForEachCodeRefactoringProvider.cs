@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 return;
             }
 
-            var forStatement = token.Parent.AncestorsAndSelf().OfType<TForStatementSyntax>().FirstOrDefault();
+            var forStatement = token.Parent.GetAncestorOrThis<TForStatementSyntax>();
             if (forStatement == null)
             {
                 return;
