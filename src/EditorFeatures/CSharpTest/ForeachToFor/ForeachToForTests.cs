@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ForeachToFor
     public partial class ForeachToForTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
-            => new CSharpForeachToForCodeRefactoringProvider();
+            => new CSharpForEachToForCodeRefactoringProvider();
 
         [Fact, Trait(Traits.Feature, Traits.Features.ForeachToFor)]
         public async Task EmptyBlockBody()
@@ -919,7 +919,7 @@ class Test
     void Method()
     {
         var list = new Explicit();
-        var {|Rename:list1|} = (IReadOnlyList<int>)(list);
+        var {|Rename:list1|} = (IReadOnlyList<int>)list;
         for (var {|Rename:i|} = 0; i < list1.Count; i++)
         {
             var a = list1[i];
@@ -1017,7 +1017,7 @@ class Test
     void Method()
     {
         var list = new Explicit();
-        var {|Rename:list1|} = (IReadOnlyList<int>)(list);
+        var {|Rename:list1|} = (IReadOnlyList<int>)list;
         for (var {|Rename:i|} = 0; i < list1.Count; i++)
         {
             var a = list1[i];
@@ -1053,7 +1053,7 @@ class Test
 {
     void Method()
     {
-        var list = new Explicit();
+        var list = new Mixed();
         foreach [||] (var a in list)
         {
             Console.WriteLine(a);
@@ -1061,7 +1061,7 @@ class Test
     }
 }
 
-class Explicit : IReadOnlyList<int>, IReadOnlyList<string>
+class Mixed : IReadOnlyList<int>, IReadOnlyList<string>
 {
     public int this[int index] => throw new NotImplementedException();
     public int Count => throw new NotImplementedException();
@@ -1083,7 +1083,7 @@ class Test
 {
     void Method()
     {
-        var list = new Explicit();
+        var list = new Mixed();
         for (var {|Rename:i|} = 0; i < list.Count; i++)
         {
             var a = list[i];
@@ -1092,7 +1092,7 @@ class Test
     }
 }
 
-class Explicit : IReadOnlyList<int>, IReadOnlyList<string>
+class Mixed : IReadOnlyList<int>, IReadOnlyList<string>
 {
     public int this[int index] => throw new NotImplementedException();
     public int Count => throw new NotImplementedException();
@@ -1119,7 +1119,7 @@ class Test
 {
     void Method()
     {
-        var list = new Explicit();
+        var list = new Mixed();
         foreach [||] (string a in list)
         {
             Console.WriteLine(a);
@@ -1127,7 +1127,7 @@ class Test
     }
 }
 
-class Explicit : IReadOnlyList<int>, IReadOnlyList<string>
+class Mixed : IReadOnlyList<int>, IReadOnlyList<string>
 {
     public int this[int index] => throw new NotImplementedException();
     public int Count => throw new NotImplementedException();
@@ -1149,8 +1149,8 @@ class Test
 {
     void Method()
     {
-        var list = new Explicit();
-        var {|Rename:list1|} = (IReadOnlyList<string>)(list);
+        var list = new Mixed();
+        var {|Rename:list1|} = (IReadOnlyList<string>)list;
         for (var {|Rename:i|} = 0; i < list1.Count; i++)
         {
             var a = list1[i];
@@ -1159,7 +1159,7 @@ class Test
     }
 }
 
-class Explicit : IReadOnlyList<int>, IReadOnlyList<string>
+class Mixed : IReadOnlyList<int>, IReadOnlyList<string>
 {
     public int this[int index] => throw new NotImplementedException();
     public int Count => throw new NotImplementedException();
@@ -1169,6 +1169,77 @@ class Explicit : IReadOnlyList<int>, IReadOnlyList<string>
     string IReadOnlyList<string>.this[int index] => throw new NotImplementedException();
     int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
     IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
+}
+";
+            await TestInRegularAndScriptAsync(text, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ForeachToFor)]
+        public async Task PreserveUserExpression()
+        {
+            var text = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace NS
+{
+    class Test
+    {
+        void Method()
+        {
+            foreach [||] (string a in new NS.Mixed())
+            {
+                Console.WriteLine(a);
+            }
+        }
+    }
+
+    class Mixed : IReadOnlyList<int>, IReadOnlyList<string>
+    {
+        public int this[int index] => throw new NotImplementedException();
+        public int Count => throw new NotImplementedException();
+        public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+        IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+
+        string IReadOnlyList<string>.this[int index] => throw new NotImplementedException();
+        int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
+        IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
+    }
+}
+";
+
+            var expected = @"
+using System;
+using System.Collections;
+using System.Collections.Generic;
+
+namespace NS
+{
+    class Test
+    {
+        void Method()
+        {
+            var {|Rename:list|} = (IReadOnlyList<string>)new NS.Mixed();
+            for (var {|Rename:i|} = 0; i < list.Count; i++)
+            {
+                var a = list[i];
+                Console.WriteLine(a);
+            }
+        }
+    }
+
+    class Mixed : IReadOnlyList<int>, IReadOnlyList<string>
+    {
+        public int this[int index] => throw new NotImplementedException();
+        public int Count => throw new NotImplementedException();
+        public IEnumerator<int> GetEnumerator() => throw new NotImplementedException();
+        IEnumerator IEnumerable.GetEnumerator() => throw new NotImplementedException();
+
+        string IReadOnlyList<string>.this[int index] => throw new NotImplementedException();
+        int IReadOnlyCollection<string>.Count => throw new NotImplementedException();
+        IEnumerator<string> IEnumerable<string>.GetEnumerator() => throw new NotImplementedException();
+    }
 }
 ";
             await TestInRegularAndScriptAsync(text, expected);

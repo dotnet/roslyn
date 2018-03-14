@@ -18,21 +18,21 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ForeachToFor
 {
-    internal abstract class AbstractForeachToForCodeRefactoringProvider
+    internal abstract class AbstractForEachToForCodeRefactoringProvider
         : CodeRefactoringProvider
     {
         private const string get_Count = nameof(get_Count);
         private const string get_Item = nameof(get_Item);
 
-        private const string Length = nameof(Length);
-        private const string Count = nameof(Count);
+        private const string Length = nameof(Array.Length);
+        private const string Count = nameof(IList.Count);
 
         private static readonly ImmutableArray<string> s_KnownInterfaceNames =
             new string[] { typeof(IList<>).FullName, typeof(IReadOnlyList<>).FullName, typeof(IList).FullName }.ToImmutableArray();
 
-        protected abstract SyntaxNode GetForeachStatement(SyntaxToken token);
-        protected abstract (SyntaxNode start, SyntaxNode end) GetForeachBody(SyntaxNode foreachStatement);
-        protected abstract void ConvertToForStatement(SemanticModel model, ForeachInfo info, SyntaxEditor editor, CancellationToken cancellationToken);
+        protected abstract SyntaxNode GetForEachStatement(SyntaxToken token);
+        protected abstract (SyntaxNode start, SyntaxNode end) GetForEachBody(SyntaxNode foreachStatement);
+        protected abstract void ConvertToForStatement(SemanticModel model, ForEachInfo info, SyntaxEditor editor, CancellationToken cancellationToken);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(context.Span.Start);
 
-            var foreachStatement = GetForeachStatement(token);
+            var foreachStatement = GetForEachStatement(token);
             if (foreachStatement == null)
             {
                 return;
@@ -58,12 +58,12 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             }
 
             context.RegisterRefactoring(
-                new ForeachToForCodeAction(
+                new ForEachToForCodeAction(
                     FeaturesResources.Convert_foreach_to_for,
                     c => ConvertForeachToForAsync(document, foreachInfo, c)));
         }
 
-        protected string CreateUniqueMethodName(SemanticModel model, SyntaxNode contextNode, string baseName)
+        protected string CreateUniqueName(SemanticModel model, SyntaxNode contextNode, string baseName)
         {
             Contract.ThrowIfNull(contextNode);
             Contract.ThrowIfNull(baseName);
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
         protected T AddRenameAnnotation<T>(T node, string name) where T : SyntaxNode
         {
             var token = node.DescendantTokens().FirstOrDefault(t => t.Text == name);
-            if (token == default(SyntaxToken))
+            if (token == default)
             {
                 return node;
             }
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             return node.ReplaceToken(token, token.WithAdditionalAnnotations(RenameAnnotation.Create()));
         }
 
-        private ForeachInfo GetForeachInfo(ISemanticFactsService semanticFact, SemanticModel model, SyntaxNode foreachStatement, CancellationToken cancellationToken)
+        private ForEachInfo GetForeachInfo(ISemanticFactsService semanticFact, SemanticModel model, SyntaxNode foreachStatement, CancellationToken cancellationToken)
         {
             var operation = model.GetOperation(foreachStatement, cancellationToken) as IForEachLoopOperation;
             if (operation == null || operation.Locals.Length != 1)
@@ -106,6 +106,24 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
                 return null;
             }
 
+            // VB can have Next variable. but we only support
+            // simple 1 variable case.
+            if (operation.NextVariables.Length > 1)
+            {
+                return null;
+            }
+
+            if (!operation.NextVariables.IsEmpty)
+            {
+                var nextVariable = operation.NextVariables[0] as ILocalReferenceOperation;
+                if (nextVariable == null || nextVariable.Local?.Equals(foreachVariable) == false)
+                {
+                    // we do not support anything else than local reference for next variable
+                    // operation
+                    return null;
+                }
+            }
+
             if (!CheckForeachVariable(model, foreachVariable, foreachStatement))
             {
                 return null;
@@ -117,20 +135,19 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
                 return null;
             }
 
-            string explicitCast;
-            string countName;
-            GetInterfaceInfo(semanticFact, model, foreachVariable, foreachCollection, out explicitCast, out countName);
+            GetInterfaceInfo(semanticFact, model, foreachVariable, foreachCollection, out var explicitCast, out var countName);
             if (countName == null)
             {
                 return null;
             }
 
             var requireCollectionStatement = CheckRequireCollectionStatement(foreachCollection);
-            return new ForeachInfo(countName, explicitCast, requireCollectionStatement, foreachStatement);
+            return new ForEachInfo(countName, explicitCast, requireCollectionStatement, foreachStatement);
         }
 
         private static void GetInterfaceInfo(
-            ISemanticFactsService semanticFact, SemanticModel model, ILocalSymbol foreachVariable, IOperation foreachCollection, out string explicitCast, out string countName)
+            ISemanticFactsService semanticFact, SemanticModel model, ILocalSymbol foreachVariable, IOperation foreachCollection,
+            out ITypeSymbol explicitCast, out string countName)
         {
             explicitCast = default;
             countName = null;
@@ -187,7 +204,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             }
 
             // check regular cases (implicitly implemented)
-            string explicitInterface = null;
+            ITypeSymbol explicitInterface = null;
             foreach (var current in collectionType.AllInterfaces)
             {
                 if (!knownCollectionInterfaces.Contains(current.OriginalDefinition))
@@ -226,7 +243,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
 
                 if (explicitInterface == null)
                 {
-                    explicitInterface = current.ToDisplayString();
+                    explicitInterface = current;
                 }
             }
 
@@ -251,7 +268,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
                 return (IMethodSymbol)members[0];
             }
 
-            foreach (var current in interfaceType.AllInterfaces)
+            foreach (var current in interfaceType.Interfaces)
             {
                 var member = GetInterfaceMembers(current, memberName);
                 if (member != null)
@@ -280,7 +297,13 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
 
         private bool CheckForeachVariable(SemanticModel semanticModel, ISymbol foreachVariable, SyntaxNode foreachStatement)
         {
-            var (start, end) = GetForeachBody(foreachStatement);
+            var (start, end) = GetForEachBody(foreachStatement);
+            if (start == null || end == null)
+            {
+                // empty body. this can happen in VB
+                return true;
+            }
+
             var dataFlow = semanticModel.AnalyzeDataFlow(start, end);
 
             if (!dataFlow.Succeeded)
@@ -294,7 +317,7 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
 
         private async Task<Document> ConvertForeachToForAsync(
             Document document,
-            ForeachInfo foreachInfo,
+            ForEachInfo foreachInfo,
             CancellationToken cancellationToken)
         {
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -307,36 +330,31 @@ namespace Microsoft.CodeAnalysis.ForeachToFor
             return document.WithSyntaxRoot(newRoot);
         }
 
-        protected class ForeachInfo
+        protected class ForEachInfo
         {
-            public ForeachInfo(
-                string countName, string explicitCastInterface, bool requireCollectionStatement, SyntaxNode foreachStatement)
+            public ForEachInfo(
+                string countName, ITypeSymbol explicitCastInterface, bool requireCollectionStatement, SyntaxNode forEachStatement)
             {
                 CountName = countName;
 
+                // order of setting properties is important here
                 ExplicitCastInterface = explicitCastInterface;
-                RequireExplicitCast = explicitCastInterface != null;
                 RequireCollectionStatement = requireCollectionStatement || RequireExplicitCast;
 
-                ForeachStatement = foreachStatement;
+                ForEachStatement = forEachStatement;
             }
+
+            public bool RequireExplicitCast => ExplicitCastInterface != null;
 
             public string CountName { get; }
-
-            public bool RequireExplicitCast { get; }
-            public string ExplicitCastInterface { get; internal set; }
+            public ITypeSymbol ExplicitCastInterface { get; }
             public bool RequireCollectionStatement { get; }
-            public SyntaxNode ForeachStatement { get; }
-
-            public SyntaxNode GetCurrentForeachStatement(SyntaxEditor editor)
-            {
-                return editor.GetChangedRoot().GetCurrentNode(ForeachStatement);
-            }
+            public SyntaxNode ForEachStatement { get; }
         }
 
-        private class ForeachToForCodeAction : CodeAction.DocumentChangeAction
+        private class ForEachToForCodeAction : CodeAction.DocumentChangeAction
         {
-            public ForeachToForCodeAction(
+            public ForEachToForCodeAction(
                 string title,
                 Func<CancellationToken, Task<Document>> createChangedDocument) : base(title, createChangedDocument)
             {
