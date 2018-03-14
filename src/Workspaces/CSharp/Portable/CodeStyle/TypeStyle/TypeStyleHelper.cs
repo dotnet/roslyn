@@ -52,9 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             => type?.IsSpecialType() == true;
 
         public static bool IsImplicitStylePreferred(
-            OptionSet optionSet,
-            bool isBuiltInTypeContext,
-            bool isTypeApparentContext)
+            OptionSet optionSet, bool isBuiltInTypeContext, bool isTypeApparentContext)
         {
             return IsImplicitStylePreferred(
                 GetCurrentTypeStylePreferences(optionSet),
@@ -62,9 +60,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
                 isTypeApparentContext);
         }
 
-        private static bool IsImplicitStylePreferred(TypeStylePreference stylePreferences,
-            bool isBuiltInTypeContext,
-            bool isTypeApparentContext)
+        private static bool IsImplicitStylePreferred(
+            TypeStylePreference stylePreferences, bool isBuiltInTypeContext, bool isTypeApparentContext)
         {
             return isBuiltInTypeContext
                     ? stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeForIntrinsicTypes)

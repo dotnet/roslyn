@@ -1717,9 +1717,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Function GetTypeOfVariableDeclarator(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetTypeOfVariableDeclarator
             Dim declarator = DirectCast(node, VariableDeclaratorSyntax)
-            Return If(TypeOf declarator.AsClause Is SimpleAsClauseSyntax,
-                      DirectCast(declarator.AsClause, SimpleAsClauseSyntax).Type,
-                      Nothing)
+            Return TryCast(declarator.AsClause, SimpleAsClauseSyntax)?.Type
         End Function
 
         Public Function GetValueOfEqualsValueClause(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetValueOfEqualsValueClause
