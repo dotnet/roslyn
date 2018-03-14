@@ -633,5 +633,39 @@ class C
     }
 }", options: ImplicitTypeEverywhere());
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestTrivia()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        // trivia 1
+        [||]for /*trivia 2*/ ( /*trivia 3*/ int i = 0; i < array.Length; i++) /*trivia 4*/
+        // trivia 5
+        {
+            Console.WriteLine(array[i]);
+        } // trivia 6
+    }
+}",
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        // trivia 1
+        foreach /*trivia 2*/ ( /*trivia 3*/ string {|Rename:v|} in array) /*trivia 4*/
+        // trivia 5
+        {
+            Console.WriteLine(v);
+        } // trivia 6
+    }
+}");
+        }
     }
 }
