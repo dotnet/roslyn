@@ -1238,6 +1238,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public bool HasBody => !IsAbstract && !IsExternal && (ContainingType == null || !ContainingType.IsComImport);
+
         #region IMethodSymbolInternal
 
         bool IMethodSymbolInternal.IsIterator => IsIterator;
