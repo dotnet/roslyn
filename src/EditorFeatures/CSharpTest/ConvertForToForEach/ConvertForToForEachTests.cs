@@ -265,5 +265,107 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestList1()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void Test(IList<string> list)
+    {
+        [||]for (int i = 0; i < list.Count; i++)
+        {
+            Console.WriteLine(list[i]);
+        }
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void Test(IList<string> list)
+    {
+        foreach (string {|Rename:v|} in list)
+        {
+            Console.WriteLine(v);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestChooseNameFromDeclarationStatement()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void Test(IList<string> list)
+    {
+        [||]for (int i = 0; i < list.Count; i++)
+        {
+            var val = list[i];
+            Console.WriteLine(list[i]);
+        }
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void Test(IList<string> list)
+    {
+        foreach (var val in list)
+        {
+            Console.WriteLine(val);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestChooseNameFromDeclarationStatement_PreserveComments()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void Test(IList<string> list)
+    {
+        [||]for (int i = 0; i < list.Count; i++)
+        {
+            // loop comment
+
+            var val = list[i];
+            Console.WriteLine(list[i]);
+        }
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void Test(IList<string> list)
+    {
+        foreach (var val in list)
+        {
+            // loop comment
+
+            Console.WriteLine(val);
+        }
+    }
+}");
+        }
     }
 }
