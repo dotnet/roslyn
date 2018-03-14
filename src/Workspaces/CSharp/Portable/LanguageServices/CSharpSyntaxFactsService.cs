@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DescendingKeyword:
                     return true;
                 case SyntaxKind.InKeyword:
-                    switch (token.Parent?.Kind())
+                    switch (token.Parent.Kind())
                     {
                         case SyntaxKind.FromClause:
                         case SyntaxKind.JoinClause:
@@ -586,7 +586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public bool IsBindableToken(SyntaxToken token)
         {
-            if (this.IsWord(token) || this.IsLiteral(token) || this.IsOperator(token) || token.Kind() == SyntaxKind.CommaToken)
+            if (this.IsWord(token) || this.IsLiteral(token) || this.IsOperator(token))
             {
                 switch ((SyntaxKind)token.RawKind)
                 {
@@ -595,6 +595,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return false;
                 }
 
+                return true;
+            }
+
+            if (token.Kind() == SyntaxKind.CommaToken && token.Parent.Kind() == SyntaxKind.OrderByClause)
+            {
                 return true;
             }
 

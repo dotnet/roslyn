@@ -215,6 +215,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     }
                 }
             }
+
             if (allSymbols.Length == 0 && syntaxFacts.IsQueryKeyword(token))
             {
                 type = null;

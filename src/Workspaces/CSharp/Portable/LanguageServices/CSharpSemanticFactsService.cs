@@ -262,26 +262,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case FromClauseSyntax fromClauseSyntax:
                 case JoinClauseSyntax joinClauseSyntax:
                     var queryClauseSyntax = (QueryClauseSyntax)node;
-                    var qryInfo = semanticModel.GetQueryClauseInfo(queryClauseSyntax, cancellationToken);
-                    var hasCastInfo = qryInfo.CastInfo.Symbol != null;
-                    var hasOperationInfo = qryInfo.OperationInfo.Symbol != null;
+                    var queryInfo = semanticModel.GetQueryClauseInfo(queryClauseSyntax, cancellationToken);
+                    var hasCastInfo = queryInfo.CastInfo.Symbol != null;
+                    var hasOperationInfo = queryInfo.OperationInfo.Symbol != null;
+
                     if (hasCastInfo && hasOperationInfo)
                     {
-                        return token.IsKind(SyntaxKind.InKeyword) ? qryInfo.CastInfo : qryInfo.OperationInfo;
+                        return token.IsKind(SyntaxKind.InKeyword) ? queryInfo.CastInfo : queryInfo.OperationInfo;
                     }
 
                     if (hasCastInfo)
                     {
-                        return qryInfo.CastInfo;
+                        return queryInfo.CastInfo;
                     }
 
-                    return qryInfo.OperationInfo;
+                    return queryInfo.OperationInfo;
                 case OrderByClauseSyntax orderByClauseSyntax:
                     if (token.Kind() == SyntaxKind.CommaToken)
                     {
                         var separators = orderByClauseSyntax.Orderings.GetSeparators().ToImmutableList();
                         var index = separators.IndexOf(token);
-                        if (index >= 0 && (index + 1) < (orderByClauseSyntax.Orderings.Count))
+                        if (index >= 0 && (index + 1) < orderByClauseSyntax.Orderings.Count)
                         {
                             var ordering = orderByClauseSyntax.Orderings[index + 1];
                             if (ordering.AscendingOrDescendingKeyword.Kind() == SyntaxKind.None)
@@ -290,8 +291,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                     }
+
                     break;
             }
+
             //Only in the orderby clause a comma can bind to a symbol.
             if (token.IsKind(SyntaxKind.CommaToken))
             {
