@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (receiver is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixed)
             {
                 var loweredFieldReceiver = VisitExpression(fieldAccess.ReceiverOpt);
-                fieldAccess.Update(loweredFieldReceiver, fieldAccess.FieldSymbol, fieldAccess.ConstantValueOpt, fieldAccess.ResultKind, fieldAccess.Type);
+                fieldAccess = fieldAccess.Update(loweredFieldReceiver, fieldAccess.FieldSymbol, fieldAccess.ConstantValueOpt, fieldAccess.ResultKind, fieldAccess.Type);
                 return new BoundAddressOfOperator(receiver.Syntax, fieldAccess, isManaged: true, fieldAccess.Type);
             }
 

@@ -376,10 +376,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
 
                 case BoundKind.PointerElementAccess:
-                    var receiver = ((BoundPointerElementAccess)expr).Expression;
-                    if (receiver is BoundFieldAccess fieldAcess && fieldAcess.FieldSymbol.IsFixed)
                     {
-                        return CheckValueKind(node, fieldAcess.ReceiverOpt, valueKind, checkingReceiver: true, diagnostics);
+                        var receiver = ((BoundPointerElementAccess)expr).Expression;
+                        if (receiver is BoundFieldAccess fieldAccess && fieldAccess.FieldSymbol.IsFixed)
+                        {
+                            return CheckValueKind(node, fieldAccess.ReceiverOpt, valueKind, checkingReceiver: true, diagnostics);
+                        }
                     }
 
                     return true;
@@ -455,8 +457,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.FieldAccess:
-                    var fieldAccess = (BoundFieldAccess)expr;
-                    return CheckFieldValueKind(node, fieldAccess, valueKind, checkingReceiver, diagnostics);
+                    {
+                        var fieldAccess = (BoundFieldAccess)expr;
+                        return CheckFieldValueKind(node, fieldAccess, valueKind, checkingReceiver, diagnostics);
+                    }
 
                 case BoundKind.AssignmentOperator:
                     var assignment = (BoundAssignmentOperator)expr;

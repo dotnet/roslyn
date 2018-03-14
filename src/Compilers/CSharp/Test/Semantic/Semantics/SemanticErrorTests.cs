@@ -15457,6 +15457,43 @@ unsafe class Test
         }
 
         [Fact]
+        public void CS1666ERR_FixedBufferNotUnsafeErr()
+        {
+            var text = @"
+unsafe struct S
+{
+    public fixed int buffer[1];
+}
+
+class Test
+{
+    public static void Main()
+    {
+        var inst = new Test();
+        System.Console.Write(inst.example1());
+        System.Console.Write(inst.field.buffer[0]);
+    }
+
+    S field = new S();
+
+    private int example1()
+    {
+        return (field.buffer[0] = 7);   // OK
+    }
+}
+";
+
+            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+                // (13,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         System.Console.Write(inst.field.buffer[0]);
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "inst.field.buffer").WithLocation(13, 30),
+                // (20,17): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
+                //         return (field.buffer[0] = 7);   // OK
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "field.buffer").WithLocation(20, 17)
+                 );
+        }
+
+        [Fact]
         public void CS1666ERR_FixedBufferNotFixed()
         {
             var text = @"
