@@ -598,5 +598,39 @@ Namespace RoslynSandbox
 End Namespace
 ")
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(25401, "https://github.com/dotnet/roslyn/issues/25401")>
+        Public Async Function TestGetterAccessibilityDiffers() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class Class1
+    [|dim i as integer|]
+    property P as Integer
+        protected get
+            return i
+        end get
+        set
+            i = value
+        end set
+    end property
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)>
+        <WorkItem(25401, "https://github.com/dotnet/roslyn/issues/25401")>
+        Public Async Function TestSetterAccessibilityDiffers() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"class Class1
+    [|dim i as integer|]
+    property P as Integer
+        get
+            return i
+        end get
+        protected set
+            i = value
+        end set
+    end property
+end class")
+        End Function
     End Class
 End Namespace
