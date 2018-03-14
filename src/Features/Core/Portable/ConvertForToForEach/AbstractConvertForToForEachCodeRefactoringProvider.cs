@@ -307,7 +307,8 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 var indexerType = GetIndexerType(containingType, collectionType);
                 if (!Equals(indexerType, iterationType))
                 {
-                    typeNode = (TTypeNode)generator.TypeExpression(iterationType);
+                    typeNode = (TTypeNode)generator.TypeExpression(
+                        indexerType ?? semanticModel.Compilation.GetSpecialType(SpecialType.System_Object));
                 }
             }
 
@@ -407,12 +408,12 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 return arrayType.ElementType;
             }
 
-            var indexerMethods = TryFindMembersInThisOrBaseTypes<IMethodSymbol>(
+            var indexerProperties = TryFindMembersInThisOrBaseTypes<IPropertySymbol>(
                 containingType, collectionType, WellKnownMemberNames.Indexer);
-            var indexer = indexerMethods.FirstOrDefault(
+            var indexer = indexerProperties.FirstOrDefault(
                 m => m.Parameters.Length == 1 && m.Parameters[0].Type?.SpecialType == SpecialType.System_Int32);
 
-            return indexer?.ReturnType;
+            return indexer?.Type;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

@@ -1,9 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
+using Microsoft.CodeAnalysis.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.ConvertForToForEach;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -13,6 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ConvertForToForEach
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
             => new CSharpConvertForToForEachCodeRefactoringProvider();
+
+        private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
+
+        private IDictionary<OptionKey, object> ImplicitTypeEverywhere() => OptionsSet(
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithNone),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithNone),
+            SingleOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithNone));
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
         public async Task TestArray1()
@@ -491,6 +502,136 @@ class C
         }
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task UseVarIfPreferred1()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        foreach (var {|Rename:v|} in array)
+        {
+            Console.WriteLine(v);
+        }
+    }
+}", options: ImplicitTypeEverywhere());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestDifferentIndexerAndEnumeratorType()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class MyList
+{
+  public string this[int i] { get; }
+
+  public Enumerator GetEnumerator() { }
+
+  public struct Enumerator { public object Current { get; } }
+}
+
+class C
+{
+    void Test(MyList list)
+    {
+        // need to use 'string' here to preserve original index semantics.
+        [||]for (int i = 0; i < list.Length; i++)
+        {
+            Console.WriteLine(list[i]);
+        }
+    }
+}",
+@"using System;
+
+class MyList
+{
+  public string this[int i] { get; }
+
+  public Enumerator GetEnumerator() { }
+
+  public struct Enumerator { public object Current { get; } }
+}
+
+class C
+{
+    void Test(MyList list)
+    {
+        // need to use 'string' here to preserve original index semantics.
+        foreach (string {|Rename:v|} in list)
+        {
+            Console.WriteLine(v);
+        }
+    }
+}", options: ImplicitTypeEverywhere());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestSameIndexerAndEnumeratorType()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class MyList
+{
+  public object this[int i] { get; }
+
+  public Enumerator GetEnumerator() { }
+
+  public struct Enumerator { public object Current { get; } }
+}
+
+class C
+{
+    void Test(MyList list)
+    {
+        // can use 'var' here since hte type stayed the same.
+        [||]for (int i = 0; i < list.Length; i++)
+        {
+            Console.WriteLine(list[i]);
+        }
+    }
+}",
+@"using System;
+
+class MyList
+{
+  public object this[int i] { get; }
+
+  public Enumerator GetEnumerator() { }
+
+  public struct Enumerator { public object Current { get; } }
+}
+
+class C
+{
+    void Test(MyList list)
+    {
+        // can use 'var' here since hte type stayed the same.
+        foreach (var {|Rename:v|} in list)
+        {
+            Console.WriteLine(v);
+        }
+    }
+}", options: ImplicitTypeEverywhere());
         }
     }
 }
