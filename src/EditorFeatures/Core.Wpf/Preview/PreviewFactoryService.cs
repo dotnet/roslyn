@@ -253,8 +253,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             // Create PreviewWorkspace around the buffer to be displayed in the diff preview
             // so that all IDE services (colorizer, squiggles etc.) light up in this buffer.
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to the caller.
             var rightWorkspace = new PreviewWorkspace(
                 document.WithText(newBuffer.AsTextContainer().CurrentText).Project.Solution);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             rightWorkspace.OpenDocument(document.Id);
 
             return CreateAddedDocumentPreviewViewCoreAsync(newBuffer, rightWorkspace, document, zoomLevel, cancellationToken);
@@ -267,8 +269,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
 
             // Create PreviewWorkspace around the buffer to be displayed in the diff preview
             // so that all IDE services (colorizer, squiggles etc.) light up in this buffer.
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to the caller.
             var rightWorkspace = new PreviewWorkspace(
                 document.Project.Solution.WithAdditionalDocumentText(document.Id, newBuffer.AsTextContainer().CurrentText));
+#pragma warning restore CA2000 // Dispose objects before losing scope
             rightWorkspace.OpenAdditionalDocument(document.Id);
 
             return CreateAddedDocumentPreviewViewCoreAsync(newBuffer, rightWorkspace, document, zoomLevel, cancellationToken);
@@ -318,7 +322,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var leftDocument = document.Project
                 .RemoveDocument(document.Id)
                 .AddDocument(document.Name, oldBuffer.AsTextContainer().CurrentText);
-            var leftWorkspace = new PreviewWorkspace(leftDocument.Project.Solution);
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to the caller.
+            var previewWorkspace = new PreviewWorkspace(leftDocument.Project.Solution);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+            var leftWorkspace = previewWorkspace;
             leftWorkspace.OpenDocument(leftDocument.Id);
 
             return CreateRemovedDocumentPreviewViewCoreAsync(oldBuffer, leftWorkspace, leftDocument, zoomLevel, cancellationToken);
@@ -347,7 +354,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
                 .RemoveAdditionalDocument(document.Id)
                 .AddAdditionalDocument(leftDocumentId, document.Name, oldBuffer.AsTextContainer().CurrentText);
             var leftDocument = leftSolution.GetAdditionalDocument(leftDocumentId);
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to the caller.
             var leftWorkspace = new PreviewWorkspace(leftSolution);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             leftWorkspace.OpenAdditionalDocument(leftDocumentId);
 
             return CreateRemovedDocumentPreviewViewCoreAsync(oldBuffer, leftWorkspace, leftDocument, zoomLevel, cancellationToken);
@@ -429,11 +438,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var leftDocument = oldDocument.Project
                 .RemoveDocument(oldDocument.Id)
                 .AddDocument(oldDocument.Name, oldBuffer.AsTextContainer().CurrentText, oldDocument.Folders, oldDocument.FilePath);
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to the caller.
             var leftWorkspace = new PreviewWorkspace(leftDocument.Project.Solution);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             leftWorkspace.OpenDocument(leftDocument.Id);
 
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to the caller.
             var rightWorkspace = new PreviewWorkspace(
                 newDocument.WithText(newBuffer.AsTextContainer().CurrentText).Project.Solution);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             rightWorkspace.OpenDocument(newDocument.Id);
 
             return CreateChangedDocumentViewAsync(
@@ -478,11 +491,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Preview
             var leftSolution = oldDocument.Project.Solution
                 .RemoveAdditionalDocument(oldDocument.Id)
                 .AddAdditionalDocument(leftDocumentId, oldDocument.Name, oldBuffer.AsTextContainer().CurrentText);
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to the caller.
             var leftWorkspace = new PreviewWorkspace(leftSolution);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             leftWorkspace.OpenAdditionalDocument(leftDocumentId);
 
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to the caller.
             var rightWorkSpace = new PreviewWorkspace(
                 oldDocument.Project.Solution.WithAdditionalDocumentText(oldDocument.Id, newBuffer.AsTextContainer().CurrentText));
+#pragma warning restore CA2000 // Dispose objects before losing scope
             rightWorkSpace.OpenAdditionalDocument(newDocument.Id);
 
             return CreateChangedDocumentViewAsync(

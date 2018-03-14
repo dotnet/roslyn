@@ -60,10 +60,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
             if (_renameService.ActiveSession != null &&
                 ViewIncludesBufferFromWorkspace(_textView, _renameService.ActiveSession.Workspace))
             {
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer for Dashboard instance to _adornmentLayer.
                 var newAdornment = new Dashboard(
                     s_createdViewModels.GetValue(_renameService.ActiveSession, session => new DashboardViewModel(session)),
                     _editorFormatMapService,
                     _textView);
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 _adornmentLayer.AddAdornment(AdornmentPositioningBehavior.ViewportRelative, null, null, newAdornment,
                     (tag, adornment) => ((Dashboard)adornment).Dispose());
             }

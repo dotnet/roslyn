@@ -103,7 +103,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim metadataCompilation = compilation.RemoveAllSyntaxTrees()
 
             Dim assemblyReferenceIdentityMap As ImmutableDictionary(Of AssemblyIdentity, AssemblyIdentity) = Nothing
+#Disable Warning CA2000 ' Dispose objects before losing scope - dispose ownership transfer to CreatePEAssemblyForAssemblyMetadata 
             Dim metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All, assemblyReferenceIdentityMap)
+#Enable Warning CA2000 ' Dispose objects before losing scope
             Dim metadataDecoder = New MetadataDecoder(metadataAssembly.PrimaryModule)
             Dim metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder)
             Dim metadataSymbols = New EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder, assemblyReferenceIdentityMap)

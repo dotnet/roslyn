@@ -24,7 +24,11 @@ namespace Roslyn.Hosting.Diagnostics
             Task.Factory.StartNew(() => { }, CancellationToken.None, TaskCreationOptions.None, TaskScheduler.Default);
 
             var local = new TPLListener();
-            Interlocked.CompareExchange(ref s_listener, local, null);
+            if (Interlocked.CompareExchange(ref s_listener, local, null) != null)
+            {
+                // s_listener was already set on another thread, hence local was not used. 
+                local.Dispose();
+            }
         }
 
         public static void Uninstall()

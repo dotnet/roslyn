@@ -74,7 +74,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
                 // Get all the modules, and load them. Create an assembly metadata.
                 var allModules = GetAllModules(primaryModule, Path.GetDirectoryName(fullPath));
+#pragma warning disable CA2000 // Dispose objects before losing scope - object added to _metadataCache 
                 Metadata result = AssemblyMetadata.Create(allModules);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
                 result = _metadataCache.GetOrAdd(fileKey.Value, result);
 

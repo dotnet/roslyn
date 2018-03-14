@@ -43,7 +43,9 @@ namespace Microsoft.CodeAnalysis.Remote
             private static readonly TimeSpan ConnectRetryIntervalMs = TimeSpan.FromMilliseconds(20);
 
             private readonly string _name;
+#pragma warning disable CA2213 // Disposable fields should be disposed - _stream wraps _pipe and is disposed in Close.
             private readonly NamedPipeClientStream _pipe;
+#pragma warning restore CA2213 // Disposable fields should be disposed
             private readonly Stream _stream;
 
             public ClientDirectStream(string name)

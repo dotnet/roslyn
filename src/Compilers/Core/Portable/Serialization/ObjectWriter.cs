@@ -69,16 +69,18 @@ namespace Roslyn.Utilities
         /// Creates a new instance of a <see cref="ObjectWriter"/>.
         /// </summary>
         /// <param name="stream">The stream to write to.</param>
+        /// <param name="leaveStreamOpen">Flag to control whether <paramref name="stream"/> should be left open when this writer is disposed.</param>
         /// <param name="cancellationToken"></param>
         public ObjectWriter(
             Stream stream,
+            bool leaveStreamOpen = true,
             CancellationToken cancellationToken = default)
         {
             // String serialization assumes both reader and writer to be of the same endianness.
             // It can be adjusted for BigEndian if needed.
             Debug.Assert(BitConverter.IsLittleEndian);
 
-            _writer = new BinaryWriter(stream, Encoding.UTF8);
+            _writer = new BinaryWriter(stream, Encoding.UTF8, leaveStreamOpen);
             _objectReferenceMap = new WriterReferenceMap(valueEquality: false);
             _stringReferenceMap = new WriterReferenceMap(valueEquality: true);
             _cancellationToken = cancellationToken;
@@ -101,6 +103,7 @@ namespace Roslyn.Utilities
             _objectReferenceMap.Dispose();
             _stringReferenceMap.Dispose();
             _recursionDepth = 0;
+            _writer.Dispose();
         }
 
         public void WriteBoolean(bool value) => _writer.Write(value);

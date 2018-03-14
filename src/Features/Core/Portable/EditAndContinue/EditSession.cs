@@ -337,7 +337,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                 var currentCompilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
                 var allAddedSymbols = await GetAllAddedSymbols(cancellationToken).ConfigureAwait(false);
 
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to Deltas.
                 var pdbStream = new MemoryStream();
+#pragma warning restore CA2000 // Dispose objects before losing scope
                 var updatedMethods = new List<MethodDefinitionHandle>();
 
                 using (var metadataStream = SerializableBytes.CreateWritableStream())

@@ -104,7 +104,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             var metadataCompilation = compilation.RemoveAllSyntaxTrees();
 
             ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> assemblyReferenceIdentityMap;
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer to CreatePEAssemblyForAssemblyMetadata
             var metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All, out assemblyReferenceIdentityMap);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             var metadataDecoder = new MetadataDecoder(metadataAssembly.PrimaryModule);
             var metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder);
             var metadataSymbols = new EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder, assemblyReferenceIdentityMap);

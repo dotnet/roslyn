@@ -139,6 +139,7 @@ namespace Microsoft.CodeAnalysis.Interactive
             public void Dispose()
             {
                 _metadataFileProvider.Dispose();
+                _assemblyLoader.Dispose();
             }
 
             public override object InitializeLifetimeService()

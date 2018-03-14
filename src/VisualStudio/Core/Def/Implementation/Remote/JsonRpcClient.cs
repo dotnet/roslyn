@@ -19,7 +19,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
     internal abstract class JsonRpcEx : IDisposable
     {
         private readonly TraceSource _logger;
+#pragma warning disable CA2213 // Disposable fields should be disposed - field is disposed in a helper method.
         private readonly JsonRpc _rpc;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         private JsonRpcDisconnectedEventArgs _debuggingLastDisconnectReason;
         private string _debuggingLastDisconnectCallstack;
@@ -33,7 +35,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
 
             _logger = logger;
 
+#pragma warning disable CA2000 // Dispose objects before losing scope - JsonRpc instance has the dispose ownership of JsonRpcMessageHandler instance.
             _rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), target);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             _rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
 
             _rpc.Disconnected += OnDisconnected;

@@ -1250,18 +1250,20 @@ namespace Microsoft.CodeAnalysis
 
         internal static void AppendNullResource(Stream resourceStream)
         {
-            var writer = new BinaryWriter(resourceStream);
-            writer.Write((UInt32)0);
-            writer.Write((UInt32)0x20);
-            writer.Write((UInt16)0xFFFF);
-            writer.Write((UInt16)0);
-            writer.Write((UInt16)0xFFFF);
-            writer.Write((UInt16)0);
-            writer.Write((UInt32)0);            //DataVersion
-            writer.Write((UInt16)0);            //MemoryFlags
-            writer.Write((UInt16)0);            //LanguageId
-            writer.Write((UInt32)0);            //Version
-            writer.Write((UInt32)0);            //Characteristics
+            using (var writer = new BinaryWriter(resourceStream, Encoding.UTF8, leaveOpen: true))
+            {
+                writer.Write((UInt32)0);
+                writer.Write((UInt32)0x20);
+                writer.Write((UInt16)0xFFFF);
+                writer.Write((UInt16)0);
+                writer.Write((UInt16)0xFFFF);
+                writer.Write((UInt16)0);
+                writer.Write((UInt32)0);            //DataVersion
+                writer.Write((UInt16)0);            //MemoryFlags
+                writer.Write((UInt16)0);            //LanguageId
+                writer.Write((UInt32)0);            //Version
+                writer.Write((UInt32)0);            //Characteristics
+            }
         }
 
         protected abstract void AppendDefaultVersionResource(Stream resourceStream);
@@ -1275,20 +1277,21 @@ namespace Microsoft.CodeAnalysis
 
         internal static Win32ResourceForm DetectWin32ResourceForm(Stream win32Resources)
         {
-            var reader = new BinaryReader(win32Resources, Encoding.Unicode);
+            using (var reader = new BinaryReader(win32Resources, Encoding.Unicode, leaveOpen: true))
+            {
+                var initialPosition = win32Resources.Position;
+                var initial32Bits = reader.ReadUInt32();
+                win32Resources.Position = initialPosition;
 
-            var initialPosition = win32Resources.Position;
-            var initial32Bits = reader.ReadUInt32();
-            win32Resources.Position = initialPosition;
-
-            //RC.EXE output starts with a resource that contains no data.
-            if (initial32Bits == 0)
-                return Win32ResourceForm.RES;
-            else if ((initial32Bits & 0xFFFF0000) != 0 || (initial32Bits & 0x0000FFFF) != 0xFFFF)
-                // See CLiteWeightStgdbRW::FindObjMetaData in peparse.cpp
-                return Win32ResourceForm.COFF;
-            else
-                return Win32ResourceForm.UNKNOWN;
+                //RC.EXE output starts with a resource that contains no data.
+                if (initial32Bits == 0)
+                    return Win32ResourceForm.RES;
+                else if ((initial32Bits & 0xFFFF0000) != 0 || (initial32Bits & 0x0000FFFF) != 0xFFFF)
+                    // See CLiteWeightStgdbRW::FindObjMetaData in peparse.cpp
+                    return Win32ResourceForm.COFF;
+                else
+                    return Win32ResourceForm.UNKNOWN;
+            }
         }
 
         internal Cci.ResourceSection MakeWin32ResourcesFromCOFF(Stream win32Resources, DiagnosticBag diagnostics)
@@ -2222,7 +2225,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             ReportUnusedImports(null, diagnostics, cancellationToken);
                         }
-                   }
+                    }
                 }
                 finally
                 {
@@ -2464,15 +2467,15 @@ namespace Microsoft.CodeAnalysis
                     return ret;
                 };
 
-                Func<Stream> getRefPeStream = 
+                Func<Stream> getRefPeStream =
                     metadataPEStreamProvider == null
                     ? null
-                    : (Func<Stream>) (() => ConditionalGetOrCreateStream(metadataPEStreamProvider, metadataDiagnostics));
+                    : (Func<Stream>)(() => ConditionalGetOrCreateStream(metadataPEStreamProvider, metadataDiagnostics));
 
                 Func<Stream> getPortablePdbStream =
                     moduleBeingBuilt.DebugInformationFormat != DebugInformationFormat.PortablePdb || pdbStreamProvider == null
                     ? null
-                    : (Func<Stream>) (() => ConditionalGetOrCreateStream(pdbStreamProvider, metadataDiagnostics));
+                    : (Func<Stream>)(() => ConditionalGetOrCreateStream(pdbStreamProvider, metadataDiagnostics));
 
                 try
                 {

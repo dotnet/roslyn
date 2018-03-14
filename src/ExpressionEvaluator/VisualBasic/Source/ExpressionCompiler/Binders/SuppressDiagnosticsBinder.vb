@@ -2,14 +2,14 @@
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
 
-#Disable Warning RS0010
+#Disable Warning CA1200
     ''' <summary>
     ''' Causes all diagnostics related to <see cref="ObsoleteAttribute"/>
     ''' and <see cref="T:Windows.Foundation.MetadataDeprecatedAttribute"/> 
     ''' to be suppressed.
     ''' </summary>
     Friend NotInheritable Class SuppressDiagnosticsBinder
-#Enable Warning RS0010
+#Enable Warning CA1200
         Inherits Binder
 
         Public Sub New(containingBinder As Binder)

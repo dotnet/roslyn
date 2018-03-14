@@ -22,7 +22,9 @@ namespace Microsoft.CodeAnalysis.Remote
             private const int BUFFERSIZE = 12 * 1024;
 
             private readonly string _name;
+#pragma warning disable CA2213 // Disposable fields should be disposed - _stream wraps _pipe and is disposed in Close.
             private readonly NamedPipeServerStream _pipe;
+#pragma warning restore CA2213 // Disposable fields should be disposed
             private readonly Stream _stream;
 
             public ServerDirectStream(int bufferSize = BUFFERSIZE)

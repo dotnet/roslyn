@@ -120,7 +120,9 @@ namespace Microsoft.CodeAnalysis.SQLite
         [DllImport("kernel32.dll")]
         private static extern IntPtr LoadLibrary(string dllToLoad);
 
+#pragma warning disable CA2213 // Disposable fields should be disposed - field is disposed in a helper method. Remove this suppression once https://github.com/dotnet/roslyn-analyzers/issues/1594 is fixed.
         private readonly CancellationTokenSource _shutdownTokenSource = new CancellationTokenSource();
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         private readonly IDisposable _dbOwnershipLock;
         private readonly IPersistentStorageFaultInjector _faultInjectorOpt;
@@ -221,6 +223,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             {
                 // Notify any outstanding async work that it should stop.
                 _shutdownTokenSource.Cancel();
+                _shutdownTokenSource.Dispose();
 
                 // Go through all our pooled connections and close them.
                 while (_connectionsPool.Count > 0)
@@ -228,6 +231,8 @@ namespace Microsoft.CodeAnalysis.SQLite
                     var connection = _connectionsPool.Pop();
                     connection.Close_OnlyForUseBySqlPersistentStorage();
                 }
+
+                _writeQueueGate.Dispose();
             }
         }
 

@@ -49,7 +49,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
                 using (Logger.LogBlock(FunctionId.JsonRpcSession_RequestAssetAsync, streamName, source.Token))
                 using (var stream = await DirectStream.GetAsync(streamName, source.Token).ConfigureAwait(false))
                 {
-                    using (var writer = new ObjectWriter(stream, source.Token))
+                    using (var writer = new ObjectWriter(stream, cancellationToken: source.Token))
                     {
                         writer.WriteInt32(scopeId);
 
@@ -142,6 +142,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Remote
         {
             Contract.ThrowIfFalse(disposing);
             Disconnect();
+            _shutdownCancellationSource.Dispose();
         }
 
         protected override void Disconnected(JsonRpcDisconnectedEventArgs e)

@@ -106,7 +106,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="ArgumentNullException"><paramref name="peImage"/> is null.</exception>
         public static AssemblyMetadata CreateFromImage(ImmutableArray<byte> peImage)
         {
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer
             return Create(ModuleMetadata.CreateFromImage(peImage));
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         /// <summary>
@@ -119,7 +121,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">The PE image format is invalid.</exception>
         public static AssemblyMetadata CreateFromImage(IEnumerable<byte> peImage)
         {
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer
             return Create(ModuleMetadata.CreateFromImage(peImage));
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         /// <summary>
@@ -130,7 +134,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">The PE image format is invalid.</exception>
         public static AssemblyMetadata CreateFromStream(Stream peStream, bool leaveOpen = false)
         {
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer
             return Create(ModuleMetadata.CreateFromStream(peStream, leaveOpen));
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         /// <summary>
@@ -141,7 +147,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">The PE image format is invalid.</exception>
         public static AssemblyMetadata CreateFromStream(Stream peStream, PEStreamOptions options)
         {
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer
             return Create(ModuleMetadata.CreateFromStream(peStream, options));
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         /// <summary>
@@ -154,7 +162,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="NotSupportedException">Reading from a file path is not supported by the platform.</exception>
         public static AssemblyMetadata CreateFromFile(string path)
         {
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transfer
             return CreateFromFile(ModuleMetadata.CreateFromFile(path), path);
+#pragma warning restore CA2000 // Dispose objects before losing scope
         }
 
         internal static AssemblyMetadata CreateFromFile(ModuleMetadata manifestModule, string path)

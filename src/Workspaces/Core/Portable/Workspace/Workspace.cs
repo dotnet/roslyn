@@ -305,6 +305,8 @@ namespace Microsoft.CodeAnalysis
             }
 
             ((IWorkspaceOptionService)this.Services.GetService<IOptionService>()).OnWorkspaceDisposed(this);
+            _serializationLock.Dispose();
+            _isProjectUnloading.Dispose();
         }
 
         #region Host API

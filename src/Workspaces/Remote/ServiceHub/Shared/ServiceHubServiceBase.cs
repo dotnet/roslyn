@@ -62,7 +62,9 @@ namespace Microsoft.CodeAnalysis.Remote
             // due to this issue - https://github.com/dotnet/roslyn/issues/16900#issuecomment-277378950
             // all sub type must explicitly start JsonRpc once everything is
             // setup
+#pragma warning disable CA2000 // Dispose objects before losing scope - JsonRpc owns disposing JsonRpcMessageHandler
             Rpc = new JsonRpc(new JsonRpcMessageHandler(stream, stream), this);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             Rpc.JsonSerializer.Converters.Add(AggregateJsonConverter.Instance);
             Rpc.Disconnected += OnRpcDisconnected;
         }

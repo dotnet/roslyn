@@ -129,38 +129,41 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var keepAlive = CheckForNewKeepAlive(request);
 
             // Kick off both the compilation and a task to monitor the pipe for closing.
-            var buildCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var compilationTask = ServeBuildRequest(request, buildCts.Token);
-            var monitorTask = CreateMonitorDisconnectTask(buildCts.Token);
-            await Task.WhenAny(compilationTask, monitorTask).ConfigureAwait(false);
-
-            // Do an 'await' on the completed task, preference being compilation, to force
-            // any exceptions to be realized in this method for logging.
             CompletionReason reason;
-            if (compilationTask.IsCompleted)
+            using (var buildCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
             {
-                var response = await compilationTask.ConfigureAwait(false);
+                var compilationTask = ServeBuildRequest(request, buildCts.Token);
+                var monitorTask = CreateMonitorDisconnectTask(buildCts.Token);
+                await Task.WhenAny(compilationTask, monitorTask).ConfigureAwait(false);
 
-                try
+                // Do an 'await' on the completed task, preference being compilation, to force
+                // any exceptions to be realized in this method for logging.
+                if (compilationTask.IsCompleted)
                 {
-                    Log("Begin writing response.");
-                    await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
-                    reason = CompletionReason.CompilationCompleted;
-                    Log("End writing response.");
+                    var response = await compilationTask.ConfigureAwait(false);
+
+                    try
+                    {
+                        Log("Begin writing response.");
+                        await response.WriteAsync(_stream, cancellationToken).ConfigureAwait(false);
+                        reason = CompletionReason.CompilationCompleted;
+                        Log("End writing response.");
+                    }
+                    catch
+                    {
+                        reason = CompletionReason.ClientDisconnect;
+                    }
                 }
-                catch
+                else
                 {
+                    await monitorTask.ConfigureAwait(false);
                     reason = CompletionReason.ClientDisconnect;
                 }
-            }
-            else
-            {
-                await monitorTask.ConfigureAwait(false);
-                reason = CompletionReason.ClientDisconnect;
+
+                // Begin the tear down of the Task which didn't complete.
+                buildCts.Cancel();
             }
 
-            // Begin the tear down of the Task which didn't complete.
-            buildCts.Cancel();
             return new ConnectionData(reason, keepAlive);
         }
 

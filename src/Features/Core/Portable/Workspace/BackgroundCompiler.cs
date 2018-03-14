@@ -19,7 +19,9 @@ namespace Microsoft.CodeAnalysis.Host
         private Compilation[] _mostRecentCompilations;
 
         private readonly object _buildGate = new object();
+#pragma warning disable CA2213 // Disposable fields should be disposed - field is disposed in a helper method. Remove this suppression once https://github.com/dotnet/roslyn-analyzers/issues/1594 is fixed.
         private CancellationTokenSource _cancellationSource;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         public BackgroundCompiler(Workspace workspace)
         {
@@ -39,7 +41,7 @@ namespace Microsoft.CodeAnalysis.Host
         {
             if (_workspace != null)
             {
-                this.CancelBuild(releasePreviousCompilations: true);
+                this.CancelBuild(releasePreviousCompilations: true, disposing: true);
 
                 _workspace.DocumentClosed -= OnDocumentClosed;
                 _workspace.DocumentOpened -= OnDocumentOpened;
@@ -66,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Host
                 case WorkspaceChangeKind.SolutionCleared:
                 case WorkspaceChangeKind.SolutionAdded:
                 case WorkspaceChangeKind.SolutionRemoved:
-                    this.CancelBuild(releasePreviousCompilations: true);
+                    this.CancelBuild(releasePreviousCompilations: true, disposing: false);
                     break;
 
                 case WorkspaceChangeKind.SolutionChanged:
@@ -86,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Host
             {
                 // Keep the previous compilations around so that we can incrementally
                 // build the current compilations without rebuilding the entire DeclarationTable
-                this.CancelBuild(releasePreviousCompilations: false);
+                this.CancelBuild(releasePreviousCompilations: false, disposing: false);
 
                 var allProjects = _workspace.GetOpenDocumentIds().Select(d => d.ProjectId).ToSet();
 
@@ -98,12 +100,13 @@ namespace Microsoft.CodeAnalysis.Host
             }
         }
 
-        private void CancelBuild(bool releasePreviousCompilations)
+        private void CancelBuild(bool releasePreviousCompilations, bool disposing)
         {
             lock (_buildGate)
             {
                 _cancellationSource.Cancel();
-                _cancellationSource = new CancellationTokenSource();
+                _cancellationSource.Dispose();
+                _cancellationSource = !disposing ? new CancellationTokenSource() : null;
                 if (releasePreviousCompilations)
                 {
                     _mostRecentCompilations = null;

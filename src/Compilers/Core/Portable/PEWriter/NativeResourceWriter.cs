@@ -354,13 +354,14 @@ namespace Microsoft.Cci
             sectionWriter.WriteBytes(resourceSections.SectionBytes);
 
             var readStream = new MemoryStream(resourceSections.SectionBytes);
-            var reader = new BinaryReader(readStream);
-
-            foreach (int addressToFixup in resourceSections.Relocations)
+            using (var reader = new BinaryReader(readStream))
             {
-                sectionWriter.Offset = addressToFixup;
-                reader.BaseStream.Position = addressToFixup;
-                sectionWriter.WriteUInt32(reader.ReadUInt32() + (uint)resourcesRva);
+                foreach (int addressToFixup in resourceSections.Relocations)
+                {
+                    sectionWriter.Offset = addressToFixup;
+                    reader.BaseStream.Position = addressToFixup;
+                    sectionWriter.WriteUInt32(reader.ReadUInt32() + (uint)resourcesRva);
+                }
             }
         }
     }

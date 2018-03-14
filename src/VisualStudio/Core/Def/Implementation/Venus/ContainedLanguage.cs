@@ -26,9 +26,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
         private readonly IDiagnosticAnalyzerService _diagnosticAnalyzerService;
         private readonly TLanguageService _languageService;
 
+#pragma warning disable CA2213 // Disposable fields should be disposed - we don't have dispose ownership of Workspace.
         protected readonly Workspace Workspace;
+#pragma warning restore CA2213 // Disposable fields should be disposed
         protected readonly IComponentModel ComponentModel;
+#pragma warning disable CA2213 // Disposable fields should be disposed - we don't have dispose ownership of ContainedDocument.
         protected readonly ContainedDocument ContainedDocument;
+#pragma warning restore CA2213 // Disposable fields should be disposed
 
         // Set when a TextViewFIlter is set.  We hold onto this to keep our TagSource objects alive even if Venus
         // disconnects the subject buffer from the view temporarily (which they do frequently).  Otherwise, we have to

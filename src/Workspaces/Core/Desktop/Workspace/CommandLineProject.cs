@@ -23,7 +23,9 @@ namespace Microsoft.CodeAnalysis
         public static ProjectInfo CreateProjectInfo(string projectName, string language, IEnumerable<string> commandLineArgs, string projectDirectory, Workspace workspace = null)
         {
             // TODO (tomat): the method may throw all sorts of exceptions.
+#pragma warning disable CA2000 // Dispose objects before losing scope - Do we need to dispose the new instance of AdhocWorkspace? TODO: File a bug to investigate.
             var tmpWorkspace = workspace ?? new AdhocWorkspace(DesktopMefHostServices.DefaultServices);
+#pragma warning restore CA2000 // Dispose objects before losing scope
             var languageServices = tmpWorkspace.Services.GetLanguageServices(language);
             if (languageServices == null)
             {

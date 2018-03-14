@@ -276,59 +276,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             bool isError = keyword.Kind == SyntaxKind.ErrorKeyword;
             if (isActive)
             {
-                var triviaBuilder = new System.IO.StringWriter(System.Globalization.CultureInfo.InvariantCulture);
-                int triviaWidth = 0;
-
-                // whitespace and single line comments are trailing trivia on the keyword, the rest
-                // of the error message is leading trivia on the eod.
-                //
-                bool skipping = true;
-                foreach (var t in keyword.TrailingTrivia)
+                using (var triviaBuilder = new System.IO.StringWriter(System.Globalization.CultureInfo.InvariantCulture))
                 {
-                    if (skipping)
+                    int triviaWidth = 0;
+
+                    // whitespace and single line comments are trailing trivia on the keyword, the rest
+                    // of the error message is leading trivia on the eod.
+                    //
+                    bool skipping = true;
+                    foreach (var t in keyword.TrailingTrivia)
                     {
-                        if (t.Kind == SyntaxKind.WhitespaceTrivia)
+                        if (skipping)
                         {
-                            continue;
+                            if (t.Kind == SyntaxKind.WhitespaceTrivia)
+                            {
+                                continue;
+                            }
+
+                            skipping = false;
                         }
 
-                        skipping = false;
+                        t.WriteTo(triviaBuilder, leading: true, trailing: true);
+                        triviaWidth += t.FullWidth;
                     }
 
-                    t.WriteTo(triviaBuilder, leading: true, trailing: true);
-                    triviaWidth += t.FullWidth;
-                }
-
-                foreach (var node in eod.LeadingTrivia)
-                {
-                    node.WriteTo(triviaBuilder, leading: true, trailing: true);
-                    triviaWidth += node.FullWidth;
-                }
-
-                //relative to leading trivia of eod
-                //could be negative if part of the error text comes from the trailing trivia of the keyword token
-                int triviaOffset = eod.GetLeadingTriviaWidth() - triviaWidth;
-
-                string errorText = triviaBuilder.ToString();
-                eod = this.AddError(eod, triviaOffset, triviaWidth, isError ? ErrorCode.ERR_ErrorDirective : ErrorCode.WRN_WarningDirective, errorText);
-
-                if (isError)
-                {
-                    if (errorText.Equals("version", StringComparison.Ordinal))
+                    foreach (var node in eod.LeadingTrivia)
                     {
-                        Assembly assembly = typeof(CSharpCompiler).GetTypeInfo().Assembly;
-                        string version = CommonCompiler.GetAssemblyFileVersion(assembly);
-                        eod = this.AddError(eod, triviaOffset, triviaWidth, ErrorCode.ERR_CompilerAndLanguageVersion, version,
-                            this.Options.SpecifiedLanguageVersion.ToDisplayString());
+                        node.WriteTo(triviaBuilder, leading: true, trailing: true);
+                        triviaWidth += node.FullWidth;
                     }
-                    else
+
+                    //relative to leading trivia of eod
+                    //could be negative if part of the error text comes from the trailing trivia of the keyword token
+                    int triviaOffset = eod.GetLeadingTriviaWidth() - triviaWidth;
+
+                    string errorText = triviaBuilder.ToString();
+                    eod = this.AddError(eod, triviaOffset, triviaWidth, isError ? ErrorCode.ERR_ErrorDirective : ErrorCode.WRN_WarningDirective, errorText);
+
+                    if (isError)
                     {
-                        const string versionMarker = "version:";
-                        if (errorText.StartsWith(versionMarker, StringComparison.Ordinal) &&
-                            LanguageVersionFacts.TryParse(errorText.Substring(versionMarker.Length), out var languageVersion))
+                        if (errorText.Equals("version", StringComparison.Ordinal))
                         {
-                            ErrorCode error = this.Options.LanguageVersion.GetErrorCode();
-                            eod = this.AddError(eod, triviaOffset, triviaWidth, error, "version", new CSharpRequiredLanguageVersion(languageVersion));
+                            Assembly assembly = typeof(CSharpCompiler).GetTypeInfo().Assembly;
+                            string version = CommonCompiler.GetAssemblyFileVersion(assembly);
+                            eod = this.AddError(eod, triviaOffset, triviaWidth, ErrorCode.ERR_CompilerAndLanguageVersion, version,
+                                this.Options.SpecifiedLanguageVersion.ToDisplayString());
+                        }
+                        else
+                        {
+                            const string versionMarker = "version:";
+                            if (errorText.StartsWith(versionMarker, StringComparison.Ordinal) &&
+                                LanguageVersionFacts.TryParse(errorText.Substring(versionMarker.Length), out var languageVersion))
+                            {
+                                ErrorCode error = this.Options.LanguageVersion.GetErrorCode();
+                                eod = this.AddError(eod, triviaOffset, triviaWidth, error, "version", new CSharpRequiredLanguageVersion(languageVersion));
+                            }
                         }
                     }
                 }

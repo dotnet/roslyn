@@ -3,6 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 
 namespace Microsoft.CodeAnalysis.BuildTasks
 {
@@ -12,7 +13,10 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
         public static Guid ReadAssemblyMvidOrEmpty(Stream stream)
         {
-            return ReadAssemblyMvidOrEmpty(new BinaryReader(stream));
+            using (var reader = new BinaryReader(stream, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true), leaveOpen: true))
+            {
+                return ReadAssemblyMvidOrEmpty(reader);
+            }
         }
 
         private static Guid ReadAssemblyMvidOrEmpty(BinaryReader reader)

@@ -149,11 +149,13 @@ namespace Microsoft.CodeAnalysis.Storage
             // some sort of issue (like DB corruption).  We'll then try to delete the DB and can
             // try to create it again.  If we can't create it the second time, then there's nothing
             // we can do and we have to store things in memory.
+#pragma warning disable CA2000 // Dispose objects before losing scope - dispose ownership transferred to ReferenceCountedDisposable
             if (TryCreatePersistentStorage(solution, workingFolderPath, out var persistentStorage) ||
                 TryCreatePersistentStorage(solution, workingFolderPath, out persistentStorage))
             {
                 return new ReferenceCountedDisposable<IPersistentStorage>(persistentStorage);
             }
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
             // okay, can't recover, then use no op persistent service 
             // so that things works old way (cache everything in memory)
