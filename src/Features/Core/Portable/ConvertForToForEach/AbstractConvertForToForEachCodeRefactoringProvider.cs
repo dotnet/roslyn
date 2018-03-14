@@ -298,7 +298,6 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                             {
                                 typeNode = (TTypeNode)syntaxFacts.GetTypeOfVariableDeclarator(firstVariable).WithoutLeadingTrivia();
                                 foreachIdentifier = syntaxFacts.GetIdentifierOfVariableDeclarator(firstVariable);
-                                editor.RemoveNode(firstStatement, SyntaxRemoveOptions.KeepLeadingTrivia);
                                 declarationStatement = firstStatement;
                             }
                         }
@@ -316,14 +315,10 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             // Walk the for statement, replacing any matches we find.
             recurse(forStatement);
 
-            if (declarationStatement != null && bodyStatements.Count >= 2)
+            if (declarationStatement != null)
             {
-                // We're removing the first statement, but we've asked for its trivia to be
-                // moved to the second statement.  Format that second statement so that everything
-                // looks fine on it.
-                editor.ReplaceNode(
-                    bodyStatements[1],
-                    (secondStatement, _) => secondStatement.WithAdditionalAnnotations(Formatter.Annotation));
+                editor.RemoveNode(declarationStatement,
+                    SyntaxGenerator.DefaultRemoveOptions | SyntaxRemoveOptions.KeepLeadingTrivia);
             }
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
@@ -338,13 +333,6 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             // local functions
             void recurse(SyntaxNode current)
             {
-                // Do not replace in the first statement if we're just going to remove it
-                // anyways.
-                if (current == declarationStatement)
-                {
-                    return;
-                }
-
                 if (syntaxFacts.AreEquivalent(current, indexExpression))
                 {
                     // Found a match.  replace with iteration variable.
