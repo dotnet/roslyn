@@ -3,7 +3,6 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.CSharp.UseAutoProperty;
 using Roslyn.Test.Utilities;
@@ -1217,6 +1216,64 @@ namespace RoslynSandbox
 @"class Class
 {
     int P { get; set; } = 1;
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(25401, "https://github.com/dotnet/roslyn/issues/25401")]
+        public async Task TestGetterAccessibilityDiffers()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|int i|];
+
+    public int P
+    {
+        protected get
+        {
+            return i;
+        }
+
+        set
+        {
+            i = value;
+        }
+    }
+}",
+@"class Class
+{
+
+    public int P { protected get; set; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseAutoProperty)]
+        [WorkItem(25401, "https://github.com/dotnet/roslyn/issues/25401")]
+        public async Task TestSetterAccessibilityDiffers()
+        {
+            await TestInRegularAndScriptAsync(
+@"class Class
+{
+    [|int i|];
+
+    public int P
+    {
+        get
+        {
+            return i;
+        }
+
+        protected set
+        {
+            i = value;
+        }
+    }
+}",
+@"class Class
+{
+
+    public int P { get; protected set; }
 }");
         }
     }

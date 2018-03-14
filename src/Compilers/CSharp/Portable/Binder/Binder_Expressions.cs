@@ -2344,7 +2344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (typeSyntax.IsVar)
             {
                 var ignored = DiagnosticBag.GetInstance();
-                BindTypeOrAlias(typeSyntax, ignored, out isVar);
+                BindTypeOrAliasOrVarKeyword(typeSyntax, ignored, out isVar);
                 ignored.Free();
 
                 if (isVar)
@@ -3922,7 +3922,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics: diagnostics);
 
                     // Bind member initializer assignment expression
-                    return BindAssignment(initializer, boundLeft, boundRight, diagnostics);
+                    return BindAssignment(initializer, boundLeft, boundRight, isRef: false, diagnostics);
                 }
             }
 

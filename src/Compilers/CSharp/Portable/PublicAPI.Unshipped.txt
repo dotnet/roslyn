@@ -18,6 +18,7 @@ Microsoft.CodeAnalysis.CSharp.Syntax.ArgumentSyntax.WithRefKindKeyword(Microsoft
 Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.RefKindKeyword.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.Update(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword, Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax type) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax.WithRefKindKeyword(Microsoft.CodeAnalysis.SyntaxToken refKindKeyword) -> Microsoft.CodeAnalysis.CSharp.Syntax.CrefParameterSyntax
+Microsoft.CodeAnalysis.CSharp.Syntax.TypeSyntax.IsUnmanaged.get -> bool
 Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitStackAllocArrayCreationExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitStackAllocArrayCreationExpressionSyntax.AddInitializerExpressions(params Microsoft.CodeAnalysis.CSharp.Syntax.ExpressionSyntax[] items) -> Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitStackAllocArrayCreationExpressionSyntax
 Microsoft.CodeAnalysis.CSharp.Syntax.ImplicitStackAllocArrayCreationExpressionSyntax.CloseBracketToken.get -> Microsoft.CodeAnalysis.SyntaxToken
