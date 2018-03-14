@@ -5788,6 +5788,34 @@ class C
             Assert.Equal(0, analysis.EntryPoints.Count());
         }
 
+        [Fact]
+        public void AnalysisOfTupleEquality()
+        {
+            var analysisResults = CompileAndAnalyzeDataFlowExpression(@"
+class A
+{
+    void M()
+    {
+        int x = 0;
+        int y = 0;
+        _ = /*<bind>*/(x, y) == (x = 0, 1)/*</bind>*/;
+    }
+}
+");
+            var dataFlowAnalysisResults = analysisResults;
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.VariablesDeclared));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.AlwaysAssigned));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.Captured));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.CapturedOutside));
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsIn));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.DataFlowsOut));
+            Assert.Equal("x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.ReadInside));
+            Assert.Equal(null, GetSymbolNamesJoined(dataFlowAnalysisResults.ReadOutside));
+            Assert.Equal("x", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenInside));
+            Assert.Equal("this, x, y", GetSymbolNamesJoined(dataFlowAnalysisResults.WrittenOutside));
+        }
+
         #endregion
     }
 }
