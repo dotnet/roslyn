@@ -2,8 +2,11 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.LanguageServices
 {
@@ -101,5 +104,28 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         IEnumerable<ISymbol> GetDeclaredSymbols(SemanticModel semanticModel, SyntaxNode memberDeclaration, CancellationToken cancellationToken);
 
         SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken);
+
+        SyntaxToken GenerateUniqueName(SemanticModel semanticModel, SyntaxNode location, string baseName, CancellationToken cancellationToken);
+    }
+
+    internal abstract class AbstractSemanticFactsService
+    {
+        protected abstract ISyntaxFactsService SyntaxFactsService { get; }
+
+        public SyntaxToken GenerateUniqueName(SemanticModel semanticModel, SyntaxNode location, string baseName, CancellationToken cancellationToken)
+        {
+            var syntaxFacts = this.SyntaxFactsService;
+
+            var container = location.AncestorsAndSelf().FirstOrDefault(
+                a => syntaxFacts.IsExecutableBlock(a) || syntaxFacts.IsMethodBody(a)) ?? location;
+            var existingSymbols = semanticModel.GetExistingSymbols(container, cancellationToken);
+
+            var reservedNames = semanticModel.LookupSymbols(container.SpanStart)
+                                             .Select(s => s.Name)
+                                             .Concat(existingSymbols.Select(s => s.Name));
+
+            return syntaxFacts.ToIdentifierToken(
+                NameGenerator.EnsureUniqueness(baseName, reservedNames, syntaxFacts.IsCaseSensitive));
+        }
     }
 }

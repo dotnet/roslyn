@@ -221,20 +221,13 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             SyntaxNode container,
             CancellationToken cancellationToken)
         {
-            var syntaxFacts = document.Document.GetLanguageService<ISyntaxFactsService>();
-            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
-
             var semanticModel = document.SemanticModel;
-            var existingSymbols = semanticModel.GetExistingSymbols(container, cancellationToken);
 
+            var semanticFacts = document.Document.GetLanguageService<ISemanticFactsService>();
             var baseName = semanticFacts.GenerateNameForExpression(
                 semanticModel, expression, capitalize: isConstant, cancellationToken: cancellationToken);
-            var reservedNames = semanticModel.LookupSymbols(expression.SpanStart)
-                                             .Select(s => s.Name)
-                                             .Concat(existingSymbols.Select(s => s.Name));
 
-            return syntaxFacts.ToIdentifierToken(
-                NameGenerator.EnsureUniqueness(baseName, reservedNames, syntaxFacts.IsCaseSensitive));
+            return semanticFacts.GenerateUniqueName(semanticModel, container, baseName, cancellationToken);
         }
 
         protected ISet<TExpressionSyntax> FindMatches(
