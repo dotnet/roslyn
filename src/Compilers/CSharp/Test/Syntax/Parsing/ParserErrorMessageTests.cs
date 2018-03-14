@@ -1052,24 +1052,26 @@ interface IB<T>
 }";
             CreateCompilation(source).VerifyDiagnostics(
                 // (2,15): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //     where U : T*
                 Diagnostic(ErrorCode.ERR_BadConstraintType, "T*").WithLocation(2, 15),
                 // (3,15): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //     where V : T[]
                 Diagnostic(ErrorCode.ERR_BadConstraintType, "T[]").WithLocation(3, 15),
                 // (9,19): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //         where U : T*
                 Diagnostic(ErrorCode.ERR_BadConstraintType, "T*").WithLocation(9, 19),
                 // (10,19): error CS0706: Invalid constraint type. A type used as a constraint must be an interface, a non-sealed class or a type parameter.
+                //         where V : T[];
                 Diagnostic(ErrorCode.ERR_BadConstraintType, "T[]").WithLocation(10, 19),
 
                 // CONSIDER: Dev10 doesn't report these cascading errors.
 
                 // (2,15): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "T*"),
-                // (2,15): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "T*").WithArguments("T"),
+                //     where U : T*
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "T*").WithLocation(2, 15),
                 // (9,19): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
-                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "T*"),
-                // (9,19): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('T')
-                Diagnostic(ErrorCode.ERR_ManagedAddr, "T*").WithArguments("T"));
+                //         where U : T*
+                Diagnostic(ErrorCode.ERR_UnsafeNeeded, "T*").WithLocation(9, 19));
         }
 
         [Fact]

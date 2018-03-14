@@ -252,7 +252,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 attributes: default, varianceKind: VarianceKind.None,
                 name: name, constraintTypes: ImmutableArray.Create<ITypeSymbol>(),
                 hasConstructorConstraint: false, hasReferenceConstraint: false, hasValueConstraint: false,
-                ordinal: ordinal);
+                hasUnmanagedConstraint: false, ordinal: ordinal);
         }
 
         /// <summary>
@@ -264,9 +264,10 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             ImmutableArray<ITypeSymbol> constraintTypes,
             bool hasConstructorConstraint = false,
             bool hasReferenceConstraint = false,
+            bool hasUnmanagedConstraint = false,
             bool hasValueConstraint = false, int ordinal = 0)
         {
-            return new CodeGenerationTypeParameterSymbol(null, attributes, varianceKind, name, constraintTypes, hasConstructorConstraint, hasReferenceConstraint, hasValueConstraint, ordinal);
+            return new CodeGenerationTypeParameterSymbol(null, attributes, varianceKind, name, constraintTypes, hasConstructorConstraint, hasReferenceConstraint, hasValueConstraint, hasUnmanagedConstraint, ordinal);
         }
 
         /// <summary>

@@ -404,7 +404,7 @@ IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'stackalloc[2]
       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: 'stackalloc[2]/*</bind>*/')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // file.cs(6,38): error CS8373: "Invalid rank specifier: expected ']'
+                // file.cs(6,38): error CS8381: "Invalid rank specifier: expected ']'
                 //         var x = /*<bind>*/stackalloc[2]/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_InvalidStackAllocArray, "2").WithLocation(6, 38),
                 // file.cs(6,51): error CS1514: { expected
