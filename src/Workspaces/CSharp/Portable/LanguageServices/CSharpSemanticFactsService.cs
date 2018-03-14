@@ -268,6 +268,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (hasCastInfo && hasOperationInfo)
                     {
+                        // In some cases a single clause binds to more than one method. In those cases 
+                        // the tokens in the clause determine which of the two SymbolInfos are returned.
+                        // See also the proposal at https://github.com/dotnet/roslyn/issues/23394
                         return token.IsKind(SyntaxKind.InKeyword) ? queryInfo.CastInfo : queryInfo.OperationInfo;
                     }
 
@@ -280,6 +283,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case OrderByClauseSyntax orderByClauseSyntax:
                     if (token.Kind() == SyntaxKind.CommaToken)
                     {
+                        // Returning SymbolInfo for a comma token is the last resort
+                        // in an order by clause if no other tokens to bind to a are present.
+                        // See also the proposal at https://github.com/dotnet/roslyn/issues/23394
                         var separators = orderByClauseSyntax.Orderings.GetSeparators().ToImmutableList();
                         var index = separators.IndexOf(token);
                         if (index >= 0 && (index + 1) < orderByClauseSyntax.Orderings.Count)

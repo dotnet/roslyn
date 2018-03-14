@@ -598,6 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            // In the order by clause a comma might be bound to ThenBy or ThenByDescending
             if (token.Kind() == SyntaxKind.CommaToken && token.Parent.Kind() == SyntaxKind.OrderByClause)
             {
                 return true;
