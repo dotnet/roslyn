@@ -22,7 +22,7 @@ If a stack trace is displayed on .NET Framework older than 4.7.1 (e.g. by xUnit 
 
 1. [Visual Studio 2017 Version 15.7 Preview 1](https://www.visualstudio.com/vs/preview/)
     - Ensure C#, VB, MSBuild, .NET Core and Visual Studio Extensibility are included in the selected work loads
-    - Ensure Visual Studio is on Version "15.6 Preview 4" or greater
+    - Ensure Visual Studio is on Version "15.7 Preview 1" or greater
 1. [.NET Core SDK 2.1.300](https://www.microsoft.com/net/download/core) (if you don't see the 2.2 SDK binaries there yet, the current previews are: [Windows x64 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.1.300-preview2-008324/dotnet-sdk-2.1.300-preview2-008324-win-x64.exe), [Windows x86 installer](https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.1.300-preview2-008324/dotnet-sdk-2.1.300-preview2-008324-win-x86.exe))
 1. [PowerShell 3.0 or newer](https://docs.microsoft.com/en-us/powershell/scripting/setup/installing-windows-powershell). If you are on Windows 10, you are fine; you'll only need to upgrade if you're on Windows 7. The download link is under the "upgrading existing Windows PowerShell" heading.
 1. Run Restore.cmd
