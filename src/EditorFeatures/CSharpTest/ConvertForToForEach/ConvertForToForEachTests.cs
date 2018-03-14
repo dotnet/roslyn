@@ -385,5 +385,46 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestChooseNameFromDeclarationStatement_PreserveDirectives()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void Test(IList<string> list)
+    {
+        [||]for (int i = 0; i < list.Count; i++)
+        {
+#if true
+
+            var val = list[i];
+            Console.WriteLine(list[i]);
+
+#endif
+        }
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void Test(IList<string> list)
+    {
+        foreach (var val in list)
+        {
+#if true
+
+            Console.WriteLine(val);
+
+#endif
+        }
+    }
+}");
+        }
     }
 }
