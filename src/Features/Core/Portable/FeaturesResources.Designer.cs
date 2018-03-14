@@ -234,13 +234,13 @@ namespace Microsoft.CodeAnalysis {
         }
 
         /// <summary>
-        ///   Looks up a localized string similar to Add parameter to &apos;{0}&apos; (including overrides/implementations).
+        ///   Looks up a localized string similar to Add parameter to &apos;{0}&apos; (and overrides/implementations).
         /// </summary>
-        internal static string Add_parameter_to_0_including_overrides_implementations
+        internal static string Add_parameter_to_0_and_overrides_implementations
         {
             get
             {
-                return ResourceManager.GetString("Add_parameter_to_0_including_overrides_implementations", resourceCulture);
+                return ResourceManager.GetString("Add_parameter_to_0_and_overrides_implementations", resourceCulture);
             }
         }
 
@@ -297,7 +297,18 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Add_this_or_Me_qualification", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add to &apos;{0}&apos;.
+        /// </summary>
+        internal static string Add_to_0
+        {
+            get
+            {
+                return ResourceManager.GetString("Add_to_0", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   Looks up a localized string similar to Adding &apos;{0}&apos; around an active statement will prevent the debug session from continuing..
         /// </summary>

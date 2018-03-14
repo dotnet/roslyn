@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     if (data.CreateChangedSolutionCascading != null)
                     {
                         var titleForNesting = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, data.Method, includeParameters: true);
-                        var titleCascading = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_including_overrides_implementations, data.Method, includeParameters: true);
+                        var titleCascading = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_and_overrides_implementations, data.Method, includeParameters: true);
                         codeAction = new CodeAction.CodeActionWithNestedActions(
                             title: titleForNesting,
                             ImmutableArray.Create(
@@ -236,14 +236,14 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                 var nonCascadingActions = ImmutableArray.CreateRange<CodeAction>(codeFixData.Select(data =>
                 {
-                    var title = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, data.Method, true);
+                    var title = GetCodeFixTitle(FeaturesResources.Add_to_0, data.Method, true);
                     return new MyCodeAction(title: title, data.CreateChangedSolutionNonCascading);
                 }));
 
                 var cascading = codeFixData.Where(data => data.CreateChangedSolutionCascading != null);
                 var cascadingActions = ImmutableArray.CreateRange<CodeAction>(cascading.Select(data =>
                 {
-                    var title = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, data.Method, true);
+                    var title = GetCodeFixTitle(FeaturesResources.Add_to_0, data.Method, true);
                     return new MyCodeAction(title: title, data.CreateChangedSolutionCascading);
                 }));
 
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
 
                 if (cascadingActions.Length > 0)
                 {
-                    var nestedCascadingTitle = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_including_overrides_implementations, aMethod, false);
+                    var nestedCascadingTitle = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_and_overrides_implementations, aMethod, false);
                     builder.Add(new CodeAction.CodeActionWithNestedActions(nestedCascadingTitle, cascadingActions, isInlinable: false));
                 }
 
