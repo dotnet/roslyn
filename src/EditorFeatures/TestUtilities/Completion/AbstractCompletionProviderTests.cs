@@ -21,6 +21,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using CompletionTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
+using CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 {
@@ -98,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             var completionService = GetCompletionService(document.Project.Solution.Workspace);
             var completionList = await GetCompletionListAsync(completionService, document, position, trigger);
-            var items = completionList == null ? ImmutableArray<CodeAnalysis.Completion.CompletionItem>.Empty : completionList.Items;
+            var items = completionList == null ? ImmutableArray<CompletionItem>.Empty : completionList.Items;
 
             if (hasSuggestionModeItem != null)
             {
@@ -334,7 +335,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         internal async Task VerifyCustomCommitWorkerAsync(
             CompletionServiceWithProviders service,
             Document document,
-            CodeAnalysis.Completion.CompletionItem completionItem,
+            CompletionItem completionItem,
             string codeBeforeCommit,
             string expectedCodeAfterCommit,
             char? commitChar = null)
@@ -368,7 +369,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         internal virtual void VerifyCustomCommitWorker(
             CompletionService service,
             ICustomCommitCompletionProvider customCommitCompletionProvider,
-            CodeAnalysis.Completion.CompletionItem completionItem,
+            CompletionItem completionItem,
             CompletionHelper completionRules,
             ITextView textView,
             ITextBuffer textBuffer,
