@@ -103,5 +103,167 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestMissingWithoutIncrementor()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; )
+        {
+            Console.WriteLine(array[i]);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestMissingWithoutIncorrectIncrementor1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i += 2)
+        {
+            Console.WriteLine(array[i]);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestMissingWithoutIncorrectIncrementor2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; j += 2)
+        {
+            Console.WriteLine(array[i]);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestMissingWithoutCondition()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; ; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestMissingWithIncorrectCondition1()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; j < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestMissingWithIncorrectCondition2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < GetLength(array); i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestWithoutInitializer()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestWithUninitializedVariable()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestWithMultipleVariables()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0, j = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+    }
+}");
+        }
     }
 }
