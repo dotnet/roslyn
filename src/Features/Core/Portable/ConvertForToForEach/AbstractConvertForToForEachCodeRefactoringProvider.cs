@@ -321,7 +321,8 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             }
 
             // Create the expression we'll use to replace all matches in the for-body.
-            var foreachIdentifierName = generator.IdentifierName(foreachIdentifier).WithoutTrivia().WithoutAnnotations();
+            var foreachIdentifierName = generator.IdentifierName(
+                foreachIdentifier.WithoutAnnotations(RenameAnnotation.Kind)).WithoutTrivia();
 
             // Walk the for statement, replacing any matches we find.
             findAndReplaceMatches(forStatement);
