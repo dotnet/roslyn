@@ -616,6 +616,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Call(null, methodSymbol, args);
         }
 
+        public BoundExpression StaticCall(SpecialMember method, params BoundExpression[] args)
+        {
+            MethodSymbol methodSymbol = SpecialMethod(method);
+            Binder.ReportUseSiteDiagnostics(methodSymbol, Diagnostics, Syntax);
+            Debug.Assert(methodSymbol.IsStatic);
+            return Call(null, methodSymbol, args);
+        }
+
         public BoundCall Call(BoundExpression receiver, MethodSymbol method)
         {
             return Call(receiver, method, ImmutableArray<BoundExpression>.Empty);
@@ -786,6 +794,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public BoundSequence Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundExpression> sideEffects, BoundExpression result)
+        {
+            return new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
+        }
+
+        public BoundSequence Sequence(ImmutableArray<LocalSymbol> locals, ImmutableArray<BoundStatement> sideEffects, BoundExpression result)
         {
             return new BoundSequence(Syntax, locals, sideEffects, result, result.Type) { WasCompilerGenerated = true };
         }

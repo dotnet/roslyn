@@ -49,14 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             NoteDeclaredPatternVariables(pattern);
         }
 
-        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
+        protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, bool isLastSection)
         {
             foreach (var label in node.SwitchLabels)
             {
                 NoteDeclaredPatternVariables(label.Pattern);
             }
 
-            base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
+            base.VisitPatternSwitchSection(node, isLastSection);
         }
 
         /// <summary>
