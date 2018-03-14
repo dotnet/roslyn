@@ -1328,61 +1328,65 @@ namespace Microsoft.CodeAnalysis.CSharp
             Unsplit();
             var alternativeResult = _result;
 
-            bool? getIsNullable(Result result) => result.Type is null ? true : result.Type.IsNullable;
+            bool? consequenceIsNullable = getIsNullable(consequence, consequenceResult);
+            bool? alternativeIsNullable = getIsNullable(alternative, alternativeResult);
             bool? resultIsNullable;
             if (IsConstantTrue(node.Condition))
             {
                 SetState(consequenceState);
-                resultIsNullable = getIsNullable(consequenceResult);
+                resultIsNullable = consequenceIsNullable;
             }
             else if (IsConstantFalse(node.Condition))
             {
-                resultIsNullable = getIsNullable(alternativeResult);
+                resultIsNullable = alternativeIsNullable;
             }
             else
             {
                 IntersectWith(ref this.State, ref consequenceState);
-                resultIsNullable = (getIsNullable(consequenceResult) | getIsNullable(alternativeResult));
+                resultIsNullable = (consequenceIsNullable | alternativeIsNullable);
             }
 
             TypeSymbolWithAnnotations resultType;
-            if (consequence.Kind == BoundKind.ThrowExpression)
+            if (node.HasErrors)
             {
-                resultType = alternativeResult.Type;
-            }
-            else if (alternative.Kind == BoundKind.ThrowExpression)
-            {
-                resultType = consequenceResult.Type;
+                resultType = null;
             }
             else
             {
-                if (node.HasErrors)
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(
+                    createPlaceholderIfNecessary(consequence, consequenceResult),
+                    createPlaceholderIfNecessary(alternative, alternativeResult),
+                    _conversions,
+                    out _,
+                    ref useSiteDiagnostics);
+                if (resultType is null)
                 {
-                    resultType = null;
+                    ReportStaticNullCheckingDiagnostics(
+                        ErrorCode.WRN_NoBestNullabilityConditionalExpression,
+                        node.Syntax,
+                        GetTypeAsDiagnosticArgument(consequenceResult.Type?.TypeSymbol),
+                        GetTypeAsDiagnosticArgument(alternativeResult.Type?.TypeSymbol));
                 }
-                else
-                {
-                    HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(
-                        createPlaceholderIfNecessary(consequence, consequenceResult),
-                        createPlaceholderIfNecessary(alternative, alternativeResult),
-                        _conversions,
-                        out _,
-                        ref useSiteDiagnostics);
-                    if (resultType is null)
-                    {
-                        ReportStaticNullCheckingDiagnostics(
-                            ErrorCode.WRN_NoBestNullabilityConditionalExpression,
-                            node.Syntax,
-                            GetTypeAsDiagnosticArgument(consequenceResult.Type?.TypeSymbol),
-                            GetTypeAsDiagnosticArgument(alternativeResult.Type?.TypeSymbol));
-                    }
-                }
-                resultType = TypeSymbolWithAnnotations.Create(resultType?.TypeSymbol ?? node.Type, resultIsNullable);
             }
+            resultType = TypeSymbolWithAnnotations.Create(resultType?.TypeSymbol ?? node.Type, resultIsNullable);
 
             _result = resultType;
             return null;
+
+            bool? getIsNullable(BoundExpression expr, Result result)
+            {
+                var type = result.Type;
+                if ((object)type != null)
+                {
+                    return type.IsNullable;
+                }
+                if (expr.IsLiteralNullOrDefault())
+                {
+                    return true;
+                }
+                return null;
+            }
 
             BoundExpression createPlaceholderIfNecessary(BoundExpression expr, Result result)
             {
@@ -1950,7 +1954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE(NullableReferenceTypes): Should an explicit cast cast away
                     // outermost nullability? For instance, is `s` a `string!` or `string?`?
                     // object? obj = ...; var s = (string)obj;
-                    isNullableIfReferenceType = (operandType is null) ? (operand.IsLiteralNull() || operand.IsLiteralDefault()) : operandType.IsNullable;
+                    isNullableIfReferenceType = (operandType is null) ? operand.IsLiteralNullOrDefault() : operandType.IsNullable;
                     break;
 
                 case ConversionKind.Deconstruction:

@@ -486,6 +486,11 @@ class C
         (b ? x: null).ToString();
         (b ? y: null).ToString();
         (b ? null: null).ToString();
+        (b ? default : x).ToString();
+        (b ? default : y).ToString();
+        (b ? x: default).ToString();
+        (b ? y: default).ToString();
+        (b ? default: default).ToString();
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
@@ -493,6 +498,9 @@ class C
                 // (9,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between '<null>' and '<null>'
                 //         (b ? null: null).ToString();
                 Diagnostic(ErrorCode.ERR_InvalidQM, "b ? null: null").WithArguments("<null>", "<null>").WithLocation(9, 10),
+                // (14,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'default' and 'default'
+                //         (b ? default: default).ToString();
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? default: default").WithArguments("default", "default").WithLocation(14, 10),
                 // (5,10): warning CS8602: Possible dereference of a null reference.
                 //         (b ? null : x).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? null : x").WithLocation(5, 10),
@@ -507,7 +515,22 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? y: null").WithLocation(8, 10),
                 // (9,10): warning CS8602: Possible dereference of a null reference.
                 //         (b ? null: null).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? null: null").WithLocation(9, 10));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? null: null").WithLocation(9, 10),
+                // (10,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? default : x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? default : x").WithLocation(10, 10),
+                // (11,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? default : y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? default : y").WithLocation(11, 10),
+                // (12,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? x: default).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? x: default").WithLocation(12, 10),
+                // (13,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? y: default).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? y: default").WithLocation(13, 10),
+                // (14,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? default: default).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? default: default").WithLocation(14, 10));
         }
 
         [Fact]

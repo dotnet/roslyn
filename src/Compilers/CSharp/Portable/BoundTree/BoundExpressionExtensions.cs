@@ -48,6 +48,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Kind == BoundKind.DefaultExpression && node.Syntax.Kind() == SyntaxKind.DefaultLiteralExpression;
         }
 
+        public static bool IsLiteralNullOrDefault(this BoundExpression node)
+        {
+            return node.IsLiteralNull() || node.IsLiteralDefault();
+        }
+
         // returns true when expression has no side-effects and produces
         // default value (null, zero, false, default(T) ...)
         //
