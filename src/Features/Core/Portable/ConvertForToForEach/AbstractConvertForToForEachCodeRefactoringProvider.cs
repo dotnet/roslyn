@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -147,8 +148,8 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             // Looks good.  We can conver this.
             context.RegisterRefactoring(new MyCodeAction(GetTitle(),
                 c => ConvertForToForEachAsync(
-                    document, forStatement, iterationVariable, 
-                    collectionExpression, iterationType, c)));
+                    document, forStatement, iterationVariable, collectionExpression,
+                    containingType, collectionType.Type, iterationType, c)));
 
             // local functions
             bool IterationVariableIsUsedForMoreThanCollectionIndex(SyntaxNode current)
@@ -196,6 +197,19 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             }
         }
 
+        private IEnumerable<TSymbol> TryFindMembersInThisOrBaseTypes<TSymbol>(
+            INamedTypeSymbol containingType, ITypeSymbol type, string memberName) where TSymbol : class, ISymbol
+        {
+            var methods = type.GetAccessibleMembersInThisAndBaseTypes<TSymbol>(containingType);
+            return methods.Where(m => m.Name == memberName);
+        }
+
+        private TSymbol TryFindMemberInThisOrBaseTypes<TSymbol>(
+            INamedTypeSymbol containingType, ITypeSymbol type, string memberName) where TSymbol : class, ISymbol
+        {
+            return TryFindMembersInThisOrBaseTypes<TSymbol>(containingType, type, memberName).FirstOrDefault();
+        }
+
         private bool TryGetIterationElementType(
             INamedTypeSymbol containingType, ITypeSymbol collectionType, 
             INamedTypeSymbol ienumerableType, INamedTypeSymbol ienumeratorType,
@@ -208,8 +222,8 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             }
 
             // Check in the class/struct hierarchy first.
-            var methods = collectionType.GetAccessibleMembersInThisAndBaseTypes<IMethodSymbol>(containingType);
-            var getEnumeratorMethod = methods.FirstOrDefault(m => m.Name == nameof(IEnumerable.GetEnumerator));
+            var getEnumeratorMethod = TryFindMemberInThisOrBaseTypes<IMethodSymbol>(
+                containingType, collectionType, WellKnownMemberNames.GetEnumeratorMethodName);
             if (getEnumeratorMethod != null)
             {
                 return TryGetIterationElementTypeFromGetEnumerator(
@@ -237,8 +251,8 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             var getEnumeratorReturnType = getEnumeratorMethod.ReturnType;
 
             // Check in the class/struct hierarchy first.
-            var properties = getEnumeratorReturnType.GetAccessibleMembersInThisAndBaseTypes<IPropertySymbol>(containingType);
-            var currentProperty = properties.FirstOrDefault(m => m.Name == nameof(IEnumerator.Current));
+            var currentProperty = TryFindMemberInThisOrBaseTypes<IPropertySymbol>(
+                containingType, getEnumeratorReturnType, WellKnownMemberNames.CurrentPropertyName);
             if (currentProperty != null)
             {
                 iterationType = currentProperty.Type;
@@ -262,6 +276,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
         private async Task<Document> ConvertForToForEachAsync(
             Document document, TForStatementSyntax forStatement,
             SyntaxToken iterationVariable, TExpressionSyntax collectionExpression,
+            INamedTypeSymbol containingType, ITypeSymbol collectionType, 
             ITypeSymbol iterationType, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -307,6 +322,18 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                             }
                         }
                     }
+                }
+            }
+
+            if (typeNode == null)
+            {
+                // user didn't provide an explicit type.  Check if the index-type of hte collection
+                // is different from than .Current type of the enumerator.  If so, add an explicit
+                // type so that the foreach will coerce the types accordingly.
+                var indexerType = GetIndexerType(containingType, collectionType);
+                if (!Equals(indexerType, iterationType))
+                {
+                    typeNode = (TTypeNode)generator.TypeExpression(iterationType);
                 }
             }
 
@@ -362,6 +389,21 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                     }
                 }
             }
+        }
+
+        private ITypeSymbol GetIndexerType(INamedTypeSymbol containingType, ITypeSymbol collectionType)
+        {
+            if (collectionType is IArrayTypeSymbol arrayType)
+            {
+                return arrayType.ElementType;
+            }
+
+            var indexerMethods = TryFindMembersInThisOrBaseTypes<IMethodSymbol>(
+                containingType, collectionType, WellKnownMemberNames.Indexer);
+            var indexer = indexerMethods.FirstOrDefault(
+                m => m.Parameters.Length == 1 && m.Parameters[0].Type?.SpecialType == SpecialType.System_Int32);
+
+            return indexer?.ReturnType;
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
