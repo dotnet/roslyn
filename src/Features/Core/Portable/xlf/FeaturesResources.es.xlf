@@ -1990,6 +1990,11 @@ Esta versión se utiliza en: {2}</target>
         <target state="new">Alias ambiguous type '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Invert_if_statement">
+        <source>Invert if statement</source>
+        <target state="new">Invert if statement</target>
+        <note />
+      </trans-unit>
       <trans-unit id="Warning_colon_Collection_was_modified_during_iteration">
         <source>Warning: Collection was modified during iteration.</source>
         <target state="new">Warning: Collection was modified during iteration.</target>
