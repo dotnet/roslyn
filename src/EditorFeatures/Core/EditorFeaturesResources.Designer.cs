@@ -1745,16 +1745,18 @@ namespace Microsoft.CodeAnalysis.Editor {
                 return ResourceManager.GetString("User_Types_Structures", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to User Types - Type Parameters.
         /// </summary>
-        internal static string User_Types_Type_Parameters {
-            get {
+        internal static string User_Types_Type_Parameters
+        {
+            get
+            {
                 return ResourceManager.GetString("User_Types_Type_Parameters", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to VB XML Literals - Attribute Name.
         /// </summary>

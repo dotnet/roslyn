@@ -1375,6 +1375,8 @@ class C
 @"
 {
         int y,
+#if true
+
 #endif
         z;
 
@@ -1399,7 +1401,9 @@ class C
 {
         int y,
 #if true
-        z;
+        z
+#endif
+        ;
 
         int a = 1;
 }");
@@ -4442,8 +4446,7 @@ class C
     void M()
     {
         var t = new {
-            /*comment*/
-            i = 1 + 2,
+            /*comment*/ i = 1 + 2,
             /*comment*/ j = 3
         };
     }
@@ -4534,6 +4537,30 @@ class C
     bool M<T>(out T x) 
     {
         return M(out x) || M(out x);
+    }
+}");
+        }
+
+        [Fact]
+        [WorkItem(24791, "https://github.com/dotnet/roslyn/issues/24791")]
+        public async Task InlineVariableDoesNotAddUnnecessaryCast()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M()
+    {
+        var [||]o = M();
+        if (!o) throw null;
+        throw null;
+    }
+}",
+@"class C
+{
+    bool M()
+    {
+        if (!M()) throw null;
+        throw null;
     }
 }");
         }

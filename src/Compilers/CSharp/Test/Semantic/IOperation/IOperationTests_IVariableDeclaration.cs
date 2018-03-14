@@ -305,7 +305,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
-        public void MutlipleVariableDeclarationsExpressionInitializers()
+        public void MultipleVariableDeclarationsExpressionInitializers()
         {
             string source = @"
 class Program
@@ -602,7 +602,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            var compilation = CreateEmptyCompilation(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
             var declarator = (IVariableDeclaratorOperation)operation;
             Assert.Equal(2, declarator.Children.Count());
@@ -624,7 +624,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            var compilation = CreateEmptyCompilation(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
             var declarator = (IVariableDeclaratorOperation)operation;
             Assert.Equal(1, declarator.Children.Count());
@@ -645,7 +645,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            var compilation = CreateEmptyCompilation(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
             var declarator = (IVariableDeclaratorOperation)operation;
             Assert.Equal(1, declarator.Children.Count());
@@ -666,7 +666,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            var compilation = CreateEmptyCompilation(source);
             (var operation, _) = GetOperationAndSyntaxForTest<VariableDeclaratorSyntax>(compilation);
             Assert.Empty(operation.Children);
         }
@@ -2039,7 +2039,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
 
         [CompilerTrait(CompilerFeature.IOperation)]
         [Fact, WorkItem(17599, "https://github.com/dotnet/roslyn/issues/17599")]
-        public void ConstLocalMutlipleDeclarationsNoInitializers()
+        public void ConstLocalMultipleDeclarationsNoInitializers()
         {
             string source = @"
 class Program

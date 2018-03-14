@@ -225,9 +225,6 @@
   <data name="NullValueInPathMap" xml:space="preserve">
     <value>A value in the pathMap is null.</value>
   </data>
-  <data name="KeyInPathMapEndsWithSeparator" xml:space="preserve">
-    <value>A key in the pathMap ends with a path separator.</value>
-  </data>
   <data name="CompilationOptionsMustNotHaveErrors" xml:space="preserve">
     <value>Compilation options must not have errors.</value>
   </data>
@@ -449,6 +446,9 @@
   <data name="InvalidDiagnosticIdReported" xml:space="preserve">
     <value>Reported diagnostic has an ID '{0}', which is not a valid identifier.</value>
   </data>
+  <data name="CompilerDiagnosticIdReported" xml:space="preserve">
+    <value>Reported diagnostic has an ID '{0}', which only a compiler should be reporting.</value>
+  </data>
   <data name="InvalidDiagnosticLocationReported" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location in file '{1}', which is not part of the compilation being analyzed.</value>
   </data>
@@ -611,5 +611,8 @@
   </data>
   <data name="InvalidDiagnosticSpanReported" xml:space="preserve">
     <value>Reported diagnostic '{0}' has a source location '{1}' in file '{2}', which is outside of the given file.</value>
+  </data>
+  <data name="ExceptionEnablingMulticoreJit" xml:space="preserve">
+    <value>Warning: Could not enable multicore JIT due to exception: {0}.</value>
   </data>
 </root>

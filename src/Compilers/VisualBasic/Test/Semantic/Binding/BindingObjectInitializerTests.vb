@@ -954,6 +954,16 @@ End Class]]>.Value
 
             Dim expectedOperationTree = <![CDATA[
 ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'New T() With {.Bar = 23}')
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: T) (Syntax: 'With {.Bar = 23}')
+      Initializers(1):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: System.Void) (Syntax: '.Bar = 23')
+            Left: 
+              IPropertyReferenceOperation: Property IGoo.Bar As System.Int32 (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'Bar')
+                Instance Receiver: 
+                  IInstanceReferenceOperation (OperationKind.InstanceReference, Type: T, IsImplicit) (Syntax: 'New T() With {.Bar = 23}')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 23) (Syntax: '23')
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -999,6 +1009,8 @@ IObjectCreationOperation (Constructor: Sub C1(Of T)..ctor()) (OperationKind.Obje
                   IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1(Of T), IsImplicit) (Syntax: 'New C1(Of T ... ld = New T}')
             Right: 
               ITypeParameterObjectCreationOperation (OperationKind.TypeParameterObjectCreation, Type: T) (Syntax: 'New T')
+                Initializer: 
+                  null
 ]]>.Value
 
             Dim expectedDiagnostics = String.Empty
@@ -1401,7 +1413,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC42104: Variable 'y' is used before it has been assigned a value. A null reference exception could result at runtime.
         Dim x As New C1 With {.RefTypeField = y.CreateC2}
@@ -1821,7 +1833,7 @@ End Class
 
             ' NOTE: Dev10 handled 416 levels of nesting, both algorithms are recursive, so there's not much to
             ' do for us here :(
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected></expected>)
         End Sub
 
@@ -1923,7 +1935,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC42109: Variable 'var27' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
         Dim var27 As T = New T() With {.Goo1 = var27.Goo2.Length}               ' temporary used, warning
@@ -1992,7 +2004,7 @@ End Module
    </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source)
             AssertTheseDiagnostics(compilation, <expected>
 BC30053: Arrays cannot be declared with 'New'.
         Dim b13() As New Integer() {1,2,3}
@@ -2055,7 +2067,7 @@ Console.writeline( cust2.e.ToString)
     ]]></file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, additionalRefs:=XmlReferences)
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, references:=XmlReferences)
             CompileAndVerify(compilation)
         End Sub
 

@@ -24,7 +24,7 @@ Public Class C
 end class
     </file>
 </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                 source,
                 TestOptions.DebugDll)
 
@@ -33,7 +33,7 @@ end class
             compilation.VerifyPdb("C.M",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="M">
@@ -80,7 +80,7 @@ end class
             c.VerifyPdb(
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="M" parameterNames="a">
@@ -160,14 +160,14 @@ Public Class C
 End Class
 </file>
                          </compilation>
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                 source,
                 TestOptions.DebugDll)
 
             compilation.VerifyPdb("C.M",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+        <file id="1" name="" language="VB"/>
     </files>
     <methods>
         <method containingType="C" name="M">

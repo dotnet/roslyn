@@ -46,20 +46,22 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         {
             foreach (var diagnostic in context.Diagnostics)
             {
-                var equivalenceKey = diagnostic.Properties[Constants.SymbolEquivalenceKey];
+                var priority = diagnostic.Severity == DiagnosticSeverity.Hidden
+                    ? CodeActionPriority.Low
+                    : CodeActionPriority.Medium;
 
                 context.RegisterCodeFix(
                     new UseAutoPropertyCodeAction(
                         FeaturesResources.Use_auto_property,
-                        c => ProcessResult(context, diagnostic, c),
-                        equivalenceKey),
+                        c => ProcessResultAsync(context, diagnostic, c),
+                        priority),
                     diagnostic);
             }
 
             return SpecializedTasks.EmptyTask;
         }
 
-        private async Task<Solution> ProcessResult(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
+        private async Task<Solution> ProcessResultAsync(CodeFixContext context, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
             var locations = diagnostic.AdditionalLocations;
             var propertyLocation = locations[0];
@@ -89,10 +91,34 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
             var updatedProperty = await UpdatePropertyAsync(propertyDocument, compilation, fieldSymbol, propertySymbol, property,
                 isWrittenToOutsideOfConstructor, cancellationToken).ConfigureAwait(false);
 
+            // Note: rename will try to update all the references in linked files as well.  However, 
+            // this can lead to some very bad behavior as we will change the references in linked files
+            // but only remove the field and update the property in a single document.  So, you can
+            // end in the state where you do this in one of the linked file:
+            //
+            //      int Prop { get { return this.field; } } => int Prop { get { return this.Prop } }
+            //
+            // But in the main file we'll replace:
+            //
+            //      int Prop { get { return this.field; } } => int Prop { get; }
+            //
+            // The workspace will see these as two irreconcilable edits.  To avoid this, we disallow
+            // any edits to the other links for the files containing the field and property.  i.e.
+            // rename will only be allowed to edit the exact same doc we're removing the field from
+            // and the exact doc we're updating hte property in.  It can't touch the other linked
+            // files for those docs.  (It can of course touch any other documents unrelated to the
+            // docs that the field and prop are declared in).
+            var linkedFiles = new HashSet<DocumentId>();
+            linkedFiles.AddRange(fieldDocument.GetLinkedDocumentIds());
+            linkedFiles.AddRange(propertyDocument.GetLinkedDocumentIds());
+
+            var canEdit = new Dictionary<SyntaxTree, bool>();
+
             // Now, rename all usages of the field to point at the property.  Except don't actually 
             // rename the field itself.  We want to be able to find it again post rename.
             var updatedSolution = await Renamer.RenameAsync(fieldLocations, propertySymbol.Name,
-                location => !location.SourceSpan.IntersectsWith(declaratorLocation.SourceSpan),
+                location => !location.SourceSpan.IntersectsWith(declaratorLocation.SourceSpan) &&
+                            CanEditDocument(solution, location.SourceTree, linkedFiles, canEdit),
                 symbols => HasConflict(symbols, propertySymbol, compilation, cancellationToken),
                 cancellationToken).ConfigureAwait(false);
 
@@ -149,6 +175,20 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
                 return updatedSolution;
             }
+        }
+
+        private bool CanEditDocument(
+            Solution solution, SyntaxTree sourceTree,
+            HashSet<DocumentId> linkedDocuments,
+            Dictionary<SyntaxTree, bool> canEdit)
+        {
+            if (!canEdit.ContainsKey(sourceTree))
+            {
+                var document = solution.GetDocument(sourceTree);
+                canEdit[sourceTree] = document != null && !linkedDocuments.Contains(document.Id);
+            }
+
+            return canEdit[sourceTree];
         }
 
         private async Task<SyntaxNode> FormatAsync(SyntaxNode newRoot, Document document, CancellationToken cancellationToken)
@@ -238,10 +278,13 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
         private class UseAutoPropertyCodeAction : CodeAction.SolutionChangeAction
         {
-            public UseAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, string equivalenceKey)
-                : base(title, createChangedSolution, equivalenceKey)
+            public UseAutoPropertyCodeAction(string title, Func<CancellationToken, Task<Solution>> createChangedSolution, CodeActionPriority priority)
+                : base(title, createChangedSolution, title)
             {
+                this.Priority = priority;
             }
+
+            internal override CodeActionPriority Priority { get; }
         }
     }
 }

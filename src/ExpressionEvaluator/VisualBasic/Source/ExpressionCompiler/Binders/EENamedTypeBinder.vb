@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                     If symbol.Kind = SymbolKind.TypeParameter Then
                         Debug.Assert(symbol.OriginalDefinition.ContainingSymbol = substitutedSourceType.OriginalDefinition)
                         Dim ordinal = DirectCast(symbol, TypeParameterSymbol).Ordinal
-                        symbols(i) = substitutedSourceType.TypeArguments(ordinal)
+                        symbols(i) = substitutedSourceType.TypeArgumentsNoUseSiteDiagnostics(ordinal)
                         Debug.Assert(symbols(i).Kind = SymbolKind.TypeParameter)
                     End If
                 Next

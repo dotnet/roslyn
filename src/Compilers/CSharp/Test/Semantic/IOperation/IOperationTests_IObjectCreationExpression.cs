@@ -604,5 +604,183 @@ IObjectCreationOperation (Constructor: C..ctor()) (OperationKind.ObjectCreation,
 
             VerifyOperationTreeAndDiagnosticsForTest<ObjectCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        [WorkItem(23154, "https://github.com/dotnet/roslyn/issues/23154")]
+        public void ObjectCreationWithDynamicMemberInitializer_01()
+        {
+            string source = @"
+#pragma warning disable 0169
+class A
+{
+    dynamic this[int x, int y]
+    {
+        get
+        {
+            return new A();
+        }
+    }
+
+    dynamic this[string x, string y]
+    {
+        get
+        {
+            throw null;
+        }
+    }
+
+    int X, Y, Z;
+
+    static void Main()
+    {
+        dynamic x = 1;
+        new A {/*<bind>*/[y: x, x: x] = { X = 1, Y = 1, Z = 1 }/*</bind>*/ };
+    }
+}
+";
+            string expectedOperationTree = @"
+IMemberInitializerOperation (OperationKind.MemberInitializer, Type: dynamic) (Syntax: '[y: x, x: x ...  1, Z = 1 }')
+  InitializedMember: 
+    IDynamicIndexerAccessOperation (OperationKind.DynamicIndexerAccess, Type: dynamic) (Syntax: '[y: x, x: x]')
+      Expression: 
+        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: '[y: x, x: x]')
+      Arguments(2):
+          ILocalReferenceOperation: x (OperationKind.LocalReference, Type: dynamic) (Syntax: 'x')
+          ILocalReferenceOperation: x (OperationKind.LocalReference, Type: dynamic) (Syntax: 'x')
+      ArgumentNames(2):
+        ""y""
+        ""x""
+      ArgumentRefKinds(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: dynamic) (Syntax: '{ X = 1, Y = 1, Z = 1 }')
+      Initializers(3):
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'X = 1')
+            Left: 
+              IOperation:  (OperationKind.None, Type: null) (Syntax: 'X')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'Y = 1')
+            Left: 
+              IOperation:  (OperationKind.None, Type: null) (Syntax: 'Y')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+          ISimpleAssignmentOperation (OperationKind.SimpleAssignment, Type: dynamic) (Syntax: 'Z = 1')
+            Left: 
+              IOperation:  (OperationKind.None, Type: null) (Syntax: 'Z')
+            Right: 
+              ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        [WorkItem(23154, "https://github.com/dotnet/roslyn/issues/23154")]
+        public void ObjectCreationWithDynamicMemberInitializer_02()
+        {
+            string source = @"
+#pragma warning disable 0169
+class A
+{
+    dynamic this[int x, int y]
+    {
+        get
+        {
+            return new A();
+        }
+    }
+
+    dynamic this[string x, string y]
+    {
+        get
+        {
+            throw null;
+        }
+    }
+
+    int X, Y, Z;
+
+    static void Main()
+    {
+        dynamic x = 1;
+        new A {/*<bind>*/[y: x, x: x] = { }/*</bind>*/ };
+    }
+}
+";
+            string expectedOperationTree = @"
+IMemberInitializerOperation (OperationKind.MemberInitializer, Type: dynamic) (Syntax: '[y: x, x: x] = { }')
+  InitializedMember: 
+    IDynamicIndexerAccessOperation (OperationKind.DynamicIndexerAccess, Type: dynamic) (Syntax: '[y: x, x: x]')
+      Expression: 
+        IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: '[y: x, x: x]')
+      Arguments(2):
+          ILocalReferenceOperation: x (OperationKind.LocalReference, Type: dynamic) (Syntax: 'x')
+          ILocalReferenceOperation: x (OperationKind.LocalReference, Type: dynamic) (Syntax: 'x')
+      ArgumentNames(2):
+        ""y""
+        ""x""
+      ArgumentRefKinds(0)
+  Initializer: 
+    IObjectOrCollectionInitializerOperation (OperationKind.ObjectOrCollectionInitializer, Type: dynamic) (Syntax: '{ }')
+      Initializers(0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
+
+        [CompilerTrait(CompilerFeature.IOperation)]
+        [Fact]
+        [WorkItem(23154, "https://github.com/dotnet/roslyn/issues/23154")]
+        public void ObjectCreationWithDynamicMemberInitializer_03()
+        {
+            string source = @"
+#pragma warning disable 0169
+class A
+{
+    dynamic this[int x, int y]
+    {
+        get
+        {
+            return new A();
+        }
+    }
+
+    dynamic this[string x, string y]
+    {
+        get
+        {
+            throw null;
+        }
+    }
+
+    int X, Y, Z;
+
+    static void Main()
+    {
+        dynamic x = 1;
+        new A {/*<bind>*/[y: x, x: x]/*</bind>*/ = { } };
+    }
+}
+";
+            string expectedOperationTree = @"
+IDynamicIndexerAccessOperation (OperationKind.DynamicIndexerAccess, Type: dynamic) (Syntax: '[y: x, x: x]')
+  Expression: 
+    IInstanceReferenceOperation (OperationKind.InstanceReference, Type: A, IsImplicit) (Syntax: '[y: x, x: x]')
+  Arguments(2):
+      ILocalReferenceOperation: x (OperationKind.LocalReference, Type: dynamic) (Syntax: 'x')
+      ILocalReferenceOperation: x (OperationKind.LocalReference, Type: dynamic) (Syntax: 'x')
+  ArgumentNames(2):
+    ""y""
+    ""x""
+  ArgumentRefKinds(0)
+";
+            var expectedDiagnostics = DiagnosticDescription.None;
+
+            VerifyOperationTreeAndDiagnosticsForTest<ExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+        }
     }
 }

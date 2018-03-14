@@ -169,6 +169,22 @@ namespace Microsoft.CodeAnalysis.Remote
             }
         }
 
+        public static async Task<bool> TryRunRemoteAsync(
+            this RemoteHostClient client, string serviceName, string targetName, IReadOnlyList<object> arguments, CancellationToken cancellationToken)
+        {
+            using (var connection = await client.TryCreateConnectionAsync(serviceName, cancellationToken).ConfigureAwait(false))
+            {
+                if (connection == null)
+                {
+                    // can't create Connection. RemoteHost seems not responding for some reasons such as OOP gone.
+                    return false;
+                }
+
+                await connection.InvokeAsync(targetName, arguments, cancellationToken).ConfigureAwait(false);
+                return true;
+            }
+        }
+
         /// <summary>
         /// Run given service on remote host. if it fails to run on remote host, it will return default(T)
         /// </summary>
@@ -208,6 +224,14 @@ namespace Microsoft.CodeAnalysis.Remote
         public static Task<T> TryRunCodeAnalysisRemoteAsync<T>(
             this RemoteHostClient client, Solution solution, string targetName, object[] arguments, CancellationToken cancellationToken)
             => TryRunRemoteAsync<T>(client, WellKnownServiceHubServices.CodeAnalysisService, solution, targetName, arguments, cancellationToken);
+
+        public static Task<bool> TryRunCodeAnalysisRemoteAsync(
+            this RemoteHostClient client, string targetName, object argument, CancellationToken cancellationToken)
+            => TryRunRemoteAsync(client, WellKnownServiceHubServices.CodeAnalysisService, targetName, new object[] { argument }, cancellationToken);
+
+        public static Task<bool> TryRunCodeAnalysisRemoteAsync(
+            this RemoteHostClient client, string targetName, object[] arguments, CancellationToken cancellationToken)
+            => TryRunRemoteAsync(client, WellKnownServiceHubServices.CodeAnalysisService, targetName, arguments, cancellationToken);
 
         /// <summary>
         /// Synchronize given solution as primary workspace solution in remote host

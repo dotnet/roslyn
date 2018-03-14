@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -9,6 +10,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -34,127 +36,134 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             Document document, int position,
             CompletionTrigger trigger, CancellationToken cancellationToken)
         {
-            var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            var parentTrivia = token.GetAncestor<DocumentationCommentTriviaSyntax>();
-
-            if (parentTrivia == null)
+            try
             {
-                return null;
-            }
+                var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
+                var token = tree.FindTokenOnLeftOfPosition(position, cancellationToken);
+                var parentTrivia = token.GetAncestor<DocumentationCommentTriviaSyntax>();
 
-            var attachedToken = parentTrivia.ParentTrivia.Token;
-            if (attachedToken.Kind() == SyntaxKind.None)
-            {
-                return null;
-            }
-
-            var semanticModel = await document.GetSemanticModelForNodeAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(false);
-
-            ISymbol declaredSymbol = null;
-            var memberDeclaration = attachedToken.GetAncestor<MemberDeclarationSyntax>();
-            if (memberDeclaration != null)
-            {
-                declaredSymbol = semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken);
-            }
-            else
-            {
-                var typeDeclaration = attachedToken.GetAncestor<TypeDeclarationSyntax>();
-                if (typeDeclaration != null)
+                if (parentTrivia == null)
                 {
-                    declaredSymbol = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
-                }
-            }
-
-            if (IsAttributeNameContext(token, position, out string elementName, out ISet<string> existingAttributes))
-            {
-                return GetAttributeItems(elementName, existingAttributes);
-            }
-
-            var wasTriggeredAfterSpace = trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character == ' ';
-            if (wasTriggeredAfterSpace)
-            {
-                // Nothing below this point should triggered by a space character
-                // (only attribute names should be triggered by <SPACE>)
-                return null;
-            }
-
-            if (IsAttributeValueContext(token, out elementName, out string attributeName))
-            {
-                return GetAttributeValueItems(declaredSymbol, elementName, attributeName);
-            }
-
-            if (trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character != '<')
-            {
-                // With the use of IsTriggerAfterSpaceOrStartOfWordCharacter, the code below is much
-                // too aggressive at suggesting tags, so exit early before degrading the experience
-                return null;
-            }
-
-            var items = new List<CompletionItem>();
-
-            if (token.Parent.Kind() == SyntaxKind.XmlEmptyElement || token.Parent.Kind() == SyntaxKind.XmlText ||
-                (token.Parent.IsKind(SyntaxKind.XmlElementEndTag) && token.IsKind(SyntaxKind.GreaterThanToken)) ||
-                (token.Parent.IsKind(SyntaxKind.XmlName) && token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement)))
-            {
-                // The user is typing inside an XmlElement
-                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement ||
-                    token.Parent.Parent.IsParentKind(SyntaxKind.XmlElement))
-                {
-                    // Avoid including language keywords when following < or <text, since these cases should only be
-                    // attempting to complete the XML name (which for language keywords is 'see'). While the parser
-                    // treats the 'name' in '< name' as an XML name, we don't treat it like that here so the completion
-                    // experience is consistent for '< ' and '< n'.
-                    var xmlNameOnly = token.IsKind(SyntaxKind.LessThanToken)
-                        || (token.Parent.IsKind(SyntaxKind.XmlName) && !token.HasLeadingTrivia);
-                    var includeKeywords = !xmlNameOnly;
-
-                    items.AddRange(GetNestedItems(declaredSymbol, includeKeywords));
+                    return null;
                 }
 
-                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListElementName)
+                var attachedToken = parentTrivia.ParentTrivia.Token;
+                if (attachedToken.Kind() == SyntaxKind.None)
                 {
-                    items.AddRange(GetListItems());
+                    return null;
                 }
 
-                if (token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement) && token.Parent.Parent.IsParentKind(SyntaxKind.XmlElement))
+                var semanticModel = await document.GetSemanticModelForNodeAsync(attachedToken.Parent, cancellationToken).ConfigureAwait(false);
+
+                ISymbol declaredSymbol = null;
+                var memberDeclaration = attachedToken.GetAncestor<MemberDeclarationSyntax>();
+                if (memberDeclaration != null)
                 {
-                    var element = (XmlElementSyntax)token.Parent.Parent.Parent;
-                    if (element.StartTag.Name.LocalName.ValueText == ListElementName)
+                    declaredSymbol = semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken);
+                }
+                else
+                {
+                    var typeDeclaration = attachedToken.GetAncestor<TypeDeclarationSyntax>();
+                    if (typeDeclaration != null)
                     {
-                        items.AddRange(GetListItems());
+                        declaredSymbol = semanticModel.GetDeclaredSymbol(typeDeclaration, cancellationToken);
                     }
                 }
 
-                if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListHeaderElementName)
+                if (IsAttributeNameContext(token, position, out string elementName, out ISet<string> existingAttributes))
                 {
-                    items.AddRange(GetListHeaderItems());
+                    return GetAttributeItems(elementName, existingAttributes);
                 }
 
-                if (token.Parent.Parent is DocumentationCommentTriviaSyntax ||
-                    (token.Parent.Parent.IsKind(SyntaxKind.XmlEmptyElement) && token.Parent.Parent.Parent is DocumentationCommentTriviaSyntax))
+                var wasTriggeredAfterSpace = trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character == ' ';
+                if (wasTriggeredAfterSpace)
                 {
-                    items.AddRange(GetTopLevelItems(declaredSymbol, parentTrivia));
+                    // Nothing below this point should triggered by a space character
+                    // (only attribute names should be triggered by <SPACE>)
+                    return null;
                 }
+
+                if (IsAttributeValueContext(token, out elementName, out string attributeName))
+                {
+                    return GetAttributeValueItems(declaredSymbol, elementName, attributeName);
+                }
+
+                if (trigger.Kind == CompletionTriggerKind.Insertion && trigger.Character != '<')
+                {
+                    // With the use of IsTriggerAfterSpaceOrStartOfWordCharacter, the code below is much
+                    // too aggressive at suggesting tags, so exit early before degrading the experience
+                    return null;
+                }
+
+                var items = new List<CompletionItem>();
+
+                if (token.Parent.Kind() == SyntaxKind.XmlEmptyElement || token.Parent.Kind() == SyntaxKind.XmlText ||
+                    (token.Parent.IsKind(SyntaxKind.XmlElementEndTag) && token.IsKind(SyntaxKind.GreaterThanToken)) ||
+                    (token.Parent.IsKind(SyntaxKind.XmlName) && token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement)))
+                {
+                    // The user is typing inside an XmlElement
+                    if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement ||
+                        token.Parent.Parent.IsParentKind(SyntaxKind.XmlElement))
+                    {
+                        // Avoid including language keywords when following < or <text, since these cases should only be
+                        // attempting to complete the XML name (which for language keywords is 'see'). While the parser
+                        // treats the 'name' in '< name' as an XML name, we don't treat it like that here so the completion
+                        // experience is consistent for '< ' and '< n'.
+                        var xmlNameOnly = token.IsKind(SyntaxKind.LessThanToken)
+                            || (token.Parent.IsKind(SyntaxKind.XmlName) && !token.HasLeadingTrivia);
+                        var includeKeywords = !xmlNameOnly;
+
+                        items.AddRange(GetNestedItems(declaredSymbol, includeKeywords));
+                    }
+
+                    if (token.Parent.Parent is XmlElementSyntax xmlElement)
+                    {
+                        AddXmlElementItems(items, xmlElement.StartTag);
+                    }
+
+                    if (token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement) &&
+                        token.Parent.Parent.Parent is XmlElementSyntax nestedXmlElement)
+                    {
+                        AddXmlElementItems(items, nestedXmlElement.StartTag);
+                    }
+
+                    if (token.Parent.Parent is DocumentationCommentTriviaSyntax ||
+                        (token.Parent.Parent.IsKind(SyntaxKind.XmlEmptyElement) && token.Parent.Parent.Parent is DocumentationCommentTriviaSyntax))
+                    {
+                        items.AddRange(GetTopLevelItems(declaredSymbol, parentTrivia));
+                    }
+                }
+
+                if (token.Parent is XmlElementStartTagSyntax startTag &&
+                    token == startTag.GreaterThanToken)
+                {
+                    AddXmlElementItems(items, startTag);
+                }
+
+                items.AddRange(GetAlwaysVisibleItems());
+                return items;
             }
-
-            if (token.Parent.Kind() == SyntaxKind.XmlElementStartTag)
+            catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
             {
-                var startTag = (XmlElementStartTagSyntax)token.Parent;
-
-                if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == ListElementName)
-                {
-                    items.AddRange(GetListItems());
-                }
-
-                if (token == startTag.GreaterThanToken && startTag.Name.LocalName.ValueText == ListHeaderElementName)
-                {
-                    items.AddRange(GetListHeaderItems());
-                }
+                return SpecializedCollections.EmptyEnumerable<CompletionItem>();
             }
+        }
 
-            items.AddRange(GetAlwaysVisibleItems());
-            return items;
+        private void AddXmlElementItems(List<CompletionItem> items, XmlElementStartTagSyntax startTag)
+        {
+            var xmlElementName = startTag.Name.LocalName.ValueText;
+            if (xmlElementName == ListElementName)
+            {
+                items.AddRange(GetListItems());
+            }
+            else if (xmlElementName == ListHeaderElementName)
+            {
+                items.AddRange(GetListHeaderItems());
+            }
+            else if (xmlElementName == ItemElementName)
+            {
+                items.AddRange(GetItemTagItems());
+            }
         }
 
         private bool IsAttributeNameContext(SyntaxToken token, int position, out string elementName, out ISet<string> attributeNames)

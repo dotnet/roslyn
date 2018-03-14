@@ -886,5 +886,27 @@ class C
 }";
             await VerifyItemExistsAsync(text, "await", usePreviousCharAsTrigger: true);
         }
+
+        [WorkItem(757, "https://github.com/dotnet/roslyn/issues/757")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TermAndDescriptionInsideItem()
+        {
+            var text = @"
+class C
+{
+    /// <summary>
+    ///     <list type=""table"">
+    ///         <item>
+    ///             $$
+    ///         </item>
+    ///     </list>
+    /// </summary>
+    static void Goo()
+    {
+    }
+}";
+            await VerifyItemExistsAsync(text, "term");
+            await VerifyItemExistsAsync(text, "description");
+        }
     }
 }

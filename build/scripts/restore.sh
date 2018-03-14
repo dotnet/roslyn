@@ -1,12 +1,11 @@
 #!/usr/bin/env bash
 
-# Workaround, see https://github.com/dotnet/roslyn/issues/10210
-export HOME="$(cd ~ && pwd)"
+THIS_DIR=$(cd -P "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 echo "Restoring toolset packages"
 
-dotnet restore -v Minimal --disable-parallel "$(pwd)"/build/ToolsetPackages/BaseToolset.csproj
-
-echo "Restore CrossPlatform.sln"
-
-dotnet restore "$(pwd)"/CrossPlatform.sln
+RESTORE_ARGS="-v Minimal --disable-parallel"
+echo "Restoring RoslynToolset.csproj"
+dotnet restore ${RESTORE_ARGS} "${THIS_DIR}/../ToolsetPackages/RoslynToolset.csproj"
+echo "Restoring Compilers.sln"
+dotnet restore ${RESTORE_ARGS} "${THIS_DIR}/../../Compilers.sln"

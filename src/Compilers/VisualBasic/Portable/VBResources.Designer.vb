@@ -6108,6 +6108,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Invalid hash algorithm name: &apos;{0}&apos;.
+        '''</summary>
+        Friend ReadOnly Property ERR_InvalidHashAlgorithmName() As String
+            Get
+                Return ResourceManager.GetString("ERR_InvalidHashAlgorithmName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;Implements&apos; is not valid on operator declarations..
         '''</summary>
         Friend ReadOnly Property ERR_InvalidImplements() As String
@@ -11533,6 +11542,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Predefined type &apos;{0}&apos; is declared in multiple referenced assemblies: &apos;{1}&apos; and &apos;{2}&apos;.
+        '''</summary>
+        Friend ReadOnly Property ERR_ValueTupleResolutionAmbiguous3() As String
+            Get
+                Return ResourceManager.GetString("ERR_ValueTupleResolutionAmbiguous3", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Predefined type &apos;{0}&apos; is not defined or imported..
         '''</summary>
         Friend ReadOnly Property ERR_ValueTupleTypeRefResolutionError1() As String
@@ -12051,6 +12069,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite() As String
             Get
                 Return ResourceManager.GetString("FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to interpolated strings.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_InterpolatedStrings() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_InterpolatedStrings", resourceCulture)
             End Get
         End Property
         

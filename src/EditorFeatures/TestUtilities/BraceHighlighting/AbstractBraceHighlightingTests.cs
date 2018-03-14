@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
                 var provider = new BraceHighlightingViewTaggerProvider(
                     GetBraceMatchingService(workspace),
                     workspace.GetService<IForegroundNotificationService>(),
-                    AggregateAsynchronousOperationListener.EmptyListeners);
+                    AsynchronousOperationListenerProvider.NullProvider);
 
                 var testDocument = workspace.Documents.First();
                 var buffer = testDocument.TextBuffer;

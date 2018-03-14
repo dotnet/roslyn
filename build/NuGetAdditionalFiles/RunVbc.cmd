@@ -4,4 +4,4 @@ if defined DOTNET_HOST_PATH (
 ) else (
     set HOST_PATH=dotnet
 )
-%HOST_PATH% %~dp0\vbc.dll %*
+"%HOST_PATH%" "%~dp0\vbc.dll" %*

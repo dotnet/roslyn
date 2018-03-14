@@ -219,6 +219,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // Always prefer operators with val parameters over operators with in parameters:
+            if (op1.RefKind == RefKind.None && op2.RefKind == RefKind.In)
+            {
+                return BetterResult.Left;
+            }
+            else if (op2.RefKind == RefKind.None && op1.RefKind == RefKind.In)
+            {
+                return BetterResult.Right;
+            }
+
             return BetterResult.Neither;
         }
 

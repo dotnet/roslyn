@@ -73,6 +73,9 @@ public class ClassA
                             data.Tree.FindNodeOrTokenByKind(SyntaxKind.NewKeyword, 5).Span,
                             9, 10, 11);
 
+            Assert.Equal("AnonymousTypePublicSymbol", info0.Type.GetType().Name);
+            Assert.False(((INamedTypeSymbol)info0.Type).IsSerializable);
+
             Assert.Equal(info0.Type, info2.Type);
             Assert.NotEqual(info0.Type, info1.Type);
 
@@ -767,8 +770,8 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             Instance Receiver: 
               null
         Right: 
-          IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
-      IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
+          IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
+      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -825,8 +828,12 @@ class ClassA
             string expectedOperationTree = @"
 IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: <anonymous type: System.Int32 x, System.String y>) (Syntax: 'new { x, y }')
   Initializers(2):
-      IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
-      IOperation:  (OperationKind.None, Type: null) (Syntax: 'y')
+      IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.String y>.x { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
+        Instance Receiver: 
+          IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Int32 x, System.String y>, IsImplicit) (Syntax: 'x')
+      IPropertyReferenceOperation: System.String <anonymous type: System.Int32 x, System.String y>.y { get; } (OperationKind.PropertyReference, Type: System.String) (Syntax: 'y')
+        Instance Receiver: 
+          IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Int32 x, System.String y>, IsImplicit) (Syntax: 'y')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -1426,7 +1433,7 @@ public class A
     const int i = /*<bind>*/(new {a = 2}).a/*</bind>*/;
 }";
 
-            var comp = CreateStandardCompilation(source);
+            var comp = CreateCompilation(source);
             var tuple = GetBindingNodeAndModel<ExpressionSyntax>(comp);
             var info = tuple.Item2.GetSymbolInfo(tuple.Item1);
             Assert.NotNull(info.Symbol);
@@ -1488,7 +1495,7 @@ public class Program
         var db = new DB();
         var q0 = db.Products.GroupBy(p => new { Conditional = false ? new { p.ProductID, p.ProductName, p.SupplierID } : new { p.ProductID, p.ProductName, p.SupplierID } }).ToList();
     }
-}", additionalRefs: new[] { SystemCoreRef }).VerifyDiagnostics();
+}").VerifyDiagnostics();
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1598,7 +1605,7 @@ public class Program
         var db = new DB();
         var q0 = db.Products.GroupBy(p => new { Conditional = false ? new { p.ProductID, p.ProductName, p.SupplierID } : new { p.ProductID, p.ProductName, p.SupplierID } }).ToList();
     }
-}", additionalRefs: new[] { SystemCoreRef }).VerifyDiagnostics();
+}").VerifyDiagnostics();
         }
 
         [WorkItem(546416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546416")]
@@ -1627,7 +1634,7 @@ public class Program
         var q0 = db.Products.GroupBy(p => new { Conditional = false ? new { p.ProductID, p.SupplierID } : new { p.ProductID, p.SupplierID } }).ToList();
         var q1 = db.Products.GroupBy(p => new { Conditional = false ? new { p.ProductID, p.SupplierID } : new { p.ProductID, p.SupplierID } }).ToList();
     }
-}", additionalRefs: new[] { SystemCoreRef }).VerifyDiagnostics();
+}").VerifyDiagnostics();
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1696,7 +1703,7 @@ IAnonymousObjectCreationOperation (OperationKind.AnonymousObjectCreation, Type: 
             var namedType = type as NamedTypeSymbol;
             Assert.NotNull(namedType);
 
-            var objType = namedType.BaseType;
+            var objType = namedType.BaseType();
             Assert.NotNull(objType);
             Assert.Equal("System.Object", objType.ToTestDisplayString());
 

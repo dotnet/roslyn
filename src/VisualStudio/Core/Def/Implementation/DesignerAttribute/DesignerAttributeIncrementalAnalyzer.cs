@@ -44,7 +44,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         public DesignerAttributeIncrementalAnalyzer(
             IServiceProvider serviceProvider,
             IForegroundNotificationService notificationService,
-            IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
+            IAsynchronousOperationListenerProvider listenerProvider)
         {
             _serviceProvider = serviceProvider;
             Contract.ThrowIfNull(_serviceProvider);
@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             _notificationService = notificationService;
             _cpsProjects = new ConcurrentDictionary<ProjectId, bool>(concurrencyLevel: 2, capacity: 10);
 
-            _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DesignerAttribute);
+            _listener = listenerProvider.GetListener(FeatureAttribute.DesignerAttribute);
             _state = new DesignerAttributeState();
         }
 
@@ -99,7 +99,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             }
 
             var result = await ScanDesignerAttributesOnRemoteHostIfPossibleAsync(document, cancellationToken).ConfigureAwait(false);
-            if (result.NotApplicable)
+            if (!result.Applicable)
             {
                 _state.Remove(document.Id);
                 return;
@@ -127,7 +127,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             var service = document.GetLanguageService<IDesignerAttributeService>();
             if (service == null)
             {
-                return new DesignerAttributeResult(designerAttributeArgument: null, containsErrors: true, notApplicable: true);
+                return new DesignerAttributeResult(designerAttributeArgument: null, containsErrors: true, applicable: false);
             }
 
             return await service.ScanDesignerAttributesAsync(document, cancellationToken).ConfigureAwait(false);

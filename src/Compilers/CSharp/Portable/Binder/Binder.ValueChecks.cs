@@ -259,6 +259,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ToBadExpression(expr, resultKind);
         }
 
+        internal static bool IsTypeOrValueExpression(BoundExpression expression)
+        {
+            switch (expression?.Kind)
+            {
+                case BoundKind.TypeOrValueExpression:
+                case BoundKind.QueryClause when ((BoundQueryClause)expression).Value.Kind == BoundKind.TypeOrValueExpression:
+                    return true;
+                default:
+                    return false;
+            }
+        }
+
         /// <summary>
         /// The purpose of this method is to determine if the expression satisfies desired capabilities. 
         /// If it is not then this code gives an appropriate error message.
@@ -405,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var conditional = (BoundConditionalOperator)expr;
 
                     // byref conditional defers to its operands
-                    if (conditional.IsByRef &&
+                    if (conditional.IsRef &&
                         (CheckValueKind(conditional.Consequence.Syntax, conditional.Consequence, valueKind, checkingReceiver: false, diagnostics: diagnostics) &
                         CheckValueKind(conditional.Alternative.Syntax, conditional.Alternative, valueKind, checkingReceiver: false, diagnostics: diagnostics)))
                     {
@@ -615,7 +627,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CheckIsValidReceiverForVariable(node, fieldAccess.ReceiverOpt, valueKind, diagnostics);
         }
 
-        private static bool CheckFieldRefEscape(SyntaxNode node, BoundFieldAccess fieldAccess, uint escapeFrom, uint escapeTo, bool checkingReceiver, DiagnosticBag diagnostics)
+        private static bool CheckFieldRefEscape(SyntaxNode node, BoundFieldAccess fieldAccess, uint escapeFrom, uint escapeTo, DiagnosticBag diagnostics)
         {
             var fieldSymbol = fieldAccess.FieldSymbol;
             // fields that are static or belong to reference types can ref escape anywhere
@@ -628,7 +640,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CheckRefEscape(node, fieldAccess.ReceiverOpt, escapeFrom, escapeTo, checkingReceiver: true, diagnostics: diagnostics);
         }
 
-        private static bool CheckFieldLikeEventRefEscape(SyntaxNode node, BoundEventAccess eventAccess, uint escapeFrom, uint escapeTo, bool checkingReceiver, DiagnosticBag diagnostics)
+        private static bool CheckFieldLikeEventRefEscape(SyntaxNode node, BoundEventAccess eventAccess, uint escapeFrom, uint escapeTo, DiagnosticBag diagnostics)
         {
             var eventSymbol = eventAccess.EventSymbol;
 
@@ -1006,7 +1018,7 @@ moreArguments:
             ParameterSymbol unmatchedInParameter = TryGetunmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
 
             // unmatched "in" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
-            //                                                    its val escape is ExternalScope                   (does not affect overal result)
+            //                                                    its val escape is ExternalScope                   (does not affect overall result)
             if (unmatchedInParameter != null && isRefEscape)
             {
                 return scopeOfTheContainingExpression;
@@ -1121,7 +1133,7 @@ moreArguments:
             ParameterSymbol unmatchedInParameter = TryGetunmatchedInParameterAndFreeMatchedArgs(parameters, ref inParametersMatchedWithArgs);
 
             // unmatched "in" parameter is the same as a literal, its ref escape is scopeOfTheContainingExpression  (can't get any worse)
-            //                                                    its val escape is ExternalScope                   (does not affect overal result)
+            //                                                    its val escape is ExternalScope                   (does not affect overall result)
             if (unmatchedInParameter != null && isRefEscape)
             {
                 Error(diagnostics, GetStandardCallEscapeError(checkingReceiver), syntax, symbol, unmatchedInParameter.Name);
@@ -1635,7 +1647,7 @@ moreArguments:
 
                     // byval parameters can escape to method's top level.
                     // others can be escape further, unless they are ref-like.
-                    // NOTE: "method" here means nearst containing method, lambda or nested method
+                    // NOTE: "method" here means nearest containing method, lambda or nested method
                     return parameter.RefKind == RefKind.None || parameter.Type?.IsByRefLikeType == true ?
                         Binder.TopLevelScope :
                         Binder.ExternalScope;
@@ -1659,7 +1671,7 @@ moreArguments:
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
 
-                    if (conditional.IsByRef)
+                    if (conditional.IsRef)
                     {
                         // ref conditional defers to its operands
                         return Math.Max(GetRefEscape(conditional.Consequence, scopeOfTheContainingExpression),
@@ -1847,7 +1859,7 @@ moreArguments:
                 case BoundKind.ConditionalOperator:
                     var conditional = (BoundConditionalOperator)expr;
 
-                    if (conditional.IsByRef)
+                    if (conditional.IsRef)
                     {
                         return CheckRefEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics) &&
                                CheckRefEscape(conditional.Alternative.Syntax, conditional.Alternative, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
@@ -1858,7 +1870,7 @@ moreArguments:
 
                 case BoundKind.FieldAccess:
                     var fieldAccess = (BoundFieldAccess)expr;
-                    return CheckFieldRefEscape(node, fieldAccess, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+                    return CheckFieldRefEscape(node, fieldAccess, escapeFrom, escapeTo, diagnostics);
 
                 case BoundKind.EventAccess:
                     var eventAccess = (BoundEventAccess)expr;
@@ -1868,7 +1880,7 @@ moreArguments:
                         break;
                     }
 
-                    return CheckFieldLikeEventRefEscape(node, eventAccess, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+                    return CheckFieldLikeEventRefEscape(node, eventAccess, escapeFrom, escapeTo, diagnostics);
 
                 case BoundKind.Call:
                     var call = (BoundCall)expr;
@@ -2036,7 +2048,7 @@ moreArguments:
 
                     var consEscape = GetValEscape(conditional.Consequence, scopeOfTheContainingExpression);
 
-                    if (conditional.IsByRef)
+                    if (conditional.IsRef)
                     {
                         // ref conditional defers to one operand. 
                         // the other one is the same or we will be reporting errors anyways.
@@ -2051,7 +2063,11 @@ moreArguments:
                     var fieldAccess = (BoundFieldAccess)expr;
                     var fieldSymbol = fieldAccess.FieldSymbol;
 
-                    Debug.Assert(!fieldSymbol.IsStatic && fieldSymbol.ContainingType.IsByRefLikeType);
+                    if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsByRefLikeType)
+                    {
+                        // Already an error state.
+                        return Binder.ExternalScope;
+                    }
 
                     // for ref-like fields defer to the receiver.
                     return GetValEscape(fieldAccess.ReceiverOpt, scopeOfTheContainingExpression);
@@ -2180,6 +2196,11 @@ moreArguments:
                     // binder uses this as a placeholder when binding members inside an object initializer
                     // just say it does not escape anywhere, so that we do not get false errors.
                     return scopeOfTheContainingExpression;
+
+                case BoundKind.PointerElementAccess:
+                case BoundKind.PointerIndirectionOperator:
+                    // Unsafe code will always be allowed to escape.
+                    return Binder.ExternalScope;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue($"{expr.Kind} expression of {expr.Type} type");
@@ -2320,7 +2341,7 @@ moreArguments:
 
                     var consValid = CheckValEscape(conditional.Consequence.Syntax, conditional.Consequence, escapeFrom, escapeTo, checkingReceiver: false, diagnostics: diagnostics);
 
-                    if (!consValid || conditional.IsByRef)
+                    if (!consValid || conditional.IsRef)
                     {
                         // ref conditional defers to one operand. 
                         // the other one is the same or we will be reporting errors anyways.
@@ -2333,7 +2354,11 @@ moreArguments:
                     var fieldAccess = (BoundFieldAccess)expr;
                     var fieldSymbol = fieldAccess.FieldSymbol;
 
-                    Debug.Assert(!fieldSymbol.IsStatic && fieldSymbol.ContainingType.IsByRefLikeType);
+                    if (fieldSymbol.IsStatic || !fieldSymbol.ContainingType.IsByRefLikeType)
+                    {
+                        // Already an error state.
+                        return true;
+                    }
 
                     // for ref-like fields defer to the receiver.
                     return CheckValEscape(node, fieldAccess.ReceiverOpt, escapeFrom, escapeTo, true, diagnostics);
@@ -2484,13 +2509,19 @@ moreArguments:
                     var colElement = (BoundCollectionElementInitializer)expr;
                     return CheckValEscape(colElement.Arguments, escapeFrom, escapeTo, diagnostics);
 
+                case BoundKind.PointerElementAccess:
+                    var accessedExpression = ((BoundPointerElementAccess)expr).Expression;
+                    return CheckValEscape(accessedExpression.Syntax, accessedExpression, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+
+                case BoundKind.PointerIndirectionOperator:
+                    var operandExpression = ((BoundPointerIndirectionOperator)expr).Operand;
+                    return CheckValEscape(operandExpression.Syntax, operandExpression, escapeFrom, escapeTo, checkingReceiver, diagnostics);
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue($"{expr.Kind} expression of {expr.Type} type");
 
                 #region "cannot produce ref-like values"
 //                case BoundKind.ThrowExpression:
-//                case BoundKind.PointerIndirectionOperator:
-//                case BoundKind.PointerElementAccess:
 //                case BoundKind.ArgListOperator:
 //                case BoundKind.ArgList:
 //                case BoundKind.RefTypeOperator:

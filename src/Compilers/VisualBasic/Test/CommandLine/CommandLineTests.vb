@@ -8,6 +8,7 @@ Imports System.Reflection
 Imports System.Reflection.Metadata
 Imports System.Reflection.PortableExecutable
 Imports System.Runtime.InteropServices
+Imports System.Security.Cryptography
 Imports System.Text
 Imports System.Text.RegularExpressions
 Imports System.Threading
@@ -30,11 +31,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
         Inherits BasicTestBase
 
         Private ReadOnly _baseDirectory As String = TempRoot.Root
-        Private Shared ReadOnly s_basicCompilerExecutable As String = GetType(Vbc).Assembly.Location
+        Private Shared ReadOnly s_basicCompilerExecutable As String = Path.Combine(
+            Path.GetDirectoryName(GetType(CommandLineTests).Assembly.Location),
+            Path.Combine("dependency", "vbc.exe"))
         Private Shared ReadOnly s_defaultSdkDirectory As String = RuntimeEnvironment.GetRuntimeDirectory()
-        Private Shared ReadOnly s_compilerVersion As String = FileVersionInfo.GetVersionInfo(GetType(VisualBasicCompiler).Assembly.Location).FileVersion
+        Private Shared ReadOnly s_compilerVersion As String = FileVersionInfo.GetVersionInfo(GetType(CommandLineTests).Assembly.Location).FileVersion
         Private Shared ReadOnly s_compilerShortCommitHash As String =
-            CommonCompiler.ExtractShortCommitHash(GetType(VisualBasicCompiler).GetTypeInfo().Assembly.GetCustomAttribute(Of CommitHashAttribute).Hash)
+            CommonCompiler.ExtractShortCommitHash(GetType(CommandLineTests).Assembly.GetCustomAttribute(Of CommitHashAttribute).Hash)
 
         Private Shared Function DefaultParse(args As IEnumerable(Of String), baseDirectory As String, Optional sdkDirectory As String = Nothing, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
             sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
@@ -49,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
 
         Private Shared Function InteractiveParse(args As IEnumerable(Of String), baseDirectory As String, Optional sdkDirectory As String = Nothing, Optional additionalReferenceDirectories As String = Nothing) As VisualBasicCommandLineArguments
             sdkDirectory = If(sdkDirectory, s_defaultSdkDirectory)
-            Return VisualBasicCommandLineParser.ScriptRunner.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
+            Return VisualBasicCommandLineParser.Script.Parse(args, baseDirectory, sdkDirectory, additionalReferenceDirectories)
         End Function
 
         <Fact>
@@ -86,6 +89,19 @@ End Class
             CleanupAllGeneratedFiles(src)
         End Sub
 
+        <Fact>
+        <WorkItem(21508, "https://github.com/dotnet/roslyn/issues/21508")>
+        Public Sub ArgumentStartWithDashAndContainingSlash()
+            Dim args As VisualBasicCommandLineArguments
+            Dim folder = Temp.CreateDirectory()
+
+            args = DefaultParse({"-debug+/debug:portable"}, folder.Path)
+            args.Errors.AssertTheseDiagnostics(<errors>
+BC2007: unrecognized option '-debug+/debug:portable'; ignored
+BC2008: no input sources specified
+                                               </errors>)
+        End Sub
+
         <WorkItem(545247, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545247")>
         <Fact()>
         Public Sub CommandLineCompilationWithQuotedMainArgument()
@@ -105,6 +121,63 @@ End Module
             Dim exitCode = vbc.Run(output, Nothing)
             Assert.Equal(0, exitCode)
             Assert.Equal("", output.ToString().Trim())
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/pull/23529")>
+        Public Sub CreateCompilationWithKeyFile()
+            Dim source = "
+Public Class C
+    Public Shared Sub Main()
+    End Sub
+End Class"
+
+            Dim fileName = "a.vb"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile(fileName)
+            file.WriteAllText(source)
+
+            Dim cmd = New MockVisualBasicCompiler(dir.Path, {"/nologo", "a.vb", "/keyfile:key.snk"})
+            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance)
+
+            Assert.True(TypeOf comp.Options.StrongNameProvider Is PortableStrongNameProvider)
+        End Sub
+
+        <Fact>
+        Public Sub CreateCompilationWithCryptoContainer()
+            Dim source = "
+Public Class C
+    Public Shared Sub Main()
+    End Sub
+End Class"
+
+            Dim fileName = "a.vb"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile(fileName)
+            file.WriteAllText(source)
+
+            Dim cmd = New MockVisualBasicCompiler(dir.Path, {"/nologo", "a.vb", "/keycontainer:aaa"})
+            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance)
+
+            Assert.True(TypeOf comp.Options.StrongNameProvider Is DesktopStrongNameProvider)
+        End Sub
+
+        <Fact>
+        Public Sub CreateCompilationWithStrongNameFallbackCommand()
+            Dim source = "
+Public Class C
+    Public Shared Sub Main()
+    End Sub
+End Class"
+
+            Dim fileName = "a.vb"
+            Dim dir = Temp.CreateDirectory()
+            Dim file = dir.CreateFile(fileName)
+            file.WriteAllText(source)
+
+            Dim cmd = New MockVisualBasicCompiler(dir.Path, {"/nologo", "a.vb", "/features:UseLegacyStrongNameProvider"})
+            Dim comp = cmd.CreateCompilation(TextWriter.Null, New TouchedFileLogger(), NullErrorLogger.Instance)
+
+            Assert.True(TypeOf comp.Options.StrongNameProvider Is DesktopStrongNameProvider)
         End Sub
 
         <Fact>
@@ -530,7 +603,7 @@ a.vb
         Public Sub Win32ResourceArguments()
             Dim args As String() = {"/win32manifest:..\here\there\everywhere\nonexistent"}
             Dim parsedArgs = DefaultParse(args, _baseDirectory)
-            Dim compilation = CreateCompilationWithMscorlib(New VisualBasicSyntaxTree() {})
+            Dim compilation = CreateCompilationWithMscorlib40(New VisualBasicSyntaxTree() {})
             Dim errors As IEnumerable(Of DiagnosticInfo) = Nothing
             CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
@@ -573,7 +646,7 @@ a.vb
         Public Sub Win32IconContainsGarbage()
             Dim tmpFileName As String = Temp.CreateFile().WriteAllBytes(New Byte() {1, 2, 3, 4, 5, 6, 7, 8, 9, 10}).Path
             Dim parsedArgs = DefaultParse({"/win32icon:" + tmpFileName}, _baseDirectory)
-            Dim compilation = CreateCompilationWithMscorlib(New VisualBasicSyntaxTree() {})
+            Dim compilation = CreateCompilationWithMscorlib40(New VisualBasicSyntaxTree() {})
             Dim errors As IEnumerable(Of DiagnosticInfo) = Nothing
             CommonCompiler.GetWin32ResourcesInternal(MessageProvider.Instance, parsedArgs, compilation, errors)
             Assert.Equal(1, errors.Count())
@@ -1469,21 +1542,24 @@ End Module").Path
             parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("codepage", ":<number>"))
         End Sub
 
-        <Fact>
+        <Fact, WorkItem(24735, "https://github.com/dotnet/roslyn/issues/24735")>
         Public Sub ChecksumAlgorithm()
             Dim parsedArgs As VisualBasicCommandLineArguments
 
             parsedArgs = DefaultParse({"/checksumAlgorithm:sHa1", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
 
             parsedArgs = DefaultParse({"/checksumAlgorithm:sha256", "a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SourceHashAlgorithm.Sha256, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
 
             parsedArgs = DefaultParse({"a.cs"}, _baseDirectory)
             parsedArgs.Errors.Verify()
             Assert.Equal(SourceHashAlgorithm.Sha1, parsedArgs.ChecksumAlgorithm)
+            Assert.Equal(HashAlgorithmName.SHA256, parsedArgs.EmitOptions.PdbChecksumAlgorithm)
 
             ' error
             parsedArgs = DefaultParse({"/checksumAlgorithm:256", "a.cs"}, _baseDirectory)
@@ -2927,6 +3003,92 @@ print Goodbye, World"
 
         <CompilerTrait(CompilerFeature.Determinism)>
         <Fact>
+        Public Sub PathMapParser()
+            Dim parsedArgs = DefaultParse({"/pathmap:", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify(
+                Diagnostic(ERRID.WRN_BadSwitch).WithArguments("/pathmap:").WithLocation(1, 1)
+            )
+            Assert.Equal(ImmutableArray.Create(Of KeyValuePair(Of String, String))(), parsedArgs.PathMap)
+
+            parsedArgs = DefaultParse({"/pathmap:K1=V1", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePair.Create("K1\", "V1\"), parsedArgs.PathMap(0))
+
+            parsedArgs = DefaultParse({"/pathmap:C:\goo\=/", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePair.Create("C:\goo\", "/"), parsedArgs.PathMap(0))
+
+            parsedArgs = DefaultParse({"/pathmap:K1=V1,K2=V2", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePair.Create("K1\", "V1\"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("K2\", "V2\"), parsedArgs.PathMap(1))
+
+            parsedArgs = DefaultParse({"/pathmap:,,,", "a.vb"}, _baseDirectory)
+            Assert.Equal(4, parsedArgs.Errors.Count())
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(0).Code)
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(1).Code)
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(2).Code)
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(3).Code)
+
+            parsedArgs = DefaultParse({"/pathmap:k=,=v", "a.vb"}, _baseDirectory)
+            Assert.Equal(2, parsedArgs.Errors.Count())
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(0).Code)
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(1).Code)
+
+            parsedArgs = DefaultParse({"/pathmap:k=v=bad", "a.vb"}, _baseDirectory)
+            Assert.Equal(1, parsedArgs.Errors.Count())
+            Assert.Equal(ERRID.ERR_InvalidPathMap, parsedArgs.Errors(0).Code)
+
+            parsedArgs = DefaultParse({"/pathmap:""supporting spaces=is hard""", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePair.Create("supporting spaces\", "is hard\"), parsedArgs.PathMap(0))
+
+            parsedArgs = DefaultParse({"/pathmap:""K 1=V 1"",""K 2=V 2""", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePair.Create("K 1\", "V 1\"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("K 2\", "V 2\"), parsedArgs.PathMap(1))
+
+            parsedArgs = DefaultParse({"/pathmap:""K 1""=""V 1"",""K 2""=""V 2""", "a.vb"}, _baseDirectory)
+            parsedArgs.Errors.Verify()
+            Assert.Equal(KeyValuePair.Create("K 1\", "V 1\"), parsedArgs.PathMap(0))
+            Assert.Equal(KeyValuePair.Create("K 2\", "V 2\"), parsedArgs.PathMap(1))
+        End Sub
+
+        ' PathMapKeepsCrossPlatformRoot and PathMapInconsistentSlashes should be in an
+        ' assembly that is ran cross-platform, but as no visual basic test assemblies are
+        ' run cross-platform, put this here in the hopes that this will eventually be ported.
+        <Theory>
+        <InlineData("C:\", "/", "C:\", "/")>
+        <InlineData("C:\temp\", "/temp/", "C:\temp", "/temp")>
+        <InlineData("C:\temp\", "/temp/", "C:\temp\", "/temp/")>
+        <InlineData("/", "C:\", "/", "C:\")>
+        <InlineData("/temp/", "C:\temp\", "/temp", "C:\temp")>
+        <InlineData("/temp/", "C:\temp\", "/temp/", "C:\temp\")>
+        Public Sub PathMapKeepsCrossPlatformRoot(expectedFrom As String, expectedTo As String, sourceFrom As String, sourceTo As String)
+            Dim pathmapArg = $"/pathmap:{sourceFrom}={sourceTo}"
+            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse({pathmapArg, "a.cs"}, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), Nothing)
+            parsedArgs.Errors.Verify()
+            Dim expected = New KeyValuePair(Of String, String)(expectedFrom, expectedTo)
+            Assert.Equal(expected, parsedArgs.PathMap(0))
+        End Sub
+
+        <Fact>
+        Public Sub PathMapInconsistentSlashes()
+            Dim Parse = Function(args() As String) As VisualBasicCommandLineArguments
+                            Dim parsedArgs = VisualBasicCommandLineParser.Default.Parse(args, TempRoot.Root, RuntimeEnvironment.GetRuntimeDirectory(), Nothing)
+                            parsedArgs.Errors.Verify()
+                            Return parsedArgs
+                        End Function
+            Dim sep = PathUtilities.DirectorySeparatorChar
+            Assert.Equal(New KeyValuePair(Of String, String)("C:\temp/goo" + sep, "/temp\goo" + sep), Parse({"/pathmap:C:\temp/goo=/temp\goo", "a.cs"}).PathMap(0))
+            Assert.Equal(New KeyValuePair(Of String, String)("noslash" + sep, "withoutslash" + sep), Parse({"/pathmap:noslash=withoutslash", "a.cs"}).PathMap(0))
+            Dim doublemap = Parse({"/pathmap:/temp=/goo,/temp/=/bar", "a.cs"}).PathMap
+            Assert.Equal(New KeyValuePair(Of String, String)("/temp/", "/goo/"), doublemap(0))
+            Assert.Equal(New KeyValuePair(Of String, String)("/temp/", "/bar/"), doublemap(1))
+        End Sub
+
+        <CompilerTrait(CompilerFeature.Determinism)>
+        <Fact>
         Public Sub PathMapPdbDeterminism()
             Dim assertPdbEmit =
                 Sub(dir As TempDirectory, pePdbPath As String, extraArgs As String())
@@ -2956,7 +3118,7 @@ End Module
                     Assert.True(File.Exists(pdbPath))
 
                     Using peStream = File.OpenRead(exePath)
-                        PdbValidation.ValidateDebugDirectory(peStream, Nothing, pePdbPath, isDeterministic)
+                        PdbValidation.ValidateDebugDirectory(peStream, Nothing, pePdbPath, hashAlgorithm:=Nothing, hasEmbeddedPdb:=False, isDeterministic)
                     End Using
                 End Sub
 
@@ -2989,6 +3151,18 @@ End Module
             Using dir As New DisposableDirectory(Temp)
                 Dim pePdbPath = Path.Combine(dir.Path, "a.pdb")
                 assertPdbEmit(dir, "a.pdb", {"/features:pdb-path-determinism"})
+            End Using
+
+            ' Unix path map
+            Using dir As New DisposableDirectory(Temp)
+                Dim pdbPath = Path.Combine(dir.Path, "a.pdb")
+                assertPdbEmit(dir, "/a.pdb", {$"/pathmap:{dir.Path}=/"})
+            End Using
+
+            ' Multi-specified path map with mixed slashes
+            Using dir As New DisposableDirectory(Temp)
+                Dim pdbPath = Path.Combine(dir.Path, "a.pdb")
+                assertPdbEmit(dir, "/goo/a.pdb", {$"/pathmap:{dir.Path}=/goo,{dir.Path}{PathUtilities.DirectorySeparatorChar}=/bar"})
             End Using
         End Sub
 
@@ -4422,12 +4596,12 @@ Dim b = Loc
             opt = opt.WithEmbedVbCoreRuntime(True)
             opt.Errors.Verify(Diagnostic(ERRID.ERR_VBCoreNetModuleConflict))
 
-            CreateCompilationWithMscorlibAndVBRuntime(<compilation><file/></compilation>, opt).GetDiagnostics().Verify(Diagnostic(ERRID.ERR_VBCoreNetModuleConflict))
+            CreateCompilationWithMscorlib40AndVBRuntime(<compilation><file/></compilation>, opt).GetDiagnostics().Verify(Diagnostic(ERRID.ERR_VBCoreNetModuleConflict))
 
             opt = opt.WithOutputKind(OutputKind.DynamicallyLinkedLibrary)
             opt.Errors.Verify()
 
-            CreateCompilationWithMscorlibAndVBRuntime(<compilation><file/></compilation>, opt).GetDiagnostics().Verify()
+            CreateCompilationWithMscorlib40AndVBRuntime(<compilation><file/></compilation>, opt).GetDiagnostics().Verify()
         End Sub
 
         <Fact()>
@@ -8219,13 +8393,26 @@ End Class
             Assert.False(args.CompilationOptions.PublicSign)
         End Sub
 
-
         <WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")>
         <Fact>
         Public Sub PublicSign_KeyFileRelativePath()
             Dim parsedArgs = FullParse("/publicsign /keyfile:test.snk a.cs", _baseDirectory)
             Assert.Equal(Path.Combine(_baseDirectory, "test.snk"), parsedArgs.CompilationOptions.CryptoKeyFile)
             parsedArgs.Errors.Verify()
+        End Sub
+
+        <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+        <Fact>
+        Public Sub PublicSignWithEmptyKeyPath()
+            Dim parsedArgs = FullParse("/publicsign /keyfile: a.cs", _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("keyfile", ":<file>").WithLocation(1, 1))
+        End Sub
+
+        <WorkItem(11497, "https://github.com/dotnet/roslyn/issues/11497")>
+        <Fact>
+        Public Sub PublicSignWithEmptyKeyPath2()
+            Dim parsedArgs = FullParse("/publicsign /keyfile:"""" a.cs", _baseDirectory)
+            parsedArgs.Errors.Verify(Diagnostic(ERRID.ERR_ArgumentRequired).WithArguments("keyfile", ":<file>").WithLocation(1, 1))
         End Sub
 
         <ConditionalFact(GetType(WindowsOnly))>
@@ -8318,7 +8505,7 @@ End Class")
 
             MetadataReaderUtils.VerifyPEMetadata(exe,
                 {"TypeDefinition:<Module>", "TypeDefinition:C"},
-                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()", "MethodDefinition:Void PrivateMethod()"},
+                {"MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()", "MethodDefinition:Void C.PrivateMethod()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute"}
                 )
 
@@ -8355,7 +8542,7 @@ a
             ' See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
                 {"TypeDefinition:<Module>", "TypeDefinition:C"},
-                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()"},
+                {"MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute", "ReferenceAssemblyAttribute"}
                 )
 
@@ -8438,7 +8625,7 @@ End Class")
             ' See issue https://github.com/dotnet/roslyn/issues/17612
             MetadataReaderUtils.VerifyPEMetadata(refDll,
                 {"TypeDefinition:<Module>", "TypeDefinition:C", "TypeDefinition:S"},
-                {"MethodDefinition:Void Main()", "MethodDefinition:Void .ctor()"},
+                {"MethodDefinition:Void C.Main()", "MethodDefinition:Void C..ctor()"},
                 {"CompilationRelaxationsAttribute", "RuntimeCompatibilityAttribute", "DebuggableAttribute", "STAThreadAttribute", "ReferenceAssemblyAttribute"}
                 )
 
@@ -8577,7 +8764,7 @@ End Module
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Assert.Equal(1, csc.Run(outWriter))
-            Assert.Equal($"error BC2012: can't open '{xmlPath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
+            Assert.Equal($"vbc : error BC2012: can't open '{xmlPath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
         End Sub
 
         <Theory>
@@ -8605,7 +8792,7 @@ End Module
 
             Dim outWriter = New StringWriter(CultureInfo.InvariantCulture)
             Assert.Equal(1, csc.Run(outWriter))
-            Assert.Equal($"error BC2012: can't open '{sourceLinkPath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
+            Assert.Equal($"vbc : error BC2012: can't open '{sourceLinkPath}' for writing: Fake IOException{Environment.NewLine}", outWriter.ToString())
         End Sub
 
         <Fact>
@@ -8624,7 +8811,8 @@ End Module
         <ConditionalFact(GetType(IsEnglishLocal))>
         Public Sub MissingCompilerAssembly()
             Dim dir = Temp.CreateDirectory()
-            Dim vbcPath = dir.CopyFile(GetType(Vbc).Assembly.Location).Path
+            Dim vbcPath = dir.CopyFile(s_basicCompilerExecutable).Path
+            dir.CopyFile(GetType(Compilation).Assembly.Location)
 
             ' Missing Microsoft.CodeAnalysis.VisualBasic.dll.
             Dim result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
@@ -8634,7 +8822,6 @@ End Module
                 result.Output.Trim())
 
             ' Missing System.Collections.Immutable.dll.
-            dir.CopyFile(GetType(Compilation).Assembly.Location)
             dir.CopyFile(GetType(VisualBasicCompilation).Assembly.Location)
             result = ProcessUtilities.Run(vbcPath, arguments:="/nologo /t:library unknown.vb", workingDirectory:=dir.Path)
             Assert.Equal(1, result.ExitCode)
@@ -8645,7 +8832,7 @@ End Module
 
         <ConditionalFact(GetType(WindowsOnly))>
         <WorkItem(21935, "https://github.com/dotnet/roslyn/issues/21935")>
-        Public Sub PdbPathNotEmittedWitoutPdb()
+        Public Sub PdbPathNotEmittedWithoutPdb()
             Dim dir = Temp.CreateDirectory()
 
             Dim src = MakeTrivialExe(directory:=dir.Path)
@@ -8667,6 +8854,20 @@ End Module
             End Using
         End Sub
 
+        <Fact>
+        Public Sub StrongNameProviderWithCustomTempPath()
+            Dim tempDir = Temp.CreateDirectory()
+            Dim workingDir = Temp.CreateDirectory()
+            workingDir.CreateFile("a.vb")
+
+            Dim vbc = New MockVisualBasicCompiler(Nothing, New BuildPaths("", workingDir.Path, Nothing, tempDir.Path),
+                              {"/features:UseLegacyStrongNameProvider", "/nostdlib", "a.vb"})
+            Dim comp = vbc.CreateCompilation(New StringWriter(), New TouchedFileLogger(), errorLogger:=Nothing)
+            Dim desktopProvider = Assert.IsType(Of DesktopStrongNameProvider)(comp.Options.StrongNameProvider)
+            Using inputStream = Assert.IsType(Of DesktopStrongNameProvider.TempFileStream)(desktopProvider.CreateInputStream())
+                Assert.Equal(tempDir.Path, Path.GetDirectoryName(inputStream.Path))
+            End Using
+        End Sub
 
         Private Function MakeTrivialExe(Optional directory As String = Nothing) As String
             Return Temp.CreateFile(directory:=directory, prefix:="", extension:=".vb").WriteAllText("

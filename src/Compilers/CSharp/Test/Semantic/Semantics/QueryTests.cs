@@ -71,7 +71,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'i')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i')
                       ReturnedValue: 
-                        IOperation:  (OperationKind.None, Type: null) (Syntax: 'i')
+                        IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -142,7 +142,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                           IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'i')
                             IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i')
                               ReturnedValue: 
-                                IOperation:  (OperationKind.None, Type: null) (Syntax: 'i')
+                                IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                     OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -154,7 +154,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'q')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'q')
                       ReturnedValue: 
-                        IOperation:  (OperationKind.None, Type: null) (Syntax: 'q')
+                        IParameterReferenceOperation: q (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'q')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -220,7 +220,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i+1')
                           Left: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'i')
+                            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                           Right: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -288,7 +288,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IBinaryOperation (BinaryOperatorKind.Remainder) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i % 2')
                           Left: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'i')
+                            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                           Right: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -377,7 +377,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'i')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i')
                       ReturnedValue: 
-                        IOperation:  (OperationKind.None, Type: null) (Syntax: 'i')
+                        IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -449,7 +449,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IBinaryOperation (BinaryOperatorKind.LessThan) (OperationKind.BinaryOperator, Type: System.Boolean) (Syntax: 'i < 5')
                           Left: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'i')
+                            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                           Right: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -500,8 +500,6 @@ class Query
     }
 }
 ";
-            // BoundRangeVariable still doesn't have an IOperation API: https://github.com/dotnet/roslyn/issues/21238
-
             string expectedOperationTree = @"
 ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'from x1 in  ... elect x1+x2')
   Expression: 
@@ -530,7 +528,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x1')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x1')
                       ReturnedValue: 
-                        IOperation:  (OperationKind.None, Type: null) (Syntax: 'x1')
+                        IParameterReferenceOperation: x1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: innerKeySelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x2/10')
@@ -542,7 +540,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x2/10')
                           Left: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'x2')
+                            IParameterReferenceOperation: x2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x2')
                           Right: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -556,9 +554,9 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x1+x2')
                           Left: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'x1')
+                            IParameterReferenceOperation: x1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x1')
                           Right: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'x2')
+                            IParameterReferenceOperation: x2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x2')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -634,7 +632,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Linq.IOrd
                               ReturnedValue: 
                                 IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i/10')
                                   Left: 
-                                    IOperation:  (OperationKind.None, Type: null) (Syntax: 'i')
+                                    IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                                   Right: 
                                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                     InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -650,7 +648,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Linq.IOrd
                       ReturnedValue: 
                         IBinaryOperation (BinaryOperatorKind.Remainder) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i%10')
                           Left: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'i')
+                            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                           Right: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -703,8 +701,6 @@ class Query
     }
 }
 ";
-            // BoundRangeVariable still doesn't have an IOperation API: https://github.com/dotnet/roslyn/issues/21238
-
             string expectedOperationTree = @"
 ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collections.Generic.IEnumerable<System.String>) (Syntax: 'from x1 in  ... .ToString()')
   Expression: 
@@ -733,7 +729,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x1')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x1')
                       ReturnedValue: 
-                        IOperation:  (OperationKind.None, Type: null) (Syntax: 'x1')
+                        IParameterReferenceOperation: x1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: innerKeySelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x2 / 10')
@@ -745,7 +741,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x2 / 10')
                           Left: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'x2')
+                            IParameterReferenceOperation: x2 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x2')
                           Right: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -764,13 +760,13 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                 IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Object, IsImplicit) (Syntax: 'x1')
                                   Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                   Operand: 
-                                    IOperation:  (OperationKind.None, Type: null) (Syntax: 'x1')
+                                    IParameterReferenceOperation: x1 (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x1')
                               Right: 
                                 ILiteralOperation (OperationKind.Literal, Type: System.String, Constant: "":"") (Syntax: '"":""')
                           Right: 
                             IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'g.ToString()')
                               Instance Receiver: 
-                                IOperation:  (OperationKind.None, Type: null) (Syntax: 'g')
+                                IParameterReferenceOperation: g (OperationKind.ParameterReference, Type: System.Collections.Generic.IEnumerable<System.Int32>) (Syntax: 'g')
                               Arguments(0)
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -852,9 +848,9 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
                           Left: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
+                            IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
                           Right: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'y')
+                            IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'y')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -969,7 +965,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                               IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: g) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'x * 10')
                                                 IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x * 10')
                                                   Left: 
-                                                    IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
+                                                    IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'x')
                                                   Right: 
                                                     ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -996,11 +992,15 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                       IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: z) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'g + x*100')
                                         IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'g + x*100')
                                           Left: 
-                                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'g')
+                                            IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 g>.g { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'g')
+                                              Instance Receiver: 
+                                                IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Int32 x, System.Int32 g>, IsImplicit) (Syntax: 'g')
                                           Right: 
                                             IBinaryOperation (BinaryOperatorKind.Multiply) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x*100')
                                               Left: 
-                                                IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
+                                                IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 g>.x { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
+                                                  Instance Receiver: 
+                                                    IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Int32 x, System.Int32 g>, IsImplicit) (Syntax: 'x')
                                               Right: 
                                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 100) (Syntax: '100')
                                         InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -1020,9 +1020,15 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + z')
                           Left: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
+                            IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 g>.x { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
+                              Instance Receiver: 
+                                IPropertyReferenceOperation: <anonymous type: System.Int32 x, System.Int32 g> <anonymous type: <anonymous type: System.Int32 x, System.Int32 g> <>h__TransparentIdentifier0, System.Int32 z>.<>h__TransparentIdentifier0 { get; } (OperationKind.PropertyReference, Type: <anonymous type: System.Int32 x, System.Int32 g>, IsImplicit) (Syntax: 'x')
+                                  Instance Receiver: 
+                                    IParameterReferenceOperation: <>h__TransparentIdentifier1 (OperationKind.ParameterReference, Type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 g> <>h__TransparentIdentifier0, System.Int32 z>, IsImplicit) (Syntax: 'x')
                           Right: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'z')
+                            IPropertyReferenceOperation: System.Int32 <anonymous type: <anonymous type: System.Int32 x, System.Int32 g> <>h__TransparentIdentifier0, System.Int32 z>.z { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'z')
+                              Instance Receiver: 
+                                IParameterReferenceOperation: <>h__TransparentIdentifier1 (OperationKind.ParameterReference, Type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 g> <>h__TransparentIdentifier0, System.Int32 z>, IsImplicit) (Syntax: 'z')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1228,11 +1234,21 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                                   Left: 
                                                     IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
                                                       Left: 
-                                                        IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
+                                                        IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 y>.x { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
+                                                          Instance Receiver: 
+                                                            IPropertyReferenceOperation: <anonymous type: System.Int32 x, System.Int32 y> <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z>.<>h__TransparentIdentifier0 { get; } (OperationKind.PropertyReference, Type: <anonymous type: System.Int32 x, System.Int32 y>, IsImplicit) (Syntax: 'x')
+                                                              Instance Receiver: 
+                                                                IParameterReferenceOperation: <>h__TransparentIdentifier1 (OperationKind.ParameterReference, Type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z>, IsImplicit) (Syntax: 'x')
                                                       Right: 
-                                                        IOperation:  (OperationKind.None, Type: null) (Syntax: 'y')
+                                                        IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 y>.y { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'y')
+                                                          Instance Receiver: 
+                                                            IPropertyReferenceOperation: <anonymous type: System.Int32 x, System.Int32 y> <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z>.<>h__TransparentIdentifier0 { get; } (OperationKind.PropertyReference, Type: <anonymous type: System.Int32 x, System.Int32 y>, IsImplicit) (Syntax: 'y')
+                                                              Instance Receiver: 
+                                                                IParameterReferenceOperation: <>h__TransparentIdentifier1 (OperationKind.ParameterReference, Type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z>, IsImplicit) (Syntax: 'y')
                                                   Right: 
-                                                    IOperation:  (OperationKind.None, Type: null) (Syntax: 'z')
+                                                    IPropertyReferenceOperation: System.Int32 <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z>.z { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'z')
+                                                      Instance Receiver: 
+                                                        IParameterReferenceOperation: <>h__TransparentIdentifier1 (OperationKind.ParameterReference, Type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z>, IsImplicit) (Syntax: 'z')
                                                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                                           Initializer: 
@@ -1254,17 +1270,33 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                                       Left: 
                                         IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y / 10')
                                           Left: 
-                                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
+                                            IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 y>.x { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
+                                              Instance Receiver: 
+                                                IPropertyReferenceOperation: <anonymous type: System.Int32 x, System.Int32 y> <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z>.<>h__TransparentIdentifier0 { get; } (OperationKind.PropertyReference, Type: <anonymous type: System.Int32 x, System.Int32 y>, IsImplicit) (Syntax: 'x')
+                                                  Instance Receiver: 
+                                                    IPropertyReferenceOperation: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z> <anonymous type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z> <>h__TransparentIdentifier1, System.Int32 g>.<>h__TransparentIdentifier1 { get; } (OperationKind.PropertyReference, Type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z>, IsImplicit) (Syntax: 'x')
+                                                      Instance Receiver: 
+                                                        IParameterReferenceOperation: <>h__TransparentIdentifier2 (OperationKind.ParameterReference, Type: <anonymous type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z> <>h__TransparentIdentifier1, System.Int32 g>, IsImplicit) (Syntax: 'x')
                                           Right: 
                                             IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'y / 10')
                                               Left: 
-                                                IOperation:  (OperationKind.None, Type: null) (Syntax: 'y')
+                                                IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 y>.y { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'y')
+                                                  Instance Receiver: 
+                                                    IPropertyReferenceOperation: <anonymous type: System.Int32 x, System.Int32 y> <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z>.<>h__TransparentIdentifier0 { get; } (OperationKind.PropertyReference, Type: <anonymous type: System.Int32 x, System.Int32 y>, IsImplicit) (Syntax: 'y')
+                                                      Instance Receiver: 
+                                                        IPropertyReferenceOperation: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z> <anonymous type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z> <>h__TransparentIdentifier1, System.Int32 g>.<>h__TransparentIdentifier1 { get; } (OperationKind.PropertyReference, Type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z>, IsImplicit) (Syntax: 'y')
+                                                          Instance Receiver: 
+                                                            IParameterReferenceOperation: <>h__TransparentIdentifier2 (OperationKind.ParameterReference, Type: <anonymous type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z> <>h__TransparentIdentifier1, System.Int32 g>, IsImplicit) (Syntax: 'y')
                                               Right: 
                                                 ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 10) (Syntax: '10')
                                       Right: 
                                         IBinaryOperation (BinaryOperatorKind.Divide) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'z / 100')
                                           Left: 
-                                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'z')
+                                            IPropertyReferenceOperation: System.Int32 <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z>.z { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'z')
+                                              Instance Receiver: 
+                                                IPropertyReferenceOperation: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z> <anonymous type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z> <>h__TransparentIdentifier1, System.Int32 g>.<>h__TransparentIdentifier1 { get; } (OperationKind.PropertyReference, Type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z>, IsImplicit) (Syntax: 'z')
+                                                  Instance Receiver: 
+                                                    IParameterReferenceOperation: <>h__TransparentIdentifier2 (OperationKind.ParameterReference, Type: <anonymous type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z> <>h__TransparentIdentifier1, System.Int32 g>, IsImplicit) (Syntax: 'z')
                                           Right: 
                                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 100) (Syntax: '100')
                                   Right: 
@@ -1280,7 +1312,9 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'g')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'g')
                       ReturnedValue: 
-                        IOperation:  (OperationKind.None, Type: null) (Syntax: 'g')
+                        IPropertyReferenceOperation: System.Int32 <anonymous type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z> <>h__TransparentIdentifier1, System.Int32 g>.g { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'g')
+                          Instance Receiver: 
+                            IParameterReferenceOperation: <>h__TransparentIdentifier2 (OperationKind.ParameterReference, Type: <anonymous type: <anonymous type: <anonymous type: System.Int32 x, System.Int32 y> <>h__TransparentIdentifier0, System.Int32 z> <>h__TransparentIdentifier1, System.Int32 g>, IsImplicit) (Syntax: 'g')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1388,7 +1422,7 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1554,11 +1588,15 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                           Left: 
                             IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'x + y')
                               Left: 
-                                IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
+                                IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 y>.x { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
+                                  Instance Receiver: 
+                                    IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Int32 x, System.Int32 y>, IsImplicit) (Syntax: 'x')
                               Right: 
-                                IOperation:  (OperationKind.None, Type: null) (Syntax: 'y')
+                                IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, System.Int32 y>.y { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'y')
+                                  Instance Receiver: 
+                                    IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Int32 x, System.Int32 y>, IsImplicit) (Syntax: 'y')
                           Right: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'z')
+                            IParameterReferenceOperation: z (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'z')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -1588,7 +1626,7 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateStandardCompilation(csSource, new[] { LinqAssemblyRef });
+            var compilation = CreateCompilation(csSource, new[] { LinqAssemblyRef });
             foreach (var dd in compilation.GetDiagnostics()) Console.WriteLine(dd);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
@@ -1649,7 +1687,7 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1687,7 +1725,7 @@ class Query
         Console.WriteLine(r);
     }
 }";
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -1749,7 +1787,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'n1')
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'n1')
                 ReturnedValue: 
-                  IOperation:  (OperationKind.None, Type: null) (Syntax: 'n1')
+                  IParameterReferenceOperation: n1 (OperationKind.ParameterReference, Type: ?) (Syntax: 'n1')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0103: The name 'nums' does not exist in the current context
@@ -1820,7 +1858,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'i')
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'i')
                 ReturnedValue: 
-                  IOperation:  (OperationKind.None, Type: null) (Syntax: 'i')
+                  IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: ?) (Syntax: 'i')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1031: Type expected
@@ -1864,7 +1902,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "3 3 4 4");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 3 4 4");
         }
 
         [WorkItem(541782, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541782")]
@@ -1891,7 +1929,7 @@ class Program
         System.Console.Write(serializer.Trim());
     }
 }";
-            CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
         }
 
 
@@ -1921,7 +1959,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "1 2 3");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "1 2 3");
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1998,7 +2036,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                           Left: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 4) (Syntax: '4')
                           Right: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'a')
+                            IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: innerKeySelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'b')
@@ -2008,7 +2046,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'b')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'b')
                       ReturnedValue: 
-                        IOperation:  (OperationKind.None, Type: null) (Syntax: 'b')
+                        IParameterReferenceOperation: b (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'b')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
           IArgumentOperation (ArgumentKind.Explicit, Matching Parameter: resultSelector) (OperationKind.Argument, Type: null, IsImplicit) (Syntax: 'a')
@@ -2018,7 +2056,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                   IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'a')
                     IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'a')
                       ReturnedValue: 
-                        IOperation:  (OperationKind.None, Type: null) (Syntax: 'a')
+                        IParameterReferenceOperation: a (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'a')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
@@ -2055,7 +2093,7 @@ class Program
     }
 }";
 
-            CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "3 4");
         }
 
         [WorkItem(541942, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541942")]
@@ -2086,7 +2124,7 @@ class P
     }
 }";
 
-            CompileAndVerify(csSource, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: "45");
+            CompileAndVerify(csSource, references: new[] { LinqAssemblyRef }, expectedOutput: "45");
         }
 
         [Fact]
@@ -2105,7 +2143,7 @@ public class Test2
                  select x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2135,7 +2173,7 @@ public class Test2
                  select w;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2161,7 +2199,7 @@ public class Test2
                  select w+1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             compilation.VerifyDiagnostics();
             var semanticModel = compilation.GetSemanticModel(tree);
@@ -2200,7 +2238,7 @@ public class Test2
                  select w;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2228,7 +2266,7 @@ public class Test2
                  select 5;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var selectExpression = tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf('5'));
@@ -2253,7 +2291,7 @@ static class Test
                       select x8;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2285,7 +2323,7 @@ public class QueryExpressionTest
         var query2 = from int
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2312,7 +2350,7 @@ class Test
                  select num1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2356,7 +2394,7 @@ public class QueryExpressionTest
             select x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
             int count = 0;
@@ -2412,7 +2450,7 @@ class Program
                  select num;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2450,7 +2488,7 @@ class Program
                  select num;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2476,7 +2514,7 @@ class Program
                  select x1 + 5;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2506,7 +2544,7 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics(
                 // (10,30): error CS1936: Could not find an implementation of the query pattern for source type 'int'.  'OrderBy' not found.
                 //         var q1 = from num in numbers.Single()
@@ -2539,7 +2577,7 @@ class Program
 ";
             using (var output = new MemoryStream())
             {
-                Assert.False(CreateCompilationWithMscorlibAndSystemCore(sourceCode).Emit(output).Success);
+                Assert.False(CreateCompilationWithMscorlib40AndSystemCore(sourceCode).Emit(output).Success);
             }
         }
 
@@ -2561,7 +2599,7 @@ class Program
 }";
             using (var output = new MemoryStream())
             {
-                Assert.False(CreateCompilationWithMscorlibAndSystemCore(sourceCode).Emit(output).Success);
+                Assert.False(CreateCompilationWithMscorlib40AndSystemCore(sourceCode).Emit(output).Success);
             }
         }
 
@@ -2591,7 +2629,7 @@ class C<T>
 {
     public C<V> SelectMany";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
 
@@ -2619,7 +2657,7 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var diags = semanticModel.GetDiagnostics();
@@ -2645,7 +2683,7 @@ public class QueryExpressionTest
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Where(x => x.ToFullString() == "from i in expr1 let ").Single();
@@ -2671,7 +2709,7 @@ class P
                select x + one;
 }";
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, parseOptions: TestOptions.Script);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode, parseOptions: TestOptions.Script);
             var tree = compilation.SyntaxTrees[0];
             var semanticModel = compilation.GetSemanticModel(tree);
             var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Single();
@@ -2698,7 +2736,16 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+            var expectedDiagnostics = new DiagnosticDescription[] {
+                // CS0718: 'GC': static types cannot be used as type arguments
+                //         var q2 = string.Empty.Cast<GC>().Select(x => x);
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "string.Empty.Cast<GC>").WithArguments("System.GC").WithLocation(9, 18),
+                // CS0718: 'GC': static types cannot be used as type arguments
+                //         var q1 = /*<bind>*/from GC x in string.Empty select x/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "from GC x in string.Empty").WithArguments("System.GC").WithLocation(10, 28)
+            };
+
+            VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, @"
 ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (Syntax: 'from GC x i ... ty select x')
   Expression: 
     IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'select x')
@@ -2720,18 +2767,38 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
                 ReturnedValue: 
-                  IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
+                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: System.GC) (Syntax: 'x')
+", new DiagnosticDescription[] {
                 // CS0718: 'GC': static types cannot be used as type arguments
                 //         var q2 = string.Empty.Cast<GC>().Select(x => x);
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "string.Empty.Cast<GC>").WithArguments("System.GC").WithLocation(9, 18),
                 // CS0718: 'GC': static types cannot be used as type arguments
                 //         var q1 = /*<bind>*/from GC x in string.Empty select x/*</bind>*/;
                 Diagnostic(ErrorCode.ERR_GenericArgIsStaticClass, "from GC x in string.Empty").WithArguments("System.GC").WithLocation(10, 28)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
+            VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, @"
+ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (Syntax: 'from GC x i ... ty select x')
+  Expression: 
+    IInvalidOperation (OperationKind.Invalid, Type: ?, IsImplicit) (Syntax: 'select x')
+      Children(2):
+          IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'from GC x i ... tring.Empty')
+            Children(1):
+                IFieldReferenceOperation: System.String System.String.Empty (Static) (OperationKind.FieldReference, Type: System.String, IsInvalid) (Syntax: 'string.Empty')
+                  Instance Receiver: 
+                    null
+          IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.AnonymousFunction, Type: null, IsImplicit) (Syntax: 'x')
+            IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'x')
+              IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'x')
+                ReturnedValue: 
+                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ?) (Syntax: 'x')
+", new DiagnosticDescription[] {
+                // file.cs(9,18): error CS1929: 'string' does not contain a definition for 'Cast' and the best extension method overload 'Queryable.Cast<GC>(IQueryable)' requires a receiver of type 'IQueryable'
+                //         var q2 = string.Empty.Cast<GC>().Select(x => x);
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "string.Empty").WithArguments("string", "Cast", "System.Linq.Queryable.Cast<System.GC>(System.Linq.IQueryable)", "System.Linq.IQueryable").WithLocation(9, 18),
+                // file.cs(10,41): error CS1929: 'string' does not contain a definition for 'Cast' and the best extension method overload 'Queryable.Cast<GC>(IQueryable)' requires a receiver of type 'IQueryable'
+                //         var q1 = /*<bind>*/from GC x in string.Empty select x/*</bind>*/;
+                Diagnostic(ErrorCode.ERR_BadInstanceArgType, "string.Empty").WithArguments("string", "Cast", "System.Linq.Queryable.Cast<System.GC>(System.Linq.IQueryable)", "System.Linq.IQueryable").WithLocation(10, 41)
+            });
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -2766,7 +2833,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsImplicit) (Syntax: 'y')
               IReturnOperation (OperationKind.Return, Type: null, IsImplicit) (Syntax: 'y')
                 ReturnedValue: 
-                  IOperation:  (OperationKind.None, Type: null) (Syntax: 'y')
+                  IParameterReferenceOperation: y (OperationKind.ParameterReference, Type: ?) (Syntax: 'y')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0119: 'Program.Main()' is a method, which is not valid in the given context
@@ -2796,7 +2863,7 @@ class C
 
     static IEnumerable<T> Select<T>(Func<int, T> f) { return null; }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -2829,7 +2896,7 @@ class C
 
     static Func<Func<int, object>, IEnumerable<object>> Select = null;
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -2874,7 +2941,7 @@ class Program
         var q2 = from x in Flavor select x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics(
                 // (17,11): warning CS0169: The field 'Program.Color' is never used
                 //     Color Color;
@@ -2917,7 +2984,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -2959,7 +3026,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: ?, IsInvalid) (S
                 ReturnedValue: 
                   IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: ?) (Syntax: 'x + 1')
                     Left: 
-                      IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
+                      IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ?) (Syntax: 'x')
                     Right: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
 ";
@@ -2986,7 +3053,7 @@ public class QueryExpressionTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
@@ -3009,7 +3076,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = compilation.SyntaxTrees.First();
             var index = source.IndexOf("select i", StringComparison.Ordinal);
             var selectNode = tree.GetCompilationUnitRoot().FindToken(index).Parent as SelectClauseSyntax;
@@ -3036,7 +3103,7 @@ class Test
 	}
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             var tree = compilation.SyntaxTrees.First();
             var index = source.IndexOf("join int delegate in expr2 on i equals delegate", StringComparison.Ordinal);
             var joinNode = tree.GetCompilationUnitRoot().FindToken(index).Parent as JoinClauseSyntax;
@@ -3078,7 +3145,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Object, I
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
               IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
                 ReturnedValue: 
-                  IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'x')
+                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ?, IsInvalid) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS0186: Use of null is not valid in this context
@@ -3125,7 +3192,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Object, I
             IBlockOperation (1 statements) (OperationKind.Block, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
               IReturnOperation (OperationKind.Return, Type: null, IsInvalid, IsImplicit) (Syntax: 'x')
                 ReturnedValue: 
-                  IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'x')
+                  IParameterReferenceOperation: x (OperationKind.ParameterReference, Type: ?, IsInvalid) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS1936: Could not find an implementation of the query pattern for source type 'anonymous method'.  'Select' not found.
@@ -3164,7 +3231,7 @@ class Test
        Expression<Func<int, int, int>> F = (x, y) => ref1.M(x, y);
    }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (22,54): error CS2037: An expression tree lambda may not contain a COM call with ref omitted on arguments
                 //        Expression<Func<int, int, int>> F = (x, y) => ref1.M(x, y);
@@ -3211,7 +3278,7 @@ class Test1
         Test(ref1 => ref1.M(1, ));
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
     // (34,32): error CS1525: Invalid expression term ')'
     //         Test(ref1 => ref1.M(1, ));
@@ -3241,7 +3308,7 @@ class A
                  select t;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (10,48): error CS1061: 'System.Reflection.Assembly' does not contain a definition for 'UNDEFINED' and no extension method 'UNDEFINED' accepting a first argument of type 'System.Reflection.Assembly' could be found (are you missing a using directive or an assembly reference?)
                 //         var q2 = a.SelectMany(assem2 => assem2.UNDEFINED, (assem2, t) => t);
@@ -3293,7 +3360,7 @@ class Query
 ";
             var queryStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -3337,7 +3404,7 @@ class Query
 
             var queryStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateStandardCompilation(csSource);
+            var compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -3384,7 +3451,7 @@ public class Test
 
             var queryStatement = SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -3423,7 +3490,7 @@ public class Test2
 
             var queryStatement = SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics();
             var tree = compilation.SyntaxTrees[0];
             var model = compilation.GetSemanticModel(tree);
@@ -3467,7 +3534,7 @@ public class QueryExpressionTest
 
             var queryStatement = SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Linq; // Needed for speculative code.
@@ -3580,12 +3647,16 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: X, IsInvalid) (S
                                 Left: 
                                   IInvocationOperation (virtual System.String System.Int32.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'x.ToString()')
                                     Instance Receiver: 
-                                      IOperation:  (OperationKind.None, Type: null) (Syntax: 'x')
+                                      IPropertyReferenceOperation: System.Int32 <anonymous type: System.Int32 x, Q<System.Int32> y>.x { get; } (OperationKind.PropertyReference, Type: System.Int32) (Syntax: 'x')
+                                        Instance Receiver: 
+                                          IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Int32 x, Q<System.Int32> y>, IsImplicit) (Syntax: 'x')
                                     Arguments(0)
                                 Right: 
                                   IInvocationOperation (virtual System.String System.Object.ToString()) (OperationKind.Invocation, Type: System.String) (Syntax: 'y.ToString()')
                                     Instance Receiver: 
-                                      IOperation:  (OperationKind.None, Type: null) (Syntax: 'y')
+                                      IPropertyReferenceOperation: Q<System.Int32> <anonymous type: System.Int32 x, Q<System.Int32> y>.y { get; } (OperationKind.PropertyReference, Type: Q<System.Int32>) (Syntax: 'y')
+                                        Instance Receiver: 
+                                          IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: <anonymous type: System.Int32 x, Q<System.Int32> y>, IsImplicit) (Syntax: 'y')
                                     Arguments(0)
                   InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                   OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -3597,7 +3668,9 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: X, IsInvalid) (S
                     Children(1):
                         IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'x.ToString')
                           Children(1):
-                              IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'x')
+                              IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid, IsImplicit) (Syntax: 'x')
+                                Children(1):
+                                    IParameterReferenceOperation: <>h__TransparentIdentifier0 (OperationKind.ParameterReference, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'x')
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
                 // CS8016: Transparent identifier member access failed for field 'x' of 'int'.  Does the data being queried implement the query pattern?
@@ -3634,7 +3707,7 @@ public static class TestExtensions
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
                 
             compilation.VerifyDiagnostics(
                 // (6,34): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Select' not found.
@@ -3673,15 +3746,15 @@ static class TestExtensions
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
 
             compilation.VerifyDiagnostics(
                 // (7,34): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Where' not found.
                 //         var x02 = from a in Test where a > 0 select a + 1;
                 Diagnostic(ErrorCode.ERR_QueryNoProvider, "where a > 0").WithArguments("Test", "Where").WithLocation(7, 34),
-                // (7,46): error CS0176: Member 'Test.Select<int>(Func<int, int>)' cannot be accessed with an instance reference; qualify it with a type name instead
+                // (7,46): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Select' not found.
                 //         var x02 = from a in Test where a > 0 select a + 1;
-                Diagnostic(ErrorCode.ERR_ObjectProhibited, "select a + 1").WithArguments("Test.Select<int>(System.Func<int, int>)").WithLocation(7, 46)
+                Diagnostic(ErrorCode.ERR_QueryNoProvider, "select a + 1").WithArguments("Test", "Select").WithLocation(7, 46)
                 );
         }
         
@@ -3716,7 +3789,7 @@ static class TestExtensions
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
 
             compilation.VerifyDiagnostics(
                 // (6,34): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Select' not found.
@@ -3750,7 +3823,7 @@ class Test
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlibAndSystemCore(sourceCode, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput: "Select");
         }
@@ -3784,7 +3857,7 @@ class Program
     }
     public static T M<T>(T x, out T z) => z = x;
 }";
-            CreateCompilationWithMscorlibAndSystemCore(csSource).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(csSource).VerifyDiagnostics(
                 // (10,53): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //         var zc = from x in a from y in M(a, out var z) select x; // error 1
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(10, 53),
@@ -3853,7 +3926,7 @@ class Program
     }
     public static T M<T>(T x, bool b) => x;
 }";
-            CreateCompilationWithMscorlibAndSystemCore(csSource).VerifyDiagnostics(
+            CreateCompilationWithMscorlib40AndSystemCore(csSource).VerifyDiagnostics(
                 // (10,54): error CS8201: Out variable and pattern variable declarations are not allowed within a query clause.
                 //         var zc = from x in a from y in M(a, a is var z) select x; // error 1
                 Diagnostic(ErrorCode.ERR_ExpressionVariableInQueryClause, "z").WithLocation(10, 54),
@@ -3936,7 +4009,7 @@ namespace System
     }
 }
 ";
-            CreateCompilationWithMscorlibAndSystemCore(csSource)
+            CreateCompilationWithMscorlib40AndSystemCore(csSource)
                 .GetDiagnostics()
                 .Where(d => d.Code != (int)ErrorCode.ERR_DeclarationExpressionNotPermitted)
                 .Verify(
@@ -4135,7 +4208,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                           Left: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'i')
+                            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                           Right: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -4187,7 +4260,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
                       ReturnedValue: 
                         IBinaryOperation (BinaryOperatorKind.Add) (OperationKind.BinaryOperator, Type: System.Int32) (Syntax: 'i + 1')
                           Left: 
-                            IOperation:  (OperationKind.None, Type: null) (Syntax: 'i')
+                            IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
                           Right: 
                             ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
@@ -4216,7 +4289,7 @@ class Query
 }
 ";
             string expectedOperationTree = @"
-IOperation:  (OperationKind.None, Type: null) (Syntax: 'i')
+IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
 ";
             var expectedDiagnostics = DiagnosticDescription.None;
 
@@ -4246,7 +4319,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlibAndSystemCore(code);
+            var comp = CreateCompilationWithMscorlib40AndSystemCore(code);
             comp.VerifyDiagnostics(
                 // (10,22): error CS0120: An object reference is required for the non-static field, method, or property 'Enumerable.Cast<object>(IEnumerable)'
                 //         var query1 = from object a in IEnumerable select 1;

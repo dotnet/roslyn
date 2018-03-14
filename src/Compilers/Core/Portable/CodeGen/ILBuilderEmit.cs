@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitGreatestMethodToken()
         {
-            // A magic value indicates that the token value is to be the literal value of the greatest method defnition token.
+            // A magic value indicates that the token value is to be the literal value of the greatest method definition token.
             this.GetCurrentWriter().WriteUInt32(Cci.MetadataWriter.LiteralGreatestMethodDefinitionToken);
         }
 
@@ -85,6 +85,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
             EmitToken(field, syntaxNode, diagnostics);      //block
             EmitOpCode(ILOpCode.Call, -2);
             EmitToken(initializeArray, syntaxNode, diagnostics);
+        }
+
+        internal void EmitArrayBlockFieldRef(ImmutableArray<byte> data, ITypeSymbol elementType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            // map a field to the block (that makes it addressable)
+            var field = module.GetFieldForData(data, syntaxNode, diagnostics);
+
+            EmitOpCode(ILOpCode.Ldsflda);       
+            EmitToken(field, syntaxNode, diagnostics);
         }
 
         /// <summary>

@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.Editor.Commands
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.Formatting
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
-Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.CodeAnalysis.SignatureHelp
@@ -51,7 +50,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                         Optional extraExportedTypes As List(Of Type) = Nothing,
                         Optional includeFormatCommandHandler As Boolean = False,
                         Optional workspaceKind As String = Nothing)
-            MyBase.New(workspaceElement, CreatePartCatalog(extraExportedTypes), workspaceKind:=workspaceKind)
+            MyBase.New(workspaceElement, MinimalTestExportProvider.CreateTypeCatalog(If(extraExportedTypes, New List(Of Type))), workspaceKind:=workspaceKind)
 
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
@@ -65,17 +64,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 GetService(Of IEditorOperationsFactoryService)(),
                 UndoHistoryRegistry,
                 GetService(Of IInlineRenameService)(),
-                GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
+                GetExportedValue(Of IAsynchronousOperationListenerProvider),
                 {New Lazy(Of IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession), OrderableMetadata)(Function() New TestCompletionPresenter(Me), New OrderableMetadata("Presenter"))},
                 GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
 
             Me.CompletionCommandHandler = New CompletionCommandHandler(Me.AsyncCompletionService)
 
             Me.SignatureHelpCommandHandler = New SignatureHelpCommandHandler(
-                GetService(Of IInlineRenameService)(),
                 New TestSignatureHelpPresenter(Me),
                 GetExports(Of ISignatureHelpProvider, OrderableLanguageMetadata)().Concat(extraSignatureHelpProviders),
-                GetExports(Of IAsynchronousOperationListener, FeatureMetadata)())
+                GetExportedValue(Of IAsynchronousOperationListenerProvider)())
 
             Me.IntelliSenseCommandHandler = New IntelliSenseCommandHandler(CompletionCommandHandler, SignatureHelpCommandHandler, Nothing)
 
@@ -86,15 +84,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     GetService(Of IEditorOperationsFactoryService)),
                 Nothing)
         End Sub
-
-        Private Shared Function CreatePartCatalog(types As List(Of Type)) As ComposableCatalog
-            types = If(types, New List(Of Type))
-
-            types.Add(GetType(CompletionWaiter))
-            types.Add(GetType(SignatureHelpWaiter))
-
-            Return MinimalTestExportProvider.CreateTypeCatalog(types)
-        End Function
 
         Public Shared Function CreateVisualBasicTestState(
                 documentElement As XElement,
@@ -280,11 +269,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                Optional shouldFormatOnCommit As Boolean? = Nothing) As Task
             Await WaitForAsynchronousOperationsAsync()
             If isSoftSelected.HasValue Then
-                Assert.Equal(isSoftSelected.Value, Me.CurrentCompletionPresenterSession.IsSoftSelected)
+                Assert.True(isSoftSelected.Value = Me.CurrentCompletionPresenterSession.IsSoftSelected, "Current completion is not soft-selected.")
             End If
 
             If isHardSelected.HasValue Then
-                Assert.Equal(isHardSelected.Value, Not Me.CurrentCompletionPresenterSession.IsSoftSelected)
+                Assert.True(isHardSelected.Value = Not Me.CurrentCompletionPresenterSession.IsSoftSelected, "Current completion is not hard-selected.")
             End If
 
             If displayText IsNot Nothing Then

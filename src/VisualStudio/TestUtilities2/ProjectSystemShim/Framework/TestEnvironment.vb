@@ -41,22 +41,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             _monitorSelectionMock = New MockShellMonitorSelection(solutionIsFullyLoaded)
             _serviceProvider = New MockServiceProvider(_monitorSelectionMock)
             _workspace = New TestWorkspace()
-            _projectTracker = New VisualStudioProjectTracker(_serviceProvider, _workspace.Services)
+            _projectTracker = New VisualStudioProjectTracker(_serviceProvider, _workspace)
 
             Dim metadataReferenceProvider = New VisualStudioMetadataReferenceManager(_serviceProvider, _workspace.Services.GetService(Of ITemporaryStorageService)())
             Dim ruleSetFileProvider = New VisualStudioRuleSetManager(
                 DirectCast(_serviceProvider.GetService(GetType(SVsFileChangeEx)), IVsFileChangeEx),
                 New TestForegroundNotificationService(),
-                AggregateAsynchronousOperationListener.CreateEmptyListener())
+                AsynchronousOperationListenerProvider.NullListener)
 
             Dim documentTrackingService = New VisualStudioDocumentTrackingService(_serviceProvider)
             Dim documentProvider = New DocumentProvider(_projectTracker, _serviceProvider, documentTrackingService)
 
             _projectTracker.InitializeProviders(documentProvider, metadataReferenceProvider, ruleSetFileProvider)
-
-            Dim workspaceHost = New WorkspaceHost(_workspace)
-            _projectTracker.RegisterWorkspaceHost(workspaceHost)
-            _projectTracker.StartSendingEventsToWorkspaceHost(workspaceHost)
         End Sub
 
         Public Sub NotifySolutionAsFullyLoaded()
@@ -193,121 +189,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
             Public Function UnadviseSelectionEvents(<ComAliasName("Microsoft.VisualStudio.Shell.Interop.VSCOOKIE")> dwCookie As UInteger) As Integer Implements IVsMonitorSelection.UnadviseSelectionEvents
                 Throw New NotImplementedException()
             End Function
-        End Class
-
-        Private Class WorkspaceHost
-            Implements IVisualStudioWorkspaceHost, IVisualStudioWorkspaceHost2
-
-            Private _workspace As TestWorkspace
-
-            Public Sub New(workspace As TestWorkspace)
-                _workspace = workspace
-            End Sub
-
-            Public Sub ClearSolution() Implements IVisualStudioWorkspaceHost.ClearSolution
-                _workspace.ClearSolution()
-            End Sub
-
-            Public Sub OnAdditionalDocumentAdded(additionalDocument As DocumentInfo) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentAdded
-                _workspace.OnAdditionalDocumentAdded(additionalDocument)
-            End Sub
-
-            Public Sub OnAdditionalDocumentClosed(documentId As DocumentId, textBuffer As ITextBuffer, loader As TextLoader) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentClosed
-                _workspace.OnAdditionalDocumentClosed(documentId, loader)
-            End Sub
-
-            Public Sub OnAdditionalDocumentOpened(documentId As DocumentId, textBuffer As ITextBuffer, isCurrentContext As Boolean) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentOpened
-                _workspace.OnAdditionalDocumentOpened(documentId, textBuffer.AsTextContainer(), isCurrentContext)
-            End Sub
-
-            Public Sub OnAdditionalDocumentRemoved(additionalDocument As DocumentId) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentRemoved
-                _workspace.OnAdditionalDocumentRemoved(additionalDocument)
-            End Sub
-
-            Public Sub OnAdditionalDocumentTextUpdatedOnDisk(id As DocumentId) Implements IVisualStudioWorkspaceHost.OnAdditionalDocumentTextUpdatedOnDisk
-                Throw New NotImplementedException()
-            End Sub
-
-            Public Sub OnAnalyzerReferenceAdded(projectId As ProjectId, analyzerReference As AnalyzerReference) Implements IVisualStudioWorkspaceHost.OnAnalyzerReferenceAdded
-                Throw New NotImplementedException()
-            End Sub
-
-            Public Sub OnAnalyzerReferenceRemoved(projectId As ProjectId, analyzerReference As AnalyzerReference) Implements IVisualStudioWorkspaceHost.OnAnalyzerReferenceRemoved
-                Throw New NotImplementedException()
-            End Sub
-
-            Public Sub OnAssemblyNameChanged(id As ProjectId, assemblyName As String) Implements IVisualStudioWorkspaceHost.OnAssemblyNameChanged
-                _workspace.OnAssemblyNameChanged(id, assemblyName)
-            End Sub
-
-            Public Sub OnDocumentAdded(documentInfo As DocumentInfo) Implements IVisualStudioWorkspaceHost.OnDocumentAdded
-                _workspace.OnDocumentAdded(documentInfo)
-            End Sub
-
-            Public Sub OnDocumentClosed(documentId As DocumentId, textBuffer As ITextBuffer, loader As TextLoader, updateActiveContext As Boolean) Implements IVisualStudioWorkspaceHost.OnDocumentClosed
-                _workspace.OnDocumentClosed(documentId, loader, updateActiveContext)
-            End Sub
-
-            Public Sub OnDocumentOpened(documentId As DocumentId, textBuffer As ITextBuffer, isCurrentContext As Boolean) Implements IVisualStudioWorkspaceHost.OnDocumentOpened
-                _workspace.OnDocumentOpened(documentId, textBuffer.AsTextContainer(), isCurrentContext)
-            End Sub
-
-            Public Sub OnDocumentRemoved(documentId As DocumentId) Implements IVisualStudioWorkspaceHost.OnDocumentRemoved
-                _workspace.OnDocumentRemoved(documentId)
-            End Sub
-
-            Public Sub OnDocumentTextUpdatedOnDisk(id As DocumentId) Implements IVisualStudioWorkspaceHost.OnDocumentTextUpdatedOnDisk
-                Throw New NotImplementedException()
-            End Sub
-
-            Public Sub OnHasAllInformation(projectId As ProjectId, hasAllInformation As Boolean) Implements IVisualStudioWorkspaceHost2.OnHasAllInformation
-                _workspace.OnHasAllInformationChanged(projectId, hasAllInformation)
-            End Sub
-
-            Public Sub OnMetadataReferenceAdded(projectId As ProjectId, metadataReference As PortableExecutableReference) Implements IVisualStudioWorkspaceHost.OnMetadataReferenceAdded
-                _workspace.OnMetadataReferenceAdded(projectId, metadataReference)
-            End Sub
-
-            Public Sub OnMetadataReferenceRemoved(projectId As ProjectId, metadataReference As PortableExecutableReference) Implements IVisualStudioWorkspaceHost.OnMetadataReferenceRemoved
-                _workspace.OnMetadataReferenceRemoved(projectId, metadataReference)
-            End Sub
-
-            Public Sub OnOptionsChanged(projectId As ProjectId, compilationOptions As CompilationOptions, parseOptions As ParseOptions) Implements IVisualStudioWorkspaceHost.OnOptionsChanged
-                _workspace.OnCompilationOptionsChanged(projectId, compilationOptions)
-                _workspace.OnParseOptionsChanged(projectId, parseOptions)
-            End Sub
-
-            Public Sub OnOutputFilePathChanged(id As ProjectId, outputFilePath As String) Implements IVisualStudioWorkspaceHost.OnOutputFilePathChanged
-                _workspace.OnOutputFilePathChanged(id, outputFilePath)
-            End Sub
-
-            Public Sub OnProjectAdded(projectInfo As ProjectInfo) Implements IVisualStudioWorkspaceHost.OnProjectAdded
-                _workspace.OnProjectAdded(projectInfo)
-            End Sub
-
-            Public Sub OnProjectNameChanged(projectId As ProjectId, name As String, filePath As String) Implements IVisualStudioWorkspaceHost.OnProjectNameChanged
-                _workspace.OnProjectNameChanged(projectId, name, filePath)
-            End Sub
-
-            Public Sub OnProjectReferenceAdded(projectId As ProjectId, projectReference As ProjectReference) Implements IVisualStudioWorkspaceHost.OnProjectReferenceAdded
-                _workspace.OnProjectReferenceAdded(projectId, projectReference)
-            End Sub
-
-            Public Sub OnProjectReferenceRemoved(projectId As ProjectId, projectReference As ProjectReference) Implements IVisualStudioWorkspaceHost.OnProjectReferenceRemoved
-                _workspace.OnProjectReferenceRemoved(projectId, projectReference)
-            End Sub
-
-            Public Sub OnProjectRemoved(projectId As ProjectId) Implements IVisualStudioWorkspaceHost.OnProjectRemoved
-                _workspace.OnProjectRemoved(projectId)
-            End Sub
-
-            Public Sub OnSolutionAdded(solutionInfo As SolutionInfo) Implements IVisualStudioWorkspaceHost.OnSolutionAdded
-                _workspace.OnSolutionAdded(solutionInfo)
-            End Sub
-
-            Public Sub OnSolutionRemoved() Implements IVisualStudioWorkspaceHost.OnSolutionRemoved
-                _workspace.OnSolutionRemoved()
-            End Sub
         End Class
 
         Private Class MockXmlMemberIndexService

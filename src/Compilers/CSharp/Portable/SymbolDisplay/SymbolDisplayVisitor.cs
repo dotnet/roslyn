@@ -30,14 +30,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             int positionOpt,
             bool escapeKeywordIdentifiers,
             IDictionary<INamespaceOrTypeSymbol, IAliasSymbol> aliasMap,
-            bool isFirstSymbolVisited)
-            : base(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt)
+            bool isFirstSymbolVisited,
+            bool inNamespaceOrType = false)
+            : base(builder, format, isFirstSymbolVisited, semanticModelOpt, positionOpt, inNamespaceOrType)
         {
             _escapeKeywordIdentifiers = escapeKeywordIdentifiers;
             _lazyAliasMap = aliasMap;
         }
 
-        protected override AbstractSymbolDisplayVisitor MakeNotFirstVisitor()
+        protected override AbstractSymbolDisplayVisitor MakeNotFirstVisitor(bool inNamespaceOrType = false)
         {
             return new SymbolDisplayVisitor(
                 this.builder,
@@ -46,7 +47,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.positionOpt,
                 _escapeKeywordIdentifiers,
                 _lazyAliasMap,
-                isFirstSymbolVisited: false);
+                isFirstSymbolVisited: false,
+                inNamespaceOrType: inNamespaceOrType);
         }
 
         internal SymbolDisplayPart CreatePart(SymbolDisplayPartKind kind, ISymbol symbol, string text)
@@ -199,9 +201,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             builder.Add(CreatePart(SymbolDisplayPartKind.LocalName, symbol, symbol.Name));
 
-            if (symbol.IsConst &&
+            if (format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) &&
+                symbol.IsConst &&
                 symbol.HasConstantValue &&
-                format.LocalOptions.IncludesOption(SymbolDisplayLocalOptions.IncludeConstantValue) &&
                 CanAddConstant(symbol.Type, symbol.ConstantValue))
             {
                 AddSpace();

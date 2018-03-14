@@ -5,7 +5,7 @@ Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.CodeRefactorings.IntroduceVariable
-Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.Debugging
 Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
@@ -52,6 +52,61 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 session.Commit()
 
                 Await VerifyTagsAreCorrect(workspace, "BarGoo")
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(22495, "https://github.com/dotnet/roslyn/issues/22495")>
+        Public Async Function RenameDeconstructionForeachCollection() As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document><![CDATA[
+using System.Collections.Generic;
+class Deconstructable
+{
+    void M(IEnumerable<Deconstructable> [|$$x|])
+    {
+        foreach (var (y1, y2) in [|x|])
+        {
+        }
+    }
+    void Deconstruct(out int i, out int j) { i = 0; j = 0; }
+}
+                            ]]></Document>
+                        </Project>
+                    </Workspace>)
+
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "x", "change", renameOverloads:=True)
+            End Using
+        End Function
+
+        <WpfFact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Async Function RenameDeconstructMethodInDeconstructionForeach() As Task
+            Using workspace = CreateWorkspaceWithWaiter(
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document><![CDATA[
+using System.Collections.Generic;
+class Deconstructable
+{
+    void M(IEnumerable<Deconstructable> x)
+    {
+        foreach (var (y1, y2) in x)
+        {
+        }
+        var (z1, z2) = this;
+        [|Deconstruct|](out var t1, out var t2);
+    }
+    void [|$$Deconstruct|](out int i, out int j) { i = 0; j = 0; }
+}
+                            ]]></Document>
+                        </Project>
+                    </Workspace>)
+
+                Await VerifyRenameOptionChangedSessionCommit(workspace, "Deconstruct", "Changed", renameOverloads:=True)
             End Using
         End Function
 
@@ -806,7 +861,7 @@ End Class
             End Using
         End Function
 
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/15225")>
+        <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function VerifyRenameTrackingWorksAfterInlineRenameCommit() As Task
             Using workspace = CreateWorkspaceWithWaiter(
@@ -1291,8 +1346,8 @@ class C
                 Await VerifyTagsAreCorrect(workspace, "BarGoo")
 
                 ' Simulate starting a debugging session
-                Dim editAndContinueWorkspaceService = workspace.Services.GetService(Of IEditAndContinueWorkspaceService)
-                editAndContinueWorkspaceService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run)
+                Dim debuggingService = workspace.Services.GetService(Of IDebuggingWorkspaceService)
+                debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run)
 
                 ' Ensure the rename was committed
                 Assert.Null(renameService.ActiveSession)
@@ -1334,8 +1389,8 @@ class C
                 Await VerifyTagsAreCorrect(workspace, "BarGoo")
 
                 ' Simulate ending break mode in the debugger (by stepping or continuing)
-                Dim editAndContinueWorkspaceService = workspace.Services.GetService(Of IEditAndContinueWorkspaceService)
-                editAndContinueWorkspaceService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run)
+                Dim debuggingService = workspace.Services.GetService(Of IDebuggingWorkspaceService)
+                debuggingService.OnBeforeDebuggingStateChanged(DebuggingState.Break, DebuggingState.Run)
 
                 ' Ensure the rename was committed
                 Assert.Null(renameService.ActiveSession)

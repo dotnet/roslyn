@@ -22,11 +22,11 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Watson
             catch (Exception exception)
             {
                 var mockFault = new MockFault();
-                mockFault.SetExtraParameters(exception);
+                mockFault.SetExtraParameters(exception, emptyCallstack: false);
 
                 // there should be no extra bucket info
                 // for regular exception
-                Assert.False(mockFault.Map.ContainsKey(8));
+                Assert.False(mockFault.Map.ContainsKey(7));
             }
         }
 
@@ -48,9 +48,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Watson
             catch (Exception exception)
             {
                 var mockFault = new MockFault();
-                mockFault.SetExtraParameters(exception);
+                mockFault.SetExtraParameters(exception, emptyCallstack: false);
 
-                Assert.Equal(exception.InnerException.GetParameterString(), mockFault.Map[8]);
+                Assert.Equal(exception.InnerException.GetParameterString(), mockFault.Map[7]);
             }
         }
 
@@ -60,9 +60,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Watson
             var mockFault = new MockFault();
 
             var exception = new RemoteInvocationException("test", "remoteCallstack", "remoteErrorCode");
-            mockFault.SetExtraParameters(exception);
+            mockFault.SetExtraParameters(exception, emptyCallstack: false);
 
-            Assert.Equal(exception.GetParameterString(), mockFault.Map[8]);
+            Assert.Equal(exception.GetParameterString(), mockFault.Map[7]);
         }
 
         [Fact]
@@ -71,9 +71,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Watson
             var mockFault = new MockFault();
 
             var exception = new RemoteInvocationException(message: null, remoteStack: null, remoteCode: null);
-            mockFault.SetExtraParameters(exception);
+            mockFault.SetExtraParameters(exception, emptyCallstack: false);
 
-            Assert.Equal(exception.GetParameterString(), mockFault.Map[8]);
+            Assert.Equal(exception.GetParameterString(), mockFault.Map[7]);
         }
 
         [Fact]
@@ -87,11 +87,11 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Watson
             catch (Exception exception)
             {
                 var mockFault = new MockFault();
-                mockFault.SetExtraParameters(exception);
+                mockFault.SetExtraParameters(exception, emptyCallstack: false);
 
                 // there should be no extra bucket info
                 // for regular exception
-                Assert.False(mockFault.Map.ContainsKey(8));
+                Assert.False(mockFault.Map.ContainsKey(7));
             }
         }
 
@@ -113,9 +113,9 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Watson
             catch (Exception exception)
             {
                 var mockFault = new MockFault();
-                mockFault.SetExtraParameters(exception);
+                mockFault.SetExtraParameters(exception, emptyCallstack: false);
 
-                Assert.Equal(exception.GetParameterString(), mockFault.Map[8]);
+                Assert.Equal(exception.GetParameterString(), mockFault.Map[7]);
             }
         }
 
@@ -151,12 +151,23 @@ namespace Roslyn.VisualStudio.CSharp.UnitTests.Watson
             catch (AggregateException exception)
             {
                 var mockFault = new MockFault();
-                mockFault.SetExtraParameters(exception);
+                mockFault.SetExtraParameters(exception, emptyCallstack: false);
 
                 var flatten = exception.Flatten();
-                Assert.Equal(flatten.CalculateHash(), mockFault.Map[7]);
-                Assert.Equal(flatten.InnerException.GetParameterString(), mockFault.Map[8]);
+                Assert.Equal(flatten.CalculateHash(), mockFault.Map[6]);
+                Assert.Equal(flatten.InnerException.GetParameterString(), mockFault.Map[7]);
             }
+        }
+
+        [Fact]
+        public void TestEmptyCallstack()
+        {
+            var mockFault = new MockFault();
+
+            var exception = new Exception("not thrown");
+            mockFault.SetExtraParameters(exception, emptyCallstack: true);
+
+            Assert.NotNull(mockFault.Map[3]);
         }
 
         public class MockFault : IFaultUtility

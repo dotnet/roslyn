@@ -17,8 +17,8 @@
       $commitPathMessage$
     </description>
     <dependencies>
-      <dependency id="Microsoft.CodeAnalysis.Common" version="[$version$]" />
-      <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="[$version$]" />
+      <dependency id="Microsoft.CodeAnalysis.Common" version="$version$" />
+      <dependency id="Microsoft.CodeAnalysis.Workspaces.Common" version="$version$" />
       <dependency id="System.Composition" version="$SystemCompositionVersion$" />
     </dependencies>
 
@@ -33,8 +33,10 @@
     <serviceable>true</serviceable>
   </metadata>
   <files>
+    <!-- Include PDB unless embedded into DLL -->
     <file src="Dlls\RemoteWorkspaces\Microsoft.CodeAnalysis.Remote.Workspaces.dll" target="lib\net46" />
     <file src="Dlls\RemoteWorkspaces\Microsoft.CodeAnalysis.Remote.Workspaces.xml" target="lib\net46" />
+    <file src="Dlls\RemoteWorkspaces\Microsoft.CodeAnalysis.Remote.Workspaces.pdb*" target="lib\net46" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

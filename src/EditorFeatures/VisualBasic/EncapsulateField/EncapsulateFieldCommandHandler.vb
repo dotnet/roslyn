@@ -16,8 +16,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EncapsulateField
         <ImportingConstructor>
         Public Sub New(waitIndicator As IWaitIndicator,
                        undoManager As ITextBufferUndoManagerProvider,
-                       <ImportMany> asyncListeners As IEnumerable(Of Lazy(Of IAsynchronousOperationListener, FeatureMetadata)))
-            MyBase.New(waitIndicator, undoManager, asyncListeners)
+                       listenerProvider As IAsynchronousOperationListenerProvider)
+            MyBase.New(waitIndicator, undoManager, listenerProvider)
         End Sub
     End Class
 End Namespace

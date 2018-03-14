@@ -2067,7 +2067,7 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,18): error CS8136: Deconstruction 'var (...)' form disallows a specific type for 'var'.
                 //         int (x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_DeconstructionVarFormDisallowsSpecificType, "(x1, x2)").WithLocation(6, 13)
@@ -2097,7 +2097,7 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (7,9): error CS8183: A deconstruction cannot mix declarations and expressions on the left-hand-side.
                 //         (int x1, x2) = (1, 2);
                 Diagnostic(ErrorCode.ERR_MixedDeconstructionUnsupported, "(int x1, x2)").WithLocation(7, 9),
@@ -2128,7 +2128,7 @@ namespace System
         public ValueTuple(T1 item1, T2 item2) { this.Item1 = item1; this.Item2 = item2; }
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 );
         }
 
@@ -2161,7 +2161,7 @@ class C
         var(x, y) += e;            // error 1
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         var(x, y) += e;            // error 1
                 Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 9),
@@ -2188,7 +2188,7 @@ class C
         var(x, y)++;               // error 2
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,9): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         var(x, y)++;               // error 2
                 Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 9),
@@ -2215,7 +2215,7 @@ class C
         ++var(x, y);               // error 3
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,11): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         ++var(x, y);               // error 3
                 Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 11),
@@ -2244,7 +2244,7 @@ class C
 
     void X(out object x) { x = null; }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS0103: The name 'var' does not exist in the current context
                 //         X(out var(x, y));          // error 4
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 15),
@@ -2273,7 +2273,7 @@ class C
 
     void X(ref object x) { x = null; }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,15): error CS0103: The name 'var' does not exist in the current context
                 //         X(ref var(x, y));          // error 5
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(6, 15),
@@ -2300,7 +2300,7 @@ class C
         return ref var(x, y);      // error 6
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,20): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         return ref var(x, y);      // error 6
                 Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 20),
@@ -2327,7 +2327,7 @@ class C
         ref int x = ref var(x, y); // error 7
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (6,25): error CS8199: The syntax 'var (...)' as an lvalue is reserved.
                 //         ref int x = ref var(x, y); // error 7
                 Diagnostic(ErrorCode.ERR_VarInvocationLvalueReserved, "var(x, y)").WithLocation(6, 25),
@@ -2354,7 +2354,7 @@ class C
         var (x, 1) = e;            // error 8
     }
 }";
-            CreateStandardCompilation(source).VerifyDiagnostics(
+            CreateCompilation(source).VerifyDiagnostics(
                 // (4,10): error CS1519: Invalid token 'object' in class, struct, or interface member declaration
                 //     void object M(string e)
                 Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "object").WithArguments("object").WithLocation(4, 10),
@@ -3317,13 +3317,14 @@ class C
 {
     void M()
     {
-        // Pointer types are not parsed in declaration expressions within a tuple, so
-        // these parse into a mess of error recovery
+        // syntax error: pointer types only permitted as an array element type in a tuple
         (int* x1, int y1) = e;
+
+        // These are OK, because an array is a valid type in a tuple.
         (int*[] x2, int y2) = e;
         (var*[] x3, int y3) = e;
 
-        // However, multiplication in a tuple element is OK
+        // Multiplication in a tuple element is also OK
         (var* x4, int y4) = e;
         (var* x5, var* y5) = e;
         e = (var* x6, var* y6);
@@ -3331,66 +3332,9 @@ class C
 }
 ";
             UsingTree(source).GetDiagnostics().Verify(
-                // (8,10): error CS1525: Invalid expression term 'int'
+                // (7,10): error CS1525: Invalid expression term 'int'
                 //         (int* x1, int y1) = e;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(8, 10),
-                // (9,10): error CS1525: Invalid expression term 'int'
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(9, 10),
-                // (9,14): error CS1525: Invalid expression term '['
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(9, 14),
-                // (9,15): error CS0443: Syntax error; value expected
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(9, 15),
-                // (9,17): error CS1026: ) expected
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x2").WithLocation(9, 17),
-                // (9,17): error CS1002: ; expected
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x2").WithLocation(9, 17),
-                // (9,19): error CS1002: ; expected
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(9, 19),
-                // (9,19): error CS1513: } expected
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(9, 19),
-                // (9,27): error CS1002: ; expected
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(9, 27),
-                // (9,27): error CS1513: } expected
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(9, 27),
-                // (9,29): error CS1525: Invalid expression term '='
-                //         (int*[] x2, int y2) = e;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(9, 29),
-                // (10,14): error CS1525: Invalid expression term '['
-                //         (var*[] x3, int y3) = e;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "[").WithArguments("[").WithLocation(10, 14),
-                // (10,15): error CS0443: Syntax error; value expected
-                //         (var*[] x3, int y3) = e;
-                Diagnostic(ErrorCode.ERR_ValueExpected, "]").WithLocation(10, 15),
-                // (10,17): error CS1026: ) expected
-                //         (var*[] x3, int y3) = e;
-                Diagnostic(ErrorCode.ERR_CloseParenExpected, "x3").WithLocation(10, 17),
-                // (10,17): error CS1002: ; expected
-                //         (var*[] x3, int y3) = e;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "x3").WithLocation(10, 17),
-                // (10,19): error CS1002: ; expected
-                //         (var*[] x3, int y3) = e;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ",").WithLocation(10, 19),
-                // (10,19): error CS1513: } expected
-                //         (var*[] x3, int y3) = e;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ",").WithLocation(10, 19),
-                // (10,27): error CS1002: ; expected
-                //         (var*[] x3, int y3) = e;
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(10, 27),
-                // (10,27): error CS1513: } expected
-                //         (var*[] x3, int y3) = e;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(10, 27),
-                // (10,29): error CS1525: Invalid expression term '='
-                //         (var*[] x3, int y3) = e;
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "=").WithArguments("=").WithLocation(10, 29)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 10)
                 );
             N(SyntaxKind.CompilationUnit);
             {
@@ -3463,70 +3407,57 @@ class C
                             }
                             N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.ParenthesizedExpression);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.MultiplyExpression);
-                                    {
-                                        N(SyntaxKind.PredefinedType);
-                                        {
-                                            N(SyntaxKind.IntKeyword);
-                                        }
-                                        N(SyntaxKind.AsteriskToken);
-                                        N(SyntaxKind.ElementAccessExpression);
-                                        {
-                                            M(SyntaxKind.IdentifierName);
-                                            {
-                                                M(SyntaxKind.IdentifierToken);
-                                            }
-                                            N(SyntaxKind.BracketedArgumentList);
-                                            {
-                                                N(SyntaxKind.OpenBracketToken);
-                                                M(SyntaxKind.Argument);
-                                                {
-                                                    M(SyntaxKind.IdentifierName);
-                                                    {
-                                                        M(SyntaxKind.IdentifierToken);
-                                                    }
-                                                }
-                                                N(SyntaxKind.CloseBracketToken);
-                                            }
-                                        }
-                                    }
-                                    M(SyntaxKind.CloseParenToken);
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.ExpressionStatement);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "x2");
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.LocalDeclarationStatement);
-                            {
-                                N(SyntaxKind.VariableDeclaration);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.VariableDeclarator);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "y2");
-                                    }
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.ExpressionStatement);
-                            {
                                 N(SyntaxKind.SimpleAssignmentExpression);
                                 {
-                                    M(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.TupleExpression);
                                     {
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.DeclarationExpression);
+                                            {
+                                                N(SyntaxKind.ArrayType);
+                                                {
+                                                    N(SyntaxKind.PointerType);
+                                                    {
+                                                        N(SyntaxKind.PredefinedType);
+                                                        {
+                                                            N(SyntaxKind.IntKeyword);
+                                                        }
+                                                        N(SyntaxKind.AsteriskToken);
+                                                    }
+                                                    N(SyntaxKind.ArrayRankSpecifier);
+                                                    {
+                                                        N(SyntaxKind.OpenBracketToken);
+                                                        N(SyntaxKind.OmittedArraySizeExpression);
+                                                        {
+                                                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                                        }
+                                                        N(SyntaxKind.CloseBracketToken);
+                                                    }
+                                                }
+                                                N(SyntaxKind.SingleVariableDesignation);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "x2");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.DeclarationExpression);
+                                            {
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                                N(SyntaxKind.SingleVariableDesignation);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "y2");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
                                     }
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);
@@ -3538,70 +3469,57 @@ class C
                             }
                             N(SyntaxKind.ExpressionStatement);
                             {
-                                N(SyntaxKind.ParenthesizedExpression);
-                                {
-                                    N(SyntaxKind.OpenParenToken);
-                                    N(SyntaxKind.MultiplyExpression);
-                                    {
-                                        N(SyntaxKind.IdentifierName);
-                                        {
-                                            N(SyntaxKind.IdentifierToken, "var");
-                                        }
-                                        N(SyntaxKind.AsteriskToken);
-                                        N(SyntaxKind.ElementAccessExpression);
-                                        {
-                                            M(SyntaxKind.IdentifierName);
-                                            {
-                                                M(SyntaxKind.IdentifierToken);
-                                            }
-                                            N(SyntaxKind.BracketedArgumentList);
-                                            {
-                                                N(SyntaxKind.OpenBracketToken);
-                                                M(SyntaxKind.Argument);
-                                                {
-                                                    M(SyntaxKind.IdentifierName);
-                                                    {
-                                                        M(SyntaxKind.IdentifierToken);
-                                                    }
-                                                }
-                                                N(SyntaxKind.CloseBracketToken);
-                                            }
-                                        }
-                                    }
-                                    M(SyntaxKind.CloseParenToken);
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.ExpressionStatement);
-                            {
-                                N(SyntaxKind.IdentifierName);
-                                {
-                                    N(SyntaxKind.IdentifierToken, "x3");
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.LocalDeclarationStatement);
-                            {
-                                N(SyntaxKind.VariableDeclaration);
-                                {
-                                    N(SyntaxKind.PredefinedType);
-                                    {
-                                        N(SyntaxKind.IntKeyword);
-                                    }
-                                    N(SyntaxKind.VariableDeclarator);
-                                    {
-                                        N(SyntaxKind.IdentifierToken, "y3");
-                                    }
-                                }
-                                M(SyntaxKind.SemicolonToken);
-                            }
-                            N(SyntaxKind.ExpressionStatement);
-                            {
                                 N(SyntaxKind.SimpleAssignmentExpression);
                                 {
-                                    M(SyntaxKind.IdentifierName);
+                                    N(SyntaxKind.TupleExpression);
                                     {
-                                        M(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.OpenParenToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.DeclarationExpression);
+                                            {
+                                                N(SyntaxKind.ArrayType);
+                                                {
+                                                    N(SyntaxKind.PointerType);
+                                                    {
+                                                        N(SyntaxKind.IdentifierName);
+                                                        {
+                                                            N(SyntaxKind.IdentifierToken, "var");
+                                                        }
+                                                        N(SyntaxKind.AsteriskToken);
+                                                    }
+                                                    N(SyntaxKind.ArrayRankSpecifier);
+                                                    {
+                                                        N(SyntaxKind.OpenBracketToken);
+                                                        N(SyntaxKind.OmittedArraySizeExpression);
+                                                        {
+                                                            N(SyntaxKind.OmittedArraySizeExpressionToken);
+                                                        }
+                                                        N(SyntaxKind.CloseBracketToken);
+                                                    }
+                                                }
+                                                N(SyntaxKind.SingleVariableDesignation);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "x3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CommaToken);
+                                        N(SyntaxKind.Argument);
+                                        {
+                                            N(SyntaxKind.DeclarationExpression);
+                                            {
+                                                N(SyntaxKind.PredefinedType);
+                                                {
+                                                    N(SyntaxKind.IntKeyword);
+                                                }
+                                                N(SyntaxKind.SingleVariableDesignation);
+                                                {
+                                                    N(SyntaxKind.IdentifierToken, "y3");
+                                                }
+                                            }
+                                        }
+                                        N(SyntaxKind.CloseParenToken);
                                     }
                                     N(SyntaxKind.EqualsToken);
                                     N(SyntaxKind.IdentifierName);

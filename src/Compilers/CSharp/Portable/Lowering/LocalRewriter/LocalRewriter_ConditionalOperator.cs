@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (rewrittenCondition.ConstantValue == null)
             {
-                return node.Update(node.IsByRef, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.Type);
+                return node.Update(node.IsRef, rewrittenCondition, rewrittenConsequence, rewrittenAlternative, node.ConstantValueOpt, node.Type);
             }
 
             return RewriteConditionalOperator(
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 rewrittenAlternative,
                 node.ConstantValueOpt,
                 node.Type,
-                node.IsByRef);
+                node.IsRef);
         }
 
         private static BoundExpression RewriteConditionalOperator(
@@ -49,20 +49,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue conditionConstantValue = rewrittenCondition.ConstantValue;
             if (conditionConstantValue == ConstantValue.True)
             {
-                if (!isRef)
-                {
-                    rewrittenConsequence = EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenConsequence);
-                }
-
                 return rewrittenConsequence;
             }
             else if (conditionConstantValue == ConstantValue.False)
             {
-                if (!isRef)
-                {
-                    rewrittenAlternative = EnsureNotAssignableIfUsedAsMethodReceiver(rewrittenAlternative);
-                }
-
                 return rewrittenAlternative;
             }
             else

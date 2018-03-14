@@ -3,6 +3,7 @@
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Operations
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -15,6 +16,92 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Dim nullAssignment As ICompoundAssignmentOperation = Nothing
             Assert.Throws(Of ArgumentNullException)("compoundAssignment", Function() nullAssignment.GetInConversion())
             Assert.Throws(Of ArgumentNullException)("compoundAssignment", Function() nullAssignment.GetOutConversion())
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub CompoundAssignment_GetConversionOnValidNode_IdentityConversion()
+            Dim source = <![CDATA[
+Module Module1
+    Sub Main()
+        Dim x, y As New Integer
+        x += y'BIND:"x += y"
+    End Sub
+End Module]]>.Value
+
+            Dim fileName = "a.vb"
+            Dim syntaxTree = Parse(source, fileName)
+
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree})
+            Dim result = GetOperationTreeForTest(Of AssignmentStatementSyntax)(compilation, fileName)
+            Dim compoundAssignment = DirectCast(DirectCast(result.operation, IExpressionStatementOperation).Operation, ICompoundAssignmentOperation)
+
+            Dim identityConversion = New Conversion(Conversions.Identity)
+            Assert.Equal(identityConversion, compoundAssignment.GetInConversion())
+            Assert.Equal(identityConversion, compoundAssignment.GetOutConversion())
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub CompoundAssignment_GetConversionOnValidNode_StringConversion()
+            Dim source = <![CDATA[
+Module Module1
+    Sub Main()
+        Dim x, y As New Integer
+        x &= y'BIND:"x &= y"
+    End Sub
+End Module]]>.Value
+
+            Dim fileName = "a.vb"
+            Dim syntaxTree = Parse(source, fileName)
+
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree})
+            Dim result = GetOperationTreeForTest(Of AssignmentStatementSyntax)(compilation, fileName)
+            Dim compoundAssignment = DirectCast(DirectCast(result.operation, IExpressionStatementOperation).Operation, ICompoundAssignmentOperation)
+
+            Dim stringConversion = New Conversion(New KeyValuePair(Of ConversionKind, Symbols.MethodSymbol)(ConversionKind.NarrowingString, Nothing))
+            Assert.Equal(stringConversion, compoundAssignment.GetInConversion())
+            Assert.Equal(stringConversion, compoundAssignment.GetOutConversion())
+        End Sub
+
+        <CompilerTrait(CompilerFeature.IOperation)>
+        <Fact>
+        Public Sub CompoundAssignment_GetConversionOnValidNode_DifferentConversionInOut()
+            Dim source = <![CDATA[
+Module Module1
+    Sub Main()
+        Dim a As New C, x As New Integer
+        a += x'BIND:"a += x"
+    End Sub
+
+    Class C
+        Public Shared Widening Operator CType(i As Integer) As C
+            Return Nothing
+        End Operator
+        Public Shared Widening Operator CType(c As C) As Integer
+            Return 1
+        End Operator
+        Public Shared Operator +(c As Integer, i As C) As C
+            Return 0
+        End Operator
+    End Class
+End Module]]>.Value
+
+            Dim fileName = "a.vb"
+            Dim syntaxTree = Parse(source, fileName)
+
+            Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime({syntaxTree})
+            Dim result = GetOperationTreeForTest(Of AssignmentStatementSyntax)(compilation, fileName)
+            Dim compoundAssignment = DirectCast(DirectCast(result.operation, IExpressionStatementOperation).Operation, ICompoundAssignmentOperation)
+
+            Dim methodSymbol = compilation.GetSymbolsWithName(Function(sym) sym = "op_Implicit", filter:=SymbolFilter.Member).
+                                           Cast(Of MethodSymbol).
+                                           Where(Function(sym) sym.ReturnType.SpecialType = SpecialType.System_Int32).
+                                           Single()
+
+            Assert.Equal(New Conversion(New KeyValuePair(Of ConversionKind, MethodSymbol)(ConversionKind.UserDefined Or ConversionKind.Widening, methodSymbol)),
+                         compoundAssignment.GetInConversion())
+            Assert.Equal(New Conversion(Conversions.Identity), compoundAssignment.GetOutConversion())
         End Sub
 
         <CompilerTrait(CompilerFeature.IOperation)>
