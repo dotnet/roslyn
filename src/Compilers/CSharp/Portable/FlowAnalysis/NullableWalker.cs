@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly Conversions _conversions;
 
+        private readonly Action<BoundExpression, TypeSymbolWithAnnotations> _callbackOpt;
+
         /// <summary>
         /// Invalid type, used only to catch Visit methods that do not set
         /// _result.Type. See VisitExpressionWithoutStackGuard.
@@ -70,11 +72,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             MethodSymbol member,
             BoundNode node,
+            Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt,
             bool includeNonNullableWarnings)
             : base(compilation, member, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: false)
         {
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
             this._currentMethodOrLambda = member;
+            _callbackOpt = callbackOpt;
             _includeNonNullableWarnings = includeNonNullableWarnings;
             // PROTOTYPE(NullableReferenceTypes): Do we really need a Binder?
             // If so, are we interested in an InMethodBinder specifically?
@@ -105,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return pendingReturns;
         }
 
-        public static void Analyze(CSharpCompilation compilation, MethodSymbol member, BoundNode node, DiagnosticBag diagnostics)
+        public static void Analyze(CSharpCompilation compilation, MethodSymbol member, BoundNode node, DiagnosticBag diagnostics, Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt = null)
         {
             Debug.Assert(diagnostics != null);
 
@@ -119,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation,
                 member,
                 node,
+                callbackOpt,
                 includeNonNullableWarnings: (flags & NullableReferenceFlags.AllowNullAsNonNull) == 0);
 
             try
@@ -732,6 +737,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)resultType == null || AreCloseEnough(resultType.TypeSymbol, node.Type));
             }
 #endif
+            if (_callbackOpt != null)
+            {
+                _callbackOpt(node, _result.Type);
+            }
             return result;
         }
 
