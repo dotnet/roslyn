@@ -14,13 +14,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A simple class that combines a single symbol with annotations
     /// </summary>
-    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal abstract class SymbolWithAnnotations : IMessageSerializable 
     {
         public abstract Symbol Symbol { get; }
 
         public sealed override string ToString() => Symbol.ToString();
-        public string ToDisplayString(SymbolDisplayFormat format = null) => Symbol.ToDisplayString(format);
+        public virtual string ToDisplayString(SymbolDisplayFormat format = null) => Symbol.ToDisplayString(format);
         public string Name => Symbol.Name;
         public SymbolKind Kind => Symbol.Kind;
 
@@ -74,11 +73,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool operator !=(SymbolWithAnnotations x, Symbol y)
         {
             throw ExceptionUtilities.Unreachable;
-        }
-
-        internal virtual string GetDebuggerDisplay()
-        {
-            return ToString();
         }
     }
 
@@ -171,8 +165,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A simple class that combines a single type symbol with annotations
     /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay(), nq}")]
     internal abstract class TypeSymbolWithAnnotations : NamespaceOrTypeSymbolWithAnnotations
     {
+        internal static readonly SymbolDisplayFormat DebuggerDisplayFormat = new SymbolDisplayFormat(
+            typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces,
+            genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+            miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
+            compilerInternalOptions: SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier);
+
         internal static TypeSymbolWithAnnotations Create(CSharpCompilation compilation, TypeSymbol typeSymbol)
         {
             return Create(compilation.SourceModule, typeSymbol);
@@ -349,6 +350,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public bool IsNullableTypeOrTypeParameter() => TypeSymbol.IsNullableTypeOrTypeParameter();
         public virtual bool IsVoid => TypeSymbol.SpecialType == SpecialType.System_Void;
         public virtual bool IsSZArray() => TypeSymbol.IsSZArray();
+
+        public abstract override string ToDisplayString(SymbolDisplayFormat format = null);
+        internal string GetDebuggerDisplay() => ToDisplayString(DebuggerDisplayFormat);
 
         public bool Equals(TypeSymbolWithAnnotations other, TypeCompareKind comparison)
         {
@@ -680,12 +684,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this;
             }
 
-            internal override string GetDebuggerDisplay()
+            public override string ToDisplayString(SymbolDisplayFormat format)
             {
-                var str = _typeSymbol.GetDebuggerDisplay();
-                if (IsNullable == false)
+                var str = _typeSymbol.ToDisplayString(format);
+                if (IsNullable == false &&
+                    format != null &&
+                    (format.CompilerInternalOptions & SymbolDisplayCompilerInternalOptions.IncludeNonNullableTypeModifier) != 0)
                 {
-                    str += "!";
+                    return str + "!";
                 }
                 return str;
             }
@@ -743,9 +749,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new WithoutCustomModifiers(_typeSymbol);
             }
 
-            internal override string GetDebuggerDisplay()
+            public override string ToDisplayString(SymbolDisplayFormat format)
             {
-                return _typeSymbol.ToString() + "?";
+                return _typeSymbol.ToDisplayString(format) + "?";
             }
         }
 
@@ -797,9 +803,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return new WithoutCustomModifiers(_typeSymbol);
             }
 
-            internal override string GetDebuggerDisplay()
+            public override string ToDisplayString(SymbolDisplayFormat format)
             {
-                return _typeSymbol.ToString();
+                return _typeSymbol.ToDisplayString(format);
             }
         }
 
@@ -846,11 +852,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     return _resolved;
                 }
-            }
-
-            internal override string GetDebuggerDisplay()
-            {
-                return _underlying.TypeSymbol.ToString() + "?";
             }
 
             public override TypeSymbol NullableUnderlyingTypeOrSelf => _underlying.TypeSymbol;
@@ -1002,6 +1003,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 return base.TypeSymbolEquals(other, comparison);
+            }
+
+            public override string ToDisplayString(SymbolDisplayFormat format)
+            {
+                var underlyingType = _underlying.TypeSymbol;
+                var str = underlyingType.ToDisplayString(format);
+                return underlyingType.IsValueType ? str : str + "?";
             }
         }
 

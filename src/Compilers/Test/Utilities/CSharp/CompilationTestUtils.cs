@@ -278,5 +278,107 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     : model.LookupSymbols(position, container);
             return symbols.Select(s => s.Name).Distinct().ToList();
         }
+
+        /// <summary>
+        /// Verify the type and nullability inferred by NullabilityWalker of all expressions in the source
+        /// that are followed by specific annotations. Annotations are of the form /*T:type*/.
+        /// </summary>
+        internal static void VerifyTypes(this CSharpCompilation compilation, SyntaxTree tree = null)
+        {
+            if (tree == null)
+            {
+                foreach (var syntaxTree in compilation.SyntaxTrees)
+                {
+                    VerifyTypes(compilation, syntaxTree);
+                }
+                return;
+            }
+
+            var root = tree.GetRoot();
+            var allAnnotations = getAnnotations();
+            if (allAnnotations.IsEmpty)
+            {
+                return;
+            }
+
+            var model = compilation.GetSemanticModel(tree);
+            var annotationsByMethod = allAnnotations.GroupBy(annotation => annotation.Expression.Ancestors().OfType<BaseMethodDeclarationSyntax>().First()).ToArray();
+            foreach (var annotations in annotationsByMethod)
+            {
+                var method = (MethodSymbol)model.GetDeclaredSymbol(annotations.Key);
+                var diagnostics = DiagnosticBag.GetInstance();
+                var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
+                var dictionary = new Dictionary<SyntaxNode, TypeSymbolWithAnnotations>();
+                NullableWalker.Analyze(
+                    compilation,
+                    method,
+                    block,
+                    diagnostics,
+                    (BoundExpression expr, TypeSymbolWithAnnotations exprType) => dictionary[expr.Syntax] = exprType);
+                diagnostics.Free();
+                var expectedTypes = annotations.SelectAsArray(annotation => annotation.Text);
+                var actualTypes = annotations.SelectAsArray(annotation => toDisplayString(annotation.Expression));
+                // Consider reporting the correct source with annotations on mismatch.
+                AssertEx.Equal(expectedTypes, actualTypes);
+
+                string toDisplayString(SyntaxNode syntaxOpt)
+                {
+                    return (syntaxOpt != null) && dictionary.TryGetValue(syntaxOpt, out var type) ?
+                        type.ToDisplayString(TypeSymbolWithAnnotations.DebuggerDisplayFormat) :
+                        null;
+                }
+            }
+
+            ImmutableArray<(ExpressionSyntax Expression, string Text)> getAnnotations()
+            {
+                var builder = ArrayBuilder<(ExpressionSyntax, string)>.GetInstance();
+                foreach (var token in root.DescendantTokens())
+                {
+                    foreach (var trivia in token.TrailingTrivia)
+                    {
+                        if (trivia.Kind() == SyntaxKind.MultiLineCommentTrivia)
+                        {
+                            var expr = getEnclosingExpression(token);
+                            if (expr is null)
+                            {
+                                continue;
+                            }
+                            var text = trivia.ToFullString();
+                            const string prefix = "/*T:";
+                            const string suffix = "*/";
+                            if (text.StartsWith(prefix) && text.EndsWith(suffix))
+                            {
+                                var content = text.Substring(prefix.Length, text.Length - prefix.Length - suffix.Length);
+                                builder.Add((expr, content));
+                            }
+                        }
+                    }
+                }
+                return builder.ToImmutableAndFree();
+            }
+
+            ExpressionSyntax getEnclosingExpression(SyntaxToken token)
+            {
+                var node = token.Parent;
+                while (true)
+                {
+                    var expr = node as ExpressionSyntax;
+                    if (expr != null)
+                    {
+                        if (expr.Kind() == SyntaxKind.ParenthesizedExpression)
+                        {
+                            return ((ParenthesizedExpressionSyntax)expr).Expression;
+                        }
+                        return expr;
+                    }
+                    if (node == root)
+                    {
+                        break;
+                    }
+                    node = node.Parent;
+                }
+                return null;
+            }
+        }
     }
 }

@@ -442,29 +442,30 @@ class C
 {
     static void F(bool b, A<object> x, B1 y)
     {
-        (b ? x : y).F.ToString();
+        (b ? x : y)/*T:A<object!>!*/.F.ToString();
         (b ? y : x).P.ToString();
     }
     static void G(bool b, A<object?> x, B2 y)
     {
-        (b ? x : y).F.ToString();
+        (b ? x : y)/*T:A<object?>!*/.F.ToString();
         (b ? y : x).P.ToString();
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyTypes();
             comp.VerifyDiagnostics(
                 // (13,10): warning CS8625: No best nullability for operands of conditional expression 'A<object>' and 'B1'.
-                //         (b ? x : y).F.ToString();
+                //         (b ? x : y)/*T:A<object!>!*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? x : y").WithArguments("A<object>", "B1").WithLocation(13, 10),
                 // (14,10): warning CS8625: No best nullability for operands of conditional expression 'B1' and 'A<object>'.
                 //         (b ? y : x).P.ToString();
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? y : x").WithArguments("B1", "A<object>").WithLocation(14, 10),
                 // (18,10): warning CS8625: No best nullability for operands of conditional expression 'A<object?>' and 'B2'.
-                //         (b ? x : y).F.ToString();
+                //         (b ? x : y)/*T:A<object?>!*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? x : y").WithArguments("A<object?>", "B2").WithLocation(18, 10),
                 // (18,9): warning CS8602: Possible dereference of a null reference.
-                //         (b ? x : y).F.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(b ? x : y).F").WithLocation(18, 9),
+                //         (b ? x : y)/*T:A<object?>!*/.F.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(b ? x : y)/*T:A<object?>!*/.F").WithLocation(18, 9),
                 // (19,10): warning CS8625: No best nullability for operands of conditional expression 'B2' and 'A<object?>'.
                 //         (b ? y : x).P.ToString();
                 Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? y : x").WithArguments("B2", "A<object?>").WithLocation(19, 10),
