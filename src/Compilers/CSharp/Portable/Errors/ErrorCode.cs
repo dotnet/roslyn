@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MissingArgument = 839,
         //ERR_AutoPropertiesMustHaveBothAccessors = 840,
         ERR_VariableUsedBeforeDeclaration = 841,
-        ERR_ExplicitLayoutAndAutoImplementedProperty = 842,
+        //ERR_ExplicitLayoutAndAutoImplementedProperty = 842,
         ERR_UnassignedThisAutoProperty = 843,
         ERR_VariableUsedBeforeDeclarationAndHidesField = 844,
         ERR_ExpressionTreeContainsBadCoalesce = 845,
@@ -1543,7 +1543,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_PredefinedValueTupleTypeAmbiguous3 = 8356,
         ERR_InvalidVersionFormatDeterministic = 8357,
-
         ERR_AttributeCtorInParameter = 8358,
 
         #region diagnostics for FilterIsConstant warning message fix
@@ -1555,5 +1554,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantUseVoidInArglist = 8362,
         ERR_DefaultInPattern = 8363,
         ERR_InDynamicMethodArg = 8364,
+
+        ERR_FeatureNotAvailableInVersion7_3 = 8370,
+        WRN_AttributesOnBackingFieldsNotAvailable = 8371,
+        ERR_DoNotUseFixedBufferAttrOnProperty = 8372,
+
+        // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }
 }

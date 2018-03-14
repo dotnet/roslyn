@@ -863,6 +863,7 @@ namespace System
                     case WellKnownMember.System_Span_T__ctor:
                     case WellKnownMember.System_Span_T__get_Item:
                     case WellKnownMember.System_Span_T__get_Length:
+                    case WellKnownMember.System_ReadOnlySpan_T__ctor:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Item:
                     case WellKnownMember.System_ReadOnlySpan_T__get_Length:
                         // Not yet in the platform.

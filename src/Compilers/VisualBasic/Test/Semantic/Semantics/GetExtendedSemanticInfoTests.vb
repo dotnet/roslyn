@@ -2211,7 +2211,7 @@ End Class
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("[Me] As C", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("Me As C", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
             Assert.True(DirectCast(semanticInfo.Symbol, ParameterSymbol).IsMe, "should be Me symbol")
@@ -4202,7 +4202,7 @@ End Class
             Assert.Equal(TypeKind.Class, semanticInfo.ConvertedType.TypeKind)
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind)
 
-            Assert.Equal("[Me] As M", semanticInfo.Symbol.ToTestDisplayString())
+            Assert.Equal("Me As M", semanticInfo.Symbol.ToTestDisplayString())
             Assert.Equal(SymbolKind.Parameter, semanticInfo.Symbol.Kind)
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
 
@@ -8899,7 +8899,7 @@ End Class
             Dim symbolInfo = semanticModel1.GetSymbolInfo(node1)
             Assert.Equal(CandidateReason.StaticInstanceMismatch, symbolInfo.CandidateReason)
             Assert.Equal(1, symbolInfo.CandidateSymbols.Length)
-            Assert.Equal("[Me] As C", symbolInfo.CandidateSymbols(0).ToTestDisplayString())
+            Assert.Equal("Me As C", symbolInfo.CandidateSymbols(0).ToTestDisplayString())
             Assert.Null(symbolInfo.Symbol)
         End Sub
 
@@ -8921,7 +8921,7 @@ End Class
             Dim symbolInfo = semanticModel1.GetSymbolInfo(node1)
             Assert.Equal(CandidateReason.StaticInstanceMismatch, symbolInfo.CandidateReason)
             Assert.Equal(1, symbolInfo.CandidateSymbols.Length)
-            Assert.Equal("[Me] As C", symbolInfo.CandidateSymbols(0).ToTestDisplayString())
+            Assert.Equal("Me As C", symbolInfo.CandidateSymbols(0).ToTestDisplayString())
             Assert.Null(symbolInfo.Symbol)
         End Sub
 

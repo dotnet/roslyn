@@ -159,13 +159,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                         return true;
                     }
                     break;
+
                 case IFieldSymbol fieldSymbol:
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, GetClassificationForField(fieldSymbol));
                     return true;
                 case IMethodSymbol methodSymbol:
                     token = name.GetNameToken();
-                    classifiedSpan = new ClassifiedSpan(token.Span, methodSymbol.IsExtensionMethod ? ClassificationTypeNames.ExtensionMethodName : ClassificationTypeNames.MethodName);
+                    classifiedSpan = new ClassifiedSpan(token.Span, GetClassificationForMethod(methodSymbol));
                     return true;
                 case IPropertySymbol propertySymbol:
                     token = name.GetNameToken();
@@ -180,12 +181,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
                     {
                         break;
                     }
+
                     token = name.GetNameToken();
                     classifiedSpan = new ClassifiedSpan(token.Span, ClassificationTypeNames.ParameterName);
                     return true;
                 case ILocalSymbol localSymbol:
                     token = name.GetNameToken();
-                    classifiedSpan = new ClassifiedSpan(token.Span, localSymbol.IsConst ? ClassificationTypeNames.ConstantName : ClassificationTypeNames.LocalName);
+                    classifiedSpan = new ClassifiedSpan(token.Span, GetClassificationForLocal(localSymbol));
                     return true;
             }
 
@@ -197,9 +199,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         {
             if (fieldSymbol.IsConst)
             {
-                return fieldSymbol.ContainingType.IsEnumType() ? ClassificationTypeNames.EnumFieldName : ClassificationTypeNames.ConstantName;
+                return fieldSymbol.ContainingType.IsEnumType() ? ClassificationTypeNames.EnumMemberName : ClassificationTypeNames.ConstantName;
             }
+
             return ClassificationTypeNames.FieldName;
+        }
+
+        private static string GetClassificationForLocal(ILocalSymbol localSymbol)
+        {
+            return localSymbol.IsConst
+                ? ClassificationTypeNames.ConstantName
+                : ClassificationTypeNames.LocalName;
+        }
+
+        private static string GetClassificationForMethod(IMethodSymbol methodSymbol)
+        {
+            // Note: We only classify an extension method if it is in reduced form.
+            // If an extension method is called as a static method invocation (e.g. Enumerable.Select(...)),
+            // it is classified as an ordinary method.
+            return methodSymbol.MethodKind == MethodKind.ReducedExtension
+                ? ClassificationTypeNames.ExtensionMethodName
+                : ClassificationTypeNames.MethodName;
         }
 
         private bool IsInVarContext(NameSyntax name)

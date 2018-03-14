@@ -313,6 +313,9 @@ interface I1<T>
                 // (151,9): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         CL3_C2.Test1();
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "CL3_C2.Test1").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(151, 9),
+                // (156,9): error CS0012: The type 'CL2_C1' is defined in an assembly that is not referenced. You must add a reference to assembly 'CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         CL3_C2.Test1(1);
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "CL3_C2.Test1").WithArguments("CL2_C1", "CL2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(156, 9),
                 // (156,9): error CS0120: An object reference is required for the non-static field, method, or property 'CL3_C2.Test1(int)'
                 //         CL3_C2.Test1(1);
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "CL3_C2.Test1").WithArguments("CL3_C2.Test1(int)").WithLocation(156, 9),
@@ -500,6 +503,9 @@ public interface CL3_I1 : CL2_I1
                 // (151,9): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
                 //         CL3_C2.Test1();
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL3_C2.Test1").WithArguments("CL2_C1").WithLocation(151, 9),
+                // (156,9): error CS0246: The type or namespace name 'CL2_C1' could not be found (are you missing a using directive or an assembly reference?)
+                //         CL3_C2.Test1(1);
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CL3_C2.Test1").WithArguments("CL2_C1").WithLocation(156, 9),
                 // (156,9): error CS0120: An object reference is required for the non-static field, method, or property 'CL3_C2.Test1(int)'
                 //         CL3_C2.Test1(1);
                 Diagnostic(ErrorCode.ERR_ObjectRequired, "CL3_C2.Test1").WithArguments("CL3_C2.Test1(int)").WithLocation(156, 9),
