@@ -249,6 +249,24 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestNotStartingAtZero()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 1; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
         public async Task TestWithMultipleVariables()
         {
             await TestMissingInRegularAndScriptAsync(
