@@ -33,15 +33,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override BoundSwitchExpressionArm BindSwitchExpressionArm(SwitchExpressionArmSyntax node, DiagnosticBag diagnostics)
         {
             Debug.Assert(node == _arm);
-            var caseBinder = this.GetBinder(node);
-            var hasErrors = _switchExpressionBinder.SwitchGoverningType.IsErrorType();
-            var locals = _armScopeBinder.Locals;
-            var pattern = caseBinder.BindPattern(node.Pattern, _switchExpressionBinder.SwitchGoverningType, hasErrors, diagnostics);
-            var guard = node.WhenClause != null
-                ? caseBinder.BindBooleanExpression(node.WhenClause.Condition, diagnostics)
+            Binder armBinder = this.GetBinder(node);
+            bool hasErrors = _switchExpressionBinder.SwitchGoverningType.IsErrorType();
+            ImmutableArray<LocalSymbol> locals = _armScopeBinder.Locals;
+            BoundPattern pattern = armBinder.BindPattern(node.Pattern, _switchExpressionBinder.SwitchGoverningType, hasErrors, diagnostics);
+            BoundExpression guard = node.WhenClause != null
+                ? armBinder.BindBooleanExpression(node.WhenClause.Condition, diagnostics)
                 : null;
-            var result = caseBinder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
-            return new BoundSwitchExpressionArm(node, locals, pattern, guard, result, hasErrors);
+            BoundExpression armResult = armBinder.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+            var label = new GeneratedLabelSymbol("arm");
+            return new BoundSwitchExpressionArm(node, locals, pattern, guard, armResult, label, hasErrors | pattern.HasErrors);
         }
     }
 }

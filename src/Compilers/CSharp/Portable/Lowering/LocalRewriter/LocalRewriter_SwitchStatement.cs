@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // If we are generating a hash table based jump table, we use a simple customizable
         // hash function to hash the string constants corresponding to the case labels.
         // See SwitchStringJumpTableEmitter.ComputeStringHash().
-        // We need to emit this function to compute the hash value into the compiler generate
+        // We need to emit this function to compute the hash value into the compiler generated
         // <PrivateImplementationDetails> class. 
         // If we have at least one string switch statement in a module that needs a
         // hash table based jump table, we generate a single public string hash synthesized method

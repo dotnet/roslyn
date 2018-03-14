@@ -71,6 +71,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitConditionalGoto(node);
         }
 
+        public override BoundNode VisitSwitchDispatch(BoundSwitchDispatch node)
+        {
+            AddGoto(node.DefaultLabel);
+            foreach ((_, LabelSymbol label) in node.Cases)
+            {
+                AddGoto(label);
+            }
+
+            return base.VisitSwitchDispatch(node);
+        }
+
         public override BoundNode VisitLabelStatement(BoundLabelStatement node)
         {
             AddTarget(node.Label);

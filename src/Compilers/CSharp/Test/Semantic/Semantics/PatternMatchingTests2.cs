@@ -228,9 +228,9 @@ class Program
                 var source = string.Format(sourceTemplate, s1, s2, s3);
                 var compilation = CreatePatternCompilation(source);
                 compilation.VerifyDiagnostics(
-                    // (12,13): error CS8120: The switch case has already been handled by a previous case.
+                    // (12,18): error CS8120: The switch case has already been handled by a previous case.
                     //             case (_, _): // error - subsumed
-                    Diagnostic(ErrorCode.ERR_PatternIsSubsumed, "case (_, _):").WithLocation(12, 13)
+                    Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "(_, _)").WithLocation(12, 18)
                     );
             }
             void testGoodCase(string s1, string s2)
@@ -257,7 +257,7 @@ class Program
             testGoodCase(c3, c2);
         }
 
-        [Fact(Skip = "PROTOTYPE(patterns2): lowering not yet implemented for recursive pattern switch")]
+        [Fact]
         public void Patterns2_Switch02()
         {
             var source =
@@ -432,7 +432,13 @@ public class Point
                 Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(7, 9),
                 // (7,18): error CS0103: The name 'b' does not exist in the current context
                 //         var r2 = b switch { (true ? true : true) => true, false => false };
-                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "b").WithArguments("b").WithLocation(7, 18),
+                // (7,20): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         var r2 = b switch { (true ? true : true) => true, false => false };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 20),
+                // (6,20): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         var r1 = b switch { true ? true : true => true, false => false };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(6, 20)
                 );
         }
 
@@ -487,6 +493,9 @@ public class Point
     public delegate void D();
 }";
             CreatePatternCompilation(source).VerifyDiagnostics(
+                // (5,19): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         var x = 1 switch { 0 => M, 1 => new D(M), 2 => M };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(5, 19)
                 );
         }
 
@@ -575,6 +584,9 @@ public class Point
 }";
             var compilation = CreatePatternCompilation(source);
             compilation.VerifyDiagnostics(
+                // (7,19): warning CS8409: The switch expression does not handle all possible inputs (it is not exhaustive).
+                //         var c = a switch { var x2 when x2 is var x3 => x3 };
+                Diagnostic(ErrorCode.WRN_SwitchExpressionNotExhaustive, "switch").WithLocation(7, 19)
                 );
             var names = new[] { "x1", "x2", "x3", "x4", "x5" };
             var tree = compilation.SyntaxTrees[0];
@@ -659,7 +671,10 @@ class Program
                 Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(Item1: int z2)").WithLocation(12, 18),
                 // (13,18): error CS8407: A single-element deconstruct pattern requires a type before the open parenthesis.
                 //         if (t is (int z3) { }) { }                      // error 6
-                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int z3) { }").WithLocation(13, 18)
+                Diagnostic(ErrorCode.ERR_SingleElementPositionalPatternRequiresType, "(int z3) { }").WithLocation(13, 18),
+                // (10,42): error CS8410: The pattern has already been handled by a previous arm of the switch expression.
+                //         var u = t switch { (int y) => y, _ => 2 };      // error 3
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, "_").WithLocation(10, 42)
                 );
         }
 
@@ -743,6 +758,200 @@ namespace N
                 //             { Check(true, t is var x); }                           // error 3
                 Diagnostic(ErrorCode.ERR_VarMayNotBindToType, "var").WithArguments("N.var").WithLocation(12, 32)
                 );
+        }
+
+        [Fact]
+        public void Patterns2_10()
+        {
+            var source =
+@"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write(M((false, false)));
+        Console.Write(M((false, true)));
+        Console.Write(M((true, false)));
+        Console.Write(M((true, true)));
+    }
+    private static int M((bool, bool) t)
+    {
+        switch (t)
+        {
+            case (false, false): return 0;
+            case (false, _): return 1;
+            case (_, false): return 2;
+            case _: return 3;
+        }
+    }
+}
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"0123");
+        }
+
+        [Fact]
+        public void Patterns2_11()
+        {
+            var source =
+@"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write(M((false, false)));
+        Console.Write(M((false, true)));
+        Console.Write(M((true, false)));
+        Console.Write(M((true, true)));
+    }
+    private static int M((bool, bool) t)
+    {
+        switch (t)
+        {
+            case (false, false): return 0;
+            case (false, _): return 1;
+            case (_, false): return 2;
+            case (true, true): return 3;
+            case _: return 4;
+        }
+    }
+}
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (20,18): error CS8120: The switch case has already been handled by a previous case.
+                //             case _: return 4;
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "_").WithLocation(20, 18)
+                );
+        }
+
+        [Fact]
+        public void Patterns2_12()
+        {
+            var source =
+@"
+using System;
+class Program
+{
+    public static void Main()
+    {
+        Console.Write(M((false, false)));
+        Console.Write(M((false, true)));
+        Console.Write(M((true, false)));
+        Console.Write(M((true, true)));
+    }
+    private static int M((bool, bool) t)
+    {
+        return t switch {
+            (false, false) => 0,
+            (false, _) => 1,
+            (_, false) => 2,
+            _ => 3
+        };
+    }
+}
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"0123");
+        }
+
+        [Fact]
+        public void SwitchArmSubsumed()
+        {
+            var source =
+@"public class X
+{
+    public static void Main()
+    {
+        string s = string.Empty;
+        string s2 = s switch { null => null, string t => t, ""foo"" => null };
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                // (6,61): error CS8410: The pattern has already been handled by a previous arm of the switch expression.
+                //         string s2 = s switch { null => null, string t => t, "foo" => null };
+                Diagnostic(ErrorCode.ERR_SwitchArmSubsumed, @"""foo""").WithLocation(6, 61)
+                );
+        }
+
+        [Fact]
+        public void LongTuples()
+        {
+            var source =
+@"using System;
+
+public class X
+{
+    public static void Main()
+    {
+        var t = (1, 2, 3, 4, 5, 6, 7, 8, 9);
+        {
+            Console.WriteLine(t is (_, _, _, _, _, _, _, _, var t9) ? t9 : 100);
+        }
+        switch (t)
+        {
+            case (_, _, _, _, _, _, _, _, var t9):
+                Console.WriteLine(t9);
+                break;
+        }
+        // PROTOTYPE(patterns2): Lowering and code gen not yet supported for switch expression
+        //Console.WriteLine(t switch { (_, _, _, _, _, _, _, _, var t9) => t9 });
+    }
+}";
+            var compilation = CreatePatternCompilation(source);
+            compilation.VerifyDiagnostics(
+                );
+            var comp = CompileAndVerify(compilation, expectedOutput: @"9
+9");
         }
 
         // PROTOTYPE(patterns2): Need to have tests that exercise:
