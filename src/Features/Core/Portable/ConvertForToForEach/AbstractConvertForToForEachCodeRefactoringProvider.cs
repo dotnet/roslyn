@@ -297,33 +297,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             //
             // If so, we'll use those as the iteration variables for the new foreach statement.
             var bodyStatements = GetBodyStatements(forStatement);
-
-            TTypeNode typeNode = default;
-            SyntaxToken foreachIdentifier = default;
-            SyntaxNode declarationStatement = default;
-            if (bodyStatements.Count >= 1)
-            {
-                var firstStatement = bodyStatements[0];
-                if (syntaxFacts.IsLocalDeclarationStatement(firstStatement))
-                {
-                    var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(firstStatement);
-                    if (variables.Count == 1)
-                    {
-                        var firstVariable = (TVariableDeclaratorSyntax)variables[0];
-                        if (IsValidVariableDeclarator(firstVariable))
-                        {
-                            var firstVariableInitializer = syntaxFacts.GetValueOfEqualsValueClause(
-                                syntaxFacts.GetInitializerOfVariableDeclarator(firstVariable));
-                            if (syntaxFacts.AreEquivalent(firstVariableInitializer, indexExpression))
-                            {
-                                typeNode = (TTypeNode)syntaxFacts.GetTypeOfVariableDeclarator(firstVariable)?.WithoutLeadingTrivia();
-                                foreachIdentifier = syntaxFacts.GetIdentifierOfVariableDeclarator(firstVariable);
-                                declarationStatement = firstStatement;
-                            }
-                        }
-                    }
-                }
-            }
+            var (typeNode, foreachIdentifier, declarationStatement) = tryDeconstructInitialDeclaration();
 
             if (typeNode == null)
             {
@@ -337,6 +311,8 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 }
             }
 
+            // If we couldn't find an appropriate existing variable to use as the foreach
+            // variable, then generate one automatically.
             if (foreachIdentifier.RawKind == 0)
             {
                 foreachIdentifier = semanticFacts.GenerateUniqueName(
@@ -344,11 +320,14 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 foreachIdentifier = foreachIdentifier.WithAdditionalAnnotations(RenameAnnotation.Create());
             }
 
+            // Create the expression we'll use to replace all matches in the for-body.
             var foreachIdentifierName = generator.IdentifierName(foreachIdentifier).WithoutTrivia().WithoutAnnotations();
 
             // Walk the for statement, replacing any matches we find.
-            recurse(forStatement);
+            findAndReplaceMatches(forStatement);
 
+            // Finally, remove the declaration statement if we found one.  Move all its leading
+            // trivia to the next statement.
             if (declarationStatement != null)
             {
                 editor.RemoveNode(declarationStatement,
@@ -365,7 +344,37 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             return document.WithSyntaxRoot(editor.GetChangedRoot());
 
             // local functions
-            void recurse(SyntaxNode current)
+            (TTypeNode, SyntaxToken, TStatementSyntax) tryDeconstructInitialDeclaration()
+            {
+                if (bodyStatements.Count >= 1)
+                {
+                    var firstStatement = bodyStatements[0];
+                    if (syntaxFacts.IsLocalDeclarationStatement(firstStatement))
+                    {
+                        var variables = syntaxFacts.GetVariablesOfLocalDeclarationStatement(firstStatement);
+                        if (variables.Count == 1)
+                        {
+                            var firstVariable = (TVariableDeclaratorSyntax)variables[0];
+                            if (IsValidVariableDeclarator(firstVariable))
+                            {
+                                var firstVariableInitializer = syntaxFacts.GetValueOfEqualsValueClause(
+                                    syntaxFacts.GetInitializerOfVariableDeclarator(firstVariable));
+                                if (syntaxFacts.AreEquivalent(firstVariableInitializer, indexExpression))
+                                {
+                                    var type = (TTypeNode)syntaxFacts.GetTypeOfVariableDeclarator(firstVariable)?.WithoutLeadingTrivia();
+                                    var identifier = syntaxFacts.GetIdentifierOfVariableDeclarator(firstVariable);
+                                    var statement = firstStatement;
+                                    return (type, identifier, statement);
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return default;
+            }
+
+            void findAndReplaceMatches(SyntaxNode current)
             {
                 if (syntaxFacts.AreEquivalent(current, indexExpression))
                 {
@@ -385,7 +394,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 {
                     if (child.IsNode)
                     {
-                        recurse(child.AsNode());
+                        findAndReplaceMatches(child.AsNode());
                     }
                 }
             }
