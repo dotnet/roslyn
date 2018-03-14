@@ -973,7 +973,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var resultBuilder = PooledStringBuilder.GetInstance();
                 var result = resultBuilder.Builder;
                 stateIdentifier(this); // push the start node onto the work queue
-
                 while (workQueue.Count != 0)
                 {
                     var state = workQueue.Pop();
