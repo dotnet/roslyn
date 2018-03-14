@@ -5856,6 +5856,47 @@ class C
 
         [Fact]
         [CompilerTrait(CompilerFeature.LocalFunctions)]
+        public void LocalFunctionForChangeSignature()
+        {
+            SymbolDisplayFormat changeSignatureFormat = new SymbolDisplayFormat(
+                    genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters,
+                    miscellaneousOptions: SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers | SymbolDisplayMiscellaneousOptions.UseSpecialTypes,
+                    extensionMethodStyle: SymbolDisplayExtensionMethodStyle.StaticMethod,
+                    memberOptions:
+                        SymbolDisplayMemberOptions.IncludeType |
+                        SymbolDisplayMemberOptions.IncludeExplicitInterface |
+                        SymbolDisplayMemberOptions.IncludeAccessibility |
+                        SymbolDisplayMemberOptions.IncludeModifiers |
+                        SymbolDisplayMemberOptions.IncludeRef);
+
+            var srcTree = SyntaxFactory.ParseSyntaxTree(@"
+class C
+{
+    void M()
+    {
+        void Local() {}
+    }
+}");
+            var root = srcTree.GetRoot();
+            var comp = CreateCompilation(srcTree);
+
+            var semanticModel = comp.GetSemanticModel(srcTree);
+            var local = root.DescendantNodes()
+                .Where(n => n.Kind() == SyntaxKind.LocalFunctionStatement)
+                .Single();
+            var localSymbol = Assert.IsType<LocalFunctionSymbol>(
+                semanticModel.GetDeclaredSymbol(local));
+
+            Verify(localSymbol.ToDisplayParts(changeSignatureFormat),
+                "void Local",
+                SymbolDisplayPartKind.Keyword, // void
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.MethodName // Local
+                );
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.LocalFunctions)]
         public void LocalFunction2()
         {
             var srcTree = SyntaxFactory.ParseSyntaxTree(@"
