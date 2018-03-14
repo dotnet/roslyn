@@ -425,6 +425,21 @@
       Condition="'$(UsingMicrosoftNETSdk)' == ''" />
   </Target> 
 
+  <!-- 
+      This target is used to copy referenced projects to a sub-directory vs. the direct output 
+      directory of the build. Useful when the referenced project is an EXE and the referencing 
+      project uses an incompatible targetframework
+  -->  
+  <Target Name="CopyReferencedProjectsToDependenciesDirectory" Condition="'@(RoslynReferenceToDependencyDirectory)' != ''"  AfterTargets="ResolveProjectReferences">
+    <PropertyGroup>
+      <_RoslynReferenceOutputPath>@(RoslynReferenceToDependencyDirectory->'%(RootDir)%(Directory)')</_RoslynReferenceOutputPath>
+    </PropertyGroup>
+    <ItemGroup>
+      <_RoslynReferenceContent Include="$(_RoslynReferenceOutputPath)*.*" />
+      <Content Include="@(_RoslynReferenceContent)" Link="dependency\%(_RoslynReferenceContent.Filename)%(_RoslynReferenceContent.Extension)" CopyToOutputDirectory="PreserveNewest" />
+    </ItemGroup>
+  </Target>
+
   <!-- Count PublicAPIs as AdditionalFiles to get them to analyzers. This is working around
        https://github.com/dotnet/project-system/issues/2160 where AdditionalFileItemNames
        isn't fully supported yet in the new project system. Removal of this hack is tracked

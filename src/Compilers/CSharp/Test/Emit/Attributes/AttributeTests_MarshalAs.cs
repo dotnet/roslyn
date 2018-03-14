@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int count = 0;
             using (var assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData))
             {
-                var compilation = CreateEmptyCompilation(new SyntaxTree[0], new[] { assembly.GetReference() });
+                var compilation = CreateEmptyCompilation(new SyntaxTree[0], new[] { assembly.GetReference() },
+                    options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
+
                 foreach (NamedTypeSymbol type in compilation.GlobalNamespace.GetMembers().Where(s => s.Kind == SymbolKind.NamedType))
                 {
                     var fields = type.GetMembers().Where(s => s.Kind == SymbolKind.Field);
@@ -324,6 +326,53 @@ public class X
                 { "_123456",   new byte[] { 0x19, 0xc0, 0x12, 0x34, 0x56 } },
                 { "_0x1000",   new byte[] { 0x19, 0x90, 0x00 } },
                 { "Default",   new byte[] { 0x1a } },
+            };
+
+            var verifier = CompileAndVerifyFieldMarshal(source, blobs);
+            VerifyFieldMetadataDecoding(verifier, blobs);
+        }
+
+        [Fact]
+        [WorkItem(22512, "https://github.com/dotnet/roslyn/issues/22512")]
+        public void ComInterfacesInProperties()
+        {
+            var source = @"
+using System;
+using System.Runtime.InteropServices;
+
+public class X
+{
+    [field: MarshalAs(UnmanagedType.IDispatch, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = 0, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]
+    public byte IDispatch { get; set; }
+
+    [field: MarshalAs(UnmanagedType.Interface, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = 1, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]
+    public X Interface { get; set; }
+
+    [field: MarshalAs(UnmanagedType.IUnknown, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = 2, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]
+    public X[] IUnknown { get; set; }
+
+    [field: MarshalAs(UnmanagedType.IUnknown, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = 0x1FFFFFFF, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]
+    public int MaxValue { get; set; }
+
+    [field: MarshalAs(UnmanagedType.IUnknown, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = 0x123456, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]
+    public int _123456 { get; set; }
+
+    [field: MarshalAs(UnmanagedType.IUnknown, ArraySubType = UnmanagedType.ByValTStr, IidParameterIndex = 0x1000, MarshalCookie = null, MarshalType = null, MarshalTypeRef = null, SafeArraySubType = VarEnum.VT_BSTR, SafeArrayUserDefinedSubType = null, SizeConst = -1, SizeParamIndex = -1)]
+    public X _0x1000 { get; set; }
+
+    [field: MarshalAs(UnmanagedType.IDispatch)]
+    public int Default { get; set; }
+}
+";
+            var blobs = new Dictionary<string, byte[]>
+            {
+                { "<IDispatch>k__BackingField", new byte[] { 0x1a, 0x00 } },
+                { "<Interface>k__BackingField", new byte[] { 0x1c, 0x01 } },
+                { "<IUnknown>k__BackingField",  new byte[] { 0x19, 0x02 } },
+                { "<MaxValue>k__BackingField",  new byte[] { 0x19, 0xdf, 0xff, 0xff, 0xff } },
+                { "<_123456>k__BackingField",   new byte[] { 0x19, 0xc0, 0x12, 0x34, 0x56 } },
+                { "<_0x1000>k__BackingField",   new byte[] { 0x19, 0x90, 0x00 } },
+                { "<Default>k__BackingField",   new byte[] { 0x1a } },
             };
 
             var verifier = CompileAndVerifyFieldMarshal(source, blobs);

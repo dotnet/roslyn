@@ -310,6 +310,9 @@ End Module
             Assert.Equal(MethodKind.Ordinary, x16.GetMember(Of MethodSymbol)("EndInvoke").MethodKind)
             Assert.Equal("Function <generated method>.EndInvoke(ByRef Pp1 As System.Int64, DelegateAsyncResult As System.IAsyncResult) As System.Int64", x16.GetMember("EndInvoke").ToTestDisplayString())
 
+            Assert.IsType(GetType(AnonymousTypeManager.AnonymousDelegatePublicSymbol), x16)
+            Assert.False(DirectCast(x16, INamedTypeSymbol).IsSerializable)
+
             Dim node15 As ModifiedIdentifierSyntax = CompilationUtils.FindBindingText(Of ModifiedIdentifierSyntax)(compilation, "a.vb", 15)
             Dim x15 = DirectCast(semanticModel.GetDeclaredSymbol(node15), LocalSymbol).Type
 

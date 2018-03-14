@@ -394,13 +394,16 @@ End Module
             ' check 'b'
             Dim posB As Integer = text.IndexOf("del_b", StringComparison.Ordinal)
             Dim declaratorB = tree.GetRoot().FindToken(posB).Parent.FirstAncestorOrSelf(Of VariableDeclaratorSyntax)()
+            Dim delegateA = DirectCast(model.GetDeclaredSymbol(declaratorA.Names(0)), LocalSymbol).Type
             CheckAnonymousTypeImplicit(DirectCast(model.GetDeclaredSymbol(declaratorB.Names(0)), LocalSymbol),
                                        tree.GetRoot().FindToken(sub2).Parent.Parent.GetLocation,
-                                       DirectCast(model.GetDeclaredSymbol(declaratorA.Names(0)), LocalSymbol).Type,
+                                       delegateA,
                                        False,
                                        tree.GetRoot().FindToken(x2 - 2).GetLocation(),
                                        tree.GetRoot().FindToken(y2 - 2).GetLocation())
 
+            Assert.IsType(Of AnonymousTypeManager.AnonymousDelegatePublicSymbol)(delegateA)
+            Assert.False(DirectCast(delegateA, INamedTypeSymbol).IsSerializable)
         End Sub
 
         Private Sub CheckAnonymousTypeImplicit(local As LocalSymbol, location As Location, anotherType As TypeSymbol, isType As Boolean, ParamArray locations() As Location)

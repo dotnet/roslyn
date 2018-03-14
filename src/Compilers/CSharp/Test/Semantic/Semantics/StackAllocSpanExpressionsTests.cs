@@ -675,5 +675,72 @@ class Test
     }
 }", TestOptions.ReleaseDll).VerifyDiagnostics();
         }
+
+        [Fact]
+        [WorkItem(25038, "https://github.com/dotnet/roslyn/issues/25038")]
+        public void StackAllocToSpanWithRefStructType()
+        {
+            CreateCompilationWithMscorlibAndSpan(@"
+using System;
+ref struct S {}
+class Test
+{
+    void M()
+    {
+        Span<S> explicitError = default;
+        var implicitError = explicitError.Length > 0 ? stackalloc S[10] : stackalloc S[100];
+    }
+}").VerifyDiagnostics(
+                // (8,14): error CS0306: The type 'S' may not be used as a type argument
+                //         Span<S> explicitError = default;
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S").WithArguments("S").WithLocation(8, 14),
+                // (9,67): error CS0306: The type 'S' may not be used as a type argument
+                //         var implicitError = explicitError.Length > 0 ? stackalloc S[10] : stackalloc S[100];
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S[10]").WithArguments("S").WithLocation(9, 67),
+                // (9,86): error CS0306: The type 'S' may not be used as a type argument
+                //         var implicitError = explicitError.Length > 0 ? stackalloc S[10] : stackalloc S[100];
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "S[100]").WithArguments("S").WithLocation(9, 86));
+        }
+
+        [Fact]
+        [WorkItem(25086, "https://github.com/dotnet/roslyn/issues/25086")]
+        public void StaackAllocToSpanWithCustomSpanAndConstraints()
+        {
+            var code = @"
+using System;
+namespace System
+{
+    public unsafe readonly ref struct Span<T> where T : IComparable
+    {
+        public Span(void* ptr, int length)
+        {
+            Length = length;
+        }
+        public int Length { get; }
+    }
+}
+struct NonComparable { }
+class Test
+{
+    void M()
+    {
+        Span<NonComparable> explicitError = default;
+        var implicitError = explicitError.Length > 0 ? stackalloc NonComparable[10] : stackalloc NonComparable[100];
+    }
+}";
+
+            var references = new List<MetadataReference>() { MscorlibRef_v4_0_30316_17626, SystemCoreRef, CSharpRef };
+
+            CreateEmptyCompilation(code, references, TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+                // (19,14): error CS0315: The type 'NonComparable' cannot be used as type parameter 'T' in the generic type or method 'Span<T>'. There is no boxing conversion from 'NonComparable' to 'System.IComparable'.
+                //         Span<NonComparable> explicitError = default;
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "NonComparable").WithArguments("System.Span<T>", "System.IComparable", "T", "NonComparable").WithLocation(19, 14),
+                // (20,67): error CS0315: The type 'NonComparable' cannot be used as type parameter 'T' in the generic type or method 'Span<T>'. There is no boxing conversion from 'NonComparable' to 'System.IComparable'.
+                //         var implicitError = explicitError.Length > 0 ? stackalloc NonComparable[10] : stackalloc NonComparable[100];
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "NonComparable[10]").WithArguments("System.Span<T>", "System.IComparable", "T", "NonComparable").WithLocation(20, 67),
+                // (20,98): error CS0315: The type 'NonComparable' cannot be used as type parameter 'T' in the generic type or method 'Span<T>'. There is no boxing conversion from 'NonComparable' to 'System.IComparable'.
+                //         var implicitError = explicitError.Length > 0 ? stackalloc NonComparable[10] : stackalloc NonComparable[100];
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "NonComparable[100]").WithArguments("System.Span<T>", "System.IComparable", "T", "NonComparable").WithLocation(20, 98));
+        }
     }
 }

@@ -27,6 +27,7 @@
 
     <!-- Targets and task files -->
     <file src="Dlls/MSBuildTask/netcoreapp2.0/Microsoft.Build.Tasks.CodeAnalysis.dll" target="tools" />
+    <file src="Dlls/MSbuildTask/netcoreapp2.0/Microsoft.Managed.Core.targets" target="tools" />
     <file src="Dlls/MSbuildTask/netcoreapp2.0/Microsoft.CSharp.Core.targets" target="tools" />
     <file src="Dlls/MSbuildTask/netcoreapp2.0/Microsoft.VisualBasic.Core.targets" target="tools" />
     <!-- N.B.: The backslashes below cannot be replaced with forward slashes. 
