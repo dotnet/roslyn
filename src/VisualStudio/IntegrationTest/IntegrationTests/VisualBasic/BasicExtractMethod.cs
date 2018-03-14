@@ -42,7 +42,7 @@ End Module";
         {
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void SimpleExtractMethod()
         {
             VisualStudio.Editor.SetText(TestSource);
@@ -85,7 +85,7 @@ End Module";
     End Sub");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractViaCodeAction()
         {
             VisualStudio.Editor.SetText(TestSource);
@@ -123,7 +123,7 @@ End Module";
             AssertEx.SetEqual(spans, VisualStudio.Editor.GetTagSpans(VisualStudio.InlineRenameDialog.ValidRenameTag));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
         public void ExtractViaCodeActionWithMoveLocal()
         {
             VisualStudio.Editor.SetText(TestSource);

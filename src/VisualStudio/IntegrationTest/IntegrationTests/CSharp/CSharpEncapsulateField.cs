@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
@@ -32,7 +32,7 @@ namespace myNamespace
     }
 }";
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughCommand()
         {
             SetUpEditor(TestSource);
@@ -48,7 +48,7 @@ namespace myNamespace
             VisualStudio.Editor.Verify.TextContains("public static int? Param { get => param; set => param = value; }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughLightbulbIncludingReferences()
         {
             SetUpEditor(TestSource);
@@ -71,7 +71,7 @@ namespace myNamespace
 }");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
         public void EncapsulateThroughLightbulbDefinitionsOnly()
         {
             SetUpEditor(TestSource);

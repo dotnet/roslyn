@@ -2,32 +2,44 @@
 
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.VisualStudio.IntegrationTest.Utilities;
 using Microsoft.VisualStudio.IntegrationTest.Utilities.Input;
+using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
     [CaptureTestName]
-    public abstract class AbstractIntegrationTest : IDisposable
+    public abstract class AbstractIntegrationTest : IAsyncLifetime, IDisposable
     {
         /// <summary>
         /// A long timeout used to avoid hangs in tests, where a test failure manifests as an operation never occurring.
         /// </summary>
         protected static readonly TimeSpan HangMitigatingTimeout = TimeSpan.FromMinutes(1);
 
-        public readonly VisualStudioInstance VisualStudio;
-
         protected readonly string ProjectName = "TestProj";
         protected readonly string SolutionName = "TestSolution";
 
+        private readonly VisualStudioInstanceFactory _instanceFactory;
         private VisualStudioInstanceContext _visualStudioContext;
 
-        protected AbstractIntegrationTest(
-            VisualStudioInstanceFactory instanceFactory)
+        protected AbstractIntegrationTest(VisualStudioInstanceFactory instanceFactory)
         {
+            Assert.Equal(ApartmentState.STA, Thread.CurrentThread.GetApartmentState());
+            _instanceFactory = instanceFactory;
             Helper.Automation.TransactionTimeout = 20000;
-            _visualStudioContext = instanceFactory.GetNewOrUsedInstance(SharedIntegrationHostFixture.RequiredPackageIds);
-            VisualStudio = _visualStudioContext.Instance;
+        }
+
+        public VisualStudioInstance VisualStudio => _visualStudioContext?.Instance;
+
+        public virtual async Task InitializeAsync()
+        {
+            _visualStudioContext = await _instanceFactory.GetNewOrUsedInstanceAsync(SharedIntegrationHostFixture.RequiredPackageIds).ConfigureAwait(false);
+        }
+
+        public Task DisposeAsync()
+        {
+            return Task.CompletedTask;
         }
 
         public void Dispose()
