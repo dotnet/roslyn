@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
-using CACompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
+using CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
@@ -27,8 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         protected readonly CompletionPresenterSession CompletionPresenterSession;
         private CompletionHelper _completionHelper;
 
-        protected Dictionary<CACompletionItem, VSCompletion> CompletionItemMap;
-        protected CACompletionItem SuggestionModeItem;
+        protected Dictionary<CompletionItem, VSCompletion> CompletionItemMap;
+        protected CompletionItem SuggestionModeItem;
 
         protected string FilterText;
 
@@ -81,9 +81,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         }
 
         public void SetCompletionItems(
-            IList<CACompletionItem> completionItems,
-            CACompletionItem selectedItem,
-            CACompletionItem suggestionModeItem,
+            IList<CompletionItem> completionItems,
+            CompletionItem selectedItem,
+            CompletionItem suggestionModeItem,
             bool suggestionMode,
             bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             _foregroundThread.AssertIsForeground();
 
             // Initialize the completion map to a reasonable default initial size (+1 for the builder)
-            CompletionItemMap = CompletionItemMap ?? new Dictionary<CACompletionItem, VSCompletion>(completionItems.Count + 1);
+            CompletionItemMap = CompletionItemMap ?? new Dictionary<CompletionItem, VSCompletion>(completionItems.Count + 1);
             FilterText = filterText;
             SuggestionModeItem = suggestionModeItem;
 
@@ -113,8 +113,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         }
 
         private void CreateCompletionListBuilder(
-            CACompletionItem selectedItem,
-            CACompletionItem suggestionModeItem,
+            CompletionItem selectedItem,
+            CompletionItem suggestionModeItem,
             bool suggestionMode)
         {
             try
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             }
         }
 
-        private void CreateNormalCompletionListItems(IList<CACompletionItem> completionItems)
+        private void CreateNormalCompletionListItems(IList<CompletionItem> completionItems)
         {
             try
             {
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             }
         }
 
-        private VSCompletion GetVSCompletion(CACompletionItem item, string displayText = null)
+        private VSCompletion GetVSCompletion(CompletionItem item, string displayText = null)
         {
             if (!CompletionItemMap.TryGetValue(item, out var value))
             {
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             return value;
         }
 
-        public CACompletionItem GetCompletionItem(VSCompletion completion)
+        public CompletionItem GetCompletionItem(VSCompletion completion)
         {
             // Linear search is ok since this is only called by the user manually selecting 
             // an item.  Creating a reverse mapping uses too much memory and affects GCs.

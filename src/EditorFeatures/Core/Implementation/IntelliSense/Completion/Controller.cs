@@ -16,6 +16,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
+    using CompletionTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
+
     internal partial class Controller :
         AbstractController<Controller.Session, Model, ICompletionPresenterSession, ICompletionSession>,
         IChainedCommandHandler<TabKeyCommandArgs>,
@@ -152,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
         private bool StartNewModelComputation(
             CompletionService completionService,
-            CodeAnalysis.Completion.CompletionTrigger trigger)
+            CompletionTrigger trigger)
         {
             AssertIsForeground();
             Contract.ThrowIfTrue(sessionOpt != null);
