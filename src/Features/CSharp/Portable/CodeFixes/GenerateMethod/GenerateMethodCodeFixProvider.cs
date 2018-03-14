@@ -50,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod
 
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.GenerateMethod), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateEnumMember, Before = PredefinedCodeFixProviderNames.PopulateSwitch)]
-    [ExtensionOrder(Before = PredefinedCodeFixProviderNames.AddParameter)]
     internal class GenerateMethodCodeFixProvider : AbstractGenerateMemberCodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds { get; } =
