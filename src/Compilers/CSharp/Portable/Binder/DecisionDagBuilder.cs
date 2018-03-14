@@ -1035,8 +1035,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-        }
 #endif
+        }
 
         /// <summary>
         /// An equivalence relation between dag states used to dedup the states during dag construction.
