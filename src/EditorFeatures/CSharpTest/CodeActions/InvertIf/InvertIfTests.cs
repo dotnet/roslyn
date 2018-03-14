@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestCurlies1()
+        public async Task TestNoCurlyBraces()
         {
             await TestFixOneAsync(
 @"[||]if (a) a(); else b();",
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestCurlies2()
+        public async Task TestCurlyBracesOnIf()
         {
             await TestFixOneAsync(
 @"[||]if (a) { a(); } else b();",
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Invert
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
-        public async Task TestCurlies3()
+        public async Task TestCurlyBracesOnElse()
         {
             await TestFixOneAsync(
 @"[||]if (a) a(); else { b(); }",
