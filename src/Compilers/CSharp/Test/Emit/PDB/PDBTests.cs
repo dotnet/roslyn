@@ -3410,7 +3410,7 @@ class Program
 
             verifier.VerifyIL(qualifiedMethodName: "Program.M1<T>", sequencePoints: "Program.M1", source: source,
 expectedIL: @"{
-  // Code size       67 (0x43)
+  // Code size       65 (0x41)
   .maxstack  1
   .locals init (T V_0, //t
                 int V_1, //i
@@ -3427,38 +3427,37 @@ expectedIL: @"{
   IL_0006:  ldloc.2
   IL_0007:  box        ""int""
   IL_000c:  isinst     ""T""
-  IL_0011:  brfalse.s  IL_0026
+  IL_0011:  brfalse.s  IL_0033
   IL_0013:  ldloc.2
   IL_0014:  box        ""int""
   IL_0019:  isinst     ""T""
   IL_001e:  unbox.any  ""T""
   IL_0023:  stloc.3
-  IL_0024:  br.s       IL_0028
-  IL_0026:  br.s       IL_0035
-  IL_0028:  ldloc.3
-  IL_0029:  stloc.0
-  IL_002a:  br.s       IL_002c
+  IL_0024:  br.s       IL_0026
+  IL_0026:  ldloc.3
+  IL_0027:  stloc.0
+  IL_0028:  br.s       IL_002a
   // sequence point: Console.Write(1);
-  IL_002c:  ldc.i4.1
-  IL_002d:  call       ""void System.Console.Write(int)""
-  IL_0032:  nop
+  IL_002a:  ldc.i4.1
+  IL_002b:  call       ""void System.Console.Write(int)""
+  IL_0030:  nop
   // sequence point: break;
-  IL_0033:  br.s       IL_0042
-  IL_0035:  ldloc.2
-  IL_0036:  stloc.1
-  IL_0037:  br.s       IL_0039
+  IL_0031:  br.s       IL_0040
+  IL_0033:  ldloc.2
+  IL_0034:  stloc.1
+  IL_0035:  br.s       IL_0037
   // sequence point: Console.Write(2);
-  IL_0039:  ldc.i4.2
-  IL_003a:  call       ""void System.Console.Write(int)""
-  IL_003f:  nop
+  IL_0037:  ldc.i4.2
+  IL_0038:  call       ""void System.Console.Write(int)""
+  IL_003d:  nop
   // sequence point: break;
-  IL_0040:  br.s       IL_0042
+  IL_003e:  br.s       IL_0040
   // sequence point: }
-  IL_0042:  ret
+  IL_0040:  ret
 }");
             verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePoints: "Program.M2", source: source,
 expectedIL: @"{
-  // Code size       65 (0x41)
+  // Code size       63 (0x3f)
   .maxstack  1
   .locals init (T V_0, //t
                 string V_1, //s
@@ -3474,33 +3473,32 @@ expectedIL: @"{
   IL_000d:  stloc.2
   IL_000e:  ldloc.2
   IL_000f:  isinst     ""T""
-  IL_0014:  brfalse.s  IL_0024
+  IL_0014:  brfalse.s  IL_0031
   IL_0016:  ldloc.2
   IL_0017:  isinst     ""T""
   IL_001c:  unbox.any  ""T""
   IL_0021:  stloc.3
-  IL_0022:  br.s       IL_0026
-  IL_0024:  br.s       IL_0033
-  IL_0026:  ldloc.3
-  IL_0027:  stloc.0
-  IL_0028:  br.s       IL_002a
+  IL_0022:  br.s       IL_0024
+  IL_0024:  ldloc.3
+  IL_0025:  stloc.0
+  IL_0026:  br.s       IL_0028
   // sequence point: Console.Write(3);
-  IL_002a:  ldc.i4.3
-  IL_002b:  call       ""void System.Console.Write(int)""
-  IL_0030:  nop
+  IL_0028:  ldc.i4.3
+  IL_0029:  call       ""void System.Console.Write(int)""
+  IL_002e:  nop
   // sequence point: break;
-  IL_0031:  br.s       IL_0040
-  IL_0033:  ldloc.2
-  IL_0034:  stloc.1
-  IL_0035:  br.s       IL_0037
+  IL_002f:  br.s       IL_003e
+  IL_0031:  ldloc.2
+  IL_0032:  stloc.1
+  IL_0033:  br.s       IL_0035
   // sequence point: Console.Write(4);
-  IL_0037:  ldc.i4.4
-  IL_0038:  call       ""void System.Console.Write(int)""
-  IL_003d:  nop
+  IL_0035:  ldc.i4.4
+  IL_0036:  call       ""void System.Console.Write(int)""
+  IL_003b:  nop
   // sequence point: break;
-  IL_003e:  br.s       IL_0040
+  IL_003c:  br.s       IL_003e
   // sequence point: }
-  IL_0040:  ret
+  IL_003e:  ret
 }");
 
             // Check the release code generation too.
@@ -3512,8 +3510,7 @@ expectedIL: @"{
 @"{
   // Code size       46 (0x2e)
   .maxstack  1
-  .locals init (int V_0,
-                T V_1)
+  .locals init (int V_0)
   IL_0000:  ldc.i4.1
   IL_0001:  stloc.0
   IL_0002:  ldloc.0
@@ -3524,7 +3521,7 @@ expectedIL: @"{
   IL_0010:  box        ""int""
   IL_0015:  isinst     ""T""
   IL_001a:  unbox.any  ""T""
-  IL_001f:  stloc.1
+  IL_001f:  pop
   IL_0020:  ldc.i4.1
   IL_0021:  call       ""void System.Console.Write(int)""
   IL_0026:  ret
@@ -3536,8 +3533,7 @@ expectedIL: @"{
 @"{
   // Code size       40 (0x28)
   .maxstack  1
-  .locals init (string V_0,
-                T V_1)
+  .locals init (string V_0)
   IL_0000:  ldstr      ""M2""
   IL_0005:  stloc.0
   IL_0006:  ldloc.0
@@ -3546,7 +3542,7 @@ expectedIL: @"{
   IL_000e:  ldloc.0
   IL_000f:  isinst     ""T""
   IL_0014:  unbox.any  ""T""
-  IL_0019:  stloc.1
+  IL_0019:  pop
   IL_001a:  ldc.i4.3
   IL_001b:  call       ""void System.Console.Write(int)""
   IL_0020:  ret

@@ -128,6 +128,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private void LowerDecisionDag(ImmutableArray<BoundDecisionDag> sortedNodes)
             {
+                if (sortedNodes[0] is BoundWhenClause wc)
+                {
+                    // If the first node is in a when clause's section rather than the code for the
+                    // lowered decision dag, jump there to start.
+                    _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(wc)));
+                }
+
                 // Call LowerDecisionDagNode with each node and its following node in the generation order.
                 // However, some nodes can be emitted more efficiently as a switch dispatch (possibly out
                 // of order).
@@ -186,8 +193,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                      whenFalse.Decision is BoundNonNullValueDecision secondDecision &&
                      !loweredNodes.Contains(whenFalse) &&
                      !this._dagNodeLabels.ContainsKey(whenFalse) &&
-                     firstDecision.Input == secondDecision.Input))
+                     firstDecision.Input == secondDecision.Input &&
+                     firstDecision.Input.Type.IsValidV6SwitchGoverningType() &&
+                     firstDecision.Input.Type.SpecialType != SpecialType.System_String))
                 {
+                    // PROTOTYPE(patterns2): Should optimize string, float, double, decimal value switches. For now use if-then-else
                     return false;
                 }
 

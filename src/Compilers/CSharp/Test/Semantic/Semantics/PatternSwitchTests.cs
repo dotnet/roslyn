@@ -34,9 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             Assert.True(compilation.GetDiagnostics().HasAnyErrors());
             compilation.VerifyDiagnostics(
-                // (11,13): error CS0152: The switch statement contains multiple cases with the label value '1'
+                // (11,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case 1: // error: duplicate case label
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case 1:").WithArguments("1").WithLocation(11, 13),
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "1").WithLocation(11, 18),
                 // (10,17): warning CS0162: Unreachable code detected
                 //                 break; // warning: unreachable (1)
                 Diagnostic(ErrorCode.WRN_UnreachableCode, "break").WithLocation(10, 17)
@@ -2909,9 +2909,9 @@ class Program
                 // (30,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case int y: // error: subsumed
                 Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "int y").WithLocation(30, 18),
-                // (37,13): error CS0152: The switch statement contains multiple cases with the label value 'null'
+                // (37,18): error CS8120: The switch case has already been handled by a previous case.
                 //             case (string)null: // error: subsumed
-                Diagnostic(ErrorCode.ERR_DuplicateCaseLabel, "case (string)null:").WithArguments("null").WithLocation(37, 13)
+                Diagnostic(ErrorCode.ERR_SwitchCaseSubsumed, "(string)null").WithLocation(37, 18)
                 );
         }
 

@@ -543,24 +543,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            // Note: It is useful for debugging the dag state table construction to view `initialState.Dump()` here.
             workList.Free();
 
-            // A successor function used to topologically sort the DagState set.
-            IEnumerable<DagState> succ(DagState state)
-            {
-                if (state.TrueBranch != null)
-                {
-                    yield return state.TrueBranch;
-                }
-
-                if (state.FalseBranch != null)
-                {
-                    yield return state.FalseBranch;
-                }
-            }
-
             // Now process the states in topological order, leaves first, and assign a BoundDecisionDag to each DagState.
-            ImmutableArray<DagState> sortedStates = TopologicalSort.IterativeSort<DagState>(SpecializedCollections.SingletonEnumerable<DagState>(initialState), succ);
+            ImmutableArray<DagState> sortedStates = initialState.TopologicallySortedReachableStates;
             Debug.Assert(_defaultLabel != null);
             var finalStates = PooledDictionary<LabelSymbol, BoundDecisionDag>.GetInstance();
             finalStates.Add(_defaultLabel, defaultDecision);
@@ -637,7 +624,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             finalStates.Free();
 
             Debug.Assert(initialState.Dag != null);
-            // Note: It is useful for debugging the dag state table construction to view `initialState.Dump()` here.
             return initialState.Dag;
         }
 
@@ -924,6 +910,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             public BoundDagDecision SelectedDecision;
             public DagState TrueBranch, FalseBranch;
 
+            public ImmutableArray<DagState> TopologicallySortedReachableStates
+            {
+                get
+                {
+                    // A successor function used to topologically sort the DagState set.
+                    IEnumerable<DagState> succ(DagState state)
+                    {
+                        if (state.TrueBranch != null)
+                        {
+                            yield return state.TrueBranch;
+                        }
+
+                        if (state.FalseBranch != null)
+                        {
+                            yield return state.FalseBranch;
+                        }
+                    }
+
+                    // Now process the states in topological order, leaves first, and assign a BoundDecisionDag to each DagState.
+                    return TopologicalSort.IterativeSort<DagState>(SpecializedCollections.SingletonEnumerable<DagState>(this), succ);
+                }
+            }
+
             // After the entire graph of DagState objects is complete, we translate each into its Dag.
             public BoundDecisionDag Dag;
 
@@ -933,18 +942,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Our simple heuristic is to perform the first test of the first possible matched case
                 var choice = Cases[0].Decisions[0];
 
-                // But if that test is a null check, it would be redundant with a following
-                // type test. We apply this refinement only when there is exactly one case, because
-                // when there are multiple cases the null check is likely to be shared.
+                // But if that test is a null check, it would be redundant with a following type test.
                 if (choice.Kind == BoundKind.NonNullDecision &&
-                    Cases.Length == 1 &&
-                    Cases[0].Decisions.Length > 1)
+                    Cases[0].Decisions.Length > 1 &&
+                    Cases[0].Decisions[1] is var choice2 &&
+                    choice2.Kind == BoundKind.TypeDecision &&
+                    choice.Input == choice2.Input)
                 {
-                    var choice2 = Cases[0].Decisions[1];
-                    if (choice2.Kind == BoundKind.TypeDecision)
-                    {
-                        return choice2;
-                    }
+                    return choice2;
                 }
 
                 return choice;
@@ -957,24 +962,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             internal string Dump()
             {
-                var printed = PooledHashSet<DagState>.GetInstance();
-
-                int nextStateNumber = 0;
-                var workQueue = ArrayBuilder<DagState>.GetInstance();
+                var allStates = this.TopologicallySortedReachableStates;
                 var stateIdentifierMap = PooledDictionary<DagState, int>.GetInstance();
-                int stateIdentifier(DagState state)
+                for (int i = 0; i < allStates.Length; i++)
                 {
-                    if (stateIdentifierMap.TryGetValue(state, out int value))
-                    {
-                        return value;
-                    }
-                    else
-                    {
-                        value = stateIdentifierMap[state] = ++nextStateNumber;
-                        workQueue.Push(state);
-                    }
-
-                    return value;
+                    stateIdentifierMap.Add(allStates[i], i);
                 }
 
                 int nextTempNumber = 0;
@@ -991,17 +983,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var resultBuilder = PooledStringBuilder.GetInstance();
                 var result = resultBuilder.Builder;
-                stateIdentifier(this); // push the start node onto the work queue
 
-                while (workQueue.Count != 0)
+                foreach (var state in allStates)
                 {
-                    var state = workQueue.Pop();
-                    if (!printed.Add(state))
-                    {
-                        continue;
-                    }
-
-                    result.AppendLine($"State " + stateIdentifier(state));
+                    result.AppendLine($"State " + stateIdentifierMap[state]);
                     foreach (PartialCaseDecision cd in state.Cases)
                     {
                         result.Append($"  [{cd.Syntax}]");
@@ -1020,17 +1005,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (state.TrueBranch != null)
                     {
-                        result.AppendLine($"  TrueBranch: {stateIdentifier(state.TrueBranch)}");
+                        result.AppendLine($"  TrueBranch: {stateIdentifierMap[state.TrueBranch]}");
                     }
 
                     if (state.FalseBranch != null)
                     {
-                        result.AppendLine($"  FalseBranch: {stateIdentifier(state.FalseBranch)}");
+                        result.AppendLine($"  FalseBranch: {stateIdentifierMap[state.FalseBranch]}");
                     }
                 }
 
-                workQueue.Free();
-                printed.Free();
                 stateIdentifierMap.Free();
                 tempIdentifierMap.Free();
                 return resultBuilder.ToStringAndFree();

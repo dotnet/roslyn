@@ -100,35 +100,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return !reachableLabels.Contains(switchLabel.Label);
             }
-            bool areAnySubsumed(ImmutableArray<BoundPatternSwitchSection> sections)
-            {
-                foreach (BoundPatternSwitchSection section in sections)
-                {
-                    foreach (BoundPatternSwitchLabel label in section.SwitchLabels)
-                    {
-                        if (!label.HasErrors && isSubsumed(label))
-                        {
-                            // we found a label that is subsumed
-                            return true;
-                        }
-                    }
-                }
 
-                return false;
-            }
-
-            if (!areAnySubsumed(switchSections))
+            // If no switch sections are subsumed, just return
+            if (switchSections.Count(s => s.SwitchLabels.Count(l => isSubsumed(l)) != 0) == 0)
             {
                 return;
             }
 
-            // We mark any subsumed sections as erroneous for the benefit of flow analysis
+            bool anyPrecedingPatterns = false;
             var sectionBuilder = ArrayBuilder<BoundPatternSwitchSection>.GetInstance();
             foreach (var oldSection in switchSections)
             {
                 var labelBuilder = ArrayBuilder<BoundPatternSwitchLabel>.GetInstance();
                 foreach (var label in oldSection.SwitchLabels)
                 {
+                    anyPrecedingPatterns = anyPrecedingPatterns || label.Syntax is CasePatternSwitchLabelSyntax;
                     var newLabel = label;
                     if (!label.HasErrors && isSubsumed(label) && label.Syntax.Kind() != SyntaxKind.DefaultSwitchLabel)
                     {
@@ -136,14 +122,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                         switch (syntax)
                         {
                             case CasePatternSwitchLabelSyntax p:
-                                syntax = p.Pattern;
+                                diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, p.Pattern.Location);
                                 break;
                             case CaseSwitchLabelSyntax p:
-                                syntax = p.Value;
+                                if (anyPrecedingPatterns)
+                                {
+                                    diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, p.Value.Location);
+                                }
+                                else
+                                {
+                                    // We use the traditional diagnostic in the absence of pattern-matching constructs
+                                    diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, syntax.Location,
+                                        label.Pattern is BoundConstantPattern cp && !cp.ConstantValue.IsBad ? cp.ConstantValue.GetValueToDisplay() : p.Value.ToString());
+                                }
                                 break;
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
                         }
 
-                        diagnostics.Add(ErrorCode.ERR_SwitchCaseSubsumed, syntax.Location);
+                        // We mark any subsumed sections as erroneous for the benefit of flow analysis
                         newLabel = new BoundPatternSwitchLabel(label.Syntax, label.Label, label.Pattern, label.Guard, hasErrors: true);
                     }
 
