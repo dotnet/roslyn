@@ -427,6 +427,7 @@ namespace Microsoft.CodeAnalysis
         System_Span_T__get_Item,
         System_Span_T__get_Length,
 
+        System_ReadOnlySpan_T__ctor,
         System_ReadOnlySpan_T__get_Item,
         System_ReadOnlySpan_T__get_Length,
 

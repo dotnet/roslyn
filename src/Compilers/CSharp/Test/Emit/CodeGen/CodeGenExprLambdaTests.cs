@@ -4234,19 +4234,19 @@ public class MemberInitializerTest
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (9,105): error CS1525: Invalid expression term 'int'
                 //             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int"),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(9, 105),
                 // (9,123): error CS1525: Invalid expression term '}'
                 //             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}"),
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "").WithArguments("}").WithLocation(9, 123),
                 // (8,9): error CS0246: The type or namespace name 'Goo' could not be found (are you missing a using directive or an assembly reference?)
                 //         Goo f = new Goo {
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo"),
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo").WithLocation(8, 9),
                 // (8,21): error CS0246: The type or namespace name 'Goo' could not be found (are you missing a using directive or an assembly reference?)
                 //         Goo f = new Goo {
-                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo"),
-                // (9,20): error CS0030: Cannot convert type 'method' to 'MemberInitializerTest.D<int>'
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Goo").WithArguments("Goo").WithLocation(8, 21),
+                // (9,29): error CS0411: The type arguments for method 'MemberInitializerTest.GenericMethod<T>()' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //             genD = (D<int>) GenericMethod<((System.Linq.Expressions.Expression<System.Func<int>>)(() => int)).Compile()()> 
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, "(D<int>) GenericMethod").WithArguments("method", "MemberInitializerTest.D<int>"));
+                Diagnostic(ErrorCode.ERR_CantInferMethTypeArgs, "GenericMethod").WithArguments("MemberInitializerTest.GenericMethod<T>()").WithLocation(9, 29));
         }
 
         [WorkItem(545191, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545191")]

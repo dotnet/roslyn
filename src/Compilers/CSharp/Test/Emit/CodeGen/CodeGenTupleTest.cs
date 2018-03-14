@@ -363,6 +363,7 @@ public class C4 : C3
                 Assert.Equal(1, iface.TypeArguments().Length);
                 TypeSymbol typeArg = iface.TypeArguments()[0];
                 Assert.True(typeArg.IsTupleType);
+                Assert.False(((INamedTypeSymbol)typeArg).IsSerializable);
                 Assert.Equal(2, typeArg.TupleElementTypes.Length);
                 Assert.All(typeArg.TupleElementTypes,
                    t => Assert.Equal(SpecialType.System_Int32, t.SpecialType));
@@ -717,6 +718,7 @@ val: -2
             var tooFewNames = c.GetMember<FieldSymbol>("TooFewNames");
             Assert.True(tooFewNames.Type.IsErrorType());
             Assert.IsType<UnsupportedMetadataTypeSymbol>(tooFewNames.Type);
+            Assert.False(((INamedTypeSymbol)tooFewNames.Type).IsSerializable);
 
             var tooManyNames = c.GetMember<FieldSymbol>("TooManyNames");
             Assert.True(tooManyNames.Type.IsErrorType());
