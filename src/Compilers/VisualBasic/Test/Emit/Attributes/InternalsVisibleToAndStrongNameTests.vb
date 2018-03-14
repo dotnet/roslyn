@@ -1214,6 +1214,7 @@ End Class
         ' confirm header has expected SN signature size
         Dim peHeaders = New PEHeaders(other.EmitToStream())
         Assert.Equal(256, peHeaders.CorHeader.StrongNameSignatureDirectory.Size)
+        Assert.Equal(CorFlags.ILOnly, peHeaders.CorHeader.Flags)
     End Sub
 
     ''' <summary>
