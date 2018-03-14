@@ -209,17 +209,10 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public string GetQuickInfo()
             => ExecuteOnActiveView(view =>
             {
-#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
-                var broker = GetComponentModelService<IQuickInfoBroker>();
-#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
+                var broker = GetComponentModelService<IAsyncQuickInfoBroker>();
 
-                var sessions = broker.GetSessions(view);
-                if (sessions.Count != 1)
-                {
-                    throw new InvalidOperationException($"Expected exactly one QuickInfo session, but found {sessions.Count}");
-                }
-
-                return QuickInfoToStringConverter.GetStringFromBulkContent(sessions[0].QuickInfoContent);
+                var session = broker.GetSession(view);
+                return QuickInfoToStringConverter.GetStringFromBulkContent(session.Content);
             });
 
         public void VerifyTags(string tagTypeName, int expectedCount)

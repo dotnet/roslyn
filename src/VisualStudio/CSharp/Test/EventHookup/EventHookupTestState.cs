@@ -25,10 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
         public EventHookupTestState(XElement workspaceElement, IDictionary<OptionKey, object> options)
             : base(workspaceElement, GetExtraParts(), false)
         {
-#pragma warning disable CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
-            _commandHandler = new EventHookupCommandHandler(Workspace.GetService<IInlineRenameService>(), Workspace.GetService<IQuickInfoBroker>(),
-                prematureDismissalPreventer: null, Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
-#pragma warning restore CS0618 // IQuickInfo* is obsolete, tracked by https://github.com/dotnet/roslyn/issues/24094
+            _commandHandler = new EventHookupCommandHandler(Workspace.GetService<IInlineRenameService>(),
+                Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
 
             _testSessionHookupMutex = new Mutex(false);
             _commandHandler.TESTSessionHookupMutex = _testSessionHookupMutex;
@@ -37,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 
         private static ComposableCatalog GetExtraParts()
         {
-            return MinimalTestExportProvider.CreateTypeCatalog(new[] { typeof(EventHookupCommandHandler), typeof(EventHookupQuickInfoSourceProvider) });
+            return MinimalTestExportProvider.CreateTypeCatalog(new[] { typeof(EventHookupCommandHandler) });
         }
 
         public static EventHookupTestState CreateTestState(string markup, IDictionary<OptionKey, object> options = null)
@@ -54,7 +52,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 
         internal void AssertShowing(string expectedText)
         {
-            Assert.NotNull(_commandHandler.EventHookupSessionManager.QuickInfoSession);
             Assert.NotNull(_commandHandler.EventHookupSessionManager.TEST_MostRecentQuickInfoContent);
 
             var inlines = (_commandHandler.EventHookupSessionManager.TEST_MostRecentQuickInfoContent as System.Windows.Controls.TextBlock).Inlines;
@@ -64,7 +61,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 
         internal void AssertNotShowing()
         {
-            Assert.True(_commandHandler.EventHookupSessionManager.QuickInfoSession == null || _commandHandler.EventHookupSessionManager.QuickInfoSession.IsDismissed);
             Assert.Null(_commandHandler.EventHookupSessionManager.TEST_MostRecentQuickInfoContent);
         }
 

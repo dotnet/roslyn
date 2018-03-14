@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 GetExports(Of ISignatureHelpProvider, OrderableLanguageMetadata)().Concat(extraSignatureHelpProviders),
                 GetExportedValue(Of IAsynchronousOperationListenerProvider)())
 
-            Me.IntelliSenseCommandHandler = New IntelliSenseCommandHandler(CompletionCommandHandler, SignatureHelpCommandHandler, Nothing)
+            Me.IntelliSenseCommandHandler = New IntelliSenseCommandHandler(CompletionCommandHandler, SignatureHelpCommandHandler)
 
             Me.FormatCommandHandler = If(includeFormatCommandHandler,
                 New FormatCommandHandler(
