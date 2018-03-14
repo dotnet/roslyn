@@ -20,16 +20,18 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.InvertIf), Shared]
     internal partial class InvertIfCodeRefactoringProvider : CodeRefactoringProvider
     {
-        private static readonly Dictionary<SyntaxKind, Tuple<SyntaxKind, SyntaxKind>> s_binaryMap =
-            new Dictionary<SyntaxKind, Tuple<SyntaxKind, SyntaxKind>>(SyntaxFacts.EqualityComparer)
+        private static readonly Dictionary<SyntaxKind, (SyntaxKind, SyntaxKind)> s_binaryMap =
+            new Dictionary<SyntaxKind, (SyntaxKind, SyntaxKind)>(SyntaxFacts.EqualityComparer)
                 {
-                    { SyntaxKind.EqualsExpression, Tuple.Create(SyntaxKind.NotEqualsExpression, SyntaxKind.ExclamationEqualsToken) },
-                    { SyntaxKind.NotEqualsExpression, Tuple.Create(SyntaxKind.EqualsExpression, SyntaxKind.EqualsEqualsToken) },
-                    { SyntaxKind.LessThanExpression, Tuple.Create(SyntaxKind.GreaterThanOrEqualExpression, SyntaxKind.GreaterThanEqualsToken) },
-                    { SyntaxKind.LessThanOrEqualExpression, Tuple.Create(SyntaxKind.GreaterThanExpression, SyntaxKind.GreaterThanToken) },
-                    { SyntaxKind.GreaterThanExpression, Tuple.Create(SyntaxKind.LessThanOrEqualExpression, SyntaxKind.LessThanEqualsToken) },
-                    { SyntaxKind.GreaterThanOrEqualExpression, Tuple.Create(SyntaxKind.LessThanExpression, SyntaxKind.LessThanToken) },
+                    { SyntaxKind.EqualsExpression, (SyntaxKind.NotEqualsExpression, SyntaxKind.ExclamationEqualsToken) },
+                    { SyntaxKind.NotEqualsExpression, (SyntaxKind.EqualsExpression, SyntaxKind.EqualsEqualsToken) },
+                    { SyntaxKind.LessThanExpression, (SyntaxKind.GreaterThanOrEqualExpression, SyntaxKind.GreaterThanEqualsToken) },
+                    { SyntaxKind.LessThanOrEqualExpression, (SyntaxKind.GreaterThanExpression, SyntaxKind.GreaterThanToken) },
+                    { SyntaxKind.GreaterThanExpression, (SyntaxKind.LessThanOrEqualExpression, SyntaxKind.LessThanEqualsToken) },
+                    { SyntaxKind.GreaterThanOrEqualExpression, (SyntaxKind.LessThanExpression, SyntaxKind.LessThanToken) },
                 };
+
+        private const string LongLength = "LongLength";
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -78,64 +80,48 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             // In the case that the else clause is actually an else if clause, place the if
             // statement to be moved in a new block in order to make sure that the else
             // statement matches the right if statement after the edit.
-            var newIfNodeStatement = ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement ?
-                SyntaxFactory.Block(ifNode.Else.Statement) :
-                ifNode.Else.Statement;
+            var newIfNodeStatement = ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement 
+                ? SyntaxFactory.Block(ifNode.Else.Statement) 
+                : ifNode.Else.Statement;
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var invertedIf = ifNode.WithCondition(Negate(ifNode.Condition, semanticModel, cancellationToken))
-                      .WithStatement(newIfNodeStatement)
-                      .WithElse(ifNode.Else.WithStatement(ifNode.Statement))
-                      .WithAdditionalAnnotations(Formatter.Annotation);
+                .WithStatement(newIfNodeStatement)
+                .WithElse(ifNode.Else.WithStatement(ifNode.Statement))
+                .WithAdditionalAnnotations(Formatter.Annotation);
 
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var result = root.ReplaceNode(ifNode, invertedIf);
             return document.WithSyntaxRoot(result);
         }
 
-        private bool IsComparisonOfZeroAndSomethingNeverLessThanZero(BinaryExpressionSyntax binaryExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        /// <summary>
+        /// Returns true if the binaryExpression consists of an expression that can never be negative, 
+        /// such as length or unsigned numeric types, being compared to zero with greater than, 
+        /// less than, or equals relational operator.
+        /// </summary>
+        private bool IsSpecialCaseBinaryExpression(BinaryExpressionSyntax binaryExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
-            var canSimplify = false;
-
-            if (binaryExpression.Kind() == SyntaxKind.GreaterThanExpression &&
-                binaryExpression.Right.Kind() == SyntaxKind.NumericLiteralExpression)
+            switch (binaryExpression.Kind())
             {
-                canSimplify = CanSimplifyToLengthEqualsZeroExpression(
-                    binaryExpression.Left,
-                    (LiteralExpressionSyntax)binaryExpression.Right,
-                    semanticModel,
-                    cancellationToken);
-            }
-            else if (binaryExpression.Kind() == SyntaxKind.LessThanExpression &&
-                     binaryExpression.Left.Kind() == SyntaxKind.NumericLiteralExpression)
-            {
-                canSimplify = CanSimplifyToLengthEqualsZeroExpression(
-                    binaryExpression.Right,
-                    (LiteralExpressionSyntax)binaryExpression.Left,
-                    semanticModel,
-                    cancellationToken);
-            }
-            else if (binaryExpression.Kind() == SyntaxKind.EqualsExpression &&
-                     binaryExpression.Right.Kind() == SyntaxKind.NumericLiteralExpression)
-            {
-                canSimplify = CanSimplifyToLengthEqualsZeroExpression(
-                    binaryExpression.Left,
-                    (LiteralExpressionSyntax)binaryExpression.Right,
-                    semanticModel,
-                    cancellationToken);
-            }
-            else if (binaryExpression.Kind() == SyntaxKind.EqualsExpression &&
-                     binaryExpression.Left.Kind() == SyntaxKind.NumericLiteralExpression)
-            {
-                canSimplify = CanSimplifyToLengthEqualsZeroExpression(
-                    binaryExpression.Right,
-                    (LiteralExpressionSyntax)binaryExpression.Left,
-                    semanticModel,
-                    cancellationToken);
+                case SyntaxKind.GreaterThanExpression when binaryExpression.Right.Kind() == SyntaxKind.NumericLiteralExpression:
+                case SyntaxKind.EqualsExpression when binaryExpression.Right.Kind() == SyntaxKind.NumericLiteralExpression:
+                    return CanSimplifyToLengthEqualsZeroExpression(
+                        binaryExpression.Left,
+                        (LiteralExpressionSyntax)binaryExpression.Right,
+                        semanticModel,
+                        cancellationToken);
+                case SyntaxKind.LessThanExpression when binaryExpression.Left.Kind() == SyntaxKind.NumericLiteralExpression:
+                case SyntaxKind.EqualsExpression when binaryExpression.Left.Kind() == SyntaxKind.NumericLiteralExpression:
+                    return CanSimplifyToLengthEqualsZeroExpression(
+                        binaryExpression.Right,
+                        (LiteralExpressionSyntax)binaryExpression.Left,
+                        semanticModel,
+                        cancellationToken);
             }
 
-            return canSimplify;
+            return false;
         }
 
         private bool CanSimplifyToLengthEqualsZeroExpression(
@@ -145,11 +131,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             CancellationToken cancellationToken)
         {
             var numericValue = semanticModel.GetConstantValue(numericLiteralExpression, cancellationToken);
-            if (numericValue.HasValue && numericValue.Value is int && (int)numericValue.Value == 0)
+            if (numericValue.HasValue && numericValue.Value is 0)
             {
                 var symbol = semanticModel.GetSymbolInfo(variableExpression, cancellationToken).Symbol;
 
-                if (symbol != null && (symbol.Name == "Length" || symbol.Name == "LongLength"))
+                if (symbol != null && (symbol.Name == nameof(Array.Length) || symbol.Name == LongLength))
                 {
                     var containingType = symbol.ContainingType;
                     if (containingType != null &&
@@ -183,32 +169,31 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             CancellationToken cancellationToken,
             out ExpressionSyntax result)
         {
-            if (s_binaryMap.TryGetValue(expression.Kind(), out var tuple))
+            if (s_binaryMap.TryGetValue(expression.Kind(), out var negatedExpressionInfo))
             {
                 var binaryExpression = (BinaryExpressionSyntax)expression;
-                var expressionType = tuple.Item1;
-                var operatorType = tuple.Item2;
+                var (negatedExpressionType, negatedOperatorType) = negatedExpressionInfo;
 
-                // Special case negating Length > 0 to Length == 0 and 0 < Length to 0 == Length
-                // for arrays and strings. We can do this because we know that Length cannot be
-                // less than 0. Additionally, if we find Length == 0 or 0 == Length, we'll invert
-                // it to Length > 0 or 0 < Length, respectively.
-                if (IsComparisonOfZeroAndSomethingNeverLessThanZero(binaryExpression, semanticModel, cancellationToken))
+                // Certain expressions can never be negative, such as length or unsigned numeric types.
+                // If these expressions are compared with zero using <, >, or =, we construct the negated
+                // binary expression to reflect that it will never be negative.
+                // For example, the expression Array.Length > 0, becomes Array.Length == 0 when negated.
+                if (IsSpecialCaseBinaryExpression(binaryExpression, semanticModel, cancellationToken))
                 {
-                    operatorType = binaryExpression.OperatorToken.Kind() == SyntaxKind.EqualsEqualsToken
+                    negatedOperatorType = binaryExpression.OperatorToken.Kind() == SyntaxKind.EqualsEqualsToken
                         ? binaryExpression.Right is LiteralExpressionSyntax ? SyntaxKind.GreaterThanToken : SyntaxKind.LessThanToken
                         : SyntaxKind.EqualsEqualsToken;
-                    expressionType = binaryExpression.Kind() == SyntaxKind.EqualsExpression
+                    negatedExpressionType = binaryExpression.Kind() == SyntaxKind.EqualsExpression
                         ? binaryExpression.Right is LiteralExpressionSyntax ? SyntaxKind.GreaterThanExpression : SyntaxKind.LessThanExpression
                         : SyntaxKind.EqualsExpression;
                 }
 
                 result = SyntaxFactory.BinaryExpression(
-                    expressionType,
+                    negatedExpressionType,
                     binaryExpression.Left,
                     SyntaxFactory.Token(
                         binaryExpression.OperatorToken.LeadingTrivia,
-                        operatorType,
+                        negatedOperatorType,
                         binaryExpression.OperatorToken.TrailingTrivia),
                     binaryExpression.Right);
 

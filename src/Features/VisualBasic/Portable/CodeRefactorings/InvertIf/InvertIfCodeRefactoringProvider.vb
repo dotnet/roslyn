@@ -233,8 +233,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                 End If
             End If
 
-
-
             Return ifNode.WithCondition(Negate(ifNode.Condition, semanticModel, cancellationToken)) _
                          .WithStatements(newIfStatements) _
                          .WithElseClause(elseClause.WithStatements(ifNode.Statements).WithTrailingTrivia(elseClause.GetTrailingTrivia()))
@@ -325,12 +323,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             semanticModel As SemanticModel,
             cancellationToken As CancellationToken) As Boolean
 
-            Dim canSimplify = False
-
             If binaryExpression.Kind = SyntaxKind.GreaterThanExpression AndAlso
                binaryExpression.Right.Kind = SyntaxKind.NumericLiteralExpression Then
 
-                canSimplify = CanSimplifyToLengthEqualsZeroExpression(
+                Return CanSimplifyToLengthEqualsZeroExpression(
                     binaryExpression.Left,
                     DirectCast(binaryExpression.Right, LiteralExpressionSyntax),
                     semanticModel,
@@ -339,14 +335,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             ElseIf binaryExpression.Kind = SyntaxKind.LessThanExpression AndAlso
                     binaryExpression.Left.Kind = SyntaxKind.NumericLiteralExpression Then
 
-                canSimplify = CanSimplifyToLengthEqualsZeroExpression(
+                Return CanSimplifyToLengthEqualsZeroExpression(
                     binaryExpression.Right,
                     DirectCast(binaryExpression.Left, LiteralExpressionSyntax),
                     semanticModel,
                     cancellationToken)
             End If
 
-            Return canSimplify
+            Return False
         End Function
 
         Private Function CanSimplifyToLengthEqualsZeroExpression(
