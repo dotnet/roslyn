@@ -1334,4 +1334,10 @@ This version used in: {2}</value>
   <data name="indexer_" xml:space="preserve">
     <value>indexer</value>
   </data>
+  <data name="Alias_ambiguous_type_0" xml:space="preserve">
+    <value>Alias ambiguous type '{0}'</value>
+  </data>
+  <data name="Warning_colon_Collection_was_modified_during_iteration" xml:space="preserve">
+    <value>Warning: Collection was modified during iteration.</value>
+  </data>
 </root>

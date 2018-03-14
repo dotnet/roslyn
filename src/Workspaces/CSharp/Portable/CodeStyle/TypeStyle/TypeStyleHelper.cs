@@ -46,13 +46,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             ExpressionSyntax initializerExpression,
             SemanticModel semanticModel,
             CancellationToken cancellationToken) =>
-                semanticModel.GetTypeInfo(initializerExpression, cancellationToken).Type?.IsSpecialType() == true;
+                IsBuiltInType(semanticModel.GetTypeInfo(initializerExpression, cancellationToken).Type);
+
+        public static bool IsBuiltInType(ITypeSymbol type)
+            => type?.IsSpecialType() == true;
+
+        public static bool IsImplicitStylePreferred(
+            OptionSet optionSet,
+            bool isBuiltInTypeContext,
+            bool isTypeApparentContext)
+        {
+            return IsImplicitStylePreferred(
+                GetCurrentTypeStylePreferences(optionSet),
+                isBuiltInTypeContext,
+                isTypeApparentContext);
+        }
 
         private static bool IsImplicitStylePreferred(TypeStylePreference stylePreferences,
             bool isBuiltInTypeContext,
             bool isTypeApparentContext)
         {
-
             return isBuiltInTypeContext
                     ? stylePreferences.HasFlag(TypeStylePreference.ImplicitTypeForIntrinsicTypes)
                     : isTypeApparentContext

@@ -159,6 +159,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode node);
         SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node);
         SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node);
+        SyntaxNode GetTypeOfVariableDeclarator(SyntaxNode node);
 
         /// <summary>
         /// True if this is an argument with just an expression and nothing else (i.e. no ref/out,

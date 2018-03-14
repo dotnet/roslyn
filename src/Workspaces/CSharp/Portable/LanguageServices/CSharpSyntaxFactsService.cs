@@ -1528,14 +1528,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public SyntaxToken GetIdentifierOfSimpleName(SyntaxNode node)
-        {
-            return ((SimpleNameSyntax)node).Identifier;
-        }
+            => ((SimpleNameSyntax)node).Identifier;
 
         public SyntaxToken GetIdentifierOfVariableDeclarator(SyntaxNode node)
-        {
-            return ((VariableDeclaratorSyntax)node).Identifier;
-        }
+            => ((VariableDeclaratorSyntax)node).Identifier;
 
         public bool IsIdentifierName(SyntaxNode node)
             => node.IsKind(SyntaxKind.IdentifierName);
@@ -1807,6 +1803,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public SyntaxNode GetInitializerOfVariableDeclarator(SyntaxNode node)
             => ((VariableDeclaratorSyntax)node).Initializer;
+
+        public SyntaxNode GetTypeOfVariableDeclarator(SyntaxNode node)
+            => ((VariableDeclarationSyntax)((VariableDeclaratorSyntax)node).Parent).Type;
 
         public SyntaxNode GetValueOfEqualsValueClause(SyntaxNode node)
             => ((EqualsValueClauseSyntax)node).Value;
