@@ -218,7 +218,7 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             SemanticDocument document,
             TExpressionSyntax expression,
             bool isConstant,
-            SyntaxNode container,
+            SyntaxNode containerOpt,
             CancellationToken cancellationToken)
         {
             var semanticModel = document.SemanticModel;
@@ -227,7 +227,8 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
             var baseName = semanticFacts.GenerateNameForExpression(
                 semanticModel, expression, capitalize: isConstant, cancellationToken: cancellationToken);
 
-            return semanticFacts.GenerateUniqueName(semanticModel, container, baseName, cancellationToken);
+            return semanticFacts.GenerateUniqueName(
+                semanticModel, expression, containerOpt, baseName, cancellationToken);
         }
 
         protected ISet<TExpressionSyntax> FindMatches(

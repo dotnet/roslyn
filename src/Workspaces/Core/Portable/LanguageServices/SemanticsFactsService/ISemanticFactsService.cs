@@ -105,22 +105,26 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SymbolInfo GetSymbolInfo(SemanticModel semanticModel, SyntaxNode node, SyntaxToken token, CancellationToken cancellationToken);
 
-        SyntaxToken GenerateUniqueName(SemanticModel semanticModel, SyntaxNode location, string baseName, CancellationToken cancellationToken);
+        SyntaxToken GenerateUniqueName(
+            SemanticModel semanticModel, SyntaxNode location, 
+            SyntaxNode containerOpt, string baseName, CancellationToken cancellationToken);
     }
 
     internal abstract class AbstractSemanticFactsService
     {
         protected abstract ISyntaxFactsService SyntaxFactsService { get; }
 
-        public SyntaxToken GenerateUniqueName(SemanticModel semanticModel, SyntaxNode location, string baseName, CancellationToken cancellationToken)
+        public SyntaxToken GenerateUniqueName(
+            SemanticModel semanticModel, SyntaxNode location, SyntaxNode containerOpt,
+            string baseName, CancellationToken cancellationToken)
         {
             var syntaxFacts = this.SyntaxFactsService;
 
-            var container = location.AncestorsAndSelf().FirstOrDefault(
-                a => syntaxFacts.IsExecutableBlock(a) || syntaxFacts.IsMethodBody(a)) ?? location;
+            var container = containerOpt ?? location.AncestorsAndSelf().FirstOrDefault(
+                a => syntaxFacts.IsExecutableBlock(a) || syntaxFacts.IsMethodBody(a));
             var existingSymbols = semanticModel.GetExistingSymbols(container, cancellationToken);
 
-            var reservedNames = semanticModel.LookupSymbols(container.SpanStart)
+            var reservedNames = semanticModel.LookupSymbols(location.SpanStart)
                                              .Select(s => s.Name)
                                              .Concat(existingSymbols.Select(s => s.Name));
 

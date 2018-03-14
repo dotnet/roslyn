@@ -62,8 +62,13 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 return;
             }
 
-            var forStatement = token.Parent as TForStatementSyntax;
+            var forStatement = token.Parent.AncestorsAndSelf().OfType<TForStatementSyntax>().FirstOrDefault();
             if (forStatement == null)
+            {
+                return;
+            }
+
+            if (forStatement.GetFirstToken() != token)
             {
                 return;
             }
@@ -296,7 +301,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                                 syntaxFacts.GetInitializerOfVariableDeclarator(firstVariable));
                             if (syntaxFacts.AreEquivalent(firstVariableInitializer, indexExpression))
                             {
-                                typeNode = (TTypeNode)syntaxFacts.GetTypeOfVariableDeclarator(firstVariable).WithoutLeadingTrivia();
+                                typeNode = (TTypeNode)syntaxFacts.GetTypeOfVariableDeclarator(firstVariable)?.WithoutLeadingTrivia();
                                 foreachIdentifier = syntaxFacts.GetIdentifierOfVariableDeclarator(firstVariable);
                                 declarationStatement = firstStatement;
                             }
@@ -307,8 +312,9 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
             if (foreachIdentifier.RawKind == 0)
             {
-                foreachIdentifier = semanticFacts.GenerateUniqueName(semanticModel, forStatement, "v", cancellationToken)
-                                                 .WithAdditionalAnnotations(RenameAnnotation.Create());
+                foreachIdentifier = semanticFacts.GenerateUniqueName(
+                    semanticModel, forStatement, containerOpt: null, baseName: "v", cancellationToken);
+                foreachIdentifier = foreachIdentifier.WithAdditionalAnnotations(RenameAnnotation.Create());
             }
 
             var foreachIdentifierName = generator.IdentifierName(foreachIdentifier).WithoutTrivia().WithoutAnnotations();
