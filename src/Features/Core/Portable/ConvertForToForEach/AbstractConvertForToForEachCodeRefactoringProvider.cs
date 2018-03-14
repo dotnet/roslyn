@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 }
             }
 
-            // Looks good.  We can conver this.
+            // Looks good.  We can convert this.
             context.RegisterRefactoring(new MyCodeAction(GetTitle(),
                 c => ConvertForToForEachAsync(
                     document, forStatement, iterationVariable, collectionExpression,
