@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -120,7 +121,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             var ienumeratorType = semanticModel.Compilation.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerator_T);
 
             // make sure the collection can be iterated.
-            if (TryGetIterationElementType(
+            if (!TryGetIterationElementType(
                     containingType, collectionType.Type,
                     ienumerableType, ienumeratorType,
                     out var iterationType))
@@ -155,14 +156,16 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                         // found a reference.  make sure it's only used inside something like
                         // list[i]
 
-                        if (!syntaxFacts.IsElementAccessExpression(current.Parent))
+                        if (!syntaxFacts.IsSimpleArgument(current.Parent) ||
+                            !syntaxFacts.IsElementAccessExpression(current.Parent.Parent.Parent))
                         {
                             // used in something other than accessing into a collection.
                             // can't convert this for-loop.
                             return true;
                         }
 
-                        if (!syntaxFacts.AreEquivalent(current.Parent, collectionExpression))
+                        var expr = syntaxFacts.GetExpressionOfElementAccessExpression(current.Parent.Parent.Parent);
+                        if (!syntaxFacts.AreEquivalent(expr, collectionExpression))
                         {
                             // was indexing into something other than the collection.
                             // can't convert this for-loop.
@@ -193,6 +196,12 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             INamedTypeSymbol ienumerableType, INamedTypeSymbol ienumeratorType,
             out ITypeSymbol iterationType)
         {
+            if (collectionType is IArrayTypeSymbol arrayType)
+            {
+                iterationType = arrayType.ElementType;
+                return true;
+            }
+
             // Check in the class/struct hierarchy first.
             var methods = collectionType.GetAccessibleMembersInThisAndBaseTypes<IMethodSymbol>(containingType);
             var getEnumeratorMethod = methods.FirstOrDefault(m => m.Name == nameof(IEnumerable.GetEnumerator));
@@ -271,7 +280,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
             TTypeNode typeNode = default;
             SyntaxToken foreachIdentifier = default;
-            SyntaxNode ignoreStatement = default;
+            SyntaxNode declarationStatement = default;
             if (bodyStatements.Count >= 1)
             {
                 var firstStatement = bodyStatements[0];
@@ -283,13 +292,14 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                         var firstVariable = (TVariableDeclaratorSyntax)variables[0];
                         if (IsValidVariableDeclarator(firstVariable))
                         {
-                            var firstVariableInitializer = syntaxFacts.GetInitializerOfVariableDeclarator(firstVariable);
+                            var firstVariableInitializer = syntaxFacts.GetValueOfEqualsValueClause(
+                                syntaxFacts.GetInitializerOfVariableDeclarator(firstVariable));
                             if (syntaxFacts.AreEquivalent(firstVariableInitializer, indexExpression))
                             {
-                                typeNode = (TTypeNode)syntaxFacts.GetTypeOfVariableDeclarator(firstVariable);
+                                typeNode = (TTypeNode)syntaxFacts.GetTypeOfVariableDeclarator(firstVariable).WithoutLeadingTrivia();
                                 foreachIdentifier = syntaxFacts.GetIdentifierOfVariableDeclarator(firstVariable);
-                                editor.RemoveNode(firstStatement);
-                                ignoreStatement = firstStatement;
+                                editor.RemoveNode(firstStatement, SyntaxRemoveOptions.KeepLeadingTrivia);
+                                declarationStatement = firstStatement;
                             }
                         }
                     }
@@ -298,14 +308,23 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
             if (foreachIdentifier.RawKind == 0)
             {
-                foreachIdentifier = generator.Identifier("v");
+                foreachIdentifier = generator.Identifier("v").WithAdditionalAnnotations(RenameAnnotation.Create());
             }
 
-            var foreachIdentifierName = generator.IdentifierName(foreachIdentifier).WithoutTrivia();
-            foreachIdentifier = foreachIdentifier.WithAdditionalAnnotations(RenameAnnotation.Create());
+            var foreachIdentifierName = generator.IdentifierName(foreachIdentifier).WithoutTrivia().WithoutAnnotations();
 
             // Walk the for statement, replacing any matches we find.
             recurse(forStatement);
+
+            if (declarationStatement != null && bodyStatements.Count >= 2)
+            {
+                // We're removing the first statement, but we've asked for its trivia to be
+                // moved to the second statement.  Format that second statement so that everything
+                // looks fine on it.
+                editor.ReplaceNode(
+                    bodyStatements[1],
+                    (secondStatement, _) => secondStatement.WithAdditionalAnnotations(Formatter.Annotation));
+            }
 
             var options = await document.GetOptionsAsync(cancellationToken).ConfigureAwait(false);
             editor.ReplaceNode(
@@ -321,7 +340,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             {
                 // Do not replace in the first statement if we're just going to remove it
                 // anyways.
-                if (current == ignoreStatement)
+                if (current == declarationStatement)
                 {
                     return;
                 }

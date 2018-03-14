@@ -1808,7 +1808,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             => ((VariableDeclarationSyntax)((VariableDeclaratorSyntax)node).Parent).Type;
 
         public SyntaxNode GetValueOfEqualsValueClause(SyntaxNode node)
-            => ((EqualsValueClauseSyntax)node).Value;
+            => ((EqualsValueClauseSyntax)node)?.Value;
 
         public bool IsExecutableBlock(SyntaxNode node)
             => node.IsKind(SyntaxKind.Block);
