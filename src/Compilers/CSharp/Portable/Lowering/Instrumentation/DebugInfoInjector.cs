@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddSequencePoint(rewritten);
         }
 
-        public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundExpressionStatement original, BoundStatement rewritten)
+        public override BoundStatement InstrumentFieldOrPropertyInitializer(BoundStatement original, BoundStatement rewritten)
         {
-            rewritten = base.InstrumentExpressionStatement(original, rewritten);
+            rewritten = base.InstrumentFieldOrPropertyInitializer(original, rewritten);
             SyntaxNode syntax = original.Syntax;
 
             switch (syntax.Parent.Parent.Kind())

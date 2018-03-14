@@ -5403,6 +5403,81 @@ True");
         }
 
         [Fact]
+        public void FieldInitializers_05()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+    static bool a = false;
+    bool Test1 = a && TakeOutParam(3, out int x1) || x1 > 0;
+    static bool TakeOutParam(object y, out int x) 
+    {
+        x = 123;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (8,54): error CS0165: Use of unassigned local variable 'x1'
+                //     bool Test1 = a && TakeOutParam(3, out int x1) || x1 > 0;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(8, 54)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void FieldInitializers_06()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(Test1);
+    }
+
+    static int Test1 = TakeOutParam(1, out int x1) ? Test2(((System.Func<int>)(() => x1++))(), ref x1) : -1; 
+
+    static int Test2(object a, ref int x)
+    {
+        System.Console.WriteLine(x);
+        x++;
+        return x;
+    }
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"2
+3");
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
         public void Scope_Fixed_01()
         {
             var source =
@@ -10885,6 +10960,81 @@ True");
         }
 
         [Fact]
+        public void PropertyInitializers_03()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+    }
+    static bool a = false;
+    bool Test1 { get; } = a && TakeOutParam(3, out int x1) || x1 > 0;
+    static bool TakeOutParam(object y, out int x) 
+    {
+        x = 123;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            compilation.VerifyDiagnostics(
+                // (8,63): error CS0165: Use of unassigned local variable 'x1'
+                //     bool Test1 { get; } = a && TakeOutParam(3, out int x1) || x1 > 0;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(8, 63)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void PropertyInitializers_04()
+        {
+            var source =
+@"
+public class X
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(new X().Test1);
+    }
+
+    int Test1 { get; } = TakeOutParam(1, out int x1) ? Test2(((System.Func<int>)(() => x1++))(), ref x1) : -1; 
+
+    static int Test2(object a, ref int x)
+    {
+        System.Console.WriteLine(x);
+        x++;
+        return x;
+    }
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CompileAndVerify(compilation, expectedOutput:
+@"2
+3");
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
         public void Scope_Query_01()
         {
             var source =
@@ -12204,6 +12354,133 @@ public class X
             var yDecl = GetOutVarDeclarations(tree, "y1").Single();
             var yRef = GetReferences(tree, "y1").Single();
             VerifyModelForOutVar(model, yDecl, yRef);
+        }
+
+        [Fact]
+        public void Query_03()
+        {
+            var source =
+@"
+using System.Linq;
+
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    static void Test1()
+    {
+        var res = from a in new[] { true }
+                  select a && TakeOutParam(3, out int x1) || x1 > 0;
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (13,62): error CS0165: Use of unassigned local variable 'x1'
+                //                   select a && TakeOutParam(3, out int x1) || x1 > 0;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(13, 62)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclarations(tree, "x1").Single();
+            var x1Ref = GetReferences(tree, "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void Query_04()
+        {
+            var source =
+@"
+using System.Linq;
+
+public class X
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(Test1());
+    }
+
+    static int Test1()
+    {
+        var res = from a in new[] { 1 }
+                  select TakeOutParam(a, out int x1) ? Test2(((System.Func<int>)(() => x1++))(), ref x1) : -1;
+
+        return res.Single(); 
+    }
+
+    static int Test2(object a, ref int x)
+    {
+        System.Console.WriteLine(x);
+        x++;
+        return x;
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"2
+3");
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void Query_05()
+        {
+            var source =
+@"
+using System.Linq;
+
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    static void Test1()
+    {
+        var res = from a in (new[] { 1 }).AsQueryable()
+                  select TakeOutParam(a, out int x1);
+    }
+
+    static bool TakeOutParam<T>(T y, out T x) 
+    {
+        x = y;
+        return true;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (13,46): error CS8198: An expression tree may not contain an out argument variable declaration.
+                //                   select TakeOutParam(a, out int x1);
+                Diagnostic(ErrorCode.ERR_ExpressionTreeContainsOutVariable, "int x1").WithLocation(13, 46)
+                );
         }
 
         [Fact]
@@ -17978,6 +18255,427 @@ public class Cls
                 Assert.Same(mm, syntaxTreeModel.GetMemberModel(x1Ref[0]));
                 Assert.Same(mm, syntaxTreeModel.GetMemberModel(x1Ref[1]));
             }
+        }
+
+        [Fact]
+        public void ConstructorInitializers_09()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+
+    public static bool Test1(out int x)
+    {
+        throw null;
+    }
+
+    class Test2
+    {
+        Test2(bool x, int y)
+        {
+        }
+
+        public Test2(bool a)
+        : this(a && Test1(out var x1), x1)
+        {
+        }
+    }
+}";
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (20,40): error CS0165: Use of unassigned local variable 'x1'
+                //         : this(a && Test1(out var x1), x1)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(20, 40)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void ConstructorInitializers_10()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+
+    public static bool Test1(out int x)
+    {
+        throw null;
+    }
+
+    class Test2
+    {
+        Test2(bool x, int y)
+        {
+        }
+
+        public Test2(bool a)
+        : this(a && Test1(out var x1), 1)
+        {
+            System.Console.WriteLine(x1);
+        }
+    }
+}";
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (22,38): error CS0165: Use of unassigned local variable 'x1'
+                //             System.Console.WriteLine(x1);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(22, 38)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void ConstructorInitializers_11()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+
+    public static bool Test1(out int x)
+    {
+        throw null;
+    }
+
+    class Test2
+    {
+        Test2(bool x, int y)
+        {
+        }
+
+        public Test2(bool a)
+        : this(a && Test1(out var x1), 1)
+        => System.Console.WriteLine(x1);
+    }
+}";
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (21,37): error CS0165: Use of unassigned local variable 'x1'
+                //         => System.Console.WriteLine(x1);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(21, 37)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void ConstructorInitializers_12()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+
+    public static bool Test1(out int x)
+    {
+        throw null;
+    }
+
+    class Test2
+    {
+        Test2(bool x, int y)
+        {
+        }
+
+        public Test2(bool a)
+        : this(a && Test1(out var x1), 1)
+        {
+            System.Console.WriteLine(x1);
+        }
+        => System.Console.WriteLine(x1);
+    }
+}";
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (19,9): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //         public Test2(bool a)
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"public Test2(bool a)
+        : this(a && Test1(out var x1), 1)
+        {
+            System.Console.WriteLine(x1);
+        }
+        => System.Console.WriteLine(x1);").WithLocation(19, 9),
+                // (22,38): error CS0165: Use of unassigned local variable 'x1'
+                //             System.Console.WriteLine(x1);
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(22, 38)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void ConstructorInitializers_13()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+
+    public static bool Test1(out int x)
+    {
+        throw null;
+    }
+
+    class Test2
+    {
+        Test2(bool x, int y)
+        {
+        }
+
+        public Test2(bool a)
+        : this(a && Test1(out var x1), x1)
+        {
+            System.Console.WriteLine(x1);
+        }
+    }
+}";
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (20,40): error CS0165: Use of unassigned local variable 'x1'
+                //         : this(a && Test1(out var x1), x1)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(20, 40)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void ConstructorInitializers_14()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+
+    public static bool Test1(out int x)
+    {
+        throw null;
+    }
+
+    class Test2
+    {
+        Test2(bool x, int y)
+        {
+        }
+
+        public Test2(bool a)
+        : this(a && Test1(out var x1), x1)
+        => System.Console.WriteLine(x1);
+    }
+}";
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (20,40): error CS0165: Use of unassigned local variable 'x1'
+                //         : this(a && Test1(out var x1), x1)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(20, 40)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(2, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void ConstructorInitializers_15()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+
+    public static bool Test1(out int x)
+    {
+        throw null;
+    }
+
+    class Test2
+    {
+        Test2(bool x, int y)
+        {
+        }
+
+        public Test2(bool a)
+        : this(a && Test1(out var x1), x1)
+        {
+            System.Console.WriteLine(x1);
+        }
+        => System.Console.WriteLine(x1);
+    }
+}";
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            compilation.VerifyDiagnostics(
+                // (19,9): error CS8057: Block bodies and expression bodies cannot both be provided.
+                //         public Test2(bool a)
+                Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"public Test2(bool a)
+        : this(a && Test1(out var x1), x1)
+        {
+            System.Console.WriteLine(x1);
+        }
+        => System.Console.WriteLine(x1);").WithLocation(19, 9),
+                // (20,40): error CS0165: Use of unassigned local variable 'x1'
+                //         : this(a && Test1(out var x1), x1)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(20, 40)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void ConstructorInitializers_16()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Do(new Test2());
+    }
+
+    static void Do(object x){}
+
+    public static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+
+    class Test2
+    {
+        Test2(object a, object b, ref int x)
+        {
+            System.Console.WriteLine(x);
+            x++;
+        }
+
+        public Test2()
+        : this(Test1(out var x1), ((System.Func<int>)(() => x1++))(), ref x1)
+        {
+            System.Console.WriteLine(x1);
+        }
+    }
+}";
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput:
+@"124
+125").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void ConstructorInitializers_17()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Do(new Test2());
+    }
+
+    static void Do(object x){}
+
+    public static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+
+    class Test2
+    {
+        Test2(object a, object b, ref int x)
+        {
+            System.Console.WriteLine(x);
+            x++;
+        }
+
+        public Test2()
+        : this(Test1(out var x1), ((System.Func<int>)(() => x1++))(), ref x1)
+        => System.Console.WriteLine(x1);
+    }
+}";
+            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+
+            CompileAndVerify(compilation, expectedOutput: 
+@"124
+125").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1").ToArray();
+            Assert.Equal(3, x1Ref.Length);
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
         [Fact]
