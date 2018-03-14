@@ -426,5 +426,71 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestMissingIfVariableUsedNotForIndexing()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(i);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestMissingIfVariableUsedForIndexingNonCollection()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(other[i]);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestWarningIfCollectionWrittenTo()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            array[i] = 1;
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        foreach (string {|Rename:v|} in array)
+        {
+            {|Warning:v|} = 1;
+        }
+    }
+}");
+        }
     }
 }

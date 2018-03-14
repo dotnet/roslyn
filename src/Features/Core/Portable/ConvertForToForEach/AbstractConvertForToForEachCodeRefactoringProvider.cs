@@ -321,8 +321,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             }
 
             // Create the expression we'll use to replace all matches in the for-body.
-            var foreachIdentifierName = generator.IdentifierName(
-                foreachIdentifier.WithoutAnnotations(RenameAnnotation.Kind)).WithoutTrivia();
+            var foreachIdentifierReference = foreachIdentifier.WithoutAnnotations(RenameAnnotation.Kind).WithoutTrivia();
 
             // Walk the for statement, replacing any matches we find.
             findAndReplaceMatches(forStatement);
@@ -380,15 +379,15 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 if (syntaxFacts.AreEquivalent(current, indexExpression))
                 {
                     // Found a match.  replace with iteration variable.
+                    var replacementToken = foreachIdentifierReference;
+
                     if (semanticFacts.IsWrittenTo(semanticModel, current, cancellationToken))
                     {
-                        editor.ReplaceNode(current, foreachIdentifierName.WithAdditionalAnnotations(
-                            WarningAnnotation.Create(FeaturesResources.Warning_colon_Collection_was_modified_during_iteration)));
+                        replacementToken = replacementToken.WithAdditionalAnnotations(WarningAnnotation.Create(FeaturesResources.Warning_colon_Collection_was_modified_during_iteration));
                     }
-                    else
-                    {
-                        editor.ReplaceNode(current, foreachIdentifierName);
-                    }
+
+                    var replacement = generator.IdentifierName(replacementToken).WithTriviaFrom(current);
+                    editor.ReplaceNode(current, replacement);
                 }
 
                 foreach (var child in current.ChildNodesAndTokens())
