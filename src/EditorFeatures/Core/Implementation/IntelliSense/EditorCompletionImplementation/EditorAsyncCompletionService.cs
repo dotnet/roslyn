@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
         {
             _broker.GetSession(view).ItemCommitted += ItemCommitted;
             _broker.GetSession(view).Dismissed += SessionDismissed;
-            return Task.FromResult(initialList.OrderBy(i => i.DisplayText).ToImmutableArray());
+            return Task.FromResult(initialList.OrderBy(i => i.SortText).ToImmutableArray());
         }
 
         private void ItemCommitted(object sender, EditorCompletion.CompletionItemEventArgs e)
