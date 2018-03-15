@@ -5864,7 +5864,7 @@ public class C
             Assert.Equal(1, peHeaders.PEHeader.MinorSubsystemVersion);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/pull/23529")]
+        [Fact]
         public void CreateCompilationWithKeyFile()
         {
             string source = @"
@@ -5883,7 +5883,7 @@ public class C
             var cmd = new MockCSharpCompiler(null, dir.Path, new[] { "/nologo", "a.cs", "/keyfile:key.snk", });
             var comp = cmd.CreateCompilation(TextWriter.Null, new TouchedFileLogger(), NullErrorLogger.Instance);
 
-            Assert.Equal(comp.Options.StrongNameProvider.GetType(), typeof(PortableStrongNameProvider));
+            Assert.IsType<DesktopStrongNameProvider>(comp.Options.StrongNameProvider);
         }
 
         [Fact]
