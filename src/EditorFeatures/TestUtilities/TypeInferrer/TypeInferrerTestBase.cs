@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.TypeInferrer
 
         public override void Dispose()
         {
-            this.fixture.CloseTextView();
+            this.fixture.DisposeAfterTest();
             base.Dispose();
         }
 

@@ -386,6 +386,8 @@ End Class</a>
                     Dim document2 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular, cleanBeforeUpdate:=False)
                     Await CheckResultsAsync(document2, position, isBuilder, triggerInfo, options)
                 End If
+
+                workspaceFixture.DisposeAfterTest()
             End Using
         End Function
 

@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 
         public override void Dispose()
         {
-            this.workspaceFixture.CloseTextView();
+            this.workspaceFixture.DisposeAfterTest();
             base.Dispose();
         }
 

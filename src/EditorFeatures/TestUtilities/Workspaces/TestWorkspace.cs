@@ -41,6 +41,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         private readonly BackgroundCompiler _backgroundCompiler;
         private readonly BackgroundParser _backgroundParser;
+        private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
 
         public TestWorkspace()
             : this(TestExportProvider.ExportProviderWithCSharpAndVisualBasic, WorkspaceKind.Test)
@@ -64,6 +65,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             _backgroundCompiler = new BackgroundCompiler(this);
             _backgroundParser = new BackgroundParser(this);
             _backgroundParser.Start();
+
+            _metadataAsSourceFileService = exportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
         }
 
         /// <summary>
@@ -121,11 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         protected override void Dispose(bool finalize)
         {
-            var metadataAsSourceService = ExportProvider.GetExportedValues<IMetadataAsSourceFileService>().FirstOrDefault();
-            if (metadataAsSourceService != null)
-            {
-                metadataAsSourceService.CleanupGeneratedFiles();
-            }
+            _metadataAsSourceFileService?.CleanupGeneratedFiles();
 
             this.ClearSolutionData();
 

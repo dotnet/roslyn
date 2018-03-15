@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         public override void Dispose()
         {
-            this.WorkspaceFixture.CloseTextView();
+            this.WorkspaceFixture.DisposeAfterTest();
             base.Dispose();
         }
 
