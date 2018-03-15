@@ -71,6 +71,21 @@ end class")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
+        Public Async Function TestMissingIfReferencingNotDeclaringVariable() As Task
+            Await TestMissingInRegularAndScriptAsync(
+"imports System
+
+class C
+    sub Test(array as string())
+        dim i as integer
+        [||]For i = 0 to array.Length - 1 step 2
+            Console.WriteLine(array(i))
+        next
+    end sub
+end class")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)>
         Public Async Function TestMissingWithIncorrectCondition1() As Task
             Await TestMissingInRegularAndScriptAsync(
 "imports System

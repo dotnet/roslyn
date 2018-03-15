@@ -93,6 +93,20 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
+            // If the for-variable is an identifier, then make sure it's declaring a variable
+            // at the for-statemnet, and not referencing some previously declared symbol.  i.e
+            var iterationSymbol = semanticModel.GetSymbolInfo(iterationVariable.Parent, cancellationToken).GetAnySymbol();
+            if (iterationSymbol != null)
+            {
+                if (iterationSymbol.Locations.Length != 1 ||
+                    !iterationSymbol.Locations[0].IsInSource ||
+                    iterationVariable != iterationSymbol.Locations[0].FindToken(cancellationToken))
+                {
+                    // was a reference to some other variable.
+                    return;
+                }
+            }
+
             // Make sure we're starting at 0.
             var initializerValue = semanticModel.GetConstantValue(initializer, cancellationToken);
             if (!(initializerValue.HasValue && initializerValue.Value is 0))
