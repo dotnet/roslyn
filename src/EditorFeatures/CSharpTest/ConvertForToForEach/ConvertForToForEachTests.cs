@@ -390,6 +390,25 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestWithInitializerOfVariableOutsideLoop()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        int i;
+        [||]for (i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
         public async Task TestWithUninitializedVariable()
         {
             await TestMissingInRegularAndScriptAsync(
