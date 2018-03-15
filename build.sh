@@ -126,7 +126,7 @@ then
     dotnet restore "${root_path}/Compilers.sln" /bl:${logs_path}/Restore-Compilers.binlog
 fi
 
-build_args="--no-restore -c ${build_configuration} /nologo /maxcpucount:1"
+build_args="--no-restore -c ${build_configuration} /nologo"
 
 if [[ "$build_bootstrap" == true ]]
 then
@@ -139,15 +139,14 @@ then
         dotnet publish "${bootstrap_file}" --framework netcoreapp2.0 ${bootstrap_build_args} "/bl:${binaries_path}/${bootstrap_name}.binlog"
     done
 
+    rm -rf ${bootstrap_path}
     mkdir -p ${bootstrap_path} 
     dotnet pack src/NuGet/Bootstrap.csproj /p:NuspecBasePath=${binaries_path}/Debug -o ${bootstrap_path}
+    mkdir -p ${bootstrap_path}/Microsoft.NETCore.Compilers
     unzip ${bootstrap_path}/Microsoft.NETCore.Compilers.1.0.0-bootstrap.nupkg -d ${bootstrap_path}/Microsoft.NETCore.Compilers/1.0.0
     chmod -R 755 ${bootstrap_path}/Microsoft.NETCore.Compilers
 
-    for bootstrap_file in "${bootstrap_files[@]}"
-    do
-        dotnet clean "${bootstrap_file}"
-    done
+    dotnet clean Compilers.sln 
 fi
 
 if [[ "${use_bootstrap}" == true ]]
