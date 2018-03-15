@@ -848,5 +848,23 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestNotWithDeconstruction()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (var (i, j) = (0, 0); i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+        }
+    }
+}");
+        }
     }
 }

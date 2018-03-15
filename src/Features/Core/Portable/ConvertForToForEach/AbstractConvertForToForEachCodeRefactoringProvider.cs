@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                             if (IsValidVariableDeclarator(firstVariable))
                             {
                                 var firstVariableInitializer = syntaxFacts.GetValueOfEqualsValueClause(
-                                    syntaxFacts.GetInitializcerOfVariableDeclarator(firstVariable));
+                                    syntaxFacts.GetInitializerOfVariableDeclarator(firstVariable));
                                 if (syntaxFacts.AreEquivalent(firstVariableInitializer, indexExpression))
                                 {
                                     var type = (TTypeNode)syntaxFacts.GetTypeOfVariableDeclarator(firstVariable)?.WithoutLeadingTrivia();
