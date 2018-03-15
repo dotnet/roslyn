@@ -566,5 +566,17 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)]
+        public async Task TestUnmanagedConstraint()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C<T> where T : [|umanaged|]
+{
+}",
+@"class C<T> where T : unmanaged
+{
+}");
+        }
     }
 }

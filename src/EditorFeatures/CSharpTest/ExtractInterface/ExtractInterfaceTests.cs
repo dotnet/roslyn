@@ -1173,5 +1173,37 @@ class $$TestClass
     ref readonly int this[int p1] { get; }
 }");
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestUnmanagedConstraint_Type()
+        {
+            var markup = @"
+class $$TestClass<T> where T : unmanaged
+{
+    public void M(T arg) => throw null;
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode:
+@"interface ITestClass<T> where T : unmanaged
+{
+    void M(T arg);
+}");
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.ExtractInterface)]
+        public async Task TestUnmanagedConstraint_Method()
+        {
+            var markup = @"
+class $$TestClass
+{
+    public void M<T>() where T : unmanaged => throw null;
+}";
+
+            await TestExtractInterfaceCommandCSharpAsync(markup, expectedSuccess: true, expectedInterfaceCode:
+@"interface ITestClass
+{
+    void M<T>() where T : unmanaged;
+}");
+        }
     }
 }

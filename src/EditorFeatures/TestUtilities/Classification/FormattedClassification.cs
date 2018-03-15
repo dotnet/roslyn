@@ -58,6 +58,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
                     {
                         case "=":
                             return "Operators.Equals";
+                        case "++":
+                            return "Operators.PlusPlus";
                     }
                     goto default;
 
