@@ -1677,7 +1677,7 @@ public class C
         System.Console.Write($""{(d1, 20) != (10, d2)} "");
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True False False True");
         }
@@ -1693,7 +1693,7 @@ public class C
         System.Console.Write($""{((dynamic)true, (dynamic)false) == ((dynamic)true, (dynamic)false)} "");
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
         }
@@ -1711,7 +1711,7 @@ public class C
         System.Console.Write((d1, 2) == (() => 1, d2));
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (8,30): error CS0019: Operator '==' cannot be applied to operands of type 'dynamic' and 'lambda expression'
                 //         System.Console.Write((d1, 2) == (() => 1, d2));
@@ -1731,7 +1731,7 @@ public class C
         System.Console.Write(((dynamic)true, (dynamic)false) != (true, false));
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueFalse");
         }
@@ -1764,7 +1764,7 @@ public class C
         }
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Operator '==' cannot be applied to operands of type 'int' and 'string'");
         }
@@ -1782,7 +1782,7 @@ public class C
         System.Console.Write((d1, null) == (null, d2));
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
 
@@ -2073,7 +2073,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, references: new[] { CSharpRef, SystemCoreRef });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput:
@@ -2120,7 +2120,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, references: new[] { CSharpRef, SystemCoreRef });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput:
@@ -3880,7 +3880,7 @@ public class NotBool
             void validate(string expression, string expected)
             {
                 var comp = CreateCompilation(source.Replace("REPLACE", expression),
-                    references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+                    targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
 
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: expected);
@@ -3984,7 +3984,7 @@ public class NotBool : NotBoolBase
             void validate(string expression, string expected)
             {
                 var comp = CreateCompilation(source.Replace("REPLACE", expression),
-                    references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+                    targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
 
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: expected);
@@ -4447,7 +4447,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True False False True");
         }
@@ -4487,7 +4487,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput:
