@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             return ifStatement;
         }
 
-        protected override Task<SyntaxNode> InvertIfStatementAsync(Document document, SemanticModel model, SyntaxNode ifStatement, CancellationToken cancellationToken)
+        protected override SyntaxNode GetRootWithInvertIfStatement(Workspace workspace, SemanticModel model, SyntaxNode ifStatement, CancellationToken cancellationToken)
         {
             var ifNode = (IfStatementSyntax)ifStatement;
 
@@ -67,9 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
             // get new root
-            var root = ifStatement.SyntaxTree.GetRoot().ReplaceNode(ifStatement, ifNode);
-
-            return Task.FromResult<SyntaxNode>(root);
+            return model.SyntaxTree.GetRoot().ReplaceNode(ifStatement, ifNode);
         }
 
         private bool TryNegateBinaryComparisonExpression(

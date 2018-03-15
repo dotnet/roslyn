@@ -74,45 +74,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Return relevantIfBlockOrIfStatement
         End Function
 
-        Protected Overrides Async Function InvertIfStatementAsync(document As Document, model As SemanticModel, ifStatement As SyntaxNode, cancellationToken As CancellationToken) As Task(Of SyntaxNode)
-            Dim root = model.SyntaxTree.GetRoot(cancellationToken)
+        Protected Overrides Function GetRootWithInvertIfStatement(workspace As Workspace, model As SemanticModel, ifStatement As SyntaxNode, cancellationToken As CancellationToken) As SyntaxNode
+            Dim result = UpdateSemanticModel(model, model.SyntaxTree.GetRoot().ReplaceNode(ifStatement, ifStatement.WithAdditionalAnnotations(s_ifNodeAnnotation)), cancellationToken)
 
-            ' Annotate the original node so we can get back to it.
-            Dim ifNode = ifStatement
-            root = root.ReplaceNode(ifNode, ifNode.WithAdditionalAnnotations(s_ifNodeAnnotation))
-
-            Dim updatedDocument = document.WithSyntaxRoot(root)
-            ifNode = FindIfNode(Await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False))
+            Dim ifNode = FindIfNode(result.Root)
 
             ' Complexify the top-most statement parenting this if-statement if necessary
             Dim topMostExpression = ifNode.Ancestors().OfType(Of ExpressionSyntax).LastOrDefault()
             If topMostExpression IsNot Nothing Then
                 Dim topMostStatement = topMostExpression.Ancestors().OfType(Of StatementSyntax).FirstOrDefault()
                 If topMostStatement IsNot Nothing Then
-                    Dim explicitTopMostStatement = Await Simplifier.ExpandAsync(topMostStatement, updatedDocument, cancellationToken:=cancellationToken).ConfigureAwait(False)
-                    updatedDocument = Await updatedDocument.ReplaceNodeAsync(topMostStatement, explicitTopMostStatement, cancellationToken).ConfigureAwait(False)
-
-                    ifNode = Await FindIfNodeAsync(updatedDocument, cancellationToken).ConfigureAwait(False)
+                    Dim explicitTopMostStatement = Simplifier.Expand(topMostStatement, result.Model, workspace, cancellationToken:=cancellationToken)
+                    result = UpdateSemanticModel(result.Model, result.Root.ReplaceNode(topMostStatement, explicitTopMostStatement), cancellationToken)
+                    ifNode = FindIfNode(result.Root)
                 End If
             End If
 
-            Dim semanticModel = Await updatedDocument.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
-
             If (TypeOf ifNode Is SingleLineIfStatementSyntax) Then
-                updatedDocument = Await InvertSingleLineIfStatementAsync(DirectCast(ifNode, SingleLineIfStatementSyntax), updatedDocument, semanticModel, cancellationToken).ConfigureAwait(False)
+                model = InvertSingleLineIfStatement(workspace, DirectCast(ifNode, SingleLineIfStatementSyntax), result.Model, cancellationToken)
             Else
-                updatedDocument = Await InvertMultiLineIfBlockAsync(DirectCast(ifNode, MultiLineIfBlockSyntax), updatedDocument, semanticModel, cancellationToken).ConfigureAwait(False)
+                model = InvertMultiLineIfBlock(DirectCast(ifNode, MultiLineIfBlockSyntax), result.Model, cancellationToken)
             End If
 
             ' Complexify the inverted if node.
-            Dim invertedIfNode = Await FindIfNodeAsync(updatedDocument, cancellationToken).ConfigureAwait(False)
-            Dim explicitInvertedIfNode = Await Simplifier.ExpandAsync(invertedIfNode, updatedDocument, cancellationToken:=cancellationToken).ConfigureAwait(False)
-            updatedDocument = Await updatedDocument.ReplaceNodeAsync(invertedIfNode, explicitInvertedIfNode, cancellationToken).ConfigureAwait(False)
+            result = (model, model.SyntaxTree.GetRoot())
+            Dim invertedIfNode = FindIfNode(result.Root)
 
-            root = Await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Return root
+            Dim explicitInvertedIfNode = Simplifier.Expand(invertedIfNode, result.Model, workspace, cancellationToken:=cancellationToken)
+            result = UpdateSemanticModel(result.Model, result.Root.ReplaceNode(invertedIfNode, explicitInvertedIfNode), cancellationToken)
+
+            Return result.Root
         End Function
 
+        Private Function UpdateSemanticModel(model As SemanticModel, root As SyntaxNode, cancellationToken As CancellationToken) As (Model As SemanticModel, Root As SyntaxNode)
+            Dim newModel = model.Compilation.ReplaceSyntaxTree(model.SyntaxTree, root.SyntaxTree).GetSemanticModel(root.SyntaxTree)
+            Return (newModel, newModel.SyntaxTree.GetRoot(cancellationToken))
+        End Function
 
         Private Shared ReadOnly s_comparisonInversesMap As Dictionary(Of SyntaxKind, Tuple(Of SyntaxKind, SyntaxKind)) =
             New Dictionary(Of SyntaxKind, Tuple(Of SyntaxKind, SyntaxKind))(SyntaxFacts.EqualityComparer) From
@@ -150,18 +147,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
                        .AsNode()
         End Function
 
-        Private Async Function InvertSingleLineIfStatementAsync(originalIfNode As SingleLineIfStatementSyntax, document As Document, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Task(Of Document)
-            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, semanticModel, cancellationToken) _
+        Private Function InvertSingleLineIfStatement(workspace As Workspace, originalIfNode As SingleLineIfStatementSyntax, model As SemanticModel, cancellationToken As CancellationToken) As SemanticModel
+            Dim root = model.SyntaxTree.GetRoot()
+
+            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, model, cancellationToken) _
                 .WithAdditionalAnnotations(Formatter.Annotation)
 
-            ' TODO: Figure out why the document & node being passed in are out of sync.
-            originalIfNode = DirectCast(FindIfNode(document.GetSyntaxRootAsync().Result), SingleLineIfStatementSyntax)
-
-            ' Next line doesn't replace the node.  ReplaceDocument in Extensions.cs line24 doesn't actually replace the node, why?  
-            document = Await document.ReplaceNodeAsync(originalIfNode, invertedIfNode, cancellationToken).ConfigureAwait(False)
+            Dim result = UpdateSemanticModel(model, root.ReplaceNode(originalIfNode, invertedIfNode), cancellationToken)
 
             ' Complexify the next statement if there is one.
-            invertedIfNode = DirectCast(Await FindIfNodeAsync(document, cancellationToken).ConfigureAwait(False), SingleLineIfStatementSyntax)
+            invertedIfNode = DirectCast(FindIfNode(result.Root), SingleLineIfStatementSyntax)
 
             Dim currentStatement As StatementSyntax = invertedIfNode
             If currentStatement.HasAncestor(Of ExpressionSyntax)() Then
@@ -174,11 +169,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
 
             Dim nextStatement = currentStatement.GetNextStatement()
             If nextStatement IsNot Nothing Then
-                Dim explicitNextStatement = Await Simplifier.ExpandAsync(nextStatement, document, cancellationToken:=cancellationToken).ConfigureAwait(False)
-                document = Await document.ReplaceNodeAsync(nextStatement, explicitNextStatement, cancellationToken).ConfigureAwait(False)
+                Dim explicitNextStatement = Simplifier.Expand(nextStatement, result.Model, workspace, cancellationToken:=cancellationToken)
+                result = UpdateSemanticModel(result.Model, result.Root.ReplaceNode(nextStatement, explicitNextStatement), cancellationToken)
             End If
 
-            Return document
+            Return result.Model
         End Function
 
         Private Function GetInvertedIfNode(
@@ -254,14 +249,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
         End Function
 #End If
 
-        Private Async Function InvertMultiLineIfBlockAsync(originalIfNode As MultiLineIfBlockSyntax, document As Document, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Task(Of Document)
-            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, semanticModel, cancellationToken) _
+        Private Function InvertMultiLineIfBlock(originalIfNode As MultiLineIfBlockSyntax, model As SemanticModel, cancellationToken As CancellationToken) As SemanticModel
+            Dim invertedIfNode = GetInvertedIfNode(originalIfNode, model, cancellationToken) _
                 .WithAdditionalAnnotations(Formatter.Annotation)
 
-            ' TODO: Figure out why the document & node being passed in are out of sync.
-            originalIfNode = DirectCast(FindIfNode(document.GetSyntaxRootAsync().Result), MultiLineIfBlockSyntax)
-
-            Return Await document.ReplaceNodeAsync(originalIfNode, invertedIfNode, cancellationToken).ConfigureAwait(False)
+            Dim result = UpdateSemanticModel(model, model.SyntaxTree.GetRoot().ReplaceNode(originalIfNode, invertedIfNode), cancellationToken)
+            Return result.Model
         End Function
 
         Private Function GetInvertedIfNode(
