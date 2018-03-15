@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
             if (typeNode == null)
             {
-                // user didn't provide an explicit type.  Check if the index-type of hte collection
+                // user didn't provide an explicit type.  Check if the index-type of the collection
                 // is different from than .Current type of the enumerator.  If so, add an explicit
                 // type so that the foreach will coerce the types accordingly.
                 var indexerType = GetIndexerType(containingType, collectionType);
