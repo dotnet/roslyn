@@ -66,7 +66,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 .WithElse(ifNode.Else.WithStatement(ifNode.Statement))
                 .WithAdditionalAnnotations(Formatter.Annotation);
 
-            return Task.FromResult<SyntaxNode>(ifNode);
+            // get new root
+            var root = ifStatement.SyntaxTree.GetRoot().ReplaceNode(ifStatement, ifNode);
+
+            return Task.FromResult<SyntaxNode>(root);
         }
 
         private bool TryNegateBinaryComparisonExpression(

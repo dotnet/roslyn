@@ -52,10 +52,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
         private async Task<Document> InvertIfAsync(Document document, SyntaxNode ifStatement, CancellationToken cancellationToken)
         {
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var newIfStatement = await InvertIfStatementAsync(document, model, ifStatement, cancellationToken).ConfigureAwait(false);
+            var root = await InvertIfStatementAsync(document, model, ifStatement, cancellationToken).ConfigureAwait(false);
 
-            var result = ifStatement.SyntaxTree.GetRoot().ReplaceNode(ifStatement, newIfStatement);
-            return document.WithSyntaxRoot(result);
+            return document.WithSyntaxRoot(root);
         }
 
         /// <summary>

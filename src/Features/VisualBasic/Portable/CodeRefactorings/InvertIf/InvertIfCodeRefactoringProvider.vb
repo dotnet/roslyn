@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             root = root.ReplaceNode(ifNode, ifNode.WithAdditionalAnnotations(s_ifNodeAnnotation))
 
             Dim updatedDocument = document.WithSyntaxRoot(root)
-            ifNode = FindIfNode(root)
+            ifNode = FindIfNode(Await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False))
 
             ' Complexify the top-most statement parenting this if-statement if necessary
             Dim topMostExpression = ifNode.Ancestors().OfType(Of ExpressionSyntax).LastOrDefault()
@@ -110,7 +110,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             updatedDocument = Await updatedDocument.ReplaceNodeAsync(invertedIfNode, explicitInvertedIfNode, cancellationToken).ConfigureAwait(False)
 
             root = Await updatedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Return FindIfNode(root)
+            Return root
         End Function
 
 
