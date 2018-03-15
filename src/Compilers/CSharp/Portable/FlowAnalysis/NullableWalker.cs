@@ -1364,10 +1364,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 // Determine nested nullability using BestTypeInferrer.
-                // For constant conditions (`true ? a : b` or `false ? a : b`), we could use the nested
-                // nullability of the particular branch, but that require using the nested nullability of
-                // the branch as it applies to the target type. For instance, with the following, the
-                // result of the conditional should be `IEnumerable<object>` rather than `object[]`:
+                // For constant conditions, we could use the nested nullability of the particular
+                // branch, but that requires using the nullability of the branch as it applies to the
+                // target type. For instance, the result of the conditional in the following should
+                // be `IEnumerable<object>` not `object[]`:
                 //   object[] a = ...;
                 //   IEnumerable<object?> b = ...;
                 //   var c = true ? a : b;
