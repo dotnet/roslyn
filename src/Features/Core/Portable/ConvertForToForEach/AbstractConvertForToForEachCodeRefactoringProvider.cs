@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             var bodyStatements = GetBodyStatements(forStatement);
             foreach (var statement in bodyStatements)
             {
-                if (IterationVariableIsUsedForMoreThanCollectionIndex(statement))
+                if (iterationVariableIsUsedForMoreThanCollectionIndex(statement))
                 {
                     return;
                 }
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                     containingType, collectionType.Type, iterationType, c)));
 
             // local functions
-            bool IterationVariableIsUsedForMoreThanCollectionIndex(SyntaxNode current)
+            bool iterationVariableIsUsedForMoreThanCollectionIndex(SyntaxNode current)
             {
                 if (syntaxFacts.IsIdentifierName(current))
                 {
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 {
                     if (child.IsNode)
                     {
-                        if (IterationVariableIsUsedForMoreThanCollectionIndex(child.AsNode()))
+                        if (iterationVariableIsUsedForMoreThanCollectionIndex(child.AsNode()))
                         {
                             return true;
                         }
