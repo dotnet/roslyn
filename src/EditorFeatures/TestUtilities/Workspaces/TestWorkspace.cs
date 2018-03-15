@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             var languageServices = this.Services.GetLanguageServices(languageName);
 
             var projectionDocument = new TestHostDocument(
-                TestExportProvider.ExportProviderWithCSharpAndVisualBasic,
+                ExportProvider,
                 languageServices,
                 projectionBuffer,
                 path,
