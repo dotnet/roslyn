@@ -195,6 +195,10 @@ namespace Microsoft.CodeAnalysis.AddParameter
             ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
         {
             var codeFixData = PrepareCreationOfCodeActions(context.Document, arguments, methodsAndArgumentsToAdd);
+
+            // To keep the list of offered fixes short we create one menu entry per overload only
+            // as long as there are two or less overloads present. If there are more overloads we
+            // create two menu entries. One entry for non-cascading fixes and one with cascading fixes.
             var fixes = codeFixData.Length <= 2
                 ? NestByOverload()
                 : NestByCascading();
@@ -207,12 +211,15 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var builder = ArrayBuilder<CodeAction>.GetInstance(codeFixData.Length);
                 foreach (var data in codeFixData)
                 {
+                    // We create the mandatory data.CreateChangedSolutionNonCascading fix first.
                     var title = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, data.Method, includeParameters: true);
                     CodeAction codeAction = new MyCodeAction(
                         title: title,
                         data.CreateChangedSolutionNonCascading);
                     if (data.CreateChangedSolutionCascading != null)
                     {
+                        // We have two fixes to offer. We nest the two fixes in an inlinable CodeAction 
+                        // so the IDE is free to either show both at once or to create a sub-menu.
                         var titleForNesting = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, data.Method, includeParameters: true);
                         var titleCascading = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_and_overrides_implementations, data.Method, 
                                                              includeParameters: true);
@@ -226,6 +233,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                             isInlinable: true);
                     }
 
+                    // codeAction is now either a single fix or two fixes wrapped in a CodeActionWithNestedActions
                     builder.Add(codeAction);
                 }
 
@@ -249,13 +257,15 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     return new MyCodeAction(title: title, data.CreateChangedSolutionCascading);
                 }));
 
-                var aMethod = codeFixData.First().Method;
+                var aMethod = codeFixData.First().Method; // We need to term the MethodGroup and need an arbitrary IMethodSymbol to do so.
                 var nestedNonCascadingTitle = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, aMethod, includeParameters: false);
 
+                // Create a sub-menu entry with all the non-cascading CodeActions
                 builder.Add(new CodeAction.CodeActionWithNestedActions(nestedNonCascadingTitle, nonCascadingActions, isInlinable: false));
 
                 if (cascadingActions.Length > 0)
                 {
+                    // if there are cascading CodeActions create a second sub-menu.
                     var nestedCascadingTitle = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_and_overrides_implementations, 
                                                                aMethod, includeParameters: false);
                     builder.Add(new CodeAction.CodeActionWithNestedActions(nestedCascadingTitle, cascadingActions, isInlinable: false));
