@@ -1390,7 +1390,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override bool IsSerializable
+        public override bool IsSerializable
         {
             get
             {

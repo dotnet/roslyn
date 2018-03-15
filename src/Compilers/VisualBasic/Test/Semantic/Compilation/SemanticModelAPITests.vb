@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         <WorkItem(541500, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541500")>
         <Fact()>
         Public Sub TestModuleNamespaceClassNesting()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation name="TestModuleNamespaceClassNesting">
     <file name="a.vb">
 Module
@@ -41,7 +41,7 @@ Module
 
         <Fact(), WorkItem(543532, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543532")>
         Public Sub GetSymbolInfoForImplicitDeclaredControlVariable()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -83,7 +83,7 @@ End Module
 
         <Fact()>
         Public Sub GetSymbolInfoForVarianceConversion()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -123,7 +123,7 @@ End Module
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub GetSymbolInfoForVarianceConversionWithStaticLocals()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict On
@@ -162,7 +162,7 @@ End Module
 
         <Fact(), WorkItem(542861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542861"), WorkItem(529673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529673")>
         Public Sub GetSymbolInfoForAccessorParameters()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -220,7 +220,7 @@ End Class
                            End Class
                        </code>.Value
             Dim tree = Parse(text)
-            Dim comp = CreateCompilationWithMscorlib({tree})
+            Dim comp = CreateCompilationWithMscorlib40({tree})
 
             Dim model1 = comp.GetSemanticModel(tree)
             Dim model2 = comp.GetSemanticModel(tree)
@@ -240,7 +240,7 @@ End Class
 
         <Fact()>
         Public Sub BindExpression()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfo">
     <file name="a.vb">
 Imports System   
@@ -287,7 +287,7 @@ End Module
 
         <Fact()>
         Public Sub BindExpressionWithErrors()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfo">
     <file name="a.vb">
 Option Strict On
@@ -344,7 +344,7 @@ End Class
 
         <Fact()>
         Public Sub BindAsExpressionVsBindAsType()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Option Strict On
@@ -383,7 +383,7 @@ End Class
 
         <Fact>
         Public Sub BindSpeculativeAttribute()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Option Strict On
@@ -467,7 +467,7 @@ End Class    </file>
         <WorkItem(92898, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=92898")>
         <WorkItem(755801, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/755801")>
         Public Sub GetSpeculativeSymbolInfoForQualifiedNameInCref()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfo">
     <file name="a.vb"><![CDATA[
 Class C
@@ -516,7 +516,7 @@ End Class]]>
         <WorkItem(96477, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=96477")>
         <WorkItem(1015560, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015560")>
         Public Sub GetSpeculativeSymbolInfoForGenericNameInCref()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfo">
     <file name="a.vb"><![CDATA[Imports System.Collections.Generic
 Module Program
@@ -564,7 +564,7 @@ End Module]]>
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForExpression_ConstantInfo()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="GetSemanticInfo">
     <file name="a.vb">
 Imports System   
@@ -625,7 +625,7 @@ End Class
         <Fact>
         <WorkItem(680657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/680657")>
         Public Sub TestGetSpeculativeSemanticModelInFieldInitializer()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -640,7 +640,7 @@ End Class
         <Fact>
         <WorkItem(680657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/680657")>
         Public Sub TestGetSpeculativeSemanticModelInPropertyInitializer()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -677,7 +677,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelInEnumMemberDecl()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Enum E
@@ -691,7 +691,7 @@ End Enum
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelInDefaultParameterValue()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -729,7 +729,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForStatement()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -791,7 +791,7 @@ End If]]>.Value), ExecutableStatementSyntax)
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForStatement_DeclaredLocal()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -847,7 +847,7 @@ End Class
         <WorkItem(97599, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=97599")>
         <WorkItem(1019361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1019361")>
         Public Sub TestGetSpeculativeSemanticModelForStatement_DeclaredLocal_2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Imports N
@@ -908,7 +908,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForStatement_DeclaredLabel()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -943,7 +943,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForStatement_GetDeclaredLambdaParameterSymbol()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -979,7 +979,7 @@ End Class
 
         <Fact, WorkItem(1084086, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1084086")>
         Public Sub TestGetSpeculativeSemanticModelForStatement_InEmptyMethodBody()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -1013,7 +1013,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForRangeArgument_InField()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
  Module Program
@@ -1050,7 +1050,7 @@ End Module
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForRangeArgument_InLocal()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
  Module Program
@@ -1089,7 +1089,7 @@ End Module
 
         <Fact()>
         Public Sub TestArgumentsToGetSpeculativeSemanticModelAPI()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb"><![CDATA[
 Class C
@@ -1132,7 +1132,7 @@ End Class]]>
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelOnSpeculativeSemanticModel()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb"><![CDATA[
 Class C
@@ -1180,7 +1180,7 @@ End Class]]>
 
         <Fact>
         Public Sub TestGetSpeculativeSemanticModelForAttribute()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Option Strict On
@@ -1347,7 +1347,7 @@ End Class    </file>
 
         <Fact()>
         Public Sub TestGetSymbolInfoOnSpeculativeModel()
-            Dim compilation = CreateCompilationWithMscorlib(
+            Dim compilation = CreateCompilationWithMscorlib40(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -1389,7 +1389,7 @@ End Module
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForMethodBody()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -1456,7 +1456,7 @@ End If]]>.Value), ExecutableStatementSyntax)
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForPropertyAccessorBody()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -1499,7 +1499,7 @@ End If]]>.Value), ExecutableStatementSyntax)
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForEventAccessorBody()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -1548,7 +1548,7 @@ End If]]>.Value), ExecutableStatementSyntax)
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForMethodBody_DeclaredLocal()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -1627,7 +1627,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForMethodBody_DeclaredLabel()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -1663,7 +1663,7 @@ End Class
 
         <Fact()>
         Public Sub TestGetSpeculativeSemanticModelForMethodBody_GetDeclaredLambdaParameterSymbol()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class C
@@ -1741,7 +1741,7 @@ End Class
 
         <Fact>
         Public Sub TestGetSpeculativeSemanticModelForTypeSyntax_InGlobalImports()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Imports System.Runtime
@@ -1761,7 +1761,7 @@ Imports System.Runtime
 
         <Fact>
         Public Sub TestGetSpeculativeSemanticModelForTypeSyntax_InGlobalAlias()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Imports A = System.Exception
@@ -1781,7 +1781,7 @@ Imports A = System.Exception
 
         <Fact>
         Public Sub TestGetSpeculativeSemanticModelForTypeSyntax_InBaseList()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Imports N
@@ -1817,7 +1817,7 @@ End Namespace
 
         <Fact>
         Public Sub TestGetSpeculativeSemanticModelForTypeSyntax_InMemberDeclaration()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class Program
@@ -1854,7 +1854,7 @@ End Class
         <WorkItem(120491, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=120491")>
         <WorkItem(745766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/745766")>
         Public Sub TestGetSpeculativeSemanticModelForTypeSyntax_InImplementsClauseForMember()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Class Program
@@ -1906,7 +1906,7 @@ End Interface
 
         <Fact>
         Public Sub TestGetSpeculativeSemanticModelForTypeSyntax_AliasName()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Imports A = System.ArgumentException
@@ -1939,7 +1939,7 @@ End Class
 
         <Fact, WorkItem(849360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849360")>
         Public Sub TestGetSpeculativeSemanticModelForLocalDeclaration_Incomplete_1()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Module M
@@ -1973,7 +1973,7 @@ Module M
 
         <Fact, WorkItem(849360, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/849360")>
         Public Sub TestGetSpeculativeSemanticModelForLocalDeclaration_Incomplete_2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="BindAsExpressionVsBindAsType">
     <file name="a.vb">
 Module M
@@ -2033,7 +2033,7 @@ Module M
         ' public API to make sure we're mapping correctly to the external interface.
         <Fact()>
         Public Sub ClassifyConversion()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="ClassifyConversion">
     <file name="a.vb">
     Imports System
@@ -2240,7 +2240,7 @@ Module M
         ' public API to make sure we're mapping correctly to the external interface.
         <Fact()>
         Public Sub ClassifyConversionSemanticModel()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="ClassifyConversionSemanticModel">
     <file name="a.vb">
     Imports System
@@ -2369,7 +2369,7 @@ Module M
         <WorkItem(527766, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527766")>
         <Fact()>
         Public Sub ClassifyConversionSemanticModel2()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ClassifyConversionSemanticModel2">
     <file name="a.vb">
 Imports System
@@ -2497,7 +2497,7 @@ End Enum
         <WorkItem(15925, "DevDiv_Projects/Roslyn")>
         <Fact()>
         Public Sub ClassifyConversionSemanticModel2WithStaticLocals()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ClassifyConversionSemanticModel2">
     <file name="a.vb">
 Imports System
@@ -2624,7 +2624,7 @@ End Enum
         <WorkItem(541564, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541564")>
         <Fact()>
         Public Sub ClassifyConversionForParameter()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="ClassifyConversion">
     <file name="a.vb">
 Imports System
@@ -2684,7 +2684,7 @@ End Module
         <WorkItem(541577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541577")>
         <Fact()>
         Public Sub ClassifyConversionForPropAsBinaryOperand()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System
@@ -2719,7 +2719,7 @@ End Module
 
         <Fact(), WorkItem(544251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544251")>
         Public Sub ClassifyConversionEnumExplicitOn()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Explicit On
@@ -2756,7 +2756,7 @@ End Module
 
         <Fact(), WorkItem(544251, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544251")>
         Public Sub ClassifyConversionEnumExplicitOff()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Explicit Off
@@ -2792,7 +2792,7 @@ End Module
 
         <Fact(), WorkItem(545101, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545101")>
         Public Sub ClassifyConversionNarrowingNullableStrictOff()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Option Strict Off
@@ -2847,7 +2847,7 @@ End Module
         <Fact()>
         Public Sub ClassifyConversionForArrayLiteral()
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation>
     <file name="a.vb"><![CDATA[
 Public Class Class1
@@ -2886,7 +2886,7 @@ End Class
 
         <Fact()>
         Public Sub IsAccessible()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="IsAccessible">
     <file name="a.vb">
     Imports System
@@ -2946,7 +2946,7 @@ End Class
         <WorkItem(652109, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652109")>
         <Fact()>
         Public Sub Bug652109()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="IsAccessible">
     <file name="a.vb">
         <![CDATA[
@@ -3062,7 +3062,7 @@ stem.Func`2[System.Int32,System.Int32]", z Function(d) d)
         <WorkItem(652026, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652026")>
         <Fact()>
         Public Sub Bug652026()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="IsAccessible">
     <file name="a.vb">
         <![CDATA[
@@ -3531,7 +3531,7 @@ Val Sng As Single, ByVal C As Char, ByVal        Public Overloads Property olp14
         <WorkItem(652118, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/652118")>
         <Fact()>
         Public Sub Bug652118()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="IsAccessible">
     <file name="a.vb">
         <![CDATA[
@@ -3717,7 +3717,7 @@ Declare Sub SUB118 Lib "goo" (ByRef aa aring)                                   
 
         <Fact>
         Public Sub Codecoverage_Additions()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Coverage">
     <file name="a.vb">
     Public Module M
@@ -3742,7 +3742,7 @@ End Module
             Assert.Equal(0, typeSymbolList.Count)
             Assert.Equal(GetType(TypeSymbol).MakeArrayType().FullName, typeSymbolList.GetType.ToString)
 
-            compilation = CompilationUtils.CreateCompilationWithMscorlib(
+            compilation = CompilationUtils.CreateCompilationWithMscorlib40(
 <compilation name="Coverage">
     <file name="a.vb">
 Public Module M
@@ -3869,7 +3869,7 @@ End Class
     ]]></file>
 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose))
+            Dim comp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(source, parseOptions:=New VisualBasicParseOptions(documentationMode:=DocumentationMode.Diagnose))
             comp.AssertTheseDiagnostics(<expected><![CDATA[
 BC42306: XML comment tag 'param' is not permitted on a 'variable' language element.
     ''' <param name='X'/>
@@ -3895,7 +3895,7 @@ BC42306: XML comment tag 'param' is not permitted on a 'variable' language eleme
 
         <Fact()>
         Public Sub ExpressionInQueryInXml()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 <compilation name="xmlAndQueries">
                     <file name="sam.vb"><![CDATA[
                         Class C
@@ -3907,7 +3907,7 @@ BC42306: XML comment tag 'param' is not permitted on a 'variable' language eleme
     End Function
                            End Class
                     ]]></file>
-                </compilation>, additionalRefs:=XmlReferences)
+                </compilation>, references:=XmlReferences)
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "sam.vb").Single()
             Dim semanticModel = compilation.GetSemanticModel(tree)
 
@@ -3921,7 +3921,7 @@ BC42306: XML comment tag 'param' is not permitted on a 'variable' language eleme
 
         <Fact()>
         Public Sub PropertyReturnValueVariable()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 <compilation name="xmlAndQueries">
                     <file name="sam.vb"><![CDATA[
 Imports System
@@ -3942,7 +3942,7 @@ Class Program
     End Property
 End Class
                     ]]></file>
-                </compilation>, additionalRefs:=XmlReferences)
+                </compilation>, references:=XmlReferences)
             Dim tree As SyntaxTree = (From t In compilation.SyntaxTrees Where t.FilePath = "sam.vb").Single()
             Dim model = compilation.GetSemanticModel(tree)
 
@@ -4001,7 +4001,7 @@ End Class
                     ]]></file>
                 </compilation>
 
-            Dim comp = CreateCompilationWithMscorlibAndReferences(source, {SystemCoreRef})
+            Dim comp = CreateCompilationWithMscorlib40AndReferences(source, {SystemCoreRef})
             comp.VerifyDiagnostics()
 
             Dim tree = comp.SyntaxTrees.Single()
@@ -4025,7 +4025,7 @@ End Class
 
         <Fact>
         Public Sub Test_SemanticLanguage_VB()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
             Imports System
@@ -4043,7 +4043,7 @@ End Class
 
         <Fact>
         Public Sub DiagnosticsInStages()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
             Class Test
@@ -4082,7 +4082,7 @@ End Class
                             ]]></file>
                          </compilation>
 
-            Dim compilation = CreateCompilationWithoutReferences(source)
+            Dim compilation = CreateEmptyCompilation(source)
             Dim semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees(0))
 
             ' Ensuring that this doesn't throw
@@ -4103,7 +4103,7 @@ End Class
                             ]]></file>
                          </compilation>
 
-            Dim compilation = CreateCompilationWithoutReferences(source)
+            Dim compilation = CreateEmptyCompilation(source)
             Dim semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees(0))
 
             ' Ensuring that this doesn't throw
@@ -4134,12 +4134,12 @@ BC30002: Type 'A' is not defined.
                             ~
 </expected>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceExplicitGlobalNamespace, Nothing, TestOptions.ReleaseDll)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceExplicitGlobalNamespace, Nothing, TestOptions.ReleaseDll)
             Dim semanticModel = GetSemanticModel(compilation, "a.vb")
             Dim errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceExplicitGlobalNamespace, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceExplicitGlobalNamespace, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
@@ -4154,12 +4154,12 @@ BC30002: Type 'A' is not defined.
               End Class
                             ]]></file>
                                              </compilation>
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceNoNamespaceSpecified, Nothing)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceNoNamespaceSpecified, Nothing)
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceNoNamespaceSpecified, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceNoNamespaceSpecified, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
@@ -4177,12 +4177,12 @@ BC30002: Type 'A' is not defined.
                             ]]></file>
                                       </compilation>
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceEscapedGlobal, Nothing)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceEscapedGlobal, Nothing)
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceEscapedGlobal, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceEscapedGlobal, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
@@ -4201,12 +4201,12 @@ BC30002: Type 'A' is not defined.
                             ]]></file>
                                                      </compilation>
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAsStartOfNamespace, Nothing)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithGlobalAsStartOfNamespace, Nothing)
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAsStartOfNamespace, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithGlobalAsStartOfNamespace, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
@@ -4224,12 +4224,12 @@ BC30002: Type 'A' is not defined.
             End Namespace
                             ]]></file>
                                                 </compilation>
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithANameStartingGlobal, Nothing)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithANameStartingGlobal, Nothing)
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithANameStartingGlobal, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithANameStartingGlobal, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors)
@@ -4268,12 +4268,12 @@ BC30002: Type 'A' is not defined.
                   Dim _A As A   ' error BC30002: Type 'A' is not defined.
                             ~
 </Expected>
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS1, Nothing)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS1, Nothing)
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS1, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS1, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)
@@ -4300,12 +4300,12 @@ BC30002: Type 'A' is not defined.
             End Namespace
                             ]]></file>
                                                  </compilation>
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS2, Nothing)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS2, Nothing)
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS2, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithGlobalAndMultipleNS2, Nothing, TestOptions.ReleaseDll.WithRootNamespace("ClassLibrary1"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)
@@ -4332,12 +4332,12 @@ BC30002: Type 'A' is not defined.
             End Namespace
                             ]]></file>
                                                     </compilation>
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalCombinedNamespace, Nothing)
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithGlobalCombinedNamespace, Nothing)
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)
 
-            compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(sourceWithGlobalCombinedNamespace, Nothing, TestOptions.ReleaseDll.WithRootNamespace("Goo"))
+            compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(sourceWithGlobalCombinedNamespace, Nothing, TestOptions.ReleaseDll.WithRootNamespace("Goo"))
             semanticModel = GetSemanticModel(compilation, "a.vb")
             errs = semanticModel.GetMethodBodyDiagnostics()
             CompilationUtils.AssertTheseDiagnostics(errs, ExpectedErrors2)
@@ -4345,7 +4345,7 @@ BC30002: Type 'A' is not defined.
 
         <Fact>
         Public Sub PartialMethodImplementationDiagnostics()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Partial Class MyPartialClass
@@ -4377,7 +4377,7 @@ End Class
 
         <Fact, WorkItem(1146124, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1146124")>
         Public Sub GetTypeInfoForXmlStringInCref()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GetSemanticInfo">
     <file name="a.vb"><![CDATA[
 Module Program
@@ -4403,7 +4403,7 @@ End Module
         <WorkItem(1104539, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1104539")>
         <Fact()>
         Public Sub GetDiagnosticsWithRootNamespace()
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
 <compilation>
     <file name="a.vb"><![CDATA[
 Imports System.Runtime.CompilerServices
@@ -4454,7 +4454,7 @@ BC30451: 'DoesntExist' is not declared. It may be inaccessible due to its protec
 
         <Fact, WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")>
         Public Sub ConstantValueOfInterpolatedString()
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
 <compilation name="GetSemanticInfo">
     <file name="a.vb"><![CDATA[
 Module Program

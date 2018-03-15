@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionType = conversions.CorLibrary.GetSpecialType(SpecialType.System_Object);
             }
 
-            conversion = conversions.ClassifyConversionFromType(expressionType, patternType, ref useSiteDiagnostics);
+            conversion = conversions.ClassifyBuiltInConversion(expressionType, patternType, ref useSiteDiagnostics);
             var result = Binder.GetIsOperatorConstantResult(expressionType, patternType, conversion.Kind, operandConstantValue, operandCouldBeNull);
             return
                 (result == null) ? (bool?)null :
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isVar;
             AliasSymbol aliasOpt;
-            TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out aliasOpt);
+            TypeSymbol declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out aliasOpt);
             if (isVar)
             {
                 declType = operandType;

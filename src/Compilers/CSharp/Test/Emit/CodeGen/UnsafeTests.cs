@@ -690,7 +690,7 @@ static class Extensions
     public static void M(this S s, int x, int y) { Console.Write(3); }
 }
 ";
-            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: @"123", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Main", @"
 {
@@ -712,7 +712,7 @@ static class Extensions
 }
 ");
 
-            compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: @"123", verify: Verification.Fails);
+            compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Main", @"
 {
@@ -766,7 +766,7 @@ static class Extensions
     public static void M(this S s, int x, int y) { Console.Write(3); }
 }
 ";
-            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: @"123", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Test(ref S*)", @"
 {
@@ -789,7 +789,7 @@ static class Extensions
 }
 ");
 
-            compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, additionalRefs: new[] { LinqAssemblyRef }, expectedOutput: @"123", verify: Verification.Fails);
+            compVerifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"123", verify: Verification.Fails);
 
             compVerifier.VerifyIL("S.Test(ref S*)", @"
 {
@@ -5939,7 +5939,7 @@ unsafe class C
             CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseExe, expectedOutput: expectedOutput, verify: Verification.Fails).VerifyIL("C.Main", expectedIL);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void PointerArrayConversion()
         {
             var template = @"
@@ -5981,7 +5981,7 @@ unsafe class C
             CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyIL("C.M", expectedIL);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void PointerArrayConversionRuntimeError()
         {
             var text = @"
@@ -6008,7 +6008,7 @@ unsafe class C
             CompileAndVerifyException<NotSupportedException>(text, "Type is not supported.", allowUnsafe: true, verify: Verification.Fails);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void PointerArrayEnumerableConversion()
         {
             var template = @"
@@ -6050,7 +6050,7 @@ unsafe class C
             CompileAndVerify(string.Format(template, "checked"), options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).VerifyIL("C.M", expectedIL);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void PointerArrayEnumerableConversionRuntimeError()
         {
             var text = @"
@@ -6244,7 +6244,7 @@ unsafe class C
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void PointerArrayForeachEnumerable()
         {
             var text = @"
@@ -9963,7 +9963,7 @@ unsafe struct S
 }
 
 ";
-            var comp = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (24,44): error CS1510: A ref or out argument must be an assignable variable
                 //             retval = Test.printAddress(out s.i);
@@ -10323,7 +10323,7 @@ unsafe class Test
 }
 ";
 
-            var verifier = CompileAndVerify(text, new[] { SystemCoreRef }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"
+            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"
 2
 2");
 
@@ -10375,7 +10375,7 @@ namespace N
 }
 ";
 
-            var verifier = CompileAndVerify(text, new[] { SystemCoreRef }, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.Passes);
+            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.Passes);
         }
 
         [Fact, WorkItem(531327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531327")]
@@ -10399,7 +10399,7 @@ unsafe struct S1
 
 ";
 
-            var verifier = CompileAndVerify(text, new[] { SystemCoreRef }, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.Fails);
+            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll.WithConcurrentBuild(false), verify: Verification.Fails);
         }
 
         [Fact, WorkItem(748530, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/748530")]
@@ -10417,7 +10417,7 @@ unsafe class A
 }
 ";
 
-            var comp = CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
         }
 
@@ -10830,7 +10830,7 @@ public unsafe class C
         }
     }
 ";
-            var cscomp = CreateCompilationWithCustomILSource(csharpSource, ilSource);
+            var cscomp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
 
             var expected = new[] {
                 // (7,35): error CS0570: 'AddressHelper.AddressOf<T>(?)' is not supported by the language
@@ -10866,7 +10866,7 @@ public unsafe class C
         }
     }
 ";
-            var compilation = CreateCompilationWithCustomILSource(csharpSource, ilSource, options: TestOptions.ReleaseExe);
+            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource, targetFramework: TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
 
             compilation.VerifyDiagnostics();
 

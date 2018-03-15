@@ -22,6 +22,7 @@ Microsoft.CodeAnalysis.VisualBasic.Conversion.IsUserDefined() -> Boolean
 Microsoft.CodeAnalysis.VisualBasic.Conversion.IsValueType() -> Boolean
 Microsoft.CodeAnalysis.VisualBasic.Conversion.IsWidening() -> Boolean
 Microsoft.CodeAnalysis.VisualBasic.Conversion.MethodSymbol() -> Microsoft.CodeAnalysis.IMethodSymbol
+Microsoft.CodeAnalysis.VisualBasic.Conversion.ToCommonConversion() -> Microsoft.CodeAnalysis.Operations.CommonConversion
 Microsoft.CodeAnalysis.VisualBasic.ForEachStatementInfo
 Microsoft.CodeAnalysis.VisualBasic.GeneratedExtensionSyntaxFacts
 Microsoft.CodeAnalysis.VisualBasic.GeneratedExtensionSyntaxFacts.GetText(kind As Microsoft.CodeAnalysis.VisualBasic.SyntaxKind) -> String
@@ -47,6 +48,7 @@ Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic12 = 12 -> Microso
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic14 = 14 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15 = 15 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15_3 = 1503 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15_5 = 1505 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic9 = 9 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersionFacts.MapSpecifiedToEffectiveVersion(version As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion) -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
@@ -3184,6 +3186,7 @@ Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetBase(token As Micros
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetCollectionInitializerSymbolInfo(semanticModel As Microsoft.CodeAnalysis.SemanticModel, expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax, cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.SymbolInfo
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetCollectionRangeVariableSymbolInfo(semanticModel As Microsoft.CodeAnalysis.SemanticModel, variableSyntax As Microsoft.CodeAnalysis.VisualBasic.Syntax.CollectionRangeVariableSyntax, cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.VisualBasic.CollectionRangeVariableSymbolInfo
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetCompilationUnitRoot(tree As Microsoft.CodeAnalysis.SyntaxTree) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.CompilationUnitSyntax
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetConversion(conversionExpression As Microsoft.CodeAnalysis.Operations.IConversionOperation) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetConversion(semanticModel As Microsoft.CodeAnalysis.SemanticModel, expression As Microsoft.CodeAnalysis.SyntaxNode, cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetDeclaredSymbol(semanticModel As Microsoft.CodeAnalysis.SemanticModel, anonymousObjectCreationExpressionSyntax As Microsoft.CodeAnalysis.VisualBasic.Syntax.AnonymousObjectCreationExpressionSyntax, cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetDeclaredSymbol(semanticModel As Microsoft.CodeAnalysis.SemanticModel, declarationSyntax As Microsoft.CodeAnalysis.VisualBasic.Syntax.AccessorStatementSyntax, cancellationToken As System.Threading.CancellationToken = Nothing) -> Microsoft.CodeAnalysis.IMethodSymbol
@@ -3220,12 +3223,16 @@ Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetFieldAttributes(even
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetFirstDirective(node As Microsoft.CodeAnalysis.SyntaxNode, predicate As System.Func(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.DirectiveTriviaSyntax, Boolean) = Nothing) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.DirectiveTriviaSyntax
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetForEachStatementInfo(semanticModel As Microsoft.CodeAnalysis.SemanticModel, node As Microsoft.CodeAnalysis.VisualBasic.Syntax.ForEachBlockSyntax) -> Microsoft.CodeAnalysis.VisualBasic.ForEachStatementInfo
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetForEachStatementInfo(semanticModel As Microsoft.CodeAnalysis.SemanticModel, node As Microsoft.CodeAnalysis.VisualBasic.Syntax.ForEachStatementSyntax) -> Microsoft.CodeAnalysis.VisualBasic.ForEachStatementInfo
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetInConversion(argument As Microsoft.CodeAnalysis.Operations.IArgumentOperation) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetInConversion(compoundAssignment As Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetIdentifierText(token As Microsoft.CodeAnalysis.SyntaxToken) -> String
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetLastDirective(node As Microsoft.CodeAnalysis.SyntaxNode, predicate As System.Func(Of Microsoft.CodeAnalysis.VisualBasic.Syntax.DirectiveTriviaSyntax, Boolean) = Nothing) -> Microsoft.CodeAnalysis.VisualBasic.Syntax.DirectiveTriviaSyntax
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetMemberGroup(semanticModel As Microsoft.CodeAnalysis.SemanticModel, attribute As Microsoft.CodeAnalysis.VisualBasic.Syntax.AttributeSyntax, cancellationToken As System.Threading.CancellationToken = Nothing) -> System.Collections.Immutable.ImmutableArray(Of Microsoft.CodeAnalysis.ISymbol)
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetMemberGroup(semanticModel As Microsoft.CodeAnalysis.SemanticModel, expression As Microsoft.CodeAnalysis.VisualBasic.Syntax.ExpressionSyntax, cancellationToken As System.Threading.CancellationToken = Nothing) -> System.Collections.Immutable.ImmutableArray(Of Microsoft.CodeAnalysis.ISymbol)
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetModuleMembers(namespace As Microsoft.CodeAnalysis.INamespaceSymbol) -> System.Collections.Immutable.ImmutableArray(Of Microsoft.CodeAnalysis.INamedTypeSymbol)
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetModuleMembers(namespace As Microsoft.CodeAnalysis.INamespaceSymbol, name As String) -> System.Collections.Immutable.ImmutableArray(Of Microsoft.CodeAnalysis.INamedTypeSymbol)
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetOutConversion(argument As Microsoft.CodeAnalysis.Operations.IArgumentOperation) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
+Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetOutConversion(compoundAssignment As Microsoft.CodeAnalysis.Operations.ICompoundAssignmentOperation) -> Microsoft.CodeAnalysis.VisualBasic.Conversion
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetPreprocessingSymbolInfo(semanticModel As Microsoft.CodeAnalysis.SemanticModel, node As Microsoft.CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax) -> Microsoft.CodeAnalysis.PreprocessingSymbolInfo
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetSpecialType(compilation As Microsoft.CodeAnalysis.Compilation, typeId As Microsoft.CodeAnalysis.SpecialType) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicExtensions.GetSpeculativeAliasInfo(semanticModel As Microsoft.CodeAnalysis.SemanticModel, position As Integer, nameSyntax As Microsoft.CodeAnalysis.VisualBasic.Syntax.IdentifierNameSyntax, bindingOption As Microsoft.CodeAnalysis.SpeculativeBindingOption) -> Microsoft.CodeAnalysis.IAliasSymbol

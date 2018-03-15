@@ -72,7 +72,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                     constraintTypes: constraints.AsImmutable<ITypeSymbol>(),
                     hasConstructorConstraint: typeParameter.HasConstructorConstraint,
                     hasReferenceConstraint: typeParameter.HasReferenceTypeConstraint,
-                    hasValueConstraint: typeParameter.HasValueTypeConstraint);
+                    hasValueConstraint: typeParameter.HasValueTypeConstraint,
+                    hasUnmanagedConstraint: typeParameter.HasUnmanagedTypeConstraint);
             }
 
             private List<ITypeSymbol> MergeClassTypes(List<ITypeSymbol> classTypes, CancellationToken cancellationToken)

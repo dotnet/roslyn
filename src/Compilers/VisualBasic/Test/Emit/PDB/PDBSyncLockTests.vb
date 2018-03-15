@@ -35,7 +35,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             Dim v = CompileAndVerify(compilation)
 
             v.VerifyIL("C1.Main", "
@@ -95,7 +95,7 @@ End Class
             v.VerifyPdb("C1.Main",
 <symbols>
     <files>
-      <file id="1" name="" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" />
+      <file id="1" name="" language="VB" />
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>

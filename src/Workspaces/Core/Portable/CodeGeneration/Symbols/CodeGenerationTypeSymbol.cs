@@ -52,5 +52,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         public override bool IsNamespace => false;
 
         public override bool IsType => true;
+
+        public bool IsSerializable => false;
     }
 }

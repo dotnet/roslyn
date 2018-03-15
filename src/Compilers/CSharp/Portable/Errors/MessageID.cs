@@ -143,17 +143,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRefStructs = MessageBase + 12726,
         IDS_FeatureReadOnlyStructs = MessageBase + 12727,
         IDS_FeatureRefExtensionMethods = MessageBase + 12728,
-        IDS_StackAllocExpression = MessageBase + 12729,
+        // IDS_StackAllocExpression = MessageBase + 12729,
         IDS_FeaturePrivateProtected = MessageBase + 12730,
 
         IDS_FeatureRefConditional = MessageBase + 12731,
         IDS_FeatureAttributesOnBackingFields = MessageBase + 12732,
+        IDS_FeatureImprovedOverloadCandidates = MessageBase + 12733,
+        IDS_FeatureRefReassignment = MessageBase + 12734,
+        IDS_FeatureRefFor = MessageBase + 12735,
+        IDS_FeatureRefForEach = MessageBase + 12736,
+        IDS_FeatureEnumGenericTypeConstraint = MessageBase + 12737,
+        IDS_FeatureDelegateGenericTypeConstraint = MessageBase + 12738,
+        IDS_FeatureUnmanagedGenericTypeConstraint = MessageBase + 12739,
+        IDS_FeatureStackAllocInitializer = MessageBase + 12740,
         IDS_FeatureExtensibleFixedStatement = MessageBase + 12733,
     }
 
     // Message IDs may refer to strings that need to be localized.
     // This struct makes an IFormattable wrapper around a MessageID
-    internal struct LocalizableErrorArgument : IFormattable, IMessageSerializable
+    internal struct LocalizableErrorArgument : IFormattable
     {
         private readonly MessageID _id;
 
@@ -190,6 +198,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // C# 7.3 features.
                 case MessageID.IDS_FeatureAttributesOnBackingFields: // semantic check
+                case MessageID.IDS_FeatureImprovedOverloadCandidates: // semantic check
+                case MessageID.IDS_FeatureRefReassignment:
+                case MessageID.IDS_FeatureRefFor:
+                case MessageID.IDS_FeatureRefForEach:
+                case MessageID.IDS_FeatureEnumGenericTypeConstraint: // semantic check
+                case MessageID.IDS_FeatureDelegateGenericTypeConstraint: // semantic check
+                case MessageID.IDS_FeatureUnmanagedGenericTypeConstraint: // semantic check
+                case MessageID.IDS_FeatureStackAllocInitializer:
                 case MessageID.IDS_FeatureExtensibleFixedStatement:  // semantic check
                     return LanguageVersion.CSharp7_3;
 
