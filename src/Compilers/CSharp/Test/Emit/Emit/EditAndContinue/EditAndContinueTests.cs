@@ -8882,6 +8882,158 @@ public class C : Base
         }
 
         [Fact]
+        public void OutVar_InConstructorInitializer_WithLambda()
+        {
+            var baseClass = "public class Base { public Base(int x) { } }";
+
+            var source0 = MarkedSource(@"
+public class C : Base
+{
+    public C() : base(M(out int <N:0>x</N:0>) + M2(<N:1>() => x + 1</N:1>)) { }
+    static int M(out int x) => throw null;
+    static int M2(System.Func<int> x) => throw null;
+}" + baseClass);
+            var source1 = MarkedSource(@"
+public class C : Base
+{
+    public C() : base(M(out int <N:0>x</N:0>) + M2(<N:1>() => x - 1</N:1>)) { }
+    static int M(out int x) => throw null;
+    static int M2(System.Func<int> x) => throw null;
+}" + baseClass);
+
+            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll);
+            var compilation1 = compilation0.WithSource(source1.Tree);
+            var compilation2 = compilation1.WithSource(source0.Tree);
+
+            var ctor0 = compilation0.GetMember<MethodSymbol>("C..ctor");
+            var ctor1 = compilation1.GetMember<MethodSymbol>("C..ctor");
+            var ctor2 = compilation2.GetMember<MethodSymbol>("C..ctor");
+
+            var v0 = CompileAndVerify(compilation0);
+            v0.VerifyIL("C..ctor", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  4
+  .locals init (C.<>c__DisplayClass0_0 V_0) //CS$<>8__locals0
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0..ctor()""
+  IL_0005:  stloc.0
+  IL_0006:  ldarg.0
+  IL_0007:  ldloc.0
+  IL_0008:  ldflda     ""int C.<>c__DisplayClass0_0.x""
+  IL_000d:  call       ""int C.M(out int)""
+  IL_0012:  ldloc.0
+  IL_0013:  ldftn      ""int C.<>c__DisplayClass0_0.<.ctor>b__0()""
+  IL_0019:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_001e:  call       ""int C.M2(System.Func<int>)""
+  IL_0023:  add
+  IL_0024:  call       ""Base..ctor(int)""
+  IL_0029:  nop
+  IL_002a:  nop
+  IL_002b:  ret
+}
+");
+            v0.VerifyIL("C.<>c__DisplayClass0_0.<.ctor>b__0()", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0.x""
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  ret
+}
+");
+
+            var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
+
+            var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
+            var diff1 = compilation1.EmitDifference(
+                generation0,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, ctor0, ctor1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers("C: {<>c__DisplayClass0_0#1}", "C.<>c__DisplayClass0_0#1: {x, <.ctor>b__0}");
+
+            diff1.VerifyIL("C..ctor", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  4
+  .locals init ([unchanged] V_0,
+                C.<>c__DisplayClass0_0#1 V_1) //CS$<>8__locals0
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0#1..ctor()""
+  IL_0005:  stloc.1
+  IL_0006:  ldarg.0
+  IL_0007:  ldloc.1
+  IL_0008:  ldflda     ""int C.<>c__DisplayClass0_0#1.x""
+  IL_000d:  call       ""int C.M(out int)""
+  IL_0012:  ldloc.1
+  IL_0013:  ldftn      ""int C.<>c__DisplayClass0_0#1.<.ctor>b__0()""
+  IL_0019:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_001e:  call       ""int C.M2(System.Func<int>)""
+  IL_0023:  add
+  IL_0024:  call       ""Base..ctor(int)""
+  IL_0029:  nop
+  IL_002a:  nop
+  IL_002b:  ret
+}
+");
+            diff1.VerifyIL("C.<>c__DisplayClass0_0#1.<.ctor>b__0()", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0#1.x""
+  IL_0006:  ldc.i4.1
+  IL_0007:  sub
+  IL_0008:  ret
+}
+");
+
+            var diff2 = compilation2.EmitDifference(
+                diff1.NextGeneration,
+                ImmutableArray.Create(
+                    new SemanticEdit(SemanticEditKind.Update, ctor1, ctor2, GetSyntaxMapFromMarkers(source1, source0), preserveLocalVariables: true)));
+
+            diff2.VerifySynthesizedMembers("C.<>c__DisplayClass0_0#1: {x, <.ctor>b__0}", "C.<>c__DisplayClass0_0#2: {x, <.ctor>b__0}", "C: {<>c__DisplayClass0_0#2, <>c__DisplayClass0_0#1}");
+
+            diff2.VerifyIL("C..ctor", @"
+{
+  // Code size       44 (0x2c)
+  .maxstack  4
+  .locals init ([unchanged] V_0,
+                [unchanged] V_1,
+                C.<>c__DisplayClass0_0#2 V_2) //CS$<>8__locals0
+  IL_0000:  newobj     ""C.<>c__DisplayClass0_0#2..ctor()""
+  IL_0005:  stloc.2
+  IL_0006:  ldarg.0
+  IL_0007:  ldloc.2
+  IL_0008:  ldflda     ""int C.<>c__DisplayClass0_0#2.x""
+  IL_000d:  call       ""int C.M(out int)""
+  IL_0012:  ldloc.2
+  IL_0013:  ldftn      ""int C.<>c__DisplayClass0_0#2.<.ctor>b__0()""
+  IL_0019:  newobj     ""System.Func<int>..ctor(object, System.IntPtr)""
+  IL_001e:  call       ""int C.M2(System.Func<int>)""
+  IL_0023:  add
+  IL_0024:  call       ""Base..ctor(int)""
+  IL_0029:  nop
+  IL_002a:  nop
+  IL_002b:  ret
+}
+");
+            diff2.VerifyIL("C.<>c__DisplayClass0_0#2.<.ctor>b__0()", @"
+{
+  // Code size        9 (0x9)
+  .maxstack  2
+  IL_0000:  ldarg.0
+  IL_0001:  ldfld      ""int C.<>c__DisplayClass0_0#2.x""
+  IL_0006:  ldc.i4.1
+  IL_0007:  add
+  IL_0008:  ret
+}
+");
+        }
+
+        [Fact]
         public void OutVar_InFieldInitializer()
         {
             var source0 = MarkedSource(@"
