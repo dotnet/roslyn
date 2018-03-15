@@ -47,5 +47,23 @@ namespace Microsoft.CodeAnalysis
         }
 
         #endregion
+
+        #region SkipLocalsInitAttribute
+        private bool _hasSkipLocalsInitAttribute;
+        public bool HasSkipLocalsInitAttribute
+        {
+            get
+            {
+                VerifySealed(expected: true);
+                return _hasSkipLocalsInitAttribute;
+            }
+            set
+            {
+                VerifySealed(expected: false);
+                _hasSkipLocalsInitAttribute = value;
+                SetDataStored();
+            }
+        }
+        #endregion
     }
 }

@@ -525,6 +525,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public sealed override bool AreLocalsZeroed
+        {
+            get
+            {
+                return _property.AreLocalsZeroed && base.AreLocalsZeroed;
+            }
+        }
+
         private ImmutableArray<ParameterSymbol> ComputeParameters(DiagnosticBag diagnostics)
         {
             bool isGetMethod = this.MethodKind == MethodKind.PropertyGet;
