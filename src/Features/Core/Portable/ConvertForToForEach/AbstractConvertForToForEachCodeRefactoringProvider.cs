@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             }
         }
 
-        private ITypeSymbol GetIndexerType(INamedTypeSymbol containingType, ITypeSymbol collectionType)
+        private static ITypeSymbol GetIndexerType(INamedTypeSymbol containingType, ITypeSymbol collectionType)
         {
             if (collectionType is IArrayTypeSymbol arrayType)
             {
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             return null;
         }
 
-        private bool IsViableIndexer(IPropertySymbol property)
+        private static bool IsViableIndexer(IPropertySymbol property)
             => property.IsIndexer &&
                property.Parameters.Length == 1 &&
                property.Parameters[0].Type?.SpecialType == SpecialType.System_Int32;
