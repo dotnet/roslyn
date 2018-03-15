@@ -8285,16 +8285,6 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
         <target state="translated">A sintaxe 'var (...)' como um lvalue está reservada.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionVariableInConstructorOrFieldInitializer">
-        <source>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</source>
-        <target state="translated">As declarações de variável out ou padrão não são permitidas em inicializadores de construtor, inicializadores de campo ou inicializadores de propriedade.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExpressionVariableInQueryClause">
-        <source>Out variable and pattern variable declarations are not allowed within a query clause.</source>
-        <target state="translated">As declarações da variável de saída e da variável padrão não são permitidas em uma cláusula de consulta.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SemiOrLBraceOrArrowExpected">
         <source>{ or ; or =&gt; expected</source>
         <target state="translated">{ ou ; ou =&gt; esperado</target>
@@ -8693,6 +8683,11 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       <trans-unit id="ERR_InvalidStackAllocArray">
         <source>"Invalid rank specifier: expected ']'</source>
         <target state="new">"Invalid rank specifier: expected ']'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExpressionVariablesInQueriesAndInitializers">
+        <source>declaration of expression variables in member initializers and queries</source>
+        <target state="new">declaration of expression variables in member initializers and queries</target>
         <note />
       </trans-unit>
     </body>

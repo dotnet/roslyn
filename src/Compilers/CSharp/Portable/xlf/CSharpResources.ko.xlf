@@ -8285,16 +8285,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">lvalue인 구문 'var (...)'가 예약되었습니다.</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionVariableInConstructorOrFieldInitializer">
-        <source>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</source>
-        <target state="translated">출력 변수 또는 패턴 변수 선언은 생성자 이니셜라이저, 필드 이니셜라이저 또는 속성 이니셜라이저 내에서 사용할 수 없습니다.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExpressionVariableInQueryClause">
-        <source>Out variable and pattern variable declarations are not allowed within a query clause.</source>
-        <target state="translated">출력 변수 및 패턴 변수 선언은 쿼리 절 내에서 사용할 수 없습니다.</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SemiOrLBraceOrArrowExpected">
         <source>{ or ; or =&gt; expected</source>
         <target state="translated">{ 또는 ; 또는 =&gt; 필요</target>
@@ -8693,6 +8683,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_InvalidStackAllocArray">
         <source>"Invalid rank specifier: expected ']'</source>
         <target state="new">"Invalid rank specifier: expected ']'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExpressionVariablesInQueriesAndInitializers">
+        <source>declaration of expression variables in member initializers and queries</source>
+        <target state="new">declaration of expression variables in member initializers and queries</target>
         <note />
       </trans-unit>
     </body>

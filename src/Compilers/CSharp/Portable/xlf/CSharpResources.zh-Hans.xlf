@@ -8285,16 +8285,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="translated">语法 "var (...)" 作为左值保留。</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_ExpressionVariableInConstructorOrFieldInitializer">
-        <source>Out variable and pattern variable declarations are not allowed within constructor initializers, field initializers, or property initializers.</source>
-        <target state="translated">不允许在构造函数、字段、属性初始值设定项中进行 out 变量和 pattern 变量声明。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_ExpressionVariableInQueryClause">
-        <source>Out variable and pattern variable declarations are not allowed within a query clause.</source>
-        <target state="translated">查询子句中不允许使用 out 变量和 pattern 变量 </target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_SemiOrLBraceOrArrowExpected">
         <source>{ or ; or =&gt; expected</source>
         <target state="translated">{ or ; or =&gt; 预期的</target>
@@ -8693,6 +8683,11 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       <trans-unit id="ERR_InvalidStackAllocArray">
         <source>"Invalid rank specifier: expected ']'</source>
         <target state="new">"Invalid rank specifier: expected ']'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureExpressionVariablesInQueriesAndInitializers">
+        <source>declaration of expression variables in member initializers and queries</source>
+        <target state="new">declaration of expression variables in member initializers and queries</target>
         <note />
       </trans-unit>
     </body>
