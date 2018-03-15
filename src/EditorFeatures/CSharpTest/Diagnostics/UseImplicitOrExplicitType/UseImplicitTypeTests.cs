@@ -2209,5 +2209,143 @@ class Program
     delegate object GetHandler();
 }", new TestParameters(options: ImplicitTypeEverywhere()));
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(24262, "https://github.com/dotnet/roslyn/issues/24262")]
+        public async Task DoNotSuggestVarForInterfaceVariableInForeachStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+public interface ITest
+{
+    string Value { get; }
+}
+public class TestInstance : ITest
+{
+    string ITest.Value => ""Hi"";
+}
+
+public class Test
+{
+    public TestInstance[] Instances { get; }
+
+    public void TestIt()
+    {
+        foreach ([|ITest|] test in Instances)
+        {
+            Console.WriteLine(test.Value);
+        }
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(24262, "https://github.com/dotnet/roslyn/issues/24262")]
+        public async Task DoNotSuggestVarForInterfaceVariableInDeclarationStatement()
+        {
+    await TestMissingInRegularAndScriptAsync(@"
+public interface ITest
+{
+    string Value { get; }
+}
+public class TestInstance : ITest
+{
+    string ITest.Value => ""Hi"";
+}
+
+public class Test
+{
+    public void TestIt()
+    {
+        [|ITest|] test = new TestInstance();
+        Console.WriteLine(test.Value);
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(24262, "https://github.com/dotnet/roslyn/issues/24262")]
+        public async Task DoNotSuggestVarForAbstractClassVariableInForeachStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+public abstract class MyAbClass
+{
+    string Value { get; }
+}
+
+public class TestInstance : MyAbClass
+{
+    public string Value => ""Hi"";
+}
+
+public class Test
+{
+    public TestInstance[] Instances { get; }
+
+    public void TestIt()
+    {
+        foreach ([|MyAbClass|] instance in Instances)
+        {
+            Console.WriteLine(instance);
+        }
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        [WorkItem(24262, "https://github.com/dotnet/roslyn/issues/24262")]
+        public async Task DoNotSuggestVarForAbstractClassVariableInDeclarationStatement()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+public abstract class MyAbClass
+{
+    string Value { get; }
+}
+
+public class TestInstance : MyAbClass
+{
+    public string Value => ""Hi"";
+}
+
+public class Test
+{
+    public TestInstance[] Instances { get; }
+
+    public void TestIt()
+    {
+        [|MyAbClass|]  test = new TestInstance();
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
+
+        [Fact]
+        public async Task DoNoSuggestVarForRefForeachVar()
+        {
+            await TestMissingInRegularAndScriptAsync(@"
+using System;
+namespace System
+{
+    public readonly ref struct Span<T>
+    {
+        unsafe public Span(void* pointer, int length) { }
+
+        public ref SpanEnum GetEnumerator() => throw new Exception();
+
+        public struct SpanEnum
+        {
+            public ref int Current => 0;
+            public bool MoveNext() => false;
+        }
+    }
+}
+class C
+{
+    public void M(Span<int> span)
+    {
+        foreach ([|ref|] var rx in span)
+        {
+        }
+    }
+}", new TestParameters(options: ImplicitTypeEverywhere()));
+        }
     }
 }

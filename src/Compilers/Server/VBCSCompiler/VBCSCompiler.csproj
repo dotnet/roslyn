@@ -58,5 +58,4 @@
     <InternalsVisibleToTest Include="Roslyn.Compilers.CompilerServer.UnitTests" />
   </ItemGroup>
   <Import Project="..\..\Core\CommandLine\CommandLine.projitems" Label="Shared" />
-  <Import Project="..\ServerShared\ServerShared.projitems" Label="Shared" />
 </Project>

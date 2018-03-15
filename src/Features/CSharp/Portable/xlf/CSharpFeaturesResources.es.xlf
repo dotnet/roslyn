@@ -212,16 +212,6 @@
         <target state="translated">Eliminar y ord&amp;enar instrucciones Using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Autoselect_disabled_due_to_potential_implicit_array_creation">
-        <source>Autoselect disabled due to potential implicit array creation.</source>
-        <target state="translated">La selección automática se ha deshabilitado debido posiblemente a la creación de una matriz implícita.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="implicit_array_creation">
-        <source>&lt;implicit array creation&gt;</source>
-        <target state="translated">&lt;creación de matriz implícita&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_await">
         <source>Insert 'await'.</source>
         <target state="translated">Insertar 'await'.</target>
@@ -635,6 +625,11 @@
       <trans-unit id="Use_is_null_check">
         <source>Use 'is null' check</source>
         <target state="translated">Usar comprobación "is null"</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
+        <source>Add parentheses</source>
+        <target state="new">Add parentheses</target>
         <note />
       </trans-unit>
     </body>

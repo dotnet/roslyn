@@ -1,27 +1,63 @@
-<Project>
+<Project DefaultTargets="Build">
 
-  <Import Project="..\..\..\build\Targets\Versions.props" />
-  <Import Project="..\..\..\build\Targets\Packages.props" />
+  <Import Project="..\..\..\build\Targets\Settings.props" />
+
+  <!-- Based on two incoming properties (PublishStableVersions and VersionStampToPublish, determine what packages to push for the .NET Core build
+       PublishStableVersions = false - Push PerBuildPreRelease
+       PublishStableVersions = true - Push either PreRelease or Release, based on VersionStampToPublish value
+       VersionStampToPublish = '' - Push Release
+       VersionStampToPublish != '' - Push PreRelease
+       PublishStableVersions = false and VersionStampToPublish == '' - Error, no per build versioning of release builds
+   -->
 
   <PropertyGroup>
     <PublishOverwrite Condition="'$(PublishOverwrite)' == ''">false</PublishOverwrite>
+    <PublishStableVersions Condition="'$(PublishStableVersions)' == ''">false</PublishStableVersions>
   </PropertyGroup>
 
   <!--
   This is for the internal orchestrated build scenarios and will likely never be run on a
   developer's machine.  The official build definition builds this file directly.
   -->
-  <Import Project="$(NuGetPackageRoot)\Microsoft.DotNet.Build.Tasks.Feed\$(MicrosoftDotNetBuildTasksFeedVersion)\build\Microsoft.DotNet.Build.Tasks.Feed.targets" />
+  <Import Project="$(NuGetPackageRoot)microsoft.dotnet.build.tasks.feed\$(MicrosoftDotNetBuildTasksFeedVersion)\build\Microsoft.DotNet.Build.Tasks.Feed.props" />
+  <Import Project="$(NuGetPackageRoot)microsoft.dotnet.build.tasks.feed\$(MicrosoftDotNetBuildTasksFeedVersion)\build\Microsoft.DotNet.Build.Tasks.Feed.targets" />
 
   <ItemGroup>
-    <ItemsToPush Include="$(OutputPath)\NuGet\**\*.nupkg" />
+    <PackagesToPublish Include="$(OutputPath)\NuGet\PerBuildPreRelease\*.nupkg" Condition="'$(PublishStableVersions)'=='false'"/>
+    <PackagesToPublish Include="$(OutputPath)\NuGet\Release\*.nupkg" Condition="'$(PublishStableVersions)'=='true' and '$(VersionStampToPublish)'==''"/>
+    <PackagesToPublish Include="$(OutputPath)\NuGet\PreRelease\*.nupkg" Condition="'$(PublishStableVersions)'=='true' and '$(VersionStampToPublish)'!=''"/>
   </ItemGroup>
 
   <Target Name="Build">
-    <PushToBlobFeed ExpectedFeedUrl="$(ExpectedFeedUrl)"
-                    AccountKey="$(AccountKey)"
-                    ItemsToPush="@(ItemsToPush)"
-                    Overwrite="$(PublishOverwrite)" />
+    <Error Text="Invalid combination of PublishStableVersions and VersionStampToPublish" Condition="'$(PublishStableVersions)'=='false' and '$(VersionStampToPublish)'==''" />
+    <Error Text="Missing storage account key as PB_PublishBlobFeedKey" Condition="'$(PB_PublishBlobFeedKey)'==''" />
+    <Error Text="Missing expected feed url as PB_PublishBlobFeedUrl" Condition="'$(PB_PublishBlobFeedUrl)'==''" />
+    <Error Text="No Items to push at $(OutputPath)" Condition="'@(PackagesToPublish)'==''" />
+
+    <PropertyGroup>
+      <SymbolPackagesDir>$(RepoRoot)Binaries\SymbolPackages\</SymbolPackagesDir>
+    </PropertyGroup>
+
+    <!--
+      We expect .nupkg to contain Portable PDBs. Such packages can act as symbol packages since they have the same structure.
+      We just need to rename them to *.symbols.nupkg.
+    -->
+    <ItemGroup>
+      <SymbolPackagesToPublish Include="@(PackagesToPublish->'$(SymbolPackagesDir)%(Filename).symbols.nupkg')"/>
+    </ItemGroup>
+
+    <MakeDir Directories="$(SymbolPackagesDir)" />
+    <Copy SourceFiles="@(PackagesToPublish)" DestinationFiles="@(SymbolPackagesToPublish)" />
+
+    <PushToBlobFeed ExpectedFeedUrl="$(PB_PublishBlobFeedUrl)"
+                    AccountKey="$(PB_PublishBlobFeedKey)"
+                    ItemsToPush="@(PackagesToPublish);@(SymbolPackagesToPublish)"
+                    Overwrite="$(PublishOverwrite)"
+                    ManifestBranch="$(BUILD_SOURCEBRANCH)"
+                    ManifestBuildId="$(BUILD_BUILDNUMBER)"
+                    ManifestCommit="$(CommitHashDisplay)"
+                    ManifestName="roslyn"
+                    SkipCreateManifest="false" />
   </Target>
 
 </Project>

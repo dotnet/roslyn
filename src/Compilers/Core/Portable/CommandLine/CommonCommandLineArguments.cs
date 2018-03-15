@@ -223,7 +223,7 @@ namespace Microsoft.CodeAnalysis
         public Encoding Encoding { get; internal set; }
 
         /// <summary>
-        /// Hash algorithm to use to calculate source file debug checksums.
+        /// Hash algorithm to use to calculate source file debug checksums and PDB checksum.
         /// </summary>
         public SourceHashAlgorithm ChecksumAlgorithm { get; internal set; }
 

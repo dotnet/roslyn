@@ -212,16 +212,6 @@
         <target state="translated">U&amp;suń i sortuj wyrażenia using</target>
         <note />
       </trans-unit>
-      <trans-unit id="Autoselect_disabled_due_to_potential_implicit_array_creation">
-        <source>Autoselect disabled due to potential implicit array creation.</source>
-        <target state="translated">Automatyczne zaznaczanie zostało wyłączone z powodu możliwego niejawnego utworzenia tablicy.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="implicit_array_creation">
-        <source>&lt;implicit array creation&gt;</source>
-        <target state="translated">&lt;niejawne utworzenie tablicy&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_await">
         <source>Insert 'await'.</source>
         <target state="translated">Wstaw element „await”.</target>
@@ -635,6 +625,11 @@
       <trans-unit id="Use_is_null_check">
         <source>Use 'is null' check</source>
         <target state="translated">Użyj sprawdzania „is null”</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
+        <source>Add parentheses</source>
+        <target state="new">Add parentheses</target>
         <note />
       </trans-unit>
     </body>

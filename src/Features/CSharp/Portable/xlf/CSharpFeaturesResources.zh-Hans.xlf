@@ -212,16 +212,6 @@
         <target state="translated">对 Using 进行删除和排序(&amp;E)</target>
         <note />
       </trans-unit>
-      <trans-unit id="Autoselect_disabled_due_to_potential_implicit_array_creation">
-        <source>Autoselect disabled due to potential implicit array creation.</source>
-        <target state="translated">由于可能创建隐式数组，已禁用自动选择。</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="implicit_array_creation">
-        <source>&lt;implicit array creation&gt;</source>
-        <target state="translated">&lt;隐式数组创建&gt;</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Insert_await">
         <source>Insert 'await'.</source>
         <target state="translated">插入“await”。</target>
@@ -635,6 +625,11 @@
       <trans-unit id="Use_is_null_check">
         <source>Use 'is null' check</source>
         <target state="translated">使用 "is null" 检查</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Add_parentheses_around_conditional_expression_in_interpolated_string">
+        <source>Add parentheses</source>
+        <target state="new">Add parentheses</target>
         <note />
       </trans-unit>
     </body>

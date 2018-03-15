@@ -480,7 +480,7 @@ public abstract class C
         /// The script entry point should complete synchronously.
         /// </summary>
         [WorkItem(4495, "https://github.com/dotnet/roslyn/issues/4495")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ScriptEntryPoint()
         {
             var source =
@@ -539,7 +539,7 @@ public abstract class C
 }");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void SubmissionEntryPoint()
         {
             var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
@@ -601,7 +601,7 @@ public abstract class C
         public void ScriptEntryPoint_MissingMethods()
         {
             var source = "System.Console.WriteLine(1);";
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            var compilation = CreateCompilationWithMscorlib40(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyEmitDiagnostics(
                 // (1,1): error CS0518: Predefined type 'System.Runtime.CompilerServices.AsyncTaskMethodBuilder`1' is not defined or imported
                 // System.Console.WriteLine(1);

@@ -74,14 +74,14 @@ Public Class BuildDevDivInsertionFiles
         "Newtonsoft.Json.dll",
         "StreamJsonRpc.dll",
         "StreamJsonRpc.resources.dll",
-        "codeAnalysisService.servicehub.service.json",
-        "remoteHostService.servicehub.service.json",
-        "snapshotService.servicehub.service.json",
-        "remoteSymbolSearchUpdateEngine.servicehub.service.json",
-        "codeAnalysisService64.servicehub.service.json",
-        "remoteHostService64.servicehub.service.json",
-        "snapshotService64.servicehub.service.json",
-        "remoteSymbolSearchUpdateEngine64.servicehub.service.json",
+        "roslynCodeAnalysis.servicehub.service.json",
+        "roslynRemoteHost.servicehub.service.json",
+        "roslynSnapshot.servicehub.service.json",
+        "roslynRemoteSymbolSearchUpdateEngine.servicehub.service.json",
+        "roslynCodeAnalysis64.servicehub.service.json",
+        "roslynRemoteHost64.servicehub.service.json",
+        "roslynSnapshot64.servicehub.service.json",
+        "roslynRemoteSymbolSearchUpdateEngine64.servicehub.service.json",
         "Microsoft.Build.Conversion.Core.dll",
         "Microsoft.Build.dll",
         "Microsoft.Build.Engine.dll",
@@ -470,26 +470,6 @@ Public Class BuildDevDivInsertionFiles
             Me.IsNative = isNative
             Me.IsFacade = isFacade
         End Sub
-
-        ' TODO: remove (https://github.com/dotnet/roslyn/issues/13204)
-        ' Don't update CoreXT incompatible packages. They are inserted manually until CoreXT updates to NuGet 3.5 RTM.
-        Public ReadOnly Property IsCoreXTCompatible As Boolean
-            Get
-                Select Case PackageName
-                    Case "System.Security.Cryptography.Algorithms",
-                          "System.Security.Cryptography.X509Certificates",
-                          "System.Reflection.TypeExtensions",
-                          "System.Net.Security",
-                          "System.Diagnostics.Process",
-                          "System.AppContext",
-                          "System.IO.Compression"
-
-                        Return False
-                    Case Else
-                        Return True
-                End Select
-            End Get
-        End Property
     End Class
 
     Private Function BuildDependencyMap(inputDirectory As String) As Dictionary(Of String, DependencyInfo)
@@ -617,12 +597,6 @@ Public Class BuildDevDivInsertionFiles
 
     Private Sub CopyDependencies(dependencies As IReadOnlyDictionary(Of String, DependencyInfo))
         For Each dependency In dependencies.Values
-            ' TODO: remove (https://github.com/dotnet/roslyn/issues/13204)
-            ' Don't update CoreXT incompatible packages. They are inserted manually until CoreXT updates to NuGet 3.5 RTM.
-            If Not dependency.IsCoreXTCompatible Then
-                Continue For
-            End If
-
             Dim nupkg = $"{dependency.PackageName}.{dependency.PackageVersion}.nupkg"
             Dim srcPath = Path.Combine(_nugetPackageRoot, dependency.PackageName, dependency.PackageVersion, nupkg)
             Dim dstDir = Path.Combine(_outputPackageDirectory, If(dependency.IsNative, "NativeDependencies", "ManagedDependencies"))
@@ -767,13 +741,14 @@ Public Class BuildDevDivInsertionFiles
             Dim values = CType(element.Property("values").Value, JArray)
             For Each item As String In values
                 Dim parent = Path.GetDirectoryName(item)
+                Dim name = Path.GetFileName(item)
 
-                ' Don't add in the csc.exe or vbc.exe from the CoreCLR projects.
-                If parent.EndsWith("Core", comparison) Then
+                If parent.EndsWith("NetFX20", comparison) Then
                     Continue For
                 End If
 
-                If parent.EndsWith("NetFX20", comparison) Then
+                ' Don't add in the netcoreapp2.0 version of DLL
+                if Path.GetFileName(parent) = "netcoreapp2.0" AndAlso name = "Microsoft.Build.Tasks.CodeAnalysis.dll" Then
                     Continue For
                 End If
 
@@ -819,8 +794,9 @@ Public Class BuildDevDivInsertionFiles
         add("Dlls\CSharpResultProvider.Portable\Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.ResultProvider.vsdconfig")
         add("Dlls\FunctionResolver\Microsoft.CodeAnalysis.ExpressionEvaluator.FunctionResolver.vsdconfig")
         add("Dlls\ServicesVisualStudio\Microsoft.VisualStudio.LanguageServices.vsdconfig")
-        add("Dlls\MSBuildTask\Microsoft.CSharp.Core.targets")
-        add("Dlls\MSBuildTask\Microsoft.VisualBasic.Core.targets")
+        add("Dlls\MSBuildTask\net46\Microsoft.Managed.Core.targets")
+        add("Dlls\MSBuildTask\net46\Microsoft.CSharp.Core.targets")
+        add("Dlls\MSBuildTask\net46\Microsoft.VisualBasic.Core.targets")
         add("Dlls\CSharpCompilerTestUtilities\Roslyn.Compilers.CSharp.Test.Utilities.dll")
         add("Dlls\BasicCompilerTestUtilities\Roslyn.Compilers.VisualBasic.Test.Utilities.dll")
         add("Dlls\CompilerTestResources\\Roslyn.Compilers.Test.Resources.dll")
@@ -830,23 +806,21 @@ Public Class BuildDevDivInsertionFiles
         add("UnitTests\EditorServicesTest\BasicUndo.dll")
         add("UnitTests\EditorServicesTest\Moq.dll")
         add("UnitTests\EditorServicesTest\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll")
-        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.PortablePdb.dll")
-        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Converter.dll")
-        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Converter.Xml.dll")
-        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.dll")
-        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Native.amd64.dll")
-        add("UnitTests\CSharpCompilerEmitTest\Microsoft.DiaSymReader.Native.x86.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.PortablePdb.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.Converter.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.Converter.Xml.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.Native.amd64.dll")
+        add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.Native.x86.dll")
         add("Vsix\ExpressionEvaluatorPackage\Microsoft.VisualStudio.Debugger.Engine.dll")
         add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.Diagnostics.Runtime.dll")
         add("Exes\Toolset\System.AppContext.dll")
         add("Exes\Toolset\System.Console.dll")
         add("Exes\Toolset\System.Collections.Immutable.dll")
         add("Exes\Toolset\System.Diagnostics.FileVersionInfo.dll")
-        add("Exes\Toolset\System.Diagnostics.Process.dll")
         add("Exes\Toolset\System.Diagnostics.StackTrace.dll")
         add("Exes\Toolset\System.IO.Compression.dll")
         add("Exes\Toolset\System.IO.FileSystem.dll")
-        add("Exes\Toolset\System.IO.FileSystem.DriveInfo.dll")
         add("Exes\Toolset\System.IO.FileSystem.Primitives.dll")
         add("Exes\Toolset\System.IO.Pipes.dll")
         add("Exes\Toolset\System.IO.Pipes.AccessControl.dll")
@@ -859,13 +833,11 @@ Public Class BuildDevDivInsertionFiles
         add("Exes\Toolset\System.Security.Cryptography.X509Certificates.dll")
         add("Exes\Toolset\System.Security.Principal.Windows.dll")
         add("Exes\Toolset\System.Text.Encoding.CodePages.dll")
-        add("Exes\Toolset\System.Threading.Thread.dll")
         add("Exes\Toolset\System.ValueTuple.dll")
         add("Exes\Toolset\System.Xml.ReaderWriter.dll")
         add("Exes\Toolset\System.Xml.XmlDocument.dll")
         add("Exes\Toolset\System.Xml.XPath.dll")
         add("Exes\Toolset\System.Xml.XPath.XDocument.dll")
-        add("Exes\Toolset\Microsoft.Win32.Primitives.dll")
         add("Vsix\VisualStudioSetup\Humanizer.dll")
         Return map
     End Function

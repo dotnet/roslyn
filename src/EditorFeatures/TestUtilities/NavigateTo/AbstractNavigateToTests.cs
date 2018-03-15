@@ -92,12 +92,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 
         internal void InitializeWorkspace(TestWorkspace workspace)
         {
-            var aggregateListener = AggregateAsynchronousOperationListener.CreateEmptyListener();
-
-            _provider = new NavigateToItemProvider(workspace, aggregateListener);
+            _provider = new NavigateToItemProvider(workspace, AsynchronousOperationListenerProvider.NullListener);
             _aggregator = new NavigateToTestAggregator(_provider);
         }
 
+#pragma warning disable CS0618 // MatchKind is obsolete
         protected void VerifyNavigateToResultItems(
             List<NavigateToItem> expecteditems, IEnumerable<NavigateToItem> items)
         {
@@ -182,5 +181,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
             result = a.SecondarySort.CompareTo(b.SecondarySort);
             return result;
         }
+#pragma warning restore CS0618 // MatchKind is obsolete
     }
 }

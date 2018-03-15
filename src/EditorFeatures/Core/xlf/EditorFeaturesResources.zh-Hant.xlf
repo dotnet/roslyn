@@ -1084,139 +1084,69 @@ Do you want to proceed?</source>
         <target state="translated">內嵌重新命名欄位的文字</target>
         <note />
       </trans-unit>
-      <trans-unit id="View_Call_Hierarchy_Command_Handler">
-        <source>View Call Hierarchy Command Handler</source>
-        <target state="new">View Call Hierarchy Command Handler</target>
+      <trans-unit id="Block_Comment_Editing">
+        <source>Block Comment Editing</source>
+        <target state="new">Block Comment Editing</target>
         <note />
       </trans-unit>
-      <trans-unit id="Automatic_Line_Ender_Command_Handler">
-        <source>Automatic Line Ender Command Handler</source>
-        <target state="new">Automatic Line Ender Command Handler</target>
+      <trans-unit id="Comment_Uncomment_Selection">
+        <source>Comment/Uncomment Selection</source>
+        <target state="new">Comment/Uncomment Selection</target>
         <note />
       </trans-unit>
-      <trans-unit id="Block_Comment_Editing_Command_Handler">
-        <source>Block Comment Editing Command Handler</source>
-        <target state="new">Block Comment Editing Command Handler</target>
+      <trans-unit id="Code_Completion">
+        <source>Code Completion</source>
+        <target state="new">Code Completion</target>
         <note />
       </trans-unit>
-      <trans-unit id="Change_Signature_Command_Handler">
-        <source>Change Signature Command Handler</source>
-        <target state="new">Change Signature Command Handler</target>
+      <trans-unit id="Execute_In_Interactive">
+        <source>Execute In Interactive</source>
+        <target state="new">Execute In Interactive</target>
         <note />
       </trans-unit>
-      <trans-unit id="Comment_Uncomment_Selection_Command_Handler">
-        <source>Comment/Uncomment Selection Command Handler</source>
-        <target state="new">Comment/Uncomment Selection Command Handler</target>
+      <trans-unit id="Extract_Interface">
+        <source>Extract Interface</source>
+        <target state="new">Extract Interface</target>
         <note />
       </trans-unit>
-      <trans-unit id="Completion_Command_Handler">
-        <source>Code Completion Command Handler</source>
-        <target state="new">Code Completion Command Handler</target>
+      <trans-unit id="Go_To_Adjacent_Member">
+        <source>Go To Adjacent Member</source>
+        <target state="new">Go To Adjacent Member</target>
         <note />
       </trans-unit>
-      <trans-unit id="Documentation_Comment_Command_Handler">
-        <source>Documentation Comment Command Handler</source>
-        <target state="new">Documentation Comment Command Handler</target>
+      <trans-unit id="Interactive">
+        <source>Interactive</source>
+        <target state="new">Interactive</target>
         <note />
       </trans-unit>
-      <trans-unit id="Encapsulate_Field_Command_Handler">
-        <source>Encapsulate Field Command Handler</source>
-        <target state="new">Encapsulate Field Command Handler</target>
+      <trans-unit id="Navigate_To_Highlight_Reference">
+        <source>Navigate To Highlighted Reference</source>
+        <target state="new">Navigate To Highlighted Reference</target>
         <note />
       </trans-unit>
-      <trans-unit id="Execute_In_Interactive_Command_Handler">
-        <source>Execute In Interactive Command Handler</source>
-        <target state="new">Execute In Interactive Command Handler</target>
+      <trans-unit id="Outlining">
+        <source>Outlining</source>
+        <target state="new">Outlining</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Interface_Command_Handler">
-        <source>Extract Interface Command Handler</source>
-        <target state="new">Extract Interface Command Handler</target>
+      <trans-unit id="Rename_Tracking_Cancellation">
+        <source>Rename Tracking Cancellation</source>
+        <target state="new">Rename Tracking Cancellation</target>
         <note />
       </trans-unit>
-      <trans-unit id="Extract_Method_Command_Handler">
-        <source>Extract Method Command Handler</source>
-        <target state="new">Extract Method Command Handler</target>
+      <trans-unit id="Signature_Help">
+        <source>Signature Help</source>
+        <target state="new">Signature Help</target>
         <note />
       </trans-unit>
-      <trans-unit id="Find_References_Command_Handler">
-        <source>Find References Command Handler</source>
-        <target state="new">Find References Command Handler</target>
+      <trans-unit id="Smart_Token_Formatter">
+        <source>Smart Token Formatter</source>
+        <target state="new">Smart Token Formatter</target>
         <note />
       </trans-unit>
-      <trans-unit id="Format_Command_Handler">
-        <source>Format Command Handler</source>
-        <target state="new">Format Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Go_To_Adjacent_Member_Command_Handler">
-        <source>Go To Adjacent Member Command Handler</source>
-        <target state="new">Go To Adjacent Member Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Go_To_Definition_Command_Handler">
-        <source>Go To Definition Command Handler</source>
-        <target state="new">Go To Definition Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Go_To_Implementation_Command_Handler">
-        <source>Go To Implementation Command Handler</source>
-        <target state="new">Go To Implementation Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="IntelliSense_Command_Handler">
-        <source>IntelliSense Command Handler</source>
-        <target state="new">IntelliSense Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interactive_Command_Handler">
-        <source>Interactive Command Handler</source>
-        <target state="new">Interactive Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Interactive_Paste_Command_Handler">
-        <source>Interactive Paste Command Handler</source>
-        <target state="new">Interactive Paste Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Navigate_To_Highlight_Reference_Command_Handler">
-        <source>Navigate To Highlighted Reference Command Handler</source>
-        <target state="new">Navigate To Highlighted Reference Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Organize_Document_Command_Handler">
-        <source>Organize Document Command Handler</source>
-        <target state="new">Organize Document Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Outlining_Command_Handler">
-        <source>Outlining Command Handler</source>
-        <target state="new">Outlining Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_Command_Handler">
-        <source>Rename Command Handler</source>
-        <target state="new">Rename Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Rename_Tracking_Cancellation_Command_Handler">
-        <source>Rename Tracking Cancellation Command Handler</source>
-        <target state="new">Rename Tracking Cancellation Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Signature_Help_Command_Handler">
-        <source>Signature Help Command Handler</source>
-        <target state="new">Signature Help Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Smart_Token_Formatter_Command_Handler">
-        <source>Smart Token Formatter Command Handler</source>
-        <target state="new">Smart Token Formatter Command Handler</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Xml_Tag_Completion_Command_Handler">
-        <source>XML Tag Completion Command Handler</source>
-        <target state="new">XML Tag Completion Command Handler</target>
+      <trans-unit id="Paste_in_Interactive">
+        <source>Paste in Interactive</source>
+        <target state="new">Paste in Interactive</target>
         <note />
       </trans-unit>
     </body>

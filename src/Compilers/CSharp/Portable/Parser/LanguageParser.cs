@@ -450,19 +450,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (body.Members.Count > 0)
             {
-                body.Members[body.Members.Count - 1] = AddTrailingSkippedSyntax(body.Members[body.Members.Count - 1], skippedSyntax);
+                AddTrailingSkippedSyntax(body.Members, skippedSyntax);
             }
             else if (body.Attributes.Count > 0)
             {
-                body.Attributes[body.Attributes.Count - 1] = AddTrailingSkippedSyntax(body.Attributes[body.Attributes.Count - 1], skippedSyntax);
+                AddTrailingSkippedSyntax(body.Attributes, skippedSyntax);
             }
             else if (body.Usings.Count > 0)
             {
-                body.Usings[body.Usings.Count - 1] = AddTrailingSkippedSyntax(body.Usings[body.Usings.Count - 1], skippedSyntax);
+                AddTrailingSkippedSyntax(body.Usings, skippedSyntax);
             }
             else if (body.Externs.Count > 0)
             {
-                body.Externs[body.Externs.Count - 1] = AddTrailingSkippedSyntax(body.Externs[body.Externs.Count - 1], skippedSyntax);
+                AddTrailingSkippedSyntax(body.Externs, skippedSyntax);
             }
             else if (openBrace != null)
             {
@@ -3275,7 +3275,7 @@ parse_member_name:;
                 var action = SkipBadTokensWithExpectedKind(isNotExpectedFunction, abortFunction, expected, out lastItemTrailingTrivia);
                 if (lastItemTrailingTrivia != null)
                 {
-                    list[list.Count - 1] = AddTrailingSkippedSyntax((CSharpSyntaxNode)list[list.Count - 1], lastItemTrailingTrivia);
+                    AddTrailingSkippedSyntax(list, lastItemTrailingTrivia);
                 }
                 trailingTrivia = null;
                 return action;
@@ -3299,7 +3299,7 @@ parse_member_name:;
                 var action = SkipBadTokensWithErrorCode(isNotExpectedFunction, abortFunction, error, out lastItemTrailingTrivia);
                 if (lastItemTrailingTrivia != null)
                 {
-                    list[list.Count - 1] = AddTrailingSkippedSyntax(list[list.Count - 1], lastItemTrailingTrivia);
+                    AddTrailingSkippedSyntax(list, lastItemTrailingTrivia);
                 }
                 trailingTrivia = null;
                 return action;
@@ -7628,6 +7628,12 @@ tryAgain:
                 if (isDeclaration)
                 {
                     decl = ParseVariableDeclaration();
+                    if (decl.Type.Kind == SyntaxKind.RefType)
+                    {
+                        decl = decl.Update(
+                            CheckFeatureAvailability(decl.Type, MessageID.IDS_FeatureRefFor),
+                            decl.Variables);
+                    }
                 }
                 else if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
                 {
@@ -7738,6 +7744,7 @@ tryAgain:
             }
 
             var openParen = this.EatToken(SyntaxKind.OpenParenToken);
+
             var variable = ParseExpressionOrDeclaration(ParseTypeMode.Normal, feature: MessageID.IDS_FeatureTuples, permitTupleDesignation: true);
             var @in = this.EatToken(SyntaxKind.InKeyword, ErrorCode.ERR_InExpected);
             if (!IsValidForeachVariable(variable))
@@ -7749,27 +7756,37 @@ tryAgain:
             var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
             var statement = this.ParseEmbeddedStatement();
 
-            var decl = variable as DeclarationExpressionSyntax;
-            if (decl != null && decl.designation.Kind != SyntaxKind.ParenthesizedVariableDesignation)
+            if (variable is DeclarationExpressionSyntax decl)
             {
-                // if we see a foreach declaration that isn't a deconstruction, we use the old form of foreach syntax node.
-                SyntaxToken identifier;
-                switch (decl.designation.Kind)
+                if (decl.Type.Kind == SyntaxKind.RefType)
                 {
-                    case SyntaxKind.SingleVariableDesignation:
-                        identifier = ((SingleVariableDesignationSyntax)decl.designation).identifier;
-                        break;
-                    case SyntaxKind.DiscardDesignation:
-                        // revert the identifier from its contextual underscore back to an identifier.
-                        var discard = ((DiscardDesignationSyntax)decl.designation).underscoreToken;
-                        Debug.Assert(discard.Kind == SyntaxKind.UnderscoreToken);
-                        identifier = SyntaxToken.WithValue(SyntaxKind.IdentifierToken, discard.LeadingTrivia.Node, discard.Text, discard.ValueText, discard.TrailingTrivia.Node);
-                        break;
-                    default:
-                        throw ExceptionUtilities.UnexpectedValue(decl.designation.Kind);
+                    decl = decl.Update(
+                        CheckFeatureAvailability(decl.Type, MessageID.IDS_FeatureRefForEach),
+                        decl.Designation);
                 }
 
-                return _syntaxFactory.ForEachStatement(@foreach, openParen, decl.Type, identifier, @in, expression, closeParen, statement);
+
+                if (decl.designation.Kind != SyntaxKind.ParenthesizedVariableDesignation)
+                {
+                    // if we see a foreach declaration that isn't a deconstruction, we use the old form of foreach syntax node.
+                    SyntaxToken identifier;
+                    switch (decl.designation.Kind)
+                    {
+                        case SyntaxKind.SingleVariableDesignation:
+                            identifier = ((SingleVariableDesignationSyntax)decl.designation).identifier;
+                            break;
+                        case SyntaxKind.DiscardDesignation:
+                            // revert the identifier from its contextual underscore back to an identifier.
+                            var discard = ((DiscardDesignationSyntax)decl.designation).underscoreToken;
+                            Debug.Assert(discard.Kind == SyntaxKind.UnderscoreToken);
+                            identifier = SyntaxToken.WithValue(SyntaxKind.IdentifierToken, discard.LeadingTrivia.Node, discard.Text, discard.ValueText, discard.TrailingTrivia.Node);
+                            break;
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(decl.designation.Kind);
+                    }
+
+                    return _syntaxFactory.ForEachStatement(@foreach, openParen, decl.Type, identifier, @in, expression, closeParen, statement);
+                }
             }
 
             return _syntaxFactory.ForEachVariableStatement(@foreach, openParen, variable, @in, expression, closeParen, statement);
@@ -9030,14 +9047,10 @@ tryAgain:
                 {
                     if (isAssignmentOperator)
                     {
-                        if (opKind == SyntaxKind.SimpleAssignmentExpression && this.CurrentToken.Kind == SyntaxKind.RefKeyword)
-                        {
-                            var refToken = this.EatToken();
-                            refToken = this.AddError(refToken, ErrorCode.ERR_UnexpectedToken, refToken.Text);
-                            opToken = AddTrailingSkippedSyntax(opToken, refToken);
-                        }
-
-                        leftOperand = _syntaxFactory.AssignmentExpression(opKind, leftOperand, opToken, this.ParseSubExpression(newPrecedence));
+                        ExpressionSyntax rhs = opKind == SyntaxKind.SimpleAssignmentExpression && CurrentToken.Kind == SyntaxKind.RefKeyword
+                            ? rhs = CheckFeatureAvailability(ParsePossibleRefExpression(), MessageID.IDS_FeatureRefReassignment)
+                            : rhs = this.ParseSubExpression(newPrecedence);
+                        leftOperand = _syntaxFactory.AssignmentExpression(opKind, leftOperand, opToken, rhs);
                     }
                     else
                     {
@@ -10600,13 +10613,32 @@ tryAgain:
             var commas = _pool.Allocate();
             try
             {
-                while (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                int lastTokenPosition = -1;
+                while (IsMakingProgress(ref lastTokenPosition))
                 {
-                    commas.Add(this.EatToken());
+                    if (this.IsPossibleExpression())
+                    {
+                        var size = this.AddError(this.ParseExpressionCore(), ErrorCode.ERR_InvalidArray);
+                        if (commas.Count == 0)
+                        {
+                            openBracket = AddTrailingSkippedSyntax(openBracket, size);
+                        }
+                        else
+                        {
+                            AddTrailingSkippedSyntax(commas, size);
+                        }
+                    }
+
+                    if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                    {
+                        commas.Add(this.EatToken());
+                        continue;
+                    }
+
+                    break;
                 }
 
                 var closeBracket = this.EatToken(SyntaxKind.CloseBracketToken);
-
                 var initializer = this.ParseArrayInitializer();
 
                 return _syntaxFactory.ImplicitArrayCreationExpression(@new, openBracket, commas.ToList(), closeBracket, initializer);
@@ -10816,7 +10848,7 @@ tryAgain:
 
                         // additional parameters
                         int tokenProgress = -1;
-                        while(IsMakingProgress(ref tokenProgress))
+                        while (IsMakingProgress(ref tokenProgress))
                         {
                             if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
                             {

@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -2691,6 +2692,70 @@ namespace ClassLibrary7
 
                 Assert.True(completionList.Items.Any(c => c.DisplayText == "Bar()"));
                 Assert.False(completionList.Items.Any(c => c.DisplayText == "Goo()"));
+            }
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestInParameter()
+        {
+            var source = XElement.Parse(@"<Workspace>
+    <Project Name=""P1"" Language=""C#"" LanguageVersion=""Latest"" CommonReferences=""true"" AssemblyName=""Proj1"">
+        <Document FilePath=""CurrentDocument.cs""><![CDATA[
+public class SomeClass : Base
+{
+    override $$
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>");
+
+            using (var workspace = TestWorkspace.Create(source))
+            {
+                var before = @"
+public abstract class Base
+{
+    public abstract void M(in int x);
+}";
+
+                var after = @"
+public class SomeClass : Base
+{
+    public override void M(in int x)
+    {
+        throw new System.NotImplementedException();
+    }
+}
+";
+
+                var origComp = await workspace.CurrentSolution.Projects.Single().GetCompilationAsync();
+                var options = CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.Latest);
+                var libComp = origComp.RemoveAllSyntaxTrees().AddSyntaxTrees(CSharpSyntaxTree.ParseText(before, options: options));
+                var libRef = MetadataReference.CreateFromImage(Test.Utilities.CompilationExtensions.EmitToArray(libComp));
+
+                var project = workspace.CurrentSolution.Projects.Single();
+                var updatedProject = project.AddMetadataReference(libRef);
+                workspace.ChangeSolution(updatedProject.Solution);
+
+                var provider = new OverrideCompletionProvider();
+                var testDocument = workspace.Documents.First(d => d.Name == "CurrentDocument.cs");
+                var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+
+                var service = GetCompletionService(workspace);
+                var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Invoke);
+                var completionItem = completionList.Items.Where(c => c.DisplayText == "M(in int x)").Single();
+
+                var commit = await service.GetChangeAsync(document, completionItem, commitKey: null, CancellationToken.None);
+
+                var text = await document.GetTextAsync();
+                var newText = text.WithChanges(commit.TextChange);
+                var newDoc = document.WithText(newText);
+                document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution);
+
+                var textBuffer = workspace.Documents.Single().TextBuffer;
+                string actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
+
+                Assert.Equal(after, actualCodeAfterCommit);
             }
         }
     }
