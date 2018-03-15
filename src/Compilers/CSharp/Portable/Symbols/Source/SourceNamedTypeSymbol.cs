@@ -737,6 +737,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasSecurityCriticalAttributes = true;
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.SkipLocalsInitAttribute))
+            {
+                arguments.GetOrCreateData<TypeWellKnownAttributeData>().HasSkipLocalsInitAttribute = true;
+            }
             else if (_lazyIsExplicitDefinitionOfNoPiaLocalType == ThreeState.Unknown && attribute.IsTargetAttribute(this, AttributeDescription.TypeIdentifierAttribute))
             {
                 _lazyIsExplicitDefinitionOfNoPiaLocalType = ThreeState.True;
@@ -941,6 +945,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var data = this.GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSerializableAttribute;
+            }
+        }
+
+        public sealed override bool AreLocalsZeroed
+        {
+            get
+            {
+                var data = this.GetDecodedWellKnownAttributeData();
+
+                if (data != null)
+                {
+                    return !data.HasSkipLocalsInitAttribute;
+                }
+
+                return ContainingType?.AreLocalsZeroed ?? true;
             }
         }
 
