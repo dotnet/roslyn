@@ -1566,8 +1566,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnmanagedConstraintNotSatisfied = 8377,
         ERR_UnmanagedConstraintWithLocalFunctions = 8378,
         ERR_ConWithUnmanagedCon = 8379,
-
         ERR_UnmanagedBoundWithClass = 8380,
+
+        ERR_InvalidStackAllocArray = 8381,
 
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }

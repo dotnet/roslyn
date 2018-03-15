@@ -10322,7 +10322,7 @@ tryAgain:
                 {
                     initializer = this.ParseArrayInitializer();
                 }
-                else if (type.Kind == SyntaxKind.ArrayType)
+                else
                 {
                     var rankSpec = ((ArrayTypeSyntax)type).RankSpecifiers[0];
                     if (GetNumberOfNonOmittedArraySizes(rankSpec) == 0)
@@ -10598,10 +10598,11 @@ tryAgain:
                 }
             }
         }
-        
+
         private bool IsImplicitlyTypedArray()
         {
-            return this.CurrentToken.Kind == SyntaxKind.NewKeyword && this.PeekToken(1).Kind == SyntaxKind.OpenBracketToken;
+            Debug.Assert(this.CurrentToken.Kind == SyntaxKind.NewKeyword || this.CurrentToken.Kind == SyntaxKind.StackAllocKeyword);
+            return this.PeekToken(1).Kind == SyntaxKind.OpenBracketToken;
         }
 
         private ImplicitArrayCreationExpressionSyntax ParseImplicitlyTypedArrayCreation()
@@ -10717,11 +10718,68 @@ tryAgain:
                 expected);
         }
 
-        private StackAllocArrayCreationExpressionSyntax ParseStackAllocExpression()
+        private ExpressionSyntax ParseStackAllocExpression()
         {
-            var stackAlloc = this.EatToken(SyntaxKind.StackAllocKeyword);
+            if (this.IsImplicitlyTypedArray())
+            {
+                return ParseImplicitlyTypedStackAllocExpression();
+            }
+            else
+            {
+                return ParseRegularStackAllocExpression();
+            }
+        }
+
+        private ExpressionSyntax ParseImplicitlyTypedStackAllocExpression()
+        {
+            var @stackalloc = this.EatToken(SyntaxKind.StackAllocKeyword);
+            @stackalloc = CheckFeatureAvailability(@stackalloc, MessageID.IDS_FeatureStackAllocInitializer);
+            var openBracket = this.EatToken(SyntaxKind.OpenBracketToken);
+
+            int lastTokenPosition = -1;
+            while (IsMakingProgress(ref lastTokenPosition))
+            {
+                if (this.IsPossibleExpression())
+                {
+                    var size = this.AddError(this.ParseExpressionCore(), ErrorCode.ERR_InvalidStackAllocArray);
+                    openBracket = AddTrailingSkippedSyntax(openBracket, size);
+                }
+
+                if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
+                {
+                    var comma = this.AddError(this.EatToken(), ErrorCode.ERR_InvalidStackAllocArray);
+                    openBracket = AddTrailingSkippedSyntax(openBracket, comma);
+                    continue;
+                }
+
+                break;
+            }
+
+            var closeBracket = this.EatToken(SyntaxKind.CloseBracketToken);
+            var initializer = this.ParseArrayInitializer();
+            return _syntaxFactory.ImplicitStackAllocArrayCreationExpression(@stackalloc, openBracket, closeBracket, initializer);
+        }
+
+        private ExpressionSyntax ParseRegularStackAllocExpression()
+        {
+            var @stackalloc = this.EatToken(SyntaxKind.StackAllocKeyword);
             var elementType = this.ParseType(expectSizes: true);
-            return _syntaxFactory.StackAllocArrayCreationExpression(stackAlloc, elementType);
+            InitializerExpressionSyntax initializer = null;
+            if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
+            {
+                @stackalloc = CheckFeatureAvailability(@stackalloc, MessageID.IDS_FeatureStackAllocInitializer);
+                initializer = this.ParseArrayInitializer();
+            }
+            else if (elementType.Kind == SyntaxKind.ArrayType)
+            {
+                var rankSpec = ((ArrayTypeSyntax)elementType).RankSpecifiers[0];
+                if (GetNumberOfNonOmittedArraySizes(rankSpec) == 0)
+                {
+                    elementType = this.AddError(elementType, rankSpec, ErrorCode.ERR_MissingArraySize);
+                }
+            }
+
+            return _syntaxFactory.StackAllocArrayCreationExpression(@stackalloc, elementType, initializer);
         }
 
         private AnonymousMethodExpressionSyntax ParseAnonymousMethodExpression()
