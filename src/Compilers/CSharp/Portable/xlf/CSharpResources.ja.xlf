@@ -2478,7 +2478,7 @@ If such a class is used as a base class and if the deriving class defines a dest
       </trans-unit>
       <trans-unit id="ERR_EnumsCantContainDefaultConstructor">
         <source>Enums cannot contain explicit parameterless constructors</source>
-        <target state="translated">列挙型は明示的なパラメーターなしのコンス トラクターを含めることはできません</target>
+        <target state="translated">列挙型は明示的なパラメーターなしのコンストラクターを含めることはできません</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_CantOverrideBogusMethod">
@@ -8602,7 +8602,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
-        <target state="new">Invalid hash algorithm name: '{0}'</target>
+        <target state="translated">無効なハッシュ アルゴリズム名: '{0}'</target>
         <note />
       </trans-unit>
     </body>

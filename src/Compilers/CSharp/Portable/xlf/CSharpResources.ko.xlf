@@ -8602,7 +8602,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
-        <target state="new">Invalid hash algorithm name: '{0}'</target>
+        <target state="translated">잘못된 해시 알고리즘 이름: '{0}'</target>
         <note />
       </trans-unit>
     </body>

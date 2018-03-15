@@ -8602,7 +8602,7 @@ Para incorporar informações de tipo de interoperabilidade para os dois assembl
       </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
-        <target state="new">Invalid hash algorithm name: '{0}'</target>
+        <target state="translated">Nome de algoritmo de hash inválido: '{0}'</target>
         <note />
       </trans-unit>
     </body>
