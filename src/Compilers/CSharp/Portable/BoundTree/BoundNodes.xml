@@ -96,6 +96,11 @@
     <Field Name="RefKind" Type="RefKind" Null="NotApplicable"/>
   </Node>
 
+  <!-- Wrapper node used to prevent passing the underlying expression by direct reference -->
+  <Node Name="BoundPassByCopy" Base="BoundExpression">
+    <Field Name="Expression" Type="BoundExpression"/>
+  </Node>
+  
   <!-- 
   An expression is classified as one of the following:
   A value. Every value has an associated type.
@@ -1444,7 +1449,8 @@
 
   <Node Name="BoundStackAllocArrayCreation" Base="BoundExpression">
     <Field Name="ElementType" Type="TypeSymbol" Null="disallow"/>
-    <Field Name="Count" Type="BoundExpression"/>
+    <Field Name="Count" Type="BoundExpression" Null="disallow" />
+    <Field Name="InitializerOpt" Type="BoundArrayInitialization" Null="allow"/>
   </Node>
 
   <Node Name="BoundConvertedStackAllocExpression" Base="BoundStackAllocArrayCreation">

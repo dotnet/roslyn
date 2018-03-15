@@ -142,14 +142,12 @@ namespace Microsoft.CodeAnalysis.SQLite
         private readonly Stack<SqlConnection> _connectionsPool = new Stack<SqlConnection>();
 
         public SQLitePersistentStorage(
-            IOptionService optionService,
             string workingFolderPath,
             string solutionFilePath,
             string databaseFile,
-            Action<AbstractPersistentStorage> disposer,
             IDisposable dbOwnershipLock,
             IPersistentStorageFaultInjector faultInjectorOpt)
-            : base(optionService, workingFolderPath, solutionFilePath, databaseFile, disposer)
+            : base(workingFolderPath, solutionFilePath, databaseFile)
         {
             _dbOwnershipLock = dbOwnershipLock;
             _faultInjectorOpt = faultInjectorOpt;
@@ -190,7 +188,7 @@ namespace Microsoft.CodeAnalysis.SQLite
             }
         }
 
-        public override void Close()
+        public override void Dispose()
         {
             // Flush all pending writes so that all data our features wanted written
             // are definitely persisted to the DB.
@@ -244,7 +242,7 @@ namespace Microsoft.CodeAnalysis.SQLite
         private PooledConnection GetPooledConnection()
             => new PooledConnection(this, GetConnection());
 
-        public override void Initialize(Solution solution)
+        public void Initialize(Solution solution)
         {
             // Create a connection to the DB and ensure it has tables for the types we care about. 
             using (var pooledConnection = GetPooledConnection())

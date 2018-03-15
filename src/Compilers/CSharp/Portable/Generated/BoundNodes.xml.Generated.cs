@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         GlobalStatementInitializer,
         DeconstructValuePlaceholder,
         Dup,
+        PassByCopy,
         BadExpression,
         BadStatement,
         TypeExpression,
@@ -477,6 +478,37 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (refKind != this.RefKind || type != this.Type)
             {
                 var result = new BoundDup(this.Syntax, refKind, type, this.HasErrors);
+                result.WasCompilerGenerated = this.WasCompilerGenerated;
+                return result;
+            }
+            return this;
+        }
+    }
+
+    internal sealed partial class BoundPassByCopy : BoundExpression
+    {
+        public BoundPassByCopy(SyntaxNode syntax, BoundExpression expression, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.PassByCopy, syntax, type, hasErrors || expression.HasErrors())
+        {
+
+            Debug.Assert(expression != null, "Field 'expression' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
+
+            this.Expression = expression;
+        }
+
+
+        public BoundExpression Expression { get; }
+
+        public override BoundNode Accept(BoundTreeVisitor visitor)
+        {
+            return visitor.VisitPassByCopy(this);
+        }
+
+        public BoundPassByCopy Update(BoundExpression expression, TypeSymbol type)
+        {
+            if (expression != this.Expression || type != this.Type)
+            {
+                var result = new BoundPassByCopy(this.Syntax, expression, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -5246,7 +5278,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundStackAllocArrayCreation : BoundExpression
     {
-        protected BoundStackAllocArrayCreation(BoundKind kind, SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, TypeSymbol type, bool hasErrors = false)
+        protected BoundStackAllocArrayCreation(BoundKind kind, SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, BoundArrayInitialization initializerOpt, TypeSymbol type, bool hasErrors = false)
             : base(kind, syntax, type, hasErrors)
         {
 
@@ -5255,10 +5287,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.ElementType = elementType;
             this.Count = count;
+            this.InitializerOpt = initializerOpt;
         }
 
-        public BoundStackAllocArrayCreation(SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.StackAllocArrayCreation, syntax, type, hasErrors || count.HasErrors())
+        public BoundStackAllocArrayCreation(SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, BoundArrayInitialization initializerOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.StackAllocArrayCreation, syntax, type, hasErrors || count.HasErrors() || initializerOpt.HasErrors())
         {
 
             Debug.Assert(elementType != null, "Field 'elementType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -5266,6 +5299,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             this.ElementType = elementType;
             this.Count = count;
+            this.InitializerOpt = initializerOpt;
         }
 
 
@@ -5273,16 +5307,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression Count { get; }
 
+        public BoundArrayInitialization InitializerOpt { get; }
+
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitStackAllocArrayCreation(this);
         }
 
-        public BoundStackAllocArrayCreation Update(TypeSymbol elementType, BoundExpression count, TypeSymbol type)
+        public BoundStackAllocArrayCreation Update(TypeSymbol elementType, BoundExpression count, BoundArrayInitialization initializerOpt, TypeSymbol type)
         {
-            if (elementType != this.ElementType || count != this.Count || type != this.Type)
+            if (elementType != this.ElementType || count != this.Count || initializerOpt != this.InitializerOpt || type != this.Type)
             {
-                var result = new BoundStackAllocArrayCreation(this.Syntax, elementType, count, type, this.HasErrors);
+                var result = new BoundStackAllocArrayCreation(this.Syntax, elementType, count, initializerOpt, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -5292,8 +5328,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConvertedStackAllocExpression : BoundStackAllocArrayCreation
     {
-        public BoundConvertedStackAllocExpression(SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, TypeSymbol type, bool hasErrors = false)
-            : base(BoundKind.ConvertedStackAllocExpression, syntax, elementType, count, type, hasErrors || count.HasErrors())
+        public BoundConvertedStackAllocExpression(SyntaxNode syntax, TypeSymbol elementType, BoundExpression count, BoundArrayInitialization initializerOpt, TypeSymbol type, bool hasErrors = false)
+            : base(BoundKind.ConvertedStackAllocExpression, syntax, elementType, count, initializerOpt, type, hasErrors || count.HasErrors() || initializerOpt.HasErrors())
         {
 
             Debug.Assert(elementType != null, "Field 'elementType' cannot be null (use Null=\"allow\" in BoundNodes.xml to remove this check)");
@@ -5308,11 +5344,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitConvertedStackAllocExpression(this);
         }
 
-        public new BoundConvertedStackAllocExpression Update(TypeSymbol elementType, BoundExpression count, TypeSymbol type)
+        public new BoundConvertedStackAllocExpression Update(TypeSymbol elementType, BoundExpression count, BoundArrayInitialization initializerOpt, TypeSymbol type)
         {
-            if (elementType != this.ElementType || count != this.Count || type != this.Type)
+            if (elementType != this.ElementType || count != this.Count || initializerOpt != this.InitializerOpt || type != this.Type)
             {
-                var result = new BoundConvertedStackAllocExpression(this.Syntax, elementType, count, type, this.HasErrors);
+                var result = new BoundConvertedStackAllocExpression(this.Syntax, elementType, count, initializerOpt, type, this.HasErrors);
                 result.WasCompilerGenerated = this.WasCompilerGenerated;
                 return result;
             }
@@ -6170,6 +6206,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitDeconstructValuePlaceholder(node as BoundDeconstructValuePlaceholder, arg);
                 case BoundKind.Dup: 
                     return VisitDup(node as BoundDup, arg);
+                case BoundKind.PassByCopy: 
+                    return VisitPassByCopy(node as BoundPassByCopy, arg);
                 case BoundKind.BadExpression: 
                     return VisitBadExpression(node as BoundBadExpression, arg);
                 case BoundKind.BadStatement: 
@@ -6489,6 +6527,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node, arg);
         }
         public virtual R VisitDup(BoundDup node, A arg)
+        {
+            return this.DefaultVisit(node, arg);
+        }
+        public virtual R VisitPassByCopy(BoundPassByCopy node, A arg)
         {
             return this.DefaultVisit(node, arg);
         }
@@ -7093,6 +7135,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.DefaultVisit(node);
         }
         public virtual BoundNode VisitDup(BoundDup node)
+        {
+            return this.DefaultVisit(node);
+        }
+        public virtual BoundNode VisitPassByCopy(BoundPassByCopy node)
         {
             return this.DefaultVisit(node);
         }
@@ -7703,6 +7749,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
         public override BoundNode VisitDup(BoundDup node)
         {
+            return null;
+        }
+        public override BoundNode VisitPassByCopy(BoundPassByCopy node)
+        {
+            this.Visit(node.Expression);
             return null;
         }
         public override BoundNode VisitBadExpression(BoundBadExpression node)
@@ -8327,11 +8378,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
         {
             this.Visit(node.Count);
+            this.Visit(node.InitializerOpt);
             return null;
         }
         public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
         {
             this.Visit(node.Count);
+            this.Visit(node.InitializerOpt);
             return null;
         }
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
@@ -8483,6 +8536,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             TypeSymbol type = this.VisitType(node.Type);
             return node.Update(node.RefKind, type);
+        }
+        public override BoundNode VisitPassByCopy(BoundPassByCopy node)
+        {
+            BoundExpression expression = (BoundExpression)this.Visit(node.Expression);
+            TypeSymbol type = this.VisitType(node.Type);
+            return node.Update(expression, type);
         }
         public override BoundNode VisitBadExpression(BoundBadExpression node)
         {
@@ -9190,16 +9249,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
         {
             BoundExpression count = (BoundExpression)this.Visit(node.Count);
+            BoundArrayInitialization initializerOpt = (BoundArrayInitialization)this.Visit(node.InitializerOpt);
             TypeSymbol elementType = this.VisitType(node.ElementType);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(elementType, count, type);
+            return node.Update(elementType, count, initializerOpt, type);
         }
         public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
         {
             BoundExpression count = (BoundExpression)this.Visit(node.Count);
+            BoundArrayInitialization initializerOpt = (BoundArrayInitialization)this.Visit(node.InitializerOpt);
             TypeSymbol elementType = this.VisitType(node.ElementType);
             TypeSymbol type = this.VisitType(node.Type);
-            return node.Update(elementType, count, type);
+            return node.Update(elementType, count, initializerOpt, type);
         }
         public override BoundNode VisitFieldAccess(BoundFieldAccess node)
         {
@@ -9399,6 +9460,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new TreeDumperNode("dup", null, new TreeDumperNode[]
             {
                 new TreeDumperNode("refKind", node.RefKind, null),
+                new TreeDumperNode("type", node.Type, null)
+            }
+            );
+        }
+        public override TreeDumperNode VisitPassByCopy(BoundPassByCopy node, object arg)
+        {
+            return new TreeDumperNode("passByCopy", null, new TreeDumperNode[]
+            {
+                new TreeDumperNode("expression", null, new TreeDumperNode[] { Visit(node.Expression, null) }),
                 new TreeDumperNode("type", node.Type, null)
             }
             );
@@ -10656,6 +10726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 new TreeDumperNode("elementType", node.ElementType, null),
                 new TreeDumperNode("count", null, new TreeDumperNode[] { Visit(node.Count, null) }),
+                new TreeDumperNode("initializerOpt", null, new TreeDumperNode[] { Visit(node.InitializerOpt, null) }),
                 new TreeDumperNode("type", node.Type, null)
             }
             );
@@ -10666,6 +10737,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 new TreeDumperNode("elementType", node.ElementType, null),
                 new TreeDumperNode("count", null, new TreeDumperNode[] { Visit(node.Count, null) }),
+                new TreeDumperNode("initializerOpt", null, new TreeDumperNode[] { Visit(node.InitializerOpt, null) }),
                 new TreeDumperNode("type", node.Type, null)
             }
             );

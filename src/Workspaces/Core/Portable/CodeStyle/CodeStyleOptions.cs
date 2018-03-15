@@ -205,6 +205,8 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                             return new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.Always, notificationOpt);
                         case "for_non_interface_members":
                             return new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.ForNonInterfaceMembers, notificationOpt);
+                        case "omit_if_default":
+                            return new CodeStyleOption<AccessibilityModifiersRequired>(AccessibilityModifiersRequired.OmitIfDefault, notificationOpt);
                     }
                 }
             }

@@ -7486,7 +7486,7 @@ class C
     </Project>
 </Workspace>";
 
-            var expectedDescription = $"(field) int C.x";
+            var expectedDescription = $"({ FeaturesResources.field }) int C.x";
             await VerifyItemInLinkedFilesAsync(markup, "x", expectedDescription);
         }
 
@@ -9250,6 +9250,33 @@ class C
 @"public static class Extensions { public static T Get<T>(this object o) => $$}
 ";
             await VerifyItemExistsAsync(markup, "o");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task EnumConstraint()
+        {
+            var markup =
+@"public class X<T> where T : System.$$
+";
+            await VerifyItemExistsAsync(markup, "Enum");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task DelegateConstraint()
+        {
+            var markup =
+@"public class X<T> where T : System.$$
+";
+            await VerifyItemExistsAsync(markup, "Delegate");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task MulticastDelegateConstraint()
+        {
+            var markup =
+@"public class X<T> where T : System.$$
+";
+            await VerifyItemExistsAsync(markup, "MulticastDelegate");
         }
     }
 }

@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(209695, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=209694")]
         public void ExceptionInReadAllBytes()
         {
@@ -113,13 +113,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .WithStrongNameProvider(provider)
                 .WithCryptoKeyFile(keyFile);
 
-            var comp = CreateStandardCompilation(src, options: options);
+            var comp = CreateCompilation(src, options: options);
             comp.VerifyEmitDiagnostics(
                 // error CS7027: Error signing output with public key from file '{0}' -- '{1}'
                 Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments(keyFile, ex.Message).WithLocation(1, 1));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ExceptionInReadKeysFromContainer()
         {
             var ex = new Exception("Crazy exception you could never have predicted!");
@@ -134,13 +134,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .WithStrongNameProvider(provider)
                 .WithCryptoKeyContainer("RoslynTestContainer");
 
-            var comp = CreateStandardCompilation(src, options: options);
+            var comp = CreateCompilation(src, options: options);
             comp.VerifyEmitDiagnostics(
                 // error CS7028: Error signing output with public key from container 'RoslynTestContainer' -- Crazy exception you could never have predicted!
                 Diagnostic(ErrorCode.ERR_PublicKeyContainerFailure).WithArguments("RoslynTestContainer", ex.Message).WithLocation(1, 1));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void BadInputStream()
         {
             string src = @"
@@ -153,7 +153,7 @@ class C
                 .WithStrongNameProvider(testProvider)
                 .WithCryptoKeyContainer("RoslynTestContainer");
 
-            var comp = CreateStandardCompilation(src, options: options);
+            var comp = CreateCompilation(src, options: options);
 
             comp.Emit(new MemoryStream()).Diagnostics.Verify(
                 // error CS8104: An error occurred while writing the Portable Executable file.

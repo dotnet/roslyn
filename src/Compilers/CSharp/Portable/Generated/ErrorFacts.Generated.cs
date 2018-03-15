@@ -177,6 +177,7 @@
                 case ErrorCode.WRN_UnreferencedLocalFunction:
                 case ErrorCode.WRN_FilterIsConstantFalse:
                 case ErrorCode.WRN_FilterIsConstantFalseRedundantTryCatch:
+                case ErrorCode.WRN_AttributesOnBackingFieldsNotAvailable:
                     return true;
                 default:
                     return false;

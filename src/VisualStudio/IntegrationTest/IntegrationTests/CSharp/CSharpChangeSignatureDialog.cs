@@ -21,14 +21,13 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17393"),
-         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyCodeRefactoringOffered()
         {
             SetUpEditor(@"
 class C
 {
-    public void Method(int a, string b) { }
+    public void Method$$(int a, string b) { }
 }");
 
             VisualStudio.Editor.InvokeCodeActionList();
@@ -56,8 +55,7 @@ class C
 }", actualText);
         }
 
-        [Fact (Skip = "https://github.com/dotnet/roslyn/issues/17640"),
-         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyReorderParameters()
         {
             SetUpEditor(@"
@@ -80,8 +78,7 @@ class C
 }", actuaText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17680"),
-         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyRemoveParameter()
         {
             SetUpEditor(@"
@@ -115,7 +112,7 @@ class C
     /// A method.
     /// </summary>
     /// <param name=""a""></param>
-    ///
+    /// 
     public void Method(int a) { }
 
     void Test()
@@ -125,8 +122,7 @@ class C
 }", actuaText);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/17680"),
-         Trait(Traits.Feature, Traits.Features.ChangeSignature)]
+        [Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)]
         public void VerifyCrossLanguageGlobalUndo()
         {
             SetUpEditor(@"using VBProject;

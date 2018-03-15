@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Notification;
+using Microsoft.CodeAnalysis.Remote.Diagnostics;
 using Microsoft.CodeAnalysis.Remote.Services;
 using Microsoft.CodeAnalysis.Remote.Storage;
 using Microsoft.CodeAnalysis.Storage;
@@ -29,13 +30,16 @@ namespace Microsoft.CodeAnalysis.Remote
     /// 
     /// basically, this is used to manage lifetime of the service hub.
     /// </summary>
-    internal class RemoteHostService : ServiceHubServiceBase, IRemoteHostService
+    internal partial class RemoteHostService : ServiceHubServiceBase, IRemoteHostService
     {
+        private readonly static TimeSpan s_reportInterval = TimeSpan.FromMinutes(2);
+
         // it is saved here more on debugging purpose.
         private static Func<FunctionId, bool> s_logChecker = _ => false;
 
         private string _host;
         private int _primaryInstance;
+        private PerformanceReporter _performanceReporter;
 
         static RemoteHostService()
         {
@@ -114,22 +118,12 @@ namespace Microsoft.CodeAnalysis.Remote
             }, cancellationToken);
         }
 
-        public void RegisterPrimarySolutionId(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken)
+        public void UpdateSolutionStorageLocation(SolutionId solutionId, string storageLocation, CancellationToken cancellationToken)
         {
             RunService(_ =>
             {
                 var persistentStorageService = GetPersistentStorageService();
-                persistentStorageService?.RegisterPrimarySolution(solutionId);
-                RemotePersistentStorageLocationService.UpdateStorageLocation(solutionId, storageLocation);
-            }, cancellationToken);
-        }
-
-        public void UnregisterPrimarySolutionId(SolutionId solutionId, bool synchronousShutdown, CancellationToken cancellationToken)
-        {
-            RunService(_ =>
-            {
-                var persistentStorageService = GetPersistentStorageService();
-                persistentStorageService?.UnregisterPrimarySolution(solutionId, synchronousShutdown);
+                persistentStorageService.UpdateStorageLocation(solutionId, storageLocation);
             }, cancellationToken);
         }
 
@@ -205,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Remote
             m["InstanceId"] = _primaryInstance;
         }
 
-        private static void SetGlobalContext(int uiCultureLCID, int cultureLCID, string serializedSession)
+        private void SetGlobalContext(int uiCultureLCID, int cultureLCID, string serializedSession)
         {
             // set global telemetry session
             var session = GetTelemetrySession(serializedSession);
@@ -224,6 +218,13 @@ namespace Microsoft.CodeAnalysis.Remote
             // set both handler as NFW
             FatalError.Handler = WatsonReporter.Report;
             FatalError.NonFatalHandler = WatsonReporter.Report;
+
+            // start performance reporter
+            var diagnosticAnalyzerPerformanceTracker = SolutionService.PrimaryWorkspace.Services.GetService<IPerformanceTrackerService>();
+            if (diagnosticAnalyzerPerformanceTracker != null)
+            {
+                _performanceReporter = new PerformanceReporter(Logger, diagnosticAnalyzerPerformanceTracker, s_reportInterval, ShutdownCancellationToken);
+            }
         }
 
         private static void EnsureCulture(int uiCultureLCID, int cultureLCID)
@@ -261,14 +262,9 @@ namespace Microsoft.CodeAnalysis.Remote
             return session;
         }
 
-        private static AbstractPersistentStorageService GetPersistentStorageService()
+        private static RemotePersistentStorageLocationService GetPersistentStorageService()
         {
-            // A bit slimy.  We just create an adhoc workspace so it will create the singleton
-            // PersistentStorageService.  This service will be shared among all Workspaces we 
-            // create in this process.  So updating it will be seen by all.
-            var workspace = new AdhocWorkspace(RoslynServices.HostServices);
-            var persistentStorageService = workspace.Services.GetService<IPersistentStorageService>() as AbstractPersistentStorageService;
-            return persistentStorageService;
+            return (RemotePersistentStorageLocationService)SolutionService.PrimaryWorkspace.Services.GetService<IPersistentStorageLocationService>();
         }
 
         private RemoteGlobalOperationNotificationService GetGlobalOperationNotificationService()

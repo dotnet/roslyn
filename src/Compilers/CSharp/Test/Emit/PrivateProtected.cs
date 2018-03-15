@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#if NET461
+
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -16,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static readonly string s_publicKeyFile = SigningTestHelpers.PublicKeyFile;
         private static readonly ImmutableArray<byte> s_publicKey = SigningTestHelpers.PublicKey;
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void RejectIncompatibleModifiers()
         {
             string source =
@@ -30,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     private readonly protected int Field6; // ok
 }
 ";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (3,26): error CS0107: More than one protection modifier
                 //     private internal int Field1;
@@ -50,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void AccessibleWhereRequired_01()
         {
             string source =
@@ -69,12 +71,12 @@ public class Derived : Base
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void AccessibleWhereRequired_02()
         {
             string source1 =
@@ -92,7 +94,7 @@ public class Base
     public int this[string x] { private protected set { } get { return 5; } }
     private protected Base() { Event1?.Invoke(); }
 }";
-            var baseCompilation = CreateStandardCompilation(source1, parseOptions: TestOptions.Regular7_2, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider));
+            var baseCompilation = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider));
             var bb = (INamedTypeSymbol)baseCompilation.GlobalNamespace.GetMember("Base");
             foreach (var member in bb.GetMembers())
             {
@@ -127,7 +129,7 @@ public class Base
     Derived(long x) {} // implicit base()
 }
 ";
-            CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
+            CreateCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { new CSharpCompilationReference(baseCompilation) },
                 assemblyName: "WantsIVTAccessButCantHave",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider))
@@ -178,7 +180,7 @@ public class Base
                 //     Derived(long x) {} // implicit base()
                 Diagnostic(ErrorCode.ERR_BadAccess, "Derived").WithArguments("Base.Base()").WithLocation(15, 5)
                 );
-            CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
+            CreateCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { MetadataReference.CreateFromImage(baseCompilation.EmitToArray()) },
                 assemblyName: "WantsIVTAccessButCantHave",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider))
@@ -230,13 +232,13 @@ public class Base
                 Diagnostic(ErrorCode.ERR_BadAccess, "Derived").WithArguments("Base.Base()").WithLocation(15, 5)
                 );
 
-            CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
+            CreateCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { new CSharpCompilationReference(baseCompilation) },
                 assemblyName: "WantsIVTAccess",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider))
                 .VerifyDiagnostics(
                 );
-            CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
+            CreateCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { MetadataReference.CreateFromImage(baseCompilation.EmitToArray()) },
                 assemblyName: "WantsIVTAccess",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider))
@@ -244,7 +246,7 @@ public class Base
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void NotAccessibleWhereRequired()
         {
             string source =
@@ -264,7 +266,7 @@ public class Derived // : Base
     }
 }
 ";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (12,11): error CS0122: 'Base.Field1' is inaccessible due to its protection level
                 //         b.Field1 = 1;
@@ -275,7 +277,7 @@ public class Derived // : Base
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void NotInStructOrNamespace()
         {
             string source =
@@ -284,7 +286,7 @@ public class Derived // : Base
     private protected int Field1;
 }
 ";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (1,18): error CS1527: Elements defined in a namespace cannot be explicitly declared as private, protected, protected internal, or private protected
                 // protected private struct Struct
@@ -295,7 +297,7 @@ public class Derived // : Base
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void NotInStaticClass()
         {
             string source =
@@ -308,7 +310,7 @@ sealed class D
     static private protected int Field2 = 2;
 }
 ";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (7,34): warning CS0628: 'D.Field2': new protected member declared in sealed class
                 //     static private protected int Field2 = 2;
@@ -319,7 +321,7 @@ sealed class D
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void NestedTypes()
         {
             string source =
@@ -350,7 +352,7 @@ struct Struct
     }
 }
 ";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (23,29): error CS0666: 'Struct.Inner': new protected member declared in struct
                 //     private protected class Inner // error: protected not allowed in struct
@@ -364,7 +366,7 @@ struct Struct
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void PermittedAccessorProtection()
         {
             string source =
@@ -376,12 +378,12 @@ struct Struct
     internal int Prop4 { get; private protected set; }
     private protected int Prop5 { get; private set; }
 }";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ForbiddenAccessorProtection_01()
         {
             string source =
@@ -390,7 +392,7 @@ struct Struct
     private protected int Prop1 { get; private protected set; }
     private int Prop2 { get; private protected set; }
 }";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (3,58): error CS0273: The accessibility modifier of the 'Class.Prop1.set' accessor must be more restrictive than the property or indexer 'Class.Prop1'
                 //     private protected int Prop1 { get; private protected set; }
@@ -401,7 +403,7 @@ struct Struct
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ForbiddenAccessorProtection_02()
         {
             string source =
@@ -409,7 +411,7 @@ struct Struct
 {
     private protected int M();
 }";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (3,27): error CS0106: The modifier 'private protected' is not valid for this item
                 //     private protected int M();
@@ -417,7 +419,7 @@ struct Struct
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void AtLeastAsRestrictivePositive_01()
         {
             string source =
@@ -438,12 +440,12 @@ public class C
     }
 }
 ";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void AtLeastAsRestrictiveNegative_01()
         {
             string source =
@@ -455,7 +457,7 @@ public class Container
     protected void M2(PrivateProtected x) {} // error: conflicting access
 }
 ";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (6,20): error CS0051: Inconsistent accessibility: parameter type 'Container.PrivateProtected' is less accessible than method 'Container.M2(Container.PrivateProtected)'
                 //     protected void M2(PrivateProtected x) {} // error: conflicting access
@@ -466,7 +468,7 @@ public class Container
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DuplicateAccessInBinder()
         {
             string source =
@@ -485,7 +487,7 @@ public class Container
     void Q() { V.Invoke(); V = null; }
 }
 ";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (7,26): error CS0107: More than one protection modifier
                 //     private public class C {}                           // 4
@@ -520,7 +522,7 @@ public class Container
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void NotInVersion71()
         {
             string source =
@@ -539,7 +541,7 @@ public class Container
     void Q() { V.Invoke(); V = null; }
 }
 ";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_1)
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_1)
                 .VerifyDiagnostics(
                 // (7,29): error CS8302: Feature 'private protected' is not available in C# 7.1. Please use language version 7.2 or greater.
                 //     private protected class C {}                           // 4
@@ -569,12 +571,12 @@ public class Container
                 //     private protected int this[int index] => 1;            // 9
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_1, "this").WithArguments("private protected", "7.2").WithLocation(12, 27)
                 );
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void VerifyPrivateProtectedIL()
         {
             var text = @"
@@ -594,7 +596,7 @@ class Program
                 });
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void VerifyPartialPartsMatch()
         {
             var source =
@@ -603,7 +605,7 @@ class Program
     private protected partial class Inner {}
     private           partial class Inner {}
 }";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (3,37): error CS0262: Partial declarations of 'Outer.Inner' have conflicting accessibility modifiers
                 //     private protected partial class Inner {}
@@ -615,12 +617,12 @@ class Program
     private protected partial class Inner {}
     private protected partial class Inner {}
 }";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void VerifyProtectedSemantics()
         {
             var source =
@@ -648,7 +650,7 @@ class Derived : Base
 class Other : Base
 {
 }";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 // (16,12): error CS1540: Cannot access protected member 'Base.M()' via a qualifier of type 'Base'; the qualifier must be of type 'Derived' (or derived from it)
                 //         bb.M(); // error 1
@@ -659,7 +661,7 @@ class Other : Base
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void HidingAbstract()
         {
             var source =
@@ -671,12 +673,12 @@ abstract class B : A
 {
     private protected new void F() { } // No CS0533
 }";
-            CreateStandardCompilation(source, parseOptions: TestOptions.Regular7_2)
+            CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void HidingInaccessible()
         {
             string source1 =
@@ -685,7 +687,7 @@ abstract class B : A
     private protected void F() { }
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, parseOptions: TestOptions.Regular7_2);
+            var compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2);
             compilation1.VerifyDiagnostics();
 
             string source2 =
@@ -694,7 +696,7 @@ abstract class B : A
     new void F() { } // CS0109
 }
 ";
-            CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
+            CreateCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { new CSharpCompilationReference(compilation1) })
             .VerifyDiagnostics(
                 // (3,14): warning CS0109: The member 'B.F()' does not hide an accessible member. The new keyword is not required.
@@ -703,7 +705,7 @@ abstract class B : A
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void UnimplementedInaccessible()
         {
             string source1 =
@@ -712,7 +714,7 @@ abstract class B : A
     private protected abstract void F();
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, parseOptions: TestOptions.Regular7_2);
+            var compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2);
             compilation1.VerifyDiagnostics();
 
             string source2 =
@@ -720,7 +722,7 @@ abstract class B : A
 {
 }
 ";
-            CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
+            CreateCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { new CSharpCompilationReference(compilation1) })
             .VerifyDiagnostics(
                 // (1,7): error CS0534: 'B' does not implement inherited abstract member 'A.F()'
@@ -729,7 +731,7 @@ abstract class B : A
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void ImplementInaccessible()
         {
             string source1 =
@@ -738,7 +740,7 @@ abstract class B : A
     private protected abstract void F();
 }
 ";
-            var compilation1 = CreateStandardCompilation(source1, parseOptions: TestOptions.Regular7_2);
+            var compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2);
             compilation1.VerifyDiagnostics();
 
             string source2 =
@@ -747,7 +749,7 @@ abstract class B : A
     override private protected void F() {}
 }
 ";
-            CreateStandardCompilation(source2, parseOptions: TestOptions.Regular7_2,
+            CreateCompilation(source2, parseOptions: TestOptions.Regular7_2,
                 references: new[] { new CSharpCompilationReference(compilation1) })
             .VerifyDiagnostics(
                 // (3,37): error CS0115: 'B.F()': no suitable method found to override
@@ -759,7 +761,7 @@ abstract class B : A
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void VerifyPPExtension()
         {
             string source = @"
@@ -788,3 +790,4 @@ class Client
         }
     }
 }
+#endif

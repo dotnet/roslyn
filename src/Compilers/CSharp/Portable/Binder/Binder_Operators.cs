@@ -425,10 +425,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else if (result.Kind == BoundKind.BadExpression)
                 {
-                    var parenthesizedExpression = (ParenthesizedExpressionSyntax) current;
+                    var parenthesizedExpression = (ParenthesizedExpressionSyntax)current;
 
                     if (parenthesizedExpression.Expression.IsKind(SyntaxKind.IdentifierName)
-                        && ((IdentifierNameSyntax) parenthesizedExpression.Expression).Identifier.ValueText == "dynamic")
+                        && ((IdentifierNameSyntax)parenthesizedExpression.Expression).Identifier.ValueText == "dynamic")
                     {
                         Error(diagnostics, ErrorCode.ERR_PossibleBadNegCast, node);
                     }
@@ -553,7 +553,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultRight = CreateConversion(right, best.RightConversion, signature.RightType, diagnostics);
                     resultConstant = FoldBinaryOperator(node, resultOperatorKind, resultLeft, resultRight, resultType.SpecialType, diagnostics, ref compoundStringLength);
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    hasErrors = isObjectEquality && !BuiltInOperators.IsValidObjectEquality(Conversions, leftType, leftNull, rightType, rightNull, ref useSiteDiagnostics);
+
+                    bool leftDefault = left.IsLiteralDefault();
+                    bool rightDefault = right.IsLiteralDefault();
+                    hasErrors = isObjectEquality && !BuiltInOperators.IsValidObjectEquality(Conversions, leftType, leftNull || leftDefault, rightType, rightNull || rightDefault, ref useSiteDiagnostics);
+
                     diagnostics.Add(node, useSiteDiagnostics);
                 }
             }
@@ -627,15 +631,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void ReportBinaryOperatorError(ExpressionSyntax node, DiagnosticBag diagnostics, SyntaxToken operatorToken, BoundExpression left, BoundExpression right, LookupResultKind resultKind)
         {
-            if ((operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken) &&
-                (left.IsLiteralDefault() && right.IsLiteralDefault()))
+            bool leftDefault = left.IsLiteralDefault();
+            bool rightDefault = right.IsLiteralDefault();
+            if ((operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken))
             {
-                Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnDefault, node, operatorToken.Text);
-                return;
+                if (leftDefault && rightDefault)
+                {
+                    Error(diagnostics, ErrorCode.ERR_AmbigBinaryOpsOnDefault, node, operatorToken.Text);
+                    return;
+                }
             }
-
-            if (left.IsLiteralDefault() || right.IsLiteralDefault())
+            else if (leftDefault || rightDefault)
             {
+                // other than == and !=, binary operators are disallowed on `default` literal
                 Error(diagnostics, ErrorCode.ERR_BadOpOnNullOrDefault, node, operatorToken.Text, "default");
                 return;
             }
@@ -2751,7 +2759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operandType = GetSpecialType(SpecialType.System_Object, diagnostics, node);
             }
 
-            Conversion conversion = Conversions.ClassifyConversionFromType(operandType, targetType, ref useSiteDiagnostics);
+            Conversion conversion = Conversions.ClassifyBuiltInConversion(operandType, targetType, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
             ReportIsOperatorConstantWarnings(node, diagnostics, operandType, targetType, conversion.Kind, operand.ConstantValue);
             return new BoundIsOperator(node, operand, typeExpression, conversion, resultType);
@@ -3507,7 +3515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var whenTrue = node.WhenTrue.CheckAndUnwrapRefExpression(diagnostics, out var whenTrueRefKind);
             var whenFalse = node.WhenFalse.CheckAndUnwrapRefExpression(diagnostics, out var whenFalseRefKind);
 
-            var isRef = whenTrueRefKind == RefKind.Ref  && whenFalseRefKind == RefKind.Ref;
+            var isRef = whenTrueRefKind == RefKind.Ref && whenFalseRefKind == RefKind.Ref;
 
             if (!isRef)
             {
