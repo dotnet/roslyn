@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return false;
             }
 
-            var toolsPath = Path.Combine(Path.GetDirectoryName(_bootstrapPath), "tools");
+            var toolsPath = Path.Combine(_bootstrapPath, "tools");
             var dependencies = new[]
             {
                 typeof(ValidateBootstrap).GetTypeInfo().Assembly,

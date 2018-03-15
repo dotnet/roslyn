@@ -165,15 +165,15 @@
 
   <!-- Determine compiler toolset props file to use for this build -->
   <PropertyGroup>
-    <_PackageName Condition="'$(MSBuildRuntimeType)' != 'Core'">Microsoft.Net.Compilers</_PackageName>
-    <_PackageName Condition="'$(MSBuildRuntimeType)' == 'Core'">Microsoft.NETCore.Compilers</_PackageName>
+    <_PackageName Condition="'$(MSBuildRuntimeType)' != 'Core'">microsoft.net.compilers</_PackageName>
+    <_PackageName Condition="'$(MSBuildRuntimeType)' == 'Core'">microsoft.netcore.compilers</_PackageName>
     <_PackageVersion Condition="'$(MSBuildRuntimeType)' != 'Core' AND '$(BootstrapBuildPath)' == ''">$(MicrosoftNetCompilersVersion)</_PackageVersion>
     <_PackageVersion Condition="'$(MSBuildRuntimeType)' == 'Core' AND '$(BootstrapBuildPath)' == ''">$(MicrosoftNETCoreCompilersVersion)</_PackageVersion>
-    <_PackageVersion Condition="'$(BootstrapBuildPath)' != ''">1.0.0</_PackageVersion>
+    <_PackageVersion Condition="'$(BootstrapBuildPath)' != ''">42.42.42.42</_PackageVersion>
     <_PackageRoot>$(NuGetPackageRoot)</_PackageRoot>
     <_PackageRoot Condition="'$(BootstrapBuildPath)' != ''">$(BootstrapBuildPath)</_PackageRoot>
-    <RoslynToolsetPropsDirectory>$(_PackageRoot)/$(_PackageName.ToLower())/$(_PackageVersion)/build</RoslynToolsetPropsDirectory>
-    <RoslynToolsetPropsFilePath>$(RoslynToolsetPropsDirectory)/$(_PackageName).props</RoslynToolsetPropsFilePath>
+    <RoslynToolsetDirectory>$(_PackageRoot)\$(_PackageName)\$(_PackageVersion)</RoslynToolsetDirectory>
+    <RoslynToolsetPropsFilePath>$(RoslynToolsetDirectory)\build\$(_PackageName).props</RoslynToolsetPropsFilePath>
   </PropertyGroup>
 
   <!-- Windows specific settings -->
@@ -199,7 +199,7 @@
   <Import Project="$(RoslynToolsetPropsFilePath)" Condition="Exists('$(RoslynToolsetPropsFilePath)')" />
 
   <UsingTask TaskName="Microsoft.CodeAnalysis.BuildTasks.ValidateBootstrap"
-             AssemblyFile="$(RoslynToolsetPropsDirectory)\..\tools\Microsoft.Build.Tasks.CodeAnalysis.dll"
+             AssemblyFile="$(RoslynToolsetDirectory)\tools\Microsoft.Build.Tasks.CodeAnalysis.dll"
              Condition="'$(BootstrapBuildPath)' != ''" />
   <UsingTask TaskName="Roslyn.MSBuild.Util.FindNuGetAssetsForVsix"
              AssemblyFile="$(NuGetPackageRoot)\Roslyn.Build.Util\$(RoslynBuildUtilVersion)\lib\net46\Roslyn.MSBuild.Util.dll"

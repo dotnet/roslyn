@@ -11,7 +11,7 @@
     <TargetFramework>netcoreapp2.0</TargetFramework>
     <NuspecFile>Microsoft.NETCore.Compilers.nuspec</NuspecFile>
     <DisableImplicitFrameworkReferences>false</DisableImplicitFrameworkReferences>
-    <NuspecProperties>$(NuspecProperties);version=1.0.0-bootstrap</NuspecProperties>
+    <NuspecProperties>$(NuspecProperties);version=42.42.42.42-bootstrap</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);authors=Microsoft</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);licenseUrl=http://go.microsoft.com/fwlink/?LinkId=529443</NuspecProperties>
     <NuspecProperties>$(NuspecProperties);projectUrl=https://github.com/dotnet/roslyn</NuspecProperties>

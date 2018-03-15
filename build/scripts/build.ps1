@@ -185,7 +185,7 @@ function Restore-Packages() {
     }
 }
 
-# Create a bootstrap build of the compiler.  Returns the directory where the bootstrap buil 
+# Create a bootstrap build of the compiler.  Returns the directory where the bootstrap build 
 # is located. 
 #
 # Important to not set $script:bootstrapDir here yet as we're actually in the process of 
@@ -211,11 +211,14 @@ function Make-BootstrapBuild() {
             Run-MSBuild $projectFilePath "/t:Publish /p:TargetFramework=netcoreapp2.0 $bootstrapArgs" -logFileName $logFileName -useDotnetBuild
         }
 
+        # The csi executable is only supported on desktop (even though we do multi-target it to 
+        # netcoreapp2.). Need to build the desktop version here in order to build our NuGet 
+        # packages below. 
         Run-MSBuild "src/Interactive/csi/csi.csproj" -logFileName "BootstrapCsi" -useDotnetBuild
 
         Ensure-NuGet | Out-Null
-        Exec-Console "$configDir\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 1.0.0-bootstrap $dir `"<developer build>`" Microsoft.NETCore.Compilers.nuspec"
-        Unzip-File "$dir\Microsoft.NETCore.Compilers.1.0.0-bootstrap.nupkg" "$dir\Microsoft.NETCore.Compilers\1.0.0"
+        Exec-Console "$configDir\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 42.42.42.42-bootstrap $dir `"<developer build>`" Microsoft.NETCore.Compilers.nuspec"
+        Unzip-File "$dir\Microsoft.NETCore.Compilers.42.42.42.42-bootstrap.nupkg" "$dir\Microsoft.NETCore.Compilers\42.42.42.42"
 
         Write-Host "Cleaning Bootstrap compiler artifacts"
         Run-MSBuild "Compilers.sln" "/t:Clean"
@@ -227,8 +230,8 @@ function Make-BootstrapBuild() {
         Create-Directory $dir
 
         Ensure-NuGet | Out-Null
-        Exec-Console "$configDir\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 1.0.0-bootstrap $dir `"<developer build>`" Microsoft.Net.Compilers.nuspec"
-        Unzip-File "$dir\Microsoft.Net.Compilers.1.0.0-bootstrap.nupkg" "$dir\Microsoft.Net.Compilers\1.0.0"
+        Exec-Console "$configDir\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 42.42.42.42-bootstrap $dir `"<developer build>`" Microsoft.Net.Compilers.nuspec"
+        Unzip-File "$dir\Microsoft.Net.Compilers.42.42.42.42-bootstrap.nupkg" "$dir\Microsoft.Net.Compilers\42.42.42.42"
 
         Write-Host "Cleaning Bootstrap compiler artifacts"
         Run-MSBuild "build\Toolset\Toolset.csproj" "/t:Clean" -logFileName "BootstrapClean"

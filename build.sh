@@ -143,7 +143,7 @@ then
     mkdir -p ${bootstrap_path} 
     dotnet pack src/NuGet/Bootstrap.csproj /p:NuspecBasePath=${binaries_path}/Debug -o ${bootstrap_path}
     mkdir -p ${bootstrap_path}/Microsoft.NETCore.Compilers
-    unzip ${bootstrap_path}/Microsoft.NETCore.Compilers.1.0.0-bootstrap.nupkg -d ${bootstrap_path}/Microsoft.NETCore.Compilers/1.0.0
+    unzip ${bootstrap_path}/Microsoft.NETCore.Compilers.42.42.42.42-bootstrap.nupkg -d ${bootstrap_path}/Microsoft.NETCore.Compilers/42.42.42.42
     chmod -R 755 ${bootstrap_path}/Microsoft.NETCore.Compilers
 
     dotnet clean Compilers.sln 
@@ -172,7 +172,7 @@ then
     if [[ "${use_bootstrap}" == true ]]
     then
         echo "Stopping VBCSCompiler"
-        dotnet "${bootstrap_path}"/Microsoft.NETCore.Compilers/1.0.0/tools/bincore/VBCSCompiler.dll -shutdown
+        dotnet "${bootstrap_path}"/Microsoft.NETCore.Compilers/42.42.42.42/tools/bincore/VBCSCompiler.dll -shutdown
     else
         echo "--stop-vbcscompiler requires --use-bootstrap. Aborting."
         exit 1
