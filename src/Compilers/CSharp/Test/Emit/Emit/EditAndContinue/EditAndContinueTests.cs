@@ -8057,6 +8057,24 @@ public class Program
   IL_0034:  ret
 }
 ");
+            v0.VerifyIL("Program.<>c.<N>b__0_0(int)", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (int V_0, //x
+                int V_1) //y
+  IL_0000:  ldarg.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brtrue.s   IL_000a
+  IL_0005:  ldarg.1
+  IL_0006:  stloc.1
+  IL_0007:  ldc.i4.1
+  IL_0008:  br.s       IL_000b
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
+}
+");
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
@@ -8065,6 +8083,8 @@ public class Program
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, n0, n1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers("Program: {<>c}", "Program.<>c: {<>9__0_0, <N>b__0_0}");
 
             diff1.VerifyIL("Program.N()", @"
 {
@@ -8096,11 +8116,27 @@ public class Program
   IL_0034:  ret
 }
 ");
+            diff1.VerifyIL("Program.<>c.<N>b__0_0(int)", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  2
+  .locals init (int V_0, //x
+                [int] V_1)
+  IL_0000:  ldarg.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.0
+  IL_0004:  ceq
+  IL_0006:  ret
+}
+");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, n1, n2, GetSyntaxMapFromMarkers(source1, source0), preserveLocalVariables: true)));
+
+            diff2.VerifySynthesizedMembers("Program: {<>c}", "Program.<>c: {<>9__0_0, <N>b__0_0}");
 
             diff2.VerifyIL("Program.N()", @"
 {
@@ -8130,6 +8166,25 @@ public class Program
   IL_002e:  call       ""System.Collections.Generic.IEnumerable<bool> System.Linq.Enumerable.Select<int, bool>(System.Collections.Generic.IEnumerable<int>, System.Func<int, bool>)""
   IL_0033:  stloc.0
   IL_0034:  ret
+}
+");
+            diff2.VerifyIL("Program.<>c.<N>b__0_0(int)", @"
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  .locals init (int V_0, //x
+                [int] V_1,
+                int V_2) //y
+  IL_0000:  ldarg.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  brtrue.s   IL_000a
+  IL_0005:  ldarg.1
+  IL_0006:  stloc.2
+  IL_0007:  ldc.i4.1
+  IL_0008:  br.s       IL_000b
+  IL_000a:  ldc.i4.0
+  IL_000b:  ret
 }
 ");
         }
@@ -8995,6 +9050,24 @@ public class Program
   IL_0034:  ret
 }
 ");
+            v0.VerifyIL("Program.<>c.<N>b__1_0(int)", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  3
+  .locals init (int V_0, //x
+                int V_1) //y
+  IL_0000:  ldarg.1
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  call       ""int Program.M(int, out int)""
+  IL_0008:  ldloc.0
+  IL_0009:  add
+  IL_000a:  ldarg.1
+  IL_000b:  ldloca.s   V_1
+  IL_000d:  call       ""int Program.M(int, out int)""
+  IL_0012:  add
+  IL_0013:  ret
+}
+");
 
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
@@ -9003,6 +9076,8 @@ public class Program
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, n0, n1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
+
+            diff1.VerifySynthesizedMembers("Program: {<>c}", "Program.<>c: {<>9__1_0, <N>b__1_0}");
 
             diff1.VerifyIL("Program.N()", @"
 {
@@ -9034,11 +9109,27 @@ public class Program
   IL_0034:  ret
 }
 ");
+            diff1.VerifyIL("Program.<>c.<N>b__1_0(int)", @"
+{
+  // Code size       11 (0xb)
+  .maxstack  2
+  .locals init (int V_0, //x
+                [int] V_1)
+  IL_0000:  ldarg.1
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  call       ""int Program.M(int, out int)""
+  IL_0008:  ldloc.0
+  IL_0009:  add
+  IL_000a:  ret
+}
+");
 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, n1, n2, GetSyntaxMapFromMarkers(source1, source0), preserveLocalVariables: true)));
+
+            diff2.VerifySynthesizedMembers("Program: {<>c}", "Program.<>c: {<>9__1_0, <N>b__1_0}");
 
             diff2.VerifyIL("Program.N()", @"
 {
@@ -9068,6 +9159,25 @@ public class Program
   IL_002e:  call       ""System.Collections.Generic.IEnumerable<int> System.Linq.Enumerable.Select<int, int>(System.Collections.Generic.IEnumerable<int>, System.Func<int, int>)""
   IL_0033:  stloc.0
   IL_0034:  ret
+}
+");
+            diff2.VerifyIL("Program.<>c.<N>b__1_0(int)", @"
+{
+  // Code size       20 (0x14)
+  .maxstack  3
+  .locals init (int V_0, //x
+                [int] V_1,
+                int V_2) //y
+  IL_0000:  ldarg.1
+  IL_0001:  ldloca.s   V_0
+  IL_0003:  call       ""int Program.M(int, out int)""
+  IL_0008:  ldloc.0
+  IL_0009:  add
+  IL_000a:  ldarg.1
+  IL_000b:  ldloca.s   V_2
+  IL_000d:  call       ""int Program.M(int, out int)""
+  IL_0012:  add
+  IL_0013:  ret
 }
 ");
         }
