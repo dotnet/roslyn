@@ -3615,6 +3615,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics.Add(ErrorCode.ERR_UnsafeTypeInObjectCreation, node.Location, type));
                     goto case TypeKind.Class;
 
+                case TypeKind.Array:
+                    // ex: new ref[]
+                    return BadExpression(node, LookupResultKind.NotCreatable);
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(type.TypeKind);
             }

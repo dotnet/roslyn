@@ -3120,5 +3120,27 @@ public class C
                 Diagnostic(ErrorCode.ERR_ArrayInitToNonArrayType, "{7,8,9}").WithLocation(14, 28)
             );
         }
+
+        [Fact, WorkItem(25264, "https://github.com/dotnet/roslyn/issues/25264")]
+        public void TestNewRefArray()
+        {
+            var text = @"
+public class C
+{
+    public static void Main()
+    {
+        _ = new ref[];
+    }
+}
+";
+            CreateCompilation(text).VerifyDiagnostics(
+                // (6,20): error CS1031: Type expected
+                //         _ = new ref[];
+                Diagnostic(ErrorCode.ERR_TypeExpected, "[").WithLocation(6, 20),
+                // (6,22): error CS1526: A new expression requires (), [], or {} after type
+                //         _ = new ref[];
+                Diagnostic(ErrorCode.ERR_BadNewExpr, ";").WithLocation(6, 22)
+                );
+        }
     }
 }
