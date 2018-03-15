@@ -31,16 +31,18 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
     {
         protected abstract string GetTitle();
 
-        protected abstract SyntaxNode ConvertForNode(
-            TForStatementSyntax currentFor, TTypeNode typeNode, SyntaxToken foreachIdentifier, 
-            TExpressionSyntax collectionExpression, ITypeSymbol iterationVariableType, OptionSet options);
         protected abstract SyntaxList<TStatementSyntax> GetBodyStatements(TForStatementSyntax forStatement);
         protected abstract bool IsValidVariableDeclarator(TVariableDeclaratorSyntax firstVariable);
+
         protected abstract bool TryGetForStatementComponents(
             TForStatementSyntax forStatement,
             out SyntaxToken iterationVariable, out TExpressionSyntax initializer,
             out TMemberAccessExpressionSyntax memberAccess, out TExpressionSyntax stepValueExpressionOpt,
             CancellationToken cancellationToken);
+
+        protected abstract SyntaxNode ConvertForNode(
+            TForStatementSyntax currentFor, TTypeNode typeNode, SyntaxToken foreachIdentifier,
+            TExpressionSyntax collectionExpression, ITypeSymbol iterationVariableType, OptionSet options);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
