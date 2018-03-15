@@ -200,10 +200,11 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 : NestByCascading();
 
             context.RegisterFixes(fixes, context.Diagnostics);
+            return;
 
             ImmutableArray<CodeAction> NestByOverload()
             {
-                var builder = ImmutableArray.CreateBuilder<CodeAction>(codeFixData.Length);
+                var builder = ArrayBuilder<CodeAction>.GetInstance(codeFixData.Length);
                 foreach (var data in codeFixData)
                 {
                     var title = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, data.Method, includeParameters: true);
@@ -213,7 +214,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     if (data.CreateChangedSolutionCascading != null)
                     {
                         var titleForNesting = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, data.Method, includeParameters: true);
-                        var titleCascading = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_and_overrides_implementations, data.Method, includeParameters: true);
+                        var titleCascading = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_and_overrides_implementations, data.Method, 
+                                                             includeParameters: true);
                         codeAction = new CodeAction.CodeActionWithNestedActions(
                             title: titleForNesting,
                             ImmutableArray.Create(
@@ -227,44 +229,48 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     builder.Add(codeAction);
                 }
 
-                return builder.ToImmutable();
+                return builder.ToImmutableAndFree();
             }
 
             ImmutableArray<CodeAction> NestByCascading()
             {
-                var builder = ImmutableArray.CreateBuilder<CodeAction>(2);
+                var builder = ArrayBuilder<CodeAction>.GetInstance(2);
 
                 var nonCascadingActions = ImmutableArray.CreateRange<CodeAction>(codeFixData.Select(data =>
                 {
-                    var title = GetCodeFixTitle(FeaturesResources.Add_to_0, data.Method, true);
+                    var title = GetCodeFixTitle(FeaturesResources.Add_to_0, data.Method, includeParameters: true);
                     return new MyCodeAction(title: title, data.CreateChangedSolutionNonCascading);
                 }));
 
                 var cascading = codeFixData.Where(data => data.CreateChangedSolutionCascading != null);
                 var cascadingActions = ImmutableArray.CreateRange<CodeAction>(cascading.Select(data =>
                 {
-                    var title = GetCodeFixTitle(FeaturesResources.Add_to_0, data.Method, true);
+                    var title = GetCodeFixTitle(FeaturesResources.Add_to_0, data.Method, includeParameters: true);
                     return new MyCodeAction(title: title, data.CreateChangedSolutionCascading);
                 }));
 
                 var aMethod = codeFixData.First().Method;
-                var nestedNonCascadingTitle = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, aMethod, false);
+                var nestedNonCascadingTitle = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, aMethod, includeParameters: false);
 
                 builder.Add(new CodeAction.CodeActionWithNestedActions(nestedNonCascadingTitle, nonCascadingActions, isInlinable: false));
 
                 if (cascadingActions.Length > 0)
                 {
-                    var nestedCascadingTitle = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_and_overrides_implementations, aMethod, false);
+                    var nestedCascadingTitle = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0_and_overrides_implementations, 
+                                                               aMethod, includeParameters: false);
                     builder.Add(new CodeAction.CodeActionWithNestedActions(nestedCascadingTitle, cascadingActions, isInlinable: false));
                 }
 
-                return builder.ToImmutable();
+                return builder.ToImmutableAndFree();
             }
         }
 
-        private ImmutableArray<CodeFixData> PrepareCreationOfCodeActions(Document document, SeparatedSyntaxList<TArgumentSyntax> arguments, ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
+        private ImmutableArray<CodeFixData> PrepareCreationOfCodeActions(
+            Document document, 
+            SeparatedSyntaxList<TArgumentSyntax> arguments, 
+            ImmutableArray<ArgumentInsertPositionData<TArgumentSyntax>> methodsAndArgumentsToAdd)
         {
-            var builder = ImmutableArray.CreateBuilder<CodeFixData>(methodsAndArgumentsToAdd.Length);
+            var builder = ArrayBuilder<CodeFixData>.GetInstance(methodsAndArgumentsToAdd.Length);
 
             // Order by the furthest argument index to the nearest argument index.  The ones with
             // larger argument indexes mean that we matched more earlier arguments (and thus are
@@ -286,7 +292,7 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 builder.Add(codeFixData);
             }
 
-            return builder.ToImmutable();
+            return builder.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -422,8 +428,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
                     AddParameter(
                         syntaxFacts, editor, methodNode, argument,
                         insertionIndex, parameterDeclaration, cancellationToken);
-
                 }
+
                 var newRoot = editor.GetChangedRoot();
                 solution = solution.WithDocumentSyntaxRoot(document.Id, newRoot);
             }
