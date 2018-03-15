@@ -1685,7 +1685,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var declarationInfos = builder.ToImmutableAndFree();
 
             var isPartialDeclAnalysis = analysisScope.FilterSpanOpt.HasValue && !analysisScope.ContainsSpan(topmostNodeForAnalysis.FullSpan);
-            var nodesToAnalyze = GetSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, builder, analysisScope, isPartialDeclAnalysis, semanticModel, analyzerExecutor);
+            var nodesToAnalyze = GetSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, declarationInfos, analysisScope, isPartialDeclAnalysis, semanticModel, analyzerExecutor);
             return new DeclarationAnalysisData(declaringReferenceSyntax, topmostNodeForAnalysis, declarationInfos, nodesToAnalyze, isPartialDeclAnalysis);
         }
 
@@ -1965,7 +1965,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static ImmutableArray<SyntaxNode> GetSyntaxNodesToAnalyze(
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
-            IEnumerable<DeclarationInfo> declarationsInNode,
+            ImmutableArray<DeclarationInfo> declarationsInNode,
             AnalysisScope analysisScope,
             bool isPartialDeclAnalysis,
             SemanticModel semanticModel,
