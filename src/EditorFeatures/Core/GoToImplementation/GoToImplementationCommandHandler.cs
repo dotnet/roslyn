@@ -33,32 +33,30 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
             _streamingPresenters = streamingPresenters;
         }
 
-        private (Document, IGoToImplementationService, IFindUsagesService) GetDocumentAndServices(ITextSnapshot snapshot)
+        private (Document, IFindUsagesService) GetDocumentAndService(ITextSnapshot snapshot)
         {
             var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
-            return (document,
-                    document?.GetLanguageService<IGoToImplementationService>(),
-                    document?.GetLanguageService<IFindUsagesService>());
+            return (document, document?.GetLanguageService<IFindUsagesService>());
         }
 
         public CommandState GetCommandState(GoToImplementationCommandArgs args, Func<CommandState> nextHandler)
         {
             // Because this is expensive to compute, we just always say yes as long as the language allows it.
-            var (document, implService, findUsagesService) = GetDocumentAndServices(args.SubjectBuffer.CurrentSnapshot);
-            return implService != null || findUsagesService != null
+            var (document, findUsagesService) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
+            return findUsagesService != null
                 ? CommandState.Available
                 : CommandState.Unavailable;
         }
 
         public void ExecuteCommand(GoToImplementationCommandArgs args, Action nextHandler)
         {
-            var (document, implService, findUsagesService) = GetDocumentAndServices(args.SubjectBuffer.CurrentSnapshot);
-            if (implService != null || findUsagesService != null)
+            var (document, findUsagesService) = GetDocumentAndService(args.SubjectBuffer.CurrentSnapshot);
+            if (findUsagesService != null)
             {
                 var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
                 if (caret.HasValue)
                 {
-                    ExecuteCommand(document, caret.Value, implService, findUsagesService);
+                    ExecuteCommand(document, caret.Value, findUsagesService);
                     return;
                 }
             }
@@ -67,17 +65,12 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
         }
 
         private void ExecuteCommand(
-            Document document, int caretPosition,
-            IGoToImplementationService synchronousService,
-            IFindUsagesService streamingService)
+            Document document, int caretPosition, IFindUsagesService streamingService)
         {
             var streamingPresenter = GetStreamingPresenter();
 
-            var streamingEnabled = document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.StreamingGoToImplementation, document.Project.Language);
-            var canUseStreamingWindow = streamingEnabled && streamingService != null;
-            var canUseSynchronousWindow = synchronousService != null;
 
-            if (canUseStreamingWindow || canUseSynchronousWindow)
+            if (streamingService != null)
             {
                 // We have all the cheap stuff, so let's do expensive stuff now
                 string messageToShow = null;
@@ -87,18 +80,10 @@ namespace Microsoft.CodeAnalysis.Editor.GoToImplementation
                     allowCancel: true,
                     action: context =>
                     {
-                        if (canUseStreamingWindow)
-                        {
-                            StreamingGoToImplementation(
-                                document, caretPosition,
-                                streamingService, streamingPresenter,
-                                context.CancellationToken, out messageToShow);
-                        }
-                        else
-                        {
-                            synchronousService.TryGoToImplementation(
-                                document, caretPosition, context.CancellationToken, out messageToShow);
-                        }
+                        StreamingGoToImplementation(
+                            document, caretPosition,
+                            streamingService, streamingPresenter,
+                            context.CancellationToken, out messageToShow);
                     });
 
                 if (messageToShow != null)
