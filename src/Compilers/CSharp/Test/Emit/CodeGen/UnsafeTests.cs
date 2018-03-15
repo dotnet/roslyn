@@ -4212,7 +4212,7 @@ public static class FixableExt
 
 ";
 
-            var compVerifier = CompileAndVerify(text, additionalRefs: new[] { ExtensionAssemblyRef },options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, references: new[] { ExtensionAssemblyRef },options: TestOptions.UnsafeReleaseExe, expectedOutput: @"2", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {
@@ -4443,7 +4443,7 @@ static class FixAllExt
 }
 ";
 
-            var compVerifier = CompileAndVerify(text, additionalRefs: new[] { ExtensionAssemblyRef },  options: TestOptions.UnsafeReleaseExe, expectedOutput: @"20", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, references: new[] { ExtensionAssemblyRef },  options: TestOptions.UnsafeReleaseExe, expectedOutput: @"20", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Test<T>(T)", @"
 {
@@ -4750,7 +4750,7 @@ static class FixAllExt
     }
 ";
 
-            var compVerifier = CompileAndVerify(text, additionalRefs: new[] { ExtensionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"5456");
+            var compVerifier = CompileAndVerify(text, references: new[] { ExtensionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, verify: Verification.Fails, expectedOutput: @"5456");
 
             compVerifier.VerifyIL("C.Test<T>(ref T)", @"
 {
@@ -4810,7 +4810,7 @@ public static class FixableExt
 
 ";
 
-            var compVerifier = CompileAndVerify(text, additionalRefs: new[] { ExtensionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"23", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, references: new[] { ExtensionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"23", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {
@@ -4888,7 +4888,7 @@ public static class FixableExt
 
 ";
 
-            var compVerifier = CompileAndVerify(text, additionalRefs: new[] { ExtensionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"3", verify: Verification.Fails);
+            var compVerifier = CompileAndVerify(text, references: new[] { ExtensionAssemblyRef }, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"3", verify: Verification.Fails);
 
             compVerifier.VerifyIL("C.Main", @"
 {

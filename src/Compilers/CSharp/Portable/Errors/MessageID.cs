@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureDelegateGenericTypeConstraint = MessageBase + 12738,
         IDS_FeatureUnmanagedGenericTypeConstraint = MessageBase + 12739,
         IDS_FeatureStackAllocInitializer = MessageBase + 12740,
-        IDS_FeatureExtensibleFixedStatement = MessageBase + 12733,
+        IDS_FeatureExtensibleFixedStatement = MessageBase + 12741,
     }
 
     // Message IDs may refer to strings that need to be localized.
