@@ -1668,32 +1668,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             compilationData.ClearDeclarationAnalysisData(declaration);
         }
 
-        private DeclarationAnalysisDataBuilder ComputeDeclarationAnalysisData(
+        private DeclarationAnalysisData ComputeDeclarationAnalysisData(
             ISymbol symbol,
             SyntaxReference declaration,
             SemanticModel semanticModel,
             AnalysisScope analysisScope,
-            Func<DeclarationAnalysisDataBuilder> allocateData,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            DeclarationAnalysisDataBuilder declarationAnalysisData = allocateData();
-            var builder = declarationAnalysisData.DeclarationsInNode;
-
+            var builder = ImmutableArray.CreateBuilder<DeclarationInfo>();
             var declaringReferenceSyntax = declaration.GetSyntax(cancellationToken);
             var topmostNodeForAnalysis = semanticModel.GetTopmostNodeForDiagnosticAnalysis(symbol, declaringReferenceSyntax);
             ComputeDeclarationsInNode(semanticModel, symbol, declaringReferenceSyntax, topmostNodeForAnalysis, builder, cancellationToken);
 
             var isPartialDeclAnalysis = analysisScope.FilterSpanOpt.HasValue && !analysisScope.ContainsSpan(topmostNodeForAnalysis.FullSpan);
             var nodesToAnalyze = GetSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, builder, analysisScope, isPartialDeclAnalysis, semanticModel, analyzerExecutor);
-
-            declarationAnalysisData.DeclaringReferenceSyntax = declaringReferenceSyntax;
-            declarationAnalysisData.TopmostNodeForAnalysis = topmostNodeForAnalysis;
-            declarationAnalysisData.DescendantNodesToAnalyze.AddRange(nodesToAnalyze);
-            declarationAnalysisData.IsPartialAnalysis = isPartialDeclAnalysis;
-
-            return declarationAnalysisData;
+            return new DeclarationAnalysisData(declaringReferenceSyntax, topmostNodeForAnalysis, builder, nodesToAnalyze, isPartialDeclAnalysis);
         }
 
         private static void ComputeDeclarationsInNode(SemanticModel semanticModel, ISymbol declaredSymbol, SyntaxNode declaringReferenceSyntax, SyntaxNode topmostNodeForAnalysis, ImmutableArray<DeclarationInfo>.Builder builder, CancellationToken cancellationToken)
@@ -1738,8 +1729,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var declarationAnalysisData = compilationData.GetOrComputeDeclarationAnalysisData(
                 decl,
-                allocateData => ComputeDeclarationAnalysisData(symbol, decl, semanticModel, analysisScope, allocateData, cancellationToken),
-                cacheAnalysisData);
+                computeDeclarationAnalysisData: () => ComputeDeclarationAnalysisData(symbol, decl, semanticModel, analysisScope, cancellationToken),
+                cacheAnalysisData: cacheAnalysisData);
 
             if (!analysisScope.ShouldAnalyze(declarationAnalysisData.TopmostNodeForAnalysis))
             {

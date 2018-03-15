@@ -21,14 +21,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly Dictionary<SyntaxTree, SemanticModel> _semanticModelsMap;
 
             private readonly Dictionary<SyntaxReference, DeclarationAnalysisData> _declarationAnalysisDataMap;
-            private readonly ObjectPool<DeclarationAnalysisDataBuilder> _declarationAnalysisDataBuilderPool;
-
+            
             public CompilationData(Compilation comp)
             {
                 _semanticModelsMap = new Dictionary<SyntaxTree, SemanticModel>();
                 this.SuppressMessageAttributeState = new SuppressMessageAttributeState(comp);
                 _declarationAnalysisDataMap = new Dictionary<SyntaxReference, DeclarationAnalysisData>();
-                _declarationAnalysisDataBuilderPool = new ObjectPool<DeclarationAnalysisDataBuilder>(() => new DeclarationAnalysisDataBuilder());
             }
 
             public SuppressMessageAttributeState SuppressMessageAttributeState { get; }
@@ -64,60 +62,44 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             internal DeclarationAnalysisData GetOrComputeDeclarationAnalysisData(
                 SyntaxReference declaration,
-                Func<Func<DeclarationAnalysisDataBuilder>, DeclarationAnalysisDataBuilder> computeDeclarationAnalysisData,
+                Func<DeclarationAnalysisData> computeDeclarationAnalysisData,
                 bool cacheAnalysisData)
             {
-                DeclarationAnalysisDataBuilder dataBuilder = null;
-                try
+                if (!cacheAnalysisData)
                 {
-                    if (!cacheAnalysisData)
-                    {
-                        dataBuilder = computeDeclarationAnalysisData(_declarationAnalysisDataBuilderPool.Allocate);
-                        return DeclarationAnalysisData.CreateFrom(dataBuilder);
-                    }
-
-                    DeclarationAnalysisData data;
-                    lock (_declarationAnalysisDataMap)
-                    {
-                        if (_declarationAnalysisDataMap.TryGetValue(declaration, out data))
-                        {
-                            return data;
-                        }
-                    }
-
-                    dataBuilder = computeDeclarationAnalysisData(_declarationAnalysisDataBuilderPool.Allocate);
-
-                    lock (_declarationAnalysisDataMap)
-                    {
-                        if (!_declarationAnalysisDataMap.TryGetValue(declaration, out data))
-                        {
-                            data = DeclarationAnalysisData.CreateFrom(dataBuilder);
-                            _declarationAnalysisDataMap.Add(declaration, data);
-                        }
-                    }
-
-                    return data;
+                    return computeDeclarationAnalysisData();
                 }
-                finally
+
+                DeclarationAnalysisData data;
+                lock (_declarationAnalysisDataMap)
                 {
-                    if (dataBuilder != null)
+                    if (_declarationAnalysisDataMap.TryGetValue(declaration, out data))
                     {
-                        dataBuilder.Free();
-                        _declarationAnalysisDataBuilderPool.Free(dataBuilder);
+                        return data;
                     }
                 }
+
+                data = computeDeclarationAnalysisData();
+
+                lock (_declarationAnalysisDataMap)
+                {
+                    if (!_declarationAnalysisDataMap.TryGetValue(declaration, out DeclarationAnalysisData existingData))
+                    {
+                        _declarationAnalysisDataMap.Add(declaration, data);
+                    }
+                    else
+                    {
+                        data = existingData;
+                    }
+                }
+
+                return data;
             }
 
             internal void ClearDeclarationAnalysisData(SyntaxReference declaration)
             {
-                DeclarationAnalysisData declarationData;
                 lock (_declarationAnalysisDataMap)
                 {
-                    if (!_declarationAnalysisDataMap.TryGetValue(declaration, out declarationData))
-                    {
-                        return;
-                    }
-
                     _declarationAnalysisDataMap.Remove(declaration);
                 }
             }
