@@ -95,6 +95,15 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
             // If the for-variable is an identifier, then make sure it's declaring a variable
             // at the for-statement, and not referencing some previously declared symbol.  i.e
+            // VB allows:
+            //
+            //      dim i as integer
+            //      for i = 0 to ...
+            //
+            // We can't conver this as it would change important semantics.
+            // NOTE: we could potentially update this if we saw that the variable was not used
+            // after the for-loop.  But, for now, we'll just be conservative and assume this means
+            // the user wanted the 'i' for some other purpose and we should keep things as is.
             var iterationSymbol = semanticModel.GetSymbolInfo(iterationVariable.Parent, cancellationToken).GetAnySymbol();
             if (iterationSymbol != null)
             {
