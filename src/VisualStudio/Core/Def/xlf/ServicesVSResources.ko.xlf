@@ -1503,6 +1503,16 @@ I agree to all of the foregoing:</source>
         <target state="new">Can't apply changes -- unexpected error: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="Live_code_analysis">
+        <source>Live code analysis</source>
+        <target state="translated">라이브 코드 분석</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzing_0">
+        <source>Analyzing '{0}'</source>
+        <target state="translated">'{0}' 분석 중</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
