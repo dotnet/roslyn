@@ -260,7 +260,8 @@ namespace Microsoft.CodeAnalysis.AddParameter
                 var aMethod = codeFixData.First().Method; // We need to term the MethodGroup and need an arbitrary IMethodSymbol to do so.
                 var nestedNonCascadingTitle = GetCodeFixTitle(FeaturesResources.Add_parameter_to_0, aMethod, includeParameters: false);
 
-                // Create a sub-menu entry with all the non-cascading CodeActions
+                // Create a sub-menu entry with all the non-cascading CodeActions.
+                // We make sure the IDE does not inline. Otherwise the context menu gets flooded with our fixes.
                 builder.Add(new CodeAction.CodeActionWithNestedActions(nestedNonCascadingTitle, nonCascadingActions, isInlinable: false));
 
                 if (cascadingActions.Length > 0)
