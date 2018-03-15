@@ -16,6 +16,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
+    using CompletionTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
+    using CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
+
     internal partial class Controller :
         AbstractController<Controller.Session, Model, ICompletionPresenterSession, ICompletionSession>,
         IChainedCommandHandler<TabKeyCommandArgs>,
