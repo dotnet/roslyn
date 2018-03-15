@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             SyntaxTree tree = compilation.SyntaxTrees.First();
             SyntaxNode root = tree.GetRoot();
             SemanticModel model = compilation.GetSemanticModel(tree);
-            var declarations = new List<DeclarationInfo>();
+            var declarations = ImmutableArray.CreateBuilder<DeclarationInfo>();
             model.ComputeDeclarationsInNode(root, getSymbol: true, builder: declarations, cancellationToken: CancellationToken.None);
 
             var actualTextBuilder = new StringBuilder();

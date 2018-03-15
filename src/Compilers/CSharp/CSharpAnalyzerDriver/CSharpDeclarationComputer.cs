@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal class CSharpDeclarationComputer : DeclarationComputer
     {
-        public static void ComputeDeclarationsInSpan(SemanticModel model, TextSpan span, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken)
+        public static void ComputeDeclarationsInSpan(SemanticModel model, TextSpan span, bool getSymbol, ImmutableArray<DeclarationInfo>.Builder builder, CancellationToken cancellationToken)
         {
             ComputeDeclarations(model, model.SyntaxTree.GetRoot(cancellationToken),
                 (node, level) => !node.Span.OverlapsWith(span) || InvalidLevel(level),
                 getSymbol, builder, null, cancellationToken);
         }
 
-        public static void ComputeDeclarationsInNode(SemanticModel model, SyntaxNode node, bool getSymbol, List<DeclarationInfo> builder, CancellationToken cancellationToken, int? levelsToCompute = null)
+        public static void ComputeDeclarationsInNode(SemanticModel model, SyntaxNode node, bool getSymbol, ImmutableArray<DeclarationInfo>.Builder builder, CancellationToken cancellationToken, int? levelsToCompute = null)
         {
             ComputeDeclarations(model, node, (n, level) => InvalidLevel(level), getSymbol, builder, levelsToCompute, cancellationToken);
         }
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode node,
             Func<SyntaxNode, int?, bool> shouldSkip,
             bool getSymbol,
-            List<DeclarationInfo> builder,
+            ImmutableArray<DeclarationInfo>.Builder builder,
             int? levelsToCompute,
             CancellationToken cancellationToken)
         {

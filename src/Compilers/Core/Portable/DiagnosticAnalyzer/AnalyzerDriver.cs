@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetRoot(cancellationToken);
             var span = root.FullSpan;
-            var builder = new List<DeclarationInfo>();
+            var builder = ImmutableArray.CreateBuilder<DeclarationInfo>();
             model.ComputeDeclarationsInSpan(span, getSymbol: true, builder: builder, cancellationToken: cancellationToken);
 
             ImmutableHashSet<ISymbol>.Builder generatedSymbolsBuilderOpt = null;
@@ -1391,8 +1391,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<OperationBlockAnalyzerAction>> _lazyOperationBlockActionsByAnalyzer;
         private ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<OperationBlockAnalyzerAction>> _lazyOperationBlockEndActionsByAnalyzer;
 
-        private static readonly ObjectPool<DeclarationAnalysisData> s_declarationAnalysisDataPool = new ObjectPool<DeclarationAnalysisData>(() => new DeclarationAnalysisData());
-
         /// <summary>
         /// Create an analyzer driver.
         /// </summary>
@@ -1670,17 +1668,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             compilationData.ClearDeclarationAnalysisData(declaration);
         }
 
-        private DeclarationAnalysisData ComputeDeclarationAnalysisData(
+        private DeclarationAnalysisDataBuilder ComputeDeclarationAnalysisData(
             ISymbol symbol,
             SyntaxReference declaration,
             SemanticModel semanticModel,
             AnalysisScope analysisScope,
-            Func<DeclarationAnalysisData> allocateData,
+            Func<DeclarationAnalysisDataBuilder> allocateData,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var declarationAnalysisData = allocateData();
+            DeclarationAnalysisDataBuilder declarationAnalysisData = allocateData();
             var builder = declarationAnalysisData.DeclarationsInNode;
 
             var declaringReferenceSyntax = declaration.GetSyntax(cancellationToken);
@@ -1698,7 +1696,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return declarationAnalysisData;
         }
 
-        private static void ComputeDeclarationsInNode(SemanticModel semanticModel, ISymbol declaredSymbol, SyntaxNode declaringReferenceSyntax, SyntaxNode topmostNodeForAnalysis, List<DeclarationInfo> builder, CancellationToken cancellationToken)
+        private static void ComputeDeclarationsInNode(SemanticModel semanticModel, ISymbol declaredSymbol, SyntaxNode declaringReferenceSyntax, SyntaxNode topmostNodeForAnalysis, ImmutableArray<DeclarationInfo>.Builder builder, CancellationToken cancellationToken)
         {
             // We only care about the top level symbol declaration and its immediate member declarations.
             int? levelsToCompute = 2;

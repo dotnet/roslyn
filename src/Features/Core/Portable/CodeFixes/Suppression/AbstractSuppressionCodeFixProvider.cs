@@ -6,7 +6,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -224,7 +223,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                     // targetMemberNode could be a declaration node with multiple decls (e.g. field declaration defining multiple variables).
                     // Let us compute all the declarations intersecting the span.
-                    var decls = new List<DeclarationInfo>();
+                    var decls = ImmutableArray.CreateBuilder<DeclarationInfo>();
                     analyzerDriverService.ComputeDeclarationsInSpan(semanticModel, span, true, decls, cancellationToken);
                     if (decls.Any())
                     {

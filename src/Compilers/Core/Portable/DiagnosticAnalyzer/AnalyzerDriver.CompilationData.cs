@@ -21,14 +21,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private readonly Dictionary<SyntaxTree, SemanticModel> _semanticModelsMap;
 
             private readonly Dictionary<SyntaxReference, DeclarationAnalysisData> _declarationAnalysisDataMap;
-            private readonly ObjectPool<DeclarationAnalysisData> _declarationAnalysisDataPool;
+            private readonly ObjectPool<DeclarationAnalysisDataBuilder> _declarationAnalysisDataBuilderPool;
 
             public CompilationData(Compilation comp)
             {
                 _semanticModelsMap = new Dictionary<SyntaxTree, SemanticModel>();
                 this.SuppressMessageAttributeState = new SuppressMessageAttributeState(comp);
                 _declarationAnalysisDataMap = new Dictionary<SyntaxReference, DeclarationAnalysisData>();
-                _declarationAnalysisDataPool = new ObjectPool<DeclarationAnalysisData>(() => new DeclarationAnalysisData());
+                _declarationAnalysisDataBuilderPool = new ObjectPool<DeclarationAnalysisDataBuilder>(() => new DeclarationAnalysisDataBuilder());
             }
 
             public SuppressMessageAttributeState SuppressMessageAttributeState { get; }
@@ -64,31 +64,48 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             internal DeclarationAnalysisData GetOrComputeDeclarationAnalysisData(
                 SyntaxReference declaration,
-                Func<Func<DeclarationAnalysisData>, DeclarationAnalysisData> computeDeclarationAnalysisData,
+                Func<Func<DeclarationAnalysisDataBuilder>, DeclarationAnalysisDataBuilder> computeDeclarationAnalysisData,
                 bool cacheAnalysisData)
             {
-                if (!cacheAnalysisData)
+                DeclarationAnalysisDataBuilder dataBuilder = null;
+                try
                 {
-                    return computeDeclarationAnalysisData(_declarationAnalysisDataPool.Allocate);
-                }
-
-                DeclarationAnalysisData data;
-                lock (_declarationAnalysisDataMap)
-                {
-                    if (_declarationAnalysisDataMap.TryGetValue(declaration, out data))
+                    if (!cacheAnalysisData)
                     {
-                        return data;
+                        dataBuilder = computeDeclarationAnalysisData(_declarationAnalysisDataBuilderPool.Allocate);
+                        return DeclarationAnalysisData.CreateFrom(dataBuilder);
+                    }
+
+                    DeclarationAnalysisData data;
+                    lock (_declarationAnalysisDataMap)
+                    {
+                        if (_declarationAnalysisDataMap.TryGetValue(declaration, out data))
+                        {
+                            return data;
+                        }
+                    }
+
+                    dataBuilder = computeDeclarationAnalysisData(_declarationAnalysisDataBuilderPool.Allocate);
+
+                    lock (_declarationAnalysisDataMap)
+                    {
+                        if (!_declarationAnalysisDataMap.TryGetValue(declaration, out data))
+                        {
+                            data = DeclarationAnalysisData.CreateFrom(dataBuilder);
+                            _declarationAnalysisDataMap.Add(declaration, data);
+                        }
+                    }
+
+                    return data;
+                }
+                finally
+                {
+                    if (dataBuilder != null)
+                    {
+                        dataBuilder.Free();
+                        _declarationAnalysisDataBuilderPool.Free(dataBuilder);
                     }
                 }
-
-                data = computeDeclarationAnalysisData(_declarationAnalysisDataPool.Allocate);
-
-                lock (_declarationAnalysisDataMap)
-                {
-                    _declarationAnalysisDataMap[declaration] = data;
-                }
-
-                return data;
             }
 
             internal void ClearDeclarationAnalysisData(SyntaxReference declaration)
@@ -102,53 +119,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
 
                     _declarationAnalysisDataMap.Remove(declaration);
-
-                    declarationData.Free();
-                    _declarationAnalysisDataPool.Free(declarationData);
                 }
-            }
-        }
-
-        internal class DeclarationAnalysisData
-        {
-            /// <summary>
-            /// GetSyntax() for the given SyntaxReference.
-            /// </summary>
-            public SyntaxNode DeclaringReferenceSyntax { get; set; }
-
-            /// <summary>
-            /// Topmost declaration node for analysis.
-            /// </summary>
-            public SyntaxNode TopmostNodeForAnalysis { get; set; }
-
-            /// <summary>
-            /// All member declarations within the declaration.
-            /// </summary>
-            public List<DeclarationInfo> DeclarationsInNode { get; }
-
-            /// <summary>
-            /// All descendant nodes for syntax node actions.
-            /// </summary>
-            public List<SyntaxNode> DescendantNodesToAnalyze { get; }
-
-            /// <summary>
-            /// Flag indicating if this is a partial analysis.
-            /// </summary>
-            public bool IsPartialAnalysis { get; set; }
-
-            public DeclarationAnalysisData()
-            {
-                this.DeclarationsInNode = new List<DeclarationInfo>();
-                this.DescendantNodesToAnalyze = new List<SyntaxNode>();
-            }
-
-            public void Free()
-            {
-                DeclaringReferenceSyntax = null;
-                TopmostNodeForAnalysis = null;
-                DeclarationsInNode.Clear();
-                DescendantNodesToAnalyze.Clear();
-                IsPartialAnalysis = false;
             }
         }
     }

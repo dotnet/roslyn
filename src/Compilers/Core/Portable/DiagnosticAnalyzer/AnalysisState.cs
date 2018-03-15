@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var model = getCachedSemanticModel(tree, compilation, cancellationToken);
             var fullSpan = tree.GetRoot(cancellationToken).FullSpan;
-            var declarationInfos = new List<DeclarationInfo>();
+            var declarationInfos = ImmutableArray.CreateBuilder<DeclarationInfo>();
             model.ComputeDeclarationsInSpan(fullSpan, getSymbol: true, builder: declarationInfos, cancellationToken: cancellationToken);
             return declarationInfos.Select(declInfo => declInfo.DeclaredSymbol).Distinct().WhereNotNull();
         }
