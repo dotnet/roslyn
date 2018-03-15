@@ -1332,19 +1332,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression alternative;
             Result consequenceResult;
             Result alternativeResult;
-            bool? resultIsNullable;
+            bool? isNullableIfReferenceType;
 
             if (IsConstantTrue(node.Condition))
             {
                 (alternative, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
                 (consequence, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
-                resultIsNullable = getIsNullable(consequence, consequenceResult);
+                isNullableIfReferenceType = getIsNullableIfReferenceType(consequence, consequenceResult);
             }
             else if (IsConstantFalse(node.Condition))
             {
                 (consequence, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
                 (alternative, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
-                resultIsNullable = getIsNullable(alternative, alternativeResult);
+                isNullableIfReferenceType = getIsNullableIfReferenceType(alternative, alternativeResult);
             }
             else
             {
@@ -1353,7 +1353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (alternative, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
                 Unsplit();
                 IntersectWith(ref this.State, ref consequenceState);
-                resultIsNullable = (getIsNullable(consequence, consequenceResult) | getIsNullable(alternative, alternativeResult));
+                isNullableIfReferenceType = (getIsNullableIfReferenceType(consequence, consequenceResult) | getIsNullableIfReferenceType(alternative, alternativeResult));
             }
 
             TypeSymbolWithAnnotations resultType;
@@ -1379,12 +1379,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetTypeAsDiagnosticArgument(alternativeResult.Type?.TypeSymbol));
                 }
             }
-            resultType = TypeSymbolWithAnnotations.Create(resultType?.TypeSymbol ?? node.Type, resultIsNullable);
+            resultType = TypeSymbolWithAnnotations.Create(resultType?.TypeSymbol ?? node.Type, isNullableIfReferenceType);
 
             _result = resultType;
             return null;
 
-            bool? getIsNullable(BoundExpression expr, Result result)
+            bool? getIsNullableIfReferenceType(BoundExpression expr, Result result)
             {
                 var type = result.Type;
                 if ((object)type != null)
