@@ -1147,12 +1147,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetSymbolInfoForQuery(bound);
         }
 
-        public override SymbolInfo GetSymbolInfo(QueryClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var bound = GetBoundQueryClause(node);
-            return GetSymbolInfoForQuery(bound);
-        }
-
         public override TypeInfo GetTypeInfo(SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken))
         {
             var bound = GetBoundQueryClause(node);
@@ -1630,7 +1624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             while (node != null);
 
-            done:
+done:
             return GetEnclosingBinderInternalWithinRoot(AdjustStartingNodeAccordingToNewRoot(startingNode, queryClause.Syntax),
                                       position, queryClause.Binder, queryClause.Syntax);
         }

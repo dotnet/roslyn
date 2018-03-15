@@ -492,11 +492,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract SymbolInfo GetSymbolInfo(SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Gets the semantic information associated with a LINQ query syntax clause.
-        /// </summary>
-        public abstract SymbolInfo GetSymbolInfo(QueryClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
         /// Returns what symbol(s), if any, the given expression syntax bound to in the program.
         /// 
         /// An AliasSymbol will never be returned by this method. What the alias refers to will be
