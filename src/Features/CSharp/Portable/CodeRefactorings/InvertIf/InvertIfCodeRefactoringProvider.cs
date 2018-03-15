@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                     { SyntaxKind.GreaterThanOrEqualExpression, (SyntaxKind.LessThanExpression, SyntaxKind.LessThanToken) },
                 };
 
-        protected override SyntaxNode GetIfStatement(TextSpan textSpan, SyntaxToken token)
+        protected override SyntaxNode GetIfStatement(TextSpan textSpan, SyntaxToken token, CancellationToken cancellationToken)
         {
             var ifStatement = token.GetAncestor<IfStatementSyntax>();
             if (ifStatement == null || ifStatement.Else == null)
@@ -47,6 +47,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 return null;
             }
 
+            if (ifStatement.OverlapsHiddenPosition(cancellationToken))
+            {
+                return null;
+            }
             return ifStatement;
         }
 

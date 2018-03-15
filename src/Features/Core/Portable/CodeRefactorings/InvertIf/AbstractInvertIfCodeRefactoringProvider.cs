@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
     {
         private const string LongLength = "LongLength";
 
-        protected abstract SyntaxNode GetIfStatement(TextSpan textSpan, SyntaxToken token);
+        protected abstract SyntaxNode GetIfStatement(TextSpan textSpan, SyntaxToken token, CancellationToken cancellationToken);
         protected abstract Task<SyntaxNode> InvertIfStatementAsync(Document document, SemanticModel model, SyntaxNode ifStatement, CancellationToken cancellation);
 
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(textSpan.Start);
 
-            var ifStatement = GetIfStatement(textSpan, token);
+            var ifStatement = GetIfStatement(textSpan, token, cancellationToken);
             if (ifStatement == null)
             {
                 return;

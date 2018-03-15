@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
     Friend Class InvertIfCodeRefactoringProvider
         Inherits AbstractInvertIfCodeRefactoringProvider
 
-        Protected Overrides Function GetIfStatement(textSpan As TextSpan, token As SyntaxToken) As SyntaxNode
+        Protected Overrides Function GetIfStatement(textSpan As TextSpan, token As SyntaxToken, cancellationToken As CancellationToken) As SyntaxNode
             ' We need to find a relevant if-else statement of type SingleLineIfStatement or
             ' MultiLineIfBlock to act on its IfPart and ElsePart.
             Dim relevantIfBlockOrIfStatement As ExecutableStatementSyntax = Nothing
@@ -64,6 +64,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             End If
 
             If Not relevantSpan.IntersectsWith(textSpan.Start) Then
+                Return Nothing
+            End If
+
+            If token.SyntaxTree.OverlapsHiddenPosition(relevantSpan, cancellationToken) Then
                 Return Nothing
             End If
 
@@ -150,6 +154,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
             Dim invertedIfNode = GetInvertedIfNode(originalIfNode, semanticModel, cancellationToken) _
                 .WithAdditionalAnnotations(Formatter.Annotation)
 
+            ' TODO: Figure out why the document & node being passed in are out of sync.
+            originalIfNode = DirectCast(FindIfNode(document.GetSyntaxRootAsync().Result), SingleLineIfStatementSyntax)
+
+            ' Next line doesn't replace the node.  ReplaceDocument in Extensions.cs line24 doesn't actually replace the node, why?  
             document = Await document.ReplaceNodeAsync(originalIfNode, invertedIfNode, cancellationToken).ConfigureAwait(False)
 
             ' Complexify the next statement if there is one.
@@ -249,6 +257,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.InvertIf
         Private Async Function InvertMultiLineIfBlockAsync(originalIfNode As MultiLineIfBlockSyntax, document As Document, semanticModel As SemanticModel, cancellationToken As CancellationToken) As Task(Of Document)
             Dim invertedIfNode = GetInvertedIfNode(originalIfNode, semanticModel, cancellationToken) _
                 .WithAdditionalAnnotations(Formatter.Annotation)
+
+            ' TODO: Figure out why the document & node being passed in are out of sync.
+            originalIfNode = DirectCast(FindIfNode(document.GetSyntaxRootAsync().Result), MultiLineIfBlockSyntax)
 
             Return Await document.ReplaceNodeAsync(originalIfNode, invertedIfNode, cancellationToken).ConfigureAwait(False)
         End Function
