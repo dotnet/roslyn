@@ -169,9 +169,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var model = getCachedSemanticModel(tree, compilation, cancellationToken);
             var fullSpan = tree.GetRoot(cancellationToken).FullSpan;
-            var declarationInfos = ImmutableArray.CreateBuilder<DeclarationInfo>();
+            var declarationInfos = ArrayBuilder<DeclarationInfo>.GetInstance();
             model.ComputeDeclarationsInSpan(fullSpan, getSymbol: true, builder: declarationInfos, cancellationToken: cancellationToken);
-            return declarationInfos.Select(declInfo => declInfo.DeclaredSymbol).Distinct().WhereNotNull();
+            return declarationInfos.ToArrayAndFree().Select(declInfo => declInfo.DeclaredSymbol).Distinct().WhereNotNull();
         }
 
         private static ImmutableArray<CompilationEvent> CreateCompilationEventsForTree(IEnumerable<ISymbol> declaredSymbols, SyntaxTree tree, Compilation compilation)

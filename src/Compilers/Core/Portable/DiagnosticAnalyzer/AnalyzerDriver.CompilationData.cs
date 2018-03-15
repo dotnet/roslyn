@@ -70,27 +70,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return computeDeclarationAnalysisData();
                 }
 
-                DeclarationAnalysisData data;
                 lock (_declarationAnalysisDataMap)
                 {
-                    if (_declarationAnalysisDataMap.TryGetValue(declaration, out data))
+                    if (_declarationAnalysisDataMap.TryGetValue(declaration, out var cachedData))
                     {
-                        return data;
+                        return cachedData;
                     }
                 }
 
-                data = computeDeclarationAnalysisData();
-
+                DeclarationAnalysisData data = computeDeclarationAnalysisData();
                 lock (_declarationAnalysisDataMap)
                 {
-                    if (!_declarationAnalysisDataMap.TryGetValue(declaration, out DeclarationAnalysisData existingData))
-                    {
-                        _declarationAnalysisDataMap.Add(declaration, data);
-                    }
-                    else
-                    {
-                        data = existingData;
-                    }
+                    _declarationAnalysisDataMap[declaration] = data;
                 }
 
                 return data;

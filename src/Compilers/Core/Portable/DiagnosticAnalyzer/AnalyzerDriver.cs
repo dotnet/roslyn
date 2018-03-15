@@ -684,11 +684,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var model = compilation.GetSemanticModel(tree);
             var root = tree.GetRoot(cancellationToken);
             var span = root.FullSpan;
-            var builder = ImmutableArray.CreateBuilder<DeclarationInfo>();
+            var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
             model.ComputeDeclarationsInSpan(span, getSymbol: true, builder: builder, cancellationToken: cancellationToken);
+            var declarationInfos = builder.ToImmutableAndFree();
 
             ImmutableHashSet<ISymbol>.Builder generatedSymbolsBuilderOpt = null;
-            foreach (var declarationInfo in builder)
+            foreach (var declarationInfo in declarationInfos)
             {
                 var symbol = declarationInfo.DeclaredSymbol;
                 if (symbol != null &&
@@ -1677,17 +1678,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            var builder = ImmutableArray.CreateBuilder<DeclarationInfo>();
+            var builder = ArrayBuilder<DeclarationInfo>.GetInstance();
             var declaringReferenceSyntax = declaration.GetSyntax(cancellationToken);
             var topmostNodeForAnalysis = semanticModel.GetTopmostNodeForDiagnosticAnalysis(symbol, declaringReferenceSyntax);
             ComputeDeclarationsInNode(semanticModel, symbol, declaringReferenceSyntax, topmostNodeForAnalysis, builder, cancellationToken);
+            var declarationInfos = builder.ToImmutableAndFree();
 
             var isPartialDeclAnalysis = analysisScope.FilterSpanOpt.HasValue && !analysisScope.ContainsSpan(topmostNodeForAnalysis.FullSpan);
             var nodesToAnalyze = GetSyntaxNodesToAnalyze(topmostNodeForAnalysis, symbol, builder, analysisScope, isPartialDeclAnalysis, semanticModel, analyzerExecutor);
-            return new DeclarationAnalysisData(declaringReferenceSyntax, topmostNodeForAnalysis, builder, nodesToAnalyze, isPartialDeclAnalysis);
+            return new DeclarationAnalysisData(declaringReferenceSyntax, topmostNodeForAnalysis, declarationInfos, nodesToAnalyze, isPartialDeclAnalysis);
         }
 
-        private static void ComputeDeclarationsInNode(SemanticModel semanticModel, ISymbol declaredSymbol, SyntaxNode declaringReferenceSyntax, SyntaxNode topmostNodeForAnalysis, ImmutableArray<DeclarationInfo>.Builder builder, CancellationToken cancellationToken)
+        private static void ComputeDeclarationsInNode(SemanticModel semanticModel, ISymbol declaredSymbol, SyntaxNode declaringReferenceSyntax, SyntaxNode topmostNodeForAnalysis, ArrayBuilder<DeclarationInfo> builder, CancellationToken cancellationToken)
         {
             // We only care about the top level symbol declaration and its immediate member declarations.
             int? levelsToCompute = 2;
@@ -1960,7 +1962,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private static IEnumerable<SyntaxNode> GetSyntaxNodesToAnalyze(
+        private static ImmutableArray<SyntaxNode> GetSyntaxNodesToAnalyze(
             SyntaxNode declaredNode,
             ISymbol declaredSymbol,
             IEnumerable<DeclarationInfo> declarationsInNode,
@@ -1969,9 +1971,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SemanticModel semanticModel,
             AnalyzerExecutor analyzerExecutor)
         {
+            var nodeBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
+            void AddNode(SyntaxNode node)
+            {
+                if (!isPartialDeclAnalysis || analysisScope.ShouldAnalyze(node))
+                {
+                    nodeBuilder.Add(node);
+                }
+            }
+
             // Eliminate descendant member declarations within declarations.
             // There will be separate symbols declared for the members.
-            HashSet<SyntaxNode> descendantDeclsToSkip = null;
+            HashSet<SyntaxNode> descendantDeclsToSkipOpt = null;
             bool first = true;
             foreach (var declInNode in declarationsInNode)
             {
@@ -2002,23 +2013,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         declarationNodeToSkip = semanticModel.GetTopmostNodeForDiagnosticAnalysis(declaredSymbolOfDeclInNode, declInNode.DeclaredNode);
                     }
 
-                    descendantDeclsToSkip = descendantDeclsToSkip ?? new HashSet<SyntaxNode>();
-                    descendantDeclsToSkip.Add(declarationNodeToSkip);
+                    descendantDeclsToSkipOpt = descendantDeclsToSkipOpt ?? new HashSet<SyntaxNode>();
+                    descendantDeclsToSkipOpt.Add(declarationNodeToSkip);
                 }
 
                 first = false;
             }
 
-            var nodesToAnalyze = descendantDeclsToSkip == null ?
-                declaredNode.DescendantNodesAndSelf(descendIntoTrivia: true) :
-                GetSyntaxNodesToAnalyze(declaredNode, descendantDeclsToSkip);
+            AddSyntaxNodesToAnalyze(declaredNode, descendantDeclsToSkipOpt, AddNode);
 
-            if (isPartialDeclAnalysis)
-            {
-                nodesToAnalyze = nodesToAnalyze.Where(node => analysisScope.ShouldAnalyze(node));
-            }
-
-            return nodesToAnalyze;
+            Debug.Assert(!isPartialDeclAnalysis || nodeBuilder.All(analysisScope.ShouldAnalyze));
+            return nodeBuilder.ToImmutableAndFree();
         }
 
         private static bool IsEquivalentSymbol(ISymbol declaredSymbol, ISymbol otherSymbol)
@@ -2069,16 +2074,16 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return operationsToAnalyze.ToImmutableAndFree();
         }
 
-        private static IEnumerable<SyntaxNode> GetSyntaxNodesToAnalyze(SyntaxNode declaredNode, HashSet<SyntaxNode> descendantDeclsToSkip)
+        private static void AddSyntaxNodesToAnalyze(SyntaxNode declaredNode, HashSet<SyntaxNode> descendantNodesToSkipOpt, Action<SyntaxNode> addNode)
         {
             Debug.Assert(declaredNode != null);
-            Debug.Assert(descendantDeclsToSkip != null);
 
-            foreach (var node in declaredNode.DescendantNodesAndSelf(n => !descendantDeclsToSkip.Contains(n), descendIntoTrivia: true))
+            bool ShouldAddNode(SyntaxNode node) => descendantNodesToSkipOpt == null || !descendantNodesToSkipOpt.Contains(node);
+            foreach (var node in declaredNode.DescendantNodesAndSelf(descendIntoChildren: ShouldAddNode, descendIntoTrivia: true))
             {
-                if (!descendantDeclsToSkip.Contains(node))
+                if (ShouldAddNode(node))
                 {
-                    yield return node;
+                    addNode(node);
                 }
             }
         }

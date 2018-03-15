@@ -174,11 +174,11 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             SyntaxTree tree = compilation.SyntaxTrees.First();
             SyntaxNode root = tree.GetRoot();
             SemanticModel model = compilation.GetSemanticModel(tree);
-            var declarations = ImmutableArray.CreateBuilder<DeclarationInfo>();
-            model.ComputeDeclarationsInNode(root, getSymbol: true, builder: declarations, cancellationToken: CancellationToken.None);
+            var declarationsBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
+            model.ComputeDeclarationsInNode(root, getSymbol: true, builder: declarationsBuilder, cancellationToken: CancellationToken.None);
 
             var actualTextBuilder = new StringBuilder();
-            foreach (DeclarationInfo declaration in declarations.Where(d => d.DeclaredSymbol != null).OrderBy(d => d.DeclaredSymbol.ToTestDisplayString()))
+            foreach (DeclarationInfo declaration in declarationsBuilder.ToArrayAndFree().Where(d => d.DeclaredSymbol != null).OrderBy(d => d.DeclaredSymbol.ToTestDisplayString()))
             {
                 if (!CanHaveExecutableCodeBlock(declaration.DeclaredSymbol))
                 {

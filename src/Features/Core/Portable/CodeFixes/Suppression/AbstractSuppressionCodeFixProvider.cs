@@ -223,9 +223,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
 
                     // targetMemberNode could be a declaration node with multiple decls (e.g. field declaration defining multiple variables).
                     // Let us compute all the declarations intersecting the span.
-                    var decls = ImmutableArray.CreateBuilder<DeclarationInfo>();
-                    analyzerDriverService.ComputeDeclarationsInSpan(semanticModel, span, true, decls, cancellationToken);
-                    if (decls.Any())
+                    var declsBuilder = ArrayBuilder<DeclarationInfo>.GetInstance();
+                    analyzerDriverService.ComputeDeclarationsInSpan(semanticModel, span, true, declsBuilder, cancellationToken);
+                    var decls = declsBuilder.ToImmutableAndFree();
+
+                    if (!decls.IsEmpty)
                     {
                         var containedDecls = decls.Where(d => span.Contains(d.DeclaredNode.Span));
                         if (containedDecls.Count() == 1)

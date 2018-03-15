@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -13,14 +12,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             public DeclarationAnalysisData(
                 SyntaxNode declaringReferenceSyntax,
                 SyntaxNode topmostNodeForAnalysis,
-                ImmutableArray<DeclarationInfo>.Builder declarationsInNodeBuilder,
-                IEnumerable<SyntaxNode> descendantNodesToAnalyze,
+                ImmutableArray<DeclarationInfo> declarationsInNodeBuilder,
+                ImmutableArray<SyntaxNode> descendantNodesToAnalyze,
                 bool isPartialAnalysis)
             {
                 DeclaringReferenceSyntax = declaringReferenceSyntax;
                 TopmostNodeForAnalysis = topmostNodeForAnalysis;
-                DeclarationsInNode = declarationsInNodeBuilder.ToImmutable();
-                DescendantNodesToAnalyze = descendantNodesToAnalyze.ToImmutableArray();
+                DeclarationsInNode = declarationsInNodeBuilder;
+                DescendantNodesToAnalyze = descendantNodesToAnalyze;
                 IsPartialAnalysis = isPartialAnalysis;
             }
 
