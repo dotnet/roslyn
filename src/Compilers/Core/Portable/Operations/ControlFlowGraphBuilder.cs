@@ -1921,8 +1921,6 @@ namespace Microsoft.CodeAnalysis.Operations
                     assignmentSyntax = operation.Syntax;
                     if (initializer != null)
                     {
-                        // PROTOTYPE(dataflow): Add a test with control flow in a shared initializer after
-                        // object creation support has been added
                         initializer = new InvalidOperation(ImmutableArray.Create(initializer, operationInitializer),
                                                            semanticModel: null,
                                                            operation.Syntax,
@@ -2014,7 +2012,7 @@ namespace Microsoft.CodeAnalysis.Operations
             // Initializer is removed from the tree and turned into a series of statements that assign to the created instance
             IOperation objectCreation = new ObjectCreationExpression(operation.Constructor, initializer: null, visitedArgs, semanticModel: null, operation.Syntax, operation.Type, operation.ConstantValue, operation.IsImplicit);
 
-            // PROTOTYPE(dataflow): For a non-null initializer, we'll need to assign the created object to a flow reference and rewrite all initializers to assign to/call functions on it, then return return the flow reference
+            // PROTOTYPE(dataflow): Handle collection initializers
             if (operation.Initializer != null)
             {
                 SpillEvalStack();
