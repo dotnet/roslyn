@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ConvertForToForEach
         {
             if (typeNode == null)
             {
-                // types are not apperant in foreach statements.
+                // types are not apparent in foreach statements.
                 var isBuiltInTypeContext = TypeStyleHelper.IsBuiltInType(iterationVariableType);
                 if (TypeStyleHelper.IsImplicitStylePreferred(
                         optionSet, isBuiltInTypeContext, isTypeApparentContext: false))
