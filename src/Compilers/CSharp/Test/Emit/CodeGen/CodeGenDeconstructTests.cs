@@ -1471,7 +1471,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void Constraints_01()
         {
             string source = @"
@@ -5260,6 +5260,9 @@ var (x, y) = (1, null);
             Assert.True(xType.IsErrorType());
             Assert.Equal("var", xType.ToTestDisplayString());
 
+            var xTypeISymbol = (ISymbol)xType;
+            Assert.Equal(SymbolKind.ErrorType, xTypeISymbol.Kind);
+
             var y = GetDeconstructionVariable(tree, "y");
             var ySymbol = model.GetDeclaredSymbol(y);
             Assert.Equal("var Script.y", ySymbol.ToTestDisplayString());
@@ -5649,6 +5652,9 @@ class C
             var symbol = (IDiscardSymbol)model.GetSymbolInfo(discard).Symbol;
             Assert.Equal("int _", symbol.ToDisplayString(SymbolDisplayFormat.MinimallyQualifiedFormat));
             Assert.Equal("System.Int32", model.GetTypeInfo(discard).Type.ToTestDisplayString());
+
+            var isymbol = (ISymbol)symbol;
+            Assert.Equal(SymbolKind.Discard, isymbol.Kind);
         }
 
         [Fact]

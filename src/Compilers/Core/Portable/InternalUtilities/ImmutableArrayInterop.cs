@@ -10,27 +10,55 @@ namespace Roslyn.Utilities
     {
         internal static byte[] DangerousGetUnderlyingArray(this ImmutableArray<byte> array)
         {
-            var union = new ByteArrayUnion();
+            var union = new ArrayUnion();
             union.ImmutableArray = array;
             return union.MutableArray;
         }
 
         internal static ImmutableArray<byte> DangerousCreateFromUnderlyingArray(ref byte[] array)
         {
-            var union = new ByteArrayUnion();
+            var union = new ArrayUnion();
             union.MutableArray = array;
             array = null;
             return union.ImmutableArray;
         }
 
         [StructLayout(LayoutKind.Explicit)]
-        private struct ByteArrayUnion
+        private struct ArrayUnion
         {
             [FieldOffset(0)]
             internal byte[] MutableArray;
 
             [FieldOffset(0)]
             internal ImmutableArray<byte> ImmutableArray;
+        }
+    }
+
+    internal static class ImmutableInt32ArrayInterop
+    {
+        internal static int[] DangerousGetUnderlyingArray(this ImmutableArray<int> array)
+        {
+            var union = new ArrayUnion();
+            union.ImmutableArray = array;
+            return union.MutableArray;
+        }
+
+        internal static ImmutableArray<int> DangerousCreateFromUnderlyingArray(ref int[] array)
+        {
+            var union = new ArrayUnion();
+            union.MutableArray = array;
+            array = null;
+            return union.ImmutableArray;
+        }
+
+        [StructLayout(LayoutKind.Explicit)]
+        private struct ArrayUnion
+        {
+            [FieldOffset(0)]
+            internal int[] MutableArray;
+
+            [FieldOffset(0)]
+            internal ImmutableArray<int> ImmutableArray;
         }
     }
 }

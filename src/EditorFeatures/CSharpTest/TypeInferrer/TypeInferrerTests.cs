@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.TypeInferrer
             var inferredType = useNodeStartPosition
                 ? typeInference.InferType(await document.GetSemanticModelForSpanAsync(new TextSpan(node?.SpanStart ?? textSpan.Start, 0), CancellationToken.None), node?.SpanStart ?? textSpan.Start, objectAsDefault: true, cancellationToken: CancellationToken.None)
                 : typeInference.InferType(await document.GetSemanticModelForSpanAsync(node?.Span ?? textSpan, CancellationToken.None), node, objectAsDefault: true, cancellationToken: CancellationToken.None);
-            var typeSyntax = inferredType.GenerateTypeSyntax();
+            var typeSyntax = inferredType.GenerateTypeSyntax().NormalizeWhitespace();
             Assert.Equal(expectedType, typeSyntax.ToString());
         }
 
@@ -1435,7 +1435,7 @@ class A
     }
 }";
 
-            await TestAsync(text, "global::System.Func<global::System.Int32,global::System.Int32>");
+            await TestAsync(text, "global::System.Func<global::System.Int32, global::System.Int32>");
         }
 
         [WorkItem(538993, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538993")]
@@ -2021,11 +2021,21 @@ class C
         }
 
         [WorkItem(15468, "https://github.com/dotnet/roslyn/issues/15468")]
+        [WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
         public async Task TestDeconstruction()
         {
             await TestInMethodAsync(
-@"[|(int i, _)|] =", "global::System.Object");
+@"[|(int i, _)|] =", "(global::System.Int32 i, global::System.Object _)", testPosition: false);
+        }
+
+        [WorkItem(15468, "https://github.com/dotnet/roslyn/issues/15468")]
+        [WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestDeconstruction2()
+        {
+            await TestInMethodAsync(
+@"(int i, _) =  [||]", "(global::System.Int32 i, global::System.Object _)", testNode: false);
         }
 
         [WorkItem(13402, "https://github.com/dotnet/roslyn/issues/13402")]

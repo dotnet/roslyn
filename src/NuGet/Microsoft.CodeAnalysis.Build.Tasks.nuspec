@@ -51,6 +51,7 @@
     <file src="Dlls\MSBuildTask\netcoreapp2.0\Microsoft.Build.Tasks.CodeAnalysis.pdb*" target="lib\netcoreapp2.0" />
     <file src="Dlls\MSBuildTask\net46\Microsoft.Build.Tasks.CodeAnalysis.dll" target="lib\net46" />
     <file src="Dlls\MSBuildTask\net46\Microsoft.Build.Tasks.CodeAnalysis.pdb*" target="lib\net46" />
+    <file src="Dlls\MSBuildTask\net46\Microsoft.Managed.Core.targets" target="contentFiles\any\any" />
     <file src="Dlls\MSBuildTask\net46\Microsoft.CSharp.Core.targets" target="contentFiles\any\any" />
     <file src="Dlls\MSBuildTask\net46\Microsoft.VisualBasic.Core.targets" target="contentFiles\any\any" />
     <file src="$thirdPartyNoticesPath$" target="" />

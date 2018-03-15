@@ -96,7 +96,8 @@ Example: `Func<int> f = default(TypedReference).GetHashCode; // new error CS0123
     ```
     This is changed in 15.6 to now produce an error that the variable is not definitely assigned.
 
-- Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/19792 C# compiler will now reject [IsReadOnly] symbols that should have an [InAttribute] modreq, but don't.  
+- Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/issues/19792 C# compiler will now reject [IsReadOnly] symbols that should have an [InAttribute] modreq, but don't.
+- Visual Studio 2017 version 15.7: https://github.com/dotnet/roslyn/pull/25131 C# compiler will now check `stackalloc T [count]` expressions to see if T matches constraints of `Span<T>`.
 
 - https://github.com/dotnet/roslyn/issues/24806 In C# 7.2 and previous versions, it could be possible to observe cases when an RValue expression is reduced to a variable that can be passed by reference in the process of compiling.  
 For example `(x + 0)` becomes `x`. If such change happens in a context that allows both RValues and passing via direct reference (receiver of a struct call or an `in` parameter), then it could change the meaning of the code.   

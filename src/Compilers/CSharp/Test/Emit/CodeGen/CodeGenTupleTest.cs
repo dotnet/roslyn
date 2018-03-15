@@ -14,7 +14,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
-using static Roslyn.Test.Utilities.SigningTestHelpers;
 using static TestResources.NetFX.ValueTuple;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -363,6 +362,7 @@ public class C4 : C3
                 Assert.Equal(1, iface.TypeArguments().Length);
                 TypeSymbol typeArg = iface.TypeArguments()[0];
                 Assert.True(typeArg.IsTupleType);
+                Assert.False(((INamedTypeSymbol)typeArg).IsSerializable);
                 Assert.Equal(2, typeArg.TupleElementTypes.Length);
                 Assert.All(typeArg.TupleElementTypes,
                    t => Assert.Equal(SpecialType.System_Int32, t.SpecialType));
@@ -717,6 +717,7 @@ val: -2
             var tooFewNames = c.GetMember<FieldSymbol>("TooFewNames");
             Assert.True(tooFewNames.Type.IsErrorType());
             Assert.IsType<UnsupportedMetadataTypeSymbol>(tooFewNames.Type);
+            Assert.False(((INamedTypeSymbol)tooFewNames.Type).IsSerializable);
 
             var tooManyNames = c.GetMember<FieldSymbol>("TooManyNames");
             Assert.True(tooManyNames.Type.IsErrorType());
@@ -3056,7 +3057,7 @@ class C
             verifier.VerifyDiagnostics();
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void LongTupleDeclaration()
         {
             var source = @"
@@ -9884,7 +9885,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilationWithMscorlib40(source);
             comp.VerifyDiagnostics(
                 // (6,24): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         var x = (1, 2, new System.ArgIterator());
@@ -9923,7 +9924,7 @@ class C
 }
 " + trivial2uple + trivial3uple + tupleattributes_cs;
 
-            var comp = CreateCompilation(source);
+            var comp = CreateCompilationWithMscorlib40(source);
             comp.VerifyDiagnostics(
                 // (6,36): error CS0306: The type 'ArgIterator' may not be used as a type argument
                 //         (int x, System.ArgIterator y) y;
@@ -10145,7 +10146,7 @@ CS0151ERR_IntegralTypeValueExpected}
             Assert.Throws<ArgumentNullException>(() => Compilation.GetRequiredLanguageVersion(null));
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DefaultAndFriendlyElementNames_01()
         {
             var source = @"
@@ -10587,7 +10588,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DefaultAndFriendlyElementNames_02()
         {
             var source = @"
@@ -10717,7 +10718,7 @@ class C
             }
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DefaultAndFriendlyElementNames_03()
         {
             var source = @"
@@ -10986,7 +10987,7 @@ class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void DefaultAndFriendlyElementNames_05()
         {
             var source = @"
@@ -11409,7 +11410,7 @@ class C
                 );
         }
 
-        [Fact]
+       [ConditionalFact(typeof(DesktopOnly))]
         public void DefaultAndFriendlyElementNames_08()
         {
             var source = @"
@@ -12203,7 +12204,7 @@ Yes");
             Assert.Equal(1, m9Test.Arity);
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void CreationOfTupleSymbols_01()
         {
             var source = @"
@@ -12764,7 +12765,7 @@ public class Test
                          m1Tuple.ToTestDisplayString());
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void UnifyUnderlyingWithTuple_05()
         {
             var source = @"
@@ -20857,7 +20858,7 @@ public interface I<in T>
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
         public void TupleInConstant()
         {
@@ -20893,7 +20894,7 @@ class C
             // no assertion in MetadataWriter
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(13767, "https://github.com/dotnet/roslyn/issues/13767")]
         public void ConstantTypeFromReferencedAssembly()
         {
@@ -20909,10 +20910,10 @@ class C
     }
 }";
 
-            var libComp = CreateCompilation(libSource, assemblyName: "lib");
+            var libComp = CreateCompilationWithMscorlib40(libSource, assemblyName: "lib");
             libComp.VerifyDiagnostics();
 
-            var comp = CreateCompilation(source, assemblyName: "comp", references: new[] { libComp.EmitToImageReference() }, options: TestOptions.DebugExe);
+            var comp = CreateCompilationWithMscorlib40(source, assemblyName: "comp", references: new[] { libComp.EmitToImageReference() }, options: TestOptions.DebugExe);
 
             // emit without pdb
             using (ModuleMetadata block = ModuleMetadata.CreateFromStream(comp.EmitToStream()))
@@ -21315,6 +21316,8 @@ namespace System
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("A", "92872377-08d1-4723-8906-a43b03e56ed3, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null"));
         }
 
+        // https://github.com/dotnet/roslyn/issues/25141
+#if NET461
         [Fact]
         public void ValueTupleBase_AssemblyUnification()
         {
@@ -21325,7 +21328,7 @@ public class A
 }";
             var signedDllOptions = TestOptions.ReleaseDll.
                 WithCryptoKeyFile(SigningTestHelpers.KeyPairFile).
-                WithStrongNameProvider(s_defaultDesktopProvider);
+                WithStrongNameProvider(SigningTestHelpers.s_defaultDesktopProvider);
             var comp0v1 = CreateCompilationWithMscorlib40(source0v1, assemblyName: "A", options: signedDllOptions);
             comp0v1.VerifyDiagnostics();
             var ref0v1 = comp0v1.EmitToImageReference();
@@ -21365,8 +21368,9 @@ public class A
                 // error CS8182: Predefined type 'ValueTuple`2' must be a struct.
                 Diagnostic(ErrorCode.ERR_PredefinedValueTupleTypeMustBeStruct).WithArguments("ValueTuple`2").WithLocation(1, 1));
         }
+#endif
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(13472, "https://github.com/dotnet/roslyn/issues/13472")]
         public void InvalidCastRef()
         {
@@ -21507,7 +21511,7 @@ public class B1
 
         [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
         [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void RefTupleDynamicDecode001()
         {
             string lib = @"
@@ -21967,7 +21971,7 @@ namespace ConsoleApplication5
 
         [WorkItem(14708, "https://github.com/dotnet/roslyn/issues/14708")]
         [WorkItem(14709, "https://github.com/dotnet/roslyn/issues/14709")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void RefTupleDynamicDecode004()
         {
             string lib = @"
@@ -23227,7 +23231,7 @@ static class C
                 );
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void Serialization()
         {
             var source = @"

@@ -93,6 +93,9 @@
     <Folder Include="My Project\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\Compilers\Core\MSBuildTask\Microsoft.Managed.Core.targets">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="..\..\Compilers\Core\MSBuildTask\Microsoft.CSharp.Core.targets">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

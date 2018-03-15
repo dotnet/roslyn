@@ -41,6 +41,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsAddOverload = "CodeActions.AddOverloads";
             public const string CodeActionsAddParameter = "CodeActions.AddParameter";
             public const string CodeActionsAddParenthesesAroundConditionalExpressionInInterpolatedString = "CodeActions.AddParenthesesAroundConditionalExpressionInInterpolatedString";
+            public const string CodeActionsAliasAmbiguousType = "CodeActions.AliasAmbiguousType";
             public const string CodeActionsChangeToAsync = "CodeActions.ChangeToAsync";
             public const string CodeActionsChangeToIEnumerable = "CodeActions.ChangeToIEnumerable";
             public const string CodeActionsChangeToYield = "CodeActions.ChangeToYield";

@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -220,10 +218,18 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
+            if (!CanConvert(property))
+            {
+                return;
+            }
+
             // Looks like a viable property/field to convert into an auto property.
             analysisResults.Add(new AnalysisResult(property, getterField, propertyDeclaration,
                 fieldDeclaration, variableDeclarator, property.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
         }
+
+        protected virtual bool CanConvert(IPropertySymbol property)
+            => true;
 
         private IFieldSymbol GetSetterField(
             SemanticModel semanticModel, ISymbol containingType, IMethodSymbol setMethod, CancellationToken cancellationToken)
