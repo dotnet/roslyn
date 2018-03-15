@@ -9086,6 +9086,11 @@
         <target state="new">Invalid hash algorithm name: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="FEATURE_InterpolatedStrings">
+        <source>interpolated strings</source>
+        <target state="new">interpolated strings</target>
+        <note />
+      </trans-unit>
       <trans-unit id="FEATURE_EnumFlagOperators">
         <source>Enum Flag Operators</source>
         <target state="new">Enum Flag Operators</target>

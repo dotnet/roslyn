@@ -38,7 +38,7 @@ class Program
             // TODO: Validate build works as expected
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Build)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18204"), Trait(Traits.Feature, Traits.Features.Build)]
         public void BuildWithCommandLine()
         {
             VisualStudio.SolutionExplorer.SaveAll();

@@ -196,7 +196,7 @@ function Make-BootstrapBuild() {
         Exec-Console "dotnet" "publish --no-restore src/Compilers/CSharp/csc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapCsc.binlog"
         Exec-Console "dotnet" "publish --no-restore src/Compilers/VisualBasic/vbc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapVbc.binlog"
         Exec-Console "dotnet" "publish --no-restore src/Compilers/Server/VBCSCompiler -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapVBCSCompiler.binlog"
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/Core/MSBuildTask -o `"$dir`" $bootstrapArgs -bl:$binariesDir/BootstrapMSBuildTask.binlog"
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/Core/MSBuildTask -o `"$dir`" --framework $bootstrapFramework $bootstrapArgs -bl:$binariesDir/BootstrapMSBuildTask.binlog"
         Stop-BuildProcesses
     }
     else {
@@ -246,6 +246,7 @@ function Build-Artifacts() {
 # finish building these before we can run signing.
 function Build-ExtraSignArtifacts() { 
 
+    Ensure-NuGet | Out-Null
     Push-Location (Join-Path $repoDir "src\Setup")
     try {
         # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
@@ -256,10 +257,9 @@ function Build-ExtraSignArtifacts() {
         Write-Host "Publishing VBCSCompiler"
         Run-MSBuild "..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
         Write-Host "Publishing MSBuildTask"
-        Run-MSBuild "..\Compilers\Core\MSBuildTask\MSBuildTask.csproj" "/p:TargetFramework=netstandard1.3 /t:PublishWithoutBuilding"
+        Run-MSBuild "..\Compilers\Core\MSBuildTask\MSBuildTask.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
 
-        $dest = @(
-            $configDir)
+        $dest = @($configDir)
         foreach ($dir in $dest) { 
             Copy-Item "PowerShell\*.ps1" $dir
         }

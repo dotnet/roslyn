@@ -999,51 +999,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             GetNextToken()
             If CurrentToken.Kind = SyntaxKind.IdentifierToken Then
                 Dim Name = ParseIdentifierNameAllowingKeyword(True)
-                If Name IsNot Nothing Then
-                    Return SyntaxFactory.FlagsEnumOperationExpression(Term, op, Name)
-                End If
-                Return SyntaxFactory.FlagsEnumOperationExpression(Term, op, Name.AddError(ERRID.ERR_ExpectedIdentifier))
-
+                If Name IsNot Nothing Then Return SyntaxFactory.FlagsEnumOperationExpression(Term, op, Name)
             ElseIf CurrentToken.Kind = SyntaxKind.OpenParenToken Then
-                Dim pexpr As ExpressionSyntax = ParseParenthesizedExpressionOrTupleLiteral()
-                If pexpr IsNot Nothing Then
-                    If pexpr.Kind <> SyntaxKind.ParenthesizedExpression Then pexpr = AddError(pexpr, ERRID.ERR_ExpectedExpression)
-                    Return SyntaxFactory.FlagsEnumOperationExpression(Term, op, pexpr)
-                End If
-                Return SyntaxFactory.FlagsEnumOperationExpression(Term, op, pexpr.AddError(ERRID.ERR_ExpectedExpression))
-
+                Dim pexpr = ParseRightAsParenthesizedExpression(Term, op)
+                If pexpr IsNot Nothing Then Return pexpr
             End If
-            Dim expr = ParseExpression()
-            Return SyntaxFactory.FlagsEnumOperationExpression(Term, op, expr)
+            Return Nothing
         End Function
 
-        Private Function TryParseFlagEnumExpr_Or_QualifiedExpr(
-                                                              DotOrBangToken As PunctuationSyntax,
-                                                              Term As ExpressionSyntax,
-                                                  <Out> ByRef output As ExpressionSyntax
+        Private Function ParseRightAsParenthesizedExpression(Term As ExpressionSyntax, op As FlagsEnumOperatorSyntax) As ExpressionSyntax
+            Dim pexpr As ExpressionSyntax = ParseParenthesizedExpressionOrTupleLiteral()
+            If pexpr Is Nothing Then Return Nothing
+            If pexpr.Kind <> SyntaxKind.ParenthesizedExpression Then pexpr = AddError(pexpr, ERRID.ERR_ExpectedExpression)
+            Return SyntaxFactory.FlagsEnumOperationExpression(Term, op, pexpr)
+            Return Nothing
+        End Function
+
+        Private Function TryParseFlagEnumExpr_Or_QualifiedExpr(Term As ExpressionSyntax,
+                                                               op As PunctuationSyntax,
+                                                               <Out> ByRef output As ExpressionSyntax
                                                               ) As Boolean
             output = Nothing
 
-            If DotOrBangToken.Kind = SyntaxKind.ExclamationToken Then
-                If CurrentToken.Kind = SyntaxKind.OpenParenToken Then
-                    Dim expr = ParseParenthesizedExpressionOrTupleLiteral()
-                    If expr IsNot Nothing Then
-                        expr = DirectCast(expr.WithLeadingTrivia(Term.GetTrailingTriviaCore), ExpressionSyntax)
-
-                        If expr.Kind = SyntaxKind.ParenthesizedExpression Then
-                            Dim op = SyntaxFactory.FlagsEnumIsSetToken(DotOrBangToken.Text, DotOrBangToken.GetLeadingTrivia, DotOrBangToken.GetTrailingTrivia)
-                            output = SyntaxFactory.FlagsEnumOperationExpression(Term, op, expr)
-                            Return True
-                        End If
-
-                    End If
+            If op.Kind = SyntaxKind.ExclamationToken Then
+                Dim pt = PeekToken(1)
+                Dim fop = SyntaxFactory.FlagsEnumIsSetToken(op.Text, op.GetLeadingTrivia, op.GetTrailingTrivia)
+                If pt.Kind = SyntaxKind.IdentifierToken Then
+                    GetNextToken()
+                    Dim name = ParseIdentifierNameAllowingKeyword()
+                    output = SyntaxFactory.DictionaryAccessExpression(Term, op, name)
+                    '  output = ParseFlagsEnumExpr(Term, fop)
                 Else
-                    Dim Name = ParseIdentifierNameAllowingKeyword()
-                    output = SyntaxFactory.DictionaryAccessExpression(Term, DotOrBangToken, Name)
-                    Return True
+                    GetNextToken()
+
+                    Dim expr = ParseExpression()
+                    output = SyntaxFactory.FlagsEnumOperationExpression(Term, fop, expr)
+
                 End If
             End If
-            Return False
+            Return output IsNot Nothing
         End Function
 
         ' /*********************************************************************
@@ -1061,27 +1055,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' File: Parser.cpp
         ' Lines: 16211 - 16211
         ' Expression* .Parser::ParseQualifiedExpr( [ _In_ Token* Start ] [ _In_opt_ ParseTree::Expression* Term ] [ _Inout_ bool& ErrorInConstruct ] )
-        Private Function ParseQualifiedExpr(
-            Term As ExpressionSyntax
-        ) As ExpressionSyntax
+        Private Function ParseQualifiedExpr(Term As ExpressionSyntax) As ExpressionSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.DotToken OrElse
-                  CurrentToken.Kind = SyntaxKind.ExclamationToken,
-                  "Must be on either a '.' or '!' when entering parseQualifiedExpr()")
+                         CurrentToken.Kind = SyntaxKind.ExclamationToken,
+                         "Must be on either a '.' or '!' when entering parseQualifiedExpr()")
 
             Dim DotOrBangToken As PunctuationSyntax = DirectCast(CurrentToken, PunctuationSyntax)
-
             Dim prevPrevToken = PrevToken
-            GetNextToken()
-
             Dim output As ExpressionSyntax = Nothing
-            If TryParseFlagEnumExpr_Or_QualifiedExpr(DotOrBangToken, Term, output) Then
-                Return output
 
+            If TryParseFlagEnumExpr_Or_QualifiedExpr(Term, DotOrBangToken, output) Then
+                Return output
             Else
+                GetNextToken()
                 If (CurrentToken.IsEndOfLine() AndAlso Not CurrentToken.IsEndOfParse()) Then
 
                     Debug.Assert(CurrentToken.Kind = SyntaxKind.StatementTerminatorToken AndAlso
-                              PrevToken.Kind = SyntaxKind.DotToken,
+                                 PrevToken.Kind = SyntaxKind.DotToken,
                               "We shouldn't get here without .<eol> tokens")
 
                     '/* We know we are sitting on an EOL preceded by a tkDot.  What we need to catch is the
@@ -1175,7 +1165,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Return SyntaxFactory.XmlMemberAccessExpression(SyntaxKind.XmlDescendantAccessExpression, Term, DotOrBangToken, secondDotToken, thirdDotToken, name)
                         End If
 
+
                     Case Else
+
                         Dim name = ParseSimpleNameExpressionAllowingKeywordAndTypeArguments()
                         Return SyntaxFactory.SimpleMemberAccessExpression(Term, DotOrBangToken, name)
 

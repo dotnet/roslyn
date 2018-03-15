@@ -3871,7 +3871,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim original = bFlags.Type.OriginalDefinition
 
             If Not IsFlagsEnum(DirectCast(original, INamedTypeSymbol)) Then
-                Return ReportDiagnosticAndProduceBadExpression(diagBag, EnumFlags, ERRID.ERR_EnumNotExpression1)
+                Return ReportDiagnosticAndProduceBadExpression(diagBag, EnumFlags, ERRID.ERR_EnumNotExpression1, original.Name)
             End If
 
             If Not IsMemberOfThisEnum(original, FlagName, eFlag) Then
@@ -3898,12 +3898,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                 ) As BoundExpression
             Dim Sn = TryCast(node.EnumFlag, SimpleNameSyntax)
             If Sn IsNot Nothing Then
-                Dim FlagName = Sn.Identifier.ValueText
-                FlagName = If(FlagName, String.Empty)
+                Dim FlagName = If(Sn.Identifier.ValueText, String.Empty)
                 Return Bind_FlagsEnumOperation_WithEnumMember(FlagName, node, node.EnumFlags, node.OperatorToken, Sn, diagBag)
             Else
                 Return Bind_FlagsEnumOperation_WithExpression(node, node.EnumFlags, node.OperatorToken, node.EnumFlag, diagBag)
-
             End if
         End Function
 
@@ -3919,7 +3917,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim original = bFlags.Type.OriginalDefinition
 
             If Not IsFlagsEnum(DirectCast(original, INamedTypeSymbol)) Then
-                Return ReportDiagnosticAndProduceBadExpression(diagBag, EnumFlags, ERRID.ERR_EnumNotExpression1)
+                Return ReportDiagnosticAndProduceBadExpression(diagBag, EnumFlags, ERRID.ERR_EnumNotExpression1, "")
             End If
 
             'If Not IsMemberOfThisEnum(original, FlagName, eFlag) Then

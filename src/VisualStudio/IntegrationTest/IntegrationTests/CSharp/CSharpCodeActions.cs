@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
         {
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/18295"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public void GenerateMethodInClosedFile()
         {
             var project = new ProjectUtils.Project(ProjectName);
@@ -52,7 +52,10 @@ using System;
 
 public class Foo
 {
-    internal void Bar() => throw new NotImplementedException();
+    internal void Bar()
+    {
+        throw new NotImplementedException();
+    }
 }
 ");
         }

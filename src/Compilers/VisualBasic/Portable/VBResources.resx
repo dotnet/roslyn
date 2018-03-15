@@ -5530,7 +5530,9 @@
   <data name="ICompoundAssignmentOperationIsNotVisualBasicCompoundAssignment" xml:space="preserve">
     <value>{0} is not a valid Visual Basic compound assignment operation</value>
   </data>
-  <data name="ERR_MissingFlagsAttributeOnEnum" xml:space="preserve">
+  <data name="FEATURE_InterpolatedStrings" xml:space="preserve">
+    <value>interpolated strings</value>
+  </data><data name="ERR_MissingFlagsAttributeOnEnum" xml:space="preserve">
     <value>Enum '{0}' requires &lt;Flags&gt; attribute.</value>
   </data>
   <data name="FEATURE_EnumFlagOperators" xml:space="preserve">
@@ -5538,5 +5540,4 @@
   </data>
   <data name="ERR_MissingEnumFlag" xml:space="preserve">
     <value>Missing Enum Flag.</value>
-  </data>
-</root>
+  </data></root>
