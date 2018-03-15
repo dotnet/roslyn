@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertForToForEach
             Dim forStatement = currentFor.ForStatement
             Return SyntaxFactory.ForEachBlock(
                 SyntaxFactory.ForEachStatement(
-                    SyntaxFactory.Token(SyntaxKind.ForKeyword).WithTriviaFrom(forStatement.ForKeyword),
+                    forStatement.ForKeyword,
                     SyntaxFactory.Token(SyntaxKind.EachKeyword),
                     SyntaxFactory.VariableDeclarator(
                         SyntaxFactory.SingletonSeparatedList(SyntaxFactory.ModifiedIdentifier(foreachIdentifier)),

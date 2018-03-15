@@ -407,13 +407,32 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                 return arrayType.ElementType;
             }
 
-            var indexerProperties = TryFindMembersInThisOrBaseTypes<IPropertySymbol>(
-                containingType, collectionType, WellKnownMemberNames.Indexer);
-            var indexer = indexerProperties.FirstOrDefault(
-                m => m.Parameters.Length == 1 && m.Parameters[0].Type?.SpecialType == SpecialType.System_Int32);
+            var indexer =
+                collectionType.GetAccessibleMembersInThisAndBaseTypes<IPropertySymbol>(containingType)
+                              .Where(IsViableIndexer)
+                              .FirstOrDefault();
 
-            return indexer?.Type;
+            if (indexer?.Type != null)
+            {
+                return indexer.Type;
+            }
+
+            if (collectionType.IsInterfaceType())
+            {
+                var interfaces = collectionType.GetAllInterfacesIncludingThis();
+                indexer = interfaces.SelectMany(i => i.GetMembers().OfType<IPropertySymbol>().Where(IsViableIndexer))
+                                    .FirstOrDefault();
+
+                return indexer?.Type;
+            }
+
+            return null;
         }
+
+        private bool IsViableIndexer(IPropertySymbol property)
+            => property.IsIndexer &&
+               property.Parameters.Length == 1 &&
+               property.Parameters[0].Type?.SpecialType == SpecialType.System_Int32;
 
         private class MyCodeAction : CodeAction.DocumentChangeAction
         {
