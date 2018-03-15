@@ -60,7 +60,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             // TODO: Unhook the session's events when the session is available in the args
         }
 
-        // TODO: Need to know if we're in UseSuggestionMode
         public Task<FilteredCompletionModel> UpdateCompletionListAsync(
             ImmutableArray<EditorCompletion.CompletionItem> sortedList, 
             CompletionTriggerReason triggerReason, 
