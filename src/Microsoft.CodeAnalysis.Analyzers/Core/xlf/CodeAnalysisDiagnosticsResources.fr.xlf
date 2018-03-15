@@ -339,22 +339,22 @@
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleDescription">
         <source>Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</source>
-        <target state="new">Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</target>
+        <target state="translated">Les types d'analyseur de diagnostic ne doivent pas utiliser les types d'assemblys Espaces de travail. Les assemblys Espaces de travail sont disponibles uniquement quand l'analyseur s'exécute dans l'analyse en direct de l'IDE Visual Studio, mais ne sont pas disponibles pendant l'exécution de la ligne de commande build. Le référencement de types d'assemblys Espaces de travail lève une exception de runtime pendant l'exécution de l'analyseur dans la ligne de commande build.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleTitle">
         <source>Do not use types from Workspaces assembly in an analyzer</source>
-        <target state="new">Do not use types from Workspaces assembly in an analyzer</target>
+        <target state="translated">Ne pas utiliser les types d'assembly Espaces de travail dans un analyseur</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleIndirectMessage">
         <source>Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'</source>
-        <target state="new">Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'</target>
+        <target state="translated">Changer le type d'analyseur de diagnostic '{0}' pour supprimer tous les accès directs et/ou indirects aux types '{1}', qui accèdent aux types '{2}'</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleDirectMessage">
         <source>Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</source>
-        <target state="new">Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</target>
+        <target state="translated">Changer le type d'analyseur de diagnostic '{0}' pour supprimer tous les accès directs aux types '{1}'</target>
         <note />
       </trans-unit>
     </body>

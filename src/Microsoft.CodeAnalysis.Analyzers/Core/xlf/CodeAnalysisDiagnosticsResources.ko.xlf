@@ -339,22 +339,22 @@
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleDescription">
         <source>Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</source>
-        <target state="new">Diagnostic analyzer types should not use types from Workspaces assemblies. Workspaces assemblies are only available when the analyzer executes in Visual Studio IDE live analysis, but are not available during command line build. Referencing types from Workspaces assemblies will lead to runtime exception during analyzer execution in command line build.</target>
+        <target state="translated">진단 분석기 형식은 작업 영역 어셈블리의 형식을 사용해서는 안 됩니다. 작업 영역 어셈블리는 분석기가 Visual Studio IDE 라이브 분석에서 실행될 때에만 사용 가능하지만, 명령줄 빌드 중에는 사용할 수 없습니다. 작업 영역 어셈블리의 형식을 참조하면 명령줄 빌드에서 분석기 실행 중 런타임 예외가 발생합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleTitle">
         <source>Do not use types from Workspaces assembly in an analyzer</source>
-        <target state="new">Do not use types from Workspaces assembly in an analyzer</target>
+        <target state="translated">분석기에서 작업 영역 어셈블리의 형식을 사용하지 마세요.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleIndirectMessage">
         <source>Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'</source>
-        <target state="new">Change diagnostic analyzer type '{0}' to remove all direct and/or indirect accesses to type(s) '{1}', which access type(s) '{2}'</target>
+        <target state="translated">진단 분석기 형식 '{0}'을(를) 변경하여 '{1}' 형식에 대해 액세스 형식이 '{2}'인 모든 직접 및/또는 간접 액세스를 제거합니다.</target>
         <note />
       </trans-unit>
       <trans-unit id="DoNotUseTypesFromAssemblyRuleDirectMessage">
         <source>Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</source>
-        <target state="new">Change diagnostic analyzer type '{0}' to remove all direct accesses to type(s) '{1}'</target>
+        <target state="translated">진단 분석기 형식 '{0}'을(를) 변경하여 '{1}' 형식에 대해 모든 직접 액세스를 제거합니다.</target>
         <note />
       </trans-unit>
     </body>
