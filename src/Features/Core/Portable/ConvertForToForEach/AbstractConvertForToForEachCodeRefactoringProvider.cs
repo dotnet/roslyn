@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             // If the for-variable is an identifier, then make sure it's declaring a variable
-            // at the for-statemnet, and not referencing some previously declared symbol.  i.e
+            // at the for-statement, and not referencing some previously declared symbol.  i.e
             var iterationSymbol = semanticModel.GetSymbolInfo(iterationVariable.Parent, cancellationToken).GetAnySymbol();
             if (iterationSymbol != null)
             {
