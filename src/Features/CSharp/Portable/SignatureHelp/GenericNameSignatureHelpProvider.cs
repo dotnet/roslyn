@@ -247,6 +247,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
                     parts.Add(Keyword(SyntaxKind.ClassKeyword));
                     needComma = true;
                 }
+                else if (typeParam.HasUnmanagedTypeConstraint)
+                {
+                    parts.Add(new SymbolDisplayPart(SymbolDisplayPartKind.Keyword, null, "unmanaged"));
+                    needComma = true;
+                }
                 else if (typeParam.HasValueTypeConstraint)
                 {
                     parts.Add(Keyword(SyntaxKind.StructKeyword));

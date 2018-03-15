@@ -427,7 +427,7 @@ public class C
 ");
         }
         [WorkItem(546412, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546412")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestBug15818()
         {
             var source =
@@ -1833,7 +1833,7 @@ public class D
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestAssignIdentity()
         {
             string source = @"
@@ -1879,7 +1879,7 @@ There are no context policies.
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void TestRefCast()
         {
             string source = @"
@@ -6602,7 +6602,7 @@ public class D
         }
 
         [WorkItem(9229, "DevDiv_Projects/Roslyn")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void InitFromBlob()
         {
             string source = @"
@@ -6641,7 +6641,7 @@ public class D
         System.Console.WriteLine(d[4]);
     }
 }";
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
+            var compilation = CompileAndVerifyWithMscorlib40(source, options: TestOptions.ReleaseExe.WithModuleName("MODULE"), expectedOutput: @"
 3
 -5
 True
@@ -13222,7 +13222,7 @@ expectedOutput: "-100");
             diagnostics.Free();
         }
 
-        [Fact()]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(546957, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546957")]
         public void Bug17352_VarArgCtor()
         {
@@ -13293,7 +13293,7 @@ blah");
         }
 
         [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void VarargBridgeSource()
         {
 
@@ -13332,7 +13332,7 @@ public static class P
         }
 
         [WorkItem(24348, "https://github.com/dotnet/roslyn/issues/24348")]
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         public void VarargBridgeMeta()
         {
             var reference = CreateCompilation(@"
@@ -16431,6 +16431,38 @@ unsafe class Test
   IL_000a:  add
   IL_000b:  stind.i4
   IL_000c:  ret
+}");
+        }
+
+        [Fact]
+        public void EnumConstraint_NoBoxing()
+        {
+            var code = @"
+enum E1
+{
+    A = 5
+}
+class Test1
+{
+    public static void M<T>(T arg)  where T : struct, System.Enum
+    {
+    }
+}
+class Test2
+{
+    public void M()
+    {
+        Test1.M(E1.A);
+    }
+}";
+
+            CompileAndVerify(code).VerifyIL("Test2.M", @"
+{
+  // Code size        7 (0x7)
+  .maxstack  1
+  IL_0000:  ldc.i4.5
+  IL_0001:  call       ""void Test1.M<E1>(E1)""
+  IL_0006:  ret
 }");
         }
     }

@@ -1,62 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Extensions;
-using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class TotalClassifierTests : AbstractCSharpClassifierTests
     {
-        internal override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(
-            string code, TextSpan textSpan, CSharpParseOptions options)
+        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code, options))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-                var syntaxTree = await document.GetSyntaxTreeAsync();
-
-                var service = document.GetLanguageService<ISyntaxClassificationService>();
-                var classifiers = service.GetDefaultSyntaxClassifiers();
-                var extensionManager = workspace.Services.GetService<IExtensionManager>();
-
-                var semanticClassifications = ArrayBuilder<ClassifiedSpan>.GetInstance();
-                var syntacticClassifications = ArrayBuilder<ClassifiedSpan>.GetInstance();
-                await service.AddSemanticClassificationsAsync(document, textSpan,
-                    extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
-                    extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
-                    semanticClassifications, CancellationToken.None);
-                service.AddSyntacticClassifications(syntaxTree, textSpan, syntacticClassifications, CancellationToken.None);
-
-                var classificationsSpans = new HashSet<TextSpan>();
-
-                // Add all the semantic classifications in.
-                var allClassifications = new List<ClassifiedSpan>(semanticClassifications);
-                classificationsSpans.AddRange(allClassifications.Select(t => t.TextSpan));
-
-                // Add the syntactic classifications.  But only if they don't conflict with a semantic
-                // classification.
-                allClassifications.AddRange(
-                    from t in syntacticClassifications
-                    where !classificationsSpans.Contains(t.TextSpan)
-                    select t);
-
-                syntacticClassifications.Free();
-                semanticClassifications.Free();
-                return allClassifications.ToImmutableArray();
+                return GetAllClassificationsAsync(document, span);
             }
         }
 
@@ -198,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
                 Identifier("IO"),
                 Operators.Equals,
                 Keyword("global"),
-                Operators.Text("::"),
+                Operators.ColonColon,
                 Identifier("System"),
                 Operators.Dot,
                 Identifier("IO"),
@@ -879,7 +844,7 @@ class Program : IReadOnlyCollection<int,string>
                 Punctuation.CloseCurly);
         }
 
-        [Fact(Skip = "Extension method usage doesn't seem to work."), Trait(Traits.Feature, Traits.Features.Classification)]
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
         public async Task TestExtensionMethodUsage()
         {
             await TestAsync(
@@ -894,10 +859,12 @@ class C
 {
     void Test()
     {
-        TestMethod(new C());
+        ExtMethod.TestMethod(new C());
+        new C().TestMethod();
     }
 }
 ",
+                ParseOptions(Options.Regular),
                 Keyword("static"),
                 Keyword("class"),
                 Class("ExtMethod"),
@@ -922,7 +889,9 @@ class C
                 Punctuation.OpenParen,
                 Punctuation.CloseParen,
                 Punctuation.OpenCurly,
-                ExtensionMethod("TestMethod"),
+                Class("ExtMethod"),
+                Operators.Dot,
+                Method("TestMethod"),
                 Punctuation.OpenParen,
                 Keyword("new"),
                 Class("C"),
@@ -930,8 +899,298 @@ class C
                 Punctuation.CloseParen,
                 Punctuation.CloseParen,
                 Punctuation.Semicolon,
+                Keyword("new"),
+                Class("C"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Operators.Dot,
+                ExtensionMethod("TestMethod"),
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Punctuation.Semicolon,
                 Punctuation.CloseCurly,
                 Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestConstLocals()
+        {
+            await TestInMethodAsync(
+@"const int Number = 42;
+var x = Number;",
+                Keyword("const"),
+                Keyword("int"),
+                Constant("Number"),
+                Operators.Equals,
+                Number("42"),
+                Punctuation.Semicolon,
+                Keyword("var"),
+                Local("x"),
+                Operators.Equals,
+                Constant("Number"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_InsideMethod()
+        {
+            await TestInMethodAsync(@"
+var unmanaged = 0;
+unmanaged++;",
+                Keyword("var"),
+                Local("unmanaged"),
+                Operators.Equals,
+                Number("0"),
+                Punctuation.Semicolon,
+                Local("unmanaged"),
+                Operators.PlusPlus,
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Type_Keyword()
+        {
+            await TestAsync(
+                "class X<T> where T : unmanaged { }",
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Type_ExistingInterface()
+        {
+            await TestAsync(@"
+interface unmanaged {}
+class X<T> where T : unmanaged { }",
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Type_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface unmanaged {}
+}
+class X<T> where T : unmanaged { }",
+                Keyword("namespace"),
+                Identifier("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Method_Keyword()
+        {
+            await TestAsync(@"
+class X
+{
+    void M<T>() where T : unmanaged { }
+}",
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Method_ExistingInterface()
+        {
+            await TestAsync(@"
+interface unmanaged {}
+class X
+{
+    void M<T>() where T : unmanaged { }
+}",
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Method_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface unmanaged {}
+}
+class X
+{
+    void M<T>() where T : unmanaged { }
+}",
+                Keyword("namespace"),
+                Identifier("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("class"),
+                Class("X"),
+                Punctuation.OpenCurly,
+                Keyword("void"),
+                Method("M"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Delegate_Keyword()
+        {
+            await TestAsync(
+                "delegate void D<T>() where T : unmanaged;",
+                Keyword("delegate"),
+                Keyword("void"),
+                Delegate("D"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Delegate_ExistingInterface()
+        {
+            await TestAsync(@"
+interface unmanaged {}
+delegate void D<T>() where T : unmanaged;",
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Keyword("delegate"),
+                Keyword("void"),
+                Delegate("D"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Interface("unmanaged"),
+                Punctuation.Semicolon);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Delegate_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface unmanaged {}
+}
+delegate void D<T>() where T : unmanaged;",
+                Keyword("namespace"),
+                Identifier("OtherScope"),
+                Punctuation.OpenCurly,
+                Keyword("interface"),
+                Interface("unmanaged"),
+                Punctuation.OpenCurly,
+                Punctuation.CloseCurly,
+                Punctuation.CloseCurly,
+                Keyword("delegate"),
+                Keyword("void"),
+                Delegate("D"),
+                Punctuation.OpenAngle,
+                TypeParameter("T"),
+                Punctuation.CloseAngle,
+                Punctuation.OpenParen,
+                Punctuation.CloseParen,
+                Keyword("where"),
+                TypeParameter("T"),
+                Punctuation.Colon,
+                Keyword("unmanaged"),
+                Punctuation.Semicolon);
         }
     }
 }

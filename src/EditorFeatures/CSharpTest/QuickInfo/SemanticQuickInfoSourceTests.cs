@@ -8,15 +8,12 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.VisualStudio.Language.Intellisense;
-using Microsoft.VisualStudio.Text.Editor;
-using Microsoft.VisualStudio.Text.Projection;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
 {
@@ -5331,6 +5328,73 @@ class Program
 }
 ",
             MainDescription($"({ FeaturesResources.parameter }) ? b"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task EnumConstraint()
+        {
+            await TestInMethodAsync(
+@"
+class X<T> where T : System.Enum
+{
+    private $$T x;
+}",
+                MainDescription($"T {FeaturesResources.in_} X<T> where T : Enum"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task DelegateConstraint()
+        {
+            await TestInMethodAsync(
+@"
+class X<T> where T : System.Delegate
+{
+    private $$T x;
+}",
+                MainDescription($"T {FeaturesResources.in_} X<T> where T : Delegate"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task MulticastDelegateConstraint()
+        {
+            await TestInMethodAsync(
+@"
+class X<T> where T : System.MulticastDelegate
+{
+    private $$T x;
+}",
+                MainDescription($"T {FeaturesResources.in_} X<T> where T : MulticastDelegate"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task UnmanagedConstraint_Type()
+        {
+            await TestAsync(
+@"
+class $$X<T> where T : unmanaged
+{
+}",
+                MainDescription("class X<T> where T : unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task UnmanagedConstraint_Method()
+        {
+            await TestAsync(
+@"
+class X
+{
+    void $$M<T>() where T : unmanaged { }
+}",
+                MainDescription("void X.M<T>() where T : unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        public async Task UnmanagedConstraint_Delegate()
+        {
+            await TestAsync(
+                "delegate void $$D<T>() where T : unmanaged;",
+                MainDescription("delegate void D<T>() where T : unmanaged"));
         }
     }
 }
