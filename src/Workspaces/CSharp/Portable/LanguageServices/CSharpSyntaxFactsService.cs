@@ -1537,9 +1537,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             => node.IsKind(SyntaxKind.IdentifierName);
 
         public bool IsLocalDeclarationStatement(SyntaxNode node)
-        {
-            return node.IsKind(SyntaxKind.LocalDeclarationStatement);
-        }
+            => node.IsKind(SyntaxKind.LocalDeclarationStatement);
+
+        public bool IsLocalFunctionStatement(SyntaxNode node)
+            => node.IsKind(SyntaxKind.LocalFunctionStatement);
 
         public bool IsDeclaratorOfLocalDeclarationStatement(SyntaxNode declarator, SyntaxNode localDeclarationStatement)
         {

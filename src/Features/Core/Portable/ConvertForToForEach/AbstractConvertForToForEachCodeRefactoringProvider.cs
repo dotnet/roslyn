@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
         private async Task<Document> ConvertForToForEachAsync(
             Document document, TForStatementSyntax forStatement,
             SyntaxToken iterationVariable, TExpressionSyntax collectionExpression,
-            INamedTypeSymbol containingType, ITypeSymbol collectionType, 
+            INamedTypeSymbol containingType, ITypeSymbol collectionType,
             ITypeSymbol iterationType, CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
@@ -406,10 +406,18 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
 
                     if (semanticFacts.IsWrittenTo(semanticModel, current, cancellationToken))
                     {
-                        replacementToken = replacementToken.WithAdditionalAnnotations(WarningAnnotation.Create(FeaturesResources.Warning_colon_Collection_was_modified_during_iteration));
+                        replacementToken = replacementToken.WithAdditionalAnnotations(
+                            WarningAnnotation.Create(FeaturesResources.Warning_colon_Collection_was_modified_during_iteration));
+                    }
+
+                    if (crossesFunctionBoundary(current))
+                    {
+                        replacementToken = replacementToken.WithAdditionalAnnotations(
+                            WarningAnnotation.Create(FeaturesResources.Warning_colon_Iteration_variable_crossed_function_boundary));
                     }
 
                     var replacement = generator.IdentifierName(replacementToken).WithTriviaFrom(current);
+
                     editor.ReplaceNode(current, replacement);
                 }
 
@@ -420,6 +428,19 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                         findAndReplaceMatches(child.AsNode());
                     }
                 }
+            }
+
+            bool crossesFunctionBoundary(SyntaxNode node)
+            {
+                var containingFunction = node.AncestorsAndSelf().FirstOrDefault(
+                    n => syntaxFacts.IsLocalFunctionStatement(n) || syntaxFacts.IsAnonymousFunction(n));
+
+                if (containingFunction == null)
+                {
+                    return false;
+                }
+
+                return containingFunction.AncestorsAndSelf().Contains(forStatement);
             }
         }
 

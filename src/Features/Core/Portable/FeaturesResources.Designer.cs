@@ -3717,6 +3717,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Warning: Iteration variable crossed function boundary..
+        /// </summary>
+        internal static string Warning_colon_Iteration_variable_crossed_function_boundary {
+            get {
+                return ResourceManager.GetString("Warning_colon_Iteration_variable_crossed_function_boundary", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Warning: Method overrides symbol from metadata.
         /// </summary>
         internal static string Warning_Method_overrides_symbol_from_metadata {

@@ -56,6 +56,78 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestWarnIfCrossesFunctionBoundary()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            Action a = () =>
+            {
+                Console.WriteLine(array[i]);
+            };
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        foreach (string {|Rename:v|} in array)
+        {
+            Action a = () =>
+            {
+                Console.WriteLine({|Warning:v|});
+            };
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestNoWarnIfDoesNotCrossFunctionBoundary()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        Action a = () =>
+        {
+            [||]for (int i = 0; i < array.Length; i++)
+            {
+                Console.WriteLine(array[i]);
+            }
+        };
+    }
+}",
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        Action a = () =>
+        {
+            foreach (string {|Rename:v|} in array)
+            {
+                Console.WriteLine(v);
+            }
+        };
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
         public async Task TestMultipleReferences()
         {
             await TestInRegularAndScript1Async(
