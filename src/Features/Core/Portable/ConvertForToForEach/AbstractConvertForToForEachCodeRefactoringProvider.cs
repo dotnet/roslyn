@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
             //      dim i as integer
             //      for i = 0 to ...
             //
-            // We can't conver this as it would change important semantics.
+            // We can't convert this as it would change important semantics.
             // NOTE: we could potentially update this if we saw that the variable was not used
             // after the for-loop.  But, for now, we'll just be conservative and assume this means
             // the user wanted the 'i' for some other purpose and we should keep things as is.
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.ConvertForToForEach
                             if (IsValidVariableDeclarator(firstVariable))
                             {
                                 var firstVariableInitializer = syntaxFacts.GetValueOfEqualsValueClause(
-                                    syntaxFacts.GetInitializerOfVariableDeclarator(firstVariable));
+                                    syntaxFacts.GetInitializcerOfVariableDeclarator(firstVariable));
                                 if (syntaxFacts.AreEquivalent(firstVariableInitializer, indexExpression))
                                 {
                                     var type = (TTypeNode)syntaxFacts.GetTypeOfVariableDeclarator(firstVariable)?.WithoutLeadingTrivia();
