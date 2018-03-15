@@ -34,6 +34,9 @@
 
     <DisableTransitiveProjectReferences Condition="'$(RoslynProjectType)' == 'Vsix'">true</DisableTransitiveProjectReferences>
 
+    <!-- Disable the message indicating we are using a preview SDK. That is understood and by design 
+         https://github.com/dotnet/sdk/issues/2033 -->
+    <_NETCoreSdkIsPreview>false</_NETCoreSdkIsPreview>
   </PropertyGroup>
 
   <!-- Settings for localization -->
@@ -418,6 +421,11 @@
     </PropertyGroup>
   </Target>
 
+  <!-- Guard against MSBuild picking the wrong SDK version. Its resolver does not always properly enforce
+       the SDK specified in global.json 
+       
+       https://github.com/dotnet/core-setup/issues/3805
+       -->
   <Target Name="BeforeBuild" Condition="'$(MSBuildRuntimeType)' != 'Core'">
     <ValidateBuildEnvironment
       MSBuildBinPath="$(MSBuildBinPath)"
@@ -425,18 +433,9 @@
       MSBuildMinimumDisplayVersion="MSBuild 15.3"
       />
 
-    <PropertyGroup>
-      <ShortSdkVersion Condition=" $(dotnetSdkVersion.IndexOf('-')) > 0 ">$(dotnetSdkVersion.Substring(0, $(dotnetSdkVersion.IndexOf('-'))))</ShortSdkVersion>
-      <ShortSdkVersion Condition=" $(dotnetSdkVersion.IndexOf('-')) &lt;= 0 ">$(dotnetSdkVersion)</ShortSdkVersion>
-    </PropertyGroup>
-
-    <!-- The $(UsingMicrosoftNETSdk) property is set when we are using a 2.0 SDK or newer (non-legacy). This means
-         we can depend on global.json having enforced the minimum version we require for our build. If it's not
-         set though we need to error out and provide a link to get the correct SDK installed.
-      -->
     <Error 
-      Text="The $(ShortSdkVersion) SDK is required to build this repo. It can be installed here: https://dotnetcli.blob.core.windows.net/dotnet/Sdk/2.2.0-preview1-007622/dotnet-sdk-2.2.0-preview1-007622-win-x64.exe"
-      Condition="'$(UsingMicrosoftNETSdk)' == ''" />
+      Text="The $(dotnetSdkVersion) SDK is required to build this repo but found $(NETCoreSdkVersion) instead. The correct SDK can be install here https://dotnetcli.blob.core.windows.net/dotnet/Sdk/$(dotnetSdkVersion)/dotnet-sdk-$(dotnetSdkVersion)-win-x64.exe"
+      Condition="'$(NETCoreSdkVersion)' != '$(dotnetSdkVersion)'" />
   </Target> 
 
   <!-- 

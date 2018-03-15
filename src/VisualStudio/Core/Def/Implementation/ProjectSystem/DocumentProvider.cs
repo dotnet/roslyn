@@ -635,7 +635,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (document.Project.Workspace is VisualStudioWorkspace workspace)
                 {
-                    workspace.RenameFileCodeModelInstance(document.Id, newMoniker);
+                    document.Project.ProjectCodeModel?.OnSourceFileRenaming(document.FilePath, newMoniker);
                 }
             }
         }
