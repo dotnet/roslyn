@@ -7512,7 +7512,7 @@ class A
             c.VerifyPdb("C..ctor", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
@@ -7579,7 +7579,7 @@ class A
             c.VerifyPdb("C..ctor", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
@@ -7637,7 +7637,7 @@ class A
             c.VerifyPdb("C..ctor", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
@@ -7696,7 +7696,7 @@ class C
             c.VerifyPdb("C..ctor", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
@@ -7731,7 +7731,7 @@ class C
             c.VerifyPdb("C+<>c__DisplayClass2_0.<.ctor>b__0", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;&gt;c__DisplayClass2_0"" name=""&lt;.ctor&gt;b__0"">
@@ -7773,7 +7773,7 @@ class C
             c.VerifyPdb("C..ctor", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
@@ -7805,7 +7805,7 @@ class C
             c.VerifyPdb("C+<>c__DisplayClass5_0.<.ctor>b__0", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;&gt;c__DisplayClass5_0"" name=""&lt;.ctor&gt;b__0"">
@@ -7847,7 +7847,7 @@ class C
             c.VerifyPdb("C..ctor", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
@@ -7887,7 +7887,7 @@ class C
             c.VerifyPdb("C+<>c__DisplayClass4_0.<.ctor>b__0", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;&gt;c__DisplayClass4_0"" name=""&lt;.ctor&gt;b__0"">
@@ -7905,7 +7905,7 @@ class C
             c.VerifyPdb("C+<>c__DisplayClass4_1.<.ctor>b__1", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;&gt;c__DisplayClass4_1"" name=""&lt;.ctor&gt;b__1"">
@@ -7953,7 +7953,7 @@ class A
             c.VerifyPdb("C..ctor", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
@@ -7987,7 +7987,7 @@ class A
             c.VerifyPdb("C+<>c__DisplayClass0_0.<.ctor>b__0", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;&gt;c__DisplayClass0_0"" name=""&lt;.ctor&gt;b__0"">
@@ -8031,7 +8031,7 @@ class C
             c.VerifyPdb("C..ctor", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
@@ -8067,7 +8067,7 @@ class C
             c.VerifyPdb("C+<>c.<.ctor>b__0_0", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__0_0"" parameterNames=""a"">
@@ -8122,7 +8122,7 @@ class C
             c.VerifyPdb("C..ctor", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C"" name="".ctor"">
@@ -8160,7 +8160,7 @@ class C
             c.VerifyPdb("C+<>c.<.ctor>b__0_0", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;&gt;c"" name=""&lt;.ctor&gt;b__0_0"" parameterNames=""a"">
@@ -8185,7 +8185,7 @@ class C
             c.VerifyPdb("C+<>c__DisplayClass0_0.<.ctor>b__1", @"
 <symbols>
   <files>
-    <file id=""1"" name="""" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" />
+    <file id=""1"" name="""" language=""C#"" />
   </files>
   <methods>
     <method containingType=""C+&lt;&gt;c__DisplayClass0_0"" name=""&lt;.ctor&gt;b__1"">
