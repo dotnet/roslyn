@@ -97,9 +97,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             var selectedFilters = filters.Where(f => f.IsSelected).Select(f => f.Filter).ToImmutableArray();
             var needToFilter = selectedFilters.Length > 0 && selectedFilters.Length < filters.Length;
 
-            // Cache PatternMatchers across this round of filtering
-            var patternMatcherMap = new Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher>();
-
             var initialListOfItemsToBeIncluded = new List<FilterResult>();
             foreach (var item in sortedList)
             {
@@ -110,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                     continue;
                 }
 
-                if (MatchesFilterText(item, filterText, triggerReason, filterReason, patternMatcherMap))
+                if (MatchesFilterText(item, filterText, triggerReason, filterReason))
                 {
                     initialListOfItemsToBeIncluded.Add(new FilterResult(item, filterText, matchedFilterText: true));
                 }
@@ -134,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             // ourselves.
             if (triggerReason == CompletionTriggerReason.Deletion)
             {
-                return HandleDeletionTrigger(sortedList, triggerReason, filters, filterReason, filterText, initialListOfItemsToBeIncluded, patternMatcherMap);
+                return HandleDeletionTrigger(sortedList, triggerReason, filters, filterReason, filterText, initialListOfItemsToBeIncluded);
             }
 
             var caretPoint = view.GetCaretPoint(snapshot.TextBuffer);
@@ -144,18 +141,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 sortedList,
                 documentSnapshot,
                 caretPosition,
-                filterText, 
-                filters, 
+                filterText,
+                filters,
                 filterReason,
                 initialListOfItemsToBeIncluded,
-                triggerReason,
-                patternMatcherMap);
+                triggerReason);
         }
 
         private IEnumerable<CompletionItemWithHighlight> GetHighlightedList(
-            List<FilterResult> filterResults, 
-            string filterText, 
-            Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> patternMatcherMap)
+            List<FilterResult> filterResults,
+            string filterText)
         {
             var highlightedList = new List<CompletionItemWithHighlight>();
             foreach (var item in filterResults)
@@ -172,9 +167,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             CompletionTriggerReason triggerReason,
             ImmutableArray<CompletionFilterWithState> filters,
             EditorCompletion.CompletionFilterReason filterReason,
-            string filterText, 
-            List<FilterResult> filterResults, 
-            Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> patternMatcherMap)
+            string filterText,
+            List<FilterResult> filterResults)
         {
             if (filterReason == EditorCompletion.CompletionFilterReason.Insertion && !filterResults.Any(r => r.MatchedFilterText))
             {
@@ -206,8 +200,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             // include everything), then we just soft select the first item.
 
             var filteredItems = filterResults.Select(r => r.CompletionItem).AsImmutable();
-            var highlightedList = GetHighlightedList(filterResults, filterText, patternMatcherMap).ToImmutableArray();
-            var updatedFilters = GetUpdatedFilters(sortedList, filterResults, filters, filterText, patternMatcherMap);
+            var highlightedList = GetHighlightedList(filterResults, filterText).ToImmutableArray();
+            var updatedFilters = GetUpdatedFilters(sortedList, filterResults, filters, filterText);
 
             if (bestFilterResult != null)
             {
@@ -228,11 +222,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
         }
 
         private ImmutableArray<CompletionFilterWithState> GetUpdatedFilters(
-            ImmutableArray<EditorCompletion.CompletionItem> originalList, 
-            List<FilterResult> filteredList, 
-            ImmutableArray<CompletionFilterWithState> filters, 
-            string filterText, 
-            Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> patternMatcherMap)
+            ImmutableArray<EditorCompletion.CompletionItem> originalList,
+            List<FilterResult> filteredList,
+            ImmutableArray<CompletionFilterWithState> filters,
+            string filterText)
         {
             /*
             // See which filters might be enabled based on the typed code
@@ -328,14 +321,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             string filterText,
             ImmutableArray<CompletionFilterWithState> filters,
             EditorCompletion.CompletionFilterReason filterReason,
-            List<FilterResult> itemsInList, 
-            CompletionTriggerReason triggerReason,
-            Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> patternMatcherMap)
+            List<FilterResult> itemsInList,
+            CompletionTriggerReason triggerReason)
         {
             var service = GetCompletionService(snapshot);
             if (service == null)
             {
-                var listWithSelections = GetHighlightedList(itemsInList, filterText, patternMatcherMap);
+                var listWithSelections = GetHighlightedList(itemsInList, filterText);
                 return Task.FromResult(new FilteredCompletionModel(listWithSelections.ToImmutableArray(), 0));
             }
 
@@ -349,8 +341,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             var recentItems = _recentItems;
             var bestItem = GetBestItemBasedOnMRU(chosenItems, recentItems);
-            var highlightedList = GetHighlightedList(itemsInList, filterText, patternMatcherMap).ToImmutableArray();
-            var updatedFilters = GetUpdatedFilters(sortedList, itemsInList, filters, filterText, patternMatcherMap);
+            var highlightedList = GetHighlightedList(itemsInList, filterText).ToImmutableArray();
+            var updatedFilters = GetUpdatedFilters(sortedList, itemsInList, filters, filterText);
 
             var isHardSelection = IsHardSelection(bestItem, snapshot, caretPosition, filterReason, filterText, triggerReason);
 
@@ -598,8 +590,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             EditorCompletion.CompletionItem item,
             string filterText,
             EditorCompletion.CompletionTriggerReason triggerReason,
-            EditorCompletion.CompletionFilterReason filterReason,
-            Dictionary<(string pattern, CultureInfo, bool includeMatchedSpans), PatternMatcher> patternMatcherMap)
+            EditorCompletion.CompletionFilterReason filterReason)
         {
             return MatchesFilterText(
                 item.FilterText,
