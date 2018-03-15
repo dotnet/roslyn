@@ -192,7 +192,6 @@ function Restore-Packages() {
 # building the bootstrap.
 function Make-BootstrapBuild() {
     $dir = Join-Path $binariesDir "Bootstrap"
-    $bootstrapPackageFilePath = Join-Path $dir "BootstrapCompiler.nupkg"
     Write-Host "Building Bootstrap compiler"
     $bootstrapArgs = "/p:UseShippingAssemblyVersion=true /p:InitialDefineConstants=BOOTSTRAP"
     Remove-Item -re $dir -ErrorAction SilentlyContinue
@@ -216,8 +215,9 @@ function Make-BootstrapBuild() {
 
         Ensure-NuGet | Out-Null
         Exec-Console "$configDir\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 1.0.0-bootstrap $dir `"<developer build>`" Microsoft.NETCore.Compilers.nuspec"
-        Move-Item "$dir\Microsoft.NETCore.Compilers.1.0.0-bootstrap.nupkg" $bootstrapPackageFilePath
+        Unzip-File "$dir\Microsoft.NETCore.Compilers.1.0.0-bootstrap.nupkg" "$dir\Microsoft.NETCore.Compilers\1.0.0"
 
+        Write-Host "Cleaning Bootstrap compiler artifacts"
         Run-MSBuild "Compilers.sln" "/t:Clean"
         Stop-BuildProcesses
     }
@@ -228,16 +228,14 @@ function Make-BootstrapBuild() {
 
         Ensure-NuGet | Out-Null
         Exec-Console "$configDir\Exes\csi\net46\csi.exe" "$repoDir\src\NuGet\BuildNuGets.csx $configDir 1.0.0-bootstrap $dir `"<developer build>`" Microsoft.Net.Compilers.nuspec"
-        Move-Item "$dir\Microsoft.Net.Compilers.1.0.0-bootstrap.nupkg" $bootstrapPackageFilePath
+        Unzip-File "$dir\Microsoft.Net.Compilers.1.0.0-bootstrap.nupkg" "$dir\Microsoft.Net.Compilers\1.0.0"
 
         Write-Host "Cleaning Bootstrap compiler artifacts"
         Run-MSBuild "build\Toolset\Toolset.csproj" "/t:Clean" -logFileName "BootstrapClean"
         Stop-BuildProcesses
     }
 
-    $dir = Join-Path $dir "Microsoft.Net.Compilers"
-    Unzip-File $bootstrapPackageFilePath $dir
-    return (Join-Path $dir "build")
+    return $dir
 }
 
 function Build-Artifacts() { 
