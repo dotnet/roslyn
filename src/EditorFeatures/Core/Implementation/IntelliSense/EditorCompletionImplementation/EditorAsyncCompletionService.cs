@@ -309,9 +309,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
                 // to aggressively select an item that was only going to be softly offered.
 
                 var item1Priority = item1.Properties.GetProperty<CompletionItemSelectionBehavior>("SelectionBehavior") == CompletionItemSelectionBehavior.HardSelection
-                    ? item1.Properties.GetProperty<int>("MatchPriority") : MatchPriority.Default;
+                    ? GetMatchPriority(item1) : MatchPriority.Default;
                 var item2Priority = item2.Properties.GetProperty<CompletionItemSelectionBehavior>("SelectionBehavior") == CompletionItemSelectionBehavior.HardSelection
-                    ? item2.Properties.GetProperty<int>("MatchPriority") : MatchPriority.Default;
+                    ? GetMatchPriority(item2) : MatchPriority.Default;
 
                 if (item1Priority > item2Priority)
                 {
@@ -515,8 +515,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             for (int i = 1, n = chosenItems.Length; i < n; i++)
             {
                 var chosenItem = chosenItems[i];
-                int.TryParse(ImmutableDictionary.GetValueOrDefault(bestItem.Properties, "MatchPriority"), out var bestItemPriority);
-                int.TryParse(ImmutableDictionary.GetValueOrDefault(chosenItem.Properties, "MatchPriority"), out var currentItemPriority);
+
+                var bestItemPriority = GetMatchPriority(bestItem);
+                var currentItemPriority = GetMatchPriority(chosenItem);
 
                 if (currentItemPriority > bestItemPriority)
                 {
@@ -604,7 +605,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             return MatchesFilterText(
                 item.FilterText,
                 item.DisplayText,
-                item.Properties.GetProperty<int>("MatchPriority"),
+                GetMatchPriority(item),
                 filterText,
                 triggerReason,
                 filterReason);
@@ -662,6 +663,21 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             return true;
         }
+
+        private int GetMatchPriority(EditorCompletion.CompletionItem item)
+        {
+            return item.Properties.TryGetProperty<int>("MatchPriority", out var matchPriority)
+                ? matchPriority
+                : MatchPriority.Default;
+        }
+
+        private int GetMatchPriority(RoslynCompletionItem bestItem)
+        {
+            return int.TryParse(ImmutableDictionary.GetValueOrDefault(bestItem.Properties, "MatchPriority"), out var matchPriority)
+                ? matchPriority
+                : MatchPriority.Default;
+        }
+
 
         private struct FilterResult
         {
