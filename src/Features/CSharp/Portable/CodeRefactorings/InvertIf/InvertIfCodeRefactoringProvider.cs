@@ -47,10 +47,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                 return null;
             }
 
-            if (ifStatement.OverlapsHiddenPosition(cancellationToken))
-            {
-                return null;
-            }
             return ifStatement;
         }
 

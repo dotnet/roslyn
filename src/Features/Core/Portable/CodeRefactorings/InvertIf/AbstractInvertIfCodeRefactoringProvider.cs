@@ -23,11 +23,21 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
             var textSpan = context.Span;
             var cancellationToken = context.CancellationToken;
 
+            if (!textSpan.IsEmpty)
+            {
+                return;
+            }
+
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var token = root.FindToken(textSpan.Start);
 
             var ifStatement = GetIfStatement(textSpan, token, cancellationToken);
             if (ifStatement == null)
+            {
+                return;
+            }
+
+            if (ifStatement.OverlapsHiddenPosition(cancellationToken))
             {
                 return;
             }
@@ -60,19 +70,22 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
                 return false;
             }
 
+            var rightOperand = RemoveImplicitConversion(binaryOperation.RightOperand);
+            var leftOperand = RemoveImplicitConversion(binaryOperation.LeftOperand);
+
             switch (binaryOperation.OperatorKind)
             {
-                case BinaryOperatorKind.GreaterThan when IsNumericLiteral(binaryOperation.RightOperand):
-                case BinaryOperatorKind.Equals when IsNumericLiteral(binaryOperation.RightOperand):
+                case BinaryOperatorKind.GreaterThan when IsNumericLiteral(rightOperand):
+                case BinaryOperatorKind.Equals when IsNumericLiteral(rightOperand):
                     return CanSimplifyToLengthEqualsZeroExpression(
-                        binaryOperation.LeftOperand,
-                        (ILiteralOperation)binaryOperation.RightOperand,
+                        leftOperand,
+                        (ILiteralOperation)rightOperand,
                         cancellationToken);
-                case BinaryOperatorKind.LessThan when IsNumericLiteral(binaryOperation.LeftOperand):
-                case BinaryOperatorKind.Equals when IsNumericLiteral(binaryOperation.LeftOperand):
+                case BinaryOperatorKind.LessThan when IsNumericLiteral(leftOperand):
+                case BinaryOperatorKind.Equals when IsNumericLiteral(leftOperand):
                     return CanSimplifyToLengthEqualsZeroExpression(
-                        binaryOperation.RightOperand,
-                        (ILiteralOperation)binaryOperation.LeftOperand,
+                        rightOperand,
+                        (ILiteralOperation)leftOperand,
                         cancellationToken);
             }
 
@@ -81,7 +94,19 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.InvertIf
 
         private bool IsNumericLiteral(IOperation operation)
         {
+            operation = RemoveImplicitConversion(operation);
+
             return operation.Kind == OperationKind.Literal && operation.Type.IsNumericType();
+        }
+
+        private IOperation RemoveImplicitConversion(IOperation operation)
+        {
+            if (operation is IConversionOperation conversion && conversion.IsImplicit)
+            {
+                return RemoveImplicitConversion(conversion.Operand);
+            }
+
+            return operation;
         }
 
         private bool CanSimplifyToLengthEqualsZeroExpression(
