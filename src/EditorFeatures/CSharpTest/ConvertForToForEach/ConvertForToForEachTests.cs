@@ -56,6 +56,38 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestMultipleReferences()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i]);
+            Console.WriteLine(array[i]);
+        }
+    }
+}",
+@"using System;
+
+class C
+{
+    void Test(string[] array)
+    {
+        foreach (string {|Rename:v|} in array)
+        {
+            Console.WriteLine(v);
+            Console.WriteLine(v);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
         public async Task TestEmbeddedStatement()
         {
             await TestInRegularAndScript1Async(
@@ -386,6 +418,39 @@ class C
         {
             var val = list[i];
             Console.WriteLine(list[i]);
+        }
+    }
+}",
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void Test(IList<string> list)
+    {
+        foreach (var val in list)
+        {
+            Console.WriteLine(val);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestIgnoreFormattingForReferences()
+        {
+            await TestInRegularAndScript1Async(
+@"using System;
+using System.Collections.Generic;
+
+class C
+{
+    void Test(IList<string> list)
+    {
+        [||]for (int i = 0; i < list.Count; i++)
+        {
+            var val = list [ i ];
+            Console.WriteLine(list [ /*find me*/ i ]);
         }
     }
 }",
