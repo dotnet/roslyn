@@ -8,19 +8,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
     internal struct EmbeddedSyntaxToken<TSyntaxKind> where TSyntaxKind : struct
     {
         public readonly TSyntaxKind Kind;
-        public readonly ImmutableArray<EmbeddedSyntaxTrivia> LeadingTrivia;
+        public readonly ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> LeadingTrivia;
         public readonly ImmutableArray<VirtualChar> VirtualChars;
-        public readonly ImmutableArray<EmbeddedSyntaxTrivia> TrailingTrivia;
+        public readonly ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> TrailingTrivia;
         internal readonly ImmutableArray<EmbeddedDiagnostic> Diagnostics;
         public readonly object Value;
 
         public EmbeddedSyntaxToken(
             TSyntaxKind kind,
-            ImmutableArray<EmbeddedSyntaxTrivia> leadingTrivia,
+            ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> leadingTrivia,
             ImmutableArray<VirtualChar> virtualChars,
-            ImmutableArray<EmbeddedSyntaxTrivia> trailingTrivia,
-            ImmutableArray<EmbeddedDiagnostic> diagnostics,
-            object value)
+            ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> trailingTrivia,
+            ImmutableArray<EmbeddedDiagnostic> diagnostics, object value)
         {
             Kind = kind;
             LeadingTrivia = leadingTrivia;
@@ -40,9 +39,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 
         public EmbeddedSyntaxToken<TSyntaxKind> With(
             Optional<TSyntaxKind> kind = default,
-            Optional<ImmutableArray<EmbeddedSyntaxTrivia>> leadingTrivia = default,
+            Optional<ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>>> leadingTrivia = default,
             Optional<ImmutableArray<VirtualChar>> virtualChars = default,
-            Optional<ImmutableArray<EmbeddedSyntaxTrivia>> trailingTrivia = default,
+            Optional<ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>>> trailingTrivia = default,
             Optional<ImmutableArray<EmbeddedDiagnostic>> diagnostics = default,
             Optional<object> value = default)
         {

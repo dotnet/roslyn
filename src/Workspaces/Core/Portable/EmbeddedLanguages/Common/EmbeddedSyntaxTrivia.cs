@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
     /// <summary>
     /// Trivia on an <see cref="EmbeddedSyntaxToken{TSyntaxKind}"/>.
     /// </summary>
-    internal struct EmbeddedSyntaxTrivia
+    internal struct EmbeddedSyntaxTrivia<TSyntaxKind> where TSyntaxKind : struct
     {
-        public readonly int RawKind;
+        public readonly TSyntaxKind Kind;
         public readonly ImmutableArray<VirtualChar> VirtualChars;
 
         /// <summary>
@@ -20,10 +20,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         /// </summary> 
         internal readonly ImmutableArray<EmbeddedDiagnostic> Diagnostics;
 
-        public EmbeddedSyntaxTrivia(int rawKind, ImmutableArray<VirtualChar> virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
+        public EmbeddedSyntaxTrivia(TSyntaxKind kind, ImmutableArray<VirtualChar> virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
         {
             Debug.Assert(virtualChars.Length > 0);
-            RawKind = rawKind;
+            Kind = kind;
             VirtualChars = virtualChars;
             Diagnostics = diagnostics;
         }

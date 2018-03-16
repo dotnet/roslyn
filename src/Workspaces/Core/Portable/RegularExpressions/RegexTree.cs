@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.RegularExpressions
 {
-    internal sealed class RegexTree : EmbeddedSyntaxTree<RegexNode, RegexCompilationUnit>
+    internal sealed class RegexTree : EmbeddedSyntaxTree<RegexKind, RegexNode, RegexCompilationUnit>
     {
         public readonly ImmutableDictionary<string, TextSpan> CaptureNamesToSpan;
         public readonly ImmutableDictionary<int, TextSpan> CaptureNumbersToSpan;

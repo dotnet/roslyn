@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 {
-    internal class EmbeddedSyntaxTree<TSyntaxKind, TNode, TRoot>
+    internal abstract class EmbeddedSyntaxTree<TSyntaxKind, TNode, TRoot>
         where TSyntaxKind : struct
         where TNode : EmbeddedSyntaxNode<TSyntaxKind, TNode>
         where TRoot : TNode

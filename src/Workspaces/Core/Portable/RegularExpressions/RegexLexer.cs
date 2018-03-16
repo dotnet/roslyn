@@ -13,6 +13,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     using static EmbeddedSyntaxHelpers;
     using static RegexHelpers;
 
+    using RegexToken = EmbeddedSyntaxToken<RegexKind>;
+    using RegexTrivia = EmbeddedSyntaxTrivia<RegexKind>;
+
     /// <summary>
     /// Produces tokens from the sequence of <see cref="VirtualChar"/> characters.  Unlike the native C# and VB
     /// lexer, this lexer is much more tightly controlled by the parser.  For example, while C# can have trivia
@@ -49,7 +52,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return result.ToImmutableAndFree();
         }
 
-        public EmbeddedSyntaxToken ScanNextToken(bool allowTrivia, RegexOptions options)
+        public RegexToken ScanNextToken(bool allowTrivia, RegexOptions options)
         {
             var trivia = ScanLeadingTrivia(allowTrivia, options);
             if (Position == Text.Length)
@@ -93,14 +96,14 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
         }
 
-        private ImmutableArray<EmbeddedSyntaxTrivia> ScanLeadingTrivia(bool allowTrivia, RegexOptions options)
+        private ImmutableArray<RegexTrivia> ScanLeadingTrivia(bool allowTrivia, RegexOptions options)
         {
             if (!allowTrivia)
             {
-                return ImmutableArray<EmbeddedSyntaxTrivia>.Empty;
+                return ImmutableArray<RegexTrivia>.Empty;
             }
 
-            var result = ArrayBuilder<EmbeddedSyntaxTrivia>.GetInstance();
+            var result = ArrayBuilder<RegexTrivia>.GetInstance();
 
             var start = Position;
 
@@ -126,7 +129,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return result.ToImmutableAndFree();
         }
 
-        public EmbeddedSyntaxTrivia? ScanComment(RegexOptions options)
+        public RegexTrivia? ScanComment(RegexOptions options)
         {
             if (Position < Text.Length)
             {
@@ -192,7 +195,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return true;
         }
 
-        private EmbeddedSyntaxTrivia? ScanWhitespace(RegexOptions options)
+        private RegexTrivia? ScanWhitespace(RegexOptions options)
         {
             if (HasOption(options, RegexOptions.IgnorePatternWhitespace))
             {
@@ -227,7 +230,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
         }
 
-        public EmbeddedSyntaxToken? TryScanEscapeCategory()
+        public RegexToken? TryScanEscapeCategory()
         {
             var start = Position;
             while (Position < Text.Length &&
@@ -241,7 +244,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 return null;
             }
 
-            var token = CreateToken(RegexKind.EscapeCategoryToken, ImmutableArray<EmbeddedSyntaxTrivia>.Empty, GetSubPattern(start, Position));
+            var token = CreateToken(RegexKind.EscapeCategoryToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
             var category = token.VirtualChars.CreateString();
 
             if (!RegexCharClass.IsEscapeCategory(category))
@@ -259,7 +262,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                (ch >= 'a' && ch <= 'z') ||
                (ch >= 'A' && ch <= 'Z');
 
-        public EmbeddedSyntaxToken? TryScanNumber()
+        public RegexToken? TryScanNumber()
         {
             if (Position == Text.Length)
             {
@@ -294,7 +297,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 }
             }
 
-            var token = CreateToken(RegexKind.NumberToken, ImmutableArray<EmbeddedSyntaxTrivia>.Empty, GetSubPattern(start, Position));
+            var token = CreateToken(RegexKind.NumberToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
             token = token.With(value: value);
 
             if (error)
@@ -307,7 +310,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return token;
         }
 
-        public EmbeddedSyntaxToken? TryScanCaptureName()
+        public RegexToken? TryScanCaptureName()
         {
             if (Position == Text.Length)
             {
@@ -325,15 +328,15 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 return null;
             }
 
-            var token = CreateToken(RegexKind.CaptureNameToken, ImmutableArray<EmbeddedSyntaxTrivia>.Empty, GetSubPattern(start, Position));
+            var token = CreateToken(RegexKind.CaptureNameToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
             token = token.With(value: token.VirtualChars.CreateString());
             return token;
         }
 
-        public EmbeddedSyntaxToken? TryScanNumberOrCaptureName()
+        public RegexToken? TryScanNumberOrCaptureName()
             => TryScanNumber() ?? TryScanCaptureName();
 
-        public EmbeddedSyntaxToken? TryScanOptions()
+        public RegexToken? TryScanOptions()
         {
             var start = Position;
             while (Position < Text.Length && IsOptionChar(this.CurrentChar))
@@ -342,8 +345,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
 
             return start == Position
-                ? default(EmbeddedSyntaxToken?)
-                : CreateToken(RegexKind.OptionsToken, ImmutableArray<EmbeddedSyntaxTrivia>.Empty, GetSubPattern(start, Position));
+                ? default(RegexToken?)
+                : CreateToken(RegexKind.OptionsToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
         }
 
         private bool IsOptionChar(char ch)
@@ -362,7 +365,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
         }
 
-        public EmbeddedSyntaxToken ScanHexCharacters(int count)
+        public RegexToken ScanHexCharacters(int count)
         {
             var start = Position;
             var beforeSlash = start - 2;
@@ -380,7 +383,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
 
             var result = CreateToken(
-                RegexKind.TextToken, ImmutableArray<EmbeddedSyntaxTrivia>.Empty, GetSubPattern(start, Position));
+                RegexKind.TextToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
 
             var length = Position - start;
             if (length != count)
@@ -404,7 +407,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         private static bool IsOctalDigit(char ch)
             => ch >= '0' && ch <= '7';
 
-        public EmbeddedSyntaxToken ScanOctalCharacters(RegexOptions options)
+        public RegexToken ScanOctalCharacters(RegexOptions options)
         {
             var start = Position;
             var beforeSlash = start - 1;
@@ -437,7 +440,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             Debug.Assert(Position - start > 0);
 
             var result = CreateToken(
-                RegexKind.TextToken, ImmutableArray<EmbeddedSyntaxTrivia>.Empty, GetSubPattern(start, Position));
+                RegexKind.TextToken, ImmutableArray<RegexTrivia>.Empty, GetSubPattern(start, Position));
 
             return result;
         }

@@ -4,13 +4,17 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.RegularExpressions
 {
+    using static EmbeddedSyntaxHelpers;
     using static RegexHelpers;
+
+    using RegexToken = EmbeddedSyntaxToken<RegexKind>;
 
     internal partial struct RegexParser
     {

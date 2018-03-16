@@ -7,23 +7,26 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 
 namespace Microsoft.CodeAnalysis.RegularExpressions
 {
+    using RegexNodeOrToken = EmbeddedSyntaxNodeOrToken<RegexKind, RegexNode>;
+    using RegexToken = EmbeddedSyntaxToken<RegexKind>;
+
     internal sealed class RegexCompilationUnit : RegexNode
     {
-        public RegexCompilationUnit(RegexExpressionNode expression, EmbeddedSyntaxToken endOfFileToken)
+        public RegexCompilationUnit(RegexExpressionNode expression, RegexToken endOfFileToken)
             : base(RegexKind.CompilationUnit)
         {
             Debug.Assert(expression != null);
-            Debug.Assert(endOfFileToken.Kind() == RegexKind.EndOfFile);
+            Debug.Assert(endOfFileToken.Kind == RegexKind.EndOfFile);
             Expression = expression;
             EndOfFileToken = endOfFileToken;
         }
 
         public RegexExpressionNode Expression { get; }
-        public EmbeddedSyntaxToken EndOfFileToken { get; }
+        public RegexToken EndOfFileToken { get; }
 
         public override int ChildCount => 2;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -61,7 +64,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             this.Children = children;
         }
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
             => Children[index];
 
         public override void Accept(IRegexNodeVisitor visitor)
@@ -73,18 +76,18 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     /// </summary>
     internal sealed class RegexTextNode : RegexPrimaryExpressionNode
     {
-        public RegexTextNode(EmbeddedSyntaxToken textToken)
+        public RegexTextNode(RegexToken textToken)
             : base(RegexKind.Text)
         {
-            Debug.Assert(textToken.Kind() == RegexKind.TextToken);
+            Debug.Assert(textToken.Kind == RegexKind.TextToken);
             TextToken = textToken;
         }
 
-        public EmbeddedSyntaxToken TextToken { get; }
+        public RegexToken TextToken { get; }
 
         public override int ChildCount => 1;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index) => TextToken;
+        public override RegexNodeOrToken ChildAt(int index) => TextToken;
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -96,20 +99,20 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal abstract class RegexBaseCharacterClassNode : RegexPrimaryExpressionNode
     {
         protected RegexBaseCharacterClassNode(
-            RegexKind kind, EmbeddedSyntaxToken openBracketToken, RegexSequenceNode components, EmbeddedSyntaxToken closeBracketToken)
+            RegexKind kind, RegexToken openBracketToken, RegexSequenceNode components, RegexToken closeBracketToken)
             : base(kind)
         {
-            Debug.Assert(openBracketToken.Kind() == RegexKind.OpenBracketToken);
+            Debug.Assert(openBracketToken.Kind == RegexKind.OpenBracketToken);
             Debug.Assert(components != null);
-            Debug.Assert(closeBracketToken.Kind() == RegexKind.CloseBracketToken);
+            Debug.Assert(closeBracketToken.Kind == RegexKind.CloseBracketToken);
             OpenBracketToken = openBracketToken;
             Components = components;
             CloseBracketToken = closeBracketToken;
         }
 
-        public EmbeddedSyntaxToken OpenBracketToken { get; }
+        public RegexToken OpenBracketToken { get; }
         public RegexSequenceNode Components { get; }
-        public EmbeddedSyntaxToken CloseBracketToken { get; }
+        public RegexToken CloseBracketToken { get; }
     }
 
     /// <summary>
@@ -118,14 +121,14 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexCharacterClassNode : RegexBaseCharacterClassNode
     {
         public RegexCharacterClassNode(
-            EmbeddedSyntaxToken openBracketToken, RegexSequenceNode components, EmbeddedSyntaxToken closeBracketToken)
+            RegexToken openBracketToken, RegexSequenceNode components, RegexToken closeBracketToken)
             : base(RegexKind.CharacterClass, openBracketToken, components, closeBracketToken)
         {
         }
 
         public override int ChildCount => 3;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -147,18 +150,18 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexNegatedCharacterClassNode : RegexBaseCharacterClassNode
     {
         public RegexNegatedCharacterClassNode(
-            EmbeddedSyntaxToken openBracketToken, EmbeddedSyntaxToken caretToken, RegexSequenceNode components, EmbeddedSyntaxToken closeBracketToken)
+            RegexToken openBracketToken, RegexToken caretToken, RegexSequenceNode components, RegexToken closeBracketToken)
             : base(RegexKind.NegatedCharacterClass, openBracketToken, components, closeBracketToken)
         {
-            Debug.Assert(caretToken.Kind() == RegexKind.CaretToken);
+            Debug.Assert(caretToken.Kind == RegexKind.CaretToken);
             CaretToken = caretToken;
         }
 
-        public EmbeddedSyntaxToken CaretToken { get; }
+        public RegexToken CaretToken { get; }
 
         public override int ChildCount => 4;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -181,11 +184,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexCharacterClassRangeNode : RegexPrimaryExpressionNode
     {
         public RegexCharacterClassRangeNode(
-            RegexExpressionNode left, EmbeddedSyntaxToken minusToken, RegexExpressionNode right)
+            RegexExpressionNode left, RegexToken minusToken, RegexExpressionNode right)
             : base(RegexKind.CharacterClassRange)
         {
             Debug.Assert(left != null);
-            Debug.Assert(minusToken.Kind() == RegexKind.MinusToken);
+            Debug.Assert(minusToken.Kind == RegexKind.MinusToken);
             Debug.Assert(right != null);
             Left = left;
             MinusToken = minusToken;
@@ -193,12 +196,12 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         public RegexExpressionNode Left { get; }
-        public EmbeddedSyntaxToken MinusToken { get; }
+        public RegexToken MinusToken { get; }
         public RegexExpressionNode Right { get; }
 
         public override int ChildCount => 3;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -222,21 +225,21 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexCharacterClassSubtractionNode : RegexPrimaryExpressionNode
     {
         public RegexCharacterClassSubtractionNode(
-            EmbeddedSyntaxToken minusToken, RegexBaseCharacterClassNode characterClass)
+            RegexToken minusToken, RegexBaseCharacterClassNode characterClass)
             : base(RegexKind.CharacterClassSubtraction)
         {
-            Debug.Assert(minusToken.Kind() == RegexKind.MinusToken);
+            Debug.Assert(minusToken.Kind == RegexKind.MinusToken);
             Debug.Assert(characterClass != null);
             MinusToken = minusToken;
             CharacterClass = characterClass;
         }
 
-        public EmbeddedSyntaxToken MinusToken { get; }
+        public RegexToken MinusToken { get; }
         public RegexBaseCharacterClassNode CharacterClass { get; }
 
         public override int ChildCount => 2;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -258,18 +261,18 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     /// </summary>
     internal sealed class RegexPosixPropertyNode : RegexPrimaryExpressionNode
     {
-        public RegexPosixPropertyNode(EmbeddedSyntaxToken textToken)
+        public RegexPosixPropertyNode(RegexToken textToken)
             : base(RegexKind.PosixProperty)
         {
-            Debug.Assert(textToken.Kind() == RegexKind.TextToken);
+            Debug.Assert(textToken.Kind == RegexKind.TextToken);
             TextToken = textToken;
         }
 
-        public EmbeddedSyntaxToken TextToken { get; }
+        public RegexToken TextToken { get; }
 
         public override int ChildCount => 1;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index) => TextToken;
+        public override RegexNodeOrToken ChildAt(int index) => TextToken;
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -302,18 +305,18 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     /// </summary>
     internal sealed class RegexWildcardNode : RegexPrimaryExpressionNode
     {
-        public RegexWildcardNode(EmbeddedSyntaxToken dotToken)
+        public RegexWildcardNode(RegexToken dotToken)
             : base(RegexKind.Wildcard)
         {
-            Debug.Assert(dotToken.Kind() == RegexKind.DotToken);
+            Debug.Assert(dotToken.Kind == RegexKind.DotToken);
             DotToken = dotToken;
         }
 
-        public EmbeddedSyntaxToken DotToken { get; }
+        public RegexToken DotToken { get; }
 
         public override int ChildCount => 1;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index) => DotToken;
+        public override RegexNodeOrToken ChildAt(int index) => DotToken;
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -336,21 +339,21 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexZeroOrMoreQuantifierNode : RegexQuantifierNode
     {
         public RegexZeroOrMoreQuantifierNode(
-            RegexExpressionNode expression, EmbeddedSyntaxToken asteriskToken)
+            RegexExpressionNode expression, RegexToken asteriskToken)
             : base(RegexKind.ZeroOrMoreQuantifier)
         {
             Debug.Assert(expression != null);
-            Debug.Assert(asteriskToken.Kind() == RegexKind.AsteriskToken);
+            Debug.Assert(asteriskToken.Kind == RegexKind.AsteriskToken);
             Expression = expression;
             AsteriskToken = asteriskToken;
         }
 
         public RegexExpressionNode Expression { get; }
-        public EmbeddedSyntaxToken AsteriskToken { get; }
+        public RegexToken AsteriskToken { get; }
 
         public override int ChildCount => 2;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -371,21 +374,21 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexOneOrMoreQuantifierNode : RegexQuantifierNode
     {
         public RegexOneOrMoreQuantifierNode(
-            RegexExpressionNode expression, EmbeddedSyntaxToken plusToken)
+            RegexExpressionNode expression, RegexToken plusToken)
             : base(RegexKind.OneOrMoreQuantifier)
         {
             Debug.Assert(expression != null);
-            Debug.Assert(plusToken.Kind() == RegexKind.PlusToken);
+            Debug.Assert(plusToken.Kind == RegexKind.PlusToken);
             Expression = expression;
             PlusToken = plusToken;
         }
 
         public RegexExpressionNode Expression { get; }
-        public EmbeddedSyntaxToken PlusToken { get; }
+        public RegexToken PlusToken { get; }
 
         public override int ChildCount => 2;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -406,21 +409,21 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexZeroOrOneQuantifierNode : RegexQuantifierNode
     {
         public RegexZeroOrOneQuantifierNode(
-            RegexExpressionNode expression, EmbeddedSyntaxToken questionToken)
+            RegexExpressionNode expression, RegexToken questionToken)
             : base(RegexKind.ZeroOrOneQuantifier)
         {
             Debug.Assert(expression != null);
-            Debug.Assert(questionToken.Kind() == RegexKind.QuestionToken);
+            Debug.Assert(questionToken.Kind == RegexKind.QuestionToken);
             Expression = expression;
             QuestionToken = questionToken;
         }
 
         public RegexExpressionNode Expression { get; }
-        public EmbeddedSyntaxToken QuestionToken { get; }
+        public RegexToken QuestionToken { get; }
 
         public override int ChildCount => 2;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -443,21 +446,21 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexLazyQuantifierNode : RegexExpressionNode
     {
         public RegexLazyQuantifierNode(
-            RegexQuantifierNode quantifier, EmbeddedSyntaxToken questionToken)
+            RegexQuantifierNode quantifier, RegexToken questionToken)
             : base(RegexKind.LazyQuantifier)
         {
             Debug.Assert(quantifier != null);
-            Debug.Assert(questionToken.Kind() == RegexKind.QuestionToken);
+            Debug.Assert(questionToken.Kind == RegexKind.QuestionToken);
             Quantifier = quantifier;
             QuestionToken = questionToken;
         }
 
         public RegexQuantifierNode Quantifier { get; }
-        public EmbeddedSyntaxToken QuestionToken { get; }
+        public RegexToken QuestionToken { get; }
 
         public override int ChildCount => 2;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -478,13 +481,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal abstract class RegexNumericQuantifierNode : RegexQuantifierNode
     {
         protected RegexNumericQuantifierNode(
-            RegexKind kind, RegexPrimaryExpressionNode expression, EmbeddedSyntaxToken openBraceToken, EmbeddedSyntaxToken firstNumberToken, EmbeddedSyntaxToken closeBraceToken)
+            RegexKind kind, RegexPrimaryExpressionNode expression, RegexToken openBraceToken, RegexToken firstNumberToken, RegexToken closeBraceToken)
             : base(kind)
         {
             Debug.Assert(expression != null);
-            Debug.Assert(openBraceToken.Kind() == RegexKind.OpenBraceToken);
-            Debug.Assert(firstNumberToken.Kind() == RegexKind.NumberToken);
-            Debug.Assert(closeBraceToken.Kind() == RegexKind.CloseBraceToken);
+            Debug.Assert(openBraceToken.Kind == RegexKind.OpenBraceToken);
+            Debug.Assert(firstNumberToken.Kind == RegexKind.NumberToken);
+            Debug.Assert(closeBraceToken.Kind == RegexKind.CloseBraceToken);
             Expression = expression;
             OpenBraceToken = openBraceToken;
             FirstNumberToken = firstNumberToken;
@@ -492,9 +495,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         public RegexExpressionNode Expression { get; }
-        public EmbeddedSyntaxToken OpenBraceToken { get; }
-        public EmbeddedSyntaxToken FirstNumberToken { get; }
-        public EmbeddedSyntaxToken CloseBraceToken { get; }
+        public RegexToken OpenBraceToken { get; }
+        public RegexToken FirstNumberToken { get; }
+        public RegexToken CloseBraceToken { get; }
     }
 
     /// <summary>
@@ -503,14 +506,14 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexExactNumericQuantifierNode : RegexNumericQuantifierNode
     {
         public RegexExactNumericQuantifierNode(
-            RegexPrimaryExpressionNode expression, EmbeddedSyntaxToken openBraceToken, EmbeddedSyntaxToken numberToken, EmbeddedSyntaxToken closeBraceToken)
+            RegexPrimaryExpressionNode expression, RegexToken openBraceToken, RegexToken numberToken, RegexToken closeBraceToken)
             : base(RegexKind.ExactNumericQuantifier, expression, openBraceToken, numberToken, closeBraceToken)
         {
         }
 
         public override int ChildCount => 4;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -534,19 +537,19 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     {
         public RegexOpenNumericRangeQuantifierNode(
             RegexPrimaryExpressionNode expression,
-            EmbeddedSyntaxToken openBraceToken, EmbeddedSyntaxToken firstNumberToken,
-            EmbeddedSyntaxToken commaToken, EmbeddedSyntaxToken closeBraceToken)
+            RegexToken openBraceToken, RegexToken firstNumberToken,
+            RegexToken commaToken, RegexToken closeBraceToken)
             : base(RegexKind.OpenRangeNumericQuantifier, expression, openBraceToken, firstNumberToken, closeBraceToken)
         {
-            Debug.Assert(commaToken.Kind() == RegexKind.CommaToken);
+            Debug.Assert(commaToken.Kind == RegexKind.CommaToken);
             CommaToken = commaToken;
         }
 
-        public EmbeddedSyntaxToken CommaToken { get; }
+        public RegexToken CommaToken { get; }
 
         public override int ChildCount => 5;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -571,22 +574,22 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     {
         public RegexClosedNumericRangeQuantifierNode(
             RegexPrimaryExpressionNode expression,
-            EmbeddedSyntaxToken openBraceToken, EmbeddedSyntaxToken firstNumberToken,
-            EmbeddedSyntaxToken commaToken, EmbeddedSyntaxToken secondNumberToken, EmbeddedSyntaxToken closeBraceToken)
+            RegexToken openBraceToken, RegexToken firstNumberToken,
+            RegexToken commaToken, RegexToken secondNumberToken, RegexToken closeBraceToken)
             : base(RegexKind.ClosedRangeNumericQuantifier, expression, openBraceToken, firstNumberToken, closeBraceToken)
         {
-            Debug.Assert(commaToken.Kind() == RegexKind.CommaToken);
-            Debug.Assert(secondNumberToken.Kind() == RegexKind.NumberToken);
+            Debug.Assert(commaToken.Kind == RegexKind.CommaToken);
+            Debug.Assert(secondNumberToken.Kind == RegexKind.NumberToken);
             CommaToken = commaToken;
             SecondNumberToken = secondNumberToken;
         }
 
-        public EmbeddedSyntaxToken CommaToken { get; }
-        public EmbeddedSyntaxToken SecondNumberToken { get; }
+        public RegexToken CommaToken { get; }
+        public RegexToken SecondNumberToken { get; }
 
         public override int ChildCount => 6;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -610,18 +613,18 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     /// </summary>
     internal sealed class RegexAnchorNode : RegexPrimaryExpressionNode
     {
-        public RegexAnchorNode(RegexKind kind, EmbeddedSyntaxToken anchorToken)
+        public RegexAnchorNode(RegexKind kind, RegexToken anchorToken)
             : base(kind)
         {
-            Debug.Assert(anchorToken.Kind() == RegexKind.DollarToken || anchorToken.Kind() == RegexKind.CaretToken);
+            Debug.Assert(anchorToken.Kind == RegexKind.DollarToken || anchorToken.Kind == RegexKind.CaretToken);
             AnchorToken = anchorToken;
         }
 
-        public EmbeddedSyntaxToken AnchorToken { get; }
+        public RegexToken AnchorToken { get; }
 
         public override int ChildCount => 1;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index) => AnchorToken;
+        public override RegexNodeOrToken ChildAt(int index) => AnchorToken;
 
         public override void Accept(IRegexNodeVisitor visitor)
             => visitor.Visit(this);
@@ -633,11 +636,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexAlternationNode : RegexExpressionNode
     {
         public RegexAlternationNode(
-            RegexExpressionNode left, EmbeddedSyntaxToken barToken, RegexSequenceNode right)
+            RegexExpressionNode left, RegexToken barToken, RegexSequenceNode right)
             : base(RegexKind.Alternation)
         {
             Debug.Assert(left != null);
-            Debug.Assert(barToken.Kind() == RegexKind.BarToken);
+            Debug.Assert(barToken.Kind == RegexKind.BarToken);
             Debug.Assert(right != null);
             Left = left;
             BarToken = barToken;
@@ -645,12 +648,12 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         public RegexExpressionNode Left { get; }
-        public EmbeddedSyntaxToken BarToken { get; }
+        public RegexToken BarToken { get; }
         public RegexSequenceNode Right { get; }
 
         public override int ChildCount => 3;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -671,17 +674,17 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     /// </summary>
     internal abstract class RegexGroupingNode : RegexPrimaryExpressionNode
     {
-        protected RegexGroupingNode(RegexKind kind, EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken closeParenToken)
+        protected RegexGroupingNode(RegexKind kind, RegexToken openParenToken, RegexToken closeParenToken)
             : base(kind)
         {
-            Debug.Assert(openParenToken.Kind() == RegexKind.OpenParenToken);
-            Debug.Assert(closeParenToken.Kind() == RegexKind.CloseParenToken);
+            Debug.Assert(openParenToken.Kind == RegexKind.OpenParenToken);
+            Debug.Assert(closeParenToken.Kind == RegexKind.CloseParenToken);
             OpenParenToken = openParenToken;
             CloseParenToken = closeParenToken;
         }
 
-        public EmbeddedSyntaxToken OpenParenToken { get; }
-        public EmbeddedSyntaxToken CloseParenToken { get; }
+        public RegexToken OpenParenToken { get; }
+        public RegexToken CloseParenToken { get; }
     }
 
     /// <summary>
@@ -689,7 +692,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     /// </summary>
     internal class RegexSimpleGroupingNode : RegexGroupingNode
     {
-        public RegexSimpleGroupingNode(EmbeddedSyntaxToken openParenToken, RegexExpressionNode expression, EmbeddedSyntaxToken closeParenToken)
+        public RegexSimpleGroupingNode(RegexToken openParenToken, RegexExpressionNode expression, RegexToken closeParenToken)
             : base(RegexKind.SimpleGrouping, openParenToken, closeParenToken)
         {
             Debug.Assert(expression != null);
@@ -700,7 +703,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         public override int ChildCount => 3;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -721,14 +724,14 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     /// </summary>
     internal abstract class RegexQuestionGroupingNode : RegexGroupingNode
     {
-        protected RegexQuestionGroupingNode(RegexKind kind, EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken, EmbeddedSyntaxToken closeParenToken)
+        protected RegexQuestionGroupingNode(RegexKind kind, RegexToken openParenToken, RegexToken questionToken, RegexToken closeParenToken)
             : base(kind, openParenToken, closeParenToken)
         {
-            Debug.Assert(questionToken.Kind() == RegexKind.QuestionToken);
+            Debug.Assert(questionToken.Kind == RegexKind.QuestionToken);
             QuestionToken = questionToken;
         }
 
-        public EmbeddedSyntaxToken QuestionToken { get; }
+        public RegexToken QuestionToken { get; }
     }
 
     /// <summary>
@@ -736,13 +739,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     /// </summary>
     internal abstract class RegexOptionsGroupingNode : RegexQuestionGroupingNode
     {
-        protected RegexOptionsGroupingNode(RegexKind kind, EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken, EmbeddedSyntaxToken optionsToken, EmbeddedSyntaxToken closeParenToken)
+        protected RegexOptionsGroupingNode(RegexKind kind, RegexToken openParenToken, RegexToken questionToken, RegexToken optionsToken, RegexToken closeParenToken)
             : base(kind, openParenToken, questionToken, closeParenToken)
         {
             OptionsToken = optionsToken;
         }
 
-        public EmbeddedSyntaxToken OptionsToken { get; }
+        public RegexToken OptionsToken { get; }
     }
 
     /// <summary>
@@ -751,14 +754,14 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal class RegexSimpleOptionsGroupingNode : RegexOptionsGroupingNode
     {
         public RegexSimpleOptionsGroupingNode(
-            EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken, EmbeddedSyntaxToken optionsToken, EmbeddedSyntaxToken closeParenToken)
+            RegexToken openParenToken, RegexToken questionToken, RegexToken optionsToken, RegexToken closeParenToken)
             : base(RegexKind.SimpleOptionsGrouping, openParenToken, questionToken, optionsToken, closeParenToken)
         {
         }
 
         public override int ChildCount => 4;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -781,22 +784,22 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal class RegexNestedOptionsGroupingNode : RegexOptionsGroupingNode
     {
         public RegexNestedOptionsGroupingNode(
-            EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken, EmbeddedSyntaxToken optionsToken,
-            EmbeddedSyntaxToken colonToken, RegexExpressionNode expression, EmbeddedSyntaxToken closeParenToken)
+            RegexToken openParenToken, RegexToken questionToken, RegexToken optionsToken,
+            RegexToken colonToken, RegexExpressionNode expression, RegexToken closeParenToken)
             : base(RegexKind.NestedOptionsGrouping, openParenToken, questionToken, optionsToken, closeParenToken)
         {
-            Debug.Assert(colonToken.Kind() == RegexKind.ColonToken);
+            Debug.Assert(colonToken.Kind == RegexKind.ColonToken);
             Debug.Assert(expression != null);
             ColonToken = colonToken;
             Expression = expression;
         }
 
-        public EmbeddedSyntaxToken ColonToken { get; }
+        public RegexToken ColonToken { get; }
         public RegexExpressionNode Expression { get; }
 
         public override int ChildCount => 6;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -821,22 +824,22 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexNonCapturingGroupingNode : RegexQuestionGroupingNode
     {
         public RegexNonCapturingGroupingNode(
-            EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken, EmbeddedSyntaxToken colonToken, 
-            RegexExpressionNode expression, EmbeddedSyntaxToken closeParenToken) 
+            RegexToken openParenToken, RegexToken questionToken, RegexToken colonToken, 
+            RegexExpressionNode expression, RegexToken closeParenToken) 
             : base(RegexKind.NonCapturingGrouping, openParenToken, questionToken, closeParenToken)
         {
-            Debug.Assert(colonToken.Kind() == RegexKind.ColonToken);
+            Debug.Assert(colonToken.Kind == RegexKind.ColonToken);
             Debug.Assert(expression != null);
             ColonToken = colonToken;
             Expression = expression;
         }
 
-        public EmbeddedSyntaxToken ColonToken { get; }
+        public RegexToken ColonToken { get; }
         public RegexExpressionNode Expression { get; }
 
         public override int ChildCount => 5;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -860,22 +863,22 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexPositiveLookaheadGroupingNode : RegexQuestionGroupingNode
     {
         public RegexPositiveLookaheadGroupingNode(
-            EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken, EmbeddedSyntaxToken equalsToken,
-            RegexExpressionNode expression, EmbeddedSyntaxToken closeParenToken)
+            RegexToken openParenToken, RegexToken questionToken, RegexToken equalsToken,
+            RegexExpressionNode expression, RegexToken closeParenToken)
             : base(RegexKind.PositiveLookaheadGrouping, openParenToken, questionToken, closeParenToken)
         {
-            Debug.Assert(equalsToken.Kind() == RegexKind.EqualsToken);
+            Debug.Assert(equalsToken.Kind == RegexKind.EqualsToken);
             Debug.Assert(expression != null);
             EqualsToken = equalsToken;
             Expression = expression;
         }
 
-        public EmbeddedSyntaxToken EqualsToken { get; }
+        public RegexToken EqualsToken { get; }
         public RegexExpressionNode Expression { get; }
 
         public override int ChildCount => 5;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -899,22 +902,22 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexNegativeLookaheadGroupingNode : RegexQuestionGroupingNode
     {
         public RegexNegativeLookaheadGroupingNode(
-            EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken, EmbeddedSyntaxToken exclamationToken,
-            RegexExpressionNode expression, EmbeddedSyntaxToken closeParenToken)
+            RegexToken openParenToken, RegexToken questionToken, RegexToken exclamationToken,
+            RegexExpressionNode expression, RegexToken closeParenToken)
             : base(RegexKind.NegativeLookaheadGrouping, openParenToken, questionToken, closeParenToken)
         {
-            Debug.Assert(exclamationToken.Kind() == RegexKind.ExclamationToken);
+            Debug.Assert(exclamationToken.Kind == RegexKind.ExclamationToken);
             Debug.Assert(expression != null);
             ExclamationToken = exclamationToken;
             Expression = expression;
         }
 
-        public EmbeddedSyntaxToken ExclamationToken { get; }
+        public RegexToken ExclamationToken { get; }
         public RegexExpressionNode Expression { get; }
 
         public override int ChildCount => 5;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -935,15 +938,15 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal abstract class RegexLookbehindGroupingNode : RegexQuestionGroupingNode
     {
         protected RegexLookbehindGroupingNode(
-            RegexKind kind, EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken,
-            EmbeddedSyntaxToken lessThanToken, EmbeddedSyntaxToken closeParenToken)
+            RegexKind kind, RegexToken openParenToken, RegexToken questionToken,
+            RegexToken lessThanToken, RegexToken closeParenToken)
             : base(kind, openParenToken, questionToken, closeParenToken)
         {
-            Debug.Assert(lessThanToken.Kind() == RegexKind.LessThanToken);
+            Debug.Assert(lessThanToken.Kind == RegexKind.LessThanToken);
             LessThanToken = lessThanToken;
         }
 
-        public EmbeddedSyntaxToken LessThanToken { get; }
+        public RegexToken LessThanToken { get; }
     }
 
     /// <summary>
@@ -952,22 +955,22 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexPositiveLookbehindGroupingNode : RegexLookbehindGroupingNode
     {
         public RegexPositiveLookbehindGroupingNode(
-            EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken,EmbeddedSyntaxToken lessThanToken,
-            EmbeddedSyntaxToken equalsToken, RegexExpressionNode expression, EmbeddedSyntaxToken closeParenToken)
+            RegexToken openParenToken, RegexToken questionToken,RegexToken lessThanToken,
+            RegexToken equalsToken, RegexExpressionNode expression, RegexToken closeParenToken)
             : base(RegexKind.PositiveLookbehindGrouping, openParenToken, questionToken, lessThanToken, closeParenToken)
         {
-            Debug.Assert(equalsToken.Kind() == RegexKind.EqualsToken);
+            Debug.Assert(equalsToken.Kind == RegexKind.EqualsToken);
             Debug.Assert(expression != null);
             EqualsToken = equalsToken;
             Expression = expression;
         }
 
-        public EmbeddedSyntaxToken EqualsToken { get; }
+        public RegexToken EqualsToken { get; }
         public RegexExpressionNode Expression { get; }
 
         public override int ChildCount => 6;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -992,22 +995,22 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexNegativeLookbehindGroupingNode : RegexLookbehindGroupingNode
     {
         public RegexNegativeLookbehindGroupingNode(
-            EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken, EmbeddedSyntaxToken lessThanToken,
-            EmbeddedSyntaxToken exclamationToken, RegexExpressionNode expression, EmbeddedSyntaxToken closeParenToken)
+            RegexToken openParenToken, RegexToken questionToken, RegexToken lessThanToken,
+            RegexToken exclamationToken, RegexExpressionNode expression, RegexToken closeParenToken)
             : base(RegexKind.NegativeLookbehindGrouping, openParenToken, questionToken, lessThanToken, closeParenToken)
         {
-            Debug.Assert(exclamationToken.Kind() == RegexKind.ExclamationToken);
+            Debug.Assert(exclamationToken.Kind == RegexKind.ExclamationToken);
             Debug.Assert(expression != null);
             ExclamationToken = exclamationToken;
             Expression = expression;
         }
 
-        public EmbeddedSyntaxToken ExclamationToken { get; }
+        public RegexToken ExclamationToken { get; }
         public RegexExpressionNode Expression { get; }
 
         public override int ChildCount => 6;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1032,22 +1035,22 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexNonBacktrackingGroupingNode : RegexQuestionGroupingNode
     {
         public RegexNonBacktrackingGroupingNode(
-            EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken, EmbeddedSyntaxToken greaterThanToken,
-            RegexExpressionNode expression, EmbeddedSyntaxToken closeParenToken)
+            RegexToken openParenToken, RegexToken questionToken, RegexToken greaterThanToken,
+            RegexExpressionNode expression, RegexToken closeParenToken)
             : base(RegexKind.NonBacktrackingGrouping, openParenToken, questionToken, closeParenToken)
         {
-            Debug.Assert(greaterThanToken.Kind() == RegexKind.GreaterThanToken);
+            Debug.Assert(greaterThanToken.Kind == RegexKind.GreaterThanToken);
             Debug.Assert(expression != null);
             GreaterThanToken = greaterThanToken;
             Expression = expression;
         }
 
-        public EmbeddedSyntaxToken GreaterThanToken { get; }
+        public RegexToken GreaterThanToken { get; }
         public RegexExpressionNode Expression { get; }
 
         public override int ChildCount => 5;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1071,9 +1074,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexCaptureGroupingNode : RegexQuestionGroupingNode
     {
         public RegexCaptureGroupingNode(
-            EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken, EmbeddedSyntaxToken openToken, 
-            EmbeddedSyntaxToken captureToken, EmbeddedSyntaxToken closeToken, 
-            RegexExpressionNode expression, EmbeddedSyntaxToken closeParenToken) 
+            RegexToken openParenToken, RegexToken questionToken, RegexToken openToken, 
+            RegexToken captureToken, RegexToken closeToken, 
+            RegexExpressionNode expression, RegexToken closeParenToken) 
             : base(RegexKind.CaptureGrouping, openParenToken, questionToken, closeParenToken)
         {
             Debug.Assert(expression != null);
@@ -1083,14 +1086,14 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             Expression = expression;
         }
 
-        public EmbeddedSyntaxToken OpenToken { get; }
-        public EmbeddedSyntaxToken CaptureToken { get; }
-        public EmbeddedSyntaxToken CloseToken { get; }
+        public RegexToken OpenToken { get; }
+        public RegexToken CaptureToken { get; }
+        public RegexToken CloseToken { get; }
         public RegexExpressionNode Expression { get; }
 
         public override int ChildCount => 7;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1116,12 +1119,12 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexBalancingGroupingNode : RegexQuestionGroupingNode
     {
         public RegexBalancingGroupingNode(
-            EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken, EmbeddedSyntaxToken openToken,
-            EmbeddedSyntaxToken firstCaptureToken, EmbeddedSyntaxToken minusToken, EmbeddedSyntaxToken secondCaptureToken,
-            EmbeddedSyntaxToken closeToken, RegexExpressionNode expression, EmbeddedSyntaxToken closeParenToken)
+            RegexToken openParenToken, RegexToken questionToken, RegexToken openToken,
+            RegexToken firstCaptureToken, RegexToken minusToken, RegexToken secondCaptureToken,
+            RegexToken closeToken, RegexExpressionNode expression, RegexToken closeParenToken)
             : base(RegexKind.BalancingGrouping, openParenToken, questionToken, closeParenToken)
         {
-            Debug.Assert(minusToken.Kind() == RegexKind.MinusToken);
+            Debug.Assert(minusToken.Kind == RegexKind.MinusToken);
             Debug.Assert(expression != null);
             OpenToken = openToken;
             FirstCaptureToken = firstCaptureToken;
@@ -1131,16 +1134,16 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             Expression = expression;
         }
 
-        public EmbeddedSyntaxToken OpenToken { get; }
-        public EmbeddedSyntaxToken FirstCaptureToken { get; }
-        public EmbeddedSyntaxToken MinusToken { get; }
-        public EmbeddedSyntaxToken SecondCaptureToken { get; }
-        public EmbeddedSyntaxToken CloseToken { get; }
+        public RegexToken OpenToken { get; }
+        public RegexToken FirstCaptureToken { get; }
+        public RegexToken MinusToken { get; }
+        public RegexToken SecondCaptureToken { get; }
+        public RegexToken CloseToken { get; }
         public RegexExpressionNode Expression { get; }
 
         public override int ChildCount => 9;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1165,8 +1168,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal abstract class RegexConditionalGroupingNode : RegexQuestionGroupingNode
     {
         protected RegexConditionalGroupingNode(
-            RegexKind kind, EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken,
-            RegexExpressionNode result, EmbeddedSyntaxToken closeParenToken)
+            RegexKind kind, RegexToken openParenToken, RegexToken questionToken,
+            RegexExpressionNode result, RegexToken closeParenToken)
             : base(kind, openParenToken, questionToken, closeParenToken)
         {
             Debug.Assert(result != null);
@@ -1182,25 +1185,25 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexConditionalCaptureGroupingNode : RegexConditionalGroupingNode
     {
         public RegexConditionalCaptureGroupingNode(
-            EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken, 
-            EmbeddedSyntaxToken innerOpenParenToken, EmbeddedSyntaxToken captureToken, EmbeddedSyntaxToken innerCloseParenToken,
-            RegexExpressionNode result, EmbeddedSyntaxToken closeParenToken) 
+            RegexToken openParenToken, RegexToken questionToken, 
+            RegexToken innerOpenParenToken, RegexToken captureToken, RegexToken innerCloseParenToken,
+            RegexExpressionNode result, RegexToken closeParenToken) 
             : base(RegexKind.ConditionalCaptureGrouping, openParenToken, questionToken, result, closeParenToken)
         {
-            Debug.Assert(innerOpenParenToken.Kind() == RegexKind.OpenParenToken);
-            Debug.Assert(innerCloseParenToken.Kind() == RegexKind.CloseParenToken);
+            Debug.Assert(innerOpenParenToken.Kind == RegexKind.OpenParenToken);
+            Debug.Assert(innerCloseParenToken.Kind == RegexKind.CloseParenToken);
             InnerOpenParenToken = innerOpenParenToken;
             CaptureToken = captureToken;
             InnerCloseParenToken = innerCloseParenToken;
         }
 
-        public EmbeddedSyntaxToken InnerOpenParenToken { get; }
-        public EmbeddedSyntaxToken CaptureToken { get; }
-        public EmbeddedSyntaxToken InnerCloseParenToken { get; }
+        public RegexToken InnerOpenParenToken { get; }
+        public RegexToken CaptureToken { get; }
+        public RegexToken InnerCloseParenToken { get; }
 
         public override int ChildCount => 7;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1226,9 +1229,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexConditionalExpressionGroupingNode : RegexConditionalGroupingNode
     {
         public RegexConditionalExpressionGroupingNode(
-            EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken,
+            RegexToken openParenToken, RegexToken questionToken,
             RegexGroupingNode grouping,
-            RegexExpressionNode result, EmbeddedSyntaxToken closeParenToken)
+            RegexExpressionNode result, RegexToken closeParenToken)
             : base(RegexKind.ConditionalExpressionGrouping, openParenToken, questionToken, result, closeParenToken)
         {
             Debug.Assert(grouping != null);
@@ -1239,7 +1242,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         public RegexGroupingNode Grouping { get; }
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1262,13 +1265,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     /// </summary>
     internal abstract class RegexEscapeNode : RegexPrimaryExpressionNode
     {
-        protected RegexEscapeNode(RegexKind kind, EmbeddedSyntaxToken backslashToken) : base(kind)
+        protected RegexEscapeNode(RegexKind kind, RegexToken backslashToken) : base(kind)
         {
-            Debug.Assert(backslashToken.Kind() == RegexKind.BackslashToken);
+            Debug.Assert(backslashToken.Kind == RegexKind.BackslashToken);
             BackslashToken = backslashToken;
         }
 
-        public EmbeddedSyntaxToken BackslashToken { get; }
+        public RegexToken BackslashToken { get; }
     }
 
     /// <summary>
@@ -1276,13 +1279,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     /// </summary>
     internal abstract class RegexTypeEscapeNode : RegexEscapeNode
     {
-        protected RegexTypeEscapeNode(RegexKind kind, EmbeddedSyntaxToken backslashToken, EmbeddedSyntaxToken typeToken)
+        protected RegexTypeEscapeNode(RegexKind kind, RegexToken backslashToken, RegexToken typeToken)
             : base(kind, backslashToken)
         {
             TypeToken = typeToken;
         }
 
-        public EmbeddedSyntaxToken TypeToken { get; }
+        public RegexToken TypeToken { get; }
     }
 
     /// <summary>
@@ -1290,15 +1293,15 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     /// </summary>
     internal sealed class RegexSimpleEscapeNode : RegexTypeEscapeNode
     {
-        public RegexSimpleEscapeNode(EmbeddedSyntaxToken backslashToken, EmbeddedSyntaxToken typeToken)
+        public RegexSimpleEscapeNode(RegexToken backslashToken, RegexToken typeToken)
             : base(RegexKind.SimpleEscape, backslashToken, typeToken)
         {
-            Debug.Assert(typeToken.Kind() == RegexKind.TextToken);
+            Debug.Assert(typeToken.Kind == RegexKind.TextToken);
         }
 
         public override int ChildCount => 2;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1318,14 +1321,14 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     /// </summary>
     internal sealed class RegexAnchorEscapeNode : RegexTypeEscapeNode
     {
-        public RegexAnchorEscapeNode(EmbeddedSyntaxToken backslashToken, EmbeddedSyntaxToken typeToken)
+        public RegexAnchorEscapeNode(RegexToken backslashToken, RegexToken typeToken)
             : base(RegexKind.AnchorEscape, backslashToken, typeToken)
         {
         }
 
         public override int ChildCount => 2;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1345,14 +1348,14 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     /// </summary>
     internal sealed class RegexCharacterClassEscapeNode : RegexTypeEscapeNode
     {
-        public RegexCharacterClassEscapeNode(EmbeddedSyntaxToken backslashToken, EmbeddedSyntaxToken typeToken)
+        public RegexCharacterClassEscapeNode(RegexToken backslashToken, RegexToken typeToken)
             : base(RegexKind.CharacterClassEscape, backslashToken, typeToken)
         {
         }
 
         public override int ChildCount => 2;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1372,7 +1375,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     /// </summary>
     internal sealed class RegexControlEscapeNode : RegexTypeEscapeNode
     {
-        public RegexControlEscapeNode(EmbeddedSyntaxToken backslashToken, EmbeddedSyntaxToken typeToken, EmbeddedSyntaxToken controlToken)
+        public RegexControlEscapeNode(RegexToken backslashToken, RegexToken typeToken, RegexToken controlToken)
             : base(RegexKind.ControlEscape, backslashToken, typeToken)
         {
             ControlToken = controlToken;
@@ -1380,9 +1383,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         public override int ChildCount => 3;
 
-        public EmbeddedSyntaxToken ControlToken { get; }
+        public RegexToken ControlToken { get; }
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1403,7 +1406,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     /// </summary>
     internal sealed class RegexHexEscapeNode : RegexTypeEscapeNode
     {
-        public RegexHexEscapeNode(EmbeddedSyntaxToken backslashToken, EmbeddedSyntaxToken typeToken, EmbeddedSyntaxToken hexText)
+        public RegexHexEscapeNode(RegexToken backslashToken, RegexToken typeToken, RegexToken hexText)
             : base(RegexKind.HexEscape, backslashToken, typeToken)
         {
             HexText = hexText;
@@ -1411,9 +1414,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         public override int ChildCount => 3;
 
-        public EmbeddedSyntaxToken HexText { get; }
+        public RegexToken HexText { get; }
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1434,7 +1437,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     /// </summary>
     internal sealed class RegexUnicodeEscapeNode : RegexTypeEscapeNode
     {
-        public RegexUnicodeEscapeNode(EmbeddedSyntaxToken backslashToken, EmbeddedSyntaxToken typeToken, EmbeddedSyntaxToken hexText)
+        public RegexUnicodeEscapeNode(RegexToken backslashToken, RegexToken typeToken, RegexToken hexText)
             : base(RegexKind.UnicodeEscape, backslashToken, typeToken)
         {
             HexText = hexText;
@@ -1442,9 +1445,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         public override int ChildCount => 3;
 
-        public EmbeddedSyntaxToken HexText { get; }
+        public RegexToken HexText { get; }
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1466,7 +1469,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexCaptureEscapeNode : RegexEscapeNode
     {
         public RegexCaptureEscapeNode(
-            EmbeddedSyntaxToken backslashToken, EmbeddedSyntaxToken openToken, EmbeddedSyntaxToken captureToken, EmbeddedSyntaxToken closeToken)
+            RegexToken backslashToken, RegexToken openToken, RegexToken captureToken, RegexToken closeToken)
             : base(RegexKind.CaptureEscape, backslashToken)
         {
             OpenToken = openToken;
@@ -1476,11 +1479,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         public override int ChildCount => 4;
 
-        public EmbeddedSyntaxToken OpenToken { get; }
-        public EmbeddedSyntaxToken CaptureToken { get; }
-        public EmbeddedSyntaxToken CloseToken { get; }
+        public RegexToken OpenToken { get; }
+        public RegexToken CaptureToken { get; }
+        public RegexToken CloseToken { get; }
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1503,8 +1506,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexKCaptureEscapeNode : RegexTypeEscapeNode
     {
         public RegexKCaptureEscapeNode(
-            EmbeddedSyntaxToken backslashToken, EmbeddedSyntaxToken typeToken,
-            EmbeddedSyntaxToken openToken, EmbeddedSyntaxToken captureToken, EmbeddedSyntaxToken closeToken)
+            RegexToken backslashToken, RegexToken typeToken,
+            RegexToken openToken, RegexToken captureToken, RegexToken closeToken)
             : base(RegexKind.KCaptureEscape, backslashToken, typeToken)
         {
             OpenToken = openToken;
@@ -1514,11 +1517,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         public override int ChildCount => 5;
 
-        public EmbeddedSyntaxToken OpenToken { get; }
-        public EmbeddedSyntaxToken CaptureToken { get; }
-        public EmbeddedSyntaxToken CloseToken { get; }
+        public RegexToken OpenToken { get; }
+        public RegexToken CaptureToken { get; }
+        public RegexToken CloseToken { get; }
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1541,7 +1544,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     /// </summary>
     internal sealed class RegexOctalEscapeNode : RegexEscapeNode
     {
-        public RegexOctalEscapeNode(EmbeddedSyntaxToken backslashToken, EmbeddedSyntaxToken octalText)
+        public RegexOctalEscapeNode(RegexToken backslashToken, RegexToken octalText)
             : base(RegexKind.OctalEscape, backslashToken)
         {
             OctalText = octalText;
@@ -1549,9 +1552,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         public override int ChildCount => 2;
 
-        public EmbeddedSyntaxToken OctalText { get; }
+        public RegexToken OctalText { get; }
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1571,7 +1574,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     /// </summary>
     internal sealed class RegexBackreferenceEscapeNode : RegexEscapeNode
     {
-        public RegexBackreferenceEscapeNode(EmbeddedSyntaxToken backslashToken, EmbeddedSyntaxToken numberToken)
+        public RegexBackreferenceEscapeNode(RegexToken backslashToken, RegexToken numberToken)
             : base(RegexKind.BackreferenceEscape, backslashToken)
         {
             NumberToken = numberToken;
@@ -1579,9 +1582,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         public override int ChildCount => 2;
 
-        public EmbeddedSyntaxToken NumberToken { get; }
+        public RegexToken NumberToken { get; }
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
@@ -1602,25 +1605,25 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
     internal sealed class RegexCategoryEscapeNode : RegexEscapeNode
     {
         public RegexCategoryEscapeNode(
-            EmbeddedSyntaxToken backslashToken, EmbeddedSyntaxToken typeToken, EmbeddedSyntaxToken openBraceToken, EmbeddedSyntaxToken categoryToken, EmbeddedSyntaxToken closeBraceToken)
+            RegexToken backslashToken, RegexToken typeToken, RegexToken openBraceToken, RegexToken categoryToken, RegexToken closeBraceToken)
             : base(RegexKind.CategoryEscape, backslashToken)
         {
-            Debug.Assert(openBraceToken.Kind() == RegexKind.OpenBraceToken);
-            Debug.Assert(closeBraceToken.Kind() == RegexKind.CloseBraceToken);
+            Debug.Assert(openBraceToken.Kind == RegexKind.OpenBraceToken);
+            Debug.Assert(closeBraceToken.Kind == RegexKind.CloseBraceToken);
             TypeToken = typeToken;
             OpenBraceToken = openBraceToken;
             CategoryToken = categoryToken;
             CloseBraceToken = closeBraceToken;
         }
 
-        public EmbeddedSyntaxToken TypeToken { get; }
-        public EmbeddedSyntaxToken OpenBraceToken { get; }
-        public EmbeddedSyntaxToken CategoryToken { get; }
-        public EmbeddedSyntaxToken CloseBraceToken { get; }
+        public RegexToken TypeToken { get; }
+        public RegexToken OpenBraceToken { get; }
+        public RegexToken CategoryToken { get; }
+        public RegexToken CloseBraceToken { get; }
 
         public override int ChildCount => 5;
 
-        public override EmbeddedSyntaxNodeOrToken<RegexNode> ChildAt(int index)
+        public override RegexNodeOrToken ChildAt(int index)
         {
             switch (index)
             {
