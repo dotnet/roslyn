@@ -1399,5 +1399,115 @@ Public Interface [|IGoo|]
 End Interface";
             await GenerateAndVerifySourceAsync(source, symbolName, LanguageNames.VisualBasic, expectedVB, includeXmlDocComments: true);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestUnmanagedCSharpConstraint_Type()
+        {
+            var metadata = @"using System;
+public class TestType<T> where T : unmanaged
+{
+}";
+            var sourceWithSymbolReference = @"
+class C
+{
+    void M()
+    {
+        var obj = new [|TestType|]&lt;int&gt;();
+    }
+}";
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public class [|TestType|]<T> where T : unmanaged
+{{
+    public TestType();
+}}";
+
+            using (var context = TestContext.Create(
+                LanguageNames.CSharp,
+                SpecializedCollections.SingletonEnumerable(metadata),
+                includeXmlDocComments: false,
+                languageVersion: "CSharp7_3",
+                sourceWithSymbolReference: sourceWithSymbolReference))
+            {
+                var navigationSymbol = await context.GetNavigationSymbolAsync();
+                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+                context.VerifyResult(metadataAsSourceFile, expected);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestUnmanagedCSharpConstraint_Method()
+        {
+            var metadata = @"using System;
+public class TestType
+{
+    public void M<T>() where T : unmanaged
+    {
+    }
+}";
+            var sourceWithSymbolReference = @"
+class C
+{
+    void M()
+    {
+        var obj = new TestType().[|M|]&lt;int&gt;();
+    }
+}";
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public class TestType
+{{
+    public TestType();
+
+    public void [|M|]<T>() where T : unmanaged;
+}}";
+
+            using (var context = TestContext.Create(
+                LanguageNames.CSharp,
+                SpecializedCollections.SingletonEnumerable(metadata),
+                includeXmlDocComments: false,
+                languageVersion: "CSharp7_3",
+                sourceWithSymbolReference: sourceWithSymbolReference))
+            {
+                var navigationSymbol = await context.GetNavigationSymbolAsync();
+                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+                context.VerifyResult(metadataAsSourceFile, expected);
+            }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.MetadataAsSource)]
+        public async Task TestUnmanagedCSharpConstraint_Delegate()
+        {
+            var metadata = @"using System;
+public delegate void D<T>() where T : unmanaged;";
+            var sourceWithSymbolReference = @"
+class C
+{
+    void M([|D|]&lt;int&gt; lambda)
+    {
+    }
+}";
+            var expected = $@"#region {FeaturesResources.Assembly} ReferencedAssembly, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null
+// {CodeAnalysisResources.InMemoryAssembly}
+#endregion
+
+public delegate void [|D|]<T>() where T : unmanaged;";
+
+            using (var context = TestContext.Create(
+                LanguageNames.CSharp,
+                SpecializedCollections.SingletonEnumerable(metadata),
+                includeXmlDocComments: false,
+                languageVersion: "CSharp7_3",
+                sourceWithSymbolReference: sourceWithSymbolReference))
+            {
+                var navigationSymbol = await context.GetNavigationSymbolAsync();
+                var metadataAsSourceFile = await context.GenerateSourceAsync(navigationSymbol);
+                context.VerifyResult(metadataAsSourceFile, expected);
+            }
+        }
     }
 }

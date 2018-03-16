@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.PooledObjects;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
@@ -45,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             }
         }
 
-        private async Task HandleDeclarationAsync(
+        internal static async Task HandleDeclarationAsync(
             Document document, SyntaxEditor editor, 
             SyntaxNode node, CancellationToken cancellationToken)
         {
@@ -53,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             var declarationContext = node.Parent;
 
             TypeSyntax typeSyntax = null;
+            ParenthesizedVariableDesignationSyntax parensDesignation = null;
             if (declarationContext is VariableDeclarationSyntax varDecl)
             {
                 typeSyntax = varDecl.Type;
@@ -64,21 +66,79 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             else if (declarationContext is DeclarationExpressionSyntax declarationExpression)
             {
                 typeSyntax = declarationExpression.Type;
+                if (declarationExpression.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
+                {
+                    parensDesignation = (ParenthesizedVariableDesignationSyntax)declarationExpression.Designation;
+                }
             }
             else
             {
                 Contract.Fail($"unhandled kind {declarationContext.Kind().ToString()}");
             }
 
-            var typeSymbol = semanticModel.GetTypeInfo(typeSyntax).ConvertedType;
+            if (parensDesignation is null)
+            {
+                var typeSymbol = semanticModel.GetTypeInfo(typeSyntax).ConvertedType;
+                var typeName = typeSymbol.GenerateTypeSyntax()
+                    .WithLeadingTrivia(node.GetLeadingTrivia())
+                    .WithTrailingTrivia(node.GetTrailingTrivia());
+                Debug.Assert(!typeName.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");
 
-            var typeName = typeSymbol.GenerateTypeSyntax()
-                                     .WithLeadingTrivia(node.GetLeadingTrivia())
-                                     .WithTrailingTrivia(node.GetTrailingTrivia());
+                editor.ReplaceNode(node, typeName);
+            }
+            else
+            {
+                var tupleTypeSymbol = semanticModel.GetTypeInfo(typeSyntax.Parent).ConvertedType;
 
-            Debug.Assert(!typeName.ContainsDiagnostics, "Explicit type replacement likely introduced an error in code");
+                var leadingTrivia = node.GetLeadingTrivia()
+                    .Concat(parensDesignation.GetAllPrecedingTriviaToPreviousToken().Where(t => !t.IsWhitespace()).Select(t => t.WithoutAnnotations(SyntaxAnnotation.ElasticAnnotation)));
 
-            editor.ReplaceNode(node, typeName);
+                var tupleDeclaration = GenerateTupleDeclaration(tupleTypeSymbol, parensDesignation).WithLeadingTrivia(leadingTrivia);
+
+                editor.ReplaceNode(declarationContext, tupleDeclaration);
+            }
+        }
+
+        private static ExpressionSyntax GenerateTupleDeclaration(ITypeSymbol typeSymbol, ParenthesizedVariableDesignationSyntax parensDesignation)
+        {
+            Debug.Assert(typeSymbol.IsTupleType);
+            var elements = ((INamedTypeSymbol)typeSymbol).TupleElements;
+            Debug.Assert(elements.Length == parensDesignation.Variables.Count);
+
+            var builder = ArrayBuilder<SyntaxNode>.GetInstance(elements.Length);
+            for (int i = 0; i < elements.Length; i++)
+            {
+                var designation = parensDesignation.Variables[i];
+                var type = elements[i].Type;
+                ExpressionSyntax newDeclaration;
+                switch (designation.Kind())
+                {
+                    case SyntaxKind.SingleVariableDesignation:
+                    case SyntaxKind.DiscardDesignation:
+                        var typeName = type.GenerateTypeSyntax();
+                        newDeclaration = SyntaxFactory.DeclarationExpression(typeName, designation);
+                        break;
+                    case SyntaxKind.ParenthesizedVariableDesignation:
+                        newDeclaration = GenerateTupleDeclaration(type, (ParenthesizedVariableDesignationSyntax)designation);
+                        break;
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(designation.Kind());
+                }
+
+                newDeclaration = newDeclaration
+                    .WithLeadingTrivia(designation.GetAllPrecedingTriviaToPreviousToken())
+                    .WithTrailingTrivia(designation.GetTrailingTrivia());
+
+                builder.Add(SyntaxFactory.Argument(newDeclaration));
+            }
+
+            var separatorBuilder = ArrayBuilder<SyntaxToken>.GetInstance(builder.Count - 1, SyntaxFactory.Token(leading: default, SyntaxKind.CommaToken, trailing: default));
+
+            return SyntaxFactory.TupleExpression(
+                SyntaxFactory.Token(SyntaxKind.OpenParenToken).WithTrailingTrivia(),
+                SyntaxFactory.SeparatedList(builder.ToImmutableAndFree(), separatorBuilder.ToImmutableAndFree()),
+                SyntaxFactory.Token(SyntaxKind.CloseParenToken))
+                .WithTrailingTrivia(parensDesignation.GetTrailingTrivia());
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

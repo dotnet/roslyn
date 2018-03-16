@@ -3,6 +3,10 @@
 <Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 
   <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+  </PropertyGroup>
+
+  <PropertyGroup>
     <MicrosoftBuildFixedVersion>14.3.0</MicrosoftBuildFixedVersion>
     <MicrosoftBuildTasksCoreFixedVersion>14.3.0</MicrosoftBuildTasksCoreFixedVersion>
     <MicrosoftNETCoreAppFixedVersion>2.0.0-preview2-002066-00</MicrosoftNETCoreAppFixedVersion>

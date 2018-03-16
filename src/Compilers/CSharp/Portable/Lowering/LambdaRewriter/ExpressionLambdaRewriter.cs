@@ -200,6 +200,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return VisitConditionalOperator((BoundConditionalOperator)node);
                 case BoundKind.Conversion:
                     return VisitConversion((BoundConversion)node);
+                case BoundKind.PassByCopy:
+                    return Visit(((BoundPassByCopy)node).Expression);
                 case BoundKind.DelegateCreationExpression:
                     return VisitDelegateCreationExpression((BoundDelegateCreationExpression)node);
                 case BoundKind.FieldAccess:
@@ -630,10 +632,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var operand = Visit(node.Operand);
                         return node.ExplicitCastInCode ? Convert(operand, node.Type, false) : operand;
-                    }
-                case ConversionKind.IdentityValue:
-                    {
-                        return Visit(node.Operand);
                     }
                 case ConversionKind.ImplicitNullable:
                     if (node.Operand.Type.IsNullableType())

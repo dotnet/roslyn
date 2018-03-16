@@ -348,7 +348,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             string moniker = _runningDocumentTable.GetDocumentMoniker(docCookie);
             _runningDocumentTable.GetDocumentHierarchyItem(docCookie, out var hierarchy, out var itemid);
 
-
             if (_runningDocumentTable.GetDocumentData(docCookie) is IVsTextBuffer shimTextBuffer)
             {
                 var hasAssociatedRoslynDocument = false;
@@ -636,7 +635,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             {
                 if (document.Project.Workspace is VisualStudioWorkspace workspace)
                 {
-                    workspace.RenameFileCodeModelInstance(document.Id, newMoniker);
+                    document.Project.ProjectCodeModel?.OnSourceFileRenaming(document.FilePath, newMoniker);
                 }
             }
         }

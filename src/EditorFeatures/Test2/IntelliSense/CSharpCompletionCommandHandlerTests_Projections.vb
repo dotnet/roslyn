@@ -109,7 +109,7 @@ class C
         End Function
 
         <WorkItem(771761, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/771761")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/24846"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestRegionCompletionCommitFormatting() As System.Threading.Tasks.Task
             Using state = TestState.CreateCSharpTestState(
                 <Document><![CDATA[

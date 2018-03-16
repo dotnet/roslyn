@@ -93,7 +93,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 ? await FindDocumentsWithForEachStatementsAsync(project, documents, cancellationToken).ConfigureAwait(false)
                 : ImmutableArray<Document>.Empty;
 
-            return ordinaryDocuments.Concat(forEachDocuments);
+            var deconstructDocuments = IsDeconstructMethod(methodSymbol)
+                ? await FindDocumentsWithDeconstructionAsync(project, documents, cancellationToken).ConfigureAwait(false)
+                : ImmutableArray<Document>.Empty;
+
+            return ordinaryDocuments.Concat(forEachDocuments).Concat(deconstructDocuments);
         }
 
         private bool IsForEachMethod(IMethodSymbol methodSymbol)

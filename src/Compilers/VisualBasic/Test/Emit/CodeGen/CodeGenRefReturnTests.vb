@@ -1111,10 +1111,14 @@ public class B
 "Module M
     Sub Main()
         Dim a = New A()
+        Dim saveCulture = System.Threading.Thread.CurrentThread.CurrentCulture
+        System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture
         Try
             F(New B(), a)
         Catch e As System.Exception
             System.Console.Write(e.Message)
+        Finally
+            System.Threading.Thread.CurrentThread.CurrentCulture = saveCulture
         End Try
     End Sub
     Sub F(b As B, a As Object)
@@ -2323,6 +2327,136 @@ BC31143: Method 'Public Overloads ByRef Function F() As Integer' does not have a
         B.F(AddressOf o.F)
                       ~~~
 </expected>)
+        End Sub
+
+        <Fact>
+        <WorkItem(17706, "https://github.com/dotnet/roslyn/issues/17706")>
+        Public Sub SpillingByRefCall_NoSpilling()
+            Dim comp1 = CreateCSharpCompilation(
+"
+using System;
+
+public class TestClass
+{
+    int x = 0;
+
+    public ref int Save(int y)
+    {
+        x = y;
+        return ref x;
+    }
+
+    public void Write(ref int y)
+    {
+        Console.WriteLine(y);
+    }
+
+    public void Write(ref int y, int z)
+    {
+        Console.WriteLine(y);
+    }
+}")
+            comp1.VerifyDiagnostics()
+
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"
+Imports System.Threading.Tasks
+
+Module Module1
+
+    Sub Main()
+        TestMethod().Wait()
+    End Sub
+
+    Async Function TestMethod() As Task
+        Dim inst = New TestClass
+
+        ' this is OK. `ref` call is not spilled.
+        ' prints: 10    (last value)
+        inst.Write(inst.Save(Await Task.FromResult(10)))
+
+
+        ' this is OK. `ref` call is not spilled.
+        ' prints: 22    (last value)
+        inst.Write(inst.Save(Await Task.FromResult(20)), inst.Save(22))
+    End Function
+
+End Module
+",
+                referencedCompilations:={comp1},
+                referencedAssemblies:=LatestVbReferences,
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics()
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:=
+"
+10
+22
+")
+            verifier.VerifyDiagnostics()
+        End Sub
+
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/24275")>
+        <WorkItem(24275, "https://github.com/dotnet/roslyn/issues/24275")>
+        Public Sub SpillingByRefCall_Spilling()
+            Dim comp1 = CreateCSharpCompilation(
+"
+using System;
+
+public class TestClass
+{
+    int x = 0;
+
+    public ref int Save(int y)
+    {
+        x = y;
+        return ref x;
+    }
+
+    public void Write(ref int y)
+    {
+        Console.WriteLine(y);
+    }
+
+    public void Write(ref int y, int z)
+    {
+        Console.WriteLine(y);
+    }
+}")
+            comp1.VerifyDiagnostics()
+
+            Dim comp2 = CreateVisualBasicCompilation(
+                Nothing,
+"
+Imports System.Threading.Tasks
+
+Module Module1
+
+    Sub Main()
+        TestMethod().Wait()
+    End Sub
+
+    Async Function TestMethod() As Task
+        Dim inst = New TestClass
+
+        ' ERROR?
+        ' currently `ref` is spilled 'by-value' and assert fires.
+        inst.Write(inst.Save(Await Task.FromResult(30)), inst.Save(Await Task.FromResult(33)))
+    End Function
+
+End Module
+",
+                referencedCompilations:={comp1},
+                referencedAssemblies:=LatestVbReferences,
+                compilationOptions:=TestOptions.DebugExe)
+
+            comp2.AssertTheseDiagnostics()
+            Dim verifier = CompileAndVerify(comp2, expectedOutput:=
+"
+??
+")
+            verifier.VerifyDiagnostics()
         End Sub
 
     End Class

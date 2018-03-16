@@ -39,6 +39,7 @@
     <PackageReference Include="System.IO.FileSystem" Version="$(SystemIOFileSystemVersion)" />
     <PackageReference Include="System.IO.FileSystem.Primitives" Version="$(SystemIOFileSystemPrimitivesVersion)" />
     <PackageReference Include="System.IO.Pipes" Version="$(SystemIOPipesVersion)" />
+    <PackageReference Include="System.IO.Pipes.AccessControl" Version="$(SystemIOPipesAccessControlVersion)" />
     <PackageReference Include="System.Runtime.Numerics" Version="$(SystemRuntimeNumericsVersion)" />
     <PackageReference Include="System.Security.AccessControl" Version="$(SystemSecurityAccessControlVersion)" />
     <PackageReference Include="System.Security.Cryptography.Algorithms" Version="$(SystemSecurityCryptographyAlgorithmsVersion)" />

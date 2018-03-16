@@ -512,6 +512,19 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <summary>
+        /// Gets the default warning level for a diagnostic severity. Warning levels are used with the <c>/warn:N</c>
+        /// command line option to suppress diagnostics over a severity of interest. When N is 0, only error severity
+        /// messages are produced by the compiler. Values greater than 0 indicated that warnings up to and including
+        /// level N should also be included.
+        /// </summary>
+        /// <remarks>
+        /// <see cref="DiagnosticSeverity.Info"/> and <see cref="DiagnosticSeverity.Hidden"/> are treated as warning
+        /// level 1. In other words, these diagnostics which typically interact with editor features are enabled unless
+        /// the special <c>/warn:0</c> option is set.
+        /// </remarks>
+        /// <param name="severity">A <see cref="DiagnosticSeverity"/> value.</param>
+        /// <returns>The default compiler warning level for <paramref name="severity"/>.</returns>
         internal static int GetDefaultWarningLevel(DiagnosticSeverity severity)
         {
             switch (severity)
@@ -520,10 +533,8 @@ namespace Microsoft.CodeAnalysis
                     return 0;
 
                 case DiagnosticSeverity.Warning:
-                    return 1;
-
                 default:
-                    return HighestValidWarningLevel;
+                    return 1;
             }
         }
 
@@ -541,8 +552,13 @@ namespace Microsoft.CodeAnalysis
     /// This type is attached to diagnostics for required language version and should only be used
     /// on such diagnostics, as they are recognized by <see cref="Compilation.GetRequiredLanguageVersion"/>.
     /// </summary>
-    internal abstract class RequiredLanguageVersion : IMessageSerializable
+    internal abstract class RequiredLanguageVersion : IFormattable
     {
         public abstract override string ToString();
+
+        string IFormattable.ToString(string format, IFormatProvider formatProvider)
+        {
+            return ToString();
+        }
     }
 }

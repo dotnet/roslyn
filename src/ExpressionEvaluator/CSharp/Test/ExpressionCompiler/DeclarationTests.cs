@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
         }
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -88,7 +88,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugDll, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             WithRuntimeInstance(comp, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef },
                validator: runtime =>
                {
@@ -165,7 +165,7 @@ class C
     }
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugDll, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             WithRuntimeInstance(comp, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, MscorlibRef },
                validator: runtime =>
                {
@@ -241,7 +241,7 @@ class C
         y = 1;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -297,7 +297,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -365,7 +365,7 @@ class C
         return x;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -422,7 +422,7 @@ class C
         return 0;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -482,7 +482,7 @@ class C
         object y;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -553,7 +553,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -593,7 +593,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -658,7 +658,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -706,7 +706,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -753,7 +753,7 @@ class C
         return null;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -801,7 +801,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -825,7 +825,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -850,7 +850,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -875,7 +875,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -900,7 +900,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -962,7 +962,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1047,7 +1047,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1072,7 +1072,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1098,7 +1098,7 @@ class C
         object y;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1123,7 +1123,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1147,7 +1147,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1172,7 +1172,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1226,7 +1226,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1272,7 +1272,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1320,7 +1320,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1374,7 +1374,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1427,7 +1427,7 @@ class C
     {
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1457,7 +1457,7 @@ class Generic<T>
 {
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1503,7 +1503,7 @@ class Generic<T>
 {
 }
 ";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1549,7 +1549,7 @@ struct S
 {
 }
 ";
-            var comp = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var comp = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(comp, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1592,7 +1592,7 @@ class C
     }
 }
 ";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1639,7 +1639,7 @@ struct S
 {
 }
 ";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1684,7 +1684,7 @@ class C
     }
 }
 ";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll, assemblyName: GetUniqueName());
             WithRuntimeInstance(compilation0, runtime =>
             {
                 var context = CreateMethodContext(runtime, "C.M");
@@ -1719,10 +1719,16 @@ class C
 
         private static void CompileDeclaration(EvaluationContext context, string declaration, out DkmClrCompilationResultFlags flags, out CompilationTestData testData)
         {
+            string error;
+            CompileDeclaration(context, declaration, out flags, out testData, out error);
+            Assert.Null(error);
+        }
+
+        private static void CompileDeclaration(EvaluationContext context, string declaration, out DkmClrCompilationResultFlags flags, out CompilationTestData testData, out string error)
+        {
             testData = new CompilationTestData();
 
             ResultProperties resultProperties;
-            string error;
             ImmutableArray<AssemblyIdentity> missingAssemblyIdentities;
             var result = context.CompileExpression(
                 declaration,
@@ -1734,7 +1740,6 @@ class C
                 out missingAssemblyIdentities,
                 EnsureEnglishUICulture.PreferredOrNull,
                 testData);
-            Assert.Null(error);
             Assert.Empty(missingAssemblyIdentities);
 
             flags = resultProperties.Flags;
@@ -1761,7 +1766,7 @@ class C
         return x;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -1829,7 +1834,7 @@ class C
         return x;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -1894,7 +1899,7 @@ class C
         return x;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -1958,7 +1963,7 @@ class C
         return 1;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -2017,7 +2022,7 @@ class C
         return null;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -2083,7 +2088,7 @@ class C
         return y ? 1 : 0;
     }
 }";
-            var compilation0 = CreateStandardCompilation(source, options: TestOptions.DebugDll);
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
 
             WithRuntimeInstance(compilation0, runtime =>
             {
@@ -2137,6 +2142,59 @@ class C
   IL_006c:  stind.i4
   IL_006d:  ret
 }");
+            });
+        }
+
+        [Fact]
+        public void DuplicateDeclaration()
+        {
+            var source =
+@"class C
+{
+    static void M()
+    {
+        var x = 0;
+#line 999
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M", atLineNumber: 999);
+
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                string error;
+                CompileDeclaration(context, "var x = 1;", out flags, out testData, out error);
+                Assert.Equal("error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
+            });     
+        }
+
+        [Fact]
+        public void DuplicateDeclarationInOutVar()
+        {
+            var source =
+@"class C
+{
+    static void F(out double x, out int y) => x = y = 4;
+
+    static void M()
+    {
+        F(out var x, out var y);
+    }
+}";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C.M");
+
+                DkmClrCompilationResultFlags flags;
+                CompilationTestData testData;
+                string error;
+                CompileDeclaration(context, "F(out var x, out var y)", out flags, out testData, out error);
+                Assert.Equal("error CS0136: A local or parameter named 'x' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter", error);
             });
         }
     }

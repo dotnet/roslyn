@@ -8,26 +8,12 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.Text;
+using static Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle.CSharpTypeStyleDiagnosticAnalyzerBase;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
 {
-    [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpUseExplicitTypeDiagnosticAnalyzer : CSharpTypeStyleDiagnosticAnalyzerBase
+    internal sealed class CSharpUseExplicitTypeHelper : CSharpTypeStyleHelper
     {
-        private static readonly LocalizableString s_Title =
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_explicit_type), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
-
-        private static readonly LocalizableString s_Message =
-            new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_explicit_type_instead_of_var), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
-
-        public CSharpUseExplicitTypeDiagnosticAnalyzer()
-            : base(diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
-                   title: s_Title,
-                   message: s_Message)
-        {
-        }
-
         protected override bool ShouldAnalyzeVariableDeclaration(VariableDeclarationSyntax variableDeclaration, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (!variableDeclaration.Type.IsVar)
@@ -52,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             return base.ShouldAnalyzeForEachStatement(forEachStatement, semanticModel, cancellationToken);
         }
 
-        protected override bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken)
+        internal override bool IsStylePreferred(SemanticModel semanticModel, OptionSet optionSet, State state, CancellationToken cancellationToken)
         {
             var stylePreferences = state.TypeStylePreference;
             var shouldNotify = state.ShouldNotify();
@@ -77,9 +63,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             }
         }
 
-        protected override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken, out TextSpan issueSpan)
+        internal override bool TryAnalyzeVariableDeclaration(TypeSyntax typeName, SemanticModel semanticModel, OptionSet optionSet, CancellationToken cancellationToken)
         {
-            issueSpan = default;
+            // var (x, y) = e;
+            // foreach (var (x, y) in e) ...
+            if (typeName.IsParentKind(SyntaxKind.DeclarationExpression))
+            {
+                var parent = (DeclarationExpressionSyntax)typeName.Parent;
+                if (parent.Designation.IsKind(SyntaxKind.ParenthesizedVariableDesignation))
+                {
+                    return true;
+                }
+            }
 
             // If it is currently not var, explicit typing exists, return. 
             // this also takes care of cases where var is mapped to a named type via an alias or a class declaration.
@@ -111,8 +106,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 }
             }
 
-            issueSpan = typeName.Span;
             return true;
+        }
+
+        protected override bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            if (!declaration.Type.IsVar)
+            {
+                // If the type is not 'var', this analyze has no work to do
+                return false;
+            }
+
+            // The base analyzer may impose further limitations
+            return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
         }
 
         /// <summary>
@@ -144,17 +150,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             var initializerTypeInfo = semanticModel.GetTypeInfo(initializer, cancellationToken);
             return !initializerTypeInfo.Type.IsErrorType();
         }
+    }
 
-        protected override bool ShouldAnalyzeDeclarationExpression(DeclarationExpressionSyntax declaration, SemanticModel semanticModel, CancellationToken cancellationToken)
+    [DiagnosticAnalyzer(LanguageNames.CSharp)]
+    internal sealed class CSharpUseExplicitTypeDiagnosticAnalyzer : CSharpTypeStyleDiagnosticAnalyzerBase
+    {
+        private static readonly LocalizableString s_Title =
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_explicit_type), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+
+        private static readonly LocalizableString s_Message =
+            new LocalizableResourceString(nameof(CSharpFeaturesResources.Use_explicit_type_instead_of_var), CSharpFeaturesResources.ResourceManager, typeof(CSharpFeaturesResources));
+
+        private static readonly CSharpUseExplicitTypeHelper s_Helper = new CSharpUseExplicitTypeHelper();
+        protected override CSharpTypeStyleHelper Helper => s_Helper;
+
+        public CSharpUseExplicitTypeDiagnosticAnalyzer()
+            : base(diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
+                   title: s_Title,
+                   message: s_Message)
         {
-            if (!declaration.Type.IsVar)
-            {
-                // If the type is not 'var', this analyze has no work to do
-                return false;
-            }
-
-            // The base analyzer may impose further limitations
-            return base.ShouldAnalyzeDeclarationExpression(declaration, semanticModel, cancellationToken);
         }
     }
 }

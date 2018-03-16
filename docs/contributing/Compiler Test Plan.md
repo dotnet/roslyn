@@ -36,7 +36,7 @@ This document provides guidance for thinking about language interactions and tes
     - fields
     - properties (including get/set accessors)
     - events (including add/remove accessors)
-- Parameter modifiers (ref, out, params)
+- Parameter modifiers (ref, out, in, params)
 - Attributes (including security attribute)
 - Generics (type arguments, constraints, variance)
 - Default and constant values
@@ -58,6 +58,7 @@ This document provides guidance for thinking about language interactions and tes
 - Multi-declaration
 - NoPIA
 - Dynamic
+- Ref structs, Readonly structs
  
 # Code
 - Operators (see Eric's list below)
@@ -79,7 +80,7 @@ This document provides guidance for thinking about language interactions and tes
     - Ref / out parameters
     - Compound operators (+=, /=, etc ..) 
     - Assignment exprs
-- Ref returns
+- Ref return, ref readonly return, ref ternary, ref readonly local
 - `this = e;` in `struct` .ctor
 
 # Misc
@@ -97,6 +98,7 @@ Interaction with IDE, Debugger, and EnC should be worked out with relevant teams
     - Typing experience and dealing with incomplete code
     - Intellisense (squiggles, dot completion)
     - "go to" and renaming
+    - cref comments
     - UpgradeProject code fixer
     - More: [IDE Test Plan](https://github.com/dotnet/roslyn/blob/master/docs/contributing/IDE%20Test%20Plan.md)
 

@@ -449,5 +449,7 @@ namespace Roslyn.Test.Utilities
                 throw new NotImplementedException();
             }
         }
+
+        public override int ERR_InvalidHashAlgorithmName => throw new NotImplementedException();
     }
 }

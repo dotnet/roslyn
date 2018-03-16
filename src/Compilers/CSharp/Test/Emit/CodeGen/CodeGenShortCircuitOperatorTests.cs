@@ -1006,7 +1006,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef }, expectedOutput: "NULL#System.Int32[]");
+            var comp = CompileAndVerify(source, expectedOutput: "NULL#System.Int32[]");
             comp.VerifyIL("C.Test", @"
 {
   // Code size       37 (0x25)
@@ -1050,7 +1050,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#System.Int32[]");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#System.Int32[]");
             comp.VerifyIL("C.Test", @"
 {
   // Code size      355 (0x163)
@@ -1196,7 +1196,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#y");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#y");
         }
 
         [Fact]
@@ -1219,7 +1219,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#-1");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#-1");
         }
 
         [Fact]
@@ -1243,7 +1243,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#y");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#y");
         }
 
         [Fact]
@@ -1267,7 +1267,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#3");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#3");
         }
 
         [Fact]
@@ -1291,7 +1291,7 @@ public static class C
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "NULL#3");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "NULL#3");
         }
 
         [Fact]
@@ -1509,7 +1509,7 @@ public class C
     }
 ";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: "");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: "");
             comp.VerifyIL("C.Main", @"
 {
   // Code size       82 (0x52)
@@ -1627,7 +1627,7 @@ public static class C1
     }
 }";
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"3
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: @"3
 1");
             comp.VerifyIL("C.Main", @"
 {
@@ -1957,7 +1957,7 @@ print2");
 ");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement02()
         {
@@ -2009,12 +2009,12 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
+            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
 print1
 print2");
         }
 
-        [Fact]
+        [ConditionalFact(typeof(DesktopOnly))]
         [WorkItem(991400, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/991400")]
         public void ConditionalMemberAccessStatement03()
         {
@@ -2066,7 +2066,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
+            var comp = CompileAndVerify(source, targetFramework: TargetFramework.Empty, references: new[] { MscorlibRef_v4_0_30316_17626 }, expectedOutput: @"print0
 print1
 print2");
         }
@@ -2633,7 +2633,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new MetadataReference[] { SystemCoreRef, CSharpRef }, expectedOutput: @"False
+            var comp = CompileAndVerify(source, references: new MetadataReference[] { CSharpRef }, expectedOutput: @"False
 True
 False
 False");
@@ -2692,7 +2692,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new MetadataReference[] { SystemCoreRef, CSharpRef }, expectedOutput: @"False
+            var comp = CompileAndVerify(source, references: new MetadataReference[] { CSharpRef }, expectedOutput: @"False
 True
 False
 False");
@@ -3194,7 +3194,7 @@ static class Ext
 }
 
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
             comp.VerifyIL("Test.Test0<T>(T)", @"
 {
   // Code size       21 (0x15)
@@ -3240,7 +3240,7 @@ static class Ext
 }
 
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: @"System.Nullable`1[System.Int64]");
             comp.VerifyIL("Test.Test0<T>(ref T)", @"
 {
   // Code size       46 (0x2e)
@@ -3294,7 +3294,7 @@ class Test
 }
 
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"");
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: @"");
             comp.VerifyIL("Test.Test0<T>(T)", @"
 {
   // Code size       27 (0x1b)
@@ -3365,7 +3365,7 @@ interface I1
 
 
 ";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef });
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { CSharpRef });
             base.CompileAndVerify(comp);
         }
 
@@ -3414,7 +3414,7 @@ interface I1
     int CallAsync(int x);
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef }, options: TestOptions.ReleaseExe);
+            var comp = CreateCompilationWithMscorlib45(source, references: new[] { CSharpRef }, options: TestOptions.ReleaseExe);
             base.CompileAndVerify(comp, expectedOutput: "420");
         }
 
@@ -4093,7 +4093,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemCoreRef, CSharpRef }, expectedOutput: @"   >
+            var comp = CompileAndVerify(source, references: new[] { CSharpRef }, expectedOutput: @"   >
 False
 False
 <
@@ -5327,7 +5327,7 @@ class C
     void M() => System.Console.WriteLine(""M"");
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (16,32): error CS0029: Cannot implicitly convert type 'void' to 'object'
@@ -5457,7 +5457,7 @@ class C<T>
 }
 ";
 
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (15,33): error CS0023: Operator '?' cannot be applied to operand of type 'T'
@@ -5586,7 +5586,7 @@ unsafe class C
 }
 ";
 
-            var compilation = CreateStandardCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe.WithAllowUnsafe(true));
 
             compilation.VerifyDiagnostics(
     // (16,40): error CS0023: Operator '?' cannot be applied to operand of type 'void*'
@@ -5723,7 +5723,7 @@ class C<T>
     }
 }
 ";
-            var compilation = CreateStandardCompilation(source);
+            var compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
     // (15,17): error CS0023: Operator '?' cannot be applied to operand of type 'T'
@@ -7397,7 +7397,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var obj1 = new MyObject1 { MyDate = DateTime.Parse(""2017-11-13T14:25:00Z"") };
+        var obj1 = new MyObject1 { MyDate = new DateTime(636461511000000000L) };
         var obj2 = new MyObject2<MyObject1>(obj1);
 
         System.Console.WriteLine(obj1.MyDate.Ticks);
@@ -7448,7 +7448,7 @@ class Program
 {
     static void Main(string[] args)
     {
-        var obj1 = new MyObject1 { MyDate = DateTime.Parse(""2017-11-13T14:25:00Z"") };
+        var obj1 = new MyObject1 { MyDate = new DateTime(636461511000000000L) };
         var obj2 = new MyObject2<MyObject1>(obj1);
 
         System.Console.WriteLine(obj1.MyDate.Ticks);

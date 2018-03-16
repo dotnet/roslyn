@@ -28,7 +28,7 @@ static class Program {
     }
     static void Main(string[] args) { }
 }";
-            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe.WithMainTypeName("Program"), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var sourceCompilation = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe.WithMainTypeName("Program"), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
                 // (11,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task<int> Main() {
@@ -53,7 +53,7 @@ static class Program {
     }
     static void Main(string[] args) { }
 }";
-            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            var sourceCompilation = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             sourceCompilation.VerifyEmitDiagnostics(
                 // (11,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task<int> Main() {
@@ -81,7 +81,7 @@ static class Program {
     }
     static void Main(string[] args) { }
 }";
-            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe.WithMainTypeName("Program"), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            var sourceCompilation = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe.WithMainTypeName("Program"), parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             sourceCompilation.VerifyEmitDiagnostics(
                 // (11,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task<int> Main() {
@@ -106,7 +106,7 @@ static class Program {
     }
     static void Main(string[] args) { }
 }";
-            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var sourceCompilation = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
                 // (11,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task<int> Main() {
@@ -147,7 +147,7 @@ static class Program {
         return null;
     }
 }";
-            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            var sourceCompilation = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             sourceCompilation.VerifyEmitDiagnostics(
                 // (25,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task<int> Main() {
@@ -190,7 +190,7 @@ static class Program {
         return null;
     }
 }";
-            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var sourceCompilation = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
                 // (25,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task<int> Main() {
@@ -221,7 +221,7 @@ static class Program {
     }
 }";
 
-            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
+            var sourceCompilation = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7));
             sourceCompilation.VerifyDiagnostics(
                 // (12,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task<int> Main() {
@@ -258,7 +258,7 @@ static class Program {
     }
 }";
 
-            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var sourceCompilation = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyDiagnostics(
                 // (12,12): warning CS0436: The type 'Task<T>' in '' conflicts with the imported type 'Task<TResult>' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task<int> Main() {
@@ -294,7 +294,7 @@ static class Program {
         return null;
     }
 }";
-            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var sourceCompilation = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
                 // (12,12): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task Main() {
@@ -325,7 +325,7 @@ static class Program {
         return null;
     }
 }";
-            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var sourceCompilation = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
                 // (10,12): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task Main() {
@@ -350,7 +350,7 @@ namespace System {
     public abstract class ValueType{}
     public struct Int32{}
 }";
-            var corCompilation = CreateCompilation(corAssembly, options: TestOptions.DebugDll);
+            var corCompilation = CreateEmptyCompilation(corAssembly, options: TestOptions.DebugDll);
             corCompilation.VerifyDiagnostics();
 
             var taskAssembly = @"
@@ -369,7 +369,7 @@ static class Program {
         return null;
     }
 }";
-            var sourceCompilation = CreateCompilation(source, new[] { corCompilation.ToMetadataReference(), taskCompilation.ToMetadataReference() }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var sourceCompilation = CreateEmptyCompilation(source, new[] { corCompilation.ToMetadataReference(), taskCompilation.ToMetadataReference() }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -390,7 +390,7 @@ static class Program {
 namespace System {
     public class Object {}
 }";
-            var corCompilation = CreateCompilation(corAssembly, options: TestOptions.DebugDll);
+            var corCompilation = CreateEmptyCompilation(corAssembly, options: TestOptions.DebugDll);
             corCompilation.VerifyDiagnostics();
 
             var taskAssembly = @"
@@ -409,7 +409,7 @@ static class Program {
         return null;
     }
 }";
-            var sourceCompilation = CreateCompilation(source, new[] { corCompilation.ToMetadataReference(), taskCompilation.ToMetadataReference() }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var sourceCompilation = CreateEmptyCompilation(source, new[] { corCompilation.ToMetadataReference(), taskCompilation.ToMetadataReference() }, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             sourceCompilation.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
@@ -1336,7 +1336,7 @@ static class Program {
         return new Task();
     }
 }";
-            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var sourceCompilation = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             var verifier = sourceCompilation.VerifyEmitDiagnostics(
                 // (26,43): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public static Awaiter GetAwaiter(this Task task) {
@@ -1390,7 +1390,7 @@ static class Program {
         return new Task();
     }
 }";
-            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var sourceCompilation = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             var verifier = sourceCompilation.VerifyEmitDiagnostics(
                 // (34,12): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     static Task Main() {
@@ -1445,7 +1445,7 @@ static class Program {
         return new Task();
     }
 }";
-            var sourceCompilation = CreateStandardCompilation(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            var sourceCompilation = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
             var verifier = sourceCompilation.VerifyEmitDiagnostics(
                 // (25,43): warning CS0436: The type 'Task' in '' conflicts with the imported type 'Task' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
                 //     public static Awaiter GetAwaiter(this Task task) {

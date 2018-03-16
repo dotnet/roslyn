@@ -1110,6 +1110,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // IsReadOnlyAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsReadOnlyAttribute.FullName);
             }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsUnmanagedAttribute))
+            {
+                // IsUnmanagedAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
+            }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IsByRefLikeAttribute))
             {
                 // IsByRefLikeAttribute should not be set explicitly.
@@ -1234,6 +1239,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // DynamicAttribute should not be set explicitly.
                 arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitDynamicAttr, arguments.AttributeSyntaxOpt.Location);
+            }
+            else if (attribute.IsTargetAttribute(this, AttributeDescription.IsUnmanagedAttribute))
+            {
+                // IsUnmanagedAttribute should not be set explicitly.
+                arguments.Diagnostics.Add(ErrorCode.ERR_ExplicitReservedAttr, arguments.AttributeSyntaxOpt.Location, AttributeDescription.IsUnmanagedAttribute.FullName);
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.IsReadOnlyAttribute))
             {

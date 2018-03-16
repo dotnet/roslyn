@@ -627,7 +627,7 @@ namespace Microsoft.CodeAnalysis
             GetTypeNamespaceNamesOrThrow(namespaces);
             GetForwardedTypeNamespaceNamesOrThrow(namespaces);
 
-            var result = new ArrayBuilder<IGrouping<string, TypeDefinitionHandle>>();
+            var result = new ArrayBuilder<IGrouping<string, TypeDefinitionHandle>>(namespaces.Count);
 
             foreach (var pair in namespaces)
             {
@@ -942,6 +942,11 @@ namespace Microsoft.CodeAnalysis
         internal bool HasIsReadOnlyAttribute(EntityHandle token)
         {
             return FindTargetAttribute(token, AttributeDescription.IsReadOnlyAttribute).HasValue;
+        }
+
+        internal bool HasIsUnmanagedAttribute(EntityHandle token)
+        {
+            return FindTargetAttribute(token, AttributeDescription.IsUnmanagedAttribute).HasValue;
         }
 
         internal bool HasExtensionAttribute(EntityHandle token, bool ignoreCase)
