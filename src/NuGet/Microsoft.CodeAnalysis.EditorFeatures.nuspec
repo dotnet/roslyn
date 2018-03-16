@@ -18,13 +18,13 @@
     <dependencies>
       <dependency id="Microsoft.CodeAnalysis.Features" version="[$version$]" />
       <dependency id="Microsoft.CodeAnalysis.Elfie" version="$MicrosoftCodeAnalysisElfieVersion$" />
-      <dependency id="Microsoft.VisualStudio.Language.StandardClassification" version="$(MicrosoftVisualStudioLanguageStandardClassificationVersion)" />
-      <dependency id="Microsoft.VisualStudio.Language.Intellisense" version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
-      <dependency id="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" version="$(MicrosoftVisualStudioImagingInterop140DesignTimeVersion)" />
-      <dependency id="Microsoft.VisualStudio.Text.UI" version="$(MicrosoftVisualStudioTextUIVersion)" />
-      <dependency id="Microsoft.VisualStudio.Text.UI.Wpf" version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
-      <dependency id="ICSharpCode.Decompiler" version="$(ICSharpCodeDecompilerVersion)" />
-      <dependency id="Humanizer.Core" version="$(HumanizerCoreVersion)" />
+      <dependency id="Microsoft.VisualStudio.Language.StandardClassification" version="$MicrosoftVisualStudioLanguageStandardClassificationVersion$" />
+      <dependency id="Microsoft.VisualStudio.Language.Intellisense" version="$MicrosoftVisualStudioLanguageIntellisenseVersion$" />
+      <dependency id="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" version="$MicrosoftVisualStudioImagingInterop140DesignTimeVersion$" />
+      <dependency id="Microsoft.VisualStudio.Text.UI" version="$MicrosoftVisualStudioTextUIVersion$" />
+      <dependency id="Microsoft.VisualStudio.Text.UI.Wpf" version="$MicrosoftVisualStudioTextUIWpfVersion$" />
+      <dependency id="ICSharpCode.Decompiler" version="$ICSharpCodeDecompilerVersion$" />
+      <dependency id="Humanizer.Core" version="$HumanizerCoreVersion$" />
     </dependencies>
 
     <language>en-US</language>
