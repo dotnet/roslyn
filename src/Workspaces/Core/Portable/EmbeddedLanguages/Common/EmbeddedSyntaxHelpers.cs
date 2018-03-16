@@ -10,10 +10,10 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 {
     internal static class EmbeddedSyntaxHelpers
     {
-        public static TextSpan GetSpan(EmbeddedSyntaxToken token)
+        public static TextSpan GetSpan<TSyntaxKind>(EmbeddedSyntaxToken<TSyntaxKind> token) where TSyntaxKind : struct
             => GetSpan(token.VirtualChars);
 
-        public static TextSpan GetSpan(EmbeddedSyntaxToken token1, EmbeddedSyntaxToken token2)
+        public static TextSpan GetSpan<TSyntaxKind>(EmbeddedSyntaxToken<TSyntaxKind> token1, EmbeddedSyntaxToken<TSyntaxKind> token2) where TSyntaxKind : struct
             => GetSpan(token1.VirtualChars[0], token2.VirtualChars.Last());
 
         public static TextSpan GetSpan(ImmutableArray<VirtualChar> virtualChars)
@@ -22,23 +22,27 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         public static TextSpan GetSpan(VirtualChar firstChar, VirtualChar lastChar)
             => TextSpan.FromBounds(firstChar.Span.Start, lastChar.Span.End);
 
-        public static TextSpan GetSpan<TNode>(TNode node) where TNode : EmbeddedSyntaxNode<TNode>
+        public static TextSpan GetSpan<TSyntaxKind, TNode>(TNode node)
+            where TSyntaxKind : struct
+            where TNode : EmbeddedSyntaxNode<TSyntaxKind, TNode>
         {
             var start = int.MaxValue;
             var end = 0;
 
-            GetSpan(node, ref start, ref end);
+            GetSpan<TSyntaxKind, TNode>(node, ref start, ref end);
 
             return TextSpan.FromBounds(start, end);
         }
 
-        private static void GetSpan<TNode>(TNode node, ref int start, ref int end) where TNode : EmbeddedSyntaxNode<TNode>
+        private static void GetSpan<TSyntaxKind, TNode>(TNode node, ref int start, ref int end)
+            where TSyntaxKind : struct
+            where TNode : EmbeddedSyntaxNode<TSyntaxKind, TNode>
         {
             foreach (var child in node)
             {
                 if (child.IsNode)
                 {
-                    GetSpan(child.Node, ref start, ref end);
+                    GetSpan<TSyntaxKind, TNode>(child.Node, ref start, ref end);
                 }
                 else
                 {
@@ -52,13 +56,15 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             }
         }
 
-        public static bool Contains<TNode>(TNode node, VirtualChar virtualChar) where TNode : EmbeddedSyntaxNode<TNode>
+        public static bool Contains<TSyntaxKind, TNode>(TNode node, VirtualChar virtualChar)
+            where TSyntaxKind : struct
+            where TNode : EmbeddedSyntaxNode<TSyntaxKind, TNode>
         {
             foreach (var child in node)
             {
                 if (child.IsNode)
                 {
-                    if (Contains(child.Node, virtualChar))
+                    if (Contains<TSyntaxKind, TNode>(child.Node, virtualChar))
                     {
                         return true;
                     }
