@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.Classification
     {
         private struct Worker
         {
-            private readonly Workspace _workspace;
             private readonly SemanticModel _semanticModel;
             private readonly SyntaxTree _syntaxTree;
             private readonly TextSpan _textSpan;
@@ -35,7 +34,6 @@ namespace Microsoft.CodeAnalysis.Classification
                 Func<SyntaxToken, ImmutableArray<ISyntaxClassifier>> getTokenClassifiers,
                 CancellationToken cancellationToken)
             {
-                _workspace = workspace;
                 _getNodeClassifiers = getNodeClassifiers;
                 _getTokenClassifiers = getTokenClassifiers;
                 _semanticModel = semanticModel;
@@ -125,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     _cancellationToken.ThrowIfCancellationRequested();
 
                     var result = ArrayBuilder<ClassifiedSpan>.GetInstance();
-                    classifier.AddClassifications(_workspace, syntax, _semanticModel, result, _cancellationToken);
+                    classifier.AddClassifications(syntax, _semanticModel, result, _cancellationToken);
                     AddClassifications(result);
                     result.Free();
                 }
@@ -159,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Classification
                     _cancellationToken.ThrowIfCancellationRequested();
 
                     var result = ArrayBuilder<ClassifiedSpan>.GetInstance();
-                    classifier.AddClassifications(_workspace, syntax, _semanticModel, result, _cancellationToken);
+                    classifier.AddClassifications(syntax, _semanticModel, result, _cancellationToken);
                     AddClassifications(result);
                     result.Free();
                 }

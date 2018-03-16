@@ -17,10 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification
     {
         private readonly ImmutableArray<ISyntaxClassifier> s_defaultSyntaxClassifiers =
             ImmutableArray.Create<ISyntaxClassifier>(
-                new JsonPatternTokenClassifier(),
                 new NameSyntaxClassifier(),
                 new SyntaxTokenClassifier(),
-                new RegexPatternTokenClassifier(),
                 new UsingDirectiveSyntaxClassifier());
 
         public override ImmutableArray<ISyntaxClassifier> GetDefaultSyntaxClassifiers()

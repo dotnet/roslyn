@@ -19,9 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Classification
             ImmutableArray.Create(Of ISyntaxClassifier)(
                 New NameSyntaxClassifier(),
                 New ImportAliasClauseSyntaxClassifier(),
-                New IdentifierNameSyntaxClassifier(),
-                New JsonPatternTokenClassifier(),
-                New RegexPatternTokenClassifier())
+                New IdentifierNameSyntaxClassifier())
 
         Public Overrides Function GetDefaultSyntaxClassifiers() As ImmutableArray(Of ISyntaxClassifier)
             Return s_defaultSyntaxClassifiers

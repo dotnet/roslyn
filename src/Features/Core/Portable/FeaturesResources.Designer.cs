@@ -427,16 +427,18 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Adding_an_imported_method_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Alias ambiguous type &apos;{0}&apos;.
         /// </summary>
-        internal static string Alias_ambiguous_type_0 {
-            get {
+        internal static string Alias_ambiguous_type_0
+        {
+            get
+            {
                 return ResourceManager.GetString("Alias_ambiguous_type_0", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to All lowercase.
         /// </summary>
@@ -1023,15 +1025,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Edit_and_Continue2 {
             get {
                 return ResourceManager.GetString("Edit_and_Continue2", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Enable JSON editor features.
-        /// </summary>
-        internal static string Enable_JSON_editor_features {
-            get {
-                return ResourceManager.GetString("Enable_JSON_editor_features", resourceCulture);
             }
         }
         
@@ -1909,15 +1902,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to JSON issue: {0}.
-        /// </summary>
-        internal static string JSON_issue_0 {
-            get {
-                return ResourceManager.GetString("JSON_issue_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Keywords.
         /// </summary>
         internal static string Keywords {
@@ -2491,15 +2475,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Probable JSON string detected.
-        /// </summary>
-        internal static string Probable_JSON_string_detected {
-            get {
-                return ResourceManager.GetString("Probable_JSON_string_detected", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Project.
         /// </summary>
         internal static string Project {
@@ -2568,15 +2543,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Re_triage_0_currently_1 {
             get {
                 return ResourceManager.GetString("Re_triage_0_currently_1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Regex issue: {0}.
-        /// </summary>
-        internal static string Regex_issue_0 {
-            get {
-                return ResourceManager.GetString("Regex_issue_0", resourceCulture);
             }
         }
         
@@ -3681,6 +3647,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Variable declaration can be deconstructed.
+        /// </summary>
+        internal static string Variable_declaration_can_be_deconstructed {
+            get {
+                return ResourceManager.GetString("Variable_declaration_can_be_deconstructed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Using readonly references will prevent the debug session from continuing..
         /// </summary>
         internal static string Using_readonly_references_will_prevent_the_debug_session_from_continuing {
@@ -3704,15 +3679,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Using_ref_structs_will_prevent_the_debug_session_from_continuing {
             get {
                 return ResourceManager.GetString("Using_ref_structs_will_prevent_the_debug_session_from_continuing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Variable declaration can be deconstructed.
-        /// </summary>
-        internal static string Variable_declaration_can_be_deconstructed {
-            get {
-                return ResourceManager.GetString("Variable_declaration_can_be_deconstructed", resourceCulture);
             }
         }
         

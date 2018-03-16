@@ -256,36 +256,5 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
     var x = [|(|]new Dictionary<int, string>(), new List<int>()[|)$$|];
 }", TestOptions.Regular);
         }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
-        public async Task TestJsonBracket1()
-        {
-            var input = @"
-class C
-{
-    void Goo()
-    {
-        var r = /*lang=json*/ @""new Json[|(|]1, 2, 3[|)|]$$"");
-    }
-}";
-            await TestBraceHighlightingAsync(input);
-        }
-
-        [WpfFact, Trait(Traits.Feature, Traits.Features.BraceHighlighting)]
-        public async Task TestRegexBracket1()
-        {
-            var input = @"
-using System.Text.RegularExpressions;
-
-class C
-{
-    void Goo()
-    {
-        var r = new Regex(@""[|(|]a[|)|]$$"");
-    }
-}";
-
-            await TestBraceHighlightingAsync(input);
-        }
     }
 }

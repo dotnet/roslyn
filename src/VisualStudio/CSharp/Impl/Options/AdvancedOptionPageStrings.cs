@@ -167,30 +167,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             CSharpVSResources.Suggest_usings_for_types_in_NuGet_packages;
 
         public static string Option_Report_invalid_placeholders_in_string_dot_format_calls =>
-            CSharpVSResources.Report_invalid_placeholders_in_string_dot_format_calls;
-
-        public static string Option_Regular_Expressions =>
-            ServicesVSResources.Regular_Expressions;
-
-        public static string Option_Colorize_regular_expressions =>
-            ServicesVSResources.Colorize_regular_expressions;
-
-        public static string Option_Report_invalid_regular_expressions =>
-            ServicesVSResources.Report_invalid_regular_expressions;
-
-        public static string Option_Highlight_related_components_under_cursor =>
-            ServicesVSResources.Highlight_related_components_under_cursor;
-
-        public static string Option_JSON_strings =>
-            ServicesVSResources.JSON_strings;
-
-        public static string Option_Detect_and_offer_editor_features_for_likely_JSON_strings =>
-            ServicesVSResources.Detect_and_offer_editor_features_for_likely_JSON_strings;
-
-        public static string Option_Colorize_JSON_strings =>
-            ServicesVSResources.Colorize_JSON_strings;
-
-        public static string Option_Report_invalid_JSON_strings =>
-            ServicesVSResources.Report_invalid_JSON_strings;
+            CSharpVSResources.Report_invalid_placeholders_in_string_dot_format_calls; 
     }
 }

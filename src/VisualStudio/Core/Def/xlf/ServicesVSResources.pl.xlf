@@ -1488,46 +1488,6 @@ Wyrażam zgodę na wszystkie następujące postanowienia:</target>
         <target state="translated">Informacje prawne dotyczące Dekompilatora</target>
         <note />
       </trans-unit>
-      <trans-unit id="Colorize_regular_expressions">
-        <source>Colorize regular expressions</source>
-        <target state="new">Colorize regular expressions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Highlight_related_components_under_cursor">
-        <source>Highlight related components under cursor</source>
-        <target state="new">Highlight related components under cursor</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Regular_Expressions">
-        <source>Regular Expressions</source>
-        <target state="new">Regular Expressions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Report_invalid_regular_expressions">
-        <source>Report invalid regular expressions</source>
-        <target state="new">Report invalid regular expressions</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Colorize_JSON_strings">
-        <source>Colorize JSON strings</source>
-        <target state="new">Colorize JSON strings</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Detect_and_offer_editor_features_for_likely_JSON_strings">
-        <source>Detect and offer editor features for likely JSON strings</source>
-        <target state="new">Detect and offer editor features for likely JSON strings</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="JSON_strings">
-        <source>JSON strings</source>
-        <target state="new">JSON strings</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Report_invalid_JSON_strings">
-        <source>Report invalid JSON strings</source>
-        <target state="new">Report invalid JSON strings</target>
-        <note />
-      </trans-unit>
       <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
         <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
         <target state="translated">Wyłączenie rozszerzenia „{0}” spowodowało usunięcie powiązań klawiaturowych.</target>
