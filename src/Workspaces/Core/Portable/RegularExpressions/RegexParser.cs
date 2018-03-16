@@ -1467,11 +1467,6 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return new RegexCharacterClassSubtractionNode(minusToken, charClass);
         }
 
-        private RegexPrimaryExpressionNode ParseCharacterClassComponentRight()
-        {
-            throw new NotImplementedException();
-        }
-
         /// <summary>
         /// Parses out an escape sequence.  Escape sequences are allowed in top level sequences
         /// and in character classes.  In a top level sequence trivia will be allowed afterwards,
@@ -1504,8 +1499,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     return new RegexCharacterClassEscapeNode(
                         backslashToken, ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd));
 
-                case 'p':
-                case 'P':
+                case 'p': case 'P':
                     return ParseCategoryEscape(backslashToken, allowTriviaAfterEnd);
             }
 
