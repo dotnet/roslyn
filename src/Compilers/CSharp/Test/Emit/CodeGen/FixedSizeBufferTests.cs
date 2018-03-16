@@ -135,7 +135,7 @@ unsafe struct S
     public fixed int x[10];
 }
 
-class  S1
+class  C1
 {
     public S field;
 }
@@ -144,7 +144,7 @@ class Program
 {
     unsafe static void Main()
     {
-        S1 c = new S1();
+        C1 c = new C1();
         c.field.x[0] = 12;
         ref int i = ref c.field.x[0];
         Console.WriteLine(i);
@@ -156,14 +156,14 @@ class Program
 {
   // Code size       46 (0x2e)
   .maxstack  3
-  IL_0000:  newobj     ""S1..ctor()""
+  IL_0000:  newobj     ""C1..ctor()""
   IL_0005:  dup
-  IL_0006:  ldflda     ""S S1.field""
+  IL_0006:  ldflda     ""S C1.field""
   IL_000b:  ldflda     ""int* S.x""
   IL_0010:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
   IL_0015:  ldc.i4.s   12
   IL_0017:  stind.i4
-  IL_0018:  ldflda     ""S S1.field""
+  IL_0018:  ldflda     ""S C1.field""
   IL_001d:  ldflda     ""int* S.x""
   IL_0022:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
   IL_0027:  ldind.i4
@@ -172,8 +172,61 @@ class Program
 }");
         }
 
-        //PROTOTYPE(indexing movable fixed buffers): I have verified that this passes with the fix in https://github.com/dotnet/roslyn/pull/24909 that has not yet merged
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/24776")]
+        [Fact]
+        public void SimpleFixedBufferNestedFieldClassInit()
+        {
+            var text =
+@"
+using System;
+unsafe struct S
+{
+    public fixed int x[10];
+}
+
+class  C1
+{
+    public S field;
+}
+
+class Program
+{
+    unsafe static void Main()
+    {
+        C1 c;
+        
+        // test that 'this' is properly lowered
+        (c = new C1() {field = default}).field.x[0] = 12;
+
+        ref int i = ref c.field.x[0];
+        Console.WriteLine(i);
+    }
+}
+";
+            CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: "12", verify: Verification.Passes)
+                .VerifyIL("Program.Main", @"
+{
+  // Code size       58 (0x3a)
+  .maxstack  3
+  IL_0000:  newobj     ""C1..ctor()""
+  IL_0005:  dup
+  IL_0006:  ldflda     ""S C1.field""
+  IL_000b:  initobj    ""S""
+  IL_0011:  dup
+  IL_0012:  ldflda     ""S C1.field""
+  IL_0017:  ldflda     ""int* S.x""
+  IL_001c:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
+  IL_0021:  ldc.i4.s   12
+  IL_0023:  stind.i4
+  IL_0024:  ldflda     ""S C1.field""
+  IL_0029:  ldflda     ""int* S.x""
+  IL_002e:  ldflda     ""int S.<x>e__FixedBuffer.FixedElementField""
+  IL_0033:  ldind.i4
+  IL_0034:  call       ""void System.Console.WriteLine(int)""
+  IL_0039:  ret
+}");
+        }
+
+        [Fact]
         public void SimpleFixedBufferOfRefStructErr()
         {
             var source =
