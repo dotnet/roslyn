@@ -8,12 +8,12 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Threading;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.VirtualChars;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.RegularExpressions
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
     /// <summary>
     /// Helper class to detect regex pattern tokens in a document efficiently.

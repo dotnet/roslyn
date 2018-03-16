@@ -2,7 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.ValidateRegexString
-Imports Microsoft.CodeAnalysis.VisualBasic.VirtualChars
+Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ValidateRegexString
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

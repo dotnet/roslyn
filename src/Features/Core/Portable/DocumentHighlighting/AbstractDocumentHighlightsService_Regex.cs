@@ -4,15 +4,19 @@ using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
-using Microsoft.CodeAnalysis.RegularExpressions;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.VirtualChars;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.DocumentHighlighting
 {
+    using static EmbeddedSyntaxHelpers;
+    using RegexToken = EmbeddedSyntaxToken<RegexKind>;
+
     internal abstract partial class AbstractDocumentHighlightsService : IDocumentHighlightsService
     {
         private async Task<ImmutableArray<DocumentHighlights>> TryGetRegexPatternHighlightsAsync(
@@ -108,7 +112,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         {
             return ImmutableArray.Create(new DocumentHighlights(document,
                 ImmutableArray.Create(
-                    new HighlightSpan(RegexHelpers.GetSpan(node), HighlightSpanKind.None),
+                    new HighlightSpan(GetSpan<RegexKind, RegexNode>(node), HighlightSpanKind.None),
                     new HighlightSpan(captureSpan, HighlightSpanKind.None))));
         }
 
@@ -133,7 +137,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 node.Kind == RegexKind.CaptureEscape ||
                 node.Kind == RegexKind.KCaptureEscape)
             {
-                if (RegexHelpers.Contains(node, virtualChar))
+                if (Contains<RegexKind, RegexNode>(node, virtualChar))
                 {
                     return (RegexEscapeNode)node;
                 }

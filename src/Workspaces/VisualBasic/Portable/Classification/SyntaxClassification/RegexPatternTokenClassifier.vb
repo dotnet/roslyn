@@ -4,7 +4,7 @@ Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Classification
 Imports Microsoft.CodeAnalysis.PooledObjects
-Imports Microsoft.CodeAnalysis.VisualBasic.VirtualChars
+Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Classification.Classifiers
     Friend Class RegexPatternTokenClassifier
