@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         {
             return ImmutableArray.Create(new DocumentHighlights(document,
                 ImmutableArray.Create(
-                    new HighlightSpan(GetSpan<RegexKind, RegexNode>(node), HighlightSpanKind.None),
+                    new HighlightSpan(node.GetSpan(), HighlightSpanKind.None),
                     new HighlightSpan(captureSpan, HighlightSpanKind.None))));
         }
 
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 node.Kind == RegexKind.CaptureEscape ||
                 node.Kind == RegexKind.KCaptureEscape)
             {
-                if (Contains<RegexKind, RegexNode>(node, virtualChar))
+                if (node.Contains(virtualChar))
                 {
                     return (RegexEscapeNode)node;
                 }

@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 if (!token.IsMissing)
                 {
-                    Result.Add(new ClassifiedSpan(typeName, GetSpan(token)));
+                    Result.Add(new ClassifiedSpan(typeName, token.GetSpan()));
                 }
             }
 
