@@ -4314,6 +4314,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Expected Parenthesized Expression..
+        '''</summary>
+        Friend ReadOnly Property ERR_ExpectedParenthesizedExpression() As String
+            Get
+                Return ResourceManager.GetString("ERR_ExpectedParenthesizedExpression", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Expression is not a method..
         '''</summary>
         Friend ReadOnly Property ERR_ExpectedProcedure() As String

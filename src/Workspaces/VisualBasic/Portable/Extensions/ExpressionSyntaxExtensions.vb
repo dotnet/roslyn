@@ -136,8 +136,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Case SyntaxKind.SimpleMemberAccessExpression
                     Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
                     qualifier = memberAccess.Expression
-                    name = memberAccess.Name.Identifier.ValueText
-                    arity = memberAccess.Name.Arity
+                    Dim simpleName = TryCast(memberAccess.Name, SimpleNameSyntax)
+                    If simpleName IsNot Nothing Then
+                        name = simpleName.Identifier.ValueText
+                        arity = simpleName.Arity
+                    End If
                 Case SyntaxKind.QualifiedName
                     Dim qualifiedName = DirectCast(expression, QualifiedNameSyntax)
                     qualifier = qualifiedName.Left
@@ -176,23 +179,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function TryGetNameParts(expression As ExpressionSyntax, parts As List(Of String)) As Boolean
             If expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
                 Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
-                If Not memberAccess.Name.TryGetNameParts(parts) Then
-                    Return False
-                End If
+                Dim simpleName = TryCast(memberAccess.Name, SimpleNameSyntax)
+                If simpleName IsNot Nothing Then
 
-                Return AddSimpleName(memberAccess.Name, parts)
+                    If Not simpleName.TryGetNameParts(parts) Then
+                        Return False
+                    End If
+
+                    Return AddSimpleName(simpleName, parts)
+                End If
             ElseIf expression.IsKind(SyntaxKind.QualifiedName) Then
-                Dim qualifiedName = DirectCast(expression, QualifiedNameSyntax)
-                If Not qualifiedName.Left.TryGetNameParts(parts) Then
-                    Return False
-                End If
+                    Dim qualifiedName = DirectCast(expression, QualifiedNameSyntax)
+                    If Not qualifiedName.Left.TryGetNameParts(parts) Then
+                        Return False
+                    End If
 
-                Return AddSimpleName(qualifiedName.Right, parts)
-            ElseIf TypeOf expression Is SimpleNameSyntax Then
-                Return AddSimpleName(DirectCast(expression, SimpleNameSyntax), parts)
-            Else
-                Return False
+                    Return AddSimpleName(qualifiedName.Right, parts)
+                ElseIf TypeOf expression Is SimpleNameSyntax Then
+                    Return AddSimpleName(DirectCast(expression, SimpleNameSyntax), parts)
+                Else
+                    Return False
             End If
+            Return False
         End Function
 
         Private Function AddSimpleName(simpleName As SimpleNameSyntax, parts As List(Of String)) As Boolean
@@ -974,6 +982,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Not SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, memberAccess.Name, optionSet) Then
                 Return False
             End If
+            Dim simpleName As SimpleNameSyntax = Nothing
 
             If memberAccess.HasAnnotations(SpecialTypeAnnotation.Kind) Then
                 replacementNode = SyntaxFactory.PredefinedType(
@@ -1004,56 +1013,68 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                         ' In case the alias name is the same as the last name of the alias target, we only include 
                         ' the left part of the name in the unnecessary span to Not confuse uses.
-                        If memberAccess.Name.Identifier.ValueText = identifierToken.ValueText Then
-                            issueSpan = memberAccess.Expression.Span
+                        simpleName = TryCast(memberAccess.Name, SimpleNameSyntax)
+                        If simpleName IsNot Nothing Then
+                            If simpleName.Identifier.ValueText = identifierToken.ValueText Then
+                                issueSpan = memberAccess.Expression.Span
+                            End If
+
+                            Return True
                         End If
 
-                        Return True
-                    End If
-
-                    If PreferPredefinedTypeKeywordInMemberAccess(memberAccess, optionSet) Then
-                        Dim symbol = semanticModel.GetSymbolInfo(memberAccess).Symbol
-                        If (symbol IsNot Nothing AndAlso symbol.IsKind(SymbolKind.NamedType)) Then
-                            Dim keywordKind = GetPredefinedKeywordKind(DirectCast(symbol, INamedTypeSymbol).SpecialType)
-                            If keywordKind <> SyntaxKind.None Then
-                                replacementNode = SyntaxFactory.PredefinedType(
+                        If PreferPredefinedTypeKeywordInMemberAccess(memberAccess, optionSet) Then
+                            Dim symbol = semanticModel.GetSymbolInfo(memberAccess).Symbol
+                            If (symbol IsNot Nothing AndAlso symbol.IsKind(SymbolKind.NamedType)) Then
+                                Dim keywordKind = GetPredefinedKeywordKind(DirectCast(symbol, INamedTypeSymbol).SpecialType)
+                                If keywordKind <> SyntaxKind.None Then
+                                    replacementNode = SyntaxFactory.PredefinedType(
                                                 SyntaxFactory.Token(
                                                     memberAccess.GetLeadingTrivia(),
                                                     keywordKind,
                                                     memberAccess.GetTrailingTrivia()))
 
-                                replacementNode = replacementNode.WithAdditionalAnnotations(
+                                    replacementNode = replacementNode.WithAdditionalAnnotations(
                                     New SyntaxAnnotation(NameOf(CodeStyleOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess)))
 
-                                issueSpan = memberAccess.Span
+                                    issueSpan = memberAccess.Span
 
+                                    Return True
+                                End If
+                            End If
+                        End If
+                    End If
+
+                    ' a module name was inserted by the name expansion, so removing this should be tried first.
+                    If memberAccess.HasAnnotation(SimplificationHelpers.SimplifyModuleNameAnnotation) Then
+                        If TryOmitModuleName(memberAccess, semanticModel, replacementNode, issueSpan, cancellationToken) Then
+                            Return True
+                        End If
+                    End If
+
+               '    replacementNode = memberAccess.Name
+                replacementNode = memberAccess.GetNameWithTriviaMoved(semanticModel)
+                    simpleName = TryCast(memberAccess.Name, SimpleNameSyntax)
+                issueSpan = memberAccess.Expression.Span
+                    If simpleName IsNot Nothing Then
+                        replacementNode = simpleName.WithIdentifier(VisualBasicSimplificationService.TryEscapeIdentifierToken(
+                        simpleName.Identifier,
+                        semanticModel)) _
+                    .WithLeadingTrivia(memberAccess.GetLeadingTriviaForSimplifiedMemberAccess()) _
+                    .WithTrailingTrivia(memberAccess.GetTrailingTrivia())
+                        issueSpan = memberAccess.Expression.Span
+
+                        If memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken) Then
+                            Return True
+                        End If
+
+                        If optionSet.GetOption(SimplificationOptions.PreferOmittingModuleNamesInQualification) Then
+                            If TryOmitModuleName(memberAccess, semanticModel, replacementNode, issueSpan, cancellationToken) Then
                                 Return True
                             End If
                         End If
                     End If
                 End If
-
-                ' a module name was inserted by the name expansion, so removing this should be tried first.
-                If memberAccess.HasAnnotation(SimplificationHelpers.SimplifyModuleNameAnnotation) Then
-                    If TryOmitModuleName(memberAccess, semanticModel, replacementNode, issueSpan, cancellationToken) Then
-                        Return True
-                    End If
-                End If
-
-                replacementNode = memberAccess.GetNameWithTriviaMoved(semanticModel)
-                issueSpan = memberAccess.Expression.Span
-
-                If memberAccess.CanReplaceWithReducedName(replacementNode, semanticModel, cancellationToken) Then
-                    Return True
-                End If
-
-                If optionSet.GetOption(SimplificationOptions.PreferOmittingModuleNamesInQualification) Then
-                    If TryOmitModuleName(memberAccess, semanticModel, replacementNode, issueSpan, cancellationToken) Then
-                        Return True
-                    End If
-                End If
             End If
-
             Return False
         End Function
 
@@ -1133,7 +1154,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Function GetRightmostName(node As ExpressionSyntax) As NameSyntax
             Dim memberAccess = TryCast(node, MemberAccessExpressionSyntax)
             If memberAccess IsNot Nothing AndAlso memberAccess.Name IsNot Nothing Then
-                Return memberAccess.Name
+                Dim simpleName = TryCast(memberAccess.Name, SimpleNameSyntax)
+                If simpleName IsNot Nothing Then
+                    Return simpleName
+                End If
             End If
 
             Dim qualified = TryCast(node, QualifiedNameSyntax)

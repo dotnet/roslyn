@@ -60,11 +60,6 @@
     <Compile Include="..\Portable\InternalUtilities\UnicodeCharacterUtilities.cs">
       <Link>UnicodeCharacterUtilities.cs</Link>
     </Compile>
-    <Compile Update="ErrorString.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>ErrorString.resx</DependentUpon>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="ErrorString.resx">
@@ -80,6 +75,13 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.Build.Tasks.CodeAnalysis.UnitTests" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Update="ErrorString.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>ErrorString.resx</DependentUpon>
+    </Compile>
   </ItemGroup>
   <Import Project="..\CommandLine\CommandLine.projitems" Label="Shared" />
 </Project>

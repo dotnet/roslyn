@@ -1538,8 +1538,8 @@ FullWidthRepeat:
                                 Exit Select
                             ElseIf NextChar = "+"c OrElse NextChar = "-"c OrElse NextChar = "/"c Then
                                 Exit Select
-                            ElseIf NextChar = "("c Then
-                                Exit Select
+                                'ElseIf NextChar = "("c Then
+                                '    Exit Select
                             End If
                         End If
                         TypeCharacter = TypeCharacter.Single  'typeChars.chType_sR4

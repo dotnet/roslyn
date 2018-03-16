@@ -1024,11 +1024,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                                               ) As Boolean
             output = Nothing
 
-            If DotOrBangToken.Kind = SyntaxKind.ExclamationToken Then
-                If CurrentToken.Kind = SyntaxKind.OpenParenToken Then
-                    Dim expr = ParseParenthesizedExpressionOrTupleLiteral()
-                    If expr IsNot Nothing Then
-                        expr = DirectCast(expr.WithLeadingTrivia(Term.GetTrailingTriviaCore), ExpressionSyntax)
+            If op.Kind = SyntaxKind.ExclamationToken Then
+                Dim pt = PeekToken(1)
+                Dim fop = SyntaxFactory.FlagsEnumIsSetToken(op.Text, op.GetLeadingTrivia, op.GetTrailingTrivia)
+                If pt.Kind = SyntaxKind.IdentifierToken Then
+                    GetNextToken()
+                    Dim name = ParseIdentifierNameAllowingKeyword()
+                    output = SyntaxFactory.DictionaryAccessExpression(Term, op, name)
+                Else
+                    GetNextToken()
 
                         If expr.Kind = SyntaxKind.ParenthesizedExpression Then
                             Dim op = SyntaxFactory.FlagsEnumIsSetToken(DotOrBangToken.Text, DotOrBangToken.GetLeadingTrivia, DotOrBangToken.GetTrailingTrivia)

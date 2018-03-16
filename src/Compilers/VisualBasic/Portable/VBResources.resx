@@ -5542,4 +5542,7 @@
   <data name="ERR_MissingEnumFlag" xml:space="preserve">
     <value>Missing Enum Flag.</value>
   </data>
+  <data name="ERR_ExpectedParenthesizedExpression" xml:space="preserve">
+    <value>Expected Parenthesized Expression.</value>
+  </data>
 </root>

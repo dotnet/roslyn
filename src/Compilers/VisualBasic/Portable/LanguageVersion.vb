@@ -80,7 +80,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function MapSpecifiedToEffectiveVersion(version As LanguageVersion) As LanguageVersion
             Select Case version
                 Case LanguageVersion.Latest
-                    Return LanguageVersion.VisualBasic15_5
+                    Return LanguageVersion.VisualBasic15_7
                 Case LanguageVersion.Default
                     Return LanguageVersion.VisualBasic15
                 Case Else
