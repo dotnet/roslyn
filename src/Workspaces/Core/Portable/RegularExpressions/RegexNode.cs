@@ -7,13 +7,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 {
     internal abstract class RegexNode : EmbeddedSyntaxNode<RegexNode>
     {
-        public readonly RegexKind Kind;
-
         protected RegexNode(RegexKind kind) : base((int)kind)
         {
-            Debug.Assert(kind != RegexKind.None);
-            Kind = kind;
         }
+
+        public RegexKind Kind() => (RegexKind)RawKind;
 
         public abstract void Accept(IRegexNodeVisitor visitor);
     }

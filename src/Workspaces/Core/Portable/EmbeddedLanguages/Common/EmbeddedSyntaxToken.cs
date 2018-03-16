@@ -18,27 +18,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             int rawKind,
             ImmutableArray<EmbeddedSyntaxTrivia> leadingTrivia,
             ImmutableArray<VirtualChar> virtualChars,
-            ImmutableArray<EmbeddedSyntaxTrivia> trailingTrivia)
-            : this(rawKind, leadingTrivia, virtualChars, trailingTrivia, ImmutableArray<EmbeddedDiagnostic>.Empty)
-        {
-        }
-
-        public EmbeddedSyntaxToken(
-            int rawKind,
-            ImmutableArray<EmbeddedSyntaxTrivia> leadingTrivia,
-            ImmutableArray<VirtualChar> virtualChars,
             ImmutableArray<EmbeddedSyntaxTrivia> trailingTrivia,
-            ImmutableArray<EmbeddedDiagnostic> diagnostics)
-            : this(rawKind, leadingTrivia, virtualChars, trailingTrivia, diagnostics, value: null)
-        {
-        }
-
-        public EmbeddedSyntaxToken(
-            int rawKind,
-            ImmutableArray<EmbeddedSyntaxTrivia> leadingTrivia,
-            ImmutableArray<VirtualChar> virtualChars,
-            ImmutableArray<EmbeddedSyntaxTrivia> trailingTrivia,
-            ImmutableArray<EmbeddedDiagnostic> diagnostics, object value)
+            ImmutableArray<EmbeddedDiagnostic> diagnostics,
+            object value)
         {
             RawKind = rawKind;
             LeadingTrivia = leadingTrivia;
@@ -47,9 +29,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             Diagnostics = diagnostics;
             Value = value;
         }
-
-        public static EmbeddedSyntaxToken CreateMissing(int rawKind)
-            => new EmbeddedSyntaxToken(rawKind, ImmutableArray<EmbeddedSyntaxTrivia>.Empty, ImmutableArray<VirtualChar>.Empty, ImmutableArray<EmbeddedSyntaxTrivia>.Empty);
 
         public bool IsMissing => VirtualChars.IsEmpty;
 

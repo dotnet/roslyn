@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             => (RegexKind)token.RawKind;
     }
 }
-//{
+
 //    internal struct RegexToken
 //    {
 //        public readonly RegexKind Kind;

@@ -21,12 +21,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         /// </summary> 
         internal readonly ImmutableArray<EmbeddedDiagnostic> Diagnostics;
 
-        public EmbeddedSyntaxTrivia(int rawKind, ImmutableArray<VirtualChar> virtualChars)
-            : this(rawKind, virtualChars, ImmutableArray<EmbeddedDiagnostic>.Empty)
-        {
-        }
-
-
         public EmbeddedSyntaxTrivia(int rawKind, ImmutableArray<VirtualChar> virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
         {
             Debug.Assert(virtualChars.Length > 0);

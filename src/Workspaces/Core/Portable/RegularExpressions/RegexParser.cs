@@ -5,12 +5,14 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.RegularExpressions
 {
+    using static EmbeddedSyntaxHelpers;
     using static RegexHelpers;
 
     internal partial struct RegexParser
@@ -20,7 +22,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private RegexLexer _lexer;
         private RegexOptions _options;
-        private RegexToken _currentToken;
+        private EmbeddedSyntaxToken _currentToken;
         private int _recursionDepth;
 
         private RegexParser(
@@ -49,7 +51,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         /// For example, if <see cref="RegexOptions.IgnorePatternWhitespace"/> is currently
         /// enabled, then '#...' comments are allowed.  Otherwise, only '(?#...)' comemnts
         /// are allowed.</param>
-        private RegexToken ConsumeCurrentToken(bool allowTrivia)
+        private EmbeddedSyntaxToken ConsumeCurrentToken(bool allowTrivia)
         {
             var previous = _currentToken;
             _currentToken = _lexer.ScanNextToken(allowTrivia, _options);
@@ -93,11 +95,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         {
             var expression = this.ParseAlternatingSequences(consumeCloseParen: true);
             Debug.Assert(_lexer.Position == _lexer.Text.Length);
-            Debug.Assert(_currentToken.Kind == RegexKind.EndOfFile);
+            Debug.Assert(_currentToken.Kind() == RegexKind.EndOfFile);
 
             var root = new RegexCompilationUnit(expression, _currentToken);
 
-            var diagnostics = ArrayBuilder<RegexDiagnostic>.GetInstance();
+            var diagnostics = ArrayBuilder<EmbeddedDiagnostic>.GetInstance();
             CollectDiagnostics(root, diagnostics);
 
             return new RegexTree(
@@ -105,7 +107,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 _captureNamesToSpan, _captureNumbersToSpan);
         }
 
-        private static void CollectDiagnostics(RegexNode node, ArrayBuilder<RegexDiagnostic> diagnostics)
+        private static void CollectDiagnostics(RegexNode node, ArrayBuilder<EmbeddedDiagnostic> diagnostics)
         {
             foreach (var child in node)
             {
@@ -131,7 +133,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         /// have two 'missing )' diagnostics, both at the end.  Reporting both isn't helpful, so we
         /// filter duplicates out here.
         /// </summary>
-        private static void AddUniqueDiagnostics(ImmutableArray<RegexDiagnostic> from, ArrayBuilder<RegexDiagnostic> to)
+        private static void AddUniqueDiagnostics(ImmutableArray<EmbeddedDiagnostic> from, ArrayBuilder<EmbeddedDiagnostic> to)
         {
             foreach (var diagnostic in from)
             {
@@ -169,7 +171,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         {
             RegexExpressionNode current = ParseSequence(consumeCloseParen);
 
-            while (_currentToken.Kind == RegexKind.BarToken)
+            while (_currentToken.Kind() == RegexKind.BarToken)
             {
                 // Trivia allowed between the | and the next token.
                 current = new RegexAlternationNode(
@@ -205,7 +207,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 var last = list[list.Count - 2];
                 var next = list[list.Count - 1];
 
-                if (last?.Kind == RegexKind.Text && next?.Kind == RegexKind.Text)
+                if (last?.Kind() == RegexKind.Text && next?.Kind() == RegexKind.Text)
                 {
                     var lastTextToken = ((RegexTextNode)last).TextToken;
                     var nextTextToken = ((RegexTextNode)next).TextToken;
@@ -217,7 +219,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                         nextTextToken.LeadingTrivia.Length == 0)
                     {
                         // Merge two text tokens token if there is no intermediary trivia.
-                        var merged = new RegexTextNode(new RegexToken(
+                        var merged = new RegexTextNode(CreateToken(
                             RegexKind.TextToken, lastTextToken.LeadingTrivia, 
                             lastTextToken.VirtualChars.Concat(nextTextToken.VirtualChars)));
 
@@ -231,17 +233,17 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private bool ShouldConsumeSequenceElement(bool consumeCloseParen)
         {
-            if (_currentToken.Kind == RegexKind.EndOfFile)
+            if (_currentToken.Kind() == RegexKind.EndOfFile)
             {
                 return false;
             }
 
-            if (_currentToken.Kind == RegexKind.BarToken)
+            if (_currentToken.Kind() == RegexKind.BarToken)
             {
                 return false;
             }
 
-            if (_currentToken.Kind == RegexKind.CloseParenToken)
+            if (_currentToken.Kind() == RegexKind.CloseParenToken)
             {
                 return consumeCloseParen;
             }
@@ -252,13 +254,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         private RegexExpressionNode ParsePrimaryExpressionAndQuantifiers(RegexExpressionNode lastExpression)
         {
             var current = ParsePrimaryExpression(lastExpression);
-            if (current.Kind == RegexKind.SimpleOptionsGrouping)
+            if (current.Kind() == RegexKind.SimpleOptionsGrouping)
             {
                 // Simple options (i.e. "(?i-x)" can't have quantifiers attached to them).
                 return current;
             }
 
-            switch (_currentToken.Kind)
+            switch (_currentToken.Kind())
             {
                 case RegexKind.AsteriskToken: return ParseZeroOrMoreQuantifier(current);
                 case RegexKind.PlusToken: return ParseOneOrMoreQuantifier(current);
@@ -270,7 +272,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private RegexExpressionNode TryParseLazyQuantifier(RegexQuantifierNode quantifier)
         {
-            if (_currentToken.Kind != RegexKind.QuestionToken)
+            if (_currentToken.Kind() != RegexKind.QuestionToken)
             {
                 return quantifier;
             }
@@ -299,7 +301,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         private RegexExpressionNode TryParseNumericQuantifier(
-            RegexPrimaryExpressionNode expression, RegexToken openBraceToken)
+            RegexPrimaryExpressionNode expression, EmbeddedSyntaxToken openBraceToken)
         {
             var start = _lexer.Position;
 
@@ -323,8 +325,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private RegexQuantifierNode CreateQuantifier(
             RegexPrimaryExpressionNode expression,
-            RegexToken openBraceToken, RegexToken firstNumberToken, RegexToken? commaToken,
-            RegexToken? secondNumberToken, RegexToken closeBraceToken)
+            EmbeddedSyntaxToken openBraceToken, EmbeddedSyntaxToken firstNumberToken, EmbeddedSyntaxToken? commaToken,
+            EmbeddedSyntaxToken? secondNumberToken, EmbeddedSyntaxToken closeBraceToken)
         {
             if (commaToken != null)
             {
@@ -337,8 +339,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         private bool TryParseNumericQuantifierParts(
-            out RegexToken firstNumberToken, out RegexToken? commaToken,
-            out RegexToken? secondNumberToken, out RegexToken closeBraceToken)
+            out EmbeddedSyntaxToken firstNumberToken, out EmbeddedSyntaxToken? commaToken,
+            out EmbeddedSyntaxToken? secondNumberToken, out EmbeddedSyntaxToken closeBraceToken)
         {
             firstNumberToken = default;
             commaToken = default;
@@ -356,7 +358,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             // Nothing allowed between {x,n}
             ConsumeCurrentToken(allowTrivia: false);
 
-            if (_currentToken.Kind == RegexKind.CommaToken)
+            if (_currentToken.Kind() == RegexKind.CommaToken)
             {
                 commaToken = _currentToken;
 
@@ -380,7 +382,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
                     if (val2 < val1)
                     {
-                        secondNumberTokenLocal = secondNumberTokenLocal.AddDiagnosticIfNone(new RegexDiagnostic(
+                        secondNumberTokenLocal = secondNumberTokenLocal.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                             WorkspacesResources.Illegal_x_y_with_x_less_than_y,
                             GetSpan(secondNumberTokenLocal)));
                         secondNumberToken = secondNumberTokenLocal;
@@ -388,7 +390,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 }
             }
 
-            if (_currentToken.Kind != RegexKind.CloseBraceToken)
+            if (_currentToken.Kind() != RegexKind.CloseBraceToken)
             {
                 return false;
             }
@@ -406,7 +408,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private RegexPrimaryExpressionNode ParsePrimaryExpression(RegexExpressionNode lastExpression)
         {
-            switch (_currentToken.Kind)
+            switch (_currentToken.Kind())
             {
                 case RegexKind.DotToken:
                     return ParseWildcard();
@@ -457,7 +459,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         private RegexPrimaryExpressionNode ParseUnexpectedCloseParenToken()
         {
             var token = _currentToken.With(kind: RegexKind.TextToken).AddDiagnosticIfNone(
-                new RegexDiagnostic(WorkspacesResources.Too_many_close_parens, GetSpan(_currentToken)));
+                new EmbeddedDiagnostic(WorkspacesResources.Too_many_close_parens, GetSpan(_currentToken)));
 
             // Technically, since an error occurred, we can do whatever we want here.  However,
             // the spirit of the native parser is that top level sequence elements are allowed
@@ -498,7 +500,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             // However, we do not treat (? the same as ( ?
             var openParenToken = ConsumeCurrentToken(allowTrivia: false);
 
-            switch (_currentToken.Kind)
+            switch (_currentToken.Kind())
             {
                 case RegexKind.QuestionToken:
                     return ParseGroupQuestion(openParenToken, _currentToken);
@@ -510,21 +512,21 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
         }
 
-        private RegexToken ParseGroupingCloseParen()
+        private EmbeddedSyntaxToken ParseGroupingCloseParen()
         {
-            switch (_currentToken.Kind)
+            switch (_currentToken.Kind())
             {
                 case RegexKind.CloseParenToken:
                     // Grouping completed normally.  Allow trivia between it and the next sequence element.
                     return ConsumeCurrentToken(allowTrivia: true);
 
                 default:
-                    return RegexToken.CreateMissing(RegexKind.CloseParenToken).AddDiagnosticIfNone(
-                        new RegexDiagnostic(WorkspacesResources.Not_enough_close_parens, GetTokenStartPositionSpan(_currentToken)));
+                    return CreateMissingToken(RegexKind.CloseParenToken).AddDiagnosticIfNone(
+                        new EmbeddedDiagnostic(WorkspacesResources.Not_enough_close_parens, GetTokenStartPositionSpan(_currentToken)));
             }
         }
 
-        private RegexSimpleGroupingNode ParseSimpleGroup(RegexToken openParenToken)
+        private RegexSimpleGroupingNode ParseSimpleGroup(EmbeddedSyntaxToken openParenToken)
             => new RegexSimpleGroupingNode(
                 openParenToken, ParseGroupingEmbeddedExpression(_options), ParseGroupingCloseParen());
 
@@ -546,19 +548,19 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return expression;
         }
 
-        private TextSpan GetTokenSpanIncludingEOF(RegexToken token)
-            => token.Kind == RegexKind.EndOfFile
+        private TextSpan GetTokenSpanIncludingEOF(EmbeddedSyntaxToken token)
+            => token.Kind() == RegexKind.EndOfFile
                 ? GetTokenStartPositionSpan(token)
                 : GetSpan(token);
 
-        private TextSpan GetTokenStartPositionSpan(RegexToken token)
+        private TextSpan GetTokenStartPositionSpan(EmbeddedSyntaxToken token)
         {
-            return token.Kind == RegexKind.EndOfFile
+            return token.Kind() == RegexKind.EndOfFile
                 ? new TextSpan(_lexer.Text.Last().Span.End, 0)
                 : new TextSpan(token.VirtualChars[0].Span.Start, 0);
         }
 
-        private RegexGroupingNode ParseGroupQuestion(RegexToken openParenToken, RegexToken questionToken)
+        private RegexGroupingNode ParseGroupQuestion(EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken)
         {
             var optionsToken = _lexer.TryScanOptions();
             if (optionsToken != null)
@@ -571,7 +573,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             // Lots of possible options when we see (?.  Look at the immediately following character
             // (without any allowed spaces) to decide what to parse out next.
             ConsumeCurrentToken(allowTrivia: false);
-            switch (_currentToken.Kind)
+            switch (_currentToken.Kind())
             {
                 case RegexKind.LessThanToken:
                     // (?<=...) or (?<!...) or (?<...>...) or (?<...-...>...)
@@ -599,10 +601,10 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     return ParseNonBacktrackingGrouping(openParenToken, questionToken);
 
                 default:
-                    if (_currentToken.Kind != RegexKind.CloseParenToken)
+                    if (_currentToken.Kind() != RegexKind.CloseParenToken)
                     {
                         // Native parser reports "Unrecognized grouping construct", *except* for (?)
-                        openParenToken = openParenToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                        openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                             WorkspacesResources.Unrecognized_grouping_construct,
                             GetSpan(openParenToken)));
                     }
@@ -617,7 +619,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return ParseSimpleGroup(openParenToken);
         }
 
-        private RegexConditionalGroupingNode ParseConditionalGrouping(RegexToken openParenToken, RegexToken questionToken)
+        private RegexConditionalGroupingNode ParseConditionalGrouping(EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken)
         {
             var innerOpenParenToken = _currentToken;
             var afterInnerOpenParen = _lexer.Position;
@@ -631,8 +633,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             {
                 var capture = captureToken.Value;
 
-                RegexToken innerCloseParenToken;
-                if (capture.Kind == RegexKind.NumberToken)
+                EmbeddedSyntaxToken innerCloseParenToken;
+                if (capture.Kind() == RegexKind.NumberToken)
                 {
                     // If it's a numeric group, it has to be immediately followed by a )
                     // and the numeric reference has to exist.
@@ -644,20 +646,20 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     // capture name.
 
                     ConsumeCurrentToken(allowTrivia: false);
-                    if (_currentToken.Kind == RegexKind.CloseParenToken)
+                    if (_currentToken.Kind() == RegexKind.CloseParenToken)
                     {
                         innerCloseParenToken = _currentToken;
                         if (!HasCapture((int)capture.Value))
                         {
-                            capture = capture.AddDiagnosticIfNone(new RegexDiagnostic(
+                            capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                                 WorkspacesResources.Reference_to_undefined_group,
                                 GetSpan(capture)));
                         }
                     }
                     else
                     {
-                        innerCloseParenToken = RegexToken.CreateMissing(RegexKind.CloseParenToken);
-                        capture = capture.AddDiagnosticIfNone(new RegexDiagnostic(
+                        innerCloseParenToken = CreateMissingToken(RegexKind.CloseParenToken);
+                        capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                             WorkspacesResources.Malformed,
                             GetSpan(capture)));
                         MoveBackBeforePreviousScan();
@@ -677,7 +679,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     // match (?(a)   anything other than a close paren after the ) will make this
                     // into a conditional expression.
                     ConsumeCurrentToken(allowTrivia: false);
-                    if (_currentToken.Kind != RegexKind.CloseParenToken)
+                    if (_currentToken.Kind() != RegexKind.CloseParenToken)
                     {
                         _lexer.Position = afterInnerOpenParen;
                         return ParseConditionalExpressionGrouping(openParenToken, questionToken, innerOpenParenToken);
@@ -707,7 +709,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private void MoveBackBeforePreviousScan()
         {
-            if (_currentToken.Kind != RegexKind.EndOfFile)
+            if (_currentToken.Kind() != RegexKind.EndOfFile)
             {
                 // Move back to unconsume whatever we just consumed.
                 _lexer.Position--;
@@ -715,7 +717,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         private RegexConditionalGroupingNode ParseConditionalExpressionGrouping(
-            RegexToken openParenToken, RegexToken questionToken, RegexToken innerOpenParenToken)
+            EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken, EmbeddedSyntaxToken innerOpenParenToken)
         {
             // Reproduce very specific errors the .net regex parser looks for.  Technically,
             // we would error out in these cases no matter what.  However, it means we can
@@ -735,14 +737,14 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 }
                 else
                 {
-                    openParenToken = openParenToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                    openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                         WorkspacesResources.Alternation_conditions_cannot_be_comments,
                         GetSpan(openParenToken)));
                 }
             }
             else if (_lexer.IsAt("(?'"))
             {
-                openParenToken = openParenToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     WorkspacesResources.Alternation_conditions_do_not_capture_and_cannot_be_named,
                     GetSpan(openParenToken)));
             }
@@ -751,7 +753,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 if (!_lexer.IsAt("(?<!") &&
                     !_lexer.IsAt("(?<="))
                 {
-                    openParenToken = openParenToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                    openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                         WorkspacesResources.Alternation_conditions_do_not_capture_and_cannot_be_named,
                         GetSpan(openParenToken)));
                 }
@@ -759,7 +761,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             // Consume the ( once more.
             ConsumeCurrentToken(allowTrivia: false);
-            Debug.Assert(_currentToken.Kind == RegexKind.OpenParenToken);
+            Debug.Assert(_currentToken.Kind() == RegexKind.OpenParenToken);
 
             // Parse out the grouping that starts with teh second open paren in (?(
             // this will get us to (?(...)
@@ -792,7 +794,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             {
                 return new RegexAlternationNode(
                     topAlternation.Left,
-                    topAlternation.BarToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                    topAlternation.BarToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                         WorkspacesResources.Too_many_bars_in_conditional_grouping,
                         GetSpan(topAlternation.BarToken))),
                     topAlternation.Right);
@@ -802,14 +804,14 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         private RegexGroupingNode ParseLookbehindOrNamedCaptureOrBalancingGrouping(
-            RegexToken openParenToken, RegexToken questionToken)
+            EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken)
         {
             var start = _lexer.Position;
 
             // We have  (?<  Look for  (?<=  or  (?<!
             var lessThanToken = ConsumeCurrentToken(allowTrivia: false);
 
-            switch (_currentToken.Kind)
+            switch (_currentToken.Kind())
             {
                 case RegexKind.EqualsToken:
                     return new RegexPositiveLookbehindGroupingNode(
@@ -829,11 +831,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         private RegexGroupingNode ParseNamedCaptureOrBalancingGrouping(
-            RegexToken openParenToken, RegexToken questionToken, RegexToken openToken)
+            EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken, EmbeddedSyntaxToken openToken)
         {
             if (_lexer.Position == _lexer.Text.Length)
             {
-                openParenToken = openParenToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     WorkspacesResources.Unrecognized_grouping_construct,
                     GetSpan(openParenToken, openToken)));
             }
@@ -845,16 +847,16 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             {
                 // Can't have any trivia between the elements in this grouping header.
                 ConsumeCurrentToken(allowTrivia: false);
-                captureToken = RegexToken.CreateMissing(RegexKind.CaptureNameToken);
+                captureToken = CreateMissingToken(RegexKind.CaptureNameToken);
 
-                if (_currentToken.Kind == RegexKind.MinusToken)
+                if (_currentToken.Kind() == RegexKind.MinusToken)
                 {
                     return ParseBalancingGrouping(
                         openParenToken, questionToken, openToken, captureToken.Value);
                 }
                 else
                 {
-                    openParenToken = openParenToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                    openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                         WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character,
                         GetTokenSpanIncludingEOF(_currentToken)));
 
@@ -865,9 +867,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
 
             var capture = captureToken.Value;
-            if (capture.Kind == RegexKind.NumberToken && (int)capture.Value == 0)
+            if (capture.Kind() == RegexKind.NumberToken && (int)capture.Value == 0)
             {
-                capture = capture.AddDiagnosticIfNone(new RegexDiagnostic(
+                capture = capture.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     WorkspacesResources.Capture_number_cannot_be_zero,
                     GetSpan(capture)));
             }
@@ -875,7 +877,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             // Can't have any trivia between the elements in this grouping header.
             ConsumeCurrentToken(allowTrivia: false);
 
-            if (_currentToken.Kind == RegexKind.MinusToken)
+            if (_currentToken.Kind() == RegexKind.MinusToken)
             {
                 // Have  (?<...-  parse out the balancing group form.
                 return ParseBalancingGrouping(
@@ -891,23 +893,23 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 ParseGroupingEmbeddedExpression(_options), ParseGroupingCloseParen());
         }
 
-        private RegexToken ParseCaptureGroupingCloseToken(ref RegexToken openParenToken, RegexToken openToken)
+        private EmbeddedSyntaxToken ParseCaptureGroupingCloseToken(ref EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken openToken)
         {
-            if ((openToken.Kind == RegexKind.LessThanToken && _currentToken.Kind == RegexKind.GreaterThanToken) ||
-                (openToken.Kind == RegexKind.SingleQuoteToken && _currentToken.Kind == RegexKind.SingleQuoteToken))
+            if ((openToken.Kind() == RegexKind.LessThanToken && _currentToken.Kind() == RegexKind.GreaterThanToken) ||
+                (openToken.Kind() == RegexKind.SingleQuoteToken && _currentToken.Kind() == RegexKind.SingleQuoteToken))
             {
                 return _currentToken;
             }
 
-            if (_currentToken.Kind == RegexKind.EndOfFile)
+            if (_currentToken.Kind() == RegexKind.EndOfFile)
             {
-                openParenToken = openParenToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     WorkspacesResources.Unrecognized_grouping_construct,
                     GetSpan(openParenToken, openToken)));
             }
             else
             {
-                openParenToken = openParenToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character,
                     GetSpan(_currentToken)));
 
@@ -915,14 +917,14 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 _lexer.Position--;
             }
 
-            return RegexToken.CreateMissing(
-                openToken.Kind == RegexKind.LessThanToken
+            return CreateMissingToken(
+                openToken.Kind() == RegexKind.LessThanToken
                     ? RegexKind.GreaterThanToken : RegexKind.SingleQuoteToken);
         }
 
         private RegexBalancingGroupingNode ParseBalancingGrouping(
-            RegexToken openParenToken, RegexToken questionToken,
-            RegexToken openToken, RegexToken firstCapture)
+            EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken,
+            EmbeddedSyntaxToken openToken, EmbeddedSyntaxToken firstCapture)
         {
             var minusToken = _currentToken;
             var secondCapture = _lexer.TryScanNumberOrCaptureName();
@@ -931,14 +933,14 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 // Invalid group name: Group names must begin with a word character
                 ConsumeCurrentToken(allowTrivia: false);
 
-                openParenToken = openParenToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                openParenToken = openParenToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     WorkspacesResources.Invalid_group_name_Group_names_must_begin_with_a_word_character,
                     GetTokenSpanIncludingEOF(_currentToken)));
 
                 // If we weren't at the end of the text, go back to before whatever character
                 // we just consumed.
                 MoveBackBeforePreviousScan();
-                secondCapture = RegexToken.CreateMissing(RegexKind.CaptureNameToken);
+                secondCapture = CreateMissingToken(RegexKind.CaptureNameToken);
             }
 
             var second = secondCapture.Value;
@@ -954,7 +956,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 ParseGroupingEmbeddedExpression(_options), ParseGroupingCloseParen());
         }
 
-        private void CheckCapture(ref RegexToken captureToken)
+        private void CheckCapture(ref EmbeddedSyntaxToken captureToken)
         {
             if (captureToken.IsMissing)
             {
@@ -962,12 +964,12 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 return;
             }
 
-            if (captureToken.Kind == RegexKind.NumberToken)
+            if (captureToken.Kind() == RegexKind.NumberToken)
             {
                 var val = (int)captureToken.Value;
                 if (!HasCapture(val))
                 {
-                    captureToken = captureToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                    captureToken = captureToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                         string.Format(WorkspacesResources.Reference_to_undefined_group_number_0, val),
                         GetSpan(captureToken)));
                 }
@@ -977,39 +979,39 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 var val = (string)captureToken.Value;
                 if (!HasCapture(val))
                 {
-                    captureToken = captureToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                    captureToken = captureToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                         string.Format(WorkspacesResources.Reference_to_undefined_group_name_0, val),
                         GetSpan(captureToken)));
                 }
             }
         }
 
-        private RegexNonCapturingGroupingNode ParseNonCapturingGroupingNode(RegexToken openParenToken, RegexToken questionToken)
+        private RegexNonCapturingGroupingNode ParseNonCapturingGroupingNode(EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken)
             => new RegexNonCapturingGroupingNode(
                 openParenToken, questionToken, _currentToken,
                 ParseGroupingEmbeddedExpression(_options), ParseGroupingCloseParen());
 
-        private RegexPositiveLookaheadGroupingNode ParsePositiveLookaheadGrouping(RegexToken openParenToken, RegexToken questionToken)
+        private RegexPositiveLookaheadGroupingNode ParsePositiveLookaheadGrouping(EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken)
             => new RegexPositiveLookaheadGroupingNode(
                 openParenToken, questionToken, _currentToken,
                 ParseGroupingEmbeddedExpression(_options & ~RegexOptions.RightToLeft), ParseGroupingCloseParen());
 
-        private RegexNegativeLookaheadGroupingNode ParseNegativeLookaheadGrouping(RegexToken openParenToken, RegexToken questionToken)
+        private RegexNegativeLookaheadGroupingNode ParseNegativeLookaheadGrouping(EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken)
             => new RegexNegativeLookaheadGroupingNode(
                 openParenToken, questionToken, _currentToken,
                 ParseGroupingEmbeddedExpression(_options & ~RegexOptions.RightToLeft), ParseGroupingCloseParen());
 
-        private RegexNonBacktrackingGroupingNode ParseNonBacktrackingGrouping(RegexToken openParenToken, RegexToken questionToken)
+        private RegexNonBacktrackingGroupingNode ParseNonBacktrackingGrouping(EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken)
             => new RegexNonBacktrackingGroupingNode(
                 openParenToken, questionToken, _currentToken,
                 ParseGroupingEmbeddedExpression(_options), ParseGroupingCloseParen());
 
         private RegexGroupingNode ParseOptionsGroupingNode(
-            RegexToken openParenToken, RegexToken questionToken, RegexToken optionsToken)
+            EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken, EmbeddedSyntaxToken optionsToken)
         {
             // Only (?opts:...) or (?opts) are allowed.  After the opts must be a : or )
             ConsumeCurrentToken(allowTrivia: false);
-            switch (_currentToken.Kind)
+            switch (_currentToken.Kind())
             {
                 case RegexKind.CloseParenToken:
                     // Allow trivia after the options and the next element in the sequence.
@@ -1024,21 +1026,21 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 default:
                     return new RegexSimpleOptionsGroupingNode(
                         openParenToken, questionToken, optionsToken,
-                        RegexToken.CreateMissing(RegexKind.CloseParenToken).AddDiagnosticIfNone(
-                            new RegexDiagnostic(WorkspacesResources.Unrecognized_grouping_construct, GetSpan(openParenToken))));
+                        CreateMissingToken(RegexKind.CloseParenToken).AddDiagnosticIfNone(
+                            new EmbeddedDiagnostic(WorkspacesResources.Unrecognized_grouping_construct, GetSpan(openParenToken))));
             }
         }
 
         private RegexNestedOptionsGroupingNode ParseNestedOptionsGroupingNode(
-            RegexToken openParenToken, RegexToken questionToken, RegexToken optionsToken)
+            EmbeddedSyntaxToken openParenToken, EmbeddedSyntaxToken questionToken, EmbeddedSyntaxToken optionsToken)
             => new RegexNestedOptionsGroupingNode(
                 openParenToken, questionToken, optionsToken, _currentToken,
                 ParseGroupingEmbeddedExpression(GetNewOptionsFromToken(_options, optionsToken)), ParseGroupingCloseParen());
 
-        private static bool IsTextChar(RegexToken currentToken, char ch)
-            => currentToken.Kind == RegexKind.TextToken && currentToken.VirtualChars.Length == 1 && currentToken.VirtualChars[0].Char == ch;
+        private static bool IsTextChar(EmbeddedSyntaxToken currentToken, char ch)
+            => currentToken.Kind() == RegexKind.TextToken && currentToken.VirtualChars.Length == 1 && currentToken.VirtualChars[0].Char == ch;
 
-        private static RegexOptions GetNewOptionsFromToken(RegexOptions currentOptions, RegexToken optionsToken)
+        private static RegexOptions GetNewOptionsFromToken(RegexOptions currentOptions, EmbeddedSyntaxToken optionsToken)
         {
             var copy = currentOptions;
             var on = true;
@@ -1082,13 +1084,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         private RegexBaseCharacterClassNode ParseCharacterClass()
         {
             var openBracketToken = _currentToken;
-            Debug.Assert(openBracketToken.Kind == RegexKind.OpenBracketToken);
-            var caretToken = RegexToken.CreateMissing(RegexKind.CaretToken);
-            var closeBracketToken = RegexToken.CreateMissing(RegexKind.CloseBracketToken);
+            Debug.Assert(openBracketToken.Kind() == RegexKind.OpenBracketToken);
+            var caretToken = CreateMissingToken(RegexKind.CaretToken);
+            var closeBracketToken = CreateMissingToken(RegexKind.CloseBracketToken);
 
             // trivia is not allowed anywhere in a character class
             ConsumeCurrentToken(allowTrivia: false);
-            if (_currentToken.Kind == RegexKind.CaretToken)
+            if (_currentToken.Kind() == RegexKind.CaretToken)
             {
                 caretToken = _currentToken;
             }
@@ -1101,11 +1103,11 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             ConsumeCurrentToken(allowTrivia: false);
 
             var contents = ArrayBuilder<RegexExpressionNode>.GetInstance();
-            while (_currentToken.Kind != RegexKind.EndOfFile)
+            while (_currentToken.Kind() != RegexKind.EndOfFile)
             {
                 Debug.Assert(_currentToken.VirtualChars.Length == 1);
 
-                if (_currentToken.Kind == RegexKind.CloseBracketToken && contents.Count > 0)
+                if (_currentToken.Kind() == RegexKind.CloseBracketToken && contents.Count > 0)
                 {
                     // Allow trivia after the character class, and whatever is next in the sequence.
                     closeBracketToken = ConsumeCurrentToken(allowTrivia: true);
@@ -1118,7 +1120,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             if (closeBracketToken.IsMissing)
             {
-                closeBracketToken = closeBracketToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                closeBracketToken = closeBracketToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     WorkspacesResources.Unterminated_character_class_set,
                     GetTokenStartPositionSpan(_currentToken)));
             }
@@ -1131,8 +1133,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         private void ParseCharacterClassComponents(ArrayBuilder<RegexExpressionNode> components)
         {
             var left = ParseSingleCharacterClassComponent(isFirst: components.Count == 0, afterRangeMinus: false);
-            if (left.Kind == RegexKind.CharacterClassEscape ||
-                left.Kind == RegexKind.CategoryEscape ||
+            if (left.Kind() == RegexKind.CharacterClassEscape ||
+                left.Kind() == RegexKind.CategoryEscape ||
                 IsEscapedMinus(left))
             {
                 // \s or \p{Lu} or \- on the left of a minus doesn't start a range. If there is a following
@@ -1141,12 +1143,12 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 return;
             }
 
-            if (_currentToken.Kind == RegexKind.MinusToken && !_lexer.IsAt("]"))
+            if (_currentToken.Kind() == RegexKind.MinusToken && !_lexer.IsAt("]"))
             {
                 // trivia is not allowed anywhere in a character class
                 var minusToken = ConsumeCurrentToken(allowTrivia: false);
 
-                if (_currentToken.Kind == RegexKind.OpenBracketToken)
+                if (_currentToken.Kind() == RegexKind.OpenBracketToken)
                 {
                     components.Add(left);
                     components.Add(ParseCharacterClassSubtractionNode(minusToken));
@@ -1159,7 +1161,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                         TryGetRangeComponentValue(right, isRight: true, out var rightCh) &&
                         leftCh > rightCh)
                     {
-                        minusToken = minusToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                        minusToken = minusToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                             WorkspacesResources.x_y_range_in_reverse_order,
                             GetSpan(minusToken)));
                     }
@@ -1191,7 +1193,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private bool TryGetRangeComponentValueWorker(RegexNode component, out char ch)
         {
-            switch (component.Kind)
+            switch (component.Kind())
             {
                 case RegexKind.SimpleEscape:
                     ch = ((RegexSimpleEscapeNode)component).TypeToken.VirtualChars[0];
@@ -1264,7 +1266,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return false;
         }
 
-        private char GetCharValue(RegexToken hexText, int withBase)
+        private char GetCharValue(EmbeddedSyntaxToken hexText, int withBase)
         {
             unchecked
             {
@@ -1356,7 +1358,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             var builder = ArrayBuilder<RegexExpressionNode>.GetInstance();
             builder.Add(first);
 
-            while (IsEscapedMinus(builder.Last()) && _currentToken.Kind != RegexKind.CloseBracketToken)
+            while (IsEscapedMinus(builder.Last()) && _currentToken.Kind() != RegexKind.CloseBracketToken)
             {
                 builder.Add(ParseSingleCharacterClassComponent(isFirst: false, afterRangeMinus: true));
             }
@@ -1366,7 +1368,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private RegexPrimaryExpressionNode ParseSingleCharacterClassComponent(bool isFirst, bool afterRangeMinus)
         {
-            if (_currentToken.Kind == RegexKind.BackslashToken && _lexer.Position < _lexer.Text.Length)
+            if (_currentToken.Kind() == RegexKind.BackslashToken && _lexer.Position < _lexer.Text.Length)
             {
                 var backslashToken = _currentToken;
                 var afterSlash = _lexer.Position;
@@ -1385,7 +1387,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     case 'p': case 'P':
                         if (afterRangeMinus)
                         {
-                            backslashToken = backslashToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                            backslashToken = backslashToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                                 string.Format(WorkspacesResources.Cannot_include_class_0_in_character_range, nextChar),
                                 GetSpan(backslashToken, _currentToken)));
                         }
@@ -1409,7 +1411,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             if (!afterRangeMinus &&
                 !isFirst &&
-                _currentToken.Kind == RegexKind.MinusToken &&
+                _currentToken.Kind() == RegexKind.MinusToken &&
                 _lexer.IsAt("["))
             {
                 // have a trailing subtraction.
@@ -1421,7 +1423,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             // From the .net regex code:
             // This is code for Posix style properties - [:Ll:] or [:IsTibetan:].
             // It currently doesn't do anything other than skip the whole thing!
-            if (!afterRangeMinus && _currentToken.Kind == RegexKind.OpenBracketToken && _lexer.IsAt(":"))
+            if (!afterRangeMinus && _currentToken.Kind() == RegexKind.OpenBracketToken && _lexer.IsAt(":"))
             {
                 var beforeBracketPos = _lexer.Position - 1;
                 // trivia is not allowed anywhere in a character class
@@ -1432,7 +1434,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 {
                     _lexer.Position += 2;
                     var textChars = _lexer.GetSubPattern(beforeBracketPos, _lexer.Position);
-                    var token = new RegexToken(RegexKind.TextToken, ImmutableArray<RegexTrivia>.Empty, textChars);
+                    var token = CreateToken(RegexKind.TextToken, ImmutableArray<EmbeddedSyntaxTrivia>.Empty, textChars);
 
                     // trivia is not allowed anywhere in a character class
                     ConsumeCurrentToken(allowTrivia: false);
@@ -1444,7 +1446,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     // trivia is not allowed anywhere in a character class
                     _lexer.Position = beforeBracketPos;
                     ConsumeCurrentToken(allowTrivia: false);
-                    Debug.Assert(_currentToken.Kind == RegexKind.OpenBracketToken);
+                    Debug.Assert(_currentToken.Kind() == RegexKind.OpenBracketToken);
                 }
             }
 
@@ -1453,13 +1455,13 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 ConsumeCurrentToken(allowTrivia: false).With(kind: RegexKind.TextToken));
         }
 
-        private RegexPrimaryExpressionNode ParseCharacterClassSubtractionNode(RegexToken minusToken)
+        private RegexPrimaryExpressionNode ParseCharacterClassSubtractionNode(EmbeddedSyntaxToken minusToken)
         {
             var charClass = ParseCharacterClass();
 
-            if (_currentToken.Kind != RegexKind.CloseBracketToken && _currentToken.Kind != RegexKind.EndOfFile)
+            if (_currentToken.Kind() != RegexKind.CloseBracketToken && _currentToken.Kind() != RegexKind.EndOfFile)
             {
-                minusToken = minusToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                minusToken = minusToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     WorkspacesResources.A_subtraction_must_be_the_last_element_in_a_character_class,
                     GetTokenStartPositionSpan(minusToken)));
             }
@@ -1472,19 +1474,19 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         /// and in character classes.  In a top level sequence trivia will be allowed afterwards,
         /// but in a character class trivia is not allowed afterwards.
         /// </summary>
-        private RegexEscapeNode ParseEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexEscapeNode ParseEscape(EmbeddedSyntaxToken backslashToken, bool allowTriviaAfterEnd)
         {
             Debug.Assert(_lexer.Text[_lexer.Position - 1].Char == '\\');
 
             // No spaces between \ and next char.
             ConsumeCurrentToken(allowTrivia: false);
 
-            if (_currentToken.Kind == RegexKind.EndOfFile)
+            if (_currentToken.Kind() == RegexKind.EndOfFile)
             {
-                backslashToken = backslashToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                backslashToken = backslashToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     WorkspacesResources.Illegal_backslash_at_end_of_pattern,
                     GetSpan(backslashToken)));
-                return new RegexSimpleEscapeNode(backslashToken, RegexToken.CreateMissing(RegexKind.TextToken));
+                return new RegexSimpleEscapeNode(backslashToken, CreateMissingToken(RegexKind.TextToken));
             }
 
             Debug.Assert(_currentToken.VirtualChars.Length == 1);
@@ -1508,19 +1510,19 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return ScanBasicBackslash(backslashToken, allowTriviaAfterEnd);
         }
 
-        private RegexEscapeNode ScanBasicBackslash(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexEscapeNode ScanBasicBackslash(EmbeddedSyntaxToken backslashToken, bool allowTriviaAfterEnd)
         {
             Debug.Assert(_lexer.Text[_lexer.Position - 1].Char == '\\');
 
             // No spaces between \ and next char.
             ConsumeCurrentToken(allowTrivia: false);
 
-            if (_currentToken.Kind == RegexKind.EndOfFile)
+            if (_currentToken.Kind() == RegexKind.EndOfFile)
             {
-                backslashToken = backslashToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                backslashToken = backslashToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     WorkspacesResources.Illegal_backslash_at_end_of_pattern,
                     GetSpan(backslashToken)));
-                return new RegexSimpleEscapeNode(backslashToken, RegexToken.CreateMissing(RegexKind.TextToken));
+                return new RegexSimpleEscapeNode(backslashToken, CreateMissingToken(RegexKind.TextToken));
             }
 
             Debug.Assert(_currentToken.VirtualChars.Length == 1);
@@ -1546,7 +1548,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return ScanCharEscape(backslashToken, allowTriviaAfterEnd);
         }
 
-        private RegexEscapeNode ParsePossibleBackreferenceEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexEscapeNode ParsePossibleBackreferenceEscape(EmbeddedSyntaxToken backslashToken, bool allowTriviaAfterEnd)
         {
             Debug.Assert(_lexer.Text[_lexer.Position - 1] == '\\');
             return HasOption(_options, RegexOptions.ECMAScript)
@@ -1555,7 +1557,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         private RegexEscapeNode ParsePossibleEcmascriptBackreferenceEscape(
-            RegexToken backslashToken, bool allowTriviaAfterEnd)
+            EmbeddedSyntaxToken backslashToken, bool allowTriviaAfterEnd)
         {
             // Small deviation: Ecmascript allows references only to captures that preceed
             // this position (unlike .net which allows references in any direction).  However,
@@ -1588,8 +1590,8 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             if (bestPosition != -1)
             {
-                var numberToken = new RegexToken(
-                    RegexKind.NumberToken, ImmutableArray<RegexTrivia>.Empty, 
+                var numberToken = CreateToken(
+                    RegexKind.NumberToken, ImmutableArray<EmbeddedSyntaxTrivia>.Empty, 
                     _lexer.GetSubPattern(start, bestPosition)).With(value: capVal);
                 ResetToPositionAndConsumeCurrentToken(bestPosition, allowTrivia: allowTriviaAfterEnd);
                 return new RegexBackreferenceEscapeNode(backslashToken, numberToken);
@@ -1600,7 +1602,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         private RegexEscapeNode ParsePossibleRegularBackreferenceEscape(
-            RegexToken backslashToken, bool allowTriviaAfterEnd)
+            EmbeddedSyntaxToken backslashToken, bool allowTriviaAfterEnd)
         {
             Debug.Assert(_lexer.Text[_lexer.Position - 1].Char == '\\');
             var start = _lexer.Position;
@@ -1620,7 +1622,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return ScanCharEscape(backslashToken, allowTriviaAfterEnd);
         }
 
-        private RegexEscapeNode ParsePossibleCaptureEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexEscapeNode ParsePossibleCaptureEscape(EmbeddedSyntaxToken backslashToken, bool allowTriviaAfterEnd)
         {
             Debug.Assert(_lexer.Text[_lexer.Position - 1].Char == '\\');
             Debug.Assert(_lexer.Text[_lexer.Position].Char == '<' ||
@@ -1639,7 +1641,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 backslashToken, openToken, capture, closeToken);
         }
 
-        private RegexEscapeNode ParsePossibleKCaptureEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexEscapeNode ParsePossibleKCaptureEscape(EmbeddedSyntaxToken backslashToken, bool allowTriviaAfterEnd)
         {
             var typeToken = _currentToken;
             var afterBackslashPosition = _lexer.Position - @"k".Length;
@@ -1647,7 +1649,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             ScanCaptureParts(allowTriviaAfterEnd, out var openToken, out var capture, out var closeToken);
             if (openToken.IsMissing)
             {
-                backslashToken = backslashToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                backslashToken = backslashToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     WorkspacesResources.Malformed_named_back_reference,
                     GetSpan(backslashToken, typeToken)));
                 return new RegexSimpleEscapeNode(backslashToken, typeToken.With(kind: RegexKind.TextToken));
@@ -1668,17 +1670,17 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         }
 
         private void ScanCaptureParts(
-            bool allowTriviaAfterEnd, out RegexToken openToken, out RegexToken capture, out RegexToken closeToken)
+            bool allowTriviaAfterEnd, out EmbeddedSyntaxToken openToken, out EmbeddedSyntaxToken capture, out EmbeddedSyntaxToken closeToken)
         {
-            openToken = RegexToken.CreateMissing(RegexKind.LessThanToken);
-            capture = RegexToken.CreateMissing(RegexKind.CaptureNameToken);
-            closeToken = RegexToken.CreateMissing(RegexKind.GreaterThanToken);
+            openToken = CreateMissingToken(RegexKind.LessThanToken);
+            capture = CreateMissingToken(RegexKind.CaptureNameToken);
+            closeToken = CreateMissingToken(RegexKind.GreaterThanToken);
 
             // No trivia allowed in <cap> or 'cap'
             ConsumeCurrentToken(allowTrivia: false);
 
             if (_lexer.Position < _lexer.Text.Length &&
-                (_currentToken.Kind == RegexKind.LessThanToken || _currentToken.Kind == RegexKind.SingleQuoteToken))
+                (_currentToken.Kind() == RegexKind.LessThanToken || _currentToken.Kind() == RegexKind.SingleQuoteToken))
             {
                 openToken = _currentToken;
             }
@@ -1689,23 +1691,23 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             var captureToken = _lexer.TryScanNumberOrCaptureName();
             capture = captureToken == null
-                ? RegexToken.CreateMissing(RegexKind.CaptureNameToken)
+                ? CreateMissingToken(RegexKind.CaptureNameToken)
                 : captureToken.Value;
 
             // No trivia allowed in <cap> or 'cap'
             ConsumeCurrentToken(allowTrivia: false);
-            closeToken = RegexToken.CreateMissing(RegexKind.GreaterThanToken);
+            closeToken = CreateMissingToken(RegexKind.GreaterThanToken);
 
             if (!capture.IsMissing &&
-                ((openToken.Kind == RegexKind.LessThanToken && _currentToken.Kind == RegexKind.GreaterThanToken) ||
-                 (openToken.Kind == RegexKind.SingleQuoteToken && _currentToken.Kind == RegexKind.SingleQuoteToken)))
+                ((openToken.Kind() == RegexKind.LessThanToken && _currentToken.Kind() == RegexKind.GreaterThanToken) ||
+                 (openToken.Kind() == RegexKind.SingleQuoteToken && _currentToken.Kind() == RegexKind.SingleQuoteToken)))
             {
                 CheckCapture(ref capture);
                 closeToken = ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd);
             }
         }
 
-        private RegexEscapeNode ScanCharEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexEscapeNode ScanCharEscape(EmbeddedSyntaxToken backslashToken, bool allowTriviaAfterEnd)
         {
             Debug.Assert(_lexer.Text[_lexer.Position - 1].Char == '\\');
 
@@ -1741,7 +1743,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
                     if (!HasOption(_options, RegexOptions.ECMAScript) && RegexCharClass.IsWordChar(ch))
                     {
-                        typeToken = typeToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                        typeToken = typeToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                             string.Format(WorkspacesResources.Unrecognized_escape_sequence_0, ch.Char),
                             GetSpan(typeToken)));
                     }
@@ -1750,7 +1752,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             }
         }
 
-        private RegexEscapeNode ScanUnicodeEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexEscapeNode ScanUnicodeEscape(EmbeddedSyntaxToken backslashToken, bool allowTriviaAfterEnd)
         {
             var typeToken = _currentToken;
             var hexChars = _lexer.ScanHexCharacters(4);
@@ -1758,7 +1760,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return new RegexUnicodeEscapeNode(backslashToken, typeToken, hexChars);
         }
 
-        private RegexEscapeNode ScanHexEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexEscapeNode ScanHexEscape(EmbeddedSyntaxToken backslashToken, bool allowTriviaAfterEnd)
         {
             var typeToken = _currentToken;
             var hexChars = _lexer.ScanHexCharacters(2);
@@ -1766,17 +1768,17 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return new RegexHexEscapeNode(backslashToken, typeToken, hexChars);
         }
 
-        private RegexControlEscapeNode ScanControlEscape(RegexToken backslashToken, bool allowTriviaAfterEnd)
+        private RegexControlEscapeNode ScanControlEscape(EmbeddedSyntaxToken backslashToken, bool allowTriviaAfterEnd)
         {
             // Nothing allowed between \c and the next char
             var typeToken = ConsumeCurrentToken(allowTrivia: false);
 
-            if (_currentToken.Kind == RegexKind.EndOfFile)
+            if (_currentToken.Kind() == RegexKind.EndOfFile)
             {
-                typeToken = typeToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                typeToken = typeToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     WorkspacesResources.Missing_control_character,
                     GetSpan(typeToken)));
-                return new RegexControlEscapeNode(backslashToken, typeToken, RegexToken.CreateMissing(RegexKind.TextToken));
+                return new RegexControlEscapeNode(backslashToken, typeToken, CreateMissingToken(RegexKind.TextToken));
             }
 
             Debug.Assert(_currentToken.VirtualChars.Length == 1);
@@ -1800,17 +1802,17 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 }
                 else
                 {
-                    typeToken = typeToken.AddDiagnosticIfNone(new RegexDiagnostic(
+                    typeToken = typeToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                         WorkspacesResources.Unrecognized_control_character,
                         GetSpan(_currentToken)));
 
                     // Don't consume the bogus control character.
-                    return new RegexControlEscapeNode(backslashToken, typeToken, RegexToken.CreateMissing(RegexKind.TextToken));
+                    return new RegexControlEscapeNode(backslashToken, typeToken, CreateMissingToken(RegexKind.TextToken));
                 }
             }
         }
 
-        private RegexEscapeNode ParseCategoryEscape(RegexToken backslash, bool allowTriviaAfterEnd)
+        private RegexEscapeNode ParseCategoryEscape(EmbeddedSyntaxToken backslash, bool allowTriviaAfterEnd)
         {
             Debug.Assert(_lexer.Text[_lexer.Position - 1] is var ch && (ch == 'P' || ch == 'p'));
             var typeToken = _currentToken;
@@ -1825,7 +1827,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     out var message))
             {
                 ResetToPositionAndConsumeCurrentToken(start, allowTrivia: allowTriviaAfterEnd);
-                typeToken = typeToken.With(kind: RegexKind.TextToken).AddDiagnosticIfNone(new RegexDiagnostic(
+                typeToken = typeToken.With(kind: RegexKind.TextToken).AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     message, GetSpan(backslash, typeToken)));
                 return new RegexSimpleEscapeNode(backslash, typeToken);
             }
@@ -1835,9 +1837,9 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
         private bool TryGetCategoryEscapeParts(
             bool allowTriviaAfterEnd,
-            out RegexToken openBraceToken,
-            out RegexToken categoryToken,
-            out RegexToken closeBraceToken,
+            out EmbeddedSyntaxToken openBraceToken,
+            out EmbeddedSyntaxToken categoryToken,
+            out EmbeddedSyntaxToken closeBraceToken,
             out string message)
         {
             openBraceToken = default;
@@ -1854,7 +1856,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             // no whitespace in \p{x}
             ConsumeCurrentToken(allowTrivia: false);
 
-            if (_currentToken.Kind != RegexKind.OpenBraceToken)
+            if (_currentToken.Kind() != RegexKind.OpenBraceToken)
             {
                 message = WorkspacesResources.Malformed_character_escape;
                 return false;
@@ -1865,7 +1867,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
 
             // no whitespace in \p{x}
             ConsumeCurrentToken(allowTrivia: false);
-            if (_currentToken.Kind != RegexKind.CloseBraceToken)
+            if (_currentToken.Kind() != RegexKind.CloseBraceToken)
             {
                 message = WorkspacesResources.Incomplete_character_escape;
                 return false;
@@ -1891,18 +1893,18 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return new RegexTextNode(token.With(kind: RegexKind.TextToken));
         }
 
-        private void CheckQuantifierExpression(RegexExpressionNode current, ref RegexToken token)
+        private void CheckQuantifierExpression(RegexExpressionNode current, ref EmbeddedSyntaxToken token)
         {
             if (current == null ||
-                current.Kind == RegexKind.SimpleOptionsGrouping)
+                current.Kind() == RegexKind.SimpleOptionsGrouping)
             {
-                token = token.AddDiagnosticIfNone(new RegexDiagnostic(
+                token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     WorkspacesResources.Quantifier_x_y_following_nothing, GetSpan(token)));
             }
             else if (current is RegexQuantifierNode ||
                      current is RegexLazyQuantifierNode)
             {
-                token = token.AddDiagnosticIfNone(new RegexDiagnostic(
+                token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     string.Format(WorkspacesResources.Nested_quantifier_0, token.VirtualChars.First().Char), GetSpan(token)));
             }
         }
