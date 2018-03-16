@@ -15,5 +15,6 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         public const string Usage = nameof(Usage);
         public const string Exception = nameof(Exception);
         public const string Text = nameof(Text);
+        public const string Captures = nameof(Captures);
     }
 }

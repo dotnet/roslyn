@@ -39,13 +39,13 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             ' Care about the fact that there is no file reference to a.vb
             ' Care about the fact that C1.FooInvisible doesn't include any sequence points
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="C:\abc\def.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="C:\abc\def.vb" language="VB"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -112,14 +112,14 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             ' Care about the fact that C1.FooInvisible doesn't include any sequence points
             ' Care about the fact that there is no file reference to a.vb
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="C:\abc\def.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-        <file id="2" name="C:\abc\def2.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="C:\abc\def.vb" language="VB"/>
+        <file id="2" name="C:\abc\def2.vb" language="VB"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -198,11 +198,11 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="EE, 47, B3, F6, 59, FA,  D, E8, DF, B2, 26, 6A, 7D, 82, D3, 52, 3E,  C, 36, E1, "/>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="EE-47-B3-F6-59-FA-0D-E8-DF-B2-26-6A-7D-82-D3-52-3E-0C-36-E1"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -276,11 +276,11 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="a.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="ff1816ec-aa5e-4d10-87f7-6f4963833460" checkSum="B9, 85, 76, 74, 1E, E7, 27, 25, F7, 8A, CB, A2, B1, 9C, A4, CD, FD, 49, 8C, B7, "/>
+        <file id="1" name="a.vb" language="VB" checksumAlgorithm="SHA1" checksum="B9-85-76-74-1E-E7-27-25-F7-8A-CB-A2-B1-9C-A4-CD-FD-49-8C-B7"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main"/>
     <methods>
@@ -355,7 +355,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             ' Care about the fact that there are no sequence points or referenced files
             compilation.VerifyPdb(
 <symbols>
@@ -413,7 +413,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             ' Care about the fact that C1.FooInvisible and C1.Main include no sequence points
             ' Care about the fact that no files are referenced
             compilation.VerifyPdb(
@@ -495,14 +495,14 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
             ' Care about the fact that InActual.ctor includes no sequence points
             ' Care about the fact that there is no file reference to ACTUAL.vb
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="C:\abc\def1.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
-        <file id="2" name="C:\abc\def2.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a799" checkSum="12, 34, "/>
+        <file id="1" name="C:\abc\def1.vb" language="VB"/>
+        <file id="2" name="C:\abc\def2.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a799" checksum="12-34"/>
     </files>
     <entryPoint declaringType="C1" methodName="Main" parameterNames="args"/>
     <methods>
@@ -570,7 +570,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                                 source,
                                 TestOptions.ReleaseExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_NestedExternalSource, "#ExternalSource(""bar1.vb"", 41)"),
                                                               Diagnostic(ERRID.ERR_EndExternalSource, "#End ExternalSource"))
@@ -595,7 +595,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                                 source,
                                 TestOptions.ReleaseExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_EndExternalSource, "#End ExternalSource"),
                                                               Diagnostic(ERRID.ERR_EndExternalSource, "#End ExternalSource"),
@@ -623,7 +623,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                                 source,
                                 TestOptions.ReleaseExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_EndExternalSource, "#End ExternalSource"),
                                                               Diagnostic(ERRID.ERR_ExpectedEndExternalSource, "#ExternalSource(""bar1.vb"", 23)"),
@@ -647,7 +647,7 @@ End Module
     </file>
 </compilation>
 
-            Dim compilation = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(
                                 source,
                                 TestOptions.ReleaseExe).VerifyDiagnostics(Diagnostic(ERRID.ERR_NestedExternalSource, "#ExternalSource (""bar1.vb"", 23)"))
         End Sub
@@ -697,13 +697,13 @@ End Module
     </file>
     </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(source, TestOptions.DebugExe)
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.DebugExe)
 
             ' Care about the fact that there is no document reference to a.vb
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="C:\abc\def.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd"/>
+        <file id="1" name="C:\abc\def.vb" language="VB"/>
     </files>
     <entryPoint declaringType="Program" methodName="Main"/>
     <methods>
@@ -747,7 +747,7 @@ End Class
     </file>
 </compilation>
 
-            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+            Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
                 source,
                 TestOptions.DebugDll.WithSourceReferenceResolver(SourceFileResolver.Default))
 
@@ -755,7 +755,7 @@ End Class
             compilation.VerifyPdb(
 <symbols>
     <files>
-        <file id="1" name="C:\Folder1\Test2.vb" language="3a12d0b8-c26c-11d0-b442-00a0244a1dd2" languageVendor="994b45c4-e6e9-11d2-903f-00c04fa302a1" documentType="5a869d0b-6611-11d3-bd2a-0000f80849bd" checkSumAlgorithmId="406ea660-64cf-4c82-b6f0-42d48172a799" checkSum="DB, 78, 88, 82, 72, 1B, 2B, 27, C9,  5, 79, D5, FE, 2A,  4, 18, "/>
+        <file id="1" name="C:\Folder1\Test2.vb" language="VB" checksumAlgorithm="406ea660-64cf-4c82-b6f0-42d48172a799" checksum="DB-78-88-82-72-1B-2B-27-C9-05-79-D5-FE-2A-04-18"/>
     </files>
     <methods>
         <method containingType="Test1" name="Main">

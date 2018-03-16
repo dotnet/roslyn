@@ -1666,7 +1666,7 @@ class Program
         // b
         [|System.Console.WriteLine();|]
     }
-}", 
+}",
 @"class C
 {
     void M()
@@ -3755,6 +3755,99 @@ class Program
     private static void NewMethod()
     {
         int i = 10;
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        // dataflow in and out can be false for symbols in unreachable code
+        // boolean indicates 
+        // dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: false, readOutside: false, writtenOutside: true
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task MatrixCase_NoNoYesNoYesNoNoYes()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            [|while (true) ;
+            enumerable.Select(e => """");
+            return enumerable;|]
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            return NewMethod(enumerable);
+        }
+
+        private static IEnumerable<object> NewMethod(IEnumerable<object> enumerable)
+        {
+            while (true) ;
+            enumerable.Select(e => """");
+            return enumerable;
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        // dataflow in and out can be false for symbols in unreachable code
+        // boolean indicates 
+        // dataFlowIn: false, dataFlowOut: false, alwaysAssigned: true, variableDeclared: false, readInside: true, writtenInside: false, readOutside: true, writtenOutside: true
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task MatrixCase_NoNoYesNoYesNoYesYes()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            [|while (true) ;
+            enumerable.Select(e => """");|]
+            return enumerable;
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            enumerable = NewMethod(enumerable);
+            return enumerable;
+        }
+
+        private static IEnumerable<object> NewMethod(IEnumerable<object> enumerable)
+        {
+            while (true) ;
+            enumerable.Select(e => """");
+            return enumerable;
+        }
     }
 }";
 
@@ -10653,6 +10746,192 @@ namespace ClassLibrary9
         private static void NewMethod(int arg)
         {
             arg = arg + 3;
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestUnreachableCodeModifiedInside()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            [|while (true) ;
+            enumerable = null;
+            var i = enumerable.Any();
+            return enumerable;|]
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            return NewMethod(ref enumerable);
+        }
+
+        private static IEnumerable<object> NewMethod(ref IEnumerable<object> enumerable)
+        {
+            while (true) ;
+            enumerable = null;
+            var i = enumerable.Any();
+            return enumerable;
+        }
+    }
+}";
+
+            // allowMovingDeclaration: false is default behavior on VS. 
+            // it doesn't affect result mostly but it does affect for symbols in unreachable code since
+            // data flow in and out for the symbol is always set to false
+            await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestUnreachableCodeModifiedOutside()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            [|while (true) ;
+            var i = enumerable.Any();|]
+            enumerable = null;
+            return enumerable;
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            NewMethod(enumerable);
+            enumerable = null;
+            return enumerable;
+        }
+
+        private static void NewMethod(IEnumerable<object> enumerable)
+        {
+            while (true) ;
+            var i = enumerable.Any();
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestUnreachableCodeModifiedBoth()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            [|while (true) ;
+            enumerable = null;
+            var i = enumerable.Any();|]
+            enumerable = null;
+            return enumerable;
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        IEnumerable<object> Crash0(IEnumerable<object> enumerable)
+        {
+            enumerable = NewMethod(enumerable);
+            enumerable = null;
+            return enumerable;
+        }
+
+        private static IEnumerable<object> NewMethod(IEnumerable<object> enumerable)
+        {
+            while (true) ;
+            enumerable = null;
+            var i = enumerable.Any();
+            return enumerable;
+        }
+    }
+}";
+
+            await TestExtractMethodAsync(code, expected, allowMovingDeclaration: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
+        public async Task TestLocalFunctionParameters()
+        {
+            var code = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        public void Bar(int value)
+        {
+            void Local(int value2)
+            {
+                [|Bar(value, value2);|]
+            }
+        }
+    }
+}";
+
+            var expected = @"using System.Collections.Generic;
+using System.Linq;
+
+namespace ConsoleApp1
+{
+    class Test
+    {
+        public void Bar(int value)
+        {
+            void Local(int value2)
+            {
+                NewMethod(value, value2);
+            }
+        }
+
+        private void NewMethod(int value, int value2)
+        {
+            Bar(value, value2);
         }
     }
 }";

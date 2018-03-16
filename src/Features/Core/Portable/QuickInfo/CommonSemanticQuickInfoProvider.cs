@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             // Linked files/shared projects: imagine the following when GOO is false
             // #if GOO
             // int x = 3;
-            // #endif 
+            // #endif
             // var y = x$$;
             //
             // 'x' will bind as an error type, so we'll show incorrect information.
@@ -240,6 +240,11 @@ namespace Microsoft.CodeAnalysis.QuickInfo
                 AddSection(QuickInfoSectionKinds.Exception, exceptionsText);
             }
 
+            if (TryGetGroupText(SymbolDescriptionGroups.Captures, out var capturesText))
+            {
+                AddSection(QuickInfoSectionKinds.Captures, capturesText);
+            }
+
             var tags = ImmutableArray<string>.Empty;
             if (showSymbolGlyph)
             {
@@ -291,14 +296,26 @@ namespace Microsoft.CodeAnalysis.QuickInfo
             return default;
         }
 
+        protected abstract bool GetBindableNodeForTokenIndicatingLambda(SyntaxToken token, out SyntaxNode found);
+
         private async Task<(SemanticModel semanticModel, ImmutableArray<ISymbol> symbols)> BindTokenAsync(
             Document document, SyntaxToken token, CancellationToken cancellationToken)
         {
-            var semanticModel = await document.GetSemanticModelForNodeAsync(token.Parent, cancellationToken).ConfigureAwait(false);
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var enclosingType = semanticModel.GetEnclosingNamedType(token.SpanStart, cancellationToken);
 
-            var symbols = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken)
-                                       .GetSymbols(includeType: true);
+            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
+
+            ImmutableArray<ISymbol> symbols;
+            if (GetBindableNodeForTokenIndicatingLambda(token, out SyntaxNode lambdaSyntax))
+            {
+                symbols = ImmutableArray.Create(semanticModel.GetSymbolInfo(lambdaSyntax).Symbol);
+            }
+            else
+            {
+                symbols = semanticModel.GetSemanticInfo(token, document.Project.Solution.Workspace, cancellationToken)
+                    .GetSymbols(includeType: true);
+            }
 
             var bindableParent = document.GetLanguageService<ISyntaxFactsService>().GetBindableParent(token);
             var overloads = semanticModel.GetMemberGroup(bindableParent, cancellationToken);
@@ -320,7 +337,6 @@ namespace Microsoft.CodeAnalysis.QuickInfo
 
             // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
             // least bind it to a type.
-            var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
             if (syntaxFacts.IsOperator(token))
             {
                 var typeInfo = semanticModel.GetTypeInfo(token.Parent, cancellationToken);
@@ -334,9 +350,7 @@ namespace Microsoft.CodeAnalysis.QuickInfo
         }
 
         private static bool IsOk(ISymbol symbol)
-            => symbol != null
-                && !symbol.IsErrorType()
-                && !symbol.IsAnonymousFunction();
+            => symbol != null && !symbol.IsErrorType();
 
         private static bool IsAccessible(ISymbol symbol, INamedTypeSymbol within)
             => within == null

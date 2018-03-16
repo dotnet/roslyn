@@ -127,7 +127,7 @@ then
     dotnet publish "${root_path}"/src/Compilers/CSharp/csc -o "${bootstrap_path}/bincore" --framework ${bootstrap_framework} ${bootstrap_build_args} "/bl:${binaries_path}/BootstrapCsc.binlog"
     dotnet publish "${root_path}"/src/Compilers/VisualBasic/vbc -o "${bootstrap_path}/bincore" --framework ${bootstrap_framework} ${bootstrap_build_args} "/bl:${binaries_path}/BootstrapVbc.binlog"
     dotnet publish "${root_path}"/src/Compilers/Server/VBCSCompiler -o "${bootstrap_path}/bincore" --framework ${bootstrap_framework} ${bootstrap_build_args} "/bl:${binaries_path}/BootstrapVBCSCompiler.binlog"
-    dotnet publish "${root_path}"/src/Compilers/Core/MSBuildTask -o "${bootstrap_path}" ${bootstrap_build_args} "/bl:${binaries_path}/BoostrapMSBuildTask.binlog"
+    dotnet publish "${root_path}"/src/Compilers/Core/MSBuildTask -o "${bootstrap_path}" --framework ${bootstrap_framework} ${bootstrap_build_args} "/bl:${binaries_path}/BoostrapMSBuildTask.binlog"
 fi
 
 if [[ "${use_bootstrap}" == true ]]

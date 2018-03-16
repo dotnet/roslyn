@@ -87,6 +87,15 @@ namespace Microsoft.CodeAnalysis.CodeGen
             EmitToken(initializeArray, syntaxNode, diagnostics);
         }
 
+        internal void EmitArrayBlockFieldRef(ImmutableArray<byte> data, ITypeSymbol elementType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
+        {
+            // map a field to the block (that makes it addressable)
+            var field = module.GetFieldForData(data, syntaxNode, diagnostics);
+
+            EmitOpCode(ILOpCode.Ldsflda);       
+            EmitToken(field, syntaxNode, diagnostics);
+        }
+
         /// <summary>
         /// Mark current IL position with a label
         /// </summary>

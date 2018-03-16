@@ -28,6 +28,7 @@ param (
     [switch]$sign = $false,
     [switch]$pack = $false,
     [switch]$binaryLog = $false,
+    [switch]$noAnalyzers = $false,
     [string]$signType = "",
 
     # Test options 
@@ -134,7 +135,12 @@ function Run-MSBuild([string]$projectFilePath, [string]$buildArgs = "", [string]
     if ($parallel) {
         $args += " /m"
     }
-    
+
+    if ($noAnalyzers -or ($cibuild -and $testVsi)) {
+        # Avoid spending time in analyzers when requested, and also in the slowest integration test builds
+        $args += " /p:UseRoslynAnalyzers=false"
+    }
+
     if ($binaryLog) {
         if ($logFileName -eq "") { 
             $logFileName = [IO.Path]::GetFileNameWithoutExtension($projectFilePath)
@@ -190,7 +196,7 @@ function Make-BootstrapBuild() {
         Exec-Console "dotnet" "publish --no-restore src/Compilers/CSharp/csc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapCsc.binlog"
         Exec-Console "dotnet" "publish --no-restore src/Compilers/VisualBasic/vbc -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapVbc.binlog"
         Exec-Console "dotnet" "publish --no-restore src/Compilers/Server/VBCSCompiler -o `"$dir/bincore`" --framework $bootstrapFramework $bootstrapArgs -bl:$logDir/BootstrapVBCSCompiler.binlog"
-        Exec-Console "dotnet" "publish --no-restore src/Compilers/Core/MSBuildTask -o `"$dir`" $bootstrapArgs -bl:$binariesDir/BootstrapMSBuildTask.binlog"
+        Exec-Console "dotnet" "publish --no-restore src/Compilers/Core/MSBuildTask -o `"$dir`" --framework $bootstrapFramework $bootstrapArgs -bl:$binariesDir/BootstrapMSBuildTask.binlog"
         Stop-BuildProcesses
     }
     else {
@@ -240,6 +246,7 @@ function Build-Artifacts() {
 # finish building these before we can run signing.
 function Build-ExtraSignArtifacts() { 
 
+    Ensure-NuGet | Out-Null
     Push-Location (Join-Path $repoDir "src\Setup")
     try {
         # Publish the CoreClr projects (CscCore and VbcCore) and dependencies for later NuGet packaging.
@@ -250,10 +257,9 @@ function Build-ExtraSignArtifacts() {
         Write-Host "Publishing VBCSCompiler"
         Run-MSBuild "..\Compilers\Server\VBCSCompiler\VBCSCompiler.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
         Write-Host "Publishing MSBuildTask"
-        Run-MSBuild "..\Compilers\Core\MSBuildTask\MSBuildTask.csproj" "/p:TargetFramework=netstandard1.3 /t:PublishWithoutBuilding"
+        Run-MSBuild "..\Compilers\Core\MSBuildTask\MSBuildTask.csproj" "/p:TargetFramework=netcoreapp2.0 /t:PublishWithoutBuilding"
 
-        $dest = @(
-            $configDir)
+        $dest = @($configDir)
         foreach ($dir in $dest) { 
             Copy-Item "PowerShell\*.ps1" $dir
         }
@@ -409,6 +415,10 @@ function Test-XUnitCoreClr() {
             $args += " $xunitConsole"
             $args += " $dllPath"
             $args += " -xml " + (Join-Path $logDir ([IO.Path]::ChangeExtension($dllName, ".xml")))
+
+            # https://github.com/dotnet/roslyn/issues/25049
+            # Disable parallel runs everywhere until we get assembly specific settings working again
+            $args += " -parallel none"
 
             try {
                 Write-Host "Running $dllName"
@@ -588,6 +598,7 @@ function Ensure-ProcDump() {
 function Redirect-Temp() {
     $temp = Join-Path $binariesDir "Temp"
     Create-Directory $temp
+    Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\.editorconfig") $temp
     Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.props") $temp
     Copy-Item (Join-Path $repoDir "src\Workspaces\CoreTestUtilities\TestFiles\Directory.Build.targets") $temp
     ${env:TEMP} = $temp

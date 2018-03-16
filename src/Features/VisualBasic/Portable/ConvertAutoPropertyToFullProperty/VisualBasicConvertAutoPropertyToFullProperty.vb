@@ -21,6 +21,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ConvertAutoPropertyToFullProperty
                 Return Nothing
             End If
 
+            ' see whether property is on right place
+            If TypeOf containingProperty.Parent IsNot TypeBlockSyntax Then
+                Return Nothing
+            End If
+
             Dim start = If(containingProperty.AttributeLists.Count > 0,
                 containingProperty.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart,
                 containingProperty.SpanStart)

@@ -11,6 +11,7 @@ Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds
 Microsoft.CodeAnalysis.QuickInfo.QuickInfoService
 Microsoft.CodeAnalysis.QuickInfo.QuickInfoService.QuickInfoService() -> void
 const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.AnonymousTypes = "AnonymousTypes" -> string
+const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.Captures = "Captures" -> string
 const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.Description = "Description" -> string
 const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.DocumentationComments = "DocumentationComments" -> string
 const Microsoft.CodeAnalysis.QuickInfo.QuickInfoSectionKinds.Exception = "Exception" -> string

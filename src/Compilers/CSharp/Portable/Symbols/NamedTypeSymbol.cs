@@ -1209,7 +1209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// True if the type is serializable (has Serializable metadata flag).
         /// </summary>
-        internal abstract bool IsSerializable { get; }
+        public abstract bool IsSerializable { get; }
 
         /// <summary>
         /// Type layout information (ClassLayout metadata and layout kind flags).

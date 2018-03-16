@@ -1335,7 +1335,7 @@ class C
     }
 }
 ";
-            string expectedOperationTree = @"
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, @"
 IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'c.Goo<short>(d, d)')
   Children(3):
       IOperation:  (OperationKind.None, Type: null, IsInvalid) (Syntax: 'c.Goo<short>')
@@ -1343,14 +1343,22 @@ IInvalidOperation (OperationKind.Invalid, Type: ?, IsInvalid) (Syntax: 'c.Goo<sh
             IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C, IsInvalid) (Syntax: 'c')
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic, IsInvalid) (Syntax: 'd')
       IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic, IsInvalid) (Syntax: 'd')
-";
-            var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C.Goo<T>(int, int)'
-                //         /*<bind>*/c.Goo<short>(d, d)/*</bind>*/;
+", new DiagnosticDescription[] {
+                // file.cs(15,19): error CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C.Goo<T>(int, int)'
+                //         /*<bind>*/c.Goo<short>(d, d)/*</bind>*/; // Doesn't constraints of generic overloads.
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "c.Goo<short>(d, d)").WithArguments("C.Goo<T>(int, int)", "T", "short").WithLocation(15, 19)
-            };
-
-            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
+            }, parseOptions: TestOptions.WithoutImprovedOverloadCandidates);
+            VerifyOperationTreeAndDiagnosticsForTest<InvocationExpressionSyntax>(source, @"
+IInvalidOperation (OperationKind.Invalid, Type: System.Void, IsInvalid) (Syntax: 'c.Goo<short>(d, d)')
+  Children(3):
+      IParameterReferenceOperation: c (OperationKind.ParameterReference, Type: C) (Syntax: 'c')
+      IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
+      IParameterReferenceOperation: d (OperationKind.ParameterReference, Type: dynamic) (Syntax: 'd')
+", new DiagnosticDescription[] {
+                // file.cs(15,21): error CS0452: The type 'short' must be a reference type in order to use it as parameter 'T' in the generic type or method 'C.Goo<T>(int, int)'
+                //         /*<bind>*/c.Goo<short>(d, d)/*</bind>*/; // Doesn't constraints of generic overloads.
+                Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "Goo<short>").WithArguments("C.Goo<T>(int, int)", "T", "short").WithLocation(15, 21)
+            });
         }
 
         [CompilerTrait(CompilerFeature.IOperation)]
@@ -1638,9 +1646,9 @@ class Program
 }
 ";
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
-                // (8,9): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'Program.Goo<T>(int, T)'. 
-                // There is no boxing conversion from 'int' to 'System.Collections.IEnumerable'.
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "Goo<int>((dynamic)1, 1)").WithArguments("Program.Goo<T>(int, T)", "System.Collections.IEnumerable", "T", "int"));
+                // (8,9): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'Program.Goo<T>(int, T)'. There is no boxing conversion from 'int' to 'System.Collections.IEnumerable'.
+                //         Goo<int>((dynamic)1, 1);
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "Goo<int>").WithArguments("Program.Goo<T>(int, T)", "System.Collections.IEnumerable", "T", "int").WithLocation(8, 9));
         }
 
         [Fact]
@@ -1713,7 +1721,8 @@ class C
 ";
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (13,9): error CS0453: The type 'string' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'C.F<T>(T, X<T>)'
-                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<string>(d, null)").WithArguments("C.F<T>(T, X<T>)", "T", "string"));
+                //         F<string>(d, null);
+                Diagnostic(ErrorCode.ERR_ValConstraintNotSatisfied, "F<string>").WithArguments("C.F<T>(T, X<T>)", "T", "string").WithLocation(13, 9));
         }
 
         [Fact]
@@ -1732,7 +1741,8 @@ public class C
 }";
             CreateCompilationWithMscorlib40AndSystemCore(source).VerifyDiagnostics(
                 // (9,3): error CS0315: The type 'int' cannot be used as type parameter 'T' in the generic type or method 'C.F<T>(string, params T[])'. There is no boxing conversion from 'int' to 'C'.
-                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "F<int>(d, 1, 2)").WithArguments("C.F<T>(string, params T[])", "C", "T", "int"));
+                // 		F<int>(d, 1, 2);
+                Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "F<int>").WithArguments("C.F<T>(string, params T[])", "C", "T", "int").WithLocation(9, 3));
         }
 
         [Fact]
@@ -2678,7 +2688,7 @@ class Program
     static void Goo<T>(ref T x) { }
 }
 ";
-            CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef });
+            CompileAndVerify(source, targetFramework: TargetFramework.StandardAndCSharp);
         }
 
         #endregion
@@ -3758,7 +3768,7 @@ class Test
             compilation1.VerifyDiagnostics(
                 // (11,18): error CS0120: An object reference is required for the non-static field, method, or property '_Worksheet.MRange(object, object)'
                 //         var z2 = Worksheet.MRange(x, y);
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "Worksheet.MRange(x, y)").WithArguments("Microsoft.Office.Interop.Excel._Worksheet.MRange(object, object)").WithLocation(11, 18)
+                Diagnostic(ErrorCode.ERR_ObjectRequired, "Worksheet.MRange").WithArguments("Microsoft.Office.Interop.Excel._Worksheet.MRange(object, object)").WithLocation(11, 18)
                 );
 
             string consumer2 = @"

@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Retargeting
                         </file>
                     </compilation>
 
-                Dim compilation1 = CreateCompilationWithReferences(source, {OldMsCorLib})
+                Dim compilation1 = CreateEmptyCompilationWithReferences(source, {OldMsCorLib})
                 c1 = New VisualBasicCompilationReference(compilation1)
                 Dim c1Assembly = compilation1.Assembly
 
@@ -263,8 +263,8 @@ End Class
 
             Dim source2 = <compilation><file></file></compilation>
 
-            Dim c1 = CreateCompilationWithReferences(source1, {OldMsCorLib})
-            Dim c2 = CreateCompilationWithReferences(source2, {NewMsCorLib, New VisualBasicCompilationReference(c1)})
+            Dim c1 = CreateEmptyCompilationWithReferences(source1, {OldMsCorLib})
+            Dim c2 = CreateEmptyCompilationWithReferences(source2, {NewMsCorLib, New VisualBasicCompilationReference(c1)})
 
             Dim c = c2.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
             Assert.IsType(Of RetargetingNamedTypeSymbol)(c)

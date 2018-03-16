@@ -169,7 +169,12 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
             Workspace.CleanUpWaitingService();
             Workspace.CleanUpWorkspace();
             SolutionExplorer.CleanUpOpenSolution();
+
+            // Close any windows leftover from previous (failed) tests
             InteractiveWindow.CloseInteractiveWindow();
+            ChangeSignatureDialog.CloseWindow();
+            GenerateTypeDialog.CloseWindow();
+            ExtractInterfaceDialog.CloseWindow();
         }
 
         public void Close(bool exitHostProcess = true)

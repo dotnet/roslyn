@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MissingArgument = 839,
         //ERR_AutoPropertiesMustHaveBothAccessors = 840,
         ERR_VariableUsedBeforeDeclaration = 841,
-        ERR_ExplicitLayoutAndAutoImplementedProperty = 842,
+        //ERR_ExplicitLayoutAndAutoImplementedProperty = 842,
         ERR_UnassignedThisAutoProperty = 843,
         ERR_VariableUsedBeforeDeclarationAndHidesField = 844,
         ERR_ExpressionTreeContainsBadCoalesce = 845,
@@ -1431,7 +1431,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         #endregion diagnostics for ref locals and ref returns introduced in C# 7
 
         #region stragglers for C# 7
-        ERR_PredefinedValueTupleTypeNotFound = 8179,
+        ERR_PredefinedValueTupleTypeNotFound = 8179, // We need a specific error code for ValueTuple as an IDE codefix depends on it (AddNuget)
         ERR_SemiOrLBraceOrArrowExpected = 8180,
         ERR_NewWithTupleTypeSyntax = 8181,
         ERR_PredefinedValueTupleTypeMustBeStruct = 8182,
@@ -1543,7 +1543,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         ERR_PredefinedValueTupleTypeAmbiguous3 = 8356,
         ERR_InvalidVersionFormatDeterministic = 8357,
-
         ERR_AttributeCtorInParameter = 8358,
 
         #region diagnostics for FilterIsConstant warning message fix
@@ -1555,5 +1554,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_CantUseVoidInArglist = 8362,
         ERR_DefaultInPattern = 8363,
         ERR_InDynamicMethodArg = 8364,
+
+        ERR_FeatureNotAvailableInVersion7_3 = 8370,
+        WRN_AttributesOnBackingFieldsNotAvailable = 8371,
+        ERR_DoNotUseFixedBufferAttrOnProperty = 8372,
+        ERR_RefLocalOrParamExpected = 8373,
+        ERR_RefAssignNarrower = 8374,
+
+        ERR_NewBoundWithUnmanaged = 8375,
+        ERR_UnmanagedConstraintMustBeFirst = 8376,
+        ERR_UnmanagedConstraintNotSatisfied = 8377,
+        ERR_UnmanagedConstraintWithLocalFunctions = 8378,
+        ERR_ConWithUnmanagedCon = 8379,
+
+        ERR_UnmanagedBoundWithClass = 8380,
+
+        // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }
 }

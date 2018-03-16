@@ -1680,7 +1680,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // byref assignment is also a potential write
             if (node.IsRef)
             {
-                WriteArgument(node.Right, node.Left.GetRefKind(), method: null);
+                // Assume that BadExpression is a ref location to avoid
+                // cascading diagnostics
+                var refKind = node.Left.Kind == BoundKind.BadExpression
+                    ? RefKind.Ref
+                    : node.Left.GetRefKind();
+                WriteArgument(node.Right, refKind, method: null);
             }
 
             return null;
@@ -2610,9 +2615,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitConditionalGoto(BoundConditionalGoto node)
         {
-            VisitRvalue(node.Condition);
-            Debug.Assert(!this.IsConditionalState);
-            _pendingBranches.Add(new PendingBranch(node, this.State));
+            VisitCondition(node.Condition);
+            Debug.Assert(this.IsConditionalState);
+            if (node.JumpIfTrue)
+            {
+                _pendingBranches.Add(new PendingBranch(node, this.StateWhenTrue));
+                this.SetState(this.StateWhenFalse);
+            }
+            else
+            {
+                _pendingBranches.Add(new PendingBranch(node, this.StateWhenFalse));
+                this.SetState(this.StateWhenTrue);
+            }
+
             return null;
         }
 
