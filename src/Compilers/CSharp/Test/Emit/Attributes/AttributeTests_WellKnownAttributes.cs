@@ -9110,9 +9110,9 @@ public class C
         }
 
         [Fact]
-        public void AnonymousTypeTemplateSymbolNeverSkipsLocalsInit()
+        public void AnonymousTypeTemplateSymbolDelegatesToModuleWhenSkipLocalsInitAttributeIsNotFound()
         {
-            var source = @"
+            var source_init = @"
 namespace System.Runtime.CompilerServices
 {
     public class SkipLocalsInitAttribute : System.Attribute
@@ -9130,17 +9130,43 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source);
+            var source_skip = @"
+[module: System.Runtime.CompilerServices.SkipLocalsInitAttribute]
 
-            Assert.Null(comp.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.GetHashCode"));
-            Assert.Null(comp.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>..ctor"));
-            Assert.True(comp.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.Equals"));
-            Assert.True(comp.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.ToString"));
-            Assert.Null(comp.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.Value.get"));
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    public void M()
+    {
+        var anon = new { Value = 1 };
+    }
+}
+";
+
+            var comp_init = CompileAndVerify(source_init);
+            var comp_skip = CompileAndVerify(source_skip, verify: Verification.Fails);
+
+            Assert.Null(comp_init.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.GetHashCode"));
+            Assert.Null(comp_init.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>..ctor"));
+            Assert.True(comp_init.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.Equals"));
+            Assert.True(comp_init.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.ToString"));
+            Assert.Null(comp_init.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.Value.get"));
+
+            Assert.Null(comp_skip.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.GetHashCode"));
+            Assert.Null(comp_skip.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>..ctor"));
+            Assert.False(comp_skip.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.Equals"));
+            Assert.False(comp_skip.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.ToString"));
+            Assert.Null(comp_skip.HasLocalsInit("<>f__AnonymousType0<<Value>j__TPar>.Value.get"));
         }
 
         [Fact]
-        public void SynthesizedClosureEnvironmentNeverSkipsLocalsInit()
+        public void SynthesizedClosureEnvironmentDelegatesToTypeWhenSkipLocalsInitAttributeIsNotFound()
         {
             var source = @"
 namespace System.Runtime.CompilerServices
@@ -9150,7 +9176,18 @@ namespace System.Runtime.CompilerServices
     }
 }
 
-public class C
+public class C_init
+{
+    [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+    public void M()
+    {
+        int x = 1;
+        System.Action L = () => x = x + x + x;
+    }
+}
+
+[System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+public class C_skip
 {
     [System.Runtime.CompilerServices.SkipLocalsInitAttribute]
     public void M()
@@ -9163,15 +9200,15 @@ public class C
 
             var comp = CompileAndVerify(source);
 
-            Assert.Null(comp.HasLocalsInit("C.<>c__DisplayClass0_0..ctor"));
+            Assert.Null(comp.HasLocalsInit("C_init.<>c__DisplayClass0_0..ctor"));
+
+            Assert.Null(comp.HasLocalsInit("C_skip.<>c__DisplayClass0_0..ctor"));
         }
 
         [Fact]
-        public void SynthesizedEmbeddedAttributeSymbolNeverSkipsLocalsInit()
+        public void SynthesizedEmbeddedAttributeSymbolDelegatesToModuleWhenSkipLocalsInitAttributeIsNotFound()
         {
-            var source = @"
-using System;
-
+            var source_init = @"
 namespace System.Runtime.CompilerServices
 {
     public class SkipLocalsInitAttribute : System.Attribute
@@ -9188,10 +9225,33 @@ public class C
 }
 ";
 
-            var comp = CompileAndVerify(source);
+            var source_skip = @"
+[module: System.Runtime.CompilerServices.SkipLocalsInitAttribute]
 
-            Assert.Null(comp.HasLocalsInit("Microsoft.CodeAnalysis.EmbeddedAttribute..ctor"));
-            Assert.Null(comp.HasLocalsInit("System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor"));
+namespace System.Runtime.CompilerServices
+{
+    public class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+public class C
+{
+    public void M(in int x)
+    {
+    }
+}
+";
+
+
+            var comp_init = CompileAndVerify(source_init);
+            var comp_skip = CompileAndVerify(source_skip);
+
+            Assert.Null(comp_init.HasLocalsInit("Microsoft.CodeAnalysis.EmbeddedAttribute..ctor"));
+            Assert.Null(comp_init.HasLocalsInit("System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor"));
+
+            Assert.Null(comp_skip.HasLocalsInit("Microsoft.CodeAnalysis.EmbeddedAttribute..ctor"));
+            Assert.Null(comp_skip.HasLocalsInit("System.Runtime.CompilerServices.IsReadOnlyAttribute..ctor"));
         }
 
         [Fact]
@@ -9895,6 +9955,34 @@ public class C_skip
 
             Assert.True(comp.HasLocalsInit("C_init.C.M"));
             Assert.False(comp.HasLocalsInit("C_skip.C.M"));
+        }
+
+        [Fact]
+        public void SkipLocalsInitAttributeOnModule()
+        {
+            var source = @"
+[module: System.Runtime.CompilerServices.SkipLocalsInitAttribute]
+
+namespace System.Runtime.CompilerServices
+{
+    class SkipLocalsInitAttribute : System.Attribute
+    {
+    }
+}
+
+class C
+{
+    void M()
+    {
+        int x = 1;
+        x = x + x + x;
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, verify: Verification.Fails);
+
+            Assert.False(comp.HasLocalsInit("C.M"));
         }
 
         #endregion
