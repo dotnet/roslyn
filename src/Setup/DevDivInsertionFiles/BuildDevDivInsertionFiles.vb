@@ -144,7 +144,6 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.VisualStudio.LanguageServices.dll",
         "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
         "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
-        "Microsoft.VisualStudio.Platform.VSEditor.Interop.dll",
         "Roslyn.Compilers.Test.Resources.dll",
         "Roslyn.Hosting.Diagnostics.dll",
         "Roslyn.Test.PdbUtilities.dll"
@@ -289,7 +288,6 @@ Public Class BuildDevDivInsertionFiles
         "Microsoft.VisualStudio.LanguageServices.Implementation.dll",
         "Microsoft.VisualStudio.LanguageServices.SolutionExplorer.dll",
         "Microsoft.VisualStudio.LanguageServices.VisualBasic.dll",
-        "Microsoft.VisualStudio.Platform.VSEditor.Interop.dll",
         "Moq.dll",
         "csc.exe",
         "csc.exe.config",
@@ -840,7 +838,6 @@ Public Class BuildDevDivInsertionFiles
         add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.dll")
         add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.Native.amd64.dll")
         add("UnitTests\CSharpCompilerEmitTest\net461\Microsoft.DiaSymReader.Native.x86.dll")
-        add("UnitTests\EditorServicesTest\Microsoft.VisualStudio.Platform.VSEditor.Interop.dll")
         add("Vsix\ExpressionEvaluatorPackage\Microsoft.VisualStudio.Debugger.Engine.dll")
         add("Vsix\VisualStudioIntegrationTestSetup\Microsoft.Diagnostics.Runtime.dll")
         add("Exes\Toolset\System.AppContext.dll")
