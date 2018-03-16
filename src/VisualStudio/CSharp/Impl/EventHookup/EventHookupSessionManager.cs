@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 var textRuns = texts.Select(s => new ClassifiedTextRun(ClassificationTypeNames.Identifier, s));
                 var content = new[] { new ClassifiedTextElement(textRuns) };
 
-                _toolTipPresenter.StartOrUpdate(analyzedSession.TrackingSpan, content);
+                // use string[] for now to unblock tests
+                _toolTipPresenter.StartOrUpdate(analyzedSession.TrackingSpan, texts);
 
                 // For test purposes only!
                 TEST_MostRecentToolTipContent = content;
