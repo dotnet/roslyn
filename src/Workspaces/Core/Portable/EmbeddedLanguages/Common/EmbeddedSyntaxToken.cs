@@ -18,25 +18,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             TSyntaxKind kind,
             ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> leadingTrivia,
             ImmutableArray<VirtualChar> virtualChars,
-            ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> trailingTrivia)
-            : this(kind, leadingTrivia, virtualChars, trailingTrivia, ImmutableArray<EmbeddedDiagnostic>.Empty)
-        {
-        }
-
-        public EmbeddedSyntaxToken(
-            TSyntaxKind kind,
-            ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> leadingTrivia,
-            ImmutableArray<VirtualChar> virtualChars,
-            ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> trailingTrivia,
-            ImmutableArray<EmbeddedDiagnostic> diagnostics)
-            : this(kind, leadingTrivia, virtualChars, trailingTrivia, diagnostics, value: null)
-        {
-        }
-
-        public EmbeddedSyntaxToken(
-            TSyntaxKind kind,
-            ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> leadingTrivia,
-            ImmutableArray<VirtualChar> virtualChars,
             ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> trailingTrivia,
             ImmutableArray<EmbeddedDiagnostic> diagnostics, object value)
         {
@@ -47,9 +28,6 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             Diagnostics = diagnostics;
             Value = value;
         }
-
-        public static EmbeddedSyntaxToken<TSyntaxKind> CreateMissing(TSyntaxKind kind)
-            => new EmbeddedSyntaxToken<TSyntaxKind>(kind, ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>>.Empty, ImmutableArray<VirtualChar>.Empty, ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>>.Empty);
 
         public bool IsMissing => VirtualChars.IsEmpty;
 
