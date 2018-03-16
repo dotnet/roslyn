@@ -5,28 +5,26 @@ using System.Collections.Immutable;
 namespace Microsoft.CodeAnalysis.Operations
 {
     /// <summary>
-    /// Represents an initializer for a field, property, parameter or a local variable declaration.
+    /// Represents a constructor method body operation.
     /// <para>
     /// Current usage:
-    ///  (1) C# field, property, parameter or local variable initializer.
-    ///  (2) VB field(s), property, parameter or local variable initializer.
+    ///  (1) C# method body for constructor declaration
     /// </para>
     /// </summary>
     /// <remarks>
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    public interface ISymbolInitializerOperation : IOperation
+    public interface IConstructorBodyOperation : IMethodBodyBaseOperation
     {
         /// <summary>
-        /// Local declared in and scoped to the <see cref="Value"/>.
+        /// Local declarations contained within the <see cref="Initializer"/>.
         /// </summary>
         ImmutableArray<ILocalSymbol> Locals { get; }
 
         /// <summary>
-        /// Underlying initializer value.
+        /// Constructor initializer, if any
         /// </summary>
-        IOperation Value { get; }
+        IOperation Initializer { get; }
     }
 }
-

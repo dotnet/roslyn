@@ -1210,6 +1210,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 Unindent();
             }
 
+            LogLocals(operation.Locals);
             base.VisitFieldInitializer(operation);
         }
 
@@ -1217,7 +1218,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         {
             LogString(nameof(IVariableInitializerOperation));
             LogCommonPropertiesAndNewLine(operation);
-
+            Assert.Empty(operation.Locals);
             base.VisitVariableInitializer(operation);
         }
 
@@ -1251,7 +1252,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 Unindent();
             }
-            
+
+            LogLocals(operation.Locals);
             base.VisitPropertyInitializer(operation);
         }
 
@@ -1262,6 +1264,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             LogString(")");
             LogCommonPropertiesAndNewLine(operation);
 
+            LogLocals(operation.Locals);
             base.VisitParameterInitializer(operation);
         }
 
@@ -1552,6 +1555,25 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
             Visit(operation.EventReference, header: "Event Reference");
             VisitArguments(operation.Arguments);
+        }
+
+        public override void VisitConstructorBodyOperation(IConstructorBodyOperation operation)
+        {
+            LogString(nameof(IConstructorBodyOperation));
+            LogCommonPropertiesAndNewLine(operation);
+
+            LogLocals(operation.Locals);
+            Visit(operation.Initializer, "Initializer");
+            Visit(operation.BlockBody, "BlockBody");
+            Visit(operation.ExpressionBody, "ExpressionBody");
+        }
+
+        public override void VisitMethodBodyOperation(IMethodBodyOperation operation)
+        {
+            LogString(nameof(IMethodBodyOperation));
+            LogCommonPropertiesAndNewLine(operation);
+            Visit(operation.BlockBody, "BlockBody");
+            Visit(operation.ExpressionBody, "ExpressionBody");
         }
 
         #endregion
