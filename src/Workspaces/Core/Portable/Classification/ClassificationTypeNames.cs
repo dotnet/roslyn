@@ -59,14 +59,5 @@ namespace Microsoft.CodeAnalysis.Classification
         public const string XmlLiteralName = "xml literal - name";
         public const string XmlLiteralProcessingInstruction = "xml literal - processing instruction";
         public const string XmlLiteralText = "xml literal - text";
-
-        internal const string RegexComment = "regex - comment";
-        internal const string RegexText = "regex - text";
-        internal const string RegexCharacterClass = "regex - character class";
-        internal const string RegexQuantifier = "regex - quantifier";
-        internal const string RegexAnchor = "regex - anchor";
-        internal const string RegexAlternation = "regex - alternation";
-        internal const string RegexEscape = "regex - escape";
-        internal const string RegexGrouping = "regex - grouping";
     }
 }

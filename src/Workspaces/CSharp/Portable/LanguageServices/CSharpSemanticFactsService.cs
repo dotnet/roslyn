@@ -296,8 +296,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SpecializedCollections.SingletonEnumerable(
                 semanticModel.GetDeclaredSymbol(memberDeclaration, cancellationToken));
         }
-
-        public IParameterSymbol FindParameterForArgument(SemanticModel semanticModel, SyntaxNode argumentNode, CancellationToken cancellationToken)
-            => ((ArgumentSyntax)argumentNode).DetermineParameter(semanticModel, allowParams: false, cancellationToken);
     }
 }

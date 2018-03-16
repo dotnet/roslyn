@@ -21,7 +21,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Classification.Classifiers
         private static readonly Func<ITypeSymbol, bool> s_shouldInclude = t => t.TypeKind != TypeKind.Error && t.GetArity() > 0;
 
         public override void AddClassifications(
-            Workspace workspace,
             SyntaxToken lessThanToken,
             SemanticModel semanticModel,
             ArrayBuilder<ClassifiedSpan> result,
