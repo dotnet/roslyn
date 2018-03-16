@@ -431,5 +431,67 @@ struct S
     public new bool Equals(S s) => true;
 }", parseOptions: s_parseOptions);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestNotInSwitchCase()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case [||]default(bool):
+        }
+    }
+}", s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestNotInSwitchCase_InsideParentheses()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case ([||]default(bool)):
+        }
+    }
+}", s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestInSwitchCase_InsideCast()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case (bool)[||]default(bool):
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case (bool)[||]default:
+        }
+    }
+}", parameters: s_testParameters);
+        }
     }
 }

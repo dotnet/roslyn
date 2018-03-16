@@ -11,7 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
     internal static class DefaultExpressionSyntaxExtensions
     {
-        private static readonly LiteralExpressionSyntax s_defaultLiteralExpression = SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression);
+        private static readonly LiteralExpressionSyntax s_defaultLiteralExpression =
+            SyntaxFactory.LiteralExpression(SyntaxKind.DefaultLiteralExpression);
 
         public static bool CanReplaceWithDefaultLiteral(
             this DefaultExpressionSyntax defaultExpression,
@@ -26,13 +27,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
+            if (defaultExpression.WalkUpParentheses().IsParentKind(SyntaxKind.CaseSwitchLabel))
+            {
+                return false;
+            }
+
             // Using the speculation analyzer can be slow.  Check for common cases first before
             // trying the expensive path.
             return CanReplaceWithDefaultLiteralFast(defaultExpression, semanticModel, cancellationToken) ??
                    CanReplaceWithDefaultLiteralSlow(defaultExpression, semanticModel, cancellationToken);
         }
 
-        private static bool? CanReplaceWithDefaultLiteralFast(DefaultExpressionSyntax defaultExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static bool? CanReplaceWithDefaultLiteralFast(
+            DefaultExpressionSyntax defaultExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             if (defaultExpression.IsParentKind(SyntaxKind.EqualsValueClause))
             {
@@ -79,7 +86,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return null;
         }
 
-        private static bool CanReplaceWithDefaultLiteralSlow(DefaultExpressionSyntax defaultExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
+        private static bool CanReplaceWithDefaultLiteralSlow(
+            DefaultExpressionSyntax defaultExpression, SemanticModel semanticModel, CancellationToken cancellationToken)
         {
             var speculationAnalyzer = new SpeculationAnalyzer(
                 defaultExpression, s_defaultLiteralExpression, semanticModel,
