@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             {
                 token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     string.Format(WorkspacesResources.Unknown_property_0, category),
-                    GetSpan(token)));
+                    token.GetSpan()));
             }
 
             return token;
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
             {
                 token = token.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     WorkspacesResources.Capture_group_numbers_must_be_less_than_or_equal_to_Int32_MaxValue,
-                    GetSpan(token)));
+                    token.GetSpan()));
             }
 
             return token;
