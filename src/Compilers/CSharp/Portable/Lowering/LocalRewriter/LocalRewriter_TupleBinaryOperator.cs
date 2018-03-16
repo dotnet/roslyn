@@ -123,8 +123,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             //
             // Note: all the temps are created in a single bucket (rather than different scopes of applicability) for simplicity
 
-            // PROTOTYPE(tuple-equality) Consider if optimizations from TrivialLiftedComparisonOperatorOptimizations can be applied
-
             var outerEffects = ArrayBuilder<BoundExpression>.GetInstance();
             var innerEffects = ArrayBuilder<BoundExpression>.GetInstance();
 
@@ -132,7 +130,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression leftValue;
 
             // Note: left and right are either temps or `null`, so we don't have detailed information to tell us a nullable always has a value
-            // PROTOTYPE(tuple-equality) We could save this information when the temps are created
             var isLeftNullable = left.Kind != BoundKind.TupleLiteral && left.Type.IsNullableType();
             if (isLeftNullable)
             {
@@ -304,7 +301,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundLiteral(left.Syntax, ConstantValue.Create(operatorKind == BinaryOperatorKind.Equal), boolType);
             }
 
-            // PROTOTYPE(tuple-equality) checked
             // We leave both operands in nullable-null conversions unconverted, MakeBinaryOperator has special for null-literal
             bool isNullableNullConversion = single.Kind.OperandTypes() == BinaryOperatorKind.NullableNull;
             BoundExpression convertedLeft = isNullableNullConversion

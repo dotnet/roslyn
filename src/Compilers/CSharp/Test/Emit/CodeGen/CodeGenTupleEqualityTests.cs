@@ -588,7 +588,7 @@ struct S
 }");
         }
 
-        [Fact]
+        [Fact, WorkItem(25488, "https://github.com/dotnet/roslyn/issues/25488")]
         public void TestThisStruct()
         {
             var source = @"
@@ -614,7 +614,10 @@ public struct S
     public static bool operator==(S s1, S s2) { System.Console.Write($""{s1.I} == {s2.I}, ""); return s1.I == s2.I; }
     public static bool operator!=(S s1, S s2) { throw null; }
 }";
-            // PROTOTYPE(tuple-equality) We need to create a temp for `this`, otherwise it gets mutated
+
+            // https://github.com/dotnet/roslyn/issues/25488
+            // We need to create a temp for `this`, otherwise it gets mutated
+
             var comp = CompileAndVerify(source, expectedOutput: "2 == 1, False");
             //comp.VerifyDiagnostics();
         }
@@ -646,6 +649,8 @@ class C
             var symbol2 = model.GetTypeInfo(tuple2);
             Assert.Equal("(System.String, System.Int32)", symbol2.Type.ToTestDisplayString());
             Assert.Equal("(System.String, System.Int64)", symbol2.ConvertedType.ToTestDisplayString());
+            Assert.False(model.GetConstantValue(tuple2).HasValue);
+            Assert.Equal(1, model.GetConstantValue(tuple2.Arguments[1].Expression).Value);
         }
 
         [Fact]
@@ -1147,6 +1152,28 @@ class C
         }
 
         [Fact]
+        public void TestNullsAndDefaults()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        _ = (null, default) != (default, null);
+    }
+}";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0034: Operator '!=' is ambiguous on operands of type '<null>' and 'default'
+                //         _ = (null, default) != (default, null);
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(null, default) != (default, null)").WithArguments("!=", "<null>", "default").WithLocation(6, 13),
+                // (6,13): error CS0034: Operator '!=' is ambiguous on operands of type 'default' and '<null>'
+                //         _ = (null, default) != (default, null);
+                Diagnostic(ErrorCode.ERR_AmbigBinaryOps, "(null, default) != (default, null)").WithArguments("!=", "default", "<null>").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
         public void TestAllDefaults_Nested()
         {
             var source = @"
@@ -1575,6 +1602,28 @@ class C
         }
 
         [Fact]
+        public void TestVoidTypeElement()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.Console.Write((Main(), null) != (null, Main()));
+    }
+}";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,31): error CS8210: A tuple may not contain a value of type 'void'.
+                //         System.Console.Write((Main(), null) != (null, Main()));
+                Diagnostic(ErrorCode.ERR_VoidInTuple, "Main()").WithLocation(6, 31),
+                // (6,55): error CS8210: A tuple may not contain a value of type 'void'.
+                //         System.Console.Write((Main(), null) != (null, Main()));
+                Diagnostic(ErrorCode.ERR_VoidInTuple, "Main()").WithLocation(6, 55)
+                );
+        }
+
+        [Fact]
         public void TestFailedConversion()
         {
             var source = @"
@@ -1628,7 +1677,7 @@ public class C
         System.Console.Write($""{(d1, 20) != (10, d2)} "");
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True False False True");
         }
@@ -1644,7 +1693,7 @@ public class C
         System.Console.Write($""{((dynamic)true, (dynamic)false) == ((dynamic)true, (dynamic)false)} "");
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
         }
@@ -1662,7 +1711,7 @@ public class C
         System.Console.Write((d1, 2) == (() => 1, d2));
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (8,30): error CS0019: Operator '==' cannot be applied to operands of type 'dynamic' and 'lambda expression'
                 //         System.Console.Write((d1, 2) == (() => 1, d2));
@@ -1682,7 +1731,7 @@ public class C
         System.Console.Write(((dynamic)true, (dynamic)false) != (true, false));
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueFalse");
         }
@@ -1715,7 +1764,7 @@ public class C
         }
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Operator '==' cannot be applied to operands of type 'int' and 'string'");
         }
@@ -1733,7 +1782,7 @@ public class C
         System.Console.Write((d1, null) == (null, d2));
     }
 }";
-            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
 
@@ -2024,7 +2073,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, references: new[] { CSharpRef, SystemCoreRef });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput:
@@ -2071,7 +2120,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, references: new[] { CSharpRef, SystemCoreRef });
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput:
@@ -2703,6 +2752,32 @@ class C
                 // (10,35): error CS0165: Use of unassigned local variable 'error2'
                 //         System.Console.Write((1, (error2, 3)) == (1, (2, 3)));
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "error2").WithArguments("error2").WithLocation(10, 35)
+                );
+        }
+
+        [Fact]
+        public void TestDefiniteAssignment2()
+        {
+            var source = @"
+class C
+{
+    int M(out int x)
+    {
+        _ = (M(out int y), y) == (1, 2); // ok
+        _ = (z, M(out int z)) == (1, 2); // error
+        x = 1;
+        return 2;
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (7,14): error CS0841: Cannot use local variable 'z' before it is declared
+                //         _ = (z, M(out int z)) == (1, 2); // error
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "z").WithArguments("z").WithLocation(7, 14),
+                // (7,13): error CS0019: Operator '==' cannot be applied to operands of type 'var' and 'int'
+                //         _ = (z, M(out int z)) == (1, 2); // error
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(z, M(out int z)) == (1, 2)").WithArguments("==", "var", "int").WithLocation(7, 13)
                 );
         }
 
@@ -3805,7 +3880,7 @@ public class NotBool
             void validate(string expression, string expected)
             {
                 var comp = CreateCompilation(source.Replace("REPLACE", expression),
-                    references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+                    targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
 
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: expected);
@@ -3909,7 +3984,7 @@ public class NotBool : NotBoolBase
             void validate(string expression, string expected)
             {
                 var comp = CreateCompilation(source.Replace("REPLACE", expression),
-                    references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+                    targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
 
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: expected);
@@ -4372,7 +4447,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True False False True");
         }
@@ -4412,7 +4487,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilation(source, references: new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugExe);
+            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput:
@@ -4532,6 +4607,267 @@ public class C
             Assert.Null(rightTupleInfo.Type);
             Assert.Equal("(System.String, (System.Int64, System.Byte))", rightTupleInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(rightTuple).Kind);
+        }
+
+        [Fact]
+        public void TestGenericElement()
+        {
+            var source = @"
+public class C
+{
+    public void M<T>(T t)
+    {
+        _ = (t, t) == (t, t);
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,13): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'T'
+                //         _ = (t, t) == (t, t);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(t, t) == (t, t)").WithArguments("==", "T", "T").WithLocation(6, 13),
+                // (6,13): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'T'
+                //         _ = (t, t) == (t, t);
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(t, t) == (t, t)").WithArguments("==", "T", "T").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
+        public void TestNameofEquality()
+        {
+            var source = @"
+public class C
+{
+    public void M()
+    {
+        _ = nameof((1, 2) == (3, 4));
+    }
+}
+";
+
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (6,20): error CS8081: Expression does not have a name.
+                //         _ = nameof((1, 2) == (3, 4));
+                Diagnostic(ErrorCode.ERR_ExpressionHasNoName, "(1, 2) == (3, 4)").WithLocation(6, 20)
+                );
+        }
+
+        [Fact]
+        public void TestAsRefOrOutArgument()
+        {
+            var source = @"
+public class C
+{
+    public void M(ref bool x, out bool y)
+    {
+        x = true;
+        y = true;
+        M(ref (1, 2) == (3, 4), out (1, 2) == (3, 4));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (8,15): error CS1510: A ref or out value must be an assignable variable
+                //         M(ref (1, 2) == (3, 4), out (1, 2) == (3, 4));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(1, 2) == (3, 4)").WithLocation(8, 15),
+                // (8,37): error CS1510: A ref or out value must be an assignable variable
+                //         M(ref (1, 2) == (3, 4), out (1, 2) == (3, 4));
+                Diagnostic(ErrorCode.ERR_RefLvalueExpected, "(1, 2) == (3, 4)").WithLocation(8, 37)
+                );
+        }
+
+        [Fact]
+        public void TestWithAnonymousTypes()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        var a = new { A = 1 };
+        var b = new { B = 2 };
+        var c = new { A = 1 };
+        var d = new { B = 2 };
+
+        System.Console.Write((a, b) == (a, b));
+        System.Console.Write((a, b) == (c, d));
+        System.Console.Write((a, b) != (c, d));
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "TrueFalseTrue");
+        }
+
+        [Fact]
+        public void TestWithAnonymousTypes2()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        var a = new { A = 1 };
+        var b = new { B = 2 };
+
+        System.Console.Write((a, b) == (b, a));
+    }
+}
+";
+            var comp = CreateCompilation(source);
+            comp.VerifyDiagnostics(
+                // (9,30): error CS0019: Operator '==' cannot be applied to operands of type '<anonymous type: int A>' and '<anonymous type: int B>'
+                //         System.Console.Write((a, b) == (b, a));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(a, b) == (b, a)").WithArguments("==", "<anonymous type: int A>", "<anonymous type: int B>").WithLocation(9, 30),
+                // (9,30): error CS0019: Operator '==' cannot be applied to operands of type '<anonymous type: int B>' and '<anonymous type: int A>'
+                //         System.Console.Write((a, b) == (b, a));
+                Diagnostic(ErrorCode.ERR_BadBinaryOps, "(a, b) == (b, a)").WithArguments("==", "<anonymous type: int B>", "<anonymous type: int A>").WithLocation(9, 30)
+                );
+        }
+
+        [Fact]
+        public void TestRefReturningElements()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        System.Console.Write((P, S()) == (1, ""hello""));
+    }
+    public static int p = 1;
+    public static ref int P => ref p;
+    public static string s = ""hello"";
+    public static ref string S() => ref s;
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "True");
+        }
+
+        [Fact]
+        public void TestChecked()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        try
+        {
+            checked
+            {
+                int ten = 10;
+                System.Console.Write((2147483647 + ten, 1) == (0, 1));
+            }
+        }
+        catch (System.OverflowException)
+        {
+            System.Console.Write(""overflow"");
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "overflow");
+        }
+
+        [Fact]
+        public void TestUnchecked()
+        {
+            var source = @"
+public class C
+{
+    public static void Main()
+    {
+        unchecked
+        {
+            int ten = 10;
+            System.Console.Write((2147483647 + ten, 1) == (-2147483639, 1));
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "True");
+        }
+
+        [Fact]
+        public void TestInQuery()
+        {
+            var source = @"
+using System.Linq;
+public class C
+{
+    public static void Main()
+    {
+        var query =
+            from a in new int[] { 1, 2, 2}
+            where (a, 2) == (2, a)
+            select a;
+
+        foreach (var i in query)
+        {
+            System.Console.Write(i);
+        }
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "22");
+        }
+
+        [Fact]
+        public void TestWithPointer()
+        {
+            var source = @"
+public class C
+{
+    public unsafe static void M()
+    {
+        int x = 234;
+        int y = 236;
+        int* p1 = &x;
+        int* p2 = &y;
+        _ = (p1, p2) == (p1, p2);
+    }
+}
+";
+            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            comp.VerifyDiagnostics(
+                // (10,14): error CS0306: The type 'int*' may not be used as a type argument
+                //         _ = (p1, p2) == (p1, p2);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "p1").WithArguments("int*").WithLocation(10, 14),
+                // (10,18): error CS0306: The type 'int*' may not be used as a type argument
+                //         _ = (p1, p2) == (p1, p2);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "p2").WithArguments("int*").WithLocation(10, 18),
+                // (10,26): error CS0306: The type 'int*' may not be used as a type argument
+                //         _ = (p1, p2) == (p1, p2);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "p1").WithArguments("int*").WithLocation(10, 26),
+                // (10,30): error CS0306: The type 'int*' may not be used as a type argument
+                //         _ = (p1, p2) == (p1, p2);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "p2").WithArguments("int*").WithLocation(10, 30),
+                // (10,14): error CS0306: The type 'void*' may not be used as a type argument
+                //         _ = (p1, p2) == (p1, p2);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "p1").WithArguments("void*").WithLocation(10, 14),
+                // (10,18): error CS0306: The type 'void*' may not be used as a type argument
+                //         _ = (p1, p2) == (p1, p2);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "p2").WithArguments("void*").WithLocation(10, 18),
+                // (10,26): error CS0306: The type 'void*' may not be used as a type argument
+                //         _ = (p1, p2) == (p1, p2);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "p1").WithArguments("void*").WithLocation(10, 26),
+                // (10,30): error CS0306: The type 'void*' may not be used as a type argument
+                //         _ = (p1, p2) == (p1, p2);
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "p2").WithArguments("void*").WithLocation(10, 30)
+                );
         }
     }
 }
