@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return _underlyingType.MarshallingCharSet; }
         }
 
-        internal override bool IsSerializable
+        public override bool IsSerializable
         {
             get { return _underlyingType.IsSerializable; }
         }

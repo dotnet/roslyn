@@ -4,17 +4,17 @@
     <body>
       <trans-unit id="Downloading_index_failed">
         <source>Downloading index failed</source>
-        <target state="new">Downloading index failed</target>
+        <target state="translated">Échec du téléchargement de l'index</target>
         <note />
       </trans-unit>
       <trans-unit id="Downloading_index_failed_0">
         <source>Downloading index failed:{0}</source>
-        <target state="new">Downloading index failed:{0}</target>
+        <target state="translated">Échec du téléchargement de l'index : {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Downloading_IntelliSense_index_for_0">
         <source>Downloading IntelliSense index for {0}</source>
-        <target state="new">Downloading IntelliSense index for {0}</target>
+        <target state="translated">Téléchargement de l'index IntelliSense pour {0}</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_Comment">
@@ -23,8 +23,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Regex_Character_class">
-        <source>Regex - Chraracter class</source>
-        <target state="new">Regex - Chraracter class</target>
+        <source>Regex - Character class</source>
+        <target state="new">Regex - Character class</target>
         <note />
       </trans-unit>
       <trans-unit id="Regex_Quantifier">

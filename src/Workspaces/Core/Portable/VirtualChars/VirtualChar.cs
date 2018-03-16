@@ -6,16 +6,16 @@ using Microsoft.CodeAnalysis.Text;
 namespace Microsoft.CodeAnalysis.VirtualChars
 {
     /// <summary>
-    /// The Regex parser wants to work over an array of characters, however this array of characters
-    /// is not the same as the array of characters a user types into a string in C# or VB.  For example
-    /// In C# someone may write: @"\z".  This should appear to the user the same as if they wrote "\\z"
-    /// and the same as "\\\u007a".  However, as these all have wildly different presentations for the
-    /// user, there needs to be a way to map back the characters it sees ( '\' and 'z' ) back to the 
-    /// ranges of characters the user wrote.  
+    /// The Regex and Json parsers wants to work over an array of characters, however this array of 
+    /// characters is not the same as the array of characters a user types into a string in C# or VB.
+    /// For example In C# someone may write: @"\z".  This should appear to the user the same as if 
+    /// they wrote "\\z" and the same as "\\\u007a".  However, as these all have wildly different
+    /// presentations for the user, there needs to be a way to map back the characters it sees 
+    /// ( '\' and 'z' ) back to the  ranges of characters the user wrote.  
     /// 
     /// VirtualChar serves this purpose.  It contains the interpretted value of any language character/
     /// character-escape-sequence, as well as the original SourceText span where that interpretted 
-    /// character was created from.  This allows the regex engine to both process regexes from any
+    /// character was created from.  This allows the regex and json parsers to both process input from any
     /// language uniformly, but then also produce trees and diagnostics that map back properly to
     /// the original source text locations that make sense to the user.
     /// </summary>

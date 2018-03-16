@@ -263,6 +263,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Analyzing &apos;{0}&apos;.
+        /// </summary>
+        internal static string Analyzing_0 {
+            get {
+                return ResourceManager.GetString("Analyzing_0", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Applying remove suppressions fix....
         /// </summary>
         internal static string Applying_remove_suppressions_fix {
@@ -481,6 +490,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files..
+        /// </summary>
+        internal static string Code_style_header_use_editor_config {
+            get {
+                return ResourceManager.GetString("Code_style_header_use_editor_config", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to prefer auto properties.
         /// </summary>
         internal static string codegen_prefer_auto_properties {
@@ -695,6 +713,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Determining_current_block {
             get {
                 return ResourceManager.GetString("Determining_current_block", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Disabling the extension &apos;{0}&apos; unbound your keyboard bindings..
+        /// </summary>
+        internal static string Disabling_the_extension_0_unbound_your_keyboard_bindings {
+            get {
+                return ResourceManager.GetString("Disabling_the_extension_0_unbound_your_keyboard_bindings", resourceCulture);
             }
         }
         
@@ -1254,6 +1281,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Live code analysis.
+        /// </summary>
+        internal static string Live_code_analysis {
+            get {
+                return ResourceManager.GetString("Live_code_analysis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Location:.
         /// </summary>
         internal static string Location_colon {
@@ -1777,7 +1813,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefere local function over anonymous function.
+        ///   Looks up a localized string similar to Prefer local function over anonymous function.
         /// </summary>
         internal static string Prefer_local_function_over_anonymous_function {
             get {
@@ -2689,16 +2725,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor..
-        /// </summary>
-        internal static string We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor {
-            get {
-                return ResourceManager.GetString("We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_" +
-                        "continue_to_navigate_and_refactor", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to When generating properties:.
         /// </summary>
         internal static string When_generating_properties {
@@ -2749,15 +2775,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string You_must_select_at_least_one_member {
             get {
                 return ResourceManager.GetString("You_must_select_at_least_one_member", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Your keybindings are no longer mapped to Visual Studio commands..
-        /// </summary>
-        internal static string Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands {
-            get {
-                return ResourceManager.GetString("Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands", resourceCulture);
             }
         }
     }

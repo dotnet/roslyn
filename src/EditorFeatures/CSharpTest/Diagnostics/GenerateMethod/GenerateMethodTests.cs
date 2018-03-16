@@ -4095,42 +4095,47 @@ class A
 new TestParameters(Options.Regular));
         }
 
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("new()")]
+        [InlineData("unmanaged")]
         [WorkItem(542529, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542529")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public async Task TestTypeParameterConstraints1()
+        [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestTypeParameterConstraints(string constraint)
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+$@"using System;
 
-class A<T> where T : class
-{
-}
+class A<T> where T : {constraint}
+{{
+}}
 
 class Program
-{
-    static void Goo<T>(A<T> x) where T : class
-    {
+{{
+    static void Goo<T>(A<T> x) where T : {constraint}
+    {{
         [|Bar|](x);
-    }
-}",
-@"using System;
+    }}
+}}",
+$@"using System;
 
-class A<T> where T : class
-{
-}
+class A<T> where T : {constraint}
+{{
+}}
 
 class Program
-{
-    static void Goo<T>(A<T> x) where T : class
-    {
+{{
+    static void Goo<T>(A<T> x) where T : {constraint}
+    {{
         Bar(x);
-    }
+    }}
 
-    private static void Bar<T>(A<T> x) where T : class
-    {
+    private static void Bar<T>(A<T> x) where T : {constraint}
+    {{
         throw new NotImplementedException();
-    }
-}");
+    }}
+}}");
         }
 
         [WorkItem(542622, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542622")]
@@ -4165,42 +4170,47 @@ class Program
 }");
         }
 
+        [Theory]
+        [InlineData("class")]
+        [InlineData("struct")]
+        [InlineData("new()")]
+        [InlineData("unmanaged")]
         [WorkItem(542626, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542626")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public async Task TestMethodConstraints1()
+        [Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestMethodConstraints(string constraint)
         {
             await TestInRegularAndScriptAsync(
-@"using System;
+$@"using System;
 
-class A<T> where T : class
-{
-}
+class A<T> where T : {constraint}
+{{
+}}
 
 class Program
-{
-    static void Goo<T>(A<T> x) where T : class
-    {
+{{
+    static void Goo<T>(A<T> x) where T : {constraint}
+    {{
         [|Bar<T>|](x);
-    }
-}",
-@"using System;
+    }}
+}}",
+$@"using System;
 
-class A<T> where T : class
-{
-}
+class A<T> where T : {constraint}
+{{
+}}
 
 class Program
-{
-    static void Goo<T>(A<T> x) where T : class
-    {
+{{
+    static void Goo<T>(A<T> x) where T : {constraint}
+    {{
         Bar<T>(x);
-    }
+    }}
 
-    private static void Bar<T>(A<T> x) where T : class
-    {
+    private static void Bar<T>(A<T> x) where T : {constraint}
+    {{
         throw new NotImplementedException();
-    }
-}");
+    }}
+}}");
         }
 
         [WorkItem(542627, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542627")]
@@ -7441,6 +7451,68 @@ class C
     }
 }",
 parseOptions: TestOptions.Regular);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
+        public async Task TestTupleAssignment()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Main()
+    {
+        int x, y;
+        (x, y) = [|Foo()|];
+    }
+}",
+@"using System;
+
+class C
+{
+    void Main()
+    {
+        int x, y;
+        (x, y) = Foo();
+    }
+
+    private (int x, int y) Foo()
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(25305, "https://github.com/dotnet/roslyn/issues/25305")]
+        public async Task TestTupleAssignment2()
+        {
+            await TestInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Main()
+    {
+        (x, y) = [|Foo()|];
+    }
+}",
+@"using System;
+
+class C
+{
+    void Main()
+    {
+        (x, y) = Foo();
+    }
+
+    private (object x, object y) Foo()
+    {
+        throw new NotImplementedException();
+    }
+}");
         }
     }
 }

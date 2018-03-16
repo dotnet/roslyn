@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
@@ -31,6 +29,7 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
         protected abstract void AnalyzeCompilationUnit(SemanticModelAnalysisContext context, SyntaxNode root, List<AnalysisResult> analysisResults);
         protected abstract bool SupportsReadOnlyProperties(Compilation compilation);
         protected abstract bool SupportsPropertyInitializer(Compilation compilation);
+        protected abstract bool CanExplicitInterfaceImplementationsBeFixed();
         protected abstract TExpression GetFieldInitializer(TVariableDeclarator variable, CancellationToken cancellationToken);
         protected abstract TExpression GetGetterExpression(IMethodSymbol getMethod, CancellationToken cancellationToken);
         protected abstract TExpression GetSetterExpression(IMethodSymbol setMethod, SemanticModel semanticModel, CancellationToken cancellationToken);
@@ -109,6 +108,11 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
 
             // Need at least a getter.
             if (property.GetMethod == null)
+            {
+                return;
+            }
+
+            if (!CanExplicitInterfaceImplementationsBeFixed() && property.ExplicitInterfaceImplementations.Length != 0)
             {
                 return;
             }
@@ -212,10 +216,18 @@ namespace Microsoft.CodeAnalysis.UseAutoProperty
                 return;
             }
 
+            if (!CanConvert(property))
+            {
+                return;
+            }
+
             // Looks like a viable property/field to convert into an auto property.
             analysisResults.Add(new AnalysisResult(property, getterField, propertyDeclaration, fieldDeclaration, variableDeclarator,
                 property.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)));
         }
+
+        protected virtual bool CanConvert(IPropertySymbol property)
+            => true;
 
         private IFieldSymbol GetSetterField(
             SemanticModel semanticModel, ISymbol containingType, IMethodSymbol setMethod, CancellationToken cancellationToken)

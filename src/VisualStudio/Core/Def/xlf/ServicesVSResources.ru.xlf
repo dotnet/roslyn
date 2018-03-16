@@ -1398,8 +1398,8 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
-        <target state="translated">Предпочитать локальную функцию анонимной функции</target>
+        <source>Prefer local function over anonymous function</source>
+        <target state="translated">Предпочитать анонимной функции локальную</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_deconstructed_variable_declaration">
@@ -1455,16 +1455,6 @@ Additional information: {1}</source>
       <trans-unit id="Use_Keybindings_for_extensions">
         <source>Use keybindings for ReSharper/IntelliJ/Vim/etc.</source>
         <target state="translated">Используйте настраиваемые сочетания клавиш для ReSharper, IntelliJ, Vim и т. д.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="translated">Ваши настраиваемые сочетания клавиш больше не сопоставлены с командами Visual Studio.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="translated">Мы обратили внимание, что вы перестали использовать "ReSharper Ultimate". Восстановите настраиваемые сочетания клавиш Visual Studio, чтобы возобновить навигацию и рефакторинг.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
@@ -1536,6 +1526,26 @@ I agree to all of the foregoing:</source>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
         <target state="new">Report invalid JSON strings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
+        <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
+        <target state="translated">Отключение расширения "{0}" удалит привязки клавиш.</target>
+        <note>0 is an extension name</note>
+      </trans-unit>
+      <trans-unit id="Code_style_header_use_editor_config">
+        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
+        <target state="translated">Заданные здесь параметры применяются только на вашем компьютере. Чтобы привязать параметры к решению, используйте EDITORCONFIG-файлы.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_code_analysis">
+        <source>Live code analysis</source>
+        <target state="translated">Динамический анализ кода</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzing_0">
+        <source>Analyzing '{0}'</source>
+        <target state="translated">Выполняется анализ "{0}"</target>
         <note />
       </trans-unit>
     </body>

@@ -1398,7 +1398,7 @@ Pro aktuální řešení je povolené zjednodušené načtení řešení. Jeho z
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
+        <source>Prefer local function over anonymous function</source>
         <target state="translated">Preferovat lokální funkci před anonymní funkcí</target>
         <note />
       </trans-unit>
@@ -1455,16 +1455,6 @@ Pro aktuální řešení je povolené zjednodušené načtení řešení. Jeho z
       <trans-unit id="Use_Keybindings_for_extensions">
         <source>Use keybindings for ReSharper/IntelliJ/Vim/etc.</source>
         <target state="translated">Použijte vazby kláves pro ReSharper/IntelliJ/Vim/etc.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands">
-        <source>Your keybindings are no longer mapped to Visual Studio commands.</source>
-        <target state="translated">Vaše vazby kláves už nejsou namapované na příkazy sady Visual Studio.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor">
-        <source>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</source>
-        <target state="translated">Všimli jsme si, že jste pozastavili ReSharper Ultimate. Pokud chcete pokračovat v navigaci a refaktoringu, obnovte vazby kláves pro Visual Studio.</target>
         <note />
       </trans-unit>
       <trans-unit id="Enable_navigation_to_decompiled_sources">
@@ -1536,6 +1526,26 @@ Souhlasím se všemi výše uvedenými podmínkami:</target>
       <trans-unit id="Report_invalid_JSON_strings">
         <source>Report invalid JSON strings</source>
         <target state="new">Report invalid JSON strings</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
+        <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
+        <target state="translated">Zakázání rozšíření {0} uvolnilo klávesové zkratky.</target>
+        <note>0 is an extension name</note>
+      </trans-unit>
+      <trans-unit id="Code_style_header_use_editor_config">
+        <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
+        <target state="translated">Nastavení nakonfigurovaná zde platí pouze pro váš počítač. Pokud je chcete nakonfigurovat tak, aby byla součástí vašeho řešení a přecházela mezi zařízeními, použijte soubory .editorconfig.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_code_analysis">
+        <source>Live code analysis</source>
+        <target state="translated">Dynamická analýza kódu</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzing_0">
+        <source>Analyzing '{0}'</source>
+        <target state="translated">Analyzuje se {0}.</target>
         <note />
       </trans-unit>
     </body>

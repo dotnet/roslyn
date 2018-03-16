@@ -229,6 +229,75 @@ public class Program
                 index: 1);
         }
 
+#region C# 7.3
+        [Fact]
+        public async Task UpgradeProjectFromCSharp7_3ToLatest()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Program
+{
+#error version:[|7.3|]
+}",
+                LanguageVersion.Latest,
+                new CSharpParseOptions(LanguageVersion.CSharp7_2));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectFromCSharp7_2ToLatest_TriggeredByAttributeOnBackingField()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class A : System.Attribute { }
+class Program
+{
+    [|[field: A]|]
+    int P { get; set; }
+}",
+                LanguageVersion.Latest,
+                new CSharpParseOptions(LanguageVersion.CSharp7_2));
+        }
+
+        [Fact]
+        public async Task UpgradeProjectFromCSharp7_2ToLatest_EnumConstraint()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"public class X<T> where T : [|System.Enum|]
+{
+}
+",
+                LanguageVersion.CSharp7_3,
+                new CSharpParseOptions(LanguageVersion.CSharp7_2),
+                index: 1);
+        }
+        
+        [Fact]
+        public async Task UpgradeProjectFromCSharp7_2ToLatest_DelegateConstraint()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"public class X<T> where T : [|System.Delegate|]
+{
+}
+",
+                LanguageVersion.CSharp7_3,
+                new CSharpParseOptions(LanguageVersion.CSharp7_2),
+                index: 1);
+        }
+
+        [Fact]
+        public async Task UpgradeProjectFromCSharp7_2ToLatest_MulticastDelegateConstraint()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"public class X<T> where T : [|System.MulticastDelegate|]
+{
+}
+",
+                LanguageVersion.CSharp7_3,
+                new CSharpParseOptions(LanguageVersion.CSharp7_2),
+                index: 1);
+        }
+        #endregion C# 7.3
+
         [Fact]
         public async Task UpgradeAllProjectsToDefault()
         {
@@ -402,6 +471,93 @@ class C
                     string.Format(CSharpFeaturesResources.Upgrade_this_project_to_csharp_language_version_0, "7.0"),
                     string.Format(CSharpFeaturesResources.Upgrade_all_csharp_projects_to_language_version_0, "7.0")
                     });
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_Type()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Test<T> where T : [|unmanaged|]
+{
+}",
+                LanguageVersion.CSharp7_3,
+                new CSharpParseOptions(LanguageVersion.CSharp7),
+                index: 1);
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_Type_AlreadyDefined()
+        {
+            await TestExactActionSetOfferedAsync(
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""7"">
+        <Document>
+interface unmanaged { }
+class Test&lt;T&gt; where T : [|unmanaged|]
+{
+}
+        </Document>
+    </Project>
+</Workspace>",
+                expectedActionSet: Enumerable.Empty<string>());
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_Method()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"
+class Test
+{
+    public void M<T>() where T : [|unmanaged|] { }
+}",
+                LanguageVersion.CSharp7_3,
+                new CSharpParseOptions(LanguageVersion.CSharp7),
+                index: 1);
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_Method_AlreadyDefined()
+        {
+            await TestExactActionSetOfferedAsync(
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""7"">
+        <Document>
+interface unmanaged { }
+class Test
+{
+    public void M&lt;T&gt;() where T : [|unmanaged|] { }
+}
+        </Document>
+    </Project>
+</Workspace>",
+                expectedActionSet: Enumerable.Empty<string>());
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_Delegate()
+        {
+            await TestLanguageVersionUpgradedAsync(
+@"delegate void D<T>() where T : [|unmanaged|];",
+                LanguageVersion.CSharp7_3,
+                new CSharpParseOptions(LanguageVersion.CSharp7),
+                index: 1);
+        }
+
+        [Fact]
+        public async Task UpgradeProjectWithUnmanagedConstraintTo7_3_Delegate_AlreadyDefined()
+        {
+            await TestExactActionSetOfferedAsync(
+@"<Workspace>
+    <Project Language=""C#"" LanguageVersion=""7"">
+        <Document>
+interface unmanaged { }
+delegate void D&lt;T&gt;() where T : [| unmanaged |];
+        </Document>
+    </Project>
+</Workspace>",
+                expectedActionSet: Enumerable.Empty<string>());
         }
     }
 }

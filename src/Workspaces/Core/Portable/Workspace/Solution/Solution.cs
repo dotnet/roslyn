@@ -94,11 +94,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Project GetProject(ProjectId projectId)
         {
-            if (projectId == null)
-            {
-                throw new ArgumentNullException(nameof(projectId));
-            }
-
+            // ContainsProject checks projectId being null
             if (this.ContainsProject(projectId))
             {
                 return ImmutableHashMapExtensions.GetOrAdd(ref _projectIdToProjectMap, projectId, s_createProjectFunction, this);
@@ -165,7 +161,8 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Document GetDocument(DocumentId documentId)
         {
-            if (documentId != null && this.ContainsDocument(documentId))
+            // ContainsDocument checks documentId being null
+            if (this.ContainsDocument(documentId))
             {
                 return this.GetProject(documentId.ProjectId).GetDocument(documentId);
             }
@@ -285,6 +282,20 @@ namespace Microsoft.CodeAnalysis
         public Solution WithProjectOutputFilePath(ProjectId projectId, string outputFilePath)
         {
             var newState = _state.WithProjectOutputFilePath(projectId, outputFilePath);
+            if (newState == _state)
+            {
+                return this;
+            }
+
+            return new Solution(newState);
+        }
+
+        /// <summary>
+        /// Creates a new solution instance with the project specified updated to have the reference assembly output file path.
+        /// </summary>
+        public Solution WithProjectOutputRefFilePath(ProjectId projectId, string outputRefFilePath)
+        {
+            var newState = _state.WithProjectOutputRefFilePath(projectId, outputRefFilePath);
             if (newState == _state)
             {
                 return this;

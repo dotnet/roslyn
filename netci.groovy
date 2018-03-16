@@ -83,11 +83,11 @@ commitPullList.each { isPr ->
 // Windows CoreCLR
 commitPullList.each { isPr ->
   ['debug', 'release'].each { configuration ->
-    def jobName = Utilities.getFullJobName(projectName, "windows_coreclr_test", isPr)
+    def jobName = Utilities.getFullJobName(projectName, "windows_coreclr_${configuration}", isPr)
     def myJob = job(jobName) {
       description("Windows CoreCLR unit tests")
             steps {
-              batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -testCoreClr""")
+              batchFile(""".\\build\\scripts\\cibuild.cmd ${(configuration == 'debug') ? '-debug' : '-release'} -buildCoreClr -testCoreClr""")
             }
     }
 
@@ -122,7 +122,7 @@ commitPullList.each { isPr ->
   def myJob = job(jobName) {
     description("Ubuntu 16.04 mono tests")
                   steps {
-                    shell("./build/scripts/cibuild.sh --debug --mono")
+                    shell("./build/scripts/cibuild.sh --debug --docker --mono")
                   }
                 }
 

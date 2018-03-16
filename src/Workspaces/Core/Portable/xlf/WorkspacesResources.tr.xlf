@@ -1072,6 +1072,11 @@
         <target state="new">Illegal string character</target>
         <note />
       </trans-unit>
+      <trans-unit id="Variables_captured_colon">
+        <source>Variables captured:</source>
+        <target state="new">Variables captured:</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

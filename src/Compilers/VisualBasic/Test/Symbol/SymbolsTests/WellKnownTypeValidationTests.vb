@@ -345,11 +345,11 @@ End Namespace
         End Sub
 
         Private Shared Sub ValidateSourceAndMetadata(source As String, validate As Action(Of VisualBasicCompilation))
-            Dim comp1 = CreateCompilationWithoutReferences(WrapInCompilationXml(source))
+            Dim comp1 = CreateEmptyCompilation(WrapInCompilationXml(source))
             validate(comp1)
 
             Dim reference = comp1.EmitToImageReference()
-            Dim comp2 = CreateCompilationWithReferences(<compilation/>, {reference})
+            Dim comp2 = CreateEmptyCompilationWithReferences(<compilation/>, {reference})
             validate(comp2)
         End Sub
 
@@ -403,11 +403,11 @@ Namespace System
 End Namespace
 ]]>.Value.Replace(vbLf, vbCrLf).Trim
 
-                Dim corlibRef = CreateCompilationWithoutReferences(corlibSource).EmitToImageReference()
-                Dim publicLibRef = CreateCompilationWithReferences(WrapInCompilationXml(String.Format(libSourceTemplate, "Public")), {corlibRef}).EmitToImageReference()
-                Dim internalLibRef = CreateCompilationWithReferences(WrapInCompilationXml(String.Format(libSourceTemplate, "Friend")), {corlibRef}).EmitToImageReference()
+                Dim corlibRef = CreateEmptyCompilation(corlibSource).EmitToImageReference()
+                Dim publicLibRef = CreateEmptyCompilationWithReferences(WrapInCompilationXml(String.Format(libSourceTemplate, "Public")), {corlibRef}).EmitToImageReference()
+                Dim internalLibRef = CreateEmptyCompilationWithReferences(WrapInCompilationXml(String.Format(libSourceTemplate, "Friend")), {corlibRef}).EmitToImageReference()
 
-                Dim comp = CreateCompilationWithReferences({}, {corlibRef, publicLibRef, internalLibRef}, assemblyName:="Test")
+                Dim comp = CreateEmptyCompilationWithReferences({}, {corlibRef, publicLibRef, internalLibRef}, assemblyName:="Test")
 
                 Dim wellKnown = comp.GetWellKnownType(WellKnownType.System_Type)
                 Assert.NotNull(wellKnown)
@@ -428,11 +428,11 @@ Namespace System
 End Namespace
 ]]>.Value.Replace(vbLf, vbCrLf).Trim
 
-                Dim corlibRef = CreateCompilationWithoutReferences(corlibSource).EmitToImageReference()
-                Dim publicLibRef = CreateCompilationWithReferences(WrapInCompilationXml(String.Format(libSourceTemplate, "Public")), {corlibRef}).EmitToImageReference()
-                Dim internalLibRef = CreateCompilationWithReferences(WrapInCompilationXml(String.Format(libSourceTemplate, "Friend")), {corlibRef}).EmitToImageReference()
+                Dim corlibRef = CreateEmptyCompilation(corlibSource).EmitToImageReference()
+                Dim publicLibRef = CreateEmptyCompilationWithReferences(WrapInCompilationXml(String.Format(libSourceTemplate, "Public")), {corlibRef}).EmitToImageReference()
+                Dim internalLibRef = CreateEmptyCompilationWithReferences(WrapInCompilationXml(String.Format(libSourceTemplate, "Friend")), {corlibRef}).EmitToImageReference()
 
-                Dim comp = CreateCompilationWithReferences({}, {corlibRef, publicLibRef, internalLibRef}, assemblyName:="Test")
+                Dim comp = CreateEmptyCompilationWithReferences({}, {corlibRef, publicLibRef, internalLibRef}, assemblyName:="Test")
 
                 Dim wellKnown = comp.GetWellKnownType(WellKnownType.System_Type)
                 Assert.NotNull(wellKnown)
@@ -446,7 +446,7 @@ End Namespace
         <Fact>
         <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllSpecialTypes()
-            Dim comp = CreateCompilationWithReferences((<compilation/>), {MscorlibRef_v4_0_30316_17626})
+            Dim comp = CreateEmptyCompilationWithReferences((<compilation/>), {MscorlibRef_v4_0_30316_17626})
 
             For special As SpecialType = CType(SpecialType.None + 1, SpecialType) To SpecialType.Count
                 Dim symbol = comp.GetSpecialType(special)
@@ -458,7 +458,7 @@ End Namespace
         <Fact>
         <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllSpecialTypeMembers()
-            Dim comp = CreateCompilationWithReferences((<compilation/>), {MscorlibRef_v4_0_30316_17626})
+            Dim comp = CreateEmptyCompilationWithReferences((<compilation/>), {MscorlibRef_v4_0_30316_17626})
 
             For Each special As SpecialMember In [Enum].GetValues(GetType(SpecialMember))
                 Select Case special
@@ -494,7 +494,7 @@ End Namespace
             }.Concat(WinRtRefs).ToArray()
 
             Dim lastType = CType(WellKnownType.NextAvailable - 1, WellKnownType)
-            Dim comp = CreateCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
+            Dim comp = CreateEmptyCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
             For wkt = WellKnownType.First To lastType
                 Select Case wkt
                     Case WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators
@@ -511,7 +511,8 @@ End Namespace
                         Continue For
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute
+                         WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute
                         ' Not always available.
                         Continue For
                 End Select
@@ -521,7 +522,7 @@ End Namespace
                 Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind)
             Next
 
-            comp = CreateCompilationWithReferences(<compilation/>, refs, TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
+            comp = CreateEmptyCompilationWithReferences(<compilation/>, refs, TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
             For wkt = WellKnownType.First To lastType
                 Select Case wkt
                     Case WellKnownType.Microsoft_VisualBasic_CallType,
@@ -550,7 +551,8 @@ End Namespace
                         Continue For
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,
                          WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute,
-                         WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute
+                         WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute,
+                         WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute
                         ' Not always available.
                         Continue For
                 End Select
@@ -576,7 +578,7 @@ End Namespace
                 ValueTupleRef
             }.Concat(WinRtRefs).ToArray()
 
-            Dim comp = CreateCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
+            Dim comp = CreateEmptyCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
             For Each wkm As WellKnownMember In [Enum].GetValues(GetType(WellKnownMember))
                 Select Case wkm
                     Case WellKnownMember.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean
@@ -589,6 +591,7 @@ End Namespace
                          WellKnownMember.System_Span_T__ctor,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
+                         WellKnownMember.System_ReadOnlySpan_T__ctor,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length
                         ' Not available yet, but will be in upcoming release.
@@ -596,7 +599,8 @@ End Namespace
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
                          WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
                          WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
                         ' Not always available.
                         Continue For
                 End Select
@@ -605,7 +609,7 @@ End Namespace
                 Assert.NotNull(symbol)
             Next
 
-            comp = CreateCompilationWithReferences(<compilation/>, refs, TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
+            comp = CreateEmptyCompilationWithReferences(<compilation/>, refs, TestOptions.ReleaseDll.WithEmbedVbCoreRuntime(True))
             For Each wkm As WellKnownMember In [Enum].GetValues(GetType(WellKnownMember))
                 Select Case wkm
                     Case WellKnownMember.Count
@@ -677,6 +681,7 @@ End Namespace
                          WellKnownMember.System_Span_T__ctor,
                          WellKnownMember.System_Span_T__get_Item,
                          WellKnownMember.System_Span_T__get_Length,
+                         WellKnownMember.System_ReadOnlySpan_T__ctor,
                          WellKnownMember.System_ReadOnlySpan_T__get_Item,
                          WellKnownMember.System_ReadOnlySpan_T__get_Length
                         ' Not available yet, but will be in upcoming release.
@@ -684,7 +689,8 @@ End Namespace
                     Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningSingleFile,
                          WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles,
                          WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor,
-                         WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor
+                         WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor,
+                         WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
                         ' Not always available.
                         Continue For
                 End Select

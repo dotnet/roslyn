@@ -21,6 +21,20 @@
             "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
             "channels": [ "dev15.6p4", "dev15.6" ]
         },
+        "dev15.7.x-vs-deps": {
+            "nugetKind": "PerBuildPreRelease",
+            "version": "2.8.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "dev15.7p2", "dev15.7" ]
+        },      
+        "dev15.7-preview1-vs-deps": {
+            "nugetKind": "PerBuildPreRelease",
+            "version": "2.8.*",
+            "nuget": [ "https://dotnet.myget.org/F/roslyn/api/v2/package" ],
+            "vsix": [ "https://dotnet.myget.org/F/roslyn/vsix/upload" ],
+            "channels": [ "dev15.7p1"]
+        },     
         "dev15.5.x": {
             "nugetKind": "PerBuildPreRelease",
             "version": "2.6.*",

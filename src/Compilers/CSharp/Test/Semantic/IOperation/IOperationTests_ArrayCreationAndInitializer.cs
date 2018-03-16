@@ -435,27 +435,26 @@ class C
 }
 ";
             string expectedOperationTree = @"
-IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.Int32[], IsInvalid) (Syntax: 'new[2]/*</bind>*/')
+IArrayCreationOperation (OperationKind.ArrayCreation, Type: ?[], IsInvalid) (Syntax: 'new[2]/*</bind>*/')
   Dimension Sizes(1):
-      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1, IsInvalid, IsImplicit) (Syntax: 'new[2]/*</bind>*/')
+      ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0, IsInvalid, IsImplicit) (Syntax: 'new[2]/*</bind>*/')
   Initializer: 
-    IArrayInitializerOperation (1 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '2]/*</bind>*/')
-      Element Values(1):
-          ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2, IsInvalid) (Syntax: '2')
+    IArrayInitializerOperation (0 elements) (OperationKind.ArrayInitializer, Type: null, IsInvalid) (Syntax: '')
+      Element Values(0)
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS1003: Syntax error, ']' expected
+                // file.cs(6,31): error CS0178: Invalid rank specifier: expected ',' or ']'
                 //         var x = /*<bind>*/new[2]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "2").WithArguments("]", "").WithLocation(6, 31),
-                // CS1514: { expected
+                Diagnostic(ErrorCode.ERR_InvalidArray, "2").WithLocation(6, 31),
+                // file.cs(6,44): error CS1514: { expected
                 //         var x = /*<bind>*/new[2]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "2").WithLocation(6, 31),
-                // CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_LbraceExpected, ";").WithLocation(6, 44),
+                // file.cs(6,44): error CS1513: } expected
                 //         var x = /*<bind>*/new[2]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "]").WithArguments(",", "]").WithLocation(6, 32),
-                // CS1513: } expected
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(6, 44),
+                // file.cs(6,27): error CS0826: No best type found for implicitly-typed array
                 //         var x = /*<bind>*/new[2]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, ";").WithLocation(6, 44)
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedArrayNoBestType, "new[2]/*</bind>*/").WithLocation(6, 27)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ImplicitArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
@@ -858,23 +857,26 @@ class C
         var a = /*<bind>*/new string[M()]/*</bind>*/;
     }
 
-    public object M() => null;
+    public static object M() => null;
 }
 ";
             string expectedOperationTree = @"
 IArrayCreationOperation (OperationKind.ArrayCreation, Type: System.String[], IsInvalid) (Syntax: 'new string[M()]')
   Dimension Sizes(1):
-      IInvocationOperation ( System.Object C.M()) (OperationKind.Invocation, Type: System.Object, IsInvalid) (Syntax: 'M()')
-        Instance Receiver: 
-          IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsInvalid, IsImplicit) (Syntax: 'M')
-        Arguments(0)
+      IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type: System.Int32, IsInvalid, IsImplicit) (Syntax: 'M()')
+        Conversion: CommonConversion (Exists: True, IsIdentity: False, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
+        Operand: 
+          IInvocationOperation (System.Object C.M()) (OperationKind.Invocation, Type: System.Object, IsInvalid) (Syntax: 'M()')
+            Instance Receiver: 
+              null
+            Arguments(0)
   Initializer: 
     null
 ";
             var expectedDiagnostics = new DiagnosticDescription[] {
-                // CS0120: An object reference is required for the non-static field, method, or property 'C.M()'
+                // file.cs(6,27): error CS0266: Cannot implicitly convert type 'object' to 'int'. An explicit conversion exists (are you missing a cast?)
                 //         var a = /*<bind>*/new string[M()]/*</bind>*/;
-                Diagnostic(ErrorCode.ERR_ObjectRequired, "M").WithArguments("C.M()").WithLocation(6, 38)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new string[M()]").WithArguments("object", "int").WithLocation(6, 27)
             };
 
             VerifyOperationTreeAndDiagnosticsForTest<ArrayCreationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);

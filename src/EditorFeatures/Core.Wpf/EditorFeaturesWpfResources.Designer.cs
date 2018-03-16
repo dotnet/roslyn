@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Regex - Chraracter class.
+        ///   Looks up a localized string similar to Regex - Character class.
         /// </summary>
         internal static string Regex_Character_class {
             get {

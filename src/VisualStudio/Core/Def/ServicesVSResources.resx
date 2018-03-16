@@ -966,7 +966,7 @@ Additional information: {1}</value>
     <value>Changes are not allowed while code is running.</value>
   </data>
   <data name="Prefer_local_function_over_anonymous_function" xml:space="preserve">
-    <value>Prefere local function over anonymous function</value>
+    <value>Prefer local function over anonymous function</value>
   </data>
   <data name="ModuleHasBeenUnloaded" xml:space="preserve">
     <value>Module has been unloaded.</value>
@@ -991,12 +991,6 @@ Additional information: {1}</value>
   </data>
   <data name="Use_Keybindings_for_extensions" xml:space="preserve">
     <value>Use keybindings for ReSharper/IntelliJ/Vim/etc.</value>
-  </data>
-  <data name="Your_keybindings_are_no_longer_mapped_to_Visual_Studio_commands" xml:space="preserve">
-    <value>Your keybindings are no longer mapped to Visual Studio commands.</value>
-  </data>
-  <data name="We_noticed_you_suspended_ReSharper_Ultimate_Restore_Visual_Studio_keybindings_to_continue_to_navigate_and_refactor" xml:space="preserve">
-    <value>We noticed you suspended ‘ReSharper Ultimate’. Restore Visual Studio keybindings to continue to navigate and refactor.</value>
   </data>
   <data name="Enable_navigation_to_decompiled_sources" xml:space="preserve">
     <value>Enable navigation to decompiled sources (experimental)</value>
@@ -1038,5 +1032,18 @@ I agree to all of the foregoing:</value>
   </data>
   <data name="Report_invalid_JSON_strings" xml:space="preserve">
     <value>Report invalid JSON strings</value>
+  </data>
+  <data name="Disabling_the_extension_0_unbound_your_keyboard_bindings" xml:space="preserve">
+    <value>Disabling the extension '{0}' unbound your keyboard bindings.</value>
+    <comment>0 is an extension name</comment>
+  </data>
+  <data name="Code_style_header_use_editor_config" xml:space="preserve">
+    <value>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</value>
+  </data>
+  <data name="Analyzing_0" xml:space="preserve">
+    <value>Analyzing '{0}'</value>
+  </data>
+  <data name="Live_code_analysis" xml:space="preserve">
+    <value>Live code analysis</value>
   </data>
 </root>

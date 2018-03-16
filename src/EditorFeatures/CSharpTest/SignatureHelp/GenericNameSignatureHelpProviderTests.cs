@@ -624,6 +624,33 @@ class C
             await TestAsync(markup, expectedOrderedItems);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
+        public async Task TestUnmanagedConstraint()
+        {
+            var markup = @"
+
+class C
+{
+    /// <summary>
+    /// summary headline
+    /// </summary>
+    /// <typeparam name=""T"">T documentation</typeparam>
+    void M<T>(T arg) where T : unmanaged
+    {
+    }
+
+    void Bar()
+    {
+        [|M<$$|]>
+    }
+}";
+
+            await TestAsync(markup, new List<SignatureHelpTestItem>
+            {
+                new SignatureHelpTestItem("void C.M<T>(T arg) where T : unmanaged", "summary headline", "T documentation", currentParameterIndex: 0)
+            });
+        }
+
         #endregion
 
         #region "Trigger tests"

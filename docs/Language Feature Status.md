@@ -10,20 +10,29 @@ efforts behind them.
 
 | Feature | Branch | State | Developers | Reviewer | LDM Champ |
 | ------- | ------ | ----- | ---------- | -------- | --------- |
-| [Ranges](https://github.com/dotnet/roslyn/blob/features/range/docs/features/range.md) | [range](https://github.com/dotnet/roslyn/tree/features/range) | Prototype | [vsadov](https://github.com/vsadov) | [agocke](https://github.com/agocke) | [jaredpar](https://github.com/jaredpar) |
-| [Support == and != for tuples](https://github.com/dotnet/csharplang/issues/190) | | In Progress | [jcouv](https://github.com/jcouv) | | [jcouv](https://github.com/jcouv) |
-| strongname | [strongname](https://github.com/dotnet/roslyn/tree/features/strongname) | In Progress/Backlog | | | [jaredpar](https://github.com/jaredpar) |
-| [Attribute on backing field](https://github.com/dotnet/csharplang/issues/42) | master | Merged | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs) | [jcouv](https://github.com/jcouv) |
-
+| [blittable](https://github.com/dotnet/csharplang/pull/206) | None | Proposal | None | | [jaredpar](https://github.com/jaredpar) |
+| [Support == and != for tuples](https://github.com/dotnet/csharplang/issues/190) | [tuple-equality](https://github.com/dotnet/roslyn/tree/features/tuple-equality) | In Progress | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs) | [jcouv](https://github.com/jcouv) |
+| strongname | master | Merged | [tyoverby](https://github.com/tyoverby) | [agocke](https://github.com/agocke) | [jaredpar](https://github.com/jaredpar) |
+| [Attribute on backing field](https://github.com/dotnet/csharplang/issues/42) | features/compiler | Merged | [jcouv](https://github.com/jcouv) | [AlekseyTs](https://github.com/AlekseyTs) | [jcouv](https://github.com/jcouv) |
+| Ref Reassignment | [ref-reassignment](https://github.com/dotnet/roslyn/tree/features/ref-reassignment) | In Progress | [agocke](https://github.com/agocke) | [vsadov](https://github.com/vsadov) | [jarepdar](https://github.com/jaredpar) |
+| Constraints | [constraints](https://github.com/dotnet/roslyn/tree/features/constraints) | In Progress | [OmarTawfik](https://github.com/OmarTawfik) | [vsadov](https://github.com/vsadov) | [jarepdar](https://github.com/jaredpar) |
+| [Stackalloc initializers](https://github.com/dotnet/csharplang/issues/1286) | [stackalloc-init](https://github.com/dotnet/roslyn/tree/features/stackalloc-init) | In Progress | [alrz](https://github.com/alrz) | [vsadov](https://github.com/vsadov) | [jcouv](https://github.com/jcouv) |
+| [Custom fixed](https://github.com/dotnet/csharplang/issues/1314) | [custom-fixed](https://github.com/dotnet/roslyn/tree/features/custom-fixed) | In Progress | [vsadov](https://github.com/vsadov) | [jcouv](https://github.com/jcouv) | [jarepdar](https://github.com/jaredpar) |
+| [Improved overload candidates](https://github.com/dotnet/csharplang/issues/98) | features/compiler | In Progress | [gafter](https://github.com/gafter) | [cston](https://github.com/cston) | [mattwar](https://github.com/mattwar) |
+| [Expression variables](https://github.com/dotnet/csharplang/blob/master/proposals/expression-variables-in-initializers.md) | [features/ExpressionVariables](https://github.com/dotnet/roslyn/tree/features/ExpressionVariables) | In Progress | [AlekseyTs](https://github.com/AlekseyTs) | [gafter](https://github.com/gafter) | [gafter](https://github.com/gafter) |
 
 # C# 8.0
 
 | Feature | Branch | State | Developers | Reviewer | LDM Champ |
 | ------- | ------ | ----- | ---------- | -------- | --------- |
 | [Default Interface Methods](https://github.com/dotnet/csharplang/blob/master/proposals/default-interface-methods.md) | [defaultInterfaceImplementation](https://github.com/dotnet/roslyn/tree/features/DefaultInterfaceImplementation) | Prototype | [AlekseyTs](https://github.com/AlekseyTs) | [gafter](https://github.com/gafter) | [gafter](https://github.com/gafter) |
-| [Nullable reference type](https://github.com/dotnet/csharplang/blob/master/proposals/nullable-reference-types.md) | [NullableReferenceTypes](https://github.com/dotnet/roslyn/tree/features/NullableReferenceTypes) | Prototype | [cston](https://github.com/cston), [AlekseyTs](https://github.com/AlekseyTs) | | [mattwar](https://github.com/mattwar) |
-| [Recursive patterns](https://github.com/dotnet/csharplang/blob/master/proposals/patterns.md) | [recursive-patterns](https://github.com/dotnet/roslyn/tree/features/recursive-patterns) | Prototype | [gafter](https://github.com/gafter) | [agocke](https://github.com/agocke) | [gafter](https://github.com/gafter) |
-| [Async streams](https://github.com/dotnet/csharplang/blob/master/proposals/async-streams.md) | [async-streams](https://github.com/dotnet/roslyn/tree/features/async-streams) | Prototype | [jcouv](https://github.com/jcouv) |  | [stephentoub](https://github.com/stephentoub) |
+| [Nullable reference type](https://github.com/dotnet/csharplang/blob/master/proposals/nullable-reference-types.md) | [NullableReferenceTypes](https://github.com/dotnet/roslyn/tree/features/NullableReferenceTypes) | Prototype | [cston](https://github.com/cston), [AlekseyTs](https://github.com/AlekseyTs) | [333fred](https://github.com/333fred) | [mattwar](https://github.com/mattwar) |
+| [Recursive patterns](https://github.com/dotnet/csharplang/blob/master/proposals/patterns.md) | [recursive-patterns](https://github.com/dotnet/roslyn/tree/features/recursive-patterns) | Prototype | [gafter](https://github.com/gafter) | [agocke](https://github.com/agocke), [cston](https://github.com/cston) | [gafter](https://github.com/gafter) |
+| [Async streams](https://github.com/dotnet/csharplang/blob/master/proposals/async-streams.md) | [async-streams](https://github.com/dotnet/roslyn/tree/features/async-streams) | In Progress | [jcouv](https://github.com/jcouv) |  [OmarTawfik](https://github.com/OmarTawfik) | [stephentoub](https://github.com/stephentoub) |
+| [Caller expression attribute](https://github.com/dotnet/csharplang/issues/287) | TBD | Prototype | [alrz](https://github.com/alrz) | [jcouv](https://github.com/jcouv) | [jcouv](https://github.com/jcouv) |
+| [Target-typed new](https://github.com/dotnet/csharplang/issues/100) | TBD | Prototype | [alrz](https://github.com/alrz) | TBD | [jcouv](https://github.com/jcouv) |
+| [Generic attributes](https://github.com/dotnet/csharplang/issues/124) | [generic-attributes](https://github.com/dotnet/roslyn/tree/features/generic-attributes) | In Progress | [AviAvni](https://github.com/AviAvni) | TBD | [mattwar](https://github.com/mattwar) |
+| [Ranges](https://github.com/dotnet/roslyn/blob/features/range/docs/features/range.md) | [range](https://github.com/dotnet/roslyn/tree/features/range) | In Progress | [OmarTawfik](https://github.com/OmarTawfik) | [vsadov](https://github.com/vsadov) | [jaredpar](https://github.com/jaredpar) |
 
 # C# 7.1
 
@@ -49,7 +58,7 @@ efforts behind them.
 # C# 7.2 fixes
 | Feature | Branch | State | Developers | Reviewer | LDM Champ |
 | ------- | ------ | ----- | ---------- | -------- | --------- |
-| [`ref` and `this` ordering in ref extension](https://github.com/dotnet/roslyn/pull/23643) |  | Review | [alrz](https://github.com/alrz) |  |  |
+| [`ref` and `this` ordering in ref extension](https://github.com/dotnet/roslyn/pull/23643) |  | Merged | [alrz](https://github.com/alrz) |  |  |
 | [Tiebreaker for by-val and `in` overloads](https://github.com/dotnet/roslyn/pull/23122) | master | Merged | [OmarTawfik](https://github.com/OmarTawfik) |  | |
 
 # FAQ
