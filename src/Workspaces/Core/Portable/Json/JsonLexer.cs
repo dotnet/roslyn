@@ -2,13 +2,18 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.Json
 {
+    using static EmbeddedSyntaxHelpers;
     using static JsonHelpers;
+
+    using JsonToken = EmbeddedSyntaxToken<JsonKind>;
+    using JsonTrivia = EmbeddedSyntaxTrivia<JsonKind>;
 
     internal struct JsonLexer
     {
@@ -38,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Json
             var leadingTrivia = ScanTrivia(leading: true);
             if (Position == Text.Length)
             {
-                return new JsonToken(
+                return CreateToken(
                     JsonKind.EndOfFile, leadingTrivia, 
                     ImmutableArray<VirtualChar>.Empty, ImmutableArray<JsonTrivia>.Empty);
             }
@@ -47,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Json
             Debug.Assert(chars.Length > 0);
 
             var trailingTrivia = ScanTrivia(leading: false);
-            var token = new JsonToken(kind, leadingTrivia, chars, trailingTrivia);
+            var token = CreateToken(kind, leadingTrivia, chars, trailingTrivia);
 
             if (diagnostic != null)
             {
@@ -83,7 +88,7 @@ namespace Microsoft.CodeAnalysis.Json
             return false;
         }
 
-        private (ImmutableArray<VirtualChar>, JsonKind, JsonDiagnostic? diagnostic) ScanNextTokenWorker()
+        private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic? diagnostic) ScanNextTokenWorker()
         {
             Debug.Assert(Position < Text.Length);
             switch (this.CurrentChar)
@@ -110,13 +115,13 @@ namespace Microsoft.CodeAnalysis.Json
             }
         }
 
-        private (ImmutableArray<VirtualChar>, JsonKind, JsonDiagnostic?) ScanString()
+        private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic?) ScanString()
         {
             var start = Position;
             var startChar = this.CurrentChar.Char;
             Position++;
 
-            JsonDiagnostic? diagnostic = null;
+            EmbeddedDiagnostic? diagnostic = null;
             while (Position < Text.Length)
             {
                 var currentCh = this.CurrentChar.Char;
@@ -140,17 +145,17 @@ namespace Microsoft.CodeAnalysis.Json
             }
 
             var chars = GetSubPattern(start, Position);
-            diagnostic = diagnostic ?? new JsonDiagnostic(
+            diagnostic = diagnostic ?? new EmbeddedDiagnostic(
                 WorkspacesResources.Unterminated_string, GetSpan(chars));
             return (chars, JsonKind.StringToken, diagnostic);
         }
 
-        private JsonDiagnostic? ScanEscape(int stringStart, int escapeStart)
+        private EmbeddedDiagnostic? ScanEscape(int stringStart, int escapeStart)
         {
             if (this.Position == Text.Length)
             {
                 var chars = GetSubPattern(stringStart, Position);
-                return new JsonDiagnostic(WorkspacesResources.Unterminated_string, GetSpan(chars));
+                return new EmbeddedDiagnostic(WorkspacesResources.Unterminated_string, GetSpan(chars));
             }
 
             var currentCh = this.CurrentChar;
@@ -175,11 +180,11 @@ namespace Microsoft.CodeAnalysis.Json
                 default:
                     Position++;
                     var chars = GetSubPattern(escapeStart, Position);
-                    return new JsonDiagnostic(WorkspacesResources.Invalid_escape_sequence, GetSpan(chars));
+                    return new EmbeddedDiagnostic(WorkspacesResources.Invalid_escape_sequence, GetSpan(chars));
             }
         }
 
-        private JsonDiagnostic? ScanUnicodeChars(int escapeStart, int unicodeCharStart)
+        private EmbeddedDiagnostic? ScanUnicodeChars(int escapeStart, int unicodeCharStart)
         {
             var invalid = false;
             for (int i = 0; this.Position < Text.Length && i < 4; i++)
@@ -193,7 +198,7 @@ namespace Microsoft.CodeAnalysis.Json
             if (invalid || (Position - unicodeCharStart != 4))
             {
                 var chars = GetSubPattern(escapeStart, Position);
-                return new JsonDiagnostic(WorkspacesResources.Invalid_escape_sequence, GetSpan(chars));
+                return new EmbeddedDiagnostic(WorkspacesResources.Invalid_escape_sequence, GetSpan(chars));
             }
 
             return null;
@@ -206,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Json
                    (c >= 'a' && c <= 'f');
         }
 
-        private (ImmutableArray<VirtualChar>, JsonKind, JsonDiagnostic?) ScanText()
+        private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic?) ScanText()
         {
             var start = Position;
 
@@ -219,7 +224,7 @@ namespace Microsoft.CodeAnalysis.Json
             return (GetSubPattern(start, Position), JsonKind.TextToken, null);
         }
 
-        private (ImmutableArray<VirtualChar>, JsonKind, JsonDiagnostic?)? TryScanText(
+        private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic?)? TryScanText(
             string text, JsonKind kind)
         {
             var start = this.Position;
@@ -232,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Json
             return (GetSubPattern(start, Position), kind, null);
         }
 
-        private (ImmutableArray<VirtualChar>, JsonKind, JsonDiagnostic?) ScanSingleCharToken(JsonKind kind)
+        private (ImmutableArray<VirtualChar>, JsonKind, EmbeddedDiagnostic?) ScanSingleCharToken(JsonKind kind)
         {
             var chars = ImmutableArray.Create(this.CurrentChar);
             Position++;
@@ -284,12 +289,12 @@ namespace Microsoft.CodeAnalysis.Json
             if (IsAt("\r\n"))
             {
                 Position += 2;
-                return new JsonTrivia(JsonKind.EndOfLineTrivia, GetSubPattern(start, Position));
+                return CreateTrivia(JsonKind.EndOfLineTrivia, GetSubPattern(start, Position));
             }
             else if (IsAt("\r") || IsAt("\n"))
             {
                 Position++;
-                return new JsonTrivia(JsonKind.EndOfLineTrivia, GetSubPattern(start, Position));
+                return CreateTrivia(JsonKind.EndOfLineTrivia, GetSubPattern(start, Position));
             }
 
             return null;
@@ -311,8 +316,8 @@ namespace Microsoft.CodeAnalysis.Json
                 Position++;
 
                 var chars = GetSubPattern(start, Position);
-                return new JsonTrivia(JsonKind.SingleLineCommentTrivia, chars,
-                    ImmutableArray.Create(new JsonDiagnostic(
+                return CreateTrivia(JsonKind.SingleLineCommentTrivia, chars,
+                    ImmutableArray.Create(new EmbeddedDiagnostic(
                         WorkspacesResources.Error_parsing_comment,
                         GetSpan(chars))));
             }
@@ -335,13 +340,13 @@ namespace Microsoft.CodeAnalysis.Json
             var chars = GetSubPattern(start, Position);
             if (Position == start + 2)
             {
-                var diagnostics = ImmutableArray.Create(new JsonDiagnostic(
+                var diagnostics = ImmutableArray.Create(new EmbeddedDiagnostic(
                     WorkspacesResources.Unterminated_comment,
                     GetSpan(chars)));
-                return new JsonTrivia(JsonKind.SingleLineCommentTrivia, chars, diagnostics);
+                return CreateTrivia(JsonKind.SingleLineCommentTrivia, chars, diagnostics);
             }
 
-            return new JsonTrivia(JsonKind.SingleLineCommentTrivia, chars);
+            return CreateTrivia(JsonKind.SingleLineCommentTrivia, chars);
         }
 
         private JsonTrivia ScanMultiLineComment()
@@ -358,12 +363,12 @@ namespace Microsoft.CodeAnalysis.Json
             if (IsAt("*/"))
             {
                 Position += 2;
-                return new JsonTrivia(JsonKind.MultiLineCommentTrivia, GetSubPattern(start, Position));
+                return CreateTrivia(JsonKind.MultiLineCommentTrivia, GetSubPattern(start, Position));
             }
 
             Debug.Assert(Position == Text.Length);
-            return new JsonTrivia(JsonKind.MultiLineCommentTrivia, GetSubPattern(start, Position),
-                ImmutableArray.Create(new JsonDiagnostic(
+            return CreateTrivia(JsonKind.MultiLineCommentTrivia, GetSubPattern(start, Position),
+                ImmutableArray.Create(new EmbeddedDiagnostic(
                     WorkspacesResources.Unterminated_comment,
                     GetTextSpan(start, Position))));
         }
@@ -399,7 +404,7 @@ namespace Microsoft.CodeAnalysis.Json
 
             if (Position > start)
             {
-                return new JsonTrivia(JsonKind.WhitespaceTrivia, GetSubPattern(start, Position));
+                return CreateTrivia(JsonKind.WhitespaceTrivia, GetSubPattern(start, Position));
             }
 
             return null;

@@ -4,9 +4,13 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 
 namespace Microsoft.CodeAnalysis.Json
 {
+    using JsonNodeOrToken = EmbeddedSyntaxNodeOrToken<JsonKind, JsonNode>;
+    using JsonToken = EmbeddedSyntaxToken<JsonKind>;
+
     internal sealed class JsonCompilationUnit : JsonNode
     {
         public JsonCompilationUnit(JsonSequenceNode sequence, JsonToken endOfFileToken)

@@ -1,21 +1,24 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 
-using System;
 using System.Collections.Immutable;
+using System.Text.RegularExpressions;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Json
 {
-    using System.Text.RegularExpressions;
-    using Microsoft.CodeAnalysis.Text;
-    using Microsoft.CodeAnalysis.VirtualChars;
-    using static JsonHelpers;
+    using static EmbeddedSyntaxHelpers;
+
+    using JsonToken = EmbeddedSyntaxToken<JsonKind>;
+    using JsonTrivia = EmbeddedSyntaxTrivia<JsonKind>;
 
     internal partial struct JsonParser
     {
         private struct StrictSyntaxChecker
         {
-            private JsonDiagnostic? CheckChildren(JsonNode node)
+            private EmbeddedDiagnostic? CheckChildren(JsonNode node)
             {
                 foreach (var child in node)
                 {
@@ -29,10 +32,10 @@ namespace Microsoft.CodeAnalysis.Json
                 return null;
             }
 
-            private JsonDiagnostic? CheckToken(JsonToken token)
+            private EmbeddedDiagnostic? CheckToken(JsonToken token)
                 => CheckTrivia(token.LeadingTrivia) ?? CheckTrivia(token.TrailingTrivia);
 
-            private JsonDiagnostic? CheckTrivia(ImmutableArray<JsonTrivia> triviaList)
+            private EmbeddedDiagnostic? CheckTrivia(ImmutableArray<JsonTrivia> triviaList)
             {
                 foreach (var trivia in triviaList)
                 {
@@ -46,13 +49,13 @@ namespace Microsoft.CodeAnalysis.Json
                 return null;
             }
 
-            private JsonDiagnostic? CheckTrivia(JsonTrivia trivia)
+            private EmbeddedDiagnostic? CheckTrivia(JsonTrivia trivia)
             {
                 switch (trivia.Kind)
                 {
                     case JsonKind.MultiLineCommentTrivia:
                     case JsonKind.SingleLineCommentTrivia:
-                        return new JsonDiagnostic(
+                        return new EmbeddedDiagnostic(
                             WorkspacesResources.Comments_not_allowed,
                             GetSpan(trivia.VirtualChars));
                     case JsonKind.WhitespaceTrivia:
@@ -62,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Json
                 return null;
             }
 
-            private JsonDiagnostic? CheckWhitespace(JsonTrivia trivia)
+            private EmbeddedDiagnostic? CheckWhitespace(JsonTrivia trivia)
             {
                 foreach (var ch in trivia.VirtualChars)
                 {
@@ -72,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Json
                             break;
 
                         default:
-                            return new JsonDiagnostic(
+                            return new EmbeddedDiagnostic(
                                 WorkspacesResources.Illegal_whitespace_character,
                                 ch.Span);
                     }
@@ -81,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Json
                 return null;
             }
 
-            public JsonDiagnostic? CheckSyntax(JsonNode node)
+            public EmbeddedDiagnostic? CheckSyntax(JsonNode node)
             {
                 switch (node.Kind)
                 {
@@ -96,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Json
                 return CheckChildren(node);
             }
 
-            private JsonDiagnostic? CheckObject(JsonObjectNode node)
+            private EmbeddedDiagnostic? CheckObject(JsonObjectNode node)
             {
                 var sequence = node.Sequence;
                 foreach (var child in sequence)
@@ -104,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Json
                     var childNode = child.Node;
                     if (childNode.Kind != JsonKind.Property && childNode.Kind != JsonKind.EmptyValue)
                     {
-                        return new JsonDiagnostic(
+                        return new EmbeddedDiagnostic(
                             WorkspacesResources.Only_properties_allowed_in_an_object,
                             GetSpan(GetFirstToken(childNode)));
                     }
@@ -113,14 +116,14 @@ namespace Microsoft.CodeAnalysis.Json
                 return CheckProperSeparation(sequence) ?? CheckChildren(node);
             }
 
-            private JsonDiagnostic? CheckArray(JsonArrayNode node)
+            private EmbeddedDiagnostic? CheckArray(JsonArrayNode node)
             {
                 foreach (var child in node.Sequence)
                 {
                     var childNode = child.Node;
                     if (childNode.Kind == JsonKind.Property)
                     {
-                        return new JsonDiagnostic(
+                        return new EmbeddedDiagnostic(
                             WorkspacesResources.Properties_not_allowed_in_an_array,
                             GetSpan(((JsonPropertyNode)childNode).ColonToken));
                     }
@@ -129,7 +132,7 @@ namespace Microsoft.CodeAnalysis.Json
                 return CheckProperSeparation(node.Sequence) ?? CheckChildren(node);
             }
 
-            private JsonDiagnostic? CheckProperSeparation(JsonSequenceNode sequence)
+            private EmbeddedDiagnostic? CheckProperSeparation(JsonSequenceNode sequence)
             {
                 for (int i = 0, n = sequence.ChildCount; i < n; i++)
                 {
@@ -138,16 +141,16 @@ namespace Microsoft.CodeAnalysis.Json
                     {
                         if (child.Kind == JsonKind.EmptyValue)
                         {
-                            return new JsonDiagnostic(
+                            return new EmbeddedDiagnostic(
                                 string.Format(WorkspacesResources._0_unexpected, ","),
-                                GetSpan(child));
+                                GetSpan<JsonKind, JsonNode>(child));
                         }
                     }
                     else
                     {
                         if (child.Kind != JsonKind.EmptyValue)
                         {
-                            return new JsonDiagnostic(
+                            return new EmbeddedDiagnostic(
                                 string.Format(WorkspacesResources._0_expected, ","),
                                 GetSpan(GetFirstToken(child)));
                         }
@@ -156,26 +159,26 @@ namespace Microsoft.CodeAnalysis.Json
 
                 if (sequence.ChildCount != 0 && sequence.ChildCount % 2 == 0)
                 {
-                    return new JsonDiagnostic(
+                    return new EmbeddedDiagnostic(
                         WorkspacesResources.Trailing_comma_not_allowed,
-                        GetSpan(sequence.ChildAt(sequence.ChildCount - 1).Node));
+                        GetSpan<JsonKind, JsonNode>(sequence.ChildAt(sequence.ChildCount - 1).Node));
                 }
 
                 return null;
             }
 
-            private JsonDiagnostic? CheckProperty(JsonPropertyNode node)
+            private EmbeddedDiagnostic? CheckProperty(JsonPropertyNode node)
             {
                 if (node.NameToken.Kind != JsonKind.StringToken)
                 {
-                    return new JsonDiagnostic(
+                    return new EmbeddedDiagnostic(
                         WorkspacesResources.Property_name_must_be_a_string,
                         GetSpan(node.NameToken));
                 }
 
                 if (node.Value.Kind == JsonKind.EmptyValue)
                 {
-                    return new JsonDiagnostic(
+                    return new EmbeddedDiagnostic(
                         WorkspacesResources.Value_required,
                         new TextSpan(node.ColonToken.VirtualChars[0].Span.End, 0));
                 }
@@ -183,7 +186,7 @@ namespace Microsoft.CodeAnalysis.Json
                 return CheckString(node.NameToken) ?? CheckChildren(node);
             }
 
-            private JsonDiagnostic? CheckLiteral(JsonLiteralNode node)
+            private EmbeddedDiagnostic? CheckLiteral(JsonLiteralNode node)
             {
                 switch (node.LiteralToken.Kind)
                 {
@@ -242,12 +245,12 @@ namespace Microsoft.CodeAnalysis.Json
 $",
                     RegexOptions.Compiled | RegexOptions.IgnorePatternWhitespace);
 
-            private JsonDiagnostic? CheckNumber(JsonToken literalToken)
+            private EmbeddedDiagnostic? CheckNumber(JsonToken literalToken)
             {
                 var literalText = literalToken.VirtualChars.CreateString();
                 if (!s_validNumberRegex.IsMatch(literalText))
                 {
-                    return new JsonDiagnostic(
+                    return new EmbeddedDiagnostic(
                         WorkspacesResources.Invalid_number,
                         GetSpan(literalToken));
                 }
@@ -256,7 +259,7 @@ $",
                     double.IsNaN(val) ||
                     double.IsInfinity(val))
                 {
-                    return new JsonDiagnostic(
+                    return new EmbeddedDiagnostic(
                         WorkspacesResources.Invalid_number,
                         GetSpan(literalToken));
                 }
@@ -264,12 +267,12 @@ $",
                 return CheckToken(literalToken);
             }
 
-            private JsonDiagnostic? CheckString(JsonToken literalToken)
+            private EmbeddedDiagnostic? CheckString(JsonToken literalToken)
             {
                 var chars = literalToken.VirtualChars;
                 if (chars[0].Char == '\'')
                 {
-                    return new JsonDiagnostic(
+                    return new EmbeddedDiagnostic(
                         WorkspacesResources.Strings_must_start_with_double_quote_not_single_quote,
                         chars[0].Span);
                 }
@@ -278,7 +281,7 @@ $",
                 {
                     if (chars[i].Char < ' ')
                     {
-                        return new JsonDiagnostic(
+                        return new EmbeddedDiagnostic(
                             WorkspacesResources.Illegal_string_character,
                             chars[i].Span);
                     }
@@ -291,7 +294,7 @@ $",
                     {
                         if (chars[i + 1] == '\'')
                         {
-                            return new JsonDiagnostic(
+                            return new EmbeddedDiagnostic(
                                 WorkspacesResources.Invalid_escape_sequence,
                                 TextSpan.FromBounds(chars[i].Span.Start, chars[i + 1].Span.End));
                         }
@@ -308,23 +311,23 @@ $",
                 return CheckToken(literalToken);
             }
 
-            private JsonDiagnostic? InvalidLiteral(JsonToken literalToken)
+            private EmbeddedDiagnostic? InvalidLiteral(JsonToken literalToken)
             {
-                return new JsonDiagnostic(
+                return new EmbeddedDiagnostic(
                     string.Format(WorkspacesResources._0_literal_not_allowed, literalToken.VirtualChars.CreateString()),
                     GetSpan(literalToken));
             }
 
-            private JsonDiagnostic? CheckNegativeLiteral(JsonNegativeLiteralNode node)
+            private EmbeddedDiagnostic? CheckNegativeLiteral(JsonNegativeLiteralNode node)
             {
-                return new JsonDiagnostic(
+                return new EmbeddedDiagnostic(
                     string.Format(WorkspacesResources._0_literal_not_allowed, "-Infinity"),
-                    GetSpan(node));
+                    GetSpan<JsonKind, JsonNode>(node));
             }
 
-            private JsonDiagnostic? CheckConstructor(JsonConstructorNode node)
+            private EmbeddedDiagnostic? CheckConstructor(JsonConstructorNode node)
             {
-                return new JsonDiagnostic(
+                return new EmbeddedDiagnostic(
                     WorkspacesResources.Constructors_not_allowed,
                     GetSpan(node.NewKeyword));
             }
