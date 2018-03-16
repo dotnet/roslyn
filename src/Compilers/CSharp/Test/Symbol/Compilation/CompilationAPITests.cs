@@ -395,11 +395,20 @@ namespace A.B {
             c.VerifyDiagnostics();
 
             // same containing script file name and directive string
-            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd1[0])[0]);
-            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd1[1])[0]);
-            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd2[0])[0]);
-            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_VisualBasic, c.GetDirectiveReference(rd2[1])[0]);
-            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd3[0])[0]);
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd1[0]));
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReferences(rd1[0])[0]);
+
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd1[1]));
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReferences(rd1[1])[0]);
+
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd2[0]));
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReferences(rd2[0])[0]);
+
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_VisualBasic, c.GetDirectiveReference(rd2[1]));
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_VisualBasic, c.GetDirectiveReferences(rd2[1])[0]);
+
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd3[0]));
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReferences(rd3[0])[0]);
 
             // different script name or directive string:
             Assert.Null(c.GetDirectiveReference(rd4[0]));

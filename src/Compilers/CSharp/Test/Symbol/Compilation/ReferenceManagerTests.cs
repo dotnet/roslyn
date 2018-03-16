@@ -898,9 +898,9 @@ public class E : bar::C { }
             var rd2 = t2.GetCompilationUnitRoot().GetReferenceDirectives().Single();
             var rd3 = t3.GetCompilationUnitRoot().GetReferenceDirectives().Single();
 
-            var dr1 = compilation.GetDirectiveReference(rd1)[0] as PortableExecutableReference;
-            var dr2 = compilation.GetDirectiveReference(rd2)[0] as PortableExecutableReference;
-            var dr3 = compilation.GetDirectiveReference(rd3)[0] as PortableExecutableReference;
+            var dr1 = compilation.GetDirectiveReference(rd1) as PortableExecutableReference;
+            var dr2 = compilation.GetDirectiveReference(rd2) as PortableExecutableReference;
+            var dr3 = compilation.GetDirectiveReference(rd3) as PortableExecutableReference;
 
             Assert.Equal(MetadataImageKind.Assembly, dr1.Properties.Kind);
             Assert.Equal(MetadataImageKind.Assembly, dr2.Properties.Kind);
@@ -1377,8 +1377,11 @@ public class A
 
             c.VerifyDiagnostics();
 
-            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd1)[0]);
-            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_VisualBasic, c.GetDirectiveReference(rd2)[0]);
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReference(rd1));
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_CSharp, c.GetDirectiveReferences(rd1)[0]);
+
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_VisualBasic, c.GetDirectiveReference(rd2));
+            Assert.Same(TestReferences.NetFx.v4_0_30319.Microsoft_VisualBasic, c.GetDirectiveReferences(rd2)[0]);
         }
 
         [Fact]

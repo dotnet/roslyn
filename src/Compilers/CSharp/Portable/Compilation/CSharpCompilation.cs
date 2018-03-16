@@ -919,11 +919,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns a metadata reference that a given #r resolves to.
+        /// Returns the first metadata reference that a given #r resolves to.
         /// </summary>
         /// <param name="directive">#r directive.</param>
-        /// <returns>Metadata reference the specified directive resolves to, or null if the <paramref name="directive"/> doesn't match any #r directive in the compilation.</returns>
-        public MetadataReference[] GetDirectiveReference(ReferenceDirectiveTriviaSyntax directive)
+        /// <returns>The first metadata reference the specified directive resolves to, or null if the <paramref name="directive"/> doesn't match any #r directive in the compilation.</returns>
+        public MetadataReference GetDirectiveReference(ReferenceDirectiveTriviaSyntax directive)
+        {
+            MetadataReference[] references = GetDirectiveReferences(directive);
+            return references != null && references.Length > 0 ? references[0] : null;
+        }
+
+        /// <summary>
+        /// Returns a metadata references that a given #r resolves to.
+        /// </summary>
+        /// <param name="directive">#r directive.</param>
+        /// <returns>Metadata references the specified directive resolves to, or null if the <paramref name="directive"/> doesn't match any #r directive in the compilation.</returns>
+        public MetadataReference[] GetDirectiveReferences(ReferenceDirectiveTriviaSyntax directive)
         {
             MetadataReference[] reference;
             return ReferenceDirectiveMap.TryGetValue((directive.SyntaxTree.FilePath, directive.File.ValueText), out reference) ? reference : null;
