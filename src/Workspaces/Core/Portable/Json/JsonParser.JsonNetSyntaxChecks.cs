@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.Json
                     {
                         return new EmbeddedDiagnostic(
                             WorkspacesResources.Properties_not_allowed_in_an_array,
-                            GetSpan(((JsonPropertyNode)childNode).ColonToken));
+                            ((JsonPropertyNode)childNode).ColonToken.GetSpan());
                     }
                 }
 
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.Json
                 {
                     return new EmbeddedDiagnostic(
                         WorkspacesResources.Invalid_constructor_name,
-                        GetSpan(node.NameToken));
+                        node.NameToken.GetSpan());
                 }
 
                 return CheckCommasBetweenSequenceElements(node.Sequence) ?? CheckChildren(node);
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.Json
                         {
                             return new EmbeddedDiagnostic(
                                string.Format(WorkspacesResources._0_expected, ','),
-                               GetSpan(GetFirstToken(next)));
+                               GetFirstToken(next).GetSpan());
                         }
                     }
                 }
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.Json
                         {
                             return new EmbeddedDiagnostic(
                                WorkspacesResources.Only_properties_allowed_in_an_object,
-                               GetSpan(GetFirstToken(child)));
+                               GetFirstToken(child).GetSpan());
                         }
                     }
                     else
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Json
                         {
                             return new EmbeddedDiagnostic(
                                string.Format(WorkspacesResources._0_expected, ','),
-                               GetSpan(GetFirstToken(child)));
+                               GetFirstToken(child).GetSpan());
                         }
                     }
                 }
@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Json
                 {
                     return new EmbeddedDiagnostic(
                         WorkspacesResources.Invalid_property_name,
-                        GetSpan(node.NameToken));
+                        node.NameToken.GetSpan());
                 }
 
                 return CheckChildren(node);

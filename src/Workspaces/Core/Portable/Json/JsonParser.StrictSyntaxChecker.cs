@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.Json
                     {
                         return new EmbeddedDiagnostic(
                             WorkspacesResources.Only_properties_allowed_in_an_object,
-                            GetSpan(GetFirstToken(childNode)));
+                            GetFirstToken(childNode).GetSpan());
                     }
                 }
 
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Json
                     {
                         return new EmbeddedDiagnostic(
                             WorkspacesResources.Properties_not_allowed_in_an_array,
-                            GetSpan(((JsonPropertyNode)childNode).ColonToken));
+                            ((JsonPropertyNode)childNode).ColonToken.GetSpan());
                     }
                 }
 
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Json
                         {
                             return new EmbeddedDiagnostic(
                                 string.Format(WorkspacesResources._0_unexpected, ","),
-                                GetSpan<JsonKind, JsonNode>(child));
+                                child.GetSpan());
                         }
                     }
                     else
@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Json
                         {
                             return new EmbeddedDiagnostic(
                                 string.Format(WorkspacesResources._0_expected, ","),
-                                GetSpan(GetFirstToken(child)));
+                                GetFirstToken(child).GetSpan());
                         }
                     }
                 }
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Json
                 {
                     return new EmbeddedDiagnostic(
                         WorkspacesResources.Trailing_comma_not_allowed,
-                        GetSpan<JsonKind, JsonNode>(sequence.ChildAt(sequence.ChildCount - 1).Node));
+                        sequence.ChildAt(sequence.ChildCount - 1).Node.GetSpan());
                 }
 
                 return null;
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Json
                 {
                     return new EmbeddedDiagnostic(
                         WorkspacesResources.Property_name_must_be_a_string,
-                        GetSpan(node.NameToken));
+                        node.NameToken.GetSpan());
                 }
 
                 if (node.Value.Kind == JsonKind.EmptyValue)
@@ -252,7 +252,7 @@ $",
                 {
                     return new EmbeddedDiagnostic(
                         WorkspacesResources.Invalid_number,
-                        GetSpan(literalToken));
+                        literalToken.GetSpan());
                 }
 
                 if (!double.TryParse(literalText, out var val) ||
@@ -261,7 +261,7 @@ $",
                 {
                     return new EmbeddedDiagnostic(
                         WorkspacesResources.Invalid_number,
-                        GetSpan(literalToken));
+                        literalToken.GetSpan());
                 }
 
                 return CheckToken(literalToken);
@@ -315,21 +315,21 @@ $",
             {
                 return new EmbeddedDiagnostic(
                     string.Format(WorkspacesResources._0_literal_not_allowed, literalToken.VirtualChars.CreateString()),
-                    GetSpan(literalToken));
+                    literalToken.GetSpan());
             }
 
             private EmbeddedDiagnostic? CheckNegativeLiteral(JsonNegativeLiteralNode node)
             {
                 return new EmbeddedDiagnostic(
                     string.Format(WorkspacesResources._0_literal_not_allowed, "-Infinity"),
-                    GetSpan<JsonKind, JsonNode>(node));
+                    node.GetSpan());
             }
 
             private EmbeddedDiagnostic? CheckConstructor(JsonConstructorNode node)
             {
                 return new EmbeddedDiagnostic(
                     WorkspacesResources.Constructors_not_allowed,
-                    GetSpan(node.NewKeyword));
+                    node.NewKeyword.GetSpan());
             }
         }
     }

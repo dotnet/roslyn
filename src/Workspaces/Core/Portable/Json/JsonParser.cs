@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.Json
                 var firstToken = GetFirstToken(arraySequence.ChildAt(1).Node);
                 return new EmbeddedDiagnostic(
                     string.Format(WorkspacesResources._0_unexpected, firstToken.VirtualChars[0].Char),
-                    GetSpan(firstToken));
+                    firstToken.GetSpan());
             }
             foreach (var child in compilationUnit.Sequence)
             {
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Json
                     var emptyValue = (JsonEmptyValueNode)child.Node;
                     return new EmbeddedDiagnostic(
                         string.Format(WorkspacesResources._0_unexpected, ','),
-                        GetSpan(emptyValue.CommaToken));
+                        emptyValue.CommaToken.GetSpan());
                 }
             }
 
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.Json
                     nestedProperty.NameToken,
                     nestedProperty.ColonToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                         WorkspacesResources.Nested_properties_not_allowed,
-                        GetSpan(nestedProperty.ColonToken))),
+                        nestedProperty.ColonToken.GetSpan())),
                     nestedProperty.Value);
             }
 
