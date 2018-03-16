@@ -5,7 +5,7 @@ using System.Composition;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
-namespace Microsoft.CodeAnalysis.Json
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 {
     internal class JsonOptions
     {
