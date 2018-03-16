@@ -72,12 +72,18 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
         protected abstract TestWorkspace CreateWorkspaceFromFile(string initialMarkup, TestParameters parameters);
 
+        private TestParameters WithRegularOptions(TestParameters parameters)
+            => parameters.WithParseOptions(parameters.parseOptions?.WithKind(SourceCodeKind.Regular));
+
+        private TestParameters WithScriptOptions(TestParameters parameters)
+            => parameters.WithParseOptions(parameters.parseOptions?.WithKind(SourceCodeKind.Script) ?? GetScriptOptions());
+
         protected async Task TestMissingInRegularAndScriptAsync(
             string initialMarkup,
             TestParameters parameters = default(TestParameters))
         {
-            await TestMissingAsync(initialMarkup, parameters.WithParseOptions(null));
-            await TestMissingAsync(initialMarkup, parameters.WithParseOptions(GetScriptOptions()));
+            await TestMissingAsync(initialMarkup, WithRegularOptions(parameters));
+            await TestMissingAsync(initialMarkup, WithScriptOptions(parameters));
         }
 
         protected async Task TestMissingAsync(
@@ -167,11 +173,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             await TestAddDocument(
                 initialMarkup, expectedMarkup,
                 expectedContainers, expectedDocumentName,
-                index, parameters.WithParseOptions(null));
+                index, WithRegularOptions(parameters));
             await TestAddDocument(
                 initialMarkup, expectedMarkup,
                 expectedContainers, expectedDocumentName,
-                index, parameters.WithParseOptions(GetScriptOptions()));
+                index, WithScriptOptions(parameters));
         }
 
         protected async Task<Tuple<Solution, Solution>> TestAddDocumentAsync(
@@ -315,8 +321,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             CodeActionPriority? priority = null,
             TestParameters parameters = default(TestParameters))
         {
-            await TestAsync(initialMarkup, expectedMarkup, index, priority, parameters.WithParseOptions(null));
-            await TestAsync(initialMarkup, expectedMarkup, index, priority, parameters.WithParseOptions(GetScriptOptions()));
+            await TestAsync(initialMarkup, expectedMarkup, index, priority, WithRegularOptions(parameters));
+            await TestAsync(initialMarkup, expectedMarkup, index, priority, WithScriptOptions(parameters));
         }
 
         internal Task TestAsync(
