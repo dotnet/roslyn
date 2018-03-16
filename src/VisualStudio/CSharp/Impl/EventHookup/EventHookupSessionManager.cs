@@ -38,14 +38,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 
             var caretPoint = analyzedSession.TextView.GetCaretPoint(analyzedSession.SubjectBuffer);
 
+            // only generate tooltip if it is not already shown (_toolTipPresenter == null)
             // Ensure the analyzed session matches the current session and that the caret is still
             // in the session's tracking span.
-            if (CurrentSession == analyzedSession &&
+            if (_toolTipPresenter == null &&
+                CurrentSession == analyzedSession &&
                 caretPoint.HasValue &&
                 analyzedSession.TrackingSpan.GetSpan(CurrentSession.TextView.TextSnapshot).Contains(caretPoint.Value))
             {
-                Debug.Assert(_toolTipPresenter == null, "_toolTipPresenter is not null, we have an existing tooltip session active");
-
                 // Create a tooltip presenter that stays alive, even when the user types, without tracking the mouse.
                 _toolTipPresenter = this._toolTipService.CreatePresenter(analyzedSession.TextView,
                     new ToolTipParameters(trackMouse: false, ignoreBufferChange: true));

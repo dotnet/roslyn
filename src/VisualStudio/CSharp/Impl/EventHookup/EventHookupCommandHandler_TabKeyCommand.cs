@@ -95,12 +95,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 return;
             }
 
-            // If QuickInfoSession is null, then Tab was pressed before the background task
-            // finished (that is, the Wait call above actually needed to wait). Since we know an
-            // event hookup was found, we should set everything up now because the background task 
-            // will not have a chance to set things up until after this Tab has been handled, and
-            // by then it's too late. When the background task alerts that it found an event hookup
-            // nothing will change because QuickInfoSession will already be set.
+            // The EventHookupFoundInSession() is called here to avoid the following scenario:
+            // User types "=<Tab>" very fast, and adding the event handler method into document somehow takes long.
+            // During that time before the event handler method shows up, we want the tooltip to show up
+            // so user does not have to wondering why VS has no response.
+            // If the tooltip is already shown then nothing will change (handled inside EventHookupFoundInSession by checking _toolTipPresenter == null)
             EventHookupSessionManager.EventHookupFoundInSession(EventHookupSessionManager.CurrentSession);
 
             // This tab means we should generate the event handler method. Begin the code
