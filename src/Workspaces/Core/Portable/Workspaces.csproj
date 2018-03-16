@@ -329,6 +329,7 @@
     <PackageReference Include="System.Threading.Thread" Version="$(SystemThreadingThreadVersion)" />
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="Json\" />
     <Folder Include="RegularExpressions\" />
   </ItemGroup>
   <Import Project="..\..\..\Dependencies\PooledObjects\Microsoft.CodeAnalysis.PooledObjects.projitems" Label="Shared" />
