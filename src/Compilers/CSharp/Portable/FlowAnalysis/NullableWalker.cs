@@ -39,6 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly Conversions _conversions;
 
+        private readonly Action<BoundExpression, TypeSymbolWithAnnotations> _callbackOpt;
+
         /// <summary>
         /// Invalid type, used only to catch Visit methods that do not set
         /// _result.Type. See VisitExpressionWithoutStackGuard.
@@ -70,11 +72,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             CSharpCompilation compilation,
             MethodSymbol member,
             BoundNode node,
+            Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt,
             bool includeNonNullableWarnings)
             : base(compilation, member, node, new EmptyStructTypeCache(compilation, dev12CompilerCompatibility: false), trackUnassignments: false)
         {
             _sourceAssembly = ((object)member == null) ? null : (SourceAssemblySymbol)member.ContainingAssembly;
             this._currentMethodOrLambda = member;
+            _callbackOpt = callbackOpt;
             _includeNonNullableWarnings = includeNonNullableWarnings;
             // PROTOTYPE(NullableReferenceTypes): Do we really need a Binder?
             // If so, are we interested in an InMethodBinder specifically?
@@ -105,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return pendingReturns;
         }
 
-        public static void Analyze(CSharpCompilation compilation, MethodSymbol member, BoundNode node, DiagnosticBag diagnostics)
+        public static void Analyze(CSharpCompilation compilation, MethodSymbol member, BoundNode node, DiagnosticBag diagnostics, Action<BoundExpression, TypeSymbolWithAnnotations> callbackOpt = null)
         {
             Debug.Assert(diagnostics != null);
 
@@ -119,6 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 compilation,
                 member,
                 node,
+                callbackOpt,
                 includeNonNullableWarnings: (flags & NullableReferenceFlags.AllowNullAsNonNull) == 0);
 
             try
@@ -732,6 +737,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)resultType == null || AreCloseEnough(resultType.TypeSymbol, node.Type));
             }
 #endif
+            if (_callbackOpt != null)
+            {
+                _callbackOpt(node, _result.Type);
+            }
             return result;
         }
 
@@ -1343,61 +1352,107 @@ namespace Microsoft.CodeAnalysis.CSharp
             VisitCondition(node.Condition);
             var consequenceState = this.StateWhenTrue;
             var alternativeState = this.StateWhenFalse;
+
+            BoundExpression consequence;
+            BoundExpression alternative;
+            Result consequenceResult;
+            Result alternativeResult;
+            bool? isNullableIfReferenceType;
+
             if (IsConstantTrue(node.Condition))
             {
-                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
-                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
-                // it may be a boolean state at this point.
+                (alternative, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
+                (consequence, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
+                isNullableIfReferenceType = getIsNullableIfReferenceType(consequence, consequenceResult);
             }
             else if (IsConstantFalse(node.Condition))
             {
-                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
-                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
-                // it may be a boolean state at this point.
+                (consequence, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
+                (alternative, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
+                isNullableIfReferenceType = getIsNullableIfReferenceType(alternative, alternativeResult);
             }
             else
             {
-                VisitConditionalOperand(consequenceState, node.Consequence, isByRef);
+                (consequence, consequenceResult) = visitConditionalOperand(consequenceState, node.Consequence);
                 Unsplit();
-                var consequenceType = _result.Type;
-                consequenceState = this.State;
-                VisitConditionalOperand(alternativeState, node.Alternative, isByRef);
+                (alternative, alternativeResult) = visitConditionalOperand(alternativeState, node.Alternative);
                 Unsplit();
-                var alternativeType = _result.Type;
                 IntersectWith(ref this.State, ref consequenceState);
-                if ((object)consequenceType == null || (object)alternativeType == null || !consequenceType.Equals(alternativeType, TypeCompareKind.ConsiderEverything))
+                isNullableIfReferenceType = (getIsNullableIfReferenceType(consequence, consequenceResult) | getIsNullableIfReferenceType(alternative, alternativeResult));
+            }
+
+            TypeSymbolWithAnnotations resultType;
+            if (node.HasErrors)
+            {
+                resultType = null;
+            }
+            else
+            {
+                // Determine nested nullability using BestTypeInferrer.
+                // For constant conditions, we could use the nested nullability of the particular
+                // branch, but that requires using the nullability of the branch as it applies to the
+                // target type. For instance, the result of the conditional in the following should
+                // be `IEnumerable<object>` not `object[]`:
+                //   object[] a = ...;
+                //   IEnumerable<object?> b = ...;
+                //   var c = true ? a : b;
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                resultType = BestTypeInferrer.InferBestTypeForConditionalOperator(
+                    createPlaceholderIfNecessary(consequence, consequenceResult),
+                    createPlaceholderIfNecessary(alternative, alternativeResult),
+                    _conversions,
+                    out _,
+                    ref useSiteDiagnostics);
+                if (resultType is null)
                 {
-                    var consequenceIsNullable = (object)consequenceType == null ? true : consequenceType.IsNullable;
-                    var alternativeIsNullable = (object)alternativeType == null ? true : alternativeType.IsNullable;
-                    _result = TypeSymbolWithAnnotations.Create(node.Type, isNullableIfReferenceType: consequenceIsNullable | alternativeIsNullable);
+                    ReportStaticNullCheckingDiagnostics(
+                        ErrorCode.WRN_NoBestNullabilityConditionalExpression,
+                        node.Syntax,
+                        GetTypeAsDiagnosticArgument(consequenceResult.Type?.TypeSymbol),
+                        GetTypeAsDiagnosticArgument(alternativeResult.Type?.TypeSymbol));
+                }
+            }
+            resultType = TypeSymbolWithAnnotations.Create(resultType?.TypeSymbol ?? node.Type, isNullableIfReferenceType);
+
+            _result = resultType;
+            return null;
+
+            bool? getIsNullableIfReferenceType(BoundExpression expr, Result result)
+            {
+                var type = result.Type;
+                if ((object)type != null)
+                {
+                    return type.IsNullable;
+                }
+                if (expr.IsLiteralNullOrDefault())
+                {
+                    return true;
+                }
+                return null;
+            }
+
+            BoundExpression createPlaceholderIfNecessary(BoundExpression expr, Result result)
+            {
+                var type = result.Type;
+                return type is null ?
+                    expr :
+                    new BoundValuePlaceholder(expr.Syntax, type.IsNullable, type.TypeSymbol);
+            }
+
+            (BoundExpression, Result) visitConditionalOperand(LocalState state, BoundExpression operand)
+            {
+                SetState(state);
+                if (isByRef)
+                {
+                    VisitLvalue(operand);
                 }
                 else
                 {
-                    // PROTOTYPE(NullableReferenceTypes): Use BestTypeInferrer.InferBestTypeForConditionalOperator
-                    // to ensure nested nullability is considered.
-                    _result = GetMoreNullableType(consequenceType, alternativeType);
+                    operand = RemoveImplicitConversions(operand);
+                    Visit(operand);
                 }
-
-                // it may not be a boolean state at this point (5.3.3.28)
-                // PROTOTYPE(NullableReferenceTypes): Report conversion warnings.
+                return (operand, _result);
             }
-
-            // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-            SetResult(node);
-            return null;
-        }
-
-        // Return the type that is "more nullable". Assumes types are equal, ignoring nullability.
-        private static TypeSymbolWithAnnotations GetMoreNullableType(TypeSymbolWithAnnotations typeA, TypeSymbolWithAnnotations typeB)
-        {
-            Debug.Assert(typeA.Equals(typeB, TypeCompareKind.ConsiderEverything));
-            bool? isNullableA = typeA.IsNullable;
-            bool? isNullableB = typeB.IsNullable;
-            if (isNullableA == true) return typeA;
-            if (isNullableB == true) return typeB;
-            if (isNullableA == null) return typeA;
-            if (isNullableB == null) return typeB;
-            return typeA;
         }
 
         public override BoundNode VisitConditionalReceiver(BoundConditionalReceiver node)
@@ -1986,7 +2041,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // PROTOTYPE(NullableReferenceTypes): Should an explicit cast cast away
                     // outermost nullability? For instance, is `s` a `string!` or `string?`?
                     // object? obj = ...; var s = (string)obj;
-                    isNullableIfReferenceType = (operandType is null) ? (operand.IsLiteralNull() || operand.IsLiteralDefault()) : operandType.IsNullable;
+                    isNullableIfReferenceType = (operandType is null) ? operand.IsLiteralNullOrDefault() : operandType.IsNullable;
                     break;
 
                 case ConversionKind.Deconstruction:
