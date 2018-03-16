@@ -7463,33 +7463,37 @@ unsafe class C
 }
 ";
             CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
-                // (6,31): error CS1575: A stackalloc expression requires [] after type
+                // (6,34): error CS1586: Array creation must have array size or array initializer
                 //         { int* p = stackalloc int[]; }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[]"),
-                // (7,31): error CS1575: A stackalloc expression requires [] after type
-                //         { int* p = stackalloc int[1, 1]; }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1, 1]"),
-                // (8,31): error CS1575: A stackalloc expression requires [] after type
+                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(6, 34),
+                // (8,34): error CS1586: Array creation must have array size or array initializer
                 //         { int* p = stackalloc int[][]; }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][]"),
-                // (9,31): error CS1575: A stackalloc expression requires [] after type
+                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(8, 34),
+                // (9,34): error CS1586: Array creation must have array size or array initializer
                 //         { int* p = stackalloc int[][1]; }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][1]"),
-                // (10,31): error CS1575: A stackalloc expression requires [] after type
-                //         { int* p = stackalloc int[1][]; }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][]"),
-                // (11,31): error CS1575: A stackalloc expression requires [] after type
-                //         { int* p = stackalloc int[1][1]; }
-                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][1]"),
-
-                // CONSIDER: these are plausible, but not ideal.
-
+                Diagnostic(ErrorCode.ERR_MissingArraySize, "[]").WithLocation(9, 34),
                 // (9,37): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         { int* p = stackalloc int[][1]; }
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1"),
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1").WithLocation(9, 37),
                 // (11,38): error CS0270: Array size cannot be specified in a variable declaration (try initializing with a 'new' expression)
                 //         { int* p = stackalloc int[1][1]; }
-                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1"));
+                Diagnostic(ErrorCode.ERR_ArraySizeInDeclaration, "1").WithLocation(11, 38),
+                // (7,31): error CS1575: A stackalloc expression requires [] after type
+                //         { int* p = stackalloc int[1, 1]; }
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1, 1]").WithLocation(7, 31),
+                // (8,31): error CS1575: A stackalloc expression requires [] after type
+                //         { int* p = stackalloc int[][]; }
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][]").WithLocation(8, 31),
+                // (9,31): error CS1575: A stackalloc expression requires [] after type
+                //         { int* p = stackalloc int[][1]; }
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[][1]").WithLocation(9, 31),
+                // (10,31): error CS1575: A stackalloc expression requires [] after type
+                //         { int* p = stackalloc int[1][]; }
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][]").WithLocation(10, 31),
+                // (11,31): error CS1575: A stackalloc expression requires [] after type
+                //         { int* p = stackalloc int[1][1]; }
+                Diagnostic(ErrorCode.ERR_BadStackAllocExpr, "int[1][1]").WithLocation(11, 31)
+                );
         }
 
         [Fact]

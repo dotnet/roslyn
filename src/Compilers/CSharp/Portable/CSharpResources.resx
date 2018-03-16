@@ -5312,4 +5312,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ConWithUnmanagedCon" xml:space="preserve">
     <value>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</value>
   </data>
+  <data name="IDS_FeatureStackAllocInitializer" xml:space="preserve">
+    <value>stackalloc initializer</value>
+  </data>
+  <data name="ERR_InvalidStackAllocArray" xml:space="preserve">
+    <value>"Invalid rank specifier: expected ']'</value>
+  </data>
 </root>

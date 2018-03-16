@@ -29,5 +29,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         PEVerifyCompat,
         RefConditionalOperator,
         TupleEquality,
+        StackAllocInitializer,
     }
 }
