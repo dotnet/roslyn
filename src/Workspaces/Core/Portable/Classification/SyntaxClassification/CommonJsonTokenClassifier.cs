@@ -1,13 +1,19 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Json;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
+    using static EmbeddedSyntaxHelpers;
+
+    using JsonToken = EmbeddedSyntaxToken<JsonKind>;
+    using JsonTrivia = EmbeddedSyntaxTrivia<JsonKind>;
+
     internal static class CommonJsonPatternTokenClassifier
     {
         private static ObjectPool<Visitor> _visitorPool = new ObjectPool<Visitor>(() => new Visitor());
@@ -89,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 trivia.VirtualChars.Length > 0)
             {
                 result.Add(new ClassifiedSpan(
-                    ClassificationTypeNames.JsonComment, JsonHelpers.GetSpan(trivia.VirtualChars)));
+                    ClassificationTypeNames.JsonComment, GetSpan(trivia.VirtualChars)));
             }
         }
 
@@ -101,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 if (!token.IsMissing)
                 {
-                    Result.Add(new ClassifiedSpan(typeName, JsonHelpers.GetSpan(token)));
+                    Result.Add(new ClassifiedSpan(typeName, token.GetSpan()));
                 }
             }
 

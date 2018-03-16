@@ -2,7 +2,7 @@
 
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.JsonStringDetector
-Imports Microsoft.CodeAnalysis.VisualBasic.VirtualChars
+Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.JsonStringDetector
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>

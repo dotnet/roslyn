@@ -2,14 +2,17 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Json;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Microsoft.CodeAnalysis.VirtualChars;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
 {
+    using JsonToken = EmbeddedSyntaxToken<JsonKind>;
+
     internal static class CommonJsonBraceMatcher
     {
         internal static async Task<BraceMatchingResult?> FindBracesAsync(
@@ -85,9 +88,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching
                 return default;
             }
 
-            return new BraceMatchingResult(
-                JsonHelpers.GetSpan(open),
-                JsonHelpers.GetSpan(close));
+            return new BraceMatchingResult(open.GetSpan(), close.GetSpan());
         }
 
         private static JsonValueNode FindObjectOrArrayNode(JsonNode node, VirtualChar ch)

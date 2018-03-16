@@ -2,13 +2,19 @@
 
 using System.Linq;
 using System.Threading;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
-using Microsoft.CodeAnalysis.RegularExpressions;
-using Microsoft.CodeAnalysis.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.Classification
 {
+    using static EmbeddedSyntaxHelpers;
+
+    using RegexToken = EmbeddedSyntaxToken<RegexKind>;
+    using RegexTrivia = EmbeddedSyntaxTrivia<RegexKind>;
+
     internal static class CommonRegexPatternTokenClassifier
     {
         private static ObjectPool<Visitor> _visitorPool = new ObjectPool<Visitor>(() => new Visitor());
@@ -80,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 trivia.VirtualChars.Length > 0)
             {
                 result.Add(new ClassifiedSpan(
-                    ClassificationTypeNames.RegexComment, RegexHelpers.GetSpan(trivia.VirtualChars)));
+                    ClassificationTypeNames.RegexComment, GetSpan(trivia.VirtualChars)));
             }
         }
 
@@ -92,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Classification
             {
                 if (!token.IsMissing)
                 {
-                    Result.Add(new ClassifiedSpan(typeName, RegexHelpers.GetSpan(token)));
+                    Result.Add(new ClassifiedSpan(typeName, token.GetSpan()));
                 }
             }
 
@@ -298,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Classification
                 // classify the end part as a comment.
                 Result.Add(new ClassifiedSpan(node.TextToken.VirtualChars[0].Span, ClassificationTypeNames.RegexText));
                 Result.Add(new ClassifiedSpan(
-                    RegexHelpers.GetSpan(node.TextToken.VirtualChars[1], node.TextToken.VirtualChars.Last()),
+                    GetSpan(node.TextToken.VirtualChars[1], node.TextToken.VirtualChars.Last()),
                     ClassificationTypeNames.RegexComment));
             }
 
