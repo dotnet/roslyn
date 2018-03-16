@@ -19,32 +19,45 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Creates a SemanticModel that creates and owns the ExecutableCodeBinder for the method of which it is a model.
+        /// Creates a SemanticModel for the method.
         /// </summary>
-        internal static MethodBodySemanticModel Create(CSharpCompilation compilation, MethodSymbol owner, Binder rootBinder, CSharpSyntaxNode syntax)
+        internal static MethodBodySemanticModel Create(CSharpCompilation compilation, MethodSymbol owner, ExecutableCodeBinder executableCodeBinder, 
+                                                       CSharpSyntaxNode syntax, BoundNode boundNode = null)
         {
-            var executableCodeBinder = new ExecutableCodeBinder(syntax, owner, rootBinder);
-            return new MethodBodySemanticModel(compilation, owner, executableCodeBinder, syntax);
+            var result =  new MethodBodySemanticModel(compilation, owner, executableCodeBinder, syntax);
+
+            if (boundNode != null)
+            {
+                result.UnguardedAddBoundTreeForStandaloneSyntax(syntax, boundNode);
+            }
+
+            return result;
         }
 
         internal override BoundNode Bind(Binder binder, CSharpSyntaxNode node, DiagnosticBag diagnostics)
         {
-            if (node.Kind() == SyntaxKind.ArrowExpressionClause)
+            switch (node.Kind())
             {
-                return binder.BindExpressionBodyAsBlock((ArrowExpressionClauseSyntax)node, diagnostics);
-            }
-            return base.Bind(binder, node, diagnostics);
-        }
+                case SyntaxKind.ArrowExpressionClause:
+                    return binder.BindExpressionBodyAsBlock((ArrowExpressionClauseSyntax)node, diagnostics);
 
-        internal override BoundNode GetBoundRoot()
-        {
-            CSharpSyntaxNode root = this.Root;
-            if (root.Kind() == SyntaxKind.ArrowExpressionClause)
-            {
-                root = ((ArrowExpressionClauseSyntax)root).Expression;
-                return GetUpperBoundNode(GetBindableSyntaxNode(root));
+                case SyntaxKind.BaseConstructorInitializer:
+                case SyntaxKind.ThisConstructorInitializer:
+                    return binder.BindConstructorInitializer((ConstructorInitializerSyntax)node, diagnostics);
+
+                case SyntaxKind.MethodDeclaration:
+                case SyntaxKind.ConversionOperatorDeclaration:
+                case SyntaxKind.OperatorDeclaration:
+                case SyntaxKind.ConstructorDeclaration:
+                case SyntaxKind.DestructorDeclaration:
+                case SyntaxKind.GetAccessorDeclaration:
+                case SyntaxKind.SetAccessorDeclaration:
+                case SyntaxKind.AddAccessorDeclaration:
+                case SyntaxKind.RemoveAccessorDeclaration:
+                    return binder.BindMethodBody(node, diagnostics);
             }
-            return base.GetBoundRoot();
+
+            return base.Bind(binder, node, diagnostics);
         }
 
         /// <summary>
@@ -64,6 +77,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Creates a speculative SemanticModel for an expression body that did not appear in the original source code.
         /// </summary>
         internal static MethodBodySemanticModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, MethodSymbol owner, ArrowExpressionClauseSyntax syntax, Binder rootBinder, int position)
+        {
+            Debug.Assert(parentSemanticModel != null);
+            Debug.Assert(syntax != null);
+            Debug.Assert(rootBinder != null);
+            Debug.Assert(rootBinder.IsSemanticModelBinder);
+
+            return new MethodBodySemanticModel(parentSemanticModel.Compilation, owner, rootBinder, syntax, parentSemanticModel, position);
+        }
+
+        /// <summary>
+        /// Creates a speculative SemanticModel for a constructor initializer that did not appear in the original source code.
+        /// </summary>
+        internal static MethodBodySemanticModel CreateSpeculative(SyntaxTreeSemanticModel parentSemanticModel, MethodSymbol owner, ConstructorInitializerSyntax syntax, Binder rootBinder, int position)
         {
             Debug.Assert(parentSemanticModel != null);
             Debug.Assert(syntax != null);
@@ -150,6 +176,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, ConstructorInitializerSyntax constructorInitializer, out SemanticModel speculativeModel)
         {
+            if ((MemberSymbol as MethodSymbol)?.MethodKind == MethodKind.Constructor)
+            {
+                var binder = this.GetEnclosingBinder(position);
+                if (binder != null)
+                {
+                    var methodSymbol = (MethodSymbol)this.MemberSymbol;
+                    binder = new ExecutableCodeBinder(constructorInitializer, methodSymbol, binder);
+                    speculativeModel = CreateSpeculative(parentModel, methodSymbol, constructorInitializer, binder, position);
+                    return true;
+                }
+            }
+
             speculativeModel = null;
             return false;
         }
