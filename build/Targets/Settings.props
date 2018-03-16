@@ -165,14 +165,14 @@
 
   <!-- Determine compiler toolset props file to use for this build -->
   <PropertyGroup>
-    <_PackageName Condition="'$(MSBuildRuntimeType)' != 'Core'">microsoft.net.compilers</_PackageName>
-    <_PackageName Condition="'$(MSBuildRuntimeType)' == 'Core'">microsoft.netcore.compilers</_PackageName>
+    <_PackageName Condition="'$(MSBuildRuntimeType)' != 'Core'">Microsoft.Net.Compilers</_PackageName>
+    <_PackageName Condition="'$(MSBuildRuntimeType)' == 'Core'">Microsoft.NETCore.Compilers</_PackageName>
     <_PackageVersion Condition="'$(MSBuildRuntimeType)' != 'Core' AND '$(BootstrapBuildPath)' == ''">$(MicrosoftNetCompilersVersion)</_PackageVersion>
     <_PackageVersion Condition="'$(MSBuildRuntimeType)' == 'Core' AND '$(BootstrapBuildPath)' == ''">$(MicrosoftNETCoreCompilersVersion)</_PackageVersion>
     <_PackageVersion Condition="'$(BootstrapBuildPath)' != ''">42.42.42.42</_PackageVersion>
     <_PackageRoot>$(NuGetPackageRoot)</_PackageRoot>
     <_PackageRoot Condition="'$(BootstrapBuildPath)' != ''">$(BootstrapBuildPath)</_PackageRoot>
-    <RoslynToolsetDirectory>$(_PackageRoot)\$(_PackageName)\$(_PackageVersion)</RoslynToolsetDirectory>
+    <RoslynToolsetDirectory>$(_PackageRoot)\$(_PackageName.ToLower())\$(_PackageVersion)</RoslynToolsetDirectory>
     <RoslynToolsetPropsFilePath>$(RoslynToolsetDirectory)\build\$(_PackageName).props</RoslynToolsetPropsFilePath>
   </PropertyGroup>
 
