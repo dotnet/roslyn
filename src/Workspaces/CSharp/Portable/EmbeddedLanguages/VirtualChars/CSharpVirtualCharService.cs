@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             if (!tokenText.StartsWith(StartDelimeter) ||
                 !tokenText.EndsWith(EndDelimeter))
             {
-                Debug.Assert(false, "This should not be reachable as long as the compiler added no diagnostics.");
+                Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
                 return default;
             }
 
@@ -96,38 +96,38 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             var ch = tokenText[index + 1];
             switch (ch)
             {
-                // escaped characters that translate to themselves
-                case '\'':
-                case '"':
-                case '\\':
-                    break;
-                // translate escapes as per C# spec 2.4.4.4
-                case '0':
-                    ch = (char)0;
-                    break;
-                case 'a':
-                    ch = '\u0007';
-                    break;
-                case 'b':
-                    ch = '\u0008';
-                    break;
-                case 'f':
-                    ch = '\u000c';
-                    break;
-                case 'n':
-                    ch = '\u000a';
-                    break;
-                case 'r':
-                    ch = '\u000d';
-                    break;
-                case 't':
-                    ch = '\u0009';
-                    break;
-                case 'v':
-                    ch = '\u000b';
-                    break;
-                default:
-                    return false;
+            // escaped characters that translate to themselves
+            case '\'':
+            case '"':
+            case '\\':
+                break;
+            // translate escapes as per C# spec 2.4.4.4
+            case '0':
+                ch = (char)0;
+                break;
+            case 'a':
+                ch = '\u0007';
+                break;
+            case 'b':
+                ch = '\u0008';
+                break;
+            case 'f':
+                ch = '\u000c';
+                break;
+            case 'n':
+                ch = '\u000a';
+                break;
+            case 'r':
+                ch = '\u000d';
+                break;
+            case 't':
+                ch = '\u0009';
+                break;
+            case 'v':
+                ch = '\u000b';
+                break;
+            default:
+                return false;
             }
 
             result.Add(new VirtualChar(ch, new TextSpan(offset + index, 2)));
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
         private bool TryAddMultiCharacterEscape(
             ArrayBuilder<VirtualChar> result, string tokenText, int offset, int index)
-        { 
+        {
             // Copied from Lexer.ScanEscapeSequence.
             Debug.Assert(tokenText[index] == '\\');
 
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
             case 'U':
                 return TryAddMultiCharacterEscape(result, tokenText, offset, index, ch);
             default:
-                Debug.Assert(false, "This should not be reachable as long as the compiler added no diagnostics.");
+                Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
                 return false;
             }
         }
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
                 if (!IsHexDigit(tokenText[index]))
                 {
-                    Debug.Assert(false, "This should not be reachable as long as the compiler added no diagnostics.");
+                    Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
                     return false;
                 }
 
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     character = tokenText[index + i];
                     if (!IsHexDigit(character))
                     {
-                        Debug.Assert(false, "This should not be reachable as long as the compiler added no diagnostics.");
+                        Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
                         return false;
                     }
 
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
 
                 if (uintChar > 0x0010FFFF)
                 {
-                    Debug.Assert(false, "This should not be reachable as long as the compiler added no diagnostics.");
+                    Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
                     return false;
                 }
 
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 var intChar = 0;
                 if (!IsHexDigit(tokenText[index]))
                 {
-                    Debug.Assert(false, "This should not be reachable as long as the compiler added no diagnostics.");
+                    Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
                     return false;
                 }
 
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                     var ch2 = tokenText[index + i];
                     if (!IsHexDigit(ch2))
                     {
-                        Debug.Assert(false, "This should not be reachable as long as the compiler added no diagnostics.");
+                        Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
                         return false;
                     }
 
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars
                 var intChar = 0;
                 if (!IsHexDigit(tokenText[index]))
                 {
-                    Debug.Assert(false, "This should not be reachable as long as the compiler added no diagnostics.");
+                    Debug.Fail("This should not be reachable as long as the compiler added no diagnostics.");
                     return false;
                 }
 
