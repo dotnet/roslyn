@@ -199,7 +199,7 @@ class Program
 }
 ";
 
-            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (9,18): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
                 //     public fixed S1 x[10];
                 Diagnostic(ErrorCode.ERR_IllegalFixedType, "S1").WithLocation(9, 18)
@@ -232,7 +232,7 @@ class Program
 }
 ";
 
-            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (14,34): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         System.Console.WriteLine(s.x[3]);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "s.x").WithLocation(14, 34),
@@ -269,7 +269,7 @@ class Program
 }
 ";
 
-            CreateStandardCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CreateCompilation(source, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (17,9): error CS1648: Members of readonly field 'S1.field' cannot be modified (except in a constructor or a variable initializer)
                 //         c.field.x[0] = 12;
                 Diagnostic(ErrorCode.ERR_AssgReadonly2, "c.field.x[0]").WithArguments("S1.field").WithLocation(17, 9),

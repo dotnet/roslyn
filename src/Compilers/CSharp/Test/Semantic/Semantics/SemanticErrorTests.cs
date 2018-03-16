@@ -15443,7 +15443,7 @@ unsafe class Test
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe, parseOptions: TestOptions.Regular7_2).VerifyDiagnostics(
                 // (13,30): error CS8320: Feature 'indexing movable fixed buffers' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         System.Console.Write(inst.field.buffer[0]);
                 Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "inst.field.buffer").WithArguments("indexing movable fixed buffers", "7.3").WithLocation(13, 30),
@@ -15483,7 +15483,7 @@ class Test
 }
 ";
 
-            CreateStandardCompilation(text, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
+            CreateCompilation(text, options: TestOptions.UnsafeReleaseExe).VerifyDiagnostics(
                 // (13,30): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
                 //         System.Console.Write(inst.field.buffer[0]);
                 Diagnostic(ErrorCode.ERR_UnsafeNeeded, "inst.field.buffer").WithLocation(13, 30),
