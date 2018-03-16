@@ -39,5 +39,6 @@
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
     <PackageReference Include="dotnet-xunit" Version="$(dotnetxunitVersion)" ExcludeAssets="all" />
     <PackageReference Include="Microsoft.NETCore.Compilers" Version="$(MicrosoftNETCoreCompilersVersion)" ExcludeAssets="all" />
+    <PackageReference Include="System.Runtime.Loader" Version="$(SystemRuntimeLoaderVersion)" ExcludeAssets="all" />
   </ItemGroup>
 </Project>

@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             }
         }
 
-        private async Task HandleDeclarationAsync(
+        internal static async Task HandleDeclarationAsync(
             Document document, SyntaxEditor editor, 
             SyntaxNode node, CancellationToken cancellationToken)
         {
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.TypeStyle
             }
         }
 
-        private ExpressionSyntax GenerateTupleDeclaration(ITypeSymbol typeSymbol, ParenthesizedVariableDesignationSyntax parensDesignation)
+        private static ExpressionSyntax GenerateTupleDeclaration(ITypeSymbol typeSymbol, ParenthesizedVariableDesignationSyntax parensDesignation)
         {
             Debug.Assert(typeSymbol.IsTupleType);
             var elements = ((INamedTypeSymbol)typeSymbol).TupleElements;

@@ -504,7 +504,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundIsOperator Is(BoundExpression operand, TypeSymbol type)
         {
             HashSet<DiagnosticInfo> discarded = null;
-            Conversion c = Compilation.Conversions.ClassifyConversionFromExpression(operand, type, ref discarded);
+            // Because compiler-generated nodes are not lowered, this conversion is not used later in the compiler.
+            // But it is a required part of the `BoundIsOperator` node, so we compute a conversion here.
+            Conversion c = Compilation.Conversions.ClassifyBuiltInConversion(operand.Type, type, ref discarded);
             return new BoundIsOperator(this.Syntax, operand, Type(type), c, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Boolean)) { WasCompilerGenerated = true };
         }
 
@@ -1328,9 +1330,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal ImmutableArray<BoundExpression> MakeTempsForDiscardArguments(ImmutableArray<BoundExpression> arguments, ArrayBuilder<LocalSymbol> builder)
         {
-            var discardsCount = arguments.Count(a => a.Kind == BoundKind.DiscardExpression);
+            var discardsPresent = arguments.Any(a => a.Kind == BoundKind.DiscardExpression);
 
-            if (discardsCount != 0)
+            if (discardsPresent)
             {
                 arguments = arguments.SelectAsArray(
                     (arg, t) => arg.Kind == BoundKind.DiscardExpression ? t.factory.MakeTempForDiscard((BoundDiscardExpression)arg, t.builder) : arg,

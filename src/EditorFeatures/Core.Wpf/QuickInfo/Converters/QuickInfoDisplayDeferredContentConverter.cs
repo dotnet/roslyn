@@ -36,7 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.QuickInfo
                 factory.CreateElement(quickInfoDisplay.TypeParameterMap),
                 factory.CreateElement(quickInfoDisplay.AnonymousTypes),
                 factory.CreateElement(quickInfoDisplay.UsageText),
-                factory.CreateElement(quickInfoDisplay.ExceptionText));
+                factory.CreateElement(quickInfoDisplay.ExceptionText),
+                factory.CreateElement(quickInfoDisplay.CapturesText));
         }
 
         public Type GetApplicableType()

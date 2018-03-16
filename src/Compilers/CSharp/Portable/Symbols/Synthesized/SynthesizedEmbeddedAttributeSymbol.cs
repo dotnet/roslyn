@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool ShouldAddWinRTMembers => false;
 
-        internal override bool IsSerializable => false;
+        public override bool IsSerializable => false;
 
         internal override TypeLayout Layout => default(TypeLayout);
 

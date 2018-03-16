@@ -7,7 +7,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.VisualBasic.CommandLine.UnitTests</AssemblyName>
-    <TargetFramework>net46</TargetFramework>
+    <TargetFramework>net461</TargetFramework>
     <RuntimeIdentifier>$(RoslynDesktopRuntimeIdentifier)</RuntimeIdentifier>
     <RoslynProjectType>UnitTest</RoslynProjectType>
     <RootNamespace></RootNamespace>
@@ -19,7 +19,7 @@
     <ProjectReference Include="..\..\..\Server\VBCSCompiler\VBCSCompiler.csproj" />
     <ProjectReference Include="..\..\..\Core\Portable\CodeAnalysis.csproj" />
     <ProjectReference Include="..\..\..\Test\Utilities\VisualBasic\BasicCompilerTestUtilities.vbproj" />
-    <ProjectReference Include="..\..\vbc\vbc.csproj" />
+    <ProjectReference Include="..\..\vbc\vbc.csproj" ReferenceOutputAssembly="false" OutputItemType="RoslynReferenceToDependencyDirectory" />
     <ProjectReference Include="..\..\Portable\BasicCodeAnalysis.vbproj" />
     <ProjectReference Include="..\..\..\Test\Resources\Core\CompilerTestResources.csproj" />
   </ItemGroup>
@@ -33,6 +33,7 @@
     <PackageReference Include="xunit" Version="$(xunitVersion)" />
     <PackageReference Include="xunit.analyzers" Version="$(xunitanalyzersVersion)" />
     <PackageReference Include="xunit.runner.console" Version="$(xunitrunnerconsoleVersion)" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="$(xunitrunnervisualstudioVersion)" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="System.Xml.Linq" />
@@ -69,11 +70,11 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>CommandLineTestResources.Designer.vb</LastGenOutput>
     </EmbeddedResource>
+    <AssemblyVersionAttribute Include="Microsoft.CodeAnalysis.CommitHashAttribute">
+      <_Parameter1>$(CommitHashDisplay)</_Parameter1>
+    </AssemblyVersionAttribute>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\vbc\vbc.rsp">
-      <Link>vbc.rsp</Link>
-    </None>
     <None Include="My Project\Application.myapp">
       <Generator>MyApplicationCodeGenerator</Generator>
       <LastGenOutput>Application.Designer.vb</LastGenOutput>
