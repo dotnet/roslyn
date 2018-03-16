@@ -1747,6 +1747,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Variables captured:.
+        /// </summary>
+        internal static string Variables_captured_colon {
+            get {
+                return ResourceManager.GetString("Variables_captured_colon", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Warning.
         /// </summary>
         internal static string Warning {

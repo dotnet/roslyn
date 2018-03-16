@@ -26,9 +26,13 @@
     <file src="$additionalFilesPath$/Microsoft.NETCore.Compilers.props" target="build" />
 
     <!-- Targets and task files -->
-    <file src="Dlls/MSBuildTask/Microsoft.Build.Tasks.CodeAnalysis.dll" target="tools" />
-    <file src="Dlls/MSbuildTask/Microsoft.CSharp.Core.targets" target="tools" />
-    <file src="Dlls/MSbuildTask/Microsoft.VisualBasic.Core.targets" target="tools" />
+    <file src="Dlls/MSBuildTask/netcoreapp2.0/Microsoft.Build.Tasks.CodeAnalysis.dll" target="tools" />
+    <file src="Dlls/MSbuildTask/netcoreapp2.0/Microsoft.Managed.Core.targets" target="tools" />
+    <file src="Dlls/MSbuildTask/netcoreapp2.0/Microsoft.CSharp.Core.targets" target="tools" />
+    <file src="Dlls/MSbuildTask/netcoreapp2.0/Microsoft.VisualBasic.Core.targets" target="tools" />
+    <!-- N.B.: The backslashes below cannot be replaced with forward slashes. 
+         https://github.com/NuGet/Home/issues/3584 -->
+    <file src="Dlls\MSBuildTask\netcoreapp2.0\publish\runtimes\**" target="tools\runtimes" />
 
     <!-- Compiler exe files -->
     <file src="Dlls/CodeAnalysis/Microsoft.CodeAnalysis.dll" target="tools/bincore" />
@@ -48,7 +52,15 @@
     <file src="Exes/VBCSCompiler/netcoreapp2.0/publish/VBCSCompiler.deps.json" target="tools/bincore" />
     <file src="Exes/VBCSCompiler/netcoreapp2.0/publish/VBCSCompiler.runtimeconfig.json" target="tools/bincore" />
 
+    <!-- Satellite assemblies -->
+    <file src="Dlls\MSBuildTask\**\Microsoft.Build.Tasks.CodeAnalysis.resources.dll" target="tools" />
+    <file src="Dlls\CodeAnalysis\**\Microsoft.CodeAnalysis.resources.dll" target="tools/bincore" />
+    <file src="Dlls\CSharpCodeAnalysis\**\Microsoft.CodeAnalysis.CSharp.resources.dll" target="tools/bincore" />
+    <file src="Dlls\BasicCodeAnalysis\**\Microsoft.CodeAnalysis.VisualBasic.resources.dll" target="tools/bincore" />
+
     <!-- References that are either not in the target framework or are a higher version -->
+    <!-- N.B.: The backslashes below cannot be replaced with forward slashes.
+         https://github.com/NuGet/Home/issues/3584 -->
     <file src="Exes\csc\netcoreapp2.0\publish\System.*.dll" target="tools\bincore" />
     <file src="Exes\csc\netcoreapp2.0\publish\runtimes\**" target="tools\bincore\runtimes" />
   </files>

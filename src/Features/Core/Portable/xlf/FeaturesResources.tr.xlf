@@ -1990,6 +1990,11 @@ Bu sürüm şurada kullanılır: {2}</target>
         <target state="new">Regex issue: {0}</target>
         <note />
       </trans-unit>
+      <trans-unit id="Alias_ambiguous_type_0">
+        <source>Alias ambiguous type '{0}'</source>
+        <target state="new">Alias ambiguous type '{0}'</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

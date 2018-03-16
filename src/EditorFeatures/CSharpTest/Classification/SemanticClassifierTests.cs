@@ -1,21 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Notification;
-using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
@@ -26,30 +22,19 @@ using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using static Microsoft.CodeAnalysis.Editor.UnitTests.Classification.FormattedClassifications;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
     public partial class SemanticClassifierTests : AbstractCSharpClassifierTests
     {
-        internal override async Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan textSpan, CSharpParseOptions options)
+        protected override Task<ImmutableArray<ClassifiedSpan>> GetClassificationSpansAsync(string code, TextSpan span, ParseOptions options)
         {
             using (var workspace = TestWorkspace.CreateCSharp(code, options))
             {
                 var document = workspace.CurrentSolution.GetDocument(workspace.Documents.First().Id);
 
-                var syntaxTree = await document.GetSyntaxTreeAsync();
-
-                var service = document.GetLanguageService<ISyntaxClassificationService>();
-                var classifiers = service.GetDefaultSyntaxClassifiers();
-                var extensionManager = workspace.Services.GetService<IExtensionManager>();
-
-                var results = ArrayBuilder<ClassifiedSpan>.GetInstance();
-                await service.AddSemanticClassificationsAsync(document, textSpan,
-                    extensionManager.CreateNodeExtensionGetter(classifiers, c => c.SyntaxNodeTypes),
-                    extensionManager.CreateTokenExtensionGetter(classifiers, c => c.SyntaxTokenKinds),
-                    results, CancellationToken.None);
-
-                return results.ToImmutableAndFree();
+                return GetSemanticClassificationsAsync(document, span);
             }
         }
 
@@ -68,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
         {
             await TestInMethodAsync(
                 code: @"int i = 0; ref var x = ref i;",
-                expected: Keyword("var"));
+                expected: Classifications(Keyword("var"), Local("i")));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -518,7 +503,12 @@ class C
     }
 }",
                 Class("N"),
-                Class("N"));
+                Class("N"),
+                Property("N"),
+                Property("N"),
+                Local("n"),
+                Property("N"),
+                Property("N"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -582,8 +572,10 @@ class Derived : Base
 }",
                 Class("Base"),
                 Class("My"),
+                Method("My"),
                 Class("Derived"),
                 Class("My"),
+                Method("My"),
                 Class("Attribute"),
                 Class("Base"));
         }
@@ -603,7 +595,9 @@ class Derived : Base
         B(C: null);
     }
 }",
-                Class("C"));
+                Class("C"),
+                Method("B"),
+                Parameter("C"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -656,6 +650,7 @@ class Derived : Base
 }",
                 Class("T"),
                 Class("T"),
+                Field("T"),
                 Class("T"));
         }
 
@@ -675,7 +670,9 @@ class Derived : Base
     }
 }",
                 Class("T"),
-                Class("T"));
+                Class("T"),
+                Field("T"),
+                Method("M"));
         }
 
         /// <summary>
@@ -695,7 +692,9 @@ class Derived : Base
         T.T = null;
     }
 }",
-                Class("T"));
+                Class("T"),
+                Field("T"),
+                Field("T"));
         }
 
         /// <summary>
@@ -716,7 +715,8 @@ class Derived : Base
     }
 }",
                 Class("T"),
-                Class("T"));
+                Class("T"),
+                Field("T"));
         }
 
         /// <summary>
@@ -737,7 +737,9 @@ class Derived : Base
     }
 }",
                 Class("T"),
-                Class("T"));
+                Class("T"),
+                Local("T"),
+                Field("field"));
         }
 
         /// <summary>
@@ -759,7 +761,8 @@ class Derived : Base
 }",
                 Class("T"),
                 Class("T"),
-                Class("T"));
+                Class("T"),
+                Field("field"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -780,7 +783,9 @@ class Derived : Base
 }",
                 Class("T"),
                 Class("T"),
-                Class("T"));
+                Class("T"),
+                Method("M"),
+                Local("T"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -797,7 +802,9 @@ class Derived : Base
 }",
                 Class("T"),
                 Class("T"),
-                Class("T"));
+                Parameter("T"),
+                Class("T"),
+                Parameter("T"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -815,6 +822,7 @@ class Derived : Base
 }",
                 Keyword("var"),
                 Class("T"),
+                Local("T"),
                 Class("T"));
         }
 
@@ -831,6 +839,7 @@ class Derived : Base
     }
 }",
                 Keyword("var"),
+                Local("T"),
                 Class("T"));
         }
 
@@ -884,7 +893,8 @@ class Derived : Base
 }",
                 Class("T"),
                 Class("T"),
-                Class("T"));
+                Class("T"),
+                Local("T"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -936,6 +946,7 @@ class Derived : Base
     }
 }",
                 TypeParameter("T"),
+                Method("M"),
                 TypeParameter("T"));
         }
 
@@ -981,7 +992,8 @@ class Derived : Base
 }",
                 Class("T"),
                 Class("H"),
-                Class("T"));
+                Class("T"),
+                Field("f"));
         }
 
         /// <summary>
@@ -1017,6 +1029,8 @@ class Derived : Base
     {
     }
 }",
+                Method("F"),
+                Method("G"),
                 Class("A"),
                 Class("B"));
         }
@@ -1032,7 +1046,8 @@ class C
     void M()
     {
         var x = new { String = "" }; } }",
-                Keyword("var"));
+                Keyword("var"),
+                Property("String"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1052,7 +1067,8 @@ class yield
                 Interface("IEnumerable"),
                 Class("yield"),
                 Class("yield"),
-                Class("yield"));
+                Class("yield"),
+                Local("yield"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1231,6 +1247,8 @@ class C
 @"global::System.AppDomain.CurrentDomain.AssemblyLoad += 
             delegate (object sender, System.AssemblyLoadEventArgs args) {};",
                 Class("AppDomain"),
+                Property("CurrentDomain"),
+                Event("AssemblyLoad"),
                 Class("AssemblyLoadEventArgs"));
         }
 
@@ -1266,8 +1284,9 @@ class C
             var code = @"class C { static void M() { global::C.M(); } }";
 
             await TestAsync(code,
-                code,
-                Class("C"));
+                ParseOptions(Options.Regular),
+                Class("C"),
+                Method("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1276,10 +1295,10 @@ class C
             var code = @"class C { static void M() { global::Script.C.M(); } }";
 
             await TestAsync(code,
-                code,
-                Options.Script,
+                ParseOptions(Options.Script),
                 Class("Script"),
-                Class("C"));
+                Class("C"),
+                Method("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1298,7 +1317,8 @@ namespace N
         }
     }
 }",
-                Class("C"));
+                Class("C"),
+                Method("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1317,7 +1337,8 @@ namespace N
         }
     }
 }",
-                Class("C"));
+                Class("C"),
+                Method("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1336,7 +1357,8 @@ namespace N
         }
     }
 }",
-                Class("C"));
+                Class("C"),
+                Method("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1355,7 +1377,8 @@ namespace N
         }
     }
 }",
-                Class("C"));
+                Class("C"),
+                Method("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1374,7 +1397,8 @@ namespace N
         }
     }
 }",
-                Class("C"));
+                Class("C"),
+                Method("M"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1500,11 +1524,15 @@ namespace MyNameSpace
     }
 }",
                 Class("MyClass2"),
+                Method("method"),
                 Class("MyClass2"),
+                Event("myEvent"),
                 Enum("MyEnum"),
                 Struct("MyStruct"),
                 Class("MyClass2"),
+                Property("MyProp"),
                 Class("MyClass2"),
+                Field("myField"),
                 Class("MyClass2"),
                 Delegate("MyDelegate"),
                 Delegate("MyDelegate"));
@@ -1531,7 +1559,9 @@ namespace MyNameSpace
     }
 }",
                 Class("A"),
-                Class("A"));
+                Class("A"),
+                Local("a"),
+                Field("B"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1552,7 +1582,9 @@ class Outer
     }
 }",
                 Class("Console"),
-                Class("Console"));
+                Method("WriteLine"),
+                Class("Console"),
+                Method("WriteLine"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1593,7 +1625,7 @@ class C
     {
         C = 0;
     }
-}");
+}", Field("C"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
@@ -1681,7 +1713,7 @@ namespace Roslyn.Compilers.Internal
 }";
 
             await TestAsync(code,
-                code,
+                ParseOptions(Options.Regular),
                 Class("Program"),
                 Class("Program"),
                 Class("Program"));
@@ -1698,8 +1730,7 @@ namespace Roslyn.Compilers.Internal
 }";
 
             await TestAsync(code,
-                code,
-                Options.Script,
+                ParseOptions(Options.Script),
                 Class("Program"),
                 Class("Script"),
                 Class("Program"),
@@ -1714,7 +1745,7 @@ namespace Roslyn.Compilers.Internal
 {
     E,
     F = E
-}");
+}", EnumMember("E"));
         }
 
         [WorkItem(541150, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541150")]
@@ -1805,9 +1836,13 @@ class C
 }",
                 Enum("E"),
                 Enum("E"),
+                EnumMember("A"),
                 Enum("E"),
+                EnumMember("B"),
                 Enum("E"),
-                Enum("E"));
+                EnumMember("B"),
+                Enum("E"),
+                EnumMember("A"));
         }
 
         [WorkItem(542368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542368")]
@@ -1877,6 +1912,7 @@ public class X : B<X>
 }",
                 Class("var"),
                 Keyword("var"),
+                Method("GetVarT"),
                 Keyword("var"),
                 Class("var"));
         }
@@ -1895,7 +1931,8 @@ public class X : B<X>
         }
     }
 }",
-                Keyword("var"));
+                Keyword("var"),
+                Parameter("args"));
         }
 
         [WorkItem(542778, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542778")]
@@ -1934,6 +1971,7 @@ class C<T>
 
 q = from",
                 Keyword("var"),
+                Local("q"),
                 Keyword("from"));
         }
 
@@ -1952,7 +1990,8 @@ q = from",
 @"var q = 3;
 
 q = fro",
-                Keyword("var"));
+                Keyword("var"),
+                Local("q"));
         }
 
         [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
@@ -1963,7 +2002,8 @@ q = fro",
 @"var from = 3;
 var q = from",
                 Keyword("var"),
-                Keyword("var"));
+                Keyword("var"),
+                Local("from"));
         }
 
         [WorkItem(542685, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542685")]
@@ -1976,7 +2016,9 @@ var from = 3;
 
 q = from",
                 Keyword("var"),
-                Keyword("var"));
+                Keyword("var"),
+                Local("q"),
+                Local("from"));
         }
 
         [WorkItem(543404, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543404")]
@@ -2053,6 +2095,7 @@ class C
     static extern void M();
 }",
                 Class("DllImport"),
+                Field("CallingConvention"),
                 Enum("CallingConvention"));
         }
 
@@ -2202,8 +2245,7 @@ struct Type<T>
 {
     (int a, int b) x;
 }",
-                TestOptions.Regular,
-                Options.Script);
+                ParseOptions(TestOptions.Regular, Options.Script));
         }
 
         [Fact]
@@ -2216,7 +2258,7 @@ struct Type<T>
 
             await TestInMethodAsync(
                 source,
-                Keyword("var"));
+                Keyword("var"), Local("a"), Local("a"));
         }
 
         [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
@@ -2249,7 +2291,7 @@ class MyClass
     public MyClass(int x)
     {
     }
-}");
+}", Method("MyClass"));
         }
 
         [WorkItem(633, "https://github.com/dotnet/roslyn/issues/633")]
@@ -2266,7 +2308,8 @@ class MyClass
     {
     }
 }",
-    Class("MyClass"));
+    Class("MyClass"),
+    Method("MyClass"));
         }
 
         [WorkItem(13174, "https://github.com/dotnet/roslyn/issues/13174")]
@@ -2286,7 +2329,7 @@ namespace ConsoleApplication1
             Debug.Assert(args?.Length < 2);
         }
     }
-}", Class("Debug"));
+}", Class("Debug"), Method("Assert"), Parameter("args"), Property("Length"));
         }
 
         [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
@@ -2303,7 +2346,7 @@ class Program
         {
         }
     }
-}", Keyword("var"));
+}", Parameter("s"), Keyword("var"));
         }
 
         [WorkItem(18956, "https://github.com/dotnet/roslyn/issues/18956")]
@@ -2321,7 +2364,145 @@ class Program
             case var v:
         }
     }
-}", Keyword("var"));
+}", Parameter("s"), Keyword("var"));
+        }
+
+        [WorkItem(23940, "https://github.com/dotnet/roslyn/issues/23940")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestAliasQualifiedClass()
+        {
+            await TestAsync(
+@"
+using System;
+using Col = System.Collections.Generic;
+
+namespace AliasTest
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            var list1 = new Col::List
+        }
+    }
+}",
+    Keyword("var"), Class("List"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_InsideMethod()
+        {
+            // Asserts no Keyword("unmanaged") because it is an identifier.
+            await TestInMethodAsync(@"
+var unmanaged = 0;
+unmanaged++;",
+                Keyword("var"),
+                Local("unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Type_Keyword()
+        {
+            await TestAsync(
+                "class X<T> where T : unmanaged { }",
+                TypeParameter("T"),
+                Keyword("unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Type_ExistingInterface()
+        {
+            await TestAsync(@"
+interface unmanaged {}
+class X<T> where T : unmanaged { }",
+                TypeParameter("T"),
+                Interface("unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Type_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface unmanaged {}
+}
+class X<T> where T : unmanaged { }",
+                TypeParameter("T"),
+                Keyword("unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Method_Keyword()
+        {
+            await TestAsync(@"
+class X
+{
+    void M<T>() where T : unmanaged { }
+}",
+                TypeParameter("T"),
+                Keyword("unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Method_ExistingInterface()
+        {
+            await TestAsync(@"
+interface unmanaged {}
+class X
+{
+    void M<T>() where T : unmanaged { }
+}",
+                TypeParameter("T"),
+                Interface("unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Method_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface unmanaged {}
+}
+class X
+{
+    void M<T>() where T : unmanaged { }
+}",
+                TypeParameter("T"),
+                Keyword("unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Delegate_Keyword()
+        {
+            await TestAsync(
+                "delegate void D<T>() where T : unmanaged;",
+                TypeParameter("T"),
+                Keyword("unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Delegate_ExistingInterface()
+        {
+            await TestAsync(@"
+interface unmanaged {}
+delegate void D<T>() where T : unmanaged;",
+                TypeParameter("T"),
+                Interface("unmanaged"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TestUnmanagedConstraint_Delegate_ExistingInterfaceButOutOfScope()
+        {
+            await TestAsync(@"
+namespace OtherScope
+{
+    interface unmanaged {}
+}
+delegate void D<T>() where T : unmanaged;",
+                TypeParameter("T"),
+                Keyword("unmanaged"));
         }
 
         [WpfFact, Trait(Traits.Feature, Traits.Features.Classification)]

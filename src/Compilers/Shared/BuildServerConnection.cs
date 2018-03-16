@@ -467,17 +467,16 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
             catch (Exception ex)
             {
-                Log("Exception checking pipe connection: {0}", ex.Message);
+                LogException(ex, "Checking pipe connection");
                 return false;
             }
         }
 
-#if NETSTANDARD1_3
+#if NET46
         internal static bool CheckIdentityUnix(PipeStream stream)
         {
             // Identity verification is unavailable in the MSBuild task,
             // but verification is not needed client-side so that's okay.
-            // (unavailable due to lack of internal reflection capabilities in netstandard1.3)
             return true;
         }
 #else
@@ -506,21 +505,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         private static ObjectSecurity GetPipeSecurity(PipeStream pipeStream)
         {
-#if NETSTANDARD1_3
-            return (ObjectSecurity)typeof(PipeStream)
-                .GetTypeInfo()
-                .GetDeclaredMethod("GetAccessControl")
-                ?.Invoke(pipeStream, parameters: null);
-#else
             return pipeStream.GetAccessControl();
-#endif
         }
-
-        private static string GetUserName() =>
-            (string)typeof(Environment)
-            .GetTypeInfo()
-            .GetDeclaredProperty("UserName")
-            ?.GetMethod?.Invoke(null, parameters: null);
 
         /// <returns>
         /// Null if not enough information was found to create a valid pipe name.
@@ -538,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 isAdmin = principal.IsInRole(WindowsBuiltInRole.Administrator);
             }
 
-            var userName = GetUserName();
+            var userName = Environment.UserName;
             if (userName == null)
             {
                 return null;

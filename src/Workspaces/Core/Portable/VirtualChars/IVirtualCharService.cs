@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.VirtualChars
     /// 'o' -> [1, 7)
     /// 'o' -> [7, 1)
     /// 
-    /// This allows for regex processing that can refer back to the users' original code instead of
-    /// the escaped value we're processing.
+    /// This allows for embedded language processing that can refer back to the users' original 
+    /// code instead of the escaped value we're processing.
     /// 
     /// </summary>
     internal interface IVirtualCharService : ILanguageService

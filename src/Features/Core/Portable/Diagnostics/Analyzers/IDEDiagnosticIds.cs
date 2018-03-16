@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public const string UseExplicitTupleNameDiagnosticId = "IDE0033";
 
         public const string UseDefaultLiteralDiagnosticId = "IDE0034";
-        public const string ValidateFormatStringDiagnosticID = "IDE0035";
 
         public const string RemoveUnreachableCodeDiagnosticId = "IDE0035";
 
@@ -63,8 +62,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public const string UseDeconstructionDiagnosticId = "IDE0042";
 
-        public const string RegexPatternDiagnosticId = "IDE0043";
+        public const string ValidateFormatStringDiagnosticID = "IDE0043";
 
+        public const string RegexPatternDiagnosticId = "IDE0044";
 
         // Analyzer error Ids
         public const string AnalyzerChangedId = "IDE1001";

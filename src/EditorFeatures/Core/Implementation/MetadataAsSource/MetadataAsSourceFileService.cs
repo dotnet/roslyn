@@ -3,14 +3,17 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.Decompiler;
 using ICSharpCode.Decompiler.CSharp;
+using ICSharpCode.Decompiler.CSharp.Transforms;
 using ICSharpCode.Decompiler.TypeSystem;
-using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.MetadataAsSource;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -116,6 +119,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                     var useDecompiler = allowDecompilation;
                     if (useDecompiler)
                     {
+                        useDecompiler = !symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(SuppressIldasmAttribute)
+                            && attribute.AttributeClass.ToNameDisplayString() == typeof(SuppressIldasmAttribute).FullName);
+                    }
+
+                    if (useDecompiler)
+                    {
                         try
                         {
                             temporaryDocument = await DecompileSymbolAsync(temporaryDocument, symbol, cancellationToken).ConfigureAwait(false);
@@ -188,18 +197,55 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             var fullName = GetFullReflectionName(containingOrThis);
 
             var compilation = await temporaryDocument.Project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            // TODO: retrieve path to actual assembly instead of reference assembly
-            var reference = compilation.GetMetadataReference(symbol.ContainingAssembly);
+
+            string assemblyLocation = null;
+            var isReferenceAssembly = symbol.ContainingAssembly.GetAttributes().Any(attribute => attribute.AttributeClass.Name == nameof(ReferenceAssemblyAttribute)
+                && attribute.AttributeClass.ToNameDisplayString() == typeof(ReferenceAssemblyAttribute).FullName);
+            if (isReferenceAssembly)
+            {
+                try
+                {
+                    var fullAssemblyName = symbol.ContainingAssembly.Identity.GetDisplayName();
+                    GlobalAssemblyCache.Instance.ResolvePartialName(fullAssemblyName, out assemblyLocation, preferredCulture: CultureInfo.CurrentCulture);
+                }
+                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                {
+                }
+            }
+
+            if (assemblyLocation == null)
+            {
+                var reference = compilation.GetMetadataReference(symbol.ContainingAssembly);
+                assemblyLocation = (reference as PortableExecutableReference)?.FilePath;
+                if (assemblyLocation == null)
+                {
+                    throw new NotSupportedException(EditorFeaturesResources.Cannot_navigate_to_the_symbol_under_the_caret);
+                }
+            }
+
             // Load the assembly.
-            var ad = AssemblyDefinition.ReadAssembly(reference.Display, new ReaderParameters() { AssemblyResolver = new RoslynAssemblyResolver(compilation) });
+            var assemblyDefinition = AssemblyDefinition.ReadAssembly(assemblyLocation, new ReaderParameters() { AssemblyResolver = new RoslynAssemblyResolver(compilation) });
 
             // Initialize a decompiler with default settings.
-            var decompiler = new CSharpDecompiler(ad.MainModule, new DecompilerSettings());
+            var decompiler = new CSharpDecompiler(assemblyDefinition.MainModule, new DecompilerSettings());
+            // Escape invalid identifiers to prevent Roslyn from failing to parse the generated code.
+            // (This happens for example, when there is compiler-generated code that is not yet recognized/transformed by the decompiler.)
+            decompiler.AstTransforms.Add(new EscapeInvalidIdentifiers());
+
             var fullTypeName = new FullTypeName(fullName);
+
+            var decompilerVersion = FileVersionInfo.GetVersionInfo(typeof(CSharpDecompiler).Assembly.Location);
+
+            // Add header to match output of metadata-only view.
+            // (This also makes debugging easier, because you can see which assembly was decompiled inside VS.)
+            var header = $"#region {FeaturesResources.Assembly} {assemblyDefinition.FullName}" + Environment.NewLine
+                + $"// {assemblyDefinition.MainModule.FileName}" + Environment.NewLine
+                + $"// Decompiled with ICSharpCode.Decompiler {decompilerVersion.FileVersion}" + Environment.NewLine
+                + "#endregion" + Environment.NewLine;
 
             // Try to decompile; if an exception is thrown the caller will handle it
             var text = decompiler.DecompileTypeAsString(fullTypeName);
-            return temporaryDocument.WithText(SourceText.From(text));
+            return temporaryDocument.WithText(SourceText.From(header + text));
         }
 
         private class RoslynAssemblyResolver : IAssemblyResolver
@@ -220,15 +266,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
             {
                 foreach (var assembly in parentCompilation.GetReferencedAssemblySymbols())
                 {
-                    if (assembly.Identity.Name == name.Name
-                        && assembly.Identity.Version == name.Version
-                        && assembly.Identity.PublicKeyToken.SequenceEqual(name.PublicKeyToken ?? Array.Empty<byte>()))
+                    if (assembly.Identity.Name != name.Name
+                        || !assembly.Identity.PublicKeyToken.SequenceEqual(name.PublicKeyToken ?? Array.Empty<byte>()))
                     {
-                        // reference assemblies should be fine here...
-                        var reference = parentCompilation.GetMetadataReference(assembly);
-                        return AssemblyDefinition.ReadAssembly(reference.Display);
+                        continue;
                     }
+
+                    if (assembly.Identity.Version != name.Version
+                        && !string.Equals("mscorlib", assembly.Identity.Name, StringComparison.OrdinalIgnoreCase))
+                    {
+                        // MSBuild treats mscorlib special for the purpose of assembly resolution/unification, where all
+                        // versions of the assembly are considered equal. The same policy is adopted here.
+                        continue;
+                    }
+
+                    // reference assemblies should be fine here...
+                    var reference = parentCompilation.GetMetadataReference(assembly);
+                    return AssemblyDefinition.ReadAssembly(reference.Display);
                 }
+
                 // not found
                 return null;
             }

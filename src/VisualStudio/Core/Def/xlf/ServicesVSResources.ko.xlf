@@ -1398,7 +1398,7 @@ Additional information: {1}</source>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
+        <source>Prefer local function over anonymous function</source>
         <target state="translated">익명 함수보다 로컬 함수 선호</target>
         <note />
       </trans-unit>
@@ -1510,12 +1510,22 @@ I agree to all of the foregoing:</source>
       </trans-unit>
       <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
         <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
-        <target state="new">Disabling the extension '{0}' unbound your keyboard bindings.</target>
+        <target state="translated">키보드 바인딩을 바인딩 해제하는 '{0}' 확장을 사용하지 않도록 설정하는 중입니다.</target>
         <note>0 is an extension name</note>
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
         <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
-        <target state="new">The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</target>
+        <target state="translated">여기서 구성하는 설정은 사용자의 컴퓨터에만 적용됩니다. 이러한 설정을 사용자의 솔루션에서 사용하도록 구성하려면 .editorconfig 파일을 사용하세요.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_code_analysis">
+        <source>Live code analysis</source>
+        <target state="translated">라이브 코드 분석</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzing_0">
+        <source>Analyzing '{0}'</source>
+        <target state="translated">'{0}' 분석 중</target>
         <note />
       </trans-unit>
     </body>

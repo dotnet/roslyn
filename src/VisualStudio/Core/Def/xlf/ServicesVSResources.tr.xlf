@@ -1398,8 +1398,8 @@ Geçerli durum için 'basit çözüm yükü' etkin. Hata ayıklama başlatıldı
         <note />
       </trans-unit>
       <trans-unit id="Prefer_local_function_over_anonymous_function">
-        <source>Prefere local function over anonymous function</source>
-        <target state="translated">Anonim işlevler yerine yerel işlevleri tercih et</target>
+        <source>Prefer local function over anonymous function</source>
+        <target state="translated">Anonim işlev yerine yerel işlevi tercih edin</target>
         <note />
       </trans-unit>
       <trans-unit id="Prefer_deconstructed_variable_declaration">
@@ -1510,12 +1510,22 @@ Aşağıdakilerin tümünü onaylıyorum:</target>
       </trans-unit>
       <trans-unit id="Disabling_the_extension_0_unbound_your_keyboard_bindings">
         <source>Disabling the extension '{0}' unbound your keyboard bindings.</source>
-        <target state="new">Disabling the extension '{0}' unbound your keyboard bindings.</target>
+        <target state="translated">'{0}' uzantısının devre dışı bırakılması klavye bağlamalarınızı bozdu.</target>
         <note>0 is an extension name</note>
       </trans-unit>
       <trans-unit id="Code_style_header_use_editor_config">
         <source>The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</source>
-        <target state="new">The settings configured here only apply to your machine. To configure these settings to travel with your solution, use .editorconfig files.</target>
+        <target state="translated">Burada yapılandırılan ayarlar yalnızca makineniz için geçerlidir. Bu ayarları çözümünüzle birlikte taşımak için .editorconfig dosyalarını kullanın.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Live_code_analysis">
+        <source>Live code analysis</source>
+        <target state="translated">Canlı kod analizi</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="Analyzing_0">
+        <source>Analyzing '{0}'</source>
+        <target state="translated">'{0}' Analiz Ediliyor</target>
         <note />
       </trans-unit>
     </body>

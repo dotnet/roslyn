@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             : SpecializedCollections.EmptyEnumerable<FieldSymbol>();
 
         // display classes for static lambdas do not have any data and can be serialized.
-        internal override bool IsSerializable => (object)SingletonCache != null;
+        public override bool IsSerializable => (object)SingletonCache != null;
 
         public override Symbol ContainingSymbol => _topLevelMethod.ContainingSymbol;
 

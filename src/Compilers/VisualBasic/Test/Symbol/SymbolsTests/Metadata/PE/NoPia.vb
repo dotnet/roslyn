@@ -218,6 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim ambiguous As NoPiaAmbiguousCanonicalTypeSymbol
             Assert.Equal(SymbolKind.ErrorType, param(0).[Type].Kind)
             ambiguous = DirectCast(param(0).[Type], NoPiaAmbiguousCanonicalTypeSymbol)
+            Assert.False(DirectCast(param(0).Type, INamedTypeSymbol).IsSerializable)
             Assert.Same(localTypes1_8, ambiguous.EmbeddingAssembly)
             Assert.Same(pia4_8.GlobalNamespace.GetTypeMembers("I1").Single(), ambiguous.FirstCandidate)
             Assert.Same(pia1_8.GlobalNamespace.GetTypeMembers("I1").Single(), ambiguous.SecondCandidate)
@@ -772,6 +773,7 @@ End Class
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMember(Of MethodSymbol)("Test2").ReturnType.Kind)
             Assert.Equal(SymbolKind.ErrorType, localTypes3.GetMember(Of MethodSymbol)("Test3").ReturnType.Kind)
             Dim illegal As NoPiaIllegalGenericInstantiationSymbol = DirectCast(localTypes3.GetMember(Of MethodSymbol)("Test3").ReturnType, NoPiaIllegalGenericInstantiationSymbol)
+            Assert.False(DirectCast(illegal, INamedTypeSymbol).IsSerializable)
             Assert.Equal("C31(Of I1).I31(Of C33)", illegal.UnderlyingSymbol.ToTestDisplayString())
             Assert.NotEqual(SymbolKind.ErrorType, localTypes3.GetMember(Of MethodSymbol)("Test4").ReturnType.Kind)
             Assert.IsType(Of NoPiaIllegalGenericInstantiationSymbol)(localTypes3.GetMember(Of MethodSymbol)("Test5").ReturnType)
@@ -1162,7 +1164,7 @@ End Interface
     </file>
 </compilation>
 
-            Dim i3Compilation = CreateCompilationWithMscorlib(i3Def, TestOptions.ReleaseDll)
+            Dim i3Compilation = CreateCompilationWithMscorlib40(i3Def, TestOptions.ReleaseDll)
 
             Dim ilSource =
             <![CDATA[
