@@ -54,15 +54,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 // GetEventNameTask() gets back the event name, only needs to add a semicolon after it.
                 var eventText = analyzedSession.GetEventNameTask.Result + ";";
                 var texts = new[] { eventText, CSharpEditorResources.Press_TAB_to_insert };
-
-                // use ClassificationTypeNames.Identifier for type name to unblock tests
-                // looks like current editor nuget(15.7.153-preview-g7d0635149a) throws exception on ClassificationTypeNames.Text "text"
-                // TODO: will file a bug for this
-                var textRuns = texts.Select(s => new ClassifiedTextRun(ClassificationTypeNames.Identifier, s));
+                var textRuns = texts.Select(s => new ClassifiedTextRun(ClassificationTypeNames.Text, s));
                 var content = new[] { new ClassifiedTextElement(textRuns) };
 
-                // use string[] for now to unblock tests
-                _toolTipPresenter.StartOrUpdate(analyzedSession.TrackingSpan, texts);
+                // TODO: will file a bug for this
+                // use string[] for now to unblock tests for now, otherwise editor throws ArgumentNullException when running unit tests
+                // might be a MEF issue
+                _toolTipPresenter.StartOrUpdate(analyzedSession.TrackingSpan, new[] { string.Join(string.Empty, texts)});
 
                 // For test purposes only!
                 TEST_MostRecentToolTipContent = content;
