@@ -4620,8 +4620,7 @@ class C
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void TargetingUnannotatedAPIs_04()
         {
             CSharpCompilation c0 = CreateStandardCompilation(@"
@@ -4695,8 +4694,7 @@ class C
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void TargetingUnannotatedAPIs_05()
         {
             CSharpCompilation c0 = CreateStandardCompilation(@"
@@ -5487,8 +5485,7 @@ class CL1
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ConditionalBranching_06()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
@@ -5567,8 +5564,7 @@ class CL1
                 );
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ConditionalBranching_07()
         {
             CSharpCompilation c = CreateStandardCompilation(@"
@@ -15701,8 +15697,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceAssignment, "p.MiddleName ?? null").WithLocation(20, 22));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void WarningOnConversion_Receiver()
         {
             var source =
@@ -15783,8 +15778,7 @@ static class Extensions
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "p.MiddleName ?? null").WithArguments("s", "void Extensions.F(string s)").WithLocation(18, 10));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void WarningOnConversion_Argument()
         {
             var source =
@@ -15870,8 +15864,7 @@ class Program
                 Diagnostic(ErrorCode.WRN_NullReferenceArgument, "p.MiddleName ?? null").WithArguments("name", "void Program.G(string name)").WithLocation(20, 11));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void WarningOnConversion_Return()
         {
             var source =
