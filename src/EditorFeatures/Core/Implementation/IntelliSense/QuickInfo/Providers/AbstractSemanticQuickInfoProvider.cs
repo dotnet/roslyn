@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                     .GetSymbols(includeType: true);
             }
 
-            var bindableParent = document.GetLanguageService<ISyntaxFactsService>().GetBindableParent(token);
+            var bindableParent = syntaxFacts.GetBindableParent(token);
             var overloads = semanticModel.GetMemberGroup(bindableParent, cancellationToken);
 
             symbols = symbols.Where(IsOk)
@@ -307,11 +307,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
             if (symbols.Any())
             {
                 var discardSymbols = (symbols.First() as ITypeParameterSymbol)?.TypeParameterKind == TypeParameterKind.Cref;
-                return ValueTuple.Create(
-                    semanticModel,
-                    discardSymbols
-                        ? ImmutableArray<ISymbol>.Empty
-                        : symbols);
+                return (semanticModel, discardSymbols ? ImmutableArray<ISymbol>.Empty : symbols);
             }
 
             // Couldn't bind the token to specific symbols.  If it's an operator, see if we can at
@@ -321,12 +317,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
                 var typeInfo = semanticModel.GetTypeInfo(token.Parent, cancellationToken);
                 if (IsOk(typeInfo.Type))
                 {
-                    return ValueTuple.Create(semanticModel,
-                        ImmutableArray.Create<ISymbol>(typeInfo.Type));
+                    return (semanticModel, ImmutableArray.Create<ISymbol>(typeInfo.Type));
                 }
             }
 
-            return ValueTuple.Create(semanticModel, ImmutableArray<ISymbol>.Empty);
+            return (semanticModel, ImmutableArray<ISymbol>.Empty);
         }
 
         private static bool IsOk(ISymbol symbol)
