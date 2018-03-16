@@ -4656,8 +4656,8 @@ Un blocco catch() dopo un blocco catch (System.Exception e) è in grado di rilev
         <note />
       </trans-unit>
       <trans-unit id="ERR_BadPlatformType">
-        <source>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium or x64</source>
-        <target state="translated">L'opzione '{0}' non è valida per /platform. Specificare anycpu, x86, Itanium o x64</target>
+        <source>Invalid option '{0}' for /platform; must be anycpu, x86, Itanium, arm, arm64 or x64</source>
+        <target state="needs-review-translation">L'opzione '{0}' non è valida per /platform. Specificare anycpu, x86, Itanium o x64</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_ThisStructNotInAnonMeth">
@@ -7224,7 +7224,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
  /doc:&lt;file&gt;                   XML Documentation file to generate
  /refout:&lt;file&gt;                Reference assembly output to generate
  /platform:&lt;string&gt;            Limit which platforms this code can run on: x86,
-                               Itanium, x64, arm, anycpu32bitpreferred, or
+                               Itanium, x64, arm, arm64, anycpu32bitpreferred, or
                                anycpu. The default is anycpu.
 
                         - INPUT FILES -
@@ -7346,7 +7346,7 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
                                a part of
  /modulename:&lt;string&gt;          Specify the name of the source module
 </source>
-        <target state="translated">
+        <target state="needs-review-translation">
                               Opzioni del compilatore Visual C#
 
                         - FILE DI OUTPUT -
@@ -8510,11 +8510,6 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
         <target state="translated">Non è possibile eseguire la conversione di un'espressione stackalloc di tipo '{0}' nel tipo '{1}'.</target>
         <note />
       </trans-unit>
-      <trans-unit id="IDS_StackAllocExpression">
-        <source>stackalloc {0}[{1}]</source>
-        <target state="translated">stackalloc {0}[{1}]</target>
-        <note />
-      </trans-unit>
       <trans-unit id="ERR_RefExtensionMustBeValueTypeOrConstrainedToOne">
         <source>The first parameter of a 'ref' extension method '{0}' must be a value type or a generic type constrained to struct.</source>
         <target state="translated">Il primo parametro di un metodo di estensione 'ref' '{0}' deve essere un tipo valore o un tipo generico vincolato a struct.</target>
@@ -8608,6 +8603,86 @@ Per rimuovere l'avviso, è invece possibile usare /reference (impostare la propr
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="new">Invalid hash algorithm name: '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefReassignment">
+        <source>ref reassignment</source>
+        <target state="new">ref reassignment</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefLocalOrParamExpected">
+        <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
+        <target state="new">The left-hand side of a ref assignment must be a ref local or parameter.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefAssignNarrower">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
+        <target state="new">Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefFor">
+        <source>ref for-loop variables</source>
+        <target state="new">ref for-loop variables</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureRefForEach">
+        <source>ref foreach iteration variables</source>
+        <target state="new">ref foreach iteration variables</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedBoundWithClass">
+        <source>'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</source>
+        <target state="new">'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureEnumGenericTypeConstraint">
+        <source>enum generic type constraints</source>
+        <target state="new">enum generic type constraints</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureDelegateGenericTypeConstraint">
+        <source>delegate generic type constraints</source>
+        <target state="new">delegate generic type constraints</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureUnmanagedGenericTypeConstraint">
+        <source>unmanaged generic type constraints</source>
+        <target state="new">unmanaged generic type constraints</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_NewBoundWithUnmanaged">
+        <source>The 'new()' constraint cannot be used with the 'unmanaged' constraint</source>
+        <target state="new">The 'new()' constraint cannot be used with the 'unmanaged' constraint</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedConstraintMustBeFirst">
+        <source>The 'unmanaged' constraint must come before any other constraints</source>
+        <target state="new">The 'unmanaged' constraint must come before any other constraints</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedConstraintNotSatisfied">
+        <source>The type '{2}' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</source>
+        <target state="new">The type '{2}' cannot be a reference type, or contain reference type fields at any level of nesting, in order to use it as parameter '{1}' in the generic type or method '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedConstraintWithLocalFunctions">
+        <source>Using 'unmanaged' constraint on local functions type parameters is not supported.</source>
+        <target state="new">Using 'unmanaged' constraint on local functions type parameters is not supported.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_ConWithUnmanagedCon">
+        <source>Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</source>
+        <target state="new">Type parameter '{1}' has the 'unmanaged' constraint so '{1}' cannot be used as a constraint for '{0}'</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="IDS_FeatureStackAllocInitializer">
+        <source>stackalloc initializer</source>
+        <target state="new">stackalloc initializer</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_InvalidStackAllocArray">
+        <source>"Invalid rank specifier: expected ']'</source>
+        <target state="new">"Invalid rank specifier: expected ']'</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureExpressionVariablesInQueriesAndInitializers">

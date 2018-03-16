@@ -217,11 +217,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         // If the type in syntax is "var", then the type should be set explicitly so that the
                         // Type property doesn't fail.
-                        TypeSyntax typeSyntax = node.Type;
+                        TypeSyntax typeSyntax = node.Type.SkipRef(out _);
 
                         bool isVar;
                         AliasSymbol alias;
-                        TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out alias);
+                        TypeSymbol declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out alias);
 
                         if (isVar)
                         {
@@ -238,6 +238,33 @@ namespace Microsoft.CodeAnalysis.CSharp
                         SourceLocalSymbol local = this.IterationVariable;
                         local.SetType(iterationVariableType);
                         local.SetValEscape(collectionEscape);
+
+                        if (!hasErrors)
+                        {
+                            BindValueKind requiredCurrentKind;
+                            switch (local.RefKind)
+                            {
+                                case RefKind.None:
+                                    requiredCurrentKind = BindValueKind.RValue;
+                                    break;
+                                case RefKind.Ref:
+                                    requiredCurrentKind = BindValueKind.Assignable | BindValueKind.RefersToLocation;
+                                    break;
+                                case RefKind.RefReadOnly:
+                                    requiredCurrentKind = BindValueKind.RefersToLocation;
+                                    break;
+                                default:
+                                    throw ExceptionUtilities.UnexpectedValue(local.RefKind);
+                            }
+
+                            hasErrors |= !CheckMethodReturnValueKind(
+                                builder.CurrentPropertyGetter,
+                                callSyntaxOpt: null,
+                                collectionExpr.Syntax,
+                                requiredCurrentKind,
+                                checkingReceiver: false,
+                                diagnostics);
+                        }
 
                         break;
                     }

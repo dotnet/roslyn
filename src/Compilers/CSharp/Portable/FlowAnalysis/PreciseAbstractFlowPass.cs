@@ -1674,7 +1674,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // byref assignment is also a potential write
             if (node.IsRef)
             {
-                WriteArgument(node.Right, node.Left.GetRefKind(), method: null);
+                // Assume that BadExpression is a ref location to avoid
+                // cascading diagnostics
+                var refKind = node.Left.Kind == BoundKind.BadExpression
+                    ? RefKind.Ref
+                    : node.Left.GetRefKind();
+                WriteArgument(node.Right, refKind, method: null);
             }
 
             return null;
@@ -2576,12 +2581,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
         {
             VisitRvalue(node.Count);
+
+            if (node.InitializerOpt != null && !node.InitializerOpt.Initializers.IsDefault)
+            {
+                foreach (var element in node.InitializerOpt.Initializers)
+                {
+                    VisitRvalue(element);
+                }
+            }
+
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
         public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
         {
-            VisitRvalue(node.Count);
+            VisitStackAllocArrayCreation(node);
             return null;
         }
 

@@ -90,7 +90,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             UpdateForegroundColor(ClassificationTypeNames.ModuleName, sourceFormatMap, targetFormatMap);
 
             UpdateForegroundColor(ClassificationTypeNames.FieldName, sourceFormatMap, targetFormatMap);
-            UpdateForegroundColor(ClassificationTypeNames.EnumFieldName, sourceFormatMap, targetFormatMap);
+            UpdateForegroundColor(ClassificationTypeNames.EnumMemberName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.ConstantName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.LocalName, sourceFormatMap, targetFormatMap);
             UpdateForegroundColor(ClassificationTypeNames.ParameterName, sourceFormatMap, targetFormatMap);

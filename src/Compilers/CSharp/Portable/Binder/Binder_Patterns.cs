@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bool isVar;
             AliasSymbol aliasOpt;
-            TypeSymbol declType = BindType(typeSyntax, diagnostics, out isVar, out aliasOpt);
+            TypeSymbol declType = BindTypeOrVarKeyword(typeSyntax, diagnostics, out isVar, out aliasOpt);
             if (isVar)
             {
                 declType = operandType;

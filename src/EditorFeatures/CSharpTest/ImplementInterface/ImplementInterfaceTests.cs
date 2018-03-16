@@ -6943,5 +6943,29 @@ public class Test : ITest
     public ref readonly int this[int p] => throw new System.NotImplementedException();
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task TestUnmanagedConstraint()
+        {
+            await TestInRegularAndScriptAsync(
+@"public interface ITest
+{
+    void M<T>() where T : unmanaged;
+}
+public class Test : [|ITest|]
+{
+}",
+@"public interface ITest
+{
+    void M<T>() where T : unmanaged;
+}
+public class Test : ITest
+{
+    public void M<T>() where T : unmanaged
+    {
+        throw new System.NotImplementedException();
+    }
+}");
+        }
     }
 }
