@@ -60,6 +60,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             // TODO: Unhook the session's events when the session is available in the args
         }
 
+        /// <summary>
+        /// Mostly borrowed from <see cref="Controller.Session.FilterModelInBackgroundWorker(Document, Model, int, SnapshotPoint, CodeAnalysis.Completion.CompletionFilterReason, ImmutableDictionary{CompletionItemFilter, bool})"/>
+        /// </summary>
         public Task<FilteredCompletionModel> UpdateCompletionListAsync(
             ImmutableArray<EditorCompletion.CompletionItem> sortedList, 
             CompletionTriggerReason triggerReason, 
@@ -70,8 +73,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             ITextView view, 
             CancellationToken cancellationToken)
         {
-            var documentSnapshot = sortedList[0].Properties.GetProperty<ITextBuffer>("TriggerBuffer").CurrentSnapshot;
-
             var filterText = applicableToSpan.GetText(snapshot);
 
             // Check if the user is typing a number. If so, only proceed if it's a number
@@ -139,27 +140,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             return HandleNormalFiltering(
                 sortedList,
-                documentSnapshot,
+                sortedList[0].Properties.GetProperty<ITextBuffer>("TriggerBuffer").CurrentSnapshot, // TODO: Get this the right way, and only get it when required.
                 caretPosition,
                 filterText,
                 filters,
                 filterReason,
                 initialListOfItemsToBeIncluded,
                 triggerReason);
-        }
-
-        private IEnumerable<CompletionItemWithHighlight> GetHighlightedList(
-            List<FilterResult> filterResults,
-            string filterText)
-        {
-            var highlightedList = new List<CompletionItemWithHighlight>();
-            foreach (var item in filterResults)
-            {
-                var highlightedSpans = _completionHelper.GetHighlightedSpans(item.CompletionItem.FilterText, filterText, CultureInfo.CurrentCulture);
-                highlightedList.Add(new CompletionItemWithHighlight(item.CompletionItem, highlightedSpans.Select(s => s.ToSpan()).ToImmutableArray()));
-            }
-
-            return highlightedList;
         }
 
         private Task<FilteredCompletionModel> HandleDeletionTrigger(
@@ -219,65 +206,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
             {
                 return Task.FromResult(new FilteredCompletionModel(highlightedList, 0, updatedFilters, CompletionItemSelection.SoftSelected, centerSelection: true, uniqueItem: null));
             }
-        }
-
-        private ImmutableArray<CompletionFilterWithState> GetUpdatedFilters(
-            ImmutableArray<EditorCompletion.CompletionItem> originalList,
-            List<FilterResult> filteredList,
-            ImmutableArray<CompletionFilterWithState> filters,
-            string filterText)
-        {
-            /*
-            // See which filters might be enabled based on the typed code
-            var textFilteredFilters = filteredList.SelectMany(n => n.CompletionItem.Filters).Distinct();
-
-            // When no items are available for a given filter, it becomes unavailable
-            var updatedFilters = ImmutableArray.CreateRange(filters.Select(n => n.WithAvailability(textFilteredFilters.Contains(n.Filter))));
-
-            return updatedFilters;
-            */
-            
-            var missingItems = new List<EditorCompletion.CompletionItem>();
-            int filteredListIndex = 0;
-            var filtersPresentInIncludedItems = new HashSet<CompletionFilter>();
-            for (int originalListIndex = 0; originalListIndex < originalList.Length; originalListIndex++)
-            {
-                if (filteredListIndex < filteredList.Count && originalList[originalListIndex] == filteredList[filteredListIndex].CompletionItem)
-                {
-                    foreach (var filter in filteredList[filteredListIndex].CompletionItem.Filters)
-                    {
-                        filtersPresentInIncludedItems.Add(filter);
-                    }
-
-                    filteredListIndex++;
-                }
-                else
-                {
-                    missingItems.Add(originalList[originalListIndex]);
-                }
-            }
-
-            var filtersPresentInMissingItems = new HashSet<CompletionFilter>();
-            foreach (var missingItem in missingItems)
-            {
-                if (_completionHelper.MatchesPattern(missingItem.FilterText, filterText, CultureInfo.CurrentCulture))
-                {
-                    foreach (var filter in missingItem.Filters)
-                    {
-                        filtersPresentInMissingItems.Add(filter);
-                    }
-                }
-            }
-
-            var resultingFilters = new List<CompletionFilterWithState>();
-
-            foreach (var filter in filters)
-            {
-                var isAvailable = filter.IsSelected || filtersPresentInIncludedItems.Contains(filter.Filter) || filtersPresentInMissingItems.Contains(filter.Filter);
-                resultingFilters.Add(filter.WithAvailability(isAvailable));
-            }
-
-            return resultingFilters.ToImmutableArray();
         }
 
         private bool IsBetterDeletionMatch(FilterResult result1, FilterResult result2)
@@ -433,6 +361,78 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.E
 
             return false;
         }
+
+        private IEnumerable<CompletionItemWithHighlight> GetHighlightedList(List<FilterResult> filterResults, string filterText)
+        {
+            var highlightedList = new List<CompletionItemWithHighlight>();
+            foreach (var item in filterResults)
+            {
+                var highlightedSpans = _completionHelper.GetHighlightedSpans(item.CompletionItem.FilterText, filterText, CultureInfo.CurrentCulture);
+                highlightedList.Add(new CompletionItemWithHighlight(item.CompletionItem, highlightedSpans.Select(s => s.ToSpan()).ToImmutableArray()));
+            }
+
+            return highlightedList;
+        }
+
+        private ImmutableArray<CompletionFilterWithState> GetUpdatedFilters(
+            ImmutableArray<EditorCompletion.CompletionItem> originalList,
+            List<FilterResult> filteredList,
+            ImmutableArray<CompletionFilterWithState> filters,
+            string filterText)
+        {
+            /*
+            // See which filters might be enabled based on the typed code
+            var textFilteredFilters = filteredList.SelectMany(n => n.CompletionItem.Filters).Distinct();
+
+            // When no items are available for a given filter, it becomes unavailable
+            var updatedFilters = ImmutableArray.CreateRange(filters.Select(n => n.WithAvailability(textFilteredFilters.Contains(n.Filter))));
+
+            return updatedFilters;
+            */
+
+            var missingItems = new List<EditorCompletion.CompletionItem>();
+            int filteredListIndex = 0;
+            var filtersPresentInIncludedItems = new HashSet<CompletionFilter>();
+            for (int originalListIndex = 0; originalListIndex < originalList.Length; originalListIndex++)
+            {
+                if (filteredListIndex < filteredList.Count && originalList[originalListIndex] == filteredList[filteredListIndex].CompletionItem)
+                {
+                    foreach (var filter in filteredList[filteredListIndex].CompletionItem.Filters)
+                    {
+                        filtersPresentInIncludedItems.Add(filter);
+                    }
+
+                    filteredListIndex++;
+                }
+                else
+                {
+                    missingItems.Add(originalList[originalListIndex]);
+                }
+            }
+
+            var filtersPresentInMissingItems = new HashSet<CompletionFilter>();
+            foreach (var missingItem in missingItems)
+            {
+                if (_completionHelper.MatchesPattern(missingItem.FilterText, filterText, CultureInfo.CurrentCulture))
+                {
+                    foreach (var filter in missingItem.Filters)
+                    {
+                        filtersPresentInMissingItems.Add(filter);
+                    }
+                }
+            }
+
+            var resultingFilters = new List<CompletionFilterWithState>();
+
+            foreach (var filter in filters)
+            {
+                var isAvailable = filter.IsSelected || filtersPresentInIncludedItems.Contains(filter.Filter) || filtersPresentInMissingItems.Contains(filter.Filter);
+                resultingFilters.Add(filter.WithAvailability(isAvailable));
+            }
+
+            return resultingFilters.ToImmutableArray();
+        }
+
 
         private static bool IsAllPunctuation(string filterText)
         {
