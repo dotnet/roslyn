@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -117,8 +118,19 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 // Assert that the four projects each have different output file paths
                 Assert.Equal(4, outputFilePaths.Count);
 
+                var expectedNames = new HashSet<string>()
+                {
+                    "Library(netstandard2.0)",
+                    "Library(net461)",
+                    "Project(netcoreapp2.0)",
+                    "Project(net461)"
+                };
+
+                var actualNames = new HashSet<string>();
+
                 foreach (var project in workspace.CurrentSolution.Projects)
                 {
+                    actualNames.Add(project.Name);
                     var fileName = PathUtilities.GetFileName(project.FilePath);
 
                     Document document;
@@ -143,6 +155,8 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                     var diagnostics = semanticModel.GetDiagnostics();
                     Assert.Empty(diagnostics);
                 }
+
+                Assert.True(actualNames.SetEquals(expectedNames), $"Project names differ!{Environment.NewLine}Expected: {actualNames}{Environment.NewLine}Expected: {expectedNames}");
             }
         }
     }

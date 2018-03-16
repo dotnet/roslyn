@@ -238,9 +238,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
                     _projectIdToFileInfoMap.Add(projectId, projectFileInfo);
                 }
 
+                // If this project resulted in more than a single project, a discrimator (e.g. TFM) should be
+                // added to the project name.
+                var addDiscriminator = idsAndFileInfos.Count > 1;
+
                 foreach (var (id, fileInfo) in idsAndFileInfos)
                 {
-                    var projectInfo = await CreateProjectInfoAsync(fileInfo, id, cancellationToken).ConfigureAwait(false);
+                    var projectInfo = await CreateProjectInfoAsync(fileInfo, id, addDiscriminator, cancellationToken).ConfigureAwait(false);
 
                     builder.Add(projectInfo);
                 }
@@ -252,13 +256,19 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 return results;
             }
 
-            private Task<ProjectInfo> CreateProjectInfoAsync(ProjectFileInfo projectFileInfo, ProjectId projectId, CancellationToken cancellationToken)
+            private Task<ProjectInfo> CreateProjectInfoAsync(ProjectFileInfo projectFileInfo, ProjectId projectId, bool addDiscriminator, CancellationToken cancellationToken)
             {
                 var language = projectFileInfo.Language;
                 Debug.Assert(_owner.IsSupportedLanguage(language));
 
                 var projectPath = projectFileInfo.FilePath;
+
                 var projectName = Path.GetFileNameWithoutExtension(projectPath);
+                if (addDiscriminator && !string.IsNullOrWhiteSpace(projectFileInfo.TargetFramework))
+                {
+                    projectName += "(" + projectFileInfo.TargetFramework + ")";
+                }
+
                 var version = GetProjectVersion(projectPath);
 
                 if (projectFileInfo.IsEmpty)
