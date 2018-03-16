@@ -1592,7 +1592,7 @@ BC30306: Array subscript expression missing.
                 <error id="30201"/>
                 <error id="30201"/>
                 <error id="30201"/>
-                <error id="30203"/>
+                <error id="30201"/>
                 <error id="30037"/>
                 <error id="30037"/>
             </errors>)

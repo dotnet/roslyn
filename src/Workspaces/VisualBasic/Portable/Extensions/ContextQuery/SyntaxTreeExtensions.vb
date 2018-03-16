@@ -861,7 +861,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
             Dim memberAccessExpression = TryCast(expression, MemberAccessExpressionSyntax)
             If memberAccessExpression IsNot Nothing Then
-                Return memberAccessExpression.Name.Identifier
+                Dim simpleName = TryCast(memberAccessExpression.Name, SimpleNameSyntax)
+                If simpleName IsNot Nothing Then
+                    Return simpleName.Identifier
+                End If
             End If
 
             Dim functionAggregationExpression = TryCast(expression, FunctionAggregationSyntax)

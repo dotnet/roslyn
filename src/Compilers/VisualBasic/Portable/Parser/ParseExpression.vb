@@ -1028,7 +1028,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     GetNextToken()
                     Dim name = ParseIdentifierNameAllowingKeyword()
                     output = SyntaxFactory.DictionaryAccessExpression(Term, op, name)
-                    '  output = ParseFlagsEnumExpr(Term, fop)
                 Else
                     GetNextToken()
 

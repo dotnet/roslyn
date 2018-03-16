@@ -434,8 +434,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                             identifierToken = DirectCast(expressionOfInvocation, SimpleNameSyntax).Identifier
                             Exit While
                         Case SyntaxKind.SimpleMemberAccessExpression
-                            identifierToken = DirectCast(expressionOfInvocation, MemberAccessExpressionSyntax).Name.Identifier
-                            Exit While
+                            Dim simpleName = TryCast(expressionOfInvocation, SimpleNameSyntax)
+                            If simpleName IsNot Nothing Then
+
+                                identifierToken = simpleName.Identifier
+                                Exit While
+                            End If
                         Case SyntaxKind.QualifiedName
                             identifierToken = DirectCast(expressionOfInvocation, QualifiedNameSyntax).Right.Identifier
                             Exit While

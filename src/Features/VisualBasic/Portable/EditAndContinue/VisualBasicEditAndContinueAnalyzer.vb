@@ -953,14 +953,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue
             End If
 
             Dim memberAccess = DirectCast(invocation.Expression, MemberAccessExpressionSyntax)
-            If Not memberAccess.Name.IsKind(SyntaxKind.IdentifierName) OrElse
-               Not memberAccess.Name.Identifier.IsKind(SyntaxKind.IdentifierToken) Then
-                Return True
-            End If
+            If Not memberAccess.Name.IsKind(SyntaxKind.IdentifierName) Then Return True
+            Dim simplename = TryCast(memberAccess.Name, SimpleNameSyntax)
+            If simplename IsNot Nothing Then
+                If Not simplename.Identifier.IsKind(SyntaxKind.IdentifierToken) Then
+                    Return True
+                End If
 
-            ' Note that ValueText returns "New" for both New and [New]
-            If Not String.Equals(memberAccess.Name.Identifier.ToString(), "New", StringComparison.OrdinalIgnoreCase) Then
-                Return True
+                ' Note that ValueText returns "New" for both New and [New]
+                If Not String.Equals(simplename.Identifier.ToString(), "New", StringComparison.OrdinalIgnoreCase) Then
+                    Return True
+                End If
             End If
 
             Return memberAccess.Expression.IsKind(SyntaxKind.MyBaseKeyword)

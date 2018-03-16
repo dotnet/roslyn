@@ -36,7 +36,7 @@ End Module"
 
                     Dim actual = From attribute In anonDelegate.GetAttributes()
                                  Select attribute.AttributeClass
-                    AssertEx.SetEqual(actual, expected)
+                    AssertEx.SetEqual(actual.ToArray, expected)
                 End Sub
 
             CompileAndVerify(comp, symbolValidator:=validator)

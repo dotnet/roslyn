@@ -5359,7 +5359,7 @@ Unify Enum declarations with other block type declarations.
         <kind name="ExclamationToken" node-kind="DictionaryAccessExpression" />
       </child>
 
-      <child name="Name" kind="@SimpleNameSyntax">
+      <child name="Name" kind="@ExpressionSyntax">
         <description>The identifier after the "." or "!" token.</description>
         <lm-equiv name="Value"></lm-equiv>
         <native-equiv name="Name"></native-equiv>

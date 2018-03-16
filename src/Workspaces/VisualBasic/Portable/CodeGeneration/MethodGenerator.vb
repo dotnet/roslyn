@@ -123,7 +123,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                               token.Kind = SyntaxKind.MyClassKeyword OrElse
                               token.Kind = SyntaxKind.MeKeyword
                         Where TypeOf def.Name Is IdentifierNameSyntax
-                        Let identifier = def.Name.Identifier.ValueText.ToIdentifierName()
+                        Let simpleName = DirectCast(def.Name, IdentifierNameSyntax)
+                        Let identifier = simpleName.Identifier.ValueText.ToIdentifierName()
                         Select SyntaxFactory.HandlesClauseItem(If(token.Kind = SyntaxKind.IdentifierToken,
                                                            DirectCast(SyntaxFactory.WithEventsEventContainer(token.ValueText.ToIdentifierToken()), EventContainerSyntax),
                                                            SyntaxFactory.KeywordEventContainer(token)), identifier)

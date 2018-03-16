@@ -2744,6 +2744,8 @@ BC42024: Unused local variable: 'arr15'.
         End Interface
         ]]></file>
     </compilation>)
+            Dim d = compilation1.GetDiagnostics()
+
             Dim expectedErrors1 = <errors><![CDATA[
 BC30269: 'Sub x()' has multiple definitions with identical signatures.
              Sub x%()

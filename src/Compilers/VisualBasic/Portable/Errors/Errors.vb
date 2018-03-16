@@ -1742,6 +1742,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_ValueTupleResolutionAmbiguous3 = 37305
         ERR_MissingFlagsAttributeOnEnum = 37306
+        ERR_ExpectedParenthesizedExpression = 373307
 
         '// WARNINGS BEGIN HERE
         WRN_UseOfObsoleteSymbol2 = 40000

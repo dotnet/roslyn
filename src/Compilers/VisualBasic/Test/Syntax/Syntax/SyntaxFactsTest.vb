@@ -1202,8 +1202,8 @@ End Module
 ]]>)
 
         Dim memberAccess = tree.GetRoot().DescendantNodes().OfType(Of MemberAccessExpressionSyntax).Single()
-
-        Assert.False(SyntaxFacts.AllowsLeadingImplicitLineContinuation(memberAccess.Name.Identifier))
+        Dim simpleName = TryCast(memberAccess.Name, SimpleNameSyntax)
+        Assert.False(SyntaxFacts.AllowsLeadingImplicitLineContinuation(simpleName.Identifier))
         Assert.False(SyntaxFacts.AllowsTrailingImplicitLineContinuation(memberAccess.OperatorToken))
 
     End Sub

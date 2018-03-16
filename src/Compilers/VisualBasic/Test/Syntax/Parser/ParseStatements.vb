@@ -3484,13 +3484,16 @@ End Module
     <WorkItem(880140, "DevDiv/Personal")>
     <Fact()>
     Public Sub BC32017_ParseObjectMemberInitializer()
-        ParseAndVerify(<![CDATA[
+        Dim res = ParseAndVerify(<![CDATA[
             Module Module1
                 Sub Main()
                     ObjTest!New ClsCustomer With {.ID = 106, .Name = "test 106"}
                 End Sub
             End Module
-        ]]>,
+        ]]>)
+        ' #30800 ERRID.ERR_ObsoleteArgumentsNeedParens
+        ' #32017 ERR_ArgumentSyntax
+        res.AssertTheseDiagnostics(
         <errors>
             <error id="30800"/>
             <error id="32017"/>
