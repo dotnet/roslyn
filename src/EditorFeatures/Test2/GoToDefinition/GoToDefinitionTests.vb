@@ -813,6 +813,41 @@ class C
             Test(workspace)
         End Sub
 
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToUnmanaged_Keyword()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            class C&lt;T&gt; where T : un$$managed
+            {
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace, expectedResult:=False)
+        End Sub
+
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        Public Sub TestCSharpGoToUnmanaged_Type()
+            Dim workspace =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+            interface [|unmanaged|]
+            {
+            }
+            class C&lt;T&gt; where T : un$$managed
+            {
+            }
+        </Document>
+    </Project>
+</Workspace>
+
+            Test(workspace)
+        End Sub
+
 #End Region
 
 #Region "CSharp TupleTests"

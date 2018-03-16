@@ -28,5 +28,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         PrivateProtected,
         PEVerifyCompat,
         RefConditionalOperator,
+        StackAllocInitializer,
     }
 }

@@ -562,6 +562,7 @@ namespace System
                     case WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute:
                     case WellKnownType.System_Span_T:
                     case WellKnownType.System_ReadOnlySpan_T:
+                    case WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute:
                     // Not yet in the platform.
                     case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation:
                         // Not always available.
@@ -872,6 +873,7 @@ namespace System
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayloadForMethodsSpanningMultipleFiles:
                     case WellKnownMember.System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor:
                     case WellKnownMember.System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor:
+                    case WellKnownMember.System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor:
                         // Not always available.
                         continue;
                 }
