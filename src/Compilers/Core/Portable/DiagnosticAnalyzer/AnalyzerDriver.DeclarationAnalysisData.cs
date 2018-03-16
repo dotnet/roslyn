@@ -5,7 +5,7 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    internal abstract partial class AnalyzerDriver : IDisposable
+    internal abstract partial class AnalyzerDriver
     {
         internal sealed class DeclarationAnalysisData
         {

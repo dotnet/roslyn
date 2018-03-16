@@ -1971,15 +1971,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             SemanticModel semanticModel,
             AnalyzerExecutor analyzerExecutor)
         {
-            var nodeBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
-            void AddNode(SyntaxNode node)
-            {
-                if (!isPartialDeclAnalysis || analysisScope.ShouldAnalyze(node))
-                {
-                    nodeBuilder.Add(node);
-                }
-            }
-
             // Eliminate descendant member declarations within declarations.
             // There will be separate symbols declared for the members.
             HashSet<SyntaxNode> descendantDeclsToSkipOpt = null;
@@ -2020,9 +2011,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 first = false;
             }
 
-            AddSyntaxNodesToAnalyze(declaredNode, descendantDeclsToSkipOpt, AddNode);
+            bool ShouldAddNode(SyntaxNode node) => descendantDeclsToSkipOpt == null || !descendantDeclsToSkipOpt.Contains(node);
+            var nodeBuilder = ArrayBuilder<SyntaxNode>.GetInstance();
+            foreach (var node in declaredNode.DescendantNodesAndSelf(descendIntoChildren: ShouldAddNode, descendIntoTrivia: true))
+            {
+                if (ShouldAddNode(node) &&
+                    (!isPartialDeclAnalysis || analysisScope.ShouldAnalyze(node)))
+                {
+                    nodeBuilder.Add(node);
+                }
+            }
 
-            Debug.Assert(!isPartialDeclAnalysis || nodeBuilder.All(analysisScope.ShouldAnalyze));
             return nodeBuilder.ToImmutableAndFree();
         }
 
@@ -2072,20 +2071,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return operationsToAnalyze.ToImmutableAndFree();
-        }
-
-        private static void AddSyntaxNodesToAnalyze(SyntaxNode declaredNode, HashSet<SyntaxNode> descendantNodesToSkipOpt, Action<SyntaxNode> addNode)
-        {
-            Debug.Assert(declaredNode != null);
-
-            bool ShouldAddNode(SyntaxNode node) => descendantNodesToSkipOpt == null || !descendantNodesToSkipOpt.Contains(node);
-            foreach (var node in declaredNode.DescendantNodesAndSelf(descendIntoChildren: ShouldAddNode, descendIntoTrivia: true))
-            {
-                if (ShouldAddNode(node))
-                {
-                    addNode(node);
-                }
-            }
         }
     }
 }
