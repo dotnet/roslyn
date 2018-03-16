@@ -90,6 +90,15 @@
     <Field Name="ValEscape" Type="uint" Null="NotApplicable"/>
   </Node>
 
+  <!--
+  In a tuple binary operator, this node is used to represent tuple elements in a tuple binary
+  operator, and to represent an element-wise comparison result to convert back to bool.
+  It does not survive the initial binding.
+  -->
+  <Node Name="BoundTupleOperandPlaceholder" Base="BoundValuePlaceholderBase">
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+  </Node>
+
   <!-- only used by codegen -->
   <Node Name="BoundDup" Base="BoundExpression">
     <!-- when duplicating a local or parameter, must remember original ref kind -->
@@ -305,6 +314,21 @@
     <Field Name="ConstantValueOpt" Type="ConstantValue" Null="allow"/>
     <Field Name="MethodOpt" Type="MethodSymbol" Null="allow"/>
     <Field Name="ResultKind" PropertyOverrides="true" Type="LookupResultKind"/>
+  </Node>
+
+  <Node Name="BoundTupleBinaryOperator" Base="BoundExpression">
+    <!-- Non-null type is required for this node kind -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+
+    <Field Name="Left" Type="BoundExpression"/>
+    <Field Name="Right" Type="BoundExpression"/>
+
+    <!-- Converted nodes are meant for semantic model and IOperation use only -->
+    <Field Name="ConvertedLeft" Type="BoundExpression" SkipInVisitor="true"/>
+    <Field Name="ConvertedRight" Type="BoundExpression" SkipInVisitor="true"/>
+
+    <Field Name="OperatorKind" Type="BinaryOperatorKind"/>
+    <Field Name="Operators" Type="TupleBinaryOperatorInfo.Multiple"/>
   </Node>
 
   <Node Name="BoundUserDefinedConditionalLogicalOperator" Base="BoundExpression">

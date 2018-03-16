@@ -1555,6 +1555,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_DefaultInPattern = 8363,
         ERR_InDynamicMethodArg = 8364,
 
+        #region diagnostics introduced for C# 7.3
         ERR_FeatureNotAvailableInVersion7_3 = 8370,
         WRN_AttributesOnBackingFieldsNotAvailable = 8371,
         ERR_DoNotUseFixedBufferAttrOnProperty = 8372,
@@ -1569,6 +1570,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_UnmanagedBoundWithClass = 8380,
 
         ERR_InvalidStackAllocArray = 8381,
+
+        ERR_ExpressionTreeContainsTupleBinOp = 8382,
+        WRN_TupleBinopLiteralNameMismatch = 8383,
+        ERR_TupleSizesMismatchForBinOps = 8384,
+        #endregion diagnostics introduced for C# 7.3
 
         // Note: you will need to re-generate compiler code after adding warnings (build\scripts\generate-compiler-code.cmd)
     }

@@ -943,6 +943,18 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Visit(operation.RightOperand, "Right");
         }
 
+        public override void VisitTupleBinaryOperator(ITupleBinaryOperation operation)
+        {
+            LogString(nameof(ITupleBinaryOperation));
+            var kindStr = $"{nameof(BinaryOperatorKind)}.{operation.OperatorKind}";
+
+            LogString($" ({kindStr})");
+            LogCommonPropertiesAndNewLine(operation);
+
+            Visit(operation.LeftOperand, "Left");
+            Visit(operation.RightOperand, "Right");
+        }
+
         private void LogHasOperatorMethodExpressionCommon(IMethodSymbol operatorMethodOpt)
         {
             if (operatorMethodOpt != null)
