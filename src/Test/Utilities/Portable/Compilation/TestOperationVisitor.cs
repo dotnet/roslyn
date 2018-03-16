@@ -632,6 +632,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             AssertEx.Equal(new[] { operation.LeftOperand, operation.RightOperand }, operation.Children);
         }
 
+        public override void VisitTupleBinaryOperator(ITupleBinaryOperation operation)
+        {
+            Assert.Equal(OperationKind.TupleBinaryOperator, operation.Kind);
+            var binaryOperationKind = operation.OperatorKind;
+
+            AssertEx.Equal(new[] { operation.LeftOperand, operation.RightOperand }, operation.Children);
+        }
+
         public override void VisitConversion(IConversionOperation operation)
         {
             Assert.Equal(OperationKind.Conversion, operation.Kind);

@@ -8577,7 +8577,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_InDynamicMethodArg">
         <source>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</source>
-        <target state="translated">Вы не можете использовать аргументы с модификатором "in" в динамически отправляемых выражениях.</target>
+        <target state="new">Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_DoNotUseFixedBufferAttrOnProperty">
@@ -8602,7 +8602,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="IDS_FeatureRefConditional">
         <source>ref conditional expression</source>
-        <target state="translated">Условное выражение ref</target>
+        <target state="new">ref conditional expression</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
@@ -8610,24 +8610,44 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</target>
         <note />
       </trans-unit>
+      <trans-unit id="IDS_FeatureTupleEquality">
+        <source>tuple equality</source>
+        <target state="new">tuple equality</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_TupleSizesMismatchForBinOps">
+        <source>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</source>
+        <target state="new">Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</target>
+        <note />
+      </trans-unit>
       <trans-unit id="ERR_InvalidHashAlgorithmName">
         <source>Invalid hash algorithm name: '{0}'</source>
         <target state="new">Invalid hash algorithm name: '{0}'</target>
         <note />
       </trans-unit>
+      <trans-unit id="ERR_ExpressionTreeContainsTupleBinOp">
+        <source>An expression tree may not contain a tuple == or != operator</source>
+        <target state="new">An expression tree may not contain a tuple == or != operator</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TupleBinopLiteralNameMismatch">
+        <source>The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</source>
+        <target state="new">The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="WRN_TupleBinopLiteralNameMismatch_Title">
+        <source>The tuple element name is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</source>
+        <target state="new">The tuple element name is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_UnmanagedBoundWithClass">
+        <source>'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</source>
+        <target state="new">'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</target>
+        <note />
+      </trans-unit>
       <trans-unit id="IDS_FeatureRefReassignment">
         <source>ref reassignment</source>
         <target state="new">ref reassignment</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RefLocalOrParamExpected">
-        <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
-        <target state="new">The left-hand side of a ref assignment must be a ref local or parameter.</target>
-        <note />
-      </trans-unit>
-      <trans-unit id="ERR_RefAssignNarrower">
-        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
-        <target state="new">Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureRefFor">
@@ -8640,9 +8660,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
         <target state="new">ref foreach iteration variables</target>
         <note />
       </trans-unit>
-      <trans-unit id="ERR_UnmanagedBoundWithClass">
-        <source>'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</source>
-        <target state="new">'{0}': cannot specify both a constraint class and the 'unmanaged' constraint</target>
+      <trans-unit id="ERR_RefLocalOrParamExpected">
+        <source>The left-hand side of a ref assignment must be a ref local or parameter.</source>
+        <target state="new">The left-hand side of a ref assignment must be a ref local or parameter.</target>
+        <note />
+      </trans-unit>
+      <trans-unit id="ERR_RefAssignNarrower">
+        <source>Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</source>
+        <target state="new">Cannot ref-assign '{1}' to '{0}' because '{1}' has a narrower escape scope than '{0}'.</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureEnumGenericTypeConstraint">
