@@ -8,26 +8,26 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
     internal struct EmbeddedSyntaxToken<TSyntaxKind> where TSyntaxKind : struct
     {
         public readonly TSyntaxKind Kind;
-        public readonly ImmutableArray<EmbeddedSyntaxTrivia> LeadingTrivia;
+        public readonly ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> LeadingTrivia;
         public readonly ImmutableArray<VirtualChar> VirtualChars;
-        public readonly ImmutableArray<EmbeddedSyntaxTrivia> TrailingTrivia;
+        public readonly ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> TrailingTrivia;
         internal readonly ImmutableArray<EmbeddedDiagnostic> Diagnostics;
         public readonly object Value;
 
         public EmbeddedSyntaxToken(
             TSyntaxKind kind,
-            ImmutableArray<EmbeddedSyntaxTrivia> leadingTrivia,
+            ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> leadingTrivia,
             ImmutableArray<VirtualChar> virtualChars,
-            ImmutableArray<EmbeddedSyntaxTrivia> trailingTrivia)
+            ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> trailingTrivia)
             : this(kind, leadingTrivia, virtualChars, trailingTrivia, ImmutableArray<EmbeddedDiagnostic>.Empty)
         {
         }
 
         public EmbeddedSyntaxToken(
             TSyntaxKind kind,
-            ImmutableArray<EmbeddedSyntaxTrivia> leadingTrivia,
+            ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> leadingTrivia,
             ImmutableArray<VirtualChar> virtualChars,
-            ImmutableArray<EmbeddedSyntaxTrivia> trailingTrivia,
+            ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> trailingTrivia,
             ImmutableArray<EmbeddedDiagnostic> diagnostics)
             : this(kind, leadingTrivia, virtualChars, trailingTrivia, diagnostics, value: null)
         {
@@ -35,9 +35,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 
         public EmbeddedSyntaxToken(
             TSyntaxKind kind,
-            ImmutableArray<EmbeddedSyntaxTrivia> leadingTrivia,
+            ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> leadingTrivia,
             ImmutableArray<VirtualChar> virtualChars,
-            ImmutableArray<EmbeddedSyntaxTrivia> trailingTrivia,
+            ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>> trailingTrivia,
             ImmutableArray<EmbeddedDiagnostic> diagnostics, object value)
         {
             Kind = kind;
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         }
 
         public static EmbeddedSyntaxToken<TSyntaxKind> CreateMissing(TSyntaxKind kind)
-            => new EmbeddedSyntaxToken<TSyntaxKind>(kind, ImmutableArray<EmbeddedSyntaxTrivia>.Empty, ImmutableArray<VirtualChar>.Empty, ImmutableArray<EmbeddedSyntaxTrivia>.Empty);
+            => new EmbeddedSyntaxToken<TSyntaxKind>(kind, ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>>.Empty, ImmutableArray<VirtualChar>.Empty, ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>>.Empty);
 
         public bool IsMissing => VirtualChars.IsEmpty;
 
@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 
         public EmbeddedSyntaxToken<TSyntaxKind> With(
             Optional<TSyntaxKind> kind = default,
-            Optional<ImmutableArray<EmbeddedSyntaxTrivia>> leadingTrivia = default,
+            Optional<ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>>> leadingTrivia = default,
             Optional<ImmutableArray<VirtualChar>> virtualChars = default,
-            Optional<ImmutableArray<EmbeddedSyntaxTrivia>> trailingTrivia = default,
+            Optional<ImmutableArray<EmbeddedSyntaxTrivia<TSyntaxKind>>> trailingTrivia = default,
             Optional<ImmutableArray<EmbeddedDiagnostic>> diagnostics = default,
             Optional<object> value = default)
         {
