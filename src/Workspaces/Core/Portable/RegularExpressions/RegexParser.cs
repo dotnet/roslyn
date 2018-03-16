@@ -1499,8 +1499,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                     return new RegexCharacterClassEscapeNode(
                         backslashToken, ConsumeCurrentToken(allowTrivia: allowTriviaAfterEnd));
 
-                case 'p':
-                case 'P':
+                case 'p': case 'P':
                     return ParseCategoryEscape(backslashToken, allowTriviaAfterEnd);
             }
 
