@@ -303,10 +303,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 cast.Expression, semanticModel, cancellationToken,
                 skipVerificationForReplacedNode: true, failOnOverloadResolutionFailuresInOriginalCode: true);
 
-            // First, check to see if the node ultimately parenting this cast has any syntax errors.
-            // If so, we bail. If removing the cast introduces a syntax error, bail out too.
-            if (speculationAnalyzer.SemanticRootOfOriginalExpression.ContainsDiagnostics ||
-                speculationAnalyzer.SemanticRootOfReplacedExpression.ContainsDiagnostics)
+            // First, check to see if the node ultimately parenting this cast has any
+            // syntax errors. If so, we bail.
+            if (speculationAnalyzer.SemanticRootOfOriginalExpression.ContainsDiagnostics)
+            {
+                return false;
+            }
+
+            if (cast.Expression.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression) &&
+                cast.WalkUpParentheses().IsParentKind(SyntaxKind.ConstantPattern, SyntaxKind.CaseSwitchLabel))
             {
                 return false;
             }
