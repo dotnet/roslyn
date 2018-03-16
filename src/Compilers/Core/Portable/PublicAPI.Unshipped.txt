@@ -5,6 +5,7 @@ Microsoft.CodeAnalysis.Emit.EmitOptions.EmitOptions(bool metadataOnly, Microsoft
 Microsoft.CodeAnalysis.Emit.EmitOptions.PdbChecksumAlgorithm.get -> System.Security.Cryptography.HashAlgorithmName
 Microsoft.CodeAnalysis.Emit.EmitOptions.WithPdbChecksumAlgorithm(System.Security.Cryptography.HashAlgorithmName name) -> Microsoft.CodeAnalysis.Emit.EmitOptions
 Microsoft.CodeAnalysis.INamedTypeSymbol.IsSerializable.get -> bool
+Microsoft.CodeAnalysis.ITypeParameterSymbol.HasUnmanagedTypeConstraint.get -> bool
 Microsoft.CodeAnalysis.MetadataImportOptions
 Microsoft.CodeAnalysis.MetadataImportOptions.All = 2 -> Microsoft.CodeAnalysis.MetadataImportOptions
 Microsoft.CodeAnalysis.MetadataImportOptions.Internal = 1 -> Microsoft.CodeAnalysis.MetadataImportOptions
