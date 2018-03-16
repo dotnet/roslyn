@@ -3415,6 +3415,17 @@ namespace N {
 
         [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
         [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
+        public async Task QueryMethodinfoFromMissing()
+        {
+            await TestInMethodAsync(
+@"
+            var q = $$from i in new int[0]
+                    select i;
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.QuickInfo)]
+        [WorkItem(23394, "https://github.com/dotnet/roslyn/issues/23394")]
         public async Task QueryMethodinfoRangeVariableSimple1()
         {
             await TestInMethodAsync(
