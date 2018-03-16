@@ -3,7 +3,6 @@
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindUsages;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Roslyn.Utilities;
@@ -21,7 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindRes
             Workspace workspace,
             DefinitionItem definitionItem,
             ImmutableArray<SourceReferenceTreeItem> referenceItems)
-            : base(definitionItem.Tags.GetGlyph().GetGlyphIndex())
+            : base(definitionItem.Tags.GetFirstGlyph().GetGlyphIndex())
         {
             _workspace = workspace;
             _definitionItem = definitionItem;

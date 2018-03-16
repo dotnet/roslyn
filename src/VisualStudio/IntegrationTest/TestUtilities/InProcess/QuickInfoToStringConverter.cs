@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Windows.Controls;
@@ -10,7 +11,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 {
     public static class QuickInfoToStringConverter
     {
-        public static string GetStringFromBulkContent(BulkObservableCollection<object> content)
+        public static string GetStringFromBulkContent(IEnumerable<object> content)
         {
             return string.Join(Environment.NewLine, content.Select(item => GetStringFromItem(item) ?? string.Empty));
         }

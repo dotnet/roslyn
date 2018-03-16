@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Globalization;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PatternMatching;
+using Microsoft.CodeAnalysis.Tags;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -183,7 +184,7 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private static bool IsKeywordItem(CompletionItem item)
         {
-            return item.Tags.Contains(CompletionTags.Keyword);
+            return item.Tags.Contains(WellKnownTags.Keyword);
         }
 
         private int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)

@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.QuickInfo;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
@@ -11,20 +12,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
     {
         public ITextVersion TextVersion { get; }
         public QuickInfoItem Item { get; }
-        public IQuickInfoProvider Provider { get; }
         public bool TrackMouse { get; }
 
         public Model(
             ITextVersion textVersion,
             QuickInfoItem item,
-            IQuickInfoProvider provider,
             bool trackMouse)
         {
             Contract.ThrowIfNull(item);
 
             this.TextVersion = textVersion;
             this.Item = item;
-            this.Provider = provider;
             this.TrackMouse = trackMouse;
         }
 

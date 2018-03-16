@@ -1817,6 +1817,11 @@ Sub(&lt;Parameterliste&gt;) &lt;Ausdruck&gt;</target>
         <target state="translated">Prüfung "IsNot Nothing" verwenden</target>
         <note />
       </trans-unit>
+      <trans-unit id="Multiple_Types">
+        <source>&lt;Multiple Types&gt;</source>
+        <target state="new">&lt;Multiple Types&gt;</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

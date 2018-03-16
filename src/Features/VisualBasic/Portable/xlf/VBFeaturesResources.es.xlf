@@ -1817,6 +1817,11 @@ Sub(&lt;listaDeParámetros&gt;) &lt;instrucción&gt;</target>
         <target state="translated">Usar comprobación "IsNot Nothing"</target>
         <note />
       </trans-unit>
+      <trans-unit id="Multiple_Types">
+        <source>&lt;Multiple Types&gt;</source>
+        <target state="new">&lt;Multiple Types&gt;</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
