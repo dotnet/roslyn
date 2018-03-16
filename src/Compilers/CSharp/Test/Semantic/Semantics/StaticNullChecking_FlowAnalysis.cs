@@ -316,8 +316,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b[0]").WithLocation(8, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ConditionalOperator_01()
         {
             var source =
@@ -346,8 +345,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "v").WithLocation(10, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ConditionalOperator_02()
         {
             var source =
@@ -371,8 +369,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? y : x").WithLocation(6, 10));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ConditionalOperator_03()
         {
             var source =
@@ -396,8 +393,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "true ? y : x").WithLocation(8, 10));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ConditionalOperator_04()
         {
             var source =
@@ -430,7 +426,6 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? y : x").WithLocation(11, 10));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Should report nullability mismatch warnings.
         [Fact]
         public void ConditionalOperator_05()
         {
@@ -459,16 +454,27 @@ class C
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyTypes();
             comp.VerifyDiagnostics(
+                // (13,10): warning CS8625: No best nullability for operands of conditional expression 'A<object>' and 'B1'.
+                //         (b ? x : y)/*T:A<object!>!*/.F.ToString();
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? x : y").WithArguments("A<object>", "B1").WithLocation(13, 10),
+                // (14,10): warning CS8625: No best nullability for operands of conditional expression 'B1' and 'A<object>'.
+                //         (b ? y : x).P.ToString();
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? y : x").WithArguments("B1", "A<object>").WithLocation(14, 10),
+                // (18,10): warning CS8625: No best nullability for operands of conditional expression 'A<object?>' and 'B2'.
+                //         (b ? x : y)/*T:A<object?>!*/.F.ToString();
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? x : y").WithArguments("A<object?>", "B2").WithLocation(18, 10),
                 // (18,9): warning CS8602: Possible dereference of a null reference.
                 //         (b ? x : y)/*T:A<object?>!*/.F.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(b ? x : y)/*T:A<object?>!*/.F").WithLocation(18, 9),
+                // (19,10): warning CS8625: No best nullability for operands of conditional expression 'B2' and 'A<object?>'.
+                //         (b ? y : x).P.ToString();
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "b ? y : x").WithArguments("B2", "A<object?>").WithLocation(19, 10),
                 // (19,9): warning CS8602: Possible dereference of a null reference.
                 //         (b ? y : x).P.ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(b ? y : x).P").WithLocation(19, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ConditionalOperator_06()
         {
             var source =
@@ -481,6 +487,11 @@ class C
         (b ? x: null).ToString();
         (b ? y: null).ToString();
         (b ? null: null).ToString();
+        (b ? default : x).ToString();
+        (b ? default : y).ToString();
+        (b ? x: default).ToString();
+        (b ? y: default).ToString();
+        (b ? default: default).ToString();
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
@@ -488,6 +499,9 @@ class C
                 // (9,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between '<null>' and '<null>'
                 //         (b ? null: null).ToString();
                 Diagnostic(ErrorCode.ERR_InvalidQM, "b ? null: null").WithArguments("<null>", "<null>").WithLocation(9, 10),
+                // (14,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between 'default' and 'default'
+                //         (b ? default: default).ToString();
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? default: default").WithArguments("default", "default").WithLocation(14, 10),
                 // (5,10): warning CS8602: Possible dereference of a null reference.
                 //         (b ? null : x).ToString();
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? null : x").WithLocation(5, 10),
@@ -502,11 +516,25 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? y: null").WithLocation(8, 10),
                 // (9,10): warning CS8602: Possible dereference of a null reference.
                 //         (b ? null: null).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? null: null").WithLocation(9, 10));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? null: null").WithLocation(9, 10),
+                // (10,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? default : x).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? default : x").WithLocation(10, 10),
+                // (11,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? default : y).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? default : y").WithLocation(11, 10),
+                // (12,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? x: default).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? x: default").WithLocation(12, 10),
+                // (13,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? y: default).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? y: default").WithLocation(13, 10),
+                // (14,10): warning CS8602: Possible dereference of a null reference.
+                //         (b ? default: default).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? default: default").WithLocation(14, 10));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ConditionalOperator_07()
         {
             var source =
@@ -542,8 +570,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? y: null").WithLocation(8, 10));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ConditionalOperator_08()
         {
             var source =
@@ -599,8 +626,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? y : x").WithLocation(16, 10));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ConditionalOperator_09()
         {
             var source =
@@ -652,8 +678,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "b ? y : x").WithLocation(18, 10));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void ConditionalOperator_10()
         {
             var source =
@@ -692,6 +717,151 @@ class C
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ConditionalOperator_12()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void F(bool b)
+    {
+        (b ? throw new Exception() : throw new Exception()).ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (6,10): error CS0173: Type of conditional expression cannot be determined because there is no implicit conversion between '<throw expression>' and '<throw expression>'
+                //         (b ? throw new Exception() : throw new Exception()).ToString();
+                Diagnostic(ErrorCode.ERR_InvalidQM, "b ? throw new Exception() : throw new Exception()").WithArguments("<throw expression>", "<throw expression>").WithLocation(6, 10));
+        }
+
+        [Fact]
+        public void ConditionalOperator_13()
+        {
+            var source =
+@"class C
+{
+    static bool F(object? x)
+    {
+        return true;
+    }
+    static void F1(bool c, bool b1, bool b2, object v1)
+    {
+        object x1;
+        object y1;
+        object? z1 = null;
+        object? w1 = null;
+        if (c ? b1 && F(x1 = v1) && F(z1 = v1) : b2 && F(y1 = v1) && F(w1 = v1))
+        {
+            x1.ToString(); // unassigned (if)
+            y1.ToString(); // unassigned (if)
+            z1.ToString(); // may be null (if)
+            w1.ToString(); // may be null (if)
+        }
+        else
+        {
+            x1.ToString(); // unassigned (no error) (else)
+            y1.ToString(); // unassigned (no error) (else)
+            z1.ToString(); // may be null (else)
+            w1.ToString(); // may be null (else)
+        }
+    }
+    static void F2(bool b1, bool b2, object v2)
+    {
+        object x2;
+        object y2;
+        object? z2 = null;
+        object? w2 = null;
+        if (true ? b1 && F(x2 = v2) && F(z2 = v2) : b2 && F(y2 = v2) && F(w2 = v2))
+        {
+            x2.ToString(); // ok (if)
+            y2.ToString(); // unassigned (if)
+            z2.ToString(); // ok (if)
+            w2.ToString(); // may be null (if)
+        }
+        else
+        {
+            x2.ToString(); // unassigned (else)
+            y2.ToString(); // unassigned (no error) (else)
+            z2.ToString(); // may be null (else)
+            w2.ToString(); // may be null (else)
+        }
+    }
+    static void F3(bool b1, bool b2, object v3)
+    {
+        object x3;
+        object y3;
+        object? z3 = null;
+        object? w3 = null;
+        if (false ? b1 && F(x3 = v3) && F(z3 = v3) : b2 && F(y3 = v3) && F(w3 = v3))
+        {
+            x3.ToString(); // unassigned (if)
+            y3.ToString(); // ok (if)
+            z3.ToString(); // may be null (if)
+            w3.ToString(); // ok (if)
+        }
+        else
+        {
+            x3.ToString(); // unassigned (no error) (else)
+            y3.ToString(); // unassigned (else)
+            z3.ToString(); // may be null (else)
+            w3.ToString(); // may be null (else)
+        }
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (15,13): error CS0165: Use of unassigned local variable 'x1'
+                //             x1.ToString(); // unassigned (if)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x1").WithArguments("x1").WithLocation(15, 13),
+                // (16,13): error CS0165: Use of unassigned local variable 'y1'
+                //             y1.ToString(); // unassigned (if)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y1").WithArguments("y1").WithLocation(16, 13),
+                // (17,13): warning CS8602: Possible dereference of a null reference.
+                //             z1.ToString(); // may be null (if)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z1").WithLocation(17, 13),
+                // (18,13): warning CS8602: Possible dereference of a null reference.
+                //             w1.ToString(); // may be null (if)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w1").WithLocation(18, 13),
+                // (24,13): warning CS8602: Possible dereference of a null reference.
+                //             z1.ToString(); // may be null (else)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z1").WithLocation(24, 13),
+                // (25,13): warning CS8602: Possible dereference of a null reference.
+                //             w1.ToString(); // may be null (else)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w1").WithLocation(25, 13),
+                // (37,13): error CS0165: Use of unassigned local variable 'y2'
+                //             y2.ToString(); // unassigned (if)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y2").WithArguments("y2").WithLocation(37, 13),
+                // (43,13): error CS0165: Use of unassigned local variable 'x2'
+                //             x2.ToString(); // unassigned (else)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(43, 13),
+                // (39,13): warning CS8602: Possible dereference of a null reference.
+                //             w2.ToString(); // may be null (if)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w2").WithLocation(39, 13),
+                // (45,13): warning CS8602: Possible dereference of a null reference.
+                //             z2.ToString(); // may be null (else)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z2").WithLocation(45, 13),
+                // (46,13): warning CS8602: Possible dereference of a null reference.
+                //             w2.ToString(); // may be null (else)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w2").WithLocation(46, 13),
+                // (57,13): error CS0165: Use of unassigned local variable 'x3'
+                //             x3.ToString(); // unassigned (if)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x3").WithArguments("x3").WithLocation(57, 13),
+                // (65,13): error CS0165: Use of unassigned local variable 'y3'
+                //             y3.ToString(); // unassigned (else)
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "y3").WithArguments("y3").WithLocation(65, 13),
+                // (59,13): warning CS8602: Possible dereference of a null reference.
+                //             z3.ToString(); // may be null (if)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z3").WithLocation(59, 13),
+                // (66,13): warning CS8602: Possible dereference of a null reference.
+                //             z3.ToString(); // may be null (else)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "z3").WithLocation(66, 13),
+                // (67,13): warning CS8602: Possible dereference of a null reference.
+                //             w3.ToString(); // may be null (else)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "w3").WithLocation(67, 13));
         }
 
         // PROTOTYPE(NullableReferenceTypes): Conversions: NullCoalescingOperator
@@ -1592,8 +1762,7 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(new[] { y, x })[0]").WithLocation(13, 9));
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Conversions: ConditionalOperator
-        [Fact(Skip = "TODO")]
+        [Fact]
         public void IdentityConversion_ConditionalOperator()
         {
             var source =
@@ -1637,7 +1806,52 @@ class C
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics(/*TODO*/);
+            comp.VerifyDiagnostics(
+                // (9,13): warning CS8625: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
+                //         a = c ? x : y;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "c ? x : y").WithArguments("I<object>", "I<object?>").WithLocation(9, 13),
+                // (10,13): warning CS8625: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
+                //         a = false ? x : y;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "false ? x : y").WithArguments("I<object>", "I<object?>").WithLocation(10, 13),
+                // (11,13): warning CS8625: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
+                //         a = true ? x : y;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "true ? x : y").WithArguments("I<object>", "I<object?>").WithLocation(11, 13),
+                // (13,13): warning CS8625: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
+                //         b = c ? x : y;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "c ? x : y").WithArguments("I<object>", "I<object?>").WithLocation(13, 13),
+                // (13,13): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
+                //         b = c ? x : y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c ? x : y").WithArguments("I<object>", "I<object?>").WithLocation(13, 13),
+                // (14,13): warning CS8625: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
+                //         b = false ? x : y;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "false ? x : y").WithArguments("I<object>", "I<object?>").WithLocation(14, 13),
+                // (14,13): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
+                //         b = false ? x : y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "false ? x : y").WithArguments("I<object>", "I<object?>").WithLocation(14, 13),
+                // (15,13): warning CS8625: No best nullability for operands of conditional expression 'I<object>' and 'I<object?>'.
+                //         b = true ? x : y;
+                Diagnostic(ErrorCode.WRN_NoBestNullabilityConditionalExpression, "true ? x : y").WithArguments("I<object>", "I<object?>").WithLocation(15, 13),
+                // (15,13): warning CS8619: Nullability of reference types in value of type 'I<object>' doesn't match target type 'I<object?>'.
+                //         b = true ? x : y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "true ? x : y").WithArguments("I<object>", "I<object?>").WithLocation(15, 13),
+                // (24,13): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<object?>'.
+                //         b = c ? x : y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c ? x : y").WithArguments("IIn<object>", "IIn<object?>").WithLocation(24, 13),
+                // (25,13): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<object?>'.
+                //         b = false ? x : y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "false ? x : y").WithArguments("IIn<object>", "IIn<object?>").WithLocation(25, 13),
+                // (26,13): warning CS8619: Nullability of reference types in value of type 'IIn<object>' doesn't match target type 'IIn<object?>'.
+                //         b = true ? x : y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "true ? x : y").WithArguments("IIn<object>", "IIn<object?>").WithLocation(26, 13),
+                // (31,13): warning CS8619: Nullability of reference types in value of type 'IOut<object?>' doesn't match target type 'IOut<object>'.
+                //         a = c ? x : y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "c ? x : y").WithArguments("IOut<object?>", "IOut<object>").WithLocation(31, 13),
+                // (32,13): warning CS8619: Nullability of reference types in value of type 'IOut<object?>' doesn't match target type 'IOut<object>'.
+                //         a = false ? x : y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "false ? x : y").WithArguments("IOut<object?>", "IOut<object>").WithLocation(32, 13),
+                // (33,13): warning CS8619: Nullability of reference types in value of type 'IOut<object?>' doesn't match target type 'IOut<object>'.
+                //         a = true ? x : y;
+                Diagnostic(ErrorCode.WRN_NullabilityMismatchInAssignment, "true ? x : y").WithArguments("IOut<object?>", "IOut<object>").WithLocation(33, 13));
         }
     }
 }

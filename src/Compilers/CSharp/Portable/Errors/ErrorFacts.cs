@@ -320,6 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_AlignmentMagnitude:
                 case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_TupleLiteralNameMismatch:
+                case ErrorCode.WRN_Experimental:
                 case ErrorCode.WRN_NullAsNonNullable:
                 case ErrorCode.WRN_NullReferenceAssignment:
                 case ErrorCode.WRN_NullReferenceReceiver:
@@ -340,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_NullabilityMismatchInArgument:
                 case ErrorCode.WRN_NullabilityMismatchInReturnTypeOfTargetDelegate:
                 case ErrorCode.WRN_NullabilityMismatchInParameterTypeOfTargetDelegate:
-                case ErrorCode.WRN_Experimental:
+                case ErrorCode.WRN_NoBestNullabilityConditionalExpression:
                     return 1;
                 default:
                     return 0;
