@@ -78,10 +78,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                 }
 
-                DeclarationAnalysisData data = computeDeclarationAnalysisData();
+                var data = computeDeclarationAnalysisData();
+
                 lock (_declarationAnalysisDataMap)
                 {
-                    _declarationAnalysisDataMap[declaration] = data;
+                    if (!_declarationAnalysisDataMap.TryGetValue(declaration, out DeclarationAnalysisData existingData))
+                    {
+                        _declarationAnalysisDataMap.Add(declaration, data);
+                    }
+                    else
+                    {
+                        data = existingData;
+                    }
                 }
 
                 return data;
