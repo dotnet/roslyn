@@ -1,16 +1,16 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.VirtualChars
-Imports Microsoft.CodeAnalysis.VisualBasic.VirtualChars
+Imports Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
+Imports Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
 Imports Xunit
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.VirtualChars
+Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.EmbeddedLanguages.VirtualChars
     Public Class VisualBasicVirtualCharServiceTests
-        Private Const _statmentPrefix As String = "dim v = "
+        Private Const _statementPrefix As String = "dim v = "
 
         Private Function GetStringToken(text As String) As SyntaxToken
-            Dim statement = _statmentPrefix + text
+            Dim statement = _statementPrefix + text
             Dim parsedStatement = SyntaxFactory.ParseExecutableStatement(statement)
             Dim token = parsedStatement.DescendantTokens().ToArray()(3)
             Assert.True(token.Kind() = SyntaxKind.StringLiteralToken)
@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.VirtualChars
         End Function
 
         Private Function ConvertToString(vc As VirtualChar) As String
-            Return $"[{ConvertToString(vc.Char)},[{vc.Span.Start - _statmentPrefix.Length},{vc.Span.End - _statmentPrefix.Length}]]"
+            Return $"[{ConvertToString(vc.Char)},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]"
         End Function
 
         Private Function ConvertToString(c As Char) As String
