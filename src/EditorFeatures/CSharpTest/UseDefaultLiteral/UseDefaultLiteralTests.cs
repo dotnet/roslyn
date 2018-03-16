@@ -493,5 +493,95 @@ class C
     }
 }", parameters: s_testParameters);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestNotInPatternSwitchCase()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case [||]default(bool) when true:
+        }
+    }
+}", s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestNotInPatternSwitchCase_InsideParentheses()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case ([||]default(bool)) when true:
+        }
+    }
+}", s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestInPatternSwitchCase_InsideCast()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case (bool)[||]default(bool) when true:
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case (bool)[||]default when true:
+        }
+    }
+}", parameters: s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestInPatternSwitchCase_InsideWhenClause()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case default(bool) when [||]default(bool):
+        }
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case default(bool) when default:
+        }
+    }
+}", parameters: s_testParameters);
+        }
     }
 }

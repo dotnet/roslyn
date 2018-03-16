@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (defaultExpression.WalkUpParentheses().IsParentKind(SyntaxKind.CaseSwitchLabel))
+            if (defaultExpression.WalkUpParentheses().IsParentKind(SyntaxKind.ConstantPattern, SyntaxKind.CaseSwitchLabel))
             {
                 return false;
             }
