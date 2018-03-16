@@ -4043,7 +4043,7 @@ class C
                 break;
         }
     }
-}");
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
@@ -4061,7 +4061,7 @@ class C
                 break;
         }
     }
-}");
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
@@ -4079,7 +4079,7 @@ class C
                 break;
         }
     }
-}");
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
@@ -4127,7 +4127,7 @@ class C
                 break;
         }
     }
-}");
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
@@ -4145,7 +4145,7 @@ class C
                 break;
         }
     }
-}");
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
@@ -4163,7 +4163,7 @@ class C
                 break;
         }
     }
-}");
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
@@ -4237,7 +4237,7 @@ class C
     {
         if (true is [|(bool)default|]);
     }
-}");
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
@@ -4251,7 +4251,7 @@ class C
     {
         if (true is ([|(bool)default|]));
     }
-}");
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
@@ -4265,7 +4265,7 @@ class C
     {
         if (true is [|(bool)(default)|]);
     }
-}");
+}", parameters: new TestParameters(new CSharpParseOptions(LanguageVersion.CSharp7_1)));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
