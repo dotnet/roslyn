@@ -583,5 +583,55 @@ class C
     }
 }", parameters: s_testParameters);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestNotInPatternIs()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        if (true is [||]default(bool));
+    }
+}", s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestNotInPatternIs_InsideParentheses()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"
+class C
+{
+    void M()
+    {
+        if (true is ([||]default(bool)));
+    }
+}", s_testParameters);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
+        public async Task TestInPatternIs_InsideCast()
+        {
+            await TestInRegularAndScript1Async(
+@"
+class C
+{
+    void M()
+    {
+        if (true is (bool)[||]default(bool));
+    }
+}",
+@"
+class C
+{
+    void M()
+    {
+        if (true is (bool)default);
+    }
+}", parameters: s_testParameters);
+        }
     }
 }
