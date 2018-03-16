@@ -102,30 +102,14 @@ namespace Microsoft.CodeAnalysis.CSharp.VirtualChars
             case '\\':
                 break;
             // translate escapes as per C# spec 2.4.4.4
-            case '0':
-                ch = (char)0;
-                break;
-            case 'a':
-                ch = '\u0007';
-                break;
-            case 'b':
-                ch = '\u0008';
-                break;
-            case 'f':
-                ch = '\u000c';
-                break;
-            case 'n':
-                ch = '\u000a';
-                break;
-            case 'r':
-                ch = '\u000d';
-                break;
-            case 't':
-                ch = '\u0009';
-                break;
-            case 'v':
-                ch = '\u000b';
-                break;
+            case '0': ch = '\0'; break;
+            case 'a': ch = '\a'; break;
+            case 'b': ch = '\b'; break;
+            case 'f': ch = '\f'; break;
+            case 'n': ch = '\n'; break;
+            case 'r': ch = '\r'; break;
+            case 't': ch = '\t'; break;
+            case 'v': ch = '\v'; break;
             default:
                 return false;
             }
