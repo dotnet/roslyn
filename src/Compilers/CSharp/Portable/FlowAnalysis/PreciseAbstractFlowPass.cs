@@ -1031,6 +1031,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitTupleBinaryOperator(BoundTupleBinaryOperator node)
+        {
+            Visit(node.Left);
+            Visit(node.Right);
+            return null;
+        }
+
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null);
@@ -2587,12 +2594,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
         {
             VisitRvalue(node.Count);
+
+            if (node.InitializerOpt != null && !node.InitializerOpt.Initializers.IsDefault)
+            {
+                foreach (var element in node.InitializerOpt.Initializers)
+                {
+                    VisitRvalue(element);
+                }
+            }
+
+            if (_trackExceptions) NotePossibleException(node);
             return null;
         }
 
         public override BoundNode VisitConvertedStackAllocExpression(BoundConvertedStackAllocExpression node)
         {
-            VisitRvalue(node.Count);
+            VisitStackAllocArrayCreation(node);
             return null;
         }
 

@@ -20,6 +20,8 @@ using Moq;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
+using CompletionTrigger = Microsoft.CodeAnalysis.Completion.CompletionTrigger;
+using CompletionItem = Microsoft.CodeAnalysis.Completion.CompletionItem;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 {
