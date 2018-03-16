@@ -690,11 +690,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node.ExpressionOpt != null && this.State.Reachable)
             {
                 TypeSymbolWithAnnotations returnType = this._currentMethodOrLambda?.ReturnType;
-
-                if (_result.Type?.IsNullable == true)
+                bool returnTypeIsNonNullable = IsNonNullable(returnType);
+                bool returnTypeIsUnconstrainedTypeParameter = IsUnconstrainedTypeParameter(returnType?.TypeSymbol);
+                bool reportedNullable = false;
+                if (returnTypeIsNonNullable || returnTypeIsUnconstrainedTypeParameter)
                 {
-                    if ((object)returnType != null && returnType.IsReferenceType && returnType.IsNullable == false &&
-                        !CheckNullAsNonNullableReference(node.ExpressionOpt))
+                    reportedNullable = CheckNullAsNonNullableReference(node.ExpressionOpt);
+                }
+                if (!reportedNullable)
+                {
+                    TypeSymbolWithAnnotations resultType = _result.Type;
+                    if (IsNullable(resultType) && (returnTypeIsNonNullable || returnTypeIsUnconstrainedTypeParameter) ||
+                        IsUnconstrainedTypeParameter(resultType?.TypeSymbol) && returnTypeIsNonNullable)
                     {
                         ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReturn, node.ExpressionOpt.Syntax);
                     }
@@ -704,6 +711,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return result;
+        }
+
+        private static bool IsNullable(TypeSymbolWithAnnotations typeOpt)
+        {
+            return typeOpt?.IsNullable == true;
+        }
+
+        private static bool IsNonNullable(TypeSymbolWithAnnotations typeOpt)
+        {
+            return (object)typeOpt != null && typeOpt.IsReferenceType && typeOpt.IsNullable == false;
+        }
+
+        private static bool IsUnconstrainedTypeParameter(TypeSymbol typeOpt)
+        {
+            return (object)typeOpt != null && typeOpt.IsUnconstrainedTypeParameter();
         }
 
         private void ReportNullabilityMismatchInAssignmentIfNecessary(BoundExpression node, TypeSymbol sourceType, TypeSymbol destinationType)
@@ -1897,7 +1919,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (node.ExplicitCastInCode &&
                     !node.IsExplicitlyNullable &&
-                    targetType.IsReferenceType &&
+                    (targetType.IsReferenceType || IsUnconstrainedTypeParameter(targetType)) &&
                     (operandType?.IsNullable == true || (operandType is null && operand.IsLiteralNullOrDefault())))
                 {
                     // PROTOTYPE(NullableReferenceTypes): Should not report warning for explicit
@@ -2036,6 +2058,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // PROTOTYPE(NullableReferenceTypes): Should we worry about a pathological case of boxing nullable value known to be not null?
                         //       For example, new int?(0)
                         isNullableIfReferenceType = operandType.IsNullableType();
+                    }
+                    else if (IsUnconstrainedTypeParameter(operandType?.TypeSymbol))
+                    {
+                        isNullableIfReferenceType = true;
                     }
                     else
                     {
@@ -3055,9 +3081,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void CheckPossibleNullReceiver(BoundExpression receiverOpt, bool checkType = true)
         {
             if (receiverOpt != null &&
-                (!checkType || ((object)receiverOpt.Type != null && receiverOpt.Type.IsReferenceType)) &&
+                (!checkType ||  ((object)receiverOpt.Type != null && (receiverOpt.Type.IsReferenceType || receiverOpt.Type.IsUnconstrainedTypeParameter()))) &&
                 this.State.Reachable &&
-                _result.Type?.IsNullable == true)
+                (_result.Type?.IsNullable == true || IsUnconstrainedTypeParameter(_result.Type?.TypeSymbol)))
             {
                 ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceReceiver, receiverOpt.Syntax);
             }
@@ -3065,7 +3091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool CheckNullAsNonNullableReference(BoundExpression value)
         {
-            if (value.ConstantValue?.IsNull != true)
+            if (value.ConstantValue?.IsNull != true && !IsDefaultOfUnconstrainedTypeParameter(value))
             {
                 return false;
             }
@@ -3074,6 +3100,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullAsNonNullable, value.Syntax);
             }
             return true;
+        }
+
+        private static bool IsDefaultOfUnconstrainedTypeParameter(BoundExpression expr)
+        {
+            switch (expr.Kind)
+            {
+                case BoundKind.Conversion:
+                    {
+                        var conversion = (BoundConversion)expr;
+                        return conversion.Conversion.Kind == ConversionKind.DefaultOrNullLiteral &&
+                            IsDefaultOfUnconstrainedTypeParameter(conversion.Operand);
+                    }
+                case BoundKind.DefaultExpression:
+                    return IsUnconstrainedTypeParameter(expr.Type);
+                default:
+                    return false;
+            }
         }
 
         private static bool IsNullabilityMismatch(TypeSymbolWithAnnotations type1, TypeSymbolWithAnnotations type2)

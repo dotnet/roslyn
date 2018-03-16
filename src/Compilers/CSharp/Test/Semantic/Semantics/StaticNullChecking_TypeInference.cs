@@ -1902,6 +1902,8 @@ class C
         F(default).ToString();
     }
 }";
+            // Note: WRN_NullReferenceReceiver is reported for F(default).ToString() because
+            // F(v) has type T from initial binding. Shouldn't the type be an error type?
             var comp = CreateStandardCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
@@ -1914,7 +1916,10 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(default(object))").WithLocation(6, 9),
                 // (8,9): warning CS8602: Possible dereference of a null reference.
                 //         F(default(string)).ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(default(string))").WithLocation(8, 9));
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(default(string))").WithLocation(8, 9),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         F(default).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(default)").WithLocation(9, 9));
         }
 
         [Fact]

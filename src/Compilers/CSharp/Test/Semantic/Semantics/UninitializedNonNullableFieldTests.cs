@@ -5,7 +5,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
 {
-    public class StaticNullChecking_Fields : CSharpTestBase
+    public class UninitializedNonNullableFieldTests : CSharpTestBase
     {
         [Fact]
         public void NoNonNullWarnings_CSharp7()
@@ -414,7 +414,10 @@ class C
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
-            comp.VerifyDiagnostics();
+            comp.VerifyDiagnostics(
+                // (6,13): warning CS8618: Non-nullable field 'F2' is uninitialized.
+                //     private C(T t)
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C").WithArguments("field", "F2").WithLocation(6, 13));
         }
 
         [Fact]
@@ -452,6 +455,65 @@ class C
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TypeParameterConstraints()
+        {
+            var source =
+@"#pragma warning disable 0169
+interface I { }
+class A { }
+class C1<T, U> where U : T
+{
+    T F1;
+    U G1;
+}
+class C2<T> where T : struct
+{
+    T F2;
+}
+class C3<T, U> where T : class where U : T
+{
+    T F3;
+    U G3;
+}
+class C4<T, U> where T : I where U : T
+{
+    T F4;
+    U G4;
+}
+class C5<T, U> where T : A where U : T
+{
+    T F5;
+    U G5;
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,7): warning CS8618: Non-nullable field 'G1' is uninitialized.
+                // class C1<T, U> where U : T
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C1").WithArguments("field", "G1").WithLocation(4, 7),
+                // (4,7): warning CS8618: Non-nullable field 'F1' is uninitialized.
+                // class C1<T, U> where U : T
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C1").WithArguments("field", "F1").WithLocation(4, 7),
+                // (13,7): warning CS8618: Non-nullable field 'G3' is uninitialized.
+                // class C3<T, U> where T : class where U : T
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C3").WithArguments("field", "G3").WithLocation(13, 7),
+                // (13,7): warning CS8618: Non-nullable field 'F3' is uninitialized.
+                // class C3<T, U> where T : class where U : T
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C3").WithArguments("field", "F3").WithLocation(13, 7),
+                // (18,7): warning CS8618: Non-nullable field 'G4' is uninitialized.
+                // class C4<T, U> where T : I where U : T
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C4").WithArguments("field", "G4").WithLocation(18, 7),
+                // (18,7): warning CS8618: Non-nullable field 'F4' is uninitialized.
+                // class C4<T, U> where T : I where U : T
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C4").WithArguments("field", "F4").WithLocation(18, 7),
+                // (23,7): warning CS8618: Non-nullable field 'G5' is uninitialized.
+                // class C5<T, U> where T : A where U : T
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C5").WithArguments("field", "G5").WithLocation(23, 7),
+                // (23,7): warning CS8618: Non-nullable field 'F5' is uninitialized.
+                // class C5<T, U> where T : A where U : T
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "C5").WithArguments("field", "F5").WithLocation(23, 7));
         }
 
         [Fact]

@@ -8979,6 +8979,9 @@ class CL0<T>
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
+                // (22,22): warning CS8625: Cannot convert null literal to non-nullable reference.
+                //         get { return default(T); }
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T)").WithLocation(22, 22)
                 );
         }
 
@@ -9389,6 +9392,9 @@ class CL0<T>
 ", parseOptions: TestOptions.Regular8);
 
             c.VerifyDiagnostics(
+                // (22,16): warning CS8625: Cannot convert null literal to non-nullable reference.
+                //         return default(T); 
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T)").WithLocation(22, 16)
                 );
         }
 
@@ -10931,6 +10937,9 @@ class CL4 : CL3 {}
                 // (76,22): hidden CS8607: Expression is probably never null.
                 //         object v13 = u13 ?? new object();
                 Diagnostic(ErrorCode.HDN_ExpressionIsProbablyNeverNull, "u13").WithLocation(76, 22),
+                // (81,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         object u14 = x14;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x14").WithLocation(81, 22),
                 // (87,22): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         object u15 = x15;
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "x15").WithLocation(87, 22),
@@ -15699,7 +15708,10 @@ class CL0<T>
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1<CL0<string?>?>(x13)").WithLocation(35, 9),
                 // (35,9): warning CS8602: Possible dereference of a null reference.
                 //         M1<CL0<string?>?>(x13).P1.ToString();
-                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1<CL0<string?>?>(x13).P1").WithLocation(35, 9)
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "M1<CL0<string?>?>(x13).P1").WithLocation(35, 9),
+                // (39,7): warning CS8618: Non-nullable property 'P1' is uninitialized.
+                // class CL0<T>
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "CL0").WithArguments("property", "P1").WithLocation(39, 7)
                 );
         }
 
@@ -16749,23 +16761,93 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        // PROTOTYPE(NullableReferenceTypes): Report error for `!` with value type for F2 and F3.
-        [Fact(Skip = "Untyped value type expression")]
+        // PROTOTYPE(NullableReferenceTypes): Report error for `default!`.
+        [Fact(Skip = "TODO")]
         public void SuppressNullableWarning_Constraint()
         {
             var source =
-@"class C
+@"abstract class A<T>
 {
-    static T F1<T>() where T : class => default!;
-    static T F2<T>() where T : struct => default!;
-    static T F3<T>() => default!;
+    internal abstract void F<U>(out T t, out U u) where U : T;
+}
+class B1<T> : A<T> where T : class
+{
+    internal override void F<U>(out T t1, out U u1)
+    {
+        t1 = default(T)!;
+        t1 = default!;
+        u1 = default(U)!;
+        u1 = default!;
+    }
+}
+class B2<T> : A<T> where T : struct
+{
+    internal override void F<U>(out T t2, out U u2)
+    {
+        t2 = default(T)!;
+        t2 = default!;
+        u2 = default(U)!;
+        u2 = default!;
+    }
+}
+class B3<T> : A<T>
+{
+    internal override void F<U>(out T t3, out U u3)
+    {
+        t3 = default(T)!;
+        t3 = default!;
+        u3 = default(U)!;
+        u3 = default!;
+    }
+}
+class B4 : A<object>
+{
+    internal override void F<U>(out object t4, out U u4)
+    {
+        t4 = default(object)!;
+        t4 = default!;
+        u4 = default(U)!;
+        u4 = default!;
+    }
+}
+class B5 : A<int>
+{
+    internal override void F<U>(out int t5, out U u5)
+    {
+        t5 = default(int)!;
+        t5 = default!;
+        u5 = default(U)!;
+        u5 = default!;
+    }
 }";
             var comp = CreateStandardCompilation(
                 source,
                 parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // ...
-                );
+                // (18,14): error CS8624: The ! operator can only be applied to reference types.
+                //         t2 = default!;
+                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default!").WithLocation(18, 14),
+                // (19,14): error CS8624: The ! operator can only be applied to reference types.
+                //         t2 = default(T)!;
+                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(T)!").WithLocation(19, 14),
+                // (20,14): error CS8624: The ! operator can only be applied to reference types.
+                //         u2 = default!;
+                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default!").WithLocation(20, 14),
+                // (21,14): error CS8624: The ! operator can only be applied to reference types.
+                //         u2 = default(U)!;
+                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(U)!").WithLocation(21, 14),
+                // (49,14): error CS8624: The ! operator can only be applied to reference types.
+                //         t5 = default(int)!;
+                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(int)!").WithLocation(49, 14),
+                // (49,14): error CS8624: The ! operator can only be applied to reference types.
+                //         t5 = default(int)!;
+                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(int)!").WithLocation(49, 14),
+                // (51,14): error CS8624: The ! operator can only be applied to reference types.
+                //         u5 = default(U)!;
+                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(U)!").WithLocation(51, 14),
+                // (51,14): error CS8624: The ! operator can only be applied to reference types.
+                //         u5 = default(U)!;
+                Diagnostic(ErrorCode.ERR_NotNullableOperatorNotReferenceType, "default(U)!").WithLocation(51, 14));
         }
 
         [Fact]
@@ -17438,11 +17520,16 @@ class C
         F(v).ToString();
     }
 }";
+            // Note: WRN_NullReferenceReceiver is reported for F(v).ToString() because
+            // F(v) has type T from initial binding. Shouldn't the type be an error type?
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (12,21): error CS8197: Cannot infer the type of implicitly-typed out variable 'v'.
                 //         d.F(out var v);
-                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "v").WithArguments("v").WithLocation(12, 21));
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "v").WithArguments("v").WithLocation(12, 21),
+                // (13,9): warning CS8602: Possible dereference of a null reference.
+                //         F(v).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "F(v)").WithLocation(13, 9));
         }
 
         [Fact]
@@ -18496,8 +18583,8 @@ class P
 
         [Fact]
         public void TrackNonNullableLocals()
-            {
-                var source =
+        {
+            var source =
 @"class C
 {
     static void F(object x)
@@ -18776,6 +18863,9 @@ class C
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
+                // (2,7): warning CS8618: Non-nullable field 'F' is uninitialized.
+                // class A<T>
+                Diagnostic(ErrorCode.WRN_UninitializedNonNullableField, "A").WithArguments("field", "F").WithLocation(2, 7),
                 // (12,10): warning CS8600: Converting null literal or possible null value to non-nullable type.
                 //         ((A<string>)null).F.ToString();
                 Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(A<string>)null").WithLocation(12, 10),
@@ -18954,6 +19044,161 @@ class C
                 // (4,36): error CS0716: Cannot convert to static type 'C'
                 //     static object? G(object? y) => (C?)y;
                 Diagnostic(ErrorCode.ERR_ConvertToStaticClass, "(C?)y").WithArguments("C").WithLocation(4, 36));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Should only produce one CS8600
+        // warning for u = (U)NullableObject();.
+        [Fact]
+        public void UnconstrainedTypeParameter_MayBeNonNullable()
+        {
+            var source =
+@"class C1<T>
+{
+    static object? NullableObject() => null;
+    static T F1() => default; // warn: T may be non-null
+    static T F2() => default(T); // warn: T may be non-null
+    static void F3()
+    {
+        T t = (T)NullableObject(); // warn: T may be non-null
+    }
+}
+class C2<U> where U : class
+{
+    static object? NullableObject() => null;
+    static U F1() => default; // warn: T may be non-null
+    static U F2() => default(U); // warn: U may be non-null
+    static void F3()
+    {
+        U u = (U)NullableObject(); // warn: U may be non-null
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,22): warning CS8625: Cannot convert null literal to non-nullable reference.
+                //     static T F1() => default; // warn: T may be non-null
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(4, 22),
+                // (5,22): warning CS8625: Cannot convert null literal to non-nullable reference.
+                //     static T F2() => default(T); // warn: T may be non-null
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(T)").WithLocation(5, 22),
+                // (8,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T t = (T)NullableObject(); // warn: T may be non-null
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(T)NullableObject()").WithLocation(8, 15),
+                // (14,22): warning CS8625: Cannot convert null literal to non-nullable reference.
+                //     static U F1() => default; // warn: T may be non-null
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default").WithLocation(14, 22),
+                // (15,22): warning CS8625: Cannot convert null literal to non-nullable reference.
+                //     static U F2() => default(U); // warn: U may be non-null
+                Diagnostic(ErrorCode.WRN_NullAsNonNullable, "default(U)").WithLocation(15, 22),
+                // (18,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         U u = (U)NullableObject(); // warn: U may be non-null
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)NullableObject()").WithLocation(18, 15),
+                // (18,15): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         U u = (U)NullableObject(); // warn: U may be non-null
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(U)NullableObject()").WithLocation(18, 15));
+        }
+
+        [Fact]
+        public void UnconstrainedTypeParameter_MayBeNullable()
+        {
+            var source =
+@"class C
+{
+    static void F(object o)
+    {
+    }
+    static void F1<T>(T t1)
+    {
+        F(t1);
+        t1.ToString();
+    }
+    static void F2<T>(T t2) where T : struct
+    {
+        F(t2);
+        t2.ToString();
+    }
+    static void F3<T>(T t3) where T : class
+    {
+        F(t3);
+        t3.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (8,11): warning CS8604: Possible null reference argument for parameter 'o' in 'void C.F(object o)'.
+                //         F(t1);
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "t1").WithArguments("o", "void C.F(object o)").WithLocation(8, 11),
+                // (9,9): warning CS8602: Possible dereference of a null reference.
+                //         t1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "t1").WithLocation(9, 9));
+        }
+
+        [Fact]
+        public void UnconstrainedTypeParameter_Return()
+        {
+            var source =
+@"class C
+{
+    static object? F0<T>(T t) => t;
+    static object F1<T>(T t) => t;
+    static T F2<T>(T t) => t;
+    static T F3<T, U>(U u) where U : T => u;
+    static T F4<T, U>(U u) where U : class, T => u;
+    static T F5<T, U>(U u) where U : struct, T => u;
+    static U F6<T, U>(T t) where U : T => (U)t;
+    static U F7<T, U>(T t) where U : class, T => (U)t;
+    static U F8<T, U>(T t) where U : struct, T => (U)t;
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (4,33): warning CS8603: Possible null reference return.
+                //     static object F1<T>(T t) => t;
+                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "t").WithLocation(4, 33));
+        }
+
+        // PROTOTYPE(NullableReferenceTypes): Track nullability of unconstrained type parameters.
+        [Fact(Skip = "TODO")]
+        public void TrackUnconstrainedTypeParameter_LocalsAndParameters()
+        {
+            var source =
+@"class C
+{
+    static void F1<T>()
+    {
+        default(T).ToString();
+        T x1 = default;
+        x1.ToString();
+        x1!.ToString();
+        if (x1 != null) x1.ToString();
+    }
+    static void F2<T>(T x2)
+    {
+        x2.ToString();
+        x2!.ToString();
+        if (x2 != null) x2.ToString();
+        T y2 = x2;
+        y2.ToString();
+    }
+    static void F3<T>() where T : new()
+    {
+        T x3 = new T();
+        x3.ToString();
+        x3!.ToString();
+    }
+}";
+            var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
+            comp.VerifyDiagnostics(
+                // (5,9): warning CS8602: Possible dereference of a null reference.
+                //         default(T).ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "default(T)").WithLocation(5, 9),
+                // (6,16): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         T x1 = default;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "default").WithLocation(6, 16),
+                // (7,9): warning CS8602: Possible dereference of a null reference.
+                //         x1.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x1").WithLocation(7, 9),
+                // (15,9): warning CS8602: Possible dereference of a null reference.
+                //         x2.ToString();
+                Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "x2").WithLocation(15, 9));
         }
     }
 }

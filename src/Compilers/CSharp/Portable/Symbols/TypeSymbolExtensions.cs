@@ -41,6 +41,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return typeSymbol.IsReferenceType || typeSymbol.IsEnumType() || typeSymbol.SpecialType.CanBeConst();
         }
 
+        public static bool IsUnconstrainedTypeParameter(this TypeSymbol type)
+        {
+            if (type.TypeKind != TypeKind.TypeParameter)
+            {
+                return false;
+            }
+            var typeParameter = (TypeParameterSymbol)type;
+            return !typeParameter.IsValueType && !typeParameter.IsReferenceType;
+        }
+
         public static bool IsNonNullableValueType(this TypeSymbol typeArgument)
         {
             if (!typeArgument.IsValueType)
