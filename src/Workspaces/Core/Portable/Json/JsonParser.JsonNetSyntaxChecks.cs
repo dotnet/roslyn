@@ -1,22 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
-using System.Linq;
-using Microsoft.CodeAnalysis.VirtualChars;
-using Roslyn.Utilities;
+using System;
+using System.Diagnostics;
+using System.Globalization;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.Json
 {
-    using System;
-    using System.Diagnostics;
-    using System.Globalization;
-    using static JsonHelpers;
+    using static EmbeddedSyntaxHelpers;
+
+    using JsonToken = EmbeddedSyntaxToken<JsonKind>;
 
     internal partial struct JsonParser
     {
         private partial struct JsonNetSyntaxChecker
         {
-            private JsonDiagnostic? CheckChildren(JsonNode node)
+            private EmbeddedDiagnostic? CheckChildren(JsonNode node)
             {
                 foreach (var child in node)
                 {
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Json
                 return null;
             }
 
-            public JsonDiagnostic? CheckSyntax(JsonNode node)
+            public EmbeddedDiagnostic? CheckSyntax(JsonNode node)
             {
                 switch (node.Kind)
                 {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Json
                 return CheckChildren(node);
             }
 
-            private JsonDiagnostic? CheckLiteral(JsonLiteralNode node)
+            private EmbeddedDiagnostic? CheckLiteral(JsonLiteralNode node)
             {
                 if (node.LiteralToken.Kind == JsonKind.NumberToken)
                 {
@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Json
                 return CheckChildren(node);
             }
 
-            private JsonDiagnostic? CheckNegativeLiteral(JsonNegativeLiteralNode node)
+            private EmbeddedDiagnostic? CheckNegativeLiteral(JsonNegativeLiteralNode node)
             {
                 if (node.LiteralToken.Kind == JsonKind.NumberToken)
                 {
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Json
                 return CheckChildren(node);
             }
 
-            private JsonDiagnostic? CheckNumber(JsonToken numberToken)
+            private EmbeddedDiagnostic? CheckNumber(JsonToken numberToken)
             {
                 var chars = numberToken.VirtualChars;
                 var firstChar = chars[0].Char;
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Json
                     }
                     catch (Exception)
                     {
-                        return new JsonDiagnostic(
+                        return new EmbeddedDiagnostic(
                             WorkspacesResources.Invalid_number,
                             GetSpan(chars));
                     }
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Json
                     literalText, NumberStyles.Float | NumberStyles.AllowThousands,
                     CultureInfo.InvariantCulture, out _))
                 {
-                    return new JsonDiagnostic(
+                    return new EmbeddedDiagnostic(
                         WorkspacesResources.Invalid_number,
                         GetSpan(chars));
                 }
@@ -112,16 +112,16 @@ namespace Microsoft.CodeAnalysis.Json
                 return null;
             }
 
-            private JsonDiagnostic? CheckArray(JsonArrayNode node)
+            private EmbeddedDiagnostic? CheckArray(JsonArrayNode node)
             {
                 foreach (var child in node.Sequence)
                 {
                     var childNode = child.Node;
                     if (childNode.Kind == JsonKind.Property)
                     {
-                        return new JsonDiagnostic(
+                        return new EmbeddedDiagnostic(
                             WorkspacesResources.Properties_not_allowed_in_an_array,
-                            GetSpan(((JsonPropertyNode)childNode).ColonToken));
+                            ((JsonPropertyNode)childNode).ColonToken.GetSpan());
                     }
                 }
 
@@ -129,13 +129,13 @@ namespace Microsoft.CodeAnalysis.Json
                 return diagnostic ?? CheckChildren(node);
             }
 
-            private JsonDiagnostic? CheckConstructor(JsonConstructorNode node)
+            private EmbeddedDiagnostic? CheckConstructor(JsonConstructorNode node)
             {
                 if (!IsValidConstructorName(node.NameToken))
                 {
-                    return new JsonDiagnostic(
+                    return new EmbeddedDiagnostic(
                         WorkspacesResources.Invalid_constructor_name,
-                        GetSpan(node.NameToken));
+                        node.NameToken.GetSpan());
                 }
 
                 return CheckCommasBetweenSequenceElements(node.Sequence) ?? CheckChildren(node);
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Json
                 return true;
             }
 
-            private JsonDiagnostic? CheckCommasBetweenSequenceElements(JsonSequenceNode node)
+            private EmbeddedDiagnostic? CheckCommasBetweenSequenceElements(JsonSequenceNode node)
             {
                 for (int i = 0, n = node.ChildCount - 1; i < n; i++)
                 {
@@ -165,9 +165,9 @@ namespace Microsoft.CodeAnalysis.Json
 
                         if (next.Kind != JsonKind.EmptyValue)
                         {
-                            return new JsonDiagnostic(
+                            return new EmbeddedDiagnostic(
                                string.Format(WorkspacesResources._0_expected, ','),
-                               GetSpan(GetFirstToken(next)));
+                               GetFirstToken(next).GetSpan());
                         }
                     }
                 }
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Json
                 return null;
             }
 
-            private JsonDiagnostic? CheckObject(JsonObjectNode node)
+            private EmbeddedDiagnostic? CheckObject(JsonObjectNode node)
             {
                 for (int i = 0, n = node.Sequence.ChildCount; i < n; i++)
                 {
@@ -185,18 +185,18 @@ namespace Microsoft.CodeAnalysis.Json
                     {
                         if (child.Kind != JsonKind.Property)
                         {
-                            return new JsonDiagnostic(
+                            return new EmbeddedDiagnostic(
                                WorkspacesResources.Only_properties_allowed_in_an_object,
-                               GetSpan(GetFirstToken(child)));
+                               GetFirstToken(child).GetSpan());
                         }
                     }
                     else
                     {
                         if (child.Kind != JsonKind.EmptyValue)
                         {
-                            return new JsonDiagnostic(
+                            return new EmbeddedDiagnostic(
                                string.Format(WorkspacesResources._0_expected, ','),
-                               GetSpan(GetFirstToken(child)));
+                               GetFirstToken(child).GetSpan());
                         }
                     }
                 }
@@ -204,14 +204,14 @@ namespace Microsoft.CodeAnalysis.Json
                 return CheckChildren(node);
             }
 
-            private JsonDiagnostic? CheckProperty(JsonPropertyNode node)
+            private EmbeddedDiagnostic? CheckProperty(JsonPropertyNode node)
             {
                 if (node.NameToken.Kind != JsonKind.StringToken &&
                     !IsLegalPropertyNameText(node.NameToken))
                 {
-                    return new JsonDiagnostic(
+                    return new EmbeddedDiagnostic(
                         WorkspacesResources.Invalid_property_name,
-                        GetSpan(node.NameToken));
+                        node.NameToken.GetSpan());
                 }
 
                 return CheckChildren(node);

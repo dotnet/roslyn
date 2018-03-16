@@ -4,15 +4,20 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.CodeAnalysis.VirtualChars;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Json
 {
-    using System.Globalization;
+    using static EmbeddedSyntaxHelpers;
     using static JsonHelpers;
+
+    using JsonNodeOrToken = EmbeddedSyntaxNodeOrToken<JsonKind, JsonNode>;
+    using JsonToken = EmbeddedSyntaxToken<JsonKind>;
+    using JsonTrivia = EmbeddedSyntaxTrivia<JsonKind>;
 
     internal partial struct JsonParser
     {
@@ -83,14 +88,14 @@ namespace Microsoft.CodeAnalysis.Json
             }
 
             var diagnostics = diagnostic == null
-                ? ImmutableArray<JsonDiagnostic>.Empty
+                ? ImmutableArray<EmbeddedDiagnostic>.Empty
                 : ImmutableArray.Create(diagnostic.Value);
 
             return new JsonTree(
                 _lexer.Text, root, diagnostics);
         }
 
-        private JsonDiagnostic? CheckTopLevel(
+        private EmbeddedDiagnostic? CheckTopLevel(
             ImmutableArray<VirtualChar> text, JsonCompilationUnit compilationUnit)
         {
             var arraySequence = compilationUnit.Sequence;
@@ -100,24 +105,24 @@ namespace Microsoft.CodeAnalysis.Json
                     compilationUnit.EndOfFileToken.LeadingTrivia.All(
                         t => t.Kind == JsonKind.WhitespaceTrivia || t.Kind == JsonKind.EndOfLineTrivia))
                 {
-                    return new JsonDiagnostic(WorkspacesResources.Syntax_error, GetSpan(text));
+                    return new EmbeddedDiagnostic(WorkspacesResources.Syntax_error, GetSpan(text));
                 }
             }
             else if (arraySequence.ChildCount >= 2)
             {
                 var firstToken = GetFirstToken(arraySequence.ChildAt(1).Node);
-                return new JsonDiagnostic(
+                return new EmbeddedDiagnostic(
                     string.Format(WorkspacesResources._0_unexpected, firstToken.VirtualChars[0].Char),
-                    GetSpan(firstToken));
+                    firstToken.GetSpan());
             }
             foreach (var child in compilationUnit.Sequence)
             {
                 if (child.IsNode && child.Node.Kind == JsonKind.EmptyValue)
                 {
                     var emptyValue = (JsonEmptyValueNode)child.Node;
-                    return new JsonDiagnostic(
+                    return new EmbeddedDiagnostic(
                         string.Format(WorkspacesResources._0_unexpected, ','),
-                        GetSpan(emptyValue.CommaToken));
+                        emptyValue.CommaToken.GetSpan());
                 }
             }
 
@@ -136,7 +141,7 @@ namespace Microsoft.CodeAnalysis.Json
             throw new InvalidOperationException();
         }
 
-        private static JsonDiagnostic? GetDiagnostic(JsonNode node)
+        private static EmbeddedDiagnostic? GetDiagnostic(JsonNode node)
         {
             foreach (var child in node)
             {
@@ -150,17 +155,17 @@ namespace Microsoft.CodeAnalysis.Json
             return null;
         }
 
-        private static JsonDiagnostic? GetDiagnostic(JsonNodeOrToken child)
+        private static EmbeddedDiagnostic? GetDiagnostic(JsonNodeOrToken child)
         {
             return child.IsNode
                 ? GetDiagnostic(child.Node)
                 : GetDiagnostic(child.Token);
         }
 
-        private static JsonDiagnostic? GetDiagnostic(JsonToken token)
+        private static EmbeddedDiagnostic? GetDiagnostic(JsonToken token)
             => GetDiagnostic(token.LeadingTrivia) ?? token.Diagnostics.FirstOrNullable() ?? GetDiagnostic(token.TrailingTrivia);
 
-        private static JsonDiagnostic? GetDiagnostic(ImmutableArray<JsonTrivia> list)
+        private static EmbeddedDiagnostic? GetDiagnostic(ImmutableArray<JsonTrivia> list)
         {
             foreach (var trivia in list)
             {
@@ -246,11 +251,11 @@ namespace Microsoft.CodeAnalysis.Json
 
         private static void SplitLiteral(JsonToken literalToken, out JsonToken minusToken, out JsonToken newLiteralToken)
         {
-            minusToken = new JsonToken(
+            minusToken = CreateToken(
                 JsonKind.MinusToken, literalToken.LeadingTrivia,
                 ImmutableArray.Create(literalToken.VirtualChars[0]),
                 ImmutableArray<JsonTrivia>.Empty);
-            newLiteralToken = new JsonToken(
+            newLiteralToken = CreateToken(
                 literalToken.Kind,
                 ImmutableArray<JsonTrivia>.Empty,
                 literalToken.VirtualChars.Skip(1).ToImmutableArray(),
@@ -272,13 +277,13 @@ namespace Microsoft.CodeAnalysis.Json
             {
                 return new JsonPropertyNode(
                     stringLiteralOrText, colonToken,
-                    new JsonEmptyValueNode(JsonToken.CreateMissing(JsonKind.CommaToken)));
+                    new JsonEmptyValueNode(CreateMissingToken(JsonKind.CommaToken)));
             }
             else if (_currentToken.Kind == JsonKind.EndOfFile)
             {
                 return new JsonPropertyNode(
                     stringLiteralOrText, colonToken,
-                    new JsonEmptyValueNode(JsonToken.CreateMissing(JsonKind.CommaToken).AddDiagnosticIfNone(new JsonDiagnostic(
+                    new JsonEmptyValueNode(CreateMissingToken(JsonKind.CommaToken).AddDiagnosticIfNone(new EmbeddedDiagnostic(
                         WorkspacesResources.Missing_property_value,
                         GetTokenStartPositionSpan(_currentToken)))));
             }
@@ -289,9 +294,9 @@ namespace Microsoft.CodeAnalysis.Json
                 var nestedProperty = (JsonPropertyNode)value;
                 value = new JsonPropertyNode(
                     nestedProperty.NameToken,
-                    nestedProperty.ColonToken.AddDiagnosticIfNone(new JsonDiagnostic(
+                    nestedProperty.ColonToken.AddDiagnosticIfNone(new EmbeddedDiagnostic(
                         WorkspacesResources.Nested_properties_not_allowed,
-                        GetSpan(nestedProperty.ColonToken))),
+                        nestedProperty.ColonToken.GetSpan())),
                     nestedProperty.Value);
             }
 
@@ -349,7 +354,7 @@ namespace Microsoft.CodeAnalysis.Json
             }
 
             return new JsonTextNode(
-                token.With(kind: JsonKind.TextToken).AddDiagnosticIfNone(new JsonDiagnostic(
+                token.With(kind: JsonKind.TextToken).AddDiagnosticIfNone(new EmbeddedDiagnostic(
                     string.Format(WorkspacesResources._0_unexpected, firstChar.Char),
                     firstChar.Span)));
         }
@@ -456,8 +461,8 @@ namespace Microsoft.CodeAnalysis.Json
             }
             else
             {
-                return JsonToken.CreateMissing(kind).AddDiagnosticIfNone(
-                    new JsonDiagnostic(error, GetTokenStartPositionSpan(_currentToken)));
+                return CreateMissingToken(kind).AddDiagnosticIfNone(
+                    new EmbeddedDiagnostic(error, GetTokenStartPositionSpan(_currentToken)));
             }
         }
 
