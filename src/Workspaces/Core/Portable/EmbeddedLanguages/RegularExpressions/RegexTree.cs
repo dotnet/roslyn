@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.RegularExpressions
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
     internal sealed class RegexTree : EmbeddedSyntaxTree<RegexKind, RegexNode, RegexCompilationUnit>
     {

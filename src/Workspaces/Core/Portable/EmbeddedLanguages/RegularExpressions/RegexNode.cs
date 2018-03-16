@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 
-namespace Microsoft.CodeAnalysis.RegularExpressions
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions
 {
     internal abstract class RegexNode : EmbeddedSyntaxNode<RegexKind, RegexNode>
     {
