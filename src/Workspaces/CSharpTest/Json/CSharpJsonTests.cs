@@ -9,14 +9,18 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Web.Script.Serialization;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.CSharp.VirtualChars;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.Json;
-using Microsoft.CodeAnalysis.VirtualChars;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
 {
+    using JsonToken = EmbeddedSyntaxToken<JsonKind>;
+    using JsonTrivia = EmbeddedSyntaxTrivia<JsonKind>;
+
     public partial class CSharpJsonParserTests
     {
         private readonly IVirtualCharService _service = CSharpVirtualCharService.Instance;
@@ -190,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Json
                 NodeToElement(tree.Root)).ToString();
         }
 
-        private string DiagnosticsToText(ImmutableArray<JsonDiagnostic> diagnostics)
+        private string DiagnosticsToText(ImmutableArray<EmbeddedDiagnostic> diagnostics)
         { 
             if (diagnostics.IsEmpty)
             {
