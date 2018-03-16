@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.VirtualChars
             var statement = _statmentPrefix + text;
             var parsedStatement = SyntaxFactory.ParseStatement(statement);
             var token = parsedStatement.DescendantTokens().ToArray()[3];
-            Assert.True(token.Kind() == SyntaxKind.StringLiteralToken);
+            Assert.Equal(token.Kind(), SyntaxKind.StringLiteralToken);
 
             return token;
         }
