@@ -6,7 +6,7 @@ using System.Linq;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.VirtualChars
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 {
     internal abstract class AbstractVirtualCharService : IVirtualCharService
     {
