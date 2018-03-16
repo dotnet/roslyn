@@ -187,7 +187,6 @@ namespace Roslyn.Test.Utilities
             public const string TypeInferenceService = nameof(TypeInferenceService);
             public const string Venus = nameof(Venus);
             public const string ValidateFormatString = nameof(ValidateFormatString);
-            public const string ValidateRegexString = nameof(ValidateRegexString);
             public const string VsLanguageBlock = nameof(VsLanguageBlock);
             public const string VsNavInfo = nameof(VsNavInfo);
             public const string XmlTagCompletion = nameof(XmlTagCompletion);

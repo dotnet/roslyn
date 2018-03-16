@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Experiments;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
@@ -60,12 +61,6 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
         private async Task<ImmutableArray<DocumentHighlights>> GetDocumentHighlightsInCurrentProcessAsync(
             Document document, int position, IImmutableSet<Document> documentsToSearch, CancellationToken cancellationToken)
         {
-            var result = await TryGetRegexPatternHighlightsAsync(document, position, cancellationToken).ConfigureAwait(false);
-            if (!result.IsDefaultOrEmpty)
-            {
-                return result;
-            }
-
             // use speculative semantic model to see whether we are on a symbol we can do HR
             var span = new TextSpan(position, 0);
             var solution = document.Project.Solution;
@@ -320,7 +315,7 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                     var tree = location.SourceTree;
 
                     var document = solution.GetDocument(tree);
-                    var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                    var syntaxFacts = document.Project.LanguageServices.GetService<ISyntaxFactsService>();
 
                     if (syntaxFacts != null)
                     {

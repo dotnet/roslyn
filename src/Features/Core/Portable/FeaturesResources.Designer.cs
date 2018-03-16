@@ -427,16 +427,18 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Adding_an_imported_method_will_prevent_the_debug_session_from_continuing", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to Alias ambiguous type &apos;{0}&apos;.
         /// </summary>
-        internal static string Alias_ambiguous_type_0 {
-            get {
+        internal static string Alias_ambiguous_type_0
+        {
+            get
+            {
                 return ResourceManager.GetString("Alias_ambiguous_type_0", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   Looks up a localized string similar to All lowercase.
         /// </summary>
@@ -2545,15 +2547,6 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Regex issue: {0}.
-        /// </summary>
-        internal static string Regex_issue_0 {
-            get {
-                return ResourceManager.GetString("Regex_issue_0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remarks:.
         /// </summary>
         internal static string Remarks_colon {
@@ -3654,6 +3647,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Variable declaration can be deconstructed.
+        /// </summary>
+        internal static string Variable_declaration_can_be_deconstructed {
+            get {
+                return ResourceManager.GetString("Variable_declaration_can_be_deconstructed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Using readonly references will prevent the debug session from continuing..
         /// </summary>
         internal static string Using_readonly_references_will_prevent_the_debug_session_from_continuing {
@@ -3677,15 +3679,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string Using_ref_structs_will_prevent_the_debug_session_from_continuing {
             get {
                 return ResourceManager.GetString("Using_ref_structs_will_prevent_the_debug_session_from_continuing", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Variable declaration can be deconstructed.
-        /// </summary>
-        internal static string Variable_declaration_can_be_deconstructed {
-            get {
-                return ResourceManager.GetString("Variable_declaration_can_be_deconstructed", resourceCulture);
             }
         }
         

@@ -134,48 +134,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
         internal readonly ClassificationTypeDefinition XmlDocCommentTextTypeDefinition;
         #endregion
 
-        #region Regex
-        [Export]
-        [Name(ClassificationTypeNames.RegexComment)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal readonly ClassificationTypeDefinition RegexCommentTypeDefinition;
-
-        [Export]
-        [Name(ClassificationTypeNames.RegexText)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal readonly ClassificationTypeDefinition RegexTextTypeDefinition;
-
-        [Export]
-        [Name(ClassificationTypeNames.RegexCharacterClass)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal readonly ClassificationTypeDefinition RegexCharacterClassTypeDefinition;
-
-        [Export]
-        [Name(ClassificationTypeNames.RegexQuantifier)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal readonly ClassificationTypeDefinition RegexQuantifierTypeDefinition;
-
-        [Export]
-        [Name(ClassificationTypeNames.RegexAnchor)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal readonly ClassificationTypeDefinition RegexAnchorTypeDefinition;
-
-        [Export]
-        [Name(ClassificationTypeNames.RegexAlternation)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal readonly ClassificationTypeDefinition RegexAlternationTypeDefinition;
-
-        [Export]
-        [Name(ClassificationTypeNames.RegexEscape)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal readonly ClassificationTypeDefinition RegexEscapeTypeDefinition;
-
-        [Export]
-        [Name(ClassificationTypeNames.RegexGrouping)]
-        [BaseDefinition(PredefinedClassificationTypeNames.FormalLanguage)]
-        internal readonly ClassificationTypeDefinition RegexGroupingTypeDefinition;
-        #endregion
-
         #region VB XML Literals - Attribute Name 
         [Export]
         [Name(ClassificationTypeNames.XmlLiteralAttributeName)]

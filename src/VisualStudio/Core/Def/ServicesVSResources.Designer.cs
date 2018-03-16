@@ -517,15 +517,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Colorize regular expressions.
-        /// </summary>
-        internal static string Colorize_regular_expressions {
-            get {
-                return ResourceManager.GetString("Colorize_regular_expressions", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Computing remove suppressions fix....
         /// </summary>
         internal static string Computing_remove_suppressions_fix {
@@ -1077,15 +1068,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string given_workspace_doesn_t_support_undo {
             get {
                 return ResourceManager.GetString("given_workspace_doesn_t_support_undo", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Highlight related components under cursor.
-        /// </summary>
-        internal static string Highlight_related_components_under_cursor {
-            get {
-                return ResourceManager.GetString("Highlight_related_components_under_cursor", resourceCulture);
             }
         }
         
@@ -1990,15 +1972,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Regular Expressions.
-        /// </summary>
-        internal static string Regular_Expressions {
-            get {
-                return ResourceManager.GetString("Regular_Expressions", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Remarks:.
         /// </summary>
         internal static string Remarks_colon {
@@ -2067,15 +2040,6 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Reorder {
             get {
                 return ResourceManager.GetString("Reorder", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Report invalid regular expressions.
-        /// </summary>
-        internal static string Report_invalid_regular_expressions {
-            get {
-                return ResourceManager.GetString("Report_invalid_regular_expressions", resourceCulture);
             }
         }
         
