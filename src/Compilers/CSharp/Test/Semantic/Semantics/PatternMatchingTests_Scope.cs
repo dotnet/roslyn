@@ -2659,6 +2659,64 @@ public class X
         }
 
         [Fact]
+        public void ScopeOfPatternVariables_Query_11()
+        {
+            var source =
+@"
+using System.Linq;
+
+public class X
+{
+    public static void Main()
+    {
+    }
+
+    bool Dummy(params object[] x) {return true;}
+
+    void Test1()
+    {
+        var res = from x1 in new [] { 1 } 
+                  where Dummy(x1 is var y1, 
+                              from x2 in new [] { 1 } 
+                              where x1 is var y1
+                              select x2) 
+                  select x1;
+    }
+
+    void Test2()
+    {
+        var res = from x1 in new [] { 1 } 
+                  where Dummy(x1 is var y2, 
+                              x1 + 1 is var y2)
+                  select x1;
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (17,47): error CS0136: A local or parameter named 'y1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //                               where x1 is var y1
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "y1").WithArguments("y1").WithLocation(17, 47),
+                // (26,45): error CS0128: A local variable or function named 'y2' is already defined in this scope
+                //                               x1 + 1 is var y2)
+                Diagnostic(ErrorCode.ERR_LocalDuplicate, "y2").WithArguments("y2").WithLocation(26, 45)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var y1Decl = GetPatternDeclarations(tree, "y1").ToArray();
+            Assert.Equal(2, y1Decl.Length);
+            VerifyModelForDeclarationPattern(model, y1Decl[0]);
+            VerifyModelForDeclarationPattern(model, y1Decl[1]);
+
+            var y2Decl = GetPatternDeclarations(tree, "y2").ToArray();
+            Assert.Equal(2, y2Decl.Length);
+            VerifyModelForDeclarationPattern(model, y2Decl[0]);
+            VerifyModelForDeclarationPatternDuplicateInSameScope(model, y2Decl[1]);
+        }
+
+        [Fact]
         public void ScopeOfPatternVariables_ExpressionBodiedLocalFunctions_01()
         {
             var source =
@@ -3987,6 +4045,71 @@ class C
                 //         Console.WriteLine(x);
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(15, 27)
                 );
+        }
+
+        [Fact]
+        public void ScopeOfPatternVariables_ConstructorInitializers_07()
+        {
+            var source =
+@"
+public class X : Y
+{
+    public static void Main()
+    {
+    }
+
+    X(byte x3)
+        : base(3 is int x3)
+    {}
+
+    X(sbyte x)
+        : base(4 is int x4)
+    {
+        int x4 = 1;
+        System.Console.WriteLine(x4);
+    }
+
+    X(ushort x)
+        : base(51 is int x5)
+    => Dummy(52 is int x5, x5);
+
+    bool Dummy(params object[] x) {return true;}
+}
+
+public class Y
+{
+    public Y(params object[] x) {}
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics(
+                // (9,25): error CS0136: A local or parameter named 'x3' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         : base(3 is int x3)
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x3").WithArguments("x3").WithLocation(9, 25),
+                // (15,13): error CS0136: A local or parameter named 'x4' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //         int x4 = 1;
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x4").WithArguments("x4").WithLocation(15, 13),
+                // (21,24): error CS0136: A local or parameter named 'x5' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
+                //     => Dummy(52 is int x5, x5);
+                Diagnostic(ErrorCode.ERR_LocalIllegallyOverrides, "x5").WithArguments("x5").WithLocation(21, 24)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x3Decl = GetPatternDeclarations(tree, "x3").Single();
+            VerifyModelForDeclarationPattern(model, x3Decl);
+
+            var x4Decl = GetPatternDeclarations(tree, "x4").Single();
+            var x4Ref = GetReferences(tree, "x4").Single();
+            VerifyModelForDeclarationPattern(model, x4Decl);
+            VerifyNotAPatternLocal(model, x4Ref);
+
+            var x5Decl = GetPatternDeclarations(tree, "x5").ToArray();
+            var x5Ref = GetReferences(tree, "x5").Single();
+            Assert.Equal(2, x5Decl.Length);
+            VerifyModelForDeclarationPattern(model, x5Decl[0]);
+            VerifyModelForDeclarationPattern(model, x5Decl[1], x5Ref);
         }
 
         [Fact]

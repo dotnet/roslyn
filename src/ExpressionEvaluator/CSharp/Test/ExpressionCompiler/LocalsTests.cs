@@ -4833,6 +4833,61 @@ class Base
         }
 
         [Fact]
+        public void LocalsInConstructorInitializer_07()
+        {
+            var source =
+@"class C
+{
+    C() 
+#line 1000
+    : this(TakeOutParam(1, out var x1))
+    {}     
+
+    static bool TakeOutParam(int y, out int x) 
+    {
+        x = y;
+        return true;
+    }
+
+    C(bool x) {}
+}
+";
+            var compilation0 = CreateCompilation(source, options: TestOptions.DebugDll);
+            WithRuntimeInstance(compilation0, runtime =>
+            {
+                var context = CreateMethodContext(runtime, "C..ctor", atLineNumber: 1000);
+
+                var testData = new CompilationTestData();
+                var locals = ArrayBuilder<LocalAndMethod>.GetInstance();
+                string typeName;
+                var assembly = context.CompileGetLocals(locals, argumentsOnly: false, typeName: out typeName, testData: testData);
+                Assert.NotNull(assembly);
+                Assert.NotEqual(assembly.Count, 0);
+
+                Assert.Equal(locals.Count, 2);
+                VerifyLocal(testData, typeName, locals[0], "<>m0", "this", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldarg.0
+  IL_0001:  ret
+}");
+
+                VerifyLocal(testData, typeName, locals[1], "<>m1", "x1", expectedILOpt:
+@"{
+  // Code size        2 (0x2)
+  .maxstack  1
+  .locals init (int V_0) //x1
+  IL_0000:  ldloc.0
+  IL_0001:  ret
+}");
+
+                locals.Free();
+            });
+        }
+
+        [Fact]
         public void LocalsInQuery_01()
         {
             var source =
