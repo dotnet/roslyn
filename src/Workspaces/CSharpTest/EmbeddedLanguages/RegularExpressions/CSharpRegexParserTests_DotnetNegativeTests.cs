@@ -3,7 +3,7 @@
 using System.Text.RegularExpressions;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.RegularExpressions
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 {
     public partial class CSharpRegexParserTests
     {
