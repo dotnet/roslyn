@@ -45,12 +45,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
         [ImportingConstructor]
         public EventHookupCommandHandler(
             IInlineRenameService inlineRenameService,
-            IAsynchronousOperationListenerProvider listenerProvider)
+            IAsynchronousOperationListenerProvider listenerProvider,
+            EventHookupSessionManager eventHookupSessionManager)
         {
             _inlineRenameService = inlineRenameService;
             _asyncListener = listenerProvider.GetListener(FeatureAttribute.EventHookup);
 
-            this.EventHookupSessionManager = new EventHookupSessionManager();
+            this.EventHookupSessionManager = eventHookupSessionManager;
         }
     }
 }

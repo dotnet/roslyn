@@ -6,6 +6,7 @@ using Xunit;
 using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.CodeStyle;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 {
@@ -197,7 +198,7 @@ class C
             }
         }
 
-        [WpfFact(Skip ="Skip temporarily for quickinfo async work"), Trait(Traits.Feature, Traits.Features.EventHookup)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
         public async Task HookupInLambdaInLocalDeclaration()
         {
             var markup = @"

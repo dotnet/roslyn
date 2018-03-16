@@ -1,26 +1,35 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.ComponentModel.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using System.Windows;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Adornments;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
 {
+    [Export]
     internal sealed partial class EventHookupSessionManager : ForegroundThreadAffinitizedObject
     {
+        private readonly IToolTipService _toolTipService;
+        private IToolTipPresenter _toolTipPresenter;
+
         internal EventHookupSession CurrentSession { get; set; }
 
         // For test purposes only!
-        internal FrameworkElement TEST_MostRecentQuickInfoContent { get; set; }
+        internal ClassifiedTextElement[] TEST_MostRecentToolTipContent { get; set; }
 
-        internal EventHookupSessionManager()
+        [ImportingConstructor]
+        internal EventHookupSessionManager(IToolTipService toolTipService)
         {
+            _toolTipService = toolTipService;
         }
 
         internal void EventHookupFoundInSession(EventHookupSession analyzedSession)
@@ -35,8 +44,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 caretPoint.HasValue &&
                 analyzedSession.TrackingSpan.GetSpan(CurrentSession.TextView.TextSnapshot).Contains(caretPoint.Value))
             {
-                // Watch all text buffer changes & caret moves while this quick info session is
-                // active
+                Debug.Assert(_toolTipPresenter == null, "_toolTipPresenter is not null, we have an existing tooltip session active");
+
+                // Create a tooltip presenter that stays alive, even when the user types, without tracking the mouse.
+                _toolTipPresenter = this._toolTipService.CreatePresenter(analyzedSession.TextView,
+                    new ToolTipParameters(trackMouse: false, ignoreBufferChange: true));
+
+                // tooltips text is: Program_MyEvents;      (Press TAB to insert)
+                // GetEventNameTask() gets back the event name, only needs to add a semicolon after it.
+                var eventText = analyzedSession.GetEventNameTask.Result + ";";
+                var texts = new[] { eventText, CSharpEditorResources.Press_TAB_to_insert };
+
+                // use ClassificationTypeNames.Identifier for type name to unblock tests
+                // looks like current editor nuget(15.7.153-preview-g7d0635149a) throws exception on ClassificationTypeNames.Text "text"
+                // TODO: will file a bug for this
+                var textRuns = texts.Select(s => new ClassifiedTextRun(ClassificationTypeNames.Identifier, s));
+                var content = new[] { new ClassifiedTextElement(textRuns) };
+
+                _toolTipPresenter.StartOrUpdate(analyzedSession.TrackingSpan, content);
+
+                // For test purposes only!
+                TEST_MostRecentToolTipContent = content;
+
+                // Watch all text buffer changes & caret moves while this event hookup session is active
                 analyzedSession.TextView.TextSnapshot.TextBuffer.Changed += TextBuffer_Changed;
                 CurrentSession.Dismissed += () => { analyzedSession.TextView.TextSnapshot.TextBuffer.Changed -= TextBuffer_Changed; };
 
@@ -64,6 +94,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.EventHookup
                 CurrentSession.Cancel();
                 CurrentSession = null;
             }
+
+            if (this._toolTipPresenter != null)
+            {
+                this._toolTipPresenter.Dismiss();
+                this._toolTipPresenter = null;
+            }
+
+            // For test purposes only!
+            TEST_MostRecentToolTipContent = null;
         }
 
         /// <summary>

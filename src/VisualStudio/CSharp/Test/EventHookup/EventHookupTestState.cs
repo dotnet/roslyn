@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -11,7 +10,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.Composition;
-using Microsoft.VisualStudio.Language.Intellisense;
+using Microsoft.VisualStudio.Text.Adornments;
 using Roslyn.Utilities;
 using Xunit;
 
@@ -26,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
             : base(workspaceElement, GetExtraParts(), false)
         {
             _commandHandler = new EventHookupCommandHandler(Workspace.GetService<IInlineRenameService>(),
-                Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>());
+                Workspace.ExportProvider.GetExportedValue<IAsynchronousOperationListenerProvider>(),
+                new EventHookupSessionManager(Workspace.GetService<IToolTipService>()));
 
             _testSessionHookupMutex = new Mutex(false);
             _commandHandler.TESTSessionHookupMutex = _testSessionHookupMutex;
@@ -52,16 +52,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 
         internal void AssertShowing(string expectedText)
         {
-            Assert.NotNull(_commandHandler.EventHookupSessionManager.TEST_MostRecentQuickInfoContent);
+            Assert.NotNull(_commandHandler.EventHookupSessionManager.TEST_MostRecentToolTipContent);
+            Assert.Equal(1, _commandHandler.EventHookupSessionManager.TEST_MostRecentToolTipContent.Count());
 
-            var inlines = (_commandHandler.EventHookupSessionManager.TEST_MostRecentQuickInfoContent as System.Windows.Controls.TextBlock).Inlines;
-            Assert.Equal(2, inlines.Count);
-            Assert.Equal(expectedText, (inlines.First() as System.Windows.Documents.Run).Text);
+            var textElement = _commandHandler.EventHookupSessionManager.TEST_MostRecentToolTipContent.First();
+            Assert.Equal(2, textElement.Runs.Count());
+            Assert.Equal(expectedText, textElement.Runs.First().Text);
         }
 
         internal void AssertNotShowing()
         {
-            Assert.Null(_commandHandler.EventHookupSessionManager.TEST_MostRecentQuickInfoContent);
+            Assert.Null(_commandHandler.EventHookupSessionManager.TEST_MostRecentToolTipContent);
         }
 
         internal void SetEventHookupCheckMutex()
