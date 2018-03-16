@@ -8,9 +8,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Editing;
+using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.ConvertLinq
 {
@@ -126,13 +127,14 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
 
             public SyntaxNode UpdateRoot(SyntaxNode root)
             {
+                // SyntaxEditor
                 // TODO do we need to sort nodes by span desc?
                 foreach (var updateItem in _updates)
                 {
                     if (updateItem.destinations.Any())
                     {
                         // TODO do we need to find node?
-                        root = root.ReplaceNode(root.FindNode(updateItem.source.Span), updateItem.destinations);
+                        root = root.ReplaceNode(root.FindNode(updateItem.source.Span), updateItem.destinations.Select(node => node.WithAdditionalAnnotations(Simplifier.Annotation)));
                     }
                     else
                     {
