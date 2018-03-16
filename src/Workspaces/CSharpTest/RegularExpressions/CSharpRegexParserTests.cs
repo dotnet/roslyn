@@ -6,13 +6,17 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis.CSharp.VirtualChars;
-using Microsoft.CodeAnalysis.RegularExpressions;
-using Microsoft.CodeAnalysis.VirtualChars;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.RegularExpressions;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.RegularExpressions
 {
+    using RegexToken = EmbeddedSyntaxToken<RegexKind>;
+    using RegexTrivia = EmbeddedSyntaxTrivia<RegexKind>;
+
     public partial class CSharpRegexParserTests
     {
         private readonly IVirtualCharService _service = CSharpVirtualCharService.Instance;
