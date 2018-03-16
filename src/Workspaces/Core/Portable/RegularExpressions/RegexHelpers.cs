@@ -24,20 +24,20 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
         public static bool HasOption(RegexOptions options, RegexOptions val)
             => (options & val) != 0;
 
-        public static EmbeddedSyntaxToken CreateToken(RegexKind kind, ImmutableArray<EmbeddedSyntaxTrivia> leadingTrivia, ImmutableArray<VirtualChar> virtualChars)
+        public static EmbeddedSyntaxToken<RegexKind> CreateToken(RegexKind kind, ImmutableArray<EmbeddedSyntaxTrivia> leadingTrivia, ImmutableArray<VirtualChar> virtualChars)
             => CreateToken(kind, leadingTrivia, virtualChars, ImmutableArray<EmbeddedDiagnostic>.Empty);
 
-        public static EmbeddedSyntaxToken CreateToken(
+        public static EmbeddedSyntaxToken<RegexKind> CreateToken(
             RegexKind kind, ImmutableArray<EmbeddedSyntaxTrivia> leadingTrivia,
             ImmutableArray<VirtualChar> virtualChars, ImmutableArray<EmbeddedDiagnostic> diagnostics)
             => CreateToken(kind, leadingTrivia, virtualChars, diagnostics, value: null);
 
-        public static EmbeddedSyntaxToken CreateToken(
+        public static EmbeddedSyntaxToken<RegexKind> CreateToken(
             RegexKind kind, ImmutableArray<EmbeddedSyntaxTrivia> leadingTrivia, ImmutableArray<VirtualChar> virtualChars,
             ImmutableArray<EmbeddedDiagnostic> diagnostics, object value)
-            => new EmbeddedSyntaxToken((int)kind, leadingTrivia, virtualChars, ImmutableArray<EmbeddedSyntaxTrivia>.Empty, diagnostics, value);
+            => new EmbeddedSyntaxToken<RegexKind>(kind, leadingTrivia, virtualChars, ImmutableArray<EmbeddedSyntaxTrivia>.Empty, diagnostics, value);
 
-        public static EmbeddedSyntaxToken CreateMissingToken(RegexKind kind)
+        public static EmbeddedSyntaxToken<RegexKind> CreateMissingToken(RegexKind kind)
             => CreateToken(kind, ImmutableArray<EmbeddedSyntaxTrivia>.Empty, ImmutableArray<VirtualChar>.Empty);
 
         public static EmbeddedSyntaxTrivia CreateTrivia(RegexKind kind, ImmutableArray<VirtualChar> virtualChars)

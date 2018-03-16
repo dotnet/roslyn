@@ -4,10 +4,12 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 {
-    internal struct EmbeddedSyntaxNodeOrToken<TNode> where TNode : EmbeddedSyntaxNode<TNode>
+    internal struct EmbeddedSyntaxNodeOrToken<TSyntaxKind, TNode>
+        where TSyntaxKind : struct
+        where TNode : EmbeddedSyntaxNode<TSyntaxKind, TNode>
     {
         public readonly TNode Node;
-        public readonly EmbeddedSyntaxToken Token;
+        public readonly EmbeddedSyntaxToken<TSyntaxKind> Token;
 
         private EmbeddedSyntaxNodeOrToken(TNode node) : this()
         {
@@ -15,18 +17,18 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
             Node = node;
         }
 
-        private EmbeddedSyntaxNodeOrToken(EmbeddedSyntaxToken token) : this()
+        private EmbeddedSyntaxNodeOrToken(EmbeddedSyntaxToken<TSyntaxKind> token) : this()
         {
-            Debug.Assert(token.RawKind != 0);
+            Debug.Assert((int)(object)token.Kind != 0);
             Token = token;
         }
 
         public bool IsNode => Node != null;
 
-        public static implicit operator EmbeddedSyntaxNodeOrToken<TNode>(TNode node)
-            => new EmbeddedSyntaxNodeOrToken<TNode>(node);
+        public static implicit operator EmbeddedSyntaxNodeOrToken<TSyntaxKind, TNode>(TNode node)
+            => new EmbeddedSyntaxNodeOrToken<TSyntaxKind, TNode>(node);
 
-        public static implicit operator EmbeddedSyntaxNodeOrToken<TNode>(EmbeddedSyntaxToken token)
-            => new EmbeddedSyntaxNodeOrToken<TNode>(token);
+        public static implicit operator EmbeddedSyntaxNodeOrToken<TSyntaxKind, TNode>(EmbeddedSyntaxToken<TSyntaxKind> token)
+            => new EmbeddedSyntaxNodeOrToken<TSyntaxKind, TNode>(token);
     }
 }

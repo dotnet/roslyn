@@ -27,18 +27,20 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
     ///    has multiple nodes.  For example there are distinct nodes to represent the very similar
     ///    {a}   {a,}    {a,b}    constructs.
     /// </summary>
-    internal abstract class EmbeddedSyntaxNode<TNode> where TNode : EmbeddedSyntaxNode<TNode>
+    internal abstract class EmbeddedSyntaxNode<TSyntaxKind, TNode>
+        where TSyntaxKind : struct
+        where TNode : EmbeddedSyntaxNode<TSyntaxKind, TNode>
     {
-        public readonly int RawKind;
+        public readonly TSyntaxKind Kind;
 
-        protected EmbeddedSyntaxNode(int rawKind)
+        protected EmbeddedSyntaxNode(TSyntaxKind kind)
         {
-            Debug.Assert(rawKind != 0);
-            RawKind = rawKind;
+            Debug.Assert((int)(object)kind != 0);
+            Kind = kind;
         }
 
         public abstract int ChildCount { get; }
-        public abstract EmbeddedSyntaxNodeOrToken<TNode> ChildAt(int index);
+        public abstract EmbeddedSyntaxNodeOrToken<TSyntaxKind, TNode> ChildAt(int index);
 
         // public abstract void Accept(IRegexNodeVisitor visitor);
 
@@ -47,11 +49,11 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 
         public struct Enumerator
         {
-            private readonly EmbeddedSyntaxNode<TNode> _node;
+            private readonly EmbeddedSyntaxNode<TSyntaxKind, TNode> _node;
             private readonly int _childCount;
             private int _currentIndex;
 
-            public Enumerator(EmbeddedSyntaxNode<TNode> node)
+            public Enumerator(EmbeddedSyntaxNode<TSyntaxKind, TNode> node)
             {
                 _node = node;
                 _childCount = _node.ChildCount;
@@ -59,7 +61,7 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
                 Current = default;
             }
 
-            public EmbeddedSyntaxNodeOrToken<TNode> Current { get; private set; }
+            public EmbeddedSyntaxNodeOrToken<TSyntaxKind, TNode> Current { get; private set; }
 
             public bool MoveNext()
             {

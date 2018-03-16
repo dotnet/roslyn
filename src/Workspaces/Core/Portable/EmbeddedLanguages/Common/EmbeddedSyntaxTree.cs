@@ -5,8 +5,9 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 {
-    internal abstract class EmbeddedSyntaxTree<TNode, TRoot>
-        where TNode : EmbeddedSyntaxNode<TNode>
+    internal class EmbeddedSyntaxTree<TSyntaxKind, TNode, TRoot>
+        where TSyntaxKind : struct
+        where TNode : EmbeddedSyntaxNode<TSyntaxKind, TNode>
         where TRoot : TNode
     {
         public readonly ImmutableArray<VirtualChar> Text;
