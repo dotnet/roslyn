@@ -3,9 +3,9 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.VirtualChars
+Imports Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.VirtualChars
+Namespace Microsoft.CodeAnalysis.VisualBasic.EmbeddedLanguages.VirtualChars
     <ExportLanguageService(GetType(IVirtualCharService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicVirtualCharService
         Inherits AbstractVirtualCharService

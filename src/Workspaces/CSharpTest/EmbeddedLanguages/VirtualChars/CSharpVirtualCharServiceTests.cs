@@ -2,19 +2,19 @@
 
 using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.VirtualChars;
-using Microsoft.CodeAnalysis.VirtualChars;
+using Microsoft.CodeAnalysis.CSharp.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.CSharp.UnitTests.VirtualChars
+namespace Microsoft.CodeAnalysis.CSharp.UnitTests.EmbeddedLanguages.VirtualChars
 {
     public class CSharpVirtualCharServiceTests
     {
-        private const string _statmentPrefix = "var v = ";
+        private const string _statementPrefix = "var v = ";
         
         private SyntaxToken GetStringToken(string text)
         {
-            var statement = _statmentPrefix + text;
+            var statement = _statementPrefix + text;
             var parsedStatement = SyntaxFactory.ParseStatement(statement);
             var token = parsedStatement.DescendantTokens().ToArray()[3];
             Assert.True(token.Kind() == SyntaxKind.StringLiteralToken);
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.VirtualChars
             => string.Join("", virtualChars.Select(ConvertToString));
 
         private string ConvertToString(VirtualChar vc)
-            => $"[{ConvertToString(vc.Char)},[{vc.Span.Start - _statmentPrefix.Length},{vc.Span.End - _statmentPrefix.Length}]]";
+            => $"[{ConvertToString(vc.Char)},[{vc.Span.Start - _statementPrefix.Length},{vc.Span.End - _statementPrefix.Length}]]";
 
         private string ConvertToString(char c)
             => char.IsLetterOrDigit(c) && c < 127 ? $"'{c}'" : $"'\\u{((int)c).ToString("X4")}'";
