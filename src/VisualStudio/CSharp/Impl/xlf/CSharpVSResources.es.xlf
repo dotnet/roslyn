@@ -692,6 +692,11 @@
         <target state="translated">Mostrar s_ugerencias de nombres</target>
         <note />
       </trans-unit>
+      <trans-unit id="Event_Hookup_Command_Handler">
+        <source>Generate Event Subscription Command Handler</source>
+        <target state="new">Generate Event Subscription Command Handler</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
