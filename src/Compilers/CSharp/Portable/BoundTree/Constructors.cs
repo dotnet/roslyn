@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 @checked: false,
                 explicitCastInCode: false,
                 constantValueOpt: constantValueOpt,
-                isNullable: false,
+                isNullable: null,
                 type: type)
             { WasCompilerGenerated = true };
         }
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue constantValueOpt,
             TypeSymbol type,
             bool hasErrors = false,
-            bool isNullable = false)
+            bool? isNullable = null)
             : this(
                 syntax,
                 operand,

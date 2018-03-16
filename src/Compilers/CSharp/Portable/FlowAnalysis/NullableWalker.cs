@@ -1856,7 +1856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 if (node.ExplicitCastInCode &&
-                    !node.IsNullable &&
+                    node.IsNullable == false &&
                     targetType.IsReferenceType &&
                     (operandType?.IsNullable == true || (operandType is null && operand.IsLiteralNullOrDefault())))
                 {

@@ -1954,7 +1954,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundConversion : BoundExpression
     {
-        public BoundConversion(SyntaxNode syntax, BoundExpression operand, Conversion conversion, Boolean isBaseConversion, Boolean @checked, Boolean explicitCastInCode, ConstantValue constantValueOpt, Boolean isNullable, TypeSymbol type, bool hasErrors = false)
+        public BoundConversion(SyntaxNode syntax, BoundExpression operand, Conversion conversion, Boolean isBaseConversion, Boolean @checked, Boolean explicitCastInCode, ConstantValue constantValueOpt, bool? isNullable, TypeSymbol type, bool hasErrors = false)
             : base(BoundKind.Conversion, syntax, type, hasErrors || operand.HasErrors())
         {
 
@@ -1983,14 +1983,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public ConstantValue ConstantValueOpt { get; }
 
-        public Boolean IsNullable { get; }
+        public bool? IsNullable { get; }
 
         public override BoundNode Accept(BoundTreeVisitor visitor)
         {
             return visitor.VisitConversion(this);
         }
 
-        public BoundConversion Update(BoundExpression operand, Conversion conversion, Boolean isBaseConversion, Boolean @checked, Boolean explicitCastInCode, ConstantValue constantValueOpt, Boolean isNullable, TypeSymbol type)
+        public BoundConversion Update(BoundExpression operand, Conversion conversion, Boolean isBaseConversion, Boolean @checked, Boolean explicitCastInCode, ConstantValue constantValueOpt, bool? isNullable, TypeSymbol type)
         {
             if (operand != this.Operand || conversion != this.Conversion || isBaseConversion != this.IsBaseConversion || @checked != this.Checked || explicitCastInCode != this.ExplicitCastInCode || constantValueOpt != this.ConstantValueOpt || isNullable != this.IsNullable || type != this.Type)
             {

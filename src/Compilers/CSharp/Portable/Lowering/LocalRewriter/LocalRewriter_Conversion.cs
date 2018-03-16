@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             @checked: false,
                             explicitCastInCode: explicitCastInCode,
                             constantValueOpt: constantValueOpt,
-                            isNullable: false,
+                            isNullable: null,
                             type: rewrittenType);
                     }
 
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     @checked: @checked,
                     explicitCastInCode: explicitCastInCode,
                     constantValueOpt: constantValueOpt,
-                    isNullable: false,
+                    isNullable: null,
                     type: rewrittenType);
         }
 

@@ -1877,10 +1877,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BindExplicitNullableCastFromNonNullable(node, operand, targetType, diagnostics);
             }
 
-            return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics, isNullable: targetTypeWithNullability.IsNullable == true);
+            return BindCastCore(node, operand, targetType, wasCompilerGenerated: operand.WasCompilerGenerated, diagnostics: diagnostics, isNullable: targetTypeWithNullability.IsNullable);
         }
 
-        private BoundExpression BindCastCore(ExpressionSyntax node, BoundExpression operand, TypeSymbol targetType, bool wasCompilerGenerated, DiagnosticBag diagnostics, bool isNullable = false)
+        private BoundExpression BindCastCore(ExpressionSyntax node, BoundExpression operand, TypeSymbol targetType, bool wasCompilerGenerated, DiagnosticBag diagnostics, bool? isNullable = null)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             Conversion conversion = this.Conversions.ClassifyConversionFromExpression(operand, targetType, ref useSiteDiagnostics, forCast: true);
@@ -1893,13 +1893,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     node,
                     operand,
                     conversion,
-                    isBaseConversion: false,
                     @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: true,
                     constantValueOpt: ConstantValue.NotAvailable,
-                    isNullable: isNullable,
                     type: targetType,
-                    hasErrors: true);
+                    hasErrors: true,
+                    isNullable: isNullable);
             }
 
             return CreateConversion(node, operand, conversion, isCast: true, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics, isNullable: isNullable);

@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool wasCompilerGenerated,
             TypeSymbol destination,
             DiagnosticBag diagnostics,
-            bool isNullable = false)
+            bool? isNullable = null)
         {
             Debug.Assert(source != null);
             Debug.Assert((object)destination != null);
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = wasCompilerGenerated };
         }
 
-        private BoundExpression CreateUserDefinedConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, bool isNullable, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression CreateUserDefinedConversion(SyntaxNode syntax, BoundExpression source, Conversion conversion, bool isCast, bool? isNullable, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             if (!conversion.IsValid)
             {
