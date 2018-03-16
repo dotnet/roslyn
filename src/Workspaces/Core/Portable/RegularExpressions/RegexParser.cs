@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
                 do
                 {
                     var last = list.Count == 0 ? null : list.Last();
-                    list.Add(ParsePrimaryExpressionAndQuantifiers(consumeCloseParen, last));
+                    list.Add(ParsePrimaryExpressionAndQuantifiers(last));
 
                     TryMergeLastTwoNodes(list);
                 }
@@ -249,8 +249,7 @@ namespace Microsoft.CodeAnalysis.RegularExpressions
             return true;
         }
 
-        private RegexExpressionNode ParsePrimaryExpressionAndQuantifiers(
-            bool consumeCloseParen, RegexExpressionNode lastExpression)
+        private RegexExpressionNode ParsePrimaryExpressionAndQuantifiers(RegexExpressionNode lastExpression)
         {
             var current = ParsePrimaryExpression(lastExpression);
             if (current.Kind == RegexKind.SimpleOptionsGrouping)
