@@ -28,10 +28,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var elementType = stackAllocNode.ElementType;
 
+            var initializerOpt = stackAllocNode.InitializerOpt;
+            if (initializerOpt != null)
+            {
+                initializerOpt = initializerOpt.Update(VisitList(initializerOpt.Initializers));
+            }
+
             if (type.IsPointerType())
             {
                 var stackSize = RewriteStackAllocCountToSize(rewrittenCount, elementType);
-                return new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, stackAllocNode.Type);
+                return new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, initializerOpt, stackAllocNode.Type);
             }
             else if (type.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Span_T))
             {
@@ -40,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var locals = ArrayBuilder<LocalSymbol>.GetInstance();
                 var countTemp = CaptureExpressionInTempIfNeeded(rewrittenCount, sideEffects, locals);
                 var stackSize = RewriteStackAllocCountToSize(countTemp, elementType);
-                stackAllocNode = new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, spanType);
+                stackAllocNode = new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, initializerOpt, spanType);
 
                 BoundExpression constructorCall;
                 if (TryGetWellKnownTypeMember(stackAllocNode.Syntax, WellKnownMember.System_Span_T__ctor, out MethodSymbol spanConstructor))
