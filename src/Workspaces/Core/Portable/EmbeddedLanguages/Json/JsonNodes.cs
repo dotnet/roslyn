@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 
-namespace Microsoft.CodeAnalysis.Json
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 {
     using JsonNodeOrToken = EmbeddedSyntaxNodeOrToken<JsonKind, JsonNode>;
     using JsonToken = EmbeddedSyntaxToken<JsonKind>;

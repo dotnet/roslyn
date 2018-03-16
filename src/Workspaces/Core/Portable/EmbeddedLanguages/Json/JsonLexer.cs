@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Json
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 {
     using static EmbeddedSyntaxHelpers;
     using static JsonHelpers;

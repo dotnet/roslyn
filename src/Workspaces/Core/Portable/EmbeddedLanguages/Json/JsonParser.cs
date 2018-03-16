@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Json
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 {
     using static EmbeddedSyntaxHelpers;
     using static JsonHelpers;

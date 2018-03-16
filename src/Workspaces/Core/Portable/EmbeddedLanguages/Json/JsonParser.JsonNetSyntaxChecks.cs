@@ -6,7 +6,7 @@ using System.Globalization;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.Common;
 using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
 
-namespace Microsoft.CodeAnalysis.Json
+namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Json
 {
     using static EmbeddedSyntaxHelpers;
 
