@@ -1,6 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Diagnostics;
+using System.Linq;
+using Microsoft.CodeAnalysis.EmbeddedLanguages.VirtualChars;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
 {
@@ -42,7 +46,58 @@ namespace Microsoft.CodeAnalysis.EmbeddedLanguages.Common
         public abstract int ChildCount { get; }
         public abstract EmbeddedSyntaxNodeOrToken<TSyntaxKind, TNode> ChildAt(int index);
 
-        // public abstract void Accept(IRegexNodeVisitor visitor);
+        public TextSpan GetSpan()
+        {
+            var start = int.MaxValue;
+            var end = 0;
+
+            this.GetSpan(ref start, ref end);
+
+            return TextSpan.FromBounds(start, end);
+        }
+
+        private void GetSpan(ref int start, ref int end)
+        {
+            foreach (var child in this)
+            {
+                if (child.IsNode)
+                {
+                    child.Node.GetSpan(ref start, ref end);
+                }
+                else
+                {
+                    var token = child.Token;
+                    if (!token.IsMissing)
+                    {
+                        start = Math.Min(token.VirtualChars[0].Span.Start, start);
+                        end = Math.Max(token.VirtualChars.Last().Span.End, end);
+                    }
+                }
+            }
+        }
+
+        public bool Contains(VirtualChar virtualChar)
+        {
+            foreach (var child in this)
+            {
+                if (child.IsNode)
+                {
+                    if (child.Node.Contains(virtualChar))
+                    {
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (child.Token.VirtualChars.Contains(virtualChar))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
 
         public Enumerator GetEnumerator()
             => new Enumerator(this);
