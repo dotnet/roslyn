@@ -16,8 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
         }
 
-        protected override bool IsValidContext(int position, CSharpSyntaxContext context,
-            CancellationToken cancellationToken)
+        protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             return context.IsCatchFilterContext ||
                 (IsAfterCompleteExpressionOrPatternInCaseLabel(context, out var expressionOrPattern) &&
@@ -35,8 +34,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
             }
 
             expressionOrPattern = switchLabel.ChildNodes().FirstOrDefault();
-            if (expressionOrPattern == null) // Oh well. It must have been a default label.
+            if (expressionOrPattern == null)
             {
+                // It must have been a default label.
                 return false;
             }
 
