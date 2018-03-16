@@ -4387,7 +4387,7 @@ A catch() block after a catch (System.Exception e) block can catch non-CLS excep
       </trans-unit>
       <trans-unit id="ERR_AnonDelegateCantUse">
         <source>Cannot use ref, out, or in parameter '{0}' inside an anonymous method, lambda expression, query expression, or local function</source>
-        <target state="needs-review-translation">無法在匿名方法、Lambda 運算式或查詢運算式內使用 ref 或 out 參數 '{0}'。</target>
+        <target state="needs-review-translation">無法在匿名方法、Lambda 運算式或查詢運算式中使用 ref、out 或 in 參數 '{0}'。</target>
         <note />
       </trans-unit>
       <trans-unit id="ERR_IllegalInnerUnsafe">
@@ -8597,7 +8597,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
       </trans-unit>
       <trans-unit id="ERR_InterfaceImplementedImplicitlyByVariadic">
         <source>'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</source>
-        <target state="new">'{0}' cannot implement interface member '{1}' in type '{2}' because it has an __arglist parameter</target>
+        <target state="translated">因為介面成員 '{1}' 包含 __arglist 參數，所以 '{0}' 無法在類型 '{2}' 中實作此介面成員</target>
         <note />
       </trans-unit>
       <trans-unit id="IDS_FeatureTupleEquality">

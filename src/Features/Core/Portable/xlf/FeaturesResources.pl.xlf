@@ -1985,6 +1985,11 @@ Ta wersja jest używana wersja: {2}</target>
         <target state="translated">indeksator</target>
         <note />
       </trans-unit>
+      <trans-unit id="Alias_ambiguous_type_0">
+        <source>Alias ambiguous type '{0}'</source>
+        <target state="new">Alias ambiguous type '{0}'</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>
