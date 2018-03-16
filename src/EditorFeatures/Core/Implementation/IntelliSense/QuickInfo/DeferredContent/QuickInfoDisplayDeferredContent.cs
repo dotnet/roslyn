@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Windows;
+using System.Collections.Generic;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
 {
@@ -16,6 +15,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
         public IDeferredQuickInfoContent ExceptionText { get; }
         public IDeferredQuickInfoContent CapturesText { get; }
         public IDeferredQuickInfoContent WarningGlyph { get; }
+
+        // DO NOT REMOVE: compat for Typescript
+        public QuickInfoDisplayDeferredContent(
+            IDeferredQuickInfoContent symbolGlyph,
+            IDeferredQuickInfoContent warningGlyph,
+            IDeferredQuickInfoContent mainDescription,
+            IDeferredQuickInfoContent documentation,
+            IDeferredQuickInfoContent typeParameterMap,
+            IDeferredQuickInfoContent anonymousTypes,
+            IDeferredQuickInfoContent usageText,
+            IDeferredQuickInfoContent exceptionText)
+            : this(
+                  symbolGlyph,
+                  warningGlyph,
+                  mainDescription,
+                  documentation,
+                  typeParameterMap,
+                  anonymousTypes,
+                  usageText,
+                  exceptionText,
+                  capturesText: new ClassifiableDeferredContent(new List<TaggedText>()))
+        {
+        }
 
         public QuickInfoDisplayDeferredContent(
             IDeferredQuickInfoContent symbolGlyph,
