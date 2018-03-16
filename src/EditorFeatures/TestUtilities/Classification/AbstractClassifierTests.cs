@@ -188,16 +188,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Classification
             return TestInMethodAsync("C", "M", code, parseOptionsSet, expected);
         }
 
-//<<<<<<< HEAD
-//        protected ClassificationBuilder.PunctuationClassificationTypes Punctuation => ClassificationBuilder.Punctuation;
-
-//        protected ClassificationBuilder.OperatorClassificationTypes Operators => ClassificationBuilder.Operator;
-
-//        protected ClassificationBuilder.XmlDocClassificationTypes XmlDoc => ClassificationBuilder.XmlDoc;
-
-//        protected ClassificationBuilder.RegexClassificationTypes Regex => ClassificationBuilder.Regex;
-//=======
-
         protected Task TestInMethodAsync(
             string code,
             params FormattedClassification[] expected)
