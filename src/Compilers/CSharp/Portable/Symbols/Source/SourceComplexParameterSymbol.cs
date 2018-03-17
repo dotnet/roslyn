@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(binderForDefault.ContainingMemberOrLambda == ContainingSymbol);
 
             BoundExpression valueBeforeConversion;
-            var convertedExpression = binderForDefault.BindParameterDefaultValue(defaultSyntax, parameterType, diagnostics, out valueBeforeConversion);
+            BoundExpression convertedExpression = binderForDefault.BindParameterDefaultValue(defaultSyntax, this, diagnostics, out valueBeforeConversion).Value;
             if (valueBeforeConversion.HasErrors)
             {
                 return ConstantValue.Bad;
