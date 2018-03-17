@@ -310,12 +310,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (cast.Expression.WalkDownParentheses().IsKind(SyntaxKind.DefaultLiteralExpression) &&
-                cast.WalkUpParentheses().IsParentKind(SyntaxKind.ConstantPattern, SyntaxKind.CaseSwitchLabel))
-            {
-                return false;
-            }
-
             var castTypeInfo = semanticModel.GetTypeInfo(cast, cancellationToken);
             var castType = castTypeInfo.Type;
 

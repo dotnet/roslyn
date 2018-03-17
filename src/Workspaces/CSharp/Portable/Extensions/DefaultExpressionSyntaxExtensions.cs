@@ -27,11 +27,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (defaultExpression.WalkUpParentheses().IsParentKind(SyntaxKind.ConstantPattern, SyntaxKind.CaseSwitchLabel))
-            {
-                return false;
-            }
-
             // Using the speculation analyzer can be slow.  Check for common cases first before
             // trying the expensive path.
             return CanReplaceWithDefaultLiteralFast(defaultExpression, semanticModel, cancellationToken) ??
