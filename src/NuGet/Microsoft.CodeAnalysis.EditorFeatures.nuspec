@@ -22,7 +22,6 @@
       <dependency id="Microsoft.VisualStudio.Language.Intellisense" version="$MicrosoftVisualStudioLanguageIntellisenseVersion$" />
       <dependency id="Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime" version="$MicrosoftVisualStudioImagingInterop140DesignTimeVersion$" />
       <dependency id="Microsoft.VisualStudio.Text.UI" version="$MicrosoftVisualStudioTextUIVersion$" />
-      <dependency id="Microsoft.VisualStudio.Text.UI.Wpf" version="$MicrosoftVisualStudioTextUIWpfVersion$" />
       <dependency id="ICSharpCode.Decompiler" version="$ICSharpCodeDecompilerVersion$" />
       <dependency id="Humanizer.Core" version="$HumanizerCoreVersion$" />
     </dependencies>
