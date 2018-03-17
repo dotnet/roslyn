@@ -32,8 +32,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var progressCollector = new StreamingProgressCollector(StreamingFindReferencesProgress.Instance);
             await FindReferencesAsync(
                 SymbolAndProjectId.Create(symbol, projectId: null),
-                solution, progress: progressCollector,
-                documents: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+                solution,
+                progress: progressCollector,
+                documents: null,
+                SymbolFinderOptions.Default,
+                cancellationToken).ConfigureAwait(false);
             return progressCollector.GetReferencedSymbols();
         }
 
@@ -74,7 +77,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 new StreamingFindReferencesProgressAdapter(progress));
             await FindReferencesAsync(
                 SymbolAndProjectId.Create(symbol, projectId: null),
-                solution, streamingProgress, documents, cancellationToken).ConfigureAwait(false);
+                solution,
+                streamingProgress,
+                documents,
+                SymbolFinderOptions.Default,
+                cancellationToken).ConfigureAwait(false);
             return streamingProgress.GetReferencedSymbols();
         }
     }

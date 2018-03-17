@@ -143,7 +143,8 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 project.Solution,
                 progressAdapter,
                 documents: null,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
+                SymbolFinderOptions.Default,
+                cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<bool> TryFindLiteralReferencesAsync(

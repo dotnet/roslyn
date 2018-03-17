@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Remote;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    // This file contains the current FindReferences APIs.  The current APIs allow for OOP 
+    // This file contains the current FindReferences APIs.  The current APIs allow for OOP
     // implementation and will defer to the oop server if it is available.  If not, it will
     // compute the results in process.
 
@@ -22,12 +22,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             IStreamingFindReferencesProgress progress,
             IImmutableSet<Document> documents,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.FindReference, cancellationToken))
             {
                 var handled = await TryFindReferencesInServiceProcessAsync(
-                    symbolAndProjectId, solution, progress, documents, cancellationToken).ConfigureAwait(false);
+                    symbolAndProjectId, solution, progress, documents, options, cancellationToken).ConfigureAwait(false);
                 if (handled)
                 {
                     return;
@@ -35,19 +36,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // Couldn't effectively search using the OOP process.  Just perform the search in-proc.
                 await FindReferencesInCurrentProcessAsync(
-                    symbolAndProjectId, solution, progress, documents, cancellationToken).ConfigureAwait(false);
+                    symbolAndProjectId, solution, progress, documents, options, cancellationToken).ConfigureAwait(false);
             }
         }
 
         internal static Task FindReferencesInCurrentProcessAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution,
-            IStreamingFindReferencesProgress progress, IImmutableSet<Document> documents,
+            SymbolAndProjectId symbolAndProjectId,
+            Solution solution,
+            IStreamingFindReferencesProgress progress,
+            IImmutableSet<Document> documents,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             var finders = ReferenceFinders.DefaultReferenceFinders;
             progress = progress ?? StreamingFindReferencesProgress.Instance;
             var engine = new FindReferencesSearchEngine(
-                solution, documents, finders, progress, cancellationToken);
+                solution, documents, finders, progress, options, cancellationToken);
             return engine.FindReferencesAsync(symbolAndProjectId);
         }
 
@@ -56,13 +60,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             IStreamingFindReferencesProgress progress,
             IImmutableSet<Document> documents,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             // If ProjectId is null then this is a call through our old public API.  We don't have
             // the necessary data to effectively run the call out of proc.
             if (symbolAndProjectId.ProjectId != null)
             {
-                // Create a callback that we can pass to the server process to hear about the 
+                // Create a callback that we can pass to the server process to hear about the
                 // results as it finds them.  When we hear about results we'll forward them to
                 // the 'progress' parameter which will then update the UI.
                 var serverCallback = new FindReferencesServerCallback(solution, progress, cancellationToken);
@@ -71,7 +76,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     RemoteFeatureOptions.SymbolFinderEnabled,
                     serverCallback,
                     nameof(IRemoteSymbolFinder.FindReferencesAsync),
-                    new object[] { SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId), documents?.Select(d => d.Id).ToArray() },
+                    new object[]
+                    {
+                        SerializableSymbolAndProjectId.Dehydrate(symbolAndProjectId),
+                        documents?.Select(d => d.Id).ToArray(),
+                        options
+                    },
                     cancellationToken).ConfigureAwait(false);
             }
 

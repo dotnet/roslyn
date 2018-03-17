@@ -111,8 +111,12 @@ namespace Microsoft.CodeAnalysis.DocumentHighlighting
                 var progress = new StreamingProgressCollector(
                     StreamingFindReferencesProgress.Instance);
                 await SymbolFinder.FindReferencesAsync(
-                    symbolAndProjectId, document.Project.Solution, progress,
-                    documentsToSearch, cancellationToken).ConfigureAwait(false);
+                    symbolAndProjectId,
+                    document.Project.Solution,
+                    progress,
+                    documentsToSearch,
+                    SymbolFinderOptions.Default,
+                    cancellationToken).ConfigureAwait(false);
 
                 return await FilterAndCreateSpansAsync(
                     progress.GetReferencedSymbols(), document, documentsToSearch,

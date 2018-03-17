@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly ImmutableArray<IReferenceFinder> _finders;
         private readonly StreamingProgressTracker _progressTracker;
         private readonly IStreamingFindReferencesProgress _progress;
+        private readonly SymbolFinderOptions _options;
         private readonly CancellationToken _cancellationToken;
         private readonly ProjectDependencyGraph _dependencyGraph;
 
@@ -40,12 +41,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Document> documents,
             ImmutableArray<IReferenceFinder> finders,
             IStreamingFindReferencesProgress progress,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             _documents = documents;
             _solution = solution;
             _finders = finders;
             _progress = progress;
+            _options = options;
             _cancellationToken = cancellationToken;
             _dependencyGraph = solution.GetProjectDependencyGraph();
 
@@ -88,7 +91,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // it.
                 // For each connected component, we'll process the individual projects from bottom to
                 // top.  i.e. we'll first process the projects with no dependencies.  Then the projects
-                // that depend on those projects, and so and.  This way we always have creates the 
+                // that depend on those projects, and so and.  This way we always have creates the
                 // dependent compilations when they're needed by later projects.  If we went the other
                 // way (i.e. processed the projects with lots of project dependencies first), then we'd
                 // have to create all their depedent compilations in order to get their compilation.
