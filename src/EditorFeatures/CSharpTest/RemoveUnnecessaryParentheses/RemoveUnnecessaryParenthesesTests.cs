@@ -811,5 +811,100 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     }
 }", requireAllParenthesesForClarity: false);
         }
+
+        [WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestSwitchCase_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case $$(default(bool)):
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case default(bool):
+        }
+    }
+}", requireAllParenthesesForClarity: true);
+        }
+
+        [WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestWhenClause_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case true when $$(default(bool)):
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case true when default(bool):
+        }
+    }
+}", requireAllParenthesesForClarity: true);
+        }
+
+        [WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestPatternExpression1_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        if (true is $$(default(bool)))
+        {
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (true is default(bool))
+        {
+        }
+    }
+}", requireAllParenthesesForClarity: true);
+        }
+
+        [WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestMissingWithIsAndEquality()
+        {
+            await TestMissingAsync(
+@"class C
+{
+    void M(string s)
+    {
+        if (true is $$(true == true))
+        {
+        }
+    }
+}", new TestParameters(options: RemoveAllUnnecessaryParentheses));
+        }
     }
 }
