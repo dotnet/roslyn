@@ -8,11 +8,9 @@ Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
     Public Class AddImportsTests
-        Private ReadOnly _ws As AdhocWorkspace = New AdhocWorkspace()
-        Private ReadOnly _emptyProject As Project
-
-        Public Sub New()
-            _emptyProject = _ws.AddProject(
+        Private Function GetDocument(code As String, Optional globalImports As String() = Nothing) As Document
+            Dim ws As AdhocWorkspace = New AdhocWorkspace()
+            Dim project As Project = ws.AddProject(
                 ProjectInfo.Create(
                     ProjectId.CreateNewId(),
                     VersionStamp.Default,
@@ -20,10 +18,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
                     "test.dll",
                     LanguageNames.VisualBasic,
                     metadataReferences:={TestReferences.NetFx.v4_0_30319.mscorlib}))
-        End Sub
-
-        Private Function GetDocument(code As String, Optional globalImports As String() = Nothing) As Document
-            Dim project = _emptyProject
 
             If globalImports IsNot Nothing Then
                 Dim gi = GlobalImport.Parse(globalImports)
@@ -33,10 +27,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
             Return project.AddDocument("test.cs", code)
         End Function
 
-        Private Async Function TestAsync(initialText As String, importsAddedText As String, simplifiedText As String, Optional options As OptionSet = Nothing, Optional globalImports As String() = Nothing) As Task
+        Private Async Function TestAsync(initialText As String, importsAddedText As String, simplifiedText As String, Optional optionsTransform As Func(Of OptionSet, OptionSet) = Nothing, Optional globalImports As String() = Nothing) As Task
 
             Dim doc = GetDocument(initialText, globalImports)
-            options = If(options, doc.Project.Solution.Workspace.Options)
+            Dim options = doc.Project.Solution.Workspace.Options
+            If optionsTransform IsNot Nothing Then
+                options = optionsTransform(options)
+            End If
 
             Dim imported = Await ImportAdder.AddImportsAsync(doc, options)
 
@@ -114,7 +111,7 @@ Imports System.Collections.Generic
 Class C
     Public F As List(Of Integer)
 End Class",
-_ws.Options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic, False))
+            Function(options) options.WithChangedOption(GenerationOptions.PlaceSystemNamespaceFirst, LanguageNames.VisualBasic, False))
         End Function
 
         <Fact>

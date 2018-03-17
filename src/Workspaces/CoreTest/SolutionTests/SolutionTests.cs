@@ -1119,7 +1119,6 @@ End Class";
         public void TestCommandLineProjectWithRelativePathOutsideProjectCone()
         {
             string commandLine = @"..\goo.cs";
-            var ws = new AdhocWorkspace();
             var info = CommandLineProject.CreateProjectInfo("TestProject", LanguageNames.CSharp, commandLine, @"C:\ProjectDirectory");
 
             var docInfo = info.Documents.First();

@@ -16,19 +16,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
 {
     public class SyntaxEditorTests
     {
-        private readonly Workspace _emptyWorkspace = new AdhocWorkspace();
+        private Workspace _emptyWorkspace;
+
+        private Workspace EmptyWorkspace
+            => _emptyWorkspace ?? (_emptyWorkspace = new AdhocWorkspace());
 
         private async Task VerifySyntaxAsync<TSyntax>(SyntaxNode node, string expectedText) where TSyntax : SyntaxNode
         {
             Assert.IsAssignableFrom(typeof(TSyntax), node);
-            var formatted = await Formatter.FormatAsync(node, _emptyWorkspace);
+            var formatted = await Formatter.FormatAsync(node, EmptyWorkspace);
             var actualText = formatted.ToFullString();
             Assert.Equal(expectedText, actualText);
         }
 
         private SyntaxEditor GetEditor(SyntaxNode root)
         {
-            return new SyntaxEditor(root, _emptyWorkspace);
+            return new SyntaxEditor(root, EmptyWorkspace);
         }
 
         [Fact]
