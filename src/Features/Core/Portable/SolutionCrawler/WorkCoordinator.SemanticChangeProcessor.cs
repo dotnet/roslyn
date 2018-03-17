@@ -48,6 +48,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     _pendingWork = new Dictionary<DocumentId, Data>();
 
                     Start();
+
+                    AsyncProcessorTask.ContinueWith(
+                        _ =>
+                        {
+                            foreach (var (documentId, data) in _pendingWork)
+                            {
+                                data.AsyncToken.Dispose();
+                            }
+
+                            _pendingWork.Clear();
+                        },
+                        CancellationToken.None,
+                        TaskContinuationOptions.ExecuteSynchronously,
+                        TaskScheduler.Default);
                 }
 
                 public override Task AsyncProcessorTask
@@ -339,6 +353,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         _pendingWork = new Dictionary<ProjectId, Data>();
 
                         Start();
+
+                        AsyncProcessorTask.ContinueWith(
+                            _ =>
+                            {
+                                foreach (var (projectId, data) in _pendingWork)
+                                {
+                                    data.AsyncToken.Dispose();
+                                }
+
+                                _pendingWork.Clear();
+                            },
+                            CancellationToken.None,
+                            TaskContinuationOptions.ExecuteSynchronously,
+                            TaskScheduler.Default);
                     }
 
                     public void Enqueue(ProjectId projectId, bool needDependencyTracking = false)
