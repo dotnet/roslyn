@@ -364,12 +364,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, value.Syntax);
                     }
-                    else
+                    else if (!CheckNullAsNonNullableReference(value))
                     {
-                        if (!CheckNullAsNonNullableReference(value))
-                        {
-                            ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceAssignment, value.Syntax);
-                        }
+                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullReferenceAssignment, value.Syntax);
                     }
                 }
 
@@ -1860,6 +1857,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     targetType.IsReferenceType &&
                     (operandType?.IsNullable == true || (operandType is null && operand.IsLiteralNullOrDefault())))
                 {
+                    // PROTOTYPE(NullableReferenceTypes): Should not report warning for explicit
+                    // user -defined conversion if the operator is defined from nullable to
+                    // non-nullable. See StaticNullChecking.ExplicitCast_UserDefined.
                     ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_ConvertingNullableToNonNullable, node.Syntax);
                 }
 

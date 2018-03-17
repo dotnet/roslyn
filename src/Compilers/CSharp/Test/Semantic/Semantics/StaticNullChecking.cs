@@ -18487,28 +18487,91 @@ class C
                 Diagnostic(ErrorCode.WRN_NullReferenceReceiver, "(A<string>)y4").WithLocation(35, 10));
         }
 
+        // PROTOTYPE(NullableReferenceTypes): Should not report CS8600 for
+        // `(B)x3` since the user-defined conversion is defined from A3? to B.
         [Fact]
         public void ExplicitCast_UserDefined()
         {
             var source =
-@"class A
+@"class A1
 {
-    public static implicit operator B?(A? a) => new B();
+    public static implicit operator B?(A1? a) => new B();
+}
+class A2
+{
+    public static implicit operator B?(A2 a) => new B();
+}
+class A3
+{
+    public static implicit operator B(A3? a) => new B();
+}
+class A4
+{
+    public static implicit operator B(A4 a) => new B();
 }
 class B { }
 class C
 {
-    static B F(A? x) => (B)x;
-    static B? G(A? y) => (B?)y;
+    static void F1(A1? x1, A1 y1)
+    {
+        B? b;
+        b = ((B)x1)/*T:B?*/;
+        b = ((B?)x1)/*T:B?*/;
+        b = ((B)y1)/*T:B?*/;
+        b = ((B?)y1)/*T:B?*/;
+    }
+    static void F2(A2? x2, A2 y2)
+    {
+        B? b;
+        b = ((B)x2)/*T:B?*/;
+        b = ((B?)x2)/*T:B?*/;
+        b = ((B)y2)/*T:B?*/;
+        b = ((B?)y2)/*T:B?*/;
+    }
+    static void F3(A3? x3, A3 y3)
+    {
+        B? b;
+        b = ((B)x3)/*T:B!*/;
+        b = ((B?)x3)/*T:B!*/;
+        b = ((B)y3)/*T:B!*/;
+        b = ((B?)y3)/*T:B!*/;
+    }
+    static void F4(A4? x4, A4 y4)
+    {
+        B? b;
+        b = ((B)x4)/*T:B!*/;
+        b = ((B?)x4)/*T:B!*/;
+        b = ((B)y4)/*T:B!*/;
+        b = ((B?)y4)/*T:B!*/;
+    }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
-                // (8,25): warning CS8600: Converting null literal or possible null value to non-nullable type.
-                //     static B F(A? x) => (B)x;
-                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(B)x").WithLocation(8, 25),
-                // (8,25): warning CS8603: Possible null reference return.
-                //     static B F(A? x) => (B)x;
-                Diagnostic(ErrorCode.WRN_NullReferenceReturn, "(B)x").WithLocation(8, 25));
+                // (23,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         b = ((B)x1)/*T:B?*/;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(B)x1").WithLocation(23, 14),
+                // (31,17): warning CS8604: Possible null reference argument for parameter 'a' in 'A2.implicit operator B?(A2 a)'.
+                //         b = ((B)x2)/*T:B?*/;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("a", "A2.implicit operator B?(A2 a)").WithLocation(31, 17),
+                // (31,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         b = ((B)x2)/*T:B?*/;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(B)x2").WithLocation(31, 14),
+                // (32,18): warning CS8604: Possible null reference argument for parameter 'a' in 'A2.implicit operator B?(A2 a)'.
+                //         b = ((B?)x2)/*T:B?*/;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x2").WithArguments("a", "A2.implicit operator B?(A2 a)").WithLocation(32, 18),
+                // (39,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         b = ((B)x3)/*T:B!*/;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(B)x3").WithLocation(39, 14),
+                // (47,17): warning CS8604: Possible null reference argument for parameter 'a' in 'A4.implicit operator B(A4 a)'.
+                //         b = ((B)x4)/*T:B!*/;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x4").WithArguments("a", "A4.implicit operator B(A4 a)").WithLocation(47, 17),
+                // (47,14): warning CS8600: Converting null literal or possible null value to non-nullable type.
+                //         b = ((B)x4)/*T:B!*/;
+                Diagnostic(ErrorCode.WRN_ConvertingNullableToNonNullable, "(B)x4").WithLocation(47, 14),
+                // (48,18): warning CS8604: Possible null reference argument for parameter 'a' in 'A4.implicit operator B(A4 a)'.
+                //         b = ((B?)x4)/*T:B!*/;
+                Diagnostic(ErrorCode.WRN_NullReferenceArgument, "x4").WithArguments("a", "A4.implicit operator B(A4 a)").WithLocation(48, 18));
+            comp.VerifyTypes();
         }
 
         [Fact]

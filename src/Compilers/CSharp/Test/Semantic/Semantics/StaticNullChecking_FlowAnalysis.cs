@@ -147,6 +147,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Nullable
         c[0].ToString();
         var d = new[] { (string)null, new object() };
         d[0].ToString();
+        var e = new[] { new object(), (string)null! };
+        e[0].ToString();
+        var f = new[] { (object)null!, s };
+        f[0].ToString();
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
@@ -1289,19 +1293,19 @@ class C
         }
         else
         {
-            Create(x).F = null;
+            Create(x).F = null; // warn
             var y = Create(x);
-            y.F = null;
+            y.F = null; // warn
         }
     }
 }";
             var comp = CreateStandardCompilation(source, parseOptions: TestOptions.Regular8);
             comp.VerifyDiagnostics(
                 // (21,27): warning CS8625: Cannot convert null literal to non-nullable reference.
-                //             Create(x).F = null;
+                //             Create(x).F = null; // warn
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(21, 27),
                 // (23,19): warning CS8625: Cannot convert null literal to non-nullable reference.
-                //             y.F = null;
+                //             y.F = null; // warn
                 Diagnostic(ErrorCode.WRN_NullAsNonNullable, "null").WithLocation(23, 19));
         }
 

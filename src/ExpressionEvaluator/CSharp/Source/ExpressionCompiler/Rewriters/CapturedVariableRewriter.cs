@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 @checked: false,
                 explicitCastInCode: false,
                 constantValueOpt: null,
-                isNullable: false,
+                isNullable: null,
                 type: baseType,
                 hasErrors: !conversion.IsValid)
             { WasCompilerGenerated = true };
