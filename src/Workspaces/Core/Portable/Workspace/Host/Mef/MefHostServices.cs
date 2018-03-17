@@ -13,6 +13,10 @@ namespace Microsoft.CodeAnalysis.Host.Mef
 {
     public class MefHostServices : HostServices, IMefHostExportProvider
     {
+        internal delegate MefHostServices CreationHook(IEnumerable<Assembly> assemblies, bool requestingDefaultHost);
+
+        private static CreationHook s_CreationHook;
+
         private readonly CompositionContext _compositionContext;
 
         public MefHostServices(CompositionContext compositionContext)
@@ -35,6 +39,14 @@ namespace Microsoft.CodeAnalysis.Host.Mef
             if (assemblies == null)
             {
                 throw new ArgumentNullException(nameof(assemblies));
+            }
+
+            if (s_CreationHook != null)
+            {
+                var requestingDefaultAssemblies =
+                    assemblies is ImmutableArray<Assembly> array
+                    && array == DefaultAssemblies;
+                return s_CreationHook(assemblies, requestingDefaultAssemblies);
             }
 
             var compositionConfiguration = new ContainerConfiguration().WithAssemblies(assemblies.Distinct());
@@ -66,6 +78,12 @@ namespace Microsoft.CodeAnalysis.Host.Mef
         }
 
         #region Defaults
+
+        internal static void HookServiceCreation(CreationHook hook)
+        {
+            s_CreationHook = hook;
+            s_defaultHost = null;
+        }
 
         private static MefHostServices s_defaultHost;
         public static MefHostServices DefaultHost
