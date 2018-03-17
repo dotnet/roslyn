@@ -2179,11 +2179,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // Goo(ref |
             // Goo(in |
             // Goo(out |
+            // ref var x = ref |
             if (token.IsKind(SyntaxKind.RefKeyword) ||
                 token.IsKind(SyntaxKind.InKeyword) ||
                 token.IsKind(SyntaxKind.OutKeyword))
             {
-                if (token.Parent.IsKind(SyntaxKind.Argument))
+                if (token.Parent.IsKind(SyntaxKind.Argument, SyntaxKind.RefExpression))
                 {
                     return true;
                 }
