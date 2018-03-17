@@ -105,6 +105,9 @@ namespace Microsoft.CodeAnalysis.Text
                     return;
                 }
 
+                // we should process all changes even though there is no text changes
+                // otherwise, Workspace.CurrentSolution won't move forward to latest ITextSnapshot
+
                 // this should convert given editor snapshots to roslyn forked snapshots
                 var oldText = (SnapshotSourceText)args.Before.AsText();
                 var newText = SnapshotSourceText.From(args.After);
