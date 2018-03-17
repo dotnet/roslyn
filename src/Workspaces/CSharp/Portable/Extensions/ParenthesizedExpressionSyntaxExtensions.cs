@@ -14,7 +14,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool CanRemoveParentheses(this ParenthesizedExpressionSyntax node, SemanticModel semanticModel)
         {
             var expression = node.Expression;
-            var parentExpression = node.Parent as ExpressionSyntax;
+
+            // The 'direct' expression that contains this parenthesized node.  Note: in the case
+            // of code like: ```x is (y)``` there is an intermediary 'no-syntax' 'ConstantPattern'
+            // node between the 'is-pattern' node and the parenthesized expression.  So we manually
+            // jump past that as, for all intents and purposes, we want to consider the 'is' expression
+            // as the parent expression of the (y) expression.
+            var parentExpression = node.IsParentKind(SyntaxKind.ConstantPattern)
+                ? node.Parent.Parent as ExpressionSyntax
+                : node.Parent as ExpressionSyntax;
 
             // Simplest cases:
             //   ((x)) -> (x)

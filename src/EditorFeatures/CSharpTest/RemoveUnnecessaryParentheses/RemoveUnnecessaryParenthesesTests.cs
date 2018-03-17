@@ -868,7 +868,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 
         [WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
-        public async Task TestPatternExpression1_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        public async Task TestConstantPatternExpression_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
 @"class C
@@ -893,7 +893,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 
         [WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
-        public async Task TestMissingWithIsAndEquality()
+        public async Task TestConstantPatternExpression_RequiredForPrecedence()
         {
             await TestMissingAsync(
 @"class C
