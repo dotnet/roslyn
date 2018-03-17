@@ -10,10 +10,6 @@ using Microsoft.CodeAnalysis.PickMembers;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateEqualsAndGetHashCodeFromMembers
 {
-    [ExportCodeRefactoringProvider(LanguageNames.CSharp,
-        Name = PredefinedCodeRefactoringProviderNames.GenerateEqualsAndGetHashCodeFromMembers), Shared]
-    [ExtensionOrder(After = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers,
-                    Before = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
     internal class CSharpGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider 
         : AbstractGenerateEqualsAndGetHashCodeFromMembersCodeRefactoringProvider
     {
