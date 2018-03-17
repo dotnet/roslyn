@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             IRemotableDataService service,
             Checksum checksum,
             WellKnownSynchronizationKind kind,
-            Func<T, WellKnownSynchronizationKind, ISerializer, RemotableData> assetGetter)
+            Func<T, WellKnownSynchronizationKind, ISerializerService, RemotableData> assetGetter)
         {
             // re-create asset from object
             var syncService = (RemotableDataServiceFactory.Service)service;

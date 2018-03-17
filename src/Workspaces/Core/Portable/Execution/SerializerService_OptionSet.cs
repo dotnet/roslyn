@@ -6,7 +6,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
 {
-    internal partial class Serializer
+    internal partial class SerializerService
     {
         // this is temporary solution until option is supported in compiler layer natively
         // this won't serialize all options but some we pre-selected

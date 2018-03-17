@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// also, consider moving this serializer to use C# BOND serializer 
     /// https://github.com/Microsoft/bond
     /// </summary>
-    internal partial class Serializer : ISerializer
+    internal partial class SerializerService : ISerializerService
     {
         private readonly HostWorkspaceServices _workspaceServices;
 
@@ -29,15 +30,8 @@ namespace Microsoft.CodeAnalysis.Serialization
 
         private readonly ConcurrentDictionary<string, IOptionsSerializationService> _lazyLanguageSerializationService;
 
-        public Serializer(Solution solution) : this(solution.Workspace)
-        {
-        }
-
-        public Serializer(Workspace workspace) : this(workspace.Services)
-        {
-        }
-
-        public Serializer(HostWorkspaceServices workspaceServices)
+        [Obsolete("This exported object must be obtained through the MEF export provider.", error: true)]
+        public SerializerService(HostWorkspaceServices workspaceServices)
         {
             _workspaceServices = workspaceServices;
 

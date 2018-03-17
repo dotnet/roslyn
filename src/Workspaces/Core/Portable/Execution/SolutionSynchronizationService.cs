@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Execution
             private readonly HostWorkspaceServices _workspaceServices;
             private readonly AssetStorages _assetStorages;
 
-            public ISerializer Serializer_TestOnly => new Serializer(_workspaceServices);
+            public ISerializerService Serializer_TestOnly => _workspaceServices.GetService<ISerializerService>();
 
             public Service(HostWorkspaceServices workspaceServices, AssetStorages storages)
             {

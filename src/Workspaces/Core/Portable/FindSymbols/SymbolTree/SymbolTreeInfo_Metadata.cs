@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // So our checksum is just the checksum for the PEReference itself.
             return ChecksumCache.GetOrCreate(reference, _ =>
             {
-                var serializer = new Serializer(solution.Workspace);
+                var serializer = solution.Workspace.Services.GetService<ISerializerService>();
                 var checksum = serializer.CreateChecksum(reference, cancellationToken);
                 return checksum;
             });

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal class CustomAssetBuilder
     {
-        private readonly ISerializer _serializer;
+        private readonly ISerializerService _serializer;
 
         public CustomAssetBuilder(Solution solution) : this(solution.Workspace)
         {
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public CustomAssetBuilder(HostWorkspaceServices services)
         {
-            _serializer = new Serializer(services);
+            _serializer = services.GetService<ISerializerService>();
         }
 
         public CustomAsset Build(OptionSet options, string language, CancellationToken cancellationToken)

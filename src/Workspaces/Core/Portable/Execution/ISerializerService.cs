@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Serialization
 {
-    internal interface ISerializer
+    internal interface ISerializerService : IWorkspaceService
     {
         void Serialize(object value, ObjectWriter writer, CancellationToken cancellationToken);
 
