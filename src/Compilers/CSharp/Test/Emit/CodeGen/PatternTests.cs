@@ -687,5 +687,92 @@ public class C
   IL_001b:  ret
 }");
         }
+
+        [Fact, WorkItem(16878, "https://github.com/dotnet/roslyn/issues/16878")]
+        public void RedundantNullCheck()
+        {
+            var source =
+@"public class C
+{
+    static int M1(bool? b1, bool b2)
+    {
+        switch (b1)
+        {
+            case null:
+                return 1;
+            case var _ when b2:
+                return 2;
+            case true:
+                return 3;
+            case false:
+                return 4;
+        }
+    }
+
+    static int M2(object o, bool b)
+    {
+        switch (o)
+        {
+            case string a when b:
+                return 1;
+            case string a:
+                return 2;
+        }
+        return 3;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M1",
+@"{
+  // Code size       35 (0x23)
+  .maxstack  1
+  .locals init (bool? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool bool?.HasValue.get""
+  IL_0009:  brfalse.s  IL_0018
+  IL_000b:  br.s       IL_001a
+  IL_000d:  ldloca.s   V_0
+  IL_000f:  call       ""bool bool?.GetValueOrDefault()""
+  IL_0014:  brtrue.s   IL_001f
+  IL_0016:  br.s       IL_0021
+  IL_0018:  ldc.i4.1
+  IL_0019:  ret
+  IL_001a:  ldarg.1
+  IL_001b:  brfalse.s  IL_000d
+  IL_001d:  ldc.i4.2
+  IL_001e:  ret
+  IL_001f:  ldc.i4.3
+  IL_0020:  ret
+  IL_0021:  ldc.i4.4
+  IL_0022:  ret
+}");
+            compVerifier.VerifyIL("C.M2",
+@"{
+  // Code size       26 (0x1a)
+  .maxstack  1
+  .locals init (object V_0,
+                string V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  isinst     ""string""
+  IL_0008:  brfalse.s  IL_0018
+  IL_000a:  ldloc.0
+  IL_000b:  castclass  ""string""
+  IL_0010:  stloc.1
+  IL_0011:  ldarg.1
+  IL_0012:  brfalse.s  IL_0016
+  IL_0014:  ldc.i4.1
+  IL_0015:  ret
+  IL_0016:  ldc.i4.2
+  IL_0017:  ret
+  IL_0018:  ldc.i4.3
+  IL_0019:  ret
+}");
+        }
     }
 }
