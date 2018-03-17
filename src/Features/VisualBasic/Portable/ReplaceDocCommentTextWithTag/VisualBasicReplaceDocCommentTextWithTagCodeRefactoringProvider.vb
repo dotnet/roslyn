@@ -5,7 +5,8 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 Imports Microsoft.CodeAnalysis.ReplaceDocCommentTextWithTag
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.ReplaceDocCommentTextWithTag
-    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic), [Shared]>
+    <ExportCodeRefactoringProvider(LanguageNames.VisualBasic,
+        Name := PredefinedCodeRefactoringProviderNames.ReplaceDocCommentWithTextTag), [Shared]>
     Friend Class VisualBasicReplaceDocCommentTextWithTagCodeRefactoringProvider
         Inherits AbstractReplaceDocCommentTextWithTagCodeRefactoringProvider
 
