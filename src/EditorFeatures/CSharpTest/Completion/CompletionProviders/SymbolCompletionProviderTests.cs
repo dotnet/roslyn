@@ -1942,6 +1942,36 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterRefInMethodDeclaration()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(ref $$)
+    {
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task AfterOutInMethodDeclaration()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(out $$)
+    {
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(24326, "https://github.com/dotnet/roslyn/issues/24326")]
         public async Task AfterInInMethodDeclaration()
         {
@@ -1955,6 +1985,38 @@ class C
 }
 ";
             await VerifyItemExistsAsync(markup, "String");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task VariableAfterRefInInvocation()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(ref String parameter)
+    {
+        M(ref $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task VariableAfterOutInInvocation()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(out String parameter)
+    {
+        M(out $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "parameter");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
