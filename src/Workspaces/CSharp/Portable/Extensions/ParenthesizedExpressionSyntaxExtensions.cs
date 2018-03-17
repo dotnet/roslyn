@@ -179,6 +179,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
+            // case (x): -> case x:
+            if (node.IsParentKind(SyntaxKind.CaseSwitchLabel))
+            {
+                return true;
+            }
+
+            // case x when (y): -> case x when y:
+            if (node.IsParentKind(SyntaxKind.WhenClause))
+            {
+                return true;
+            }
+
             // Operator precedence cases:
             // - If the parent is not an expression, do not remove parentheses
             // - Otherwise, parentheses may be removed if doing so does not change operator associations.
