@@ -134,6 +134,10 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 FindUsagesHelpers.GetDisplayName(symbol))).ConfigureAwait(false);
             var progressAdapter = new FindReferencesProgressAdapter(project.Solution, context);
 
+            var options = symbol.IsAccessor()
+                    ? new SymbolFinderOptions(cascade: false, includeImplicitAccessorUsages: true)
+                    : SymbolFinderOptions.Default;
+
             // Now call into the underlying FAR engine to find reference.  The FAR
             // engine will push results into the 'progress' instance passed into it.
             // We'll take those results, massage them, and forward them along to the 
@@ -143,7 +147,7 @@ namespace Microsoft.CodeAnalysis.Editor.FindUsages
                 project.Solution,
                 progressAdapter,
                 documents: null,
-                SymbolFinderOptions.Default,
+                options,
                 cancellationToken).ConfigureAwait(false);
         }
 

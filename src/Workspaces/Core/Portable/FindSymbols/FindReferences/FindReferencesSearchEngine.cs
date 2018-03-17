@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _solution = solution;
             _finders = finders;
             _progress = progress;
-            _options = options;
+            _options = options ?? SymbolFinderOptions.Default;
             _cancellationToken = cancellationToken;
             _dependencyGraph = solution.GetProjectDependencyGraph();
 

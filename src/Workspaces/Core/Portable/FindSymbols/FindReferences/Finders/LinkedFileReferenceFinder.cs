@@ -12,7 +12,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
     internal class LinkedFileReferenceFinder : IReferenceFinder
     {
         public async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null, CancellationToken cancellationToken = default)
+            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects = null,
+            SymbolFinderOptions options = null, CancellationToken cancellationToken = default)
         {
             var linkedSymbols = new HashSet<SymbolAndProjectId>();
 
@@ -62,7 +63,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             return linkedSymbols.ToImmutableArray();
         }
 
-        public Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken = default)
+        public Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, SymbolFinderOptions options, CancellationToken cancellationToken = default)
         {
             return SpecializedTasks.EmptyImmutableArray<Document>();
         }
@@ -73,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         public Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
-            SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel, CancellationToken cancellationToken = default)
+            SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel, SymbolFinderOptions options, CancellationToken cancellationToken = default)
         {
             return SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
         }

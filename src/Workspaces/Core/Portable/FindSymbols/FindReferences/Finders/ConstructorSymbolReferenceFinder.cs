@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -29,6 +28,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IMethodSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             var typeName = symbol.ContainingType.Name;
@@ -58,6 +58,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IMethodSymbol methodSymbol,
             Document document,
             SemanticModel semanticModel,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             return FindAllReferencesInDocumentAsync(methodSymbol, document, semanticModel, cancellationToken);

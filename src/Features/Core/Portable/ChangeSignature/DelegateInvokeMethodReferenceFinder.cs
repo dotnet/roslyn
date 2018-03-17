@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -35,6 +34,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             var result = ImmutableArray.CreateBuilder<SymbolAndProjectId>();
@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             IMethodSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             return Task.FromResult(project.Documents.ToImmutableArray());
@@ -73,6 +74,7 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
             IMethodSymbol methodSymbol,
             Document document,
             SemanticModel semanticModel,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             // FAR on the Delegate type and use those results to find Invoke calls

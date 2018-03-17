@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,6 +18,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId<ITypeParameterSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             var symbol = symbolAndProjectId.Symbol;
@@ -47,6 +47,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ITypeParameterSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             // Type parameters are only found in documents that have both their name, and the name
@@ -76,6 +77,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             ITypeParameterSymbol symbol,
             Document document,
             SemanticModel semanticModel,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             // TODO(cyrusn): Method type parameters are like locals.  They are only in scope in

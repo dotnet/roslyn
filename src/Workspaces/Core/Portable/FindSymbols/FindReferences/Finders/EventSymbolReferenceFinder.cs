@@ -1,12 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -20,10 +17,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         protected override async Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
             SymbolAndProjectId<IEventSymbol> symbolAndProjectId,
             Solution solution, 
-            IImmutableSet<Project> projects, 
+            IImmutableSet<Project> projects,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
-            var baseSymbols = await base.DetermineCascadedSymbolsAsync(symbolAndProjectId, solution, projects, cancellationToken).ConfigureAwait(false);
+            var baseSymbols = await base.DetermineCascadedSymbolsAsync(symbolAndProjectId, solution, projects, options, cancellationToken).ConfigureAwait(false);
 
             var symbol = symbolAndProjectId.Symbol;
             var backingFields = symbol.ContainingType.GetMembers()
@@ -45,6 +43,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IEventSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             return FindDocumentsAsync(project, documents, cancellationToken, symbol.Name);
@@ -54,6 +53,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IEventSymbol symbol,
             Document document,
             SemanticModel semanticModel,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             return FindReferencesInDocumentUsingSymbolNameAsync(symbol, document, semanticModel, cancellationToken);

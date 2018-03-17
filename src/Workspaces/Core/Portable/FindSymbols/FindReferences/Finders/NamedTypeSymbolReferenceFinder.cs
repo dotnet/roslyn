@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -23,6 +22,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId<INamedTypeSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             var result = ArrayBuilder<SymbolAndProjectId>.GetInstance();
@@ -55,6 +55,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             INamedTypeSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             var documentsWithName = await FindDocumentsAsync(project, documents, cancellationToken, symbol.Name).ConfigureAwait(false);
@@ -81,6 +82,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             INamedTypeSymbol namedType,
             Document document,
             SemanticModel semanticModel,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             var namedTypereferences = await FindReferencesInDocumentWorker(

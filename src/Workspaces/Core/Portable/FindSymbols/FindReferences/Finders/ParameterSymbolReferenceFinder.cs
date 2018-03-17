@@ -9,7 +9,6 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.PooledObjects;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -24,6 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IParameterSymbol symbol,
             Project project,
             IImmutableSet<Document> documents,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             // TODO(cyrusn): We can be smarter with parameters.  They will either be found
@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IParameterSymbol symbol,
             Document document,
             SemanticModel semanticModel,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             var symbolsMatch = GetParameterSymbolsMatchFunction(
@@ -98,6 +99,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId<IParameterSymbol> parameterAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             var parameter = parameterAndProjectId.Symbol;

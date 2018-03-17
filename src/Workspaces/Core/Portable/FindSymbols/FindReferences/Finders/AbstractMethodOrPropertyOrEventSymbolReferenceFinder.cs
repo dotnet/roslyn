@@ -21,6 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId<TSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             // Static methods can't cascade.

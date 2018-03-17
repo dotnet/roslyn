@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             SymbolAndProjectId<IMethodSymbol> symbolAndProjectId,
             Solution solution,
             IImmutableSet<Project> projects,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             // If it's a delegate method, then cascade to the type as well.  These guys are
@@ -37,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             else
             {
                 var otherPartsOfPartial = GetOtherPartsOfPartial(symbolAndProjectId);
-                var baseCascadedSymbols = await base.DetermineCascadedSymbolsAsync(symbolAndProjectId, solution, projects, cancellationToken).ConfigureAwait(false);
+                var baseCascadedSymbols = await base.DetermineCascadedSymbolsAsync(symbolAndProjectId, solution, projects, options, cancellationToken).ConfigureAwait(false);
 
                 if (otherPartsOfPartial == null && baseCascadedSymbols == null)
                 {
@@ -71,6 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IMethodSymbol methodSymbol,
             Project project,
             IImmutableSet<Document> documents,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             // TODO(cyrusn): Handle searching for IDisposable.Dispose (or an implementation
@@ -114,6 +116,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             IMethodSymbol symbol,
             Document document,
             SemanticModel semanticModel,
+            SymbolFinderOptions options,
             CancellationToken cancellationToken)
         {
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();

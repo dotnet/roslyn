@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
     internal abstract partial class AbstractReferenceFinder : IReferenceFinder
     {
-        public abstract Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(SymbolAndProjectId symbolAndProject, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken);
+        public abstract Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(SymbolAndProjectId symbolAndProject, Solution solution, IImmutableSet<Project> projects, SymbolFinderOptions options, CancellationToken cancellationToken);
         public abstract Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken);
-        public abstract Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken);
-        public abstract Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel, CancellationToken cancellationToken);
+        public abstract Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, SymbolFinderOptions options, CancellationToken cancellationToken);
+        public abstract Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel, SymbolFinderOptions options, CancellationToken cancellationToken);
 
         protected static bool TryGetNameWithoutAttributeSuffix(
             string name,
@@ -79,6 +79,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 }
 
                 return true;
+            }, cancellationToken);
+        }
+
+        /// <summary>
+        /// Finds all the documents in the provided project that contain the requested string
+        /// values
+        /// </summary>
+        protected Task<ImmutableArray<Document>> FindDocumentsAsync(Project project, IImmutableSet<Document> documents, Predicate<SyntaxTreeIndex> documentIndexPredicate, CancellationToken cancellationToken)
+        {
+            if (documentIndexPredicate == null)
+            {
+                throw new ArgumentNullException(nameof(documentIndexPredicate));
+            }
+
+            return FindDocumentsAsync(project, documents, async (d, c) =>
+            {
+                var info = await SyntaxTreeIndex.GetIndexAsync(d, c).ConfigureAwait(false);
+                return documentIndexPredicate.Invoke(info);
             }, cancellationToken);
         }
 
@@ -506,8 +524,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         where TSymbol : ISymbol
     {
         protected abstract bool CanFind(TSymbol symbol);
-        protected abstract Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(TSymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken);
-        protected abstract Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(TSymbol symbol, Document document, SemanticModel semanticModel, CancellationToken cancellationToken);
+        protected abstract Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(TSymbol symbol, Project project, IImmutableSet<Document> documents, SymbolFinderOptions options, CancellationToken cancellationToken);
+        protected abstract Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(TSymbol symbol, Document document, SemanticModel semanticModel, SymbolFinderOptions options, CancellationToken cancellationToken);
 
         public override Task<ImmutableArray<Project>> DetermineProjectsToSearchAsync(ISymbol symbol, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
         {
@@ -516,31 +534,35 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 : SpecializedTasks.EmptyImmutableArray<Project>();
         }
 
-        public override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, CancellationToken cancellationToken)
+        public override Task<ImmutableArray<Document>> DetermineDocumentsToSearchAsync(ISymbol symbol, Project project, IImmutableSet<Document> documents, SymbolFinderOptions options, CancellationToken cancellationToken)
         {
             return symbol is TSymbol && CanFind((TSymbol)symbol)
-                ? DetermineDocumentsToSearchAsync((TSymbol)symbol, project, documents, cancellationToken)
+                ? DetermineDocumentsToSearchAsync((TSymbol)symbol, project, documents, options, cancellationToken)
                 : SpecializedTasks.EmptyImmutableArray<Document>();
         }
 
         public override Task<ImmutableArray<ReferenceLocation>> FindReferencesInDocumentAsync(
-            SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel, CancellationToken cancellationToken)
+            SymbolAndProjectId symbolAndProjectId, Document document, SemanticModel semanticModel, SymbolFinderOptions options, CancellationToken cancellationToken)
         {
             var symbol = symbolAndProjectId.Symbol;
             return symbol is TSymbol && CanFind((TSymbol)symbol)
-                ? FindReferencesInDocumentAsync((TSymbol)symbol, document, semanticModel, cancellationToken)
+                ? FindReferencesInDocumentAsync((TSymbol)symbol, document, semanticModel, options, cancellationToken)
                 : SpecializedTasks.EmptyImmutableArray<ReferenceLocation>();
         }
 
         public override Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId symbolAndProjectId, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
+            SymbolAndProjectId symbolAndProjectId,
+            Solution solution, 
+            IImmutableSet<Project> projects,
+            SymbolFinderOptions options,
+            CancellationToken cancellationToken)
         {
             var symbol = symbolAndProjectId.Symbol;
             if (symbol is TSymbol && CanFind((TSymbol)symbol))
             {
                 return DetermineCascadedSymbolsAsync(
                     symbolAndProjectId.WithSymbol((TSymbol)symbol),
-                    solution, projects, cancellationToken);
+                    solution, projects, options, cancellationToken);
             }
 
             return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId>();
@@ -554,7 +576,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
         }
 
         protected virtual Task<ImmutableArray<SymbolAndProjectId>> DetermineCascadedSymbolsAsync(
-            SymbolAndProjectId<TSymbol> symbolAndProject, Solution solution, IImmutableSet<Project> projects, CancellationToken cancellationToken)
+            SymbolAndProjectId<TSymbol> symbolAndProject, Solution solution, IImmutableSet<Project> projects, SymbolFinderOptions options, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyImmutableArray<SymbolAndProjectId>();
         }
