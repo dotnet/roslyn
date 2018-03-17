@@ -30,7 +30,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var storage = new AssetStorage();
             var source = new TestAssetSource(storage, checksum, data);
 
-            var service = new AssetService(sessionId, storage);
+            var service = new AssetService(sessionId, storage, SolutionService.PrimaryWorkspace);
             var stored = await service.GetAssetAsync<object>(checksum, CancellationToken.None);
             Assert.Equal(data, stored);
 
@@ -59,7 +59,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var storage = new AssetStorage();
                 var source = new TestAssetSource(storage, map);
 
-                var service = new AssetService(sessionId, storage);
+                var service = new AssetService(sessionId, storage, SolutionService.PrimaryWorkspace);
                 await service.SynchronizeAssetsAsync(new HashSet<Checksum>(map.Keys), CancellationToken.None);
 
                 foreach (var kv in map)
@@ -87,7 +87,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var storage = new AssetStorage();
                 var source = new TestAssetSource(storage, map);
 
-                var service = new AssetService(sessionId, storage);
+                var service = new AssetService(sessionId, storage, SolutionService.PrimaryWorkspace);
                 await service.SynchronizeSolutionAssetsAsync(await solution.State.GetChecksumAsync(CancellationToken.None), CancellationToken.None);
 
                 foreach (var kv in map)
@@ -115,7 +115,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
                 var storage = new AssetStorage();
                 var source = new TestAssetSource(storage, map);
 
-                var service = new AssetService(sessionId, storage);
+                var service = new AssetService(sessionId, storage, SolutionService.PrimaryWorkspace);
                 await service.SynchronizeProjectAssetsAsync(SpecializedCollections.SingletonEnumerable(await project.State.GetChecksumAsync(CancellationToken.None)), CancellationToken.None);
 
                 foreach (var kv in map)

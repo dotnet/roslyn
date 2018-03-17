@@ -17,20 +17,15 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class AssetService
     {
-        private static readonly ISerializerService s_serializer = SolutionService.PrimaryWorkspace.Services.GetService<ISerializerService>();
-
+        private readonly ISerializerService _serializerService;
         private readonly int _scopeId;
         private readonly AssetStorage _assetStorage;
 
-        public AssetService(int scopeId, AssetStorage assetStorage)
+        public AssetService(int scopeId, AssetStorage assetStorage, RemoteWorkspace remoteWorkspace)
         {
+            _serializerService = remoteWorkspace.Services.GetService<ISerializerService>();
             _scopeId = scopeId;
             _assetStorage = assetStorage;
-        }
-
-        public static T Deserialize<T>(WellKnownSynchronizationKind kind, ObjectReader reader, CancellationToken cancellationToken)
-        {
-            return s_serializer.Deserialize<T>(kind, reader, cancellationToken);
         }
 
         public IEnumerable<T> GetGlobalAssetsOfType<T>(CancellationToken cancellationToken)
@@ -155,7 +150,7 @@ namespace Microsoft.CodeAnalysis.Remote
             try
             {
                 // ask one of asset source for data
-                return await source.RequestAssetsAsync(_scopeId, checksums, cancellationToken).ConfigureAwait(false);
+                return await source.RequestAssetsAsync(_scopeId, checksums, _serializerService, cancellationToken).ConfigureAwait(false);
             }
             catch (ObjectDisposedException)
             {

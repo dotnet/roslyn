@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Remote
         {
             _scopeId = scopeId;
 
-            AssetService = new AssetService(_scopeId, storage);
+            AssetService = new AssetService(_scopeId, storage, SolutionService.PrimaryWorkspace);
             SolutionService = new SolutionService(AssetService);
             CompilationService = new CompilationService(SolutionService);
         }
