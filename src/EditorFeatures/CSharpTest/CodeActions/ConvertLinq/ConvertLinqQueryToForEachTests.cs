@@ -12,29 +12,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ConvertLinq
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace, TestParameters parameters)
           => new CodeAnalysis.CSharp.ConvertLinq.CSharpConvertLinqQueryToLinqMethodProvider();
 
-        // TODO anonymous type test
-        // a. for local function, expected - impossible.
-        // b. for some other refactoring where it is possible.
-        // TODO anonymous type inside a type test
-        // a. for local function, expected - impossible.
-        // b. for some other refactoring where it is possible.
-        // TODO test for multiple assignment expression
-        // TODO consider method/property declaration (not local), i.e. enumerable is a property
-        // TODO consider ienumerable return as an embedded function result
-        // TODO consider ienumerable return as an embedded local function result
-        // TODO multiple variable declaration
-        // TODO why it works with void M() where it requires 'nums' inside.
-        // TODO mymethod() => (from a in b select a).ToList();
-        // TODO list = (from a in q select a * a).ToList(), max = list.Max();
-        // TODO return (from a in q select a * a).ToList(), 1);
-        // TODO what if a.b.c = (from a in q select a * a).ToList();
-        // TODO .Count(x => x > 5)
-        // TODO tests for join
-        // TODO tests for queries with comments inline or in the end of line (single and multi line)
-        // TODO tests with preprocessor directives #if 
-
         [Fact]
-        public async Task Conversion_MultipleReferences()
+        public async Task AnonymousType()
         {
             string source = @"
 using System.Collections.Generic;
@@ -43,44 +22,16 @@ class C
 {
     bool M(IEnumerable<int> nums)
     {
-        var q = [||]from int n1 in nums 
-                from int n2 in nums
-                select n1;
-
-        return q.Any() && q.Sum() > 0;
+        var q = [||]from a in nums from b in nums select new { a, b };
     }
 }
 ";
-            string output = @"
-using System.Collections.Generic;
-using System.Linq;
-class C
-{
-    bool M(IEnumerable<int> nums)
-    {
-        IEnumerable<int> localFunction()
-        {
-            foreach (int n1 in nums)
-            {
-                foreach (int n2 in nums)
-                {
-                    yield return n1;
-                }
-            }
-        }
-
-        var q = localFunction();
-
-        return q.Any() && q.Sum() > 0;
-    }
-}
-";
-
-            await TestInRegularAndScriptAsync(source, output);
+            // No conversion can be made because it expects to introduce a local funciton but the return type contains anonymous.
+            await TestMissingAsync(source);
         }
 
         [Fact]
-        public async Task Conversion_ReturnIEnumerable()
+        public async Task ReturnIEnumerable()
         {
             string source = @"
 using System.Collections.Generic;
@@ -118,7 +69,258 @@ class C
         }
 
         [Fact]
-        public async Task Conversion_AssignAndReturnIEnumerable()
+        public async Task MultipleAssignments()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    public static void Main()
+    {
+        var nums = new int[] { 1, 2, 3, 4 };
+        IEnumerable<int> q1, q2;
+        q1 = q2 = [||]from x in nums select x + 1;
+    }
+}";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    public static void Main()
+    {
+        var nums = new int[] { 1, 2, 3, 4 };
+        IEnumerable<int> q1, q2;
+        IEnumerable<int> localFunction()
+        {
+            foreach (var x in nums)
+            {
+                yield return x + 1;
+            }
+        }
+
+        q1 = q2 = localFunction();
+    }
+}";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact]
+        public async Task PropertyAssignment()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    public static void Main()
+    {
+        var nums = new int[] { 1, 2, 3, 4 };
+        var c = new C();
+        c.A = [||]from x in nums select x + 1;
+    }
+
+    class C
+    {
+        public IEnumerable<int> A { get; set; }
+    }
+}";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    public static void Main()
+    {
+        var nums = new int[] { 1, 2, 3, 4 };
+        var c = new C();
+        IEnumerable<int> localFunction()
+        {
+            foreach (var x in nums)
+            {
+                yield return x + 1;
+            }
+        }
+
+        c.A = localFunction();
+    }
+
+    class C
+    {
+        public IEnumerable<int> A { get; set; }
+    }
+}";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+
+        [Fact]
+        public async Task PropertyAssignmentInInvocation()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    public static void Main()
+    {
+        var nums = new int[] { 1, 2, 3, 4 };
+        var c = new C();
+        c.A = ([||]from x in nums select x + 1).ToList();
+    }
+
+    class C
+    {
+        public List<int> A { get; set; }
+    }
+}";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    public static void Main()
+    {
+        var nums = new int[] { 1, 2, 3, 4 };
+        var c = new C();
+        c.A = new List<int>();
+        foreach (var x in nums)
+        {
+            c.A.Add(x + 1);
+        }
+    }
+
+    class C
+    {
+        public List<int> A { get; set; }
+    }
+}";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact]
+        public async Task MultipleDeclarationsFirst()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    public static void Main()
+    {
+        var nums = new int[] { 1, 2, 3, 4 };
+        IEnumerable<int> q1 = [||]from x in nums select x + 1, q2 = from x in nums select x + 1;
+    }
+}";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    public static void Main()
+    {
+        var nums = new int[] { 1, 2, 3, 4 };
+        IEnumerable<int> localFunction()
+        {
+            foreach (var x in nums)
+            {
+                yield return x + 1;
+            }
+        }
+
+        IEnumerable<int> q1 = localFunction(), q2 = from x in nums select x + 1;
+    }
+}";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact]
+        public async Task MultipleDeclarationsSecond()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    public static void Main()
+    {
+        var nums = new int[] { 1, 2, 3, 4 };
+        IEnumerable<int> q1 = from x in nums select x + 1, q2 = [||]from x in nums select x + 1;
+    }
+}";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    public static void Main()
+    {
+        var nums = new int[] { 1, 2, 3, 4 };
+        IEnumerable<int> localFunction()
+        {
+            foreach (var x in nums)
+            {
+                yield return x + 1;
+            }
+        }
+
+        IEnumerable<int> q1 = from x in nums select x + 1, q2 = localFunction();
+    }
+}";
+
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact]
+        public async Task TupleDeclaration()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    public static void Main()
+    {
+        var nums = new int[] { 1, 2, 3, 4 };
+        var q = ([||]from x in nums select x + 1, from x in nums select x + 1);
+    }
+}";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    public static void Main()
+    {
+        var nums = new int[] { 1, 2, 3, 4 };
+        IEnumerable<int> localFunction()
+        {
+            foreach (var x in nums)
+            {
+                yield return x + 1;
+            }
+        }
+
+        var q1 = (localFunction(), q2 = from x in nums select x + 1);
+    }
+}";
+            // TODO how to include a ref to { ValueTupleRef }?
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact]
+        public async Task AssignAndReturnIEnumerable()
         {
             string source = @"
 using System.Collections.Generic;
@@ -162,9 +364,8 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
-        // TODO list or List?
         [Fact]
-        public async Task Conversion_AssignList()
+        public async Task AssignList()
         {
             string source = @"
 using System.Collections.Generic;
@@ -206,7 +407,7 @@ class C
         }
 
         [Fact]
-        public async Task Conversion_ReturnList()
+        public async Task ReturnList()
         {
             string source = @"
 using System.Collections.Generic;
@@ -247,7 +448,7 @@ class C
         }
 
         [Fact]
-        public async Task Conversion_ReturnListNameGeneration()
+        public async Task ReturnListNameGeneration()
         {
             string source = @"
 using System.Collections.Generic;
@@ -290,7 +491,7 @@ class C
         }
 
         [Fact]
-        public async Task Conversion_AssignCount()
+        public async Task AssignCount()
         {
             string source = @"
 using System.Collections.Generic;
@@ -332,7 +533,7 @@ class C
         }
 
         [Fact]
-        public async Task Conversion_ReturnCount()
+        public async Task ReturnCount()
         {
             string source = @"
 using System.Collections.Generic;
@@ -373,7 +574,7 @@ class C
         }
 
         [Fact]
-        public async Task Conversion_ReturnCountNameGeneration()
+        public async Task ReturnCountNameGeneration()
         {
             string source = @"
 using System.Collections.Generic;
@@ -415,8 +616,30 @@ class C
             await TestInRegularAndScriptAsync(source, output);
         }
 
+
         [Fact]
-        public async Task Conversion_ReturnFirstOrDefault()
+        public async Task CountOverload()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    int M(IEnumerable<int> nums)
+    {
+        var cnt = ([||]from int n1 in nums 
+                 from int n2 in nums
+                 select n1).Count(x => x > 2);
+        return cnt;
+    }
+}
+";
+            // Only int Count() overload is supported.
+            await TestMissingAsync(source);
+        }
+
+        [Fact]
+        public async Task ReturnFirstOrDefault()
         {
             string source = @"
 using System.Collections.Generic;
@@ -425,8 +648,8 @@ class C
 {
     T M<T>(IEnumerable<T> nums)
     {
-        return ([||]from int n1 in nums 
-                 from int n2 in nums
+        return ([||]from n1 in nums 
+                 from n2 in nums
                  select n1).FirstOrDefault();
     }
 }
@@ -439,15 +662,18 @@ class C
 {
     T M<T>(IEnumerable<T> nums)
     {
-        foreach (int n1 in nums)
+        IEnumerable<T> localFunction()
         {
-            foreach (int n2 in nums)
+            foreach (var n1 in nums)
             {
-                return n1;
+                foreach (var n2 in nums)
+                {
+                    yield return n1;
+                }
             }
         }
 
-        return default; // TODO do we need to return null in some cases?
+        return localFunction().FirstOrDefault();
     }
 }
 ";
@@ -456,7 +682,7 @@ class C
         }
 
         [Fact]
-        public async Task Conversion_UsageInForEach()
+        public async Task UsageInForEach()
         {
             string source = @"
 using System;
@@ -509,7 +735,7 @@ class C
         }
 
         [Fact]
-        public async Task Conversion_UsageInForEachSameVariableName()
+        public async Task UsageInForEachSameVariableName()
         {
             string source = @"
 using System;
@@ -561,7 +787,7 @@ class C
         }
 
         [Fact]
-        public async Task Conversion_LinqDefinedInForEach()
+        public async Task LinqDefinedInForEach()
         {
             string source = @"
 using System;
@@ -605,7 +831,7 @@ class C
         }
 
         [Fact]
-        public async Task Conversion_LinqDefinedInForEachSameVariableName()
+        public async Task LinqDefinedInForEachSameVariableName()
         {
             string source = @"
 using System;
@@ -647,7 +873,7 @@ class C
         }
 
         [Fact]
-        public async Task Conversion_CallingMethodWithIEnumerable()
+        public async Task CallingMethodWithIEnumerable()
         {
             string source = @"
 using System;
@@ -698,7 +924,7 @@ class C
 
 
         [Fact]
-        public async Task Conversion_AssignmentExpression()
+        public async Task AssignmentExpression()
         {
             string source = @"
 using System;
@@ -1160,25 +1386,6 @@ class Query
         }
 
         [Fact]
-        public async Task TestGetSemanticInfo02()
-        {
-            string source = @"
-using System.Collections.Generic;
-using System.Linq;
-class Query
-{
-    public static void Main(string[] args)
-    {
-        List<int> c = new List<int>(28, 51, 27, 84, 27, 27, 72, 64, 55, 46, 39);
-        var r = [||]from i in c orderby i/10 descending, i%10 select i;
-        Console.WriteLine(r);
-    }
-}";
-            // order by is not supported by foreach.
-            await TestMissingAsync(source);
-        }
-
-        [Fact]
         public async Task JoinClauseTest() 
         {
             string source = @"
@@ -1328,7 +1535,7 @@ class P
             string source = @"
 using System;
 using System.Linq;
-public class Test2
+public class Test
 {
     public static void Main()
     {
@@ -1342,7 +1549,7 @@ public class Test2
             string output = @"
 using System;
 using System.Linq;
-public class Test2
+public class Test
 {
     public static void Main()
     {
@@ -1368,7 +1575,7 @@ public class Test2
             string source = @"
 using System.Collections.Generic;
 using System.Linq;
-public class Test2
+public class Test
 {
     public static void Main()
     {
@@ -1382,7 +1589,7 @@ public class Test2
             string output = @"
 using System.Collections.Generic;
 using System.Linq;
-public class Test2
+public class Test
 {
     public static void Main()
     {
@@ -1407,7 +1614,7 @@ public class Test2
         {
             string source = @"
 using System.Linq;
-public class Test2
+public class Test
 {
     public static void Main()
     {
@@ -1419,7 +1626,7 @@ public class Test2
 }";
             string output = @"
 using System.Linq;
-public class Test2
+public class Test
 {
     public static void Main()
     {
@@ -1539,6 +1746,26 @@ class Program
         var q = [||]from x in goo
                 select x + 1 into z
                     select z.T
+    }
+}
+";
+
+            await TestMissingAsync(source);
+        }
+
+        [Fact]
+        public async Task ErrorNameDoesNotExistsInContext()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    IEnumerable<int> M()
+    {
+        return [||]from int n1 in nums select n1;
+    }
+}
 ";
 
             await TestMissingAsync(source);
@@ -1679,6 +1906,243 @@ class Test
 }
 ";
 
+            await TestMissingAsync(source);
+        }
+
+        [Fact]
+        public async Task ExpressionBodiedProperty()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
+    public IEnumerable<int> Query => [||]from x in _nums select x + 1;
+}
+";
+            // Cannot convert in expression bodied property
+            await TestMissingAsync(source);
+        }
+
+
+        [Fact]
+        public async Task ExpressionBodiedField()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    private static readonly int[] _nums = new int[] { 1, 2, 3, 4 };
+    public List<int> Query = ([||]from x in _nums select x + 1).ToList();
+}
+";
+            await TestMissingAsync(source);
+        }
+
+
+        [Fact]
+        public async Task Field()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    private static readonly int[] _nums = new int[] { 1, 2, 3, 4 };
+    public IEnumerable<int> Query = [||]from x in _nums select x + 1;
+}
+";
+            await TestMissingAsync(source);
+        }
+
+        [Fact]
+        public async Task ExpressionBodiedMethod()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
+    public IEnumerable<int> Query() => [||]from x in _nums select x + 1;
+}
+";
+            // Cannot convert in expression bodied method
+            await TestMissingAsync(source);
+        }
+
+        [Fact]
+        public async Task InReturningTuple()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    (IEnumerable<int>, int) M(IEnumerable<int> q)
+    {
+        return (([||]from a in q select a * a), 1);
+    }
+}
+";
+            // Cannot convert in expression bodied method
+            await TestMissingAsync(source);
+        }
+
+        [Fact]
+        public async Task InInvocationReturningInTuple()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    (int, int) M(IEnumerable<int> q)
+    {
+        return (([||]from a in q select a * a).Count(), 1);
+    }
+}
+";
+            // Cannot convert in expression bodied method
+            await TestMissingAsync(source);
+        }
+
+        [Fact]
+        public async Task ExpressionBodiedMethodUnderInvocation()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
+    public List<int> Query() => ([||]from x in _nums select x + 1).ToList();
+}
+";
+            // Cannot convert in expression bodied method
+            await TestMissingAsync(source);
+        }
+
+        [Fact]
+        public async Task ExpressionBodiedLocalFunction()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
+    public void M()
+    {
+        IEnumerable<int> Query() => [||]from x in _nums select x + 1;
+    }
+}
+";
+            // Cannot convert in expression bodied property
+            await TestMissingAsync(source);
+        }
+
+        [Fact]
+        public async Task ExpressionBodiedAccessor()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
+    public IEnumerable<int> Query { get => [||]from x in _nums select x + 1; }
+}
+";
+            // Cannot convert in expression bodied property
+            await TestMissingAsync(source);
+        }
+
+        [Fact]
+        public async Task BlockBodiedProperty()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
+    public IEnumerable<int> Query1 { get { return [||]from x in _nums select x + 1; } }
+}
+";
+
+            string output = @"
+using System.Collections.Generic;
+using System.Linq;
+public class Test
+{
+    private readonly int[] _nums = new int[] { 1, 2, 3, 4 };
+    public IEnumerable<int> Query1 { get { foreach (var x in _nums) { yield return x + 1; } } }
+}
+";
+            await TestInRegularAndScriptAsync(source, output);
+        }
+
+        [Fact]
+        public async Task InlineComments()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        return [||]from int n1 in /* comment */ nums 
+                 from int n2 in nums
+                 select n1;
+    }
+}";
+            // Cannot convert expressions with comments
+            await TestMissingAsync(source);
+        }
+
+        [Fact]
+        public async Task Comments()
+        {
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        return [||]from int n1 in nums // comment
+                 from int n2 in nums
+                 select n1;
+    }
+}";
+            // Cannot convert expressions with comments
+            await TestMissingAsync(source);
+        }
+
+        [Fact]
+        public async Task PreprocessorDirectives()
+        {
+
+            string source = @"
+using System.Collections.Generic;
+using System.Linq;
+class C
+{
+    IEnumerable<int> M(IEnumerable<int> nums)
+    {
+        return [||]from int n1 in nums
+#if (true)
+                 from int n2 in nums
+#endif
+                 select n1;
+    }
+}";
+
+            // Cannot convert expressions with preprocessor directives
             await TestMissingAsync(source);
         }
     }

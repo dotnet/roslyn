@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
@@ -28,11 +27,11 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
             var semanticModel = await document.GetSemanticModelAsync().ConfigureAwait(false);
 
-            await CreateAnalyzer(semanticModel, document, context.CancellationToken)
+            await CreateAnalyzer(semanticModel, context.CancellationToken)
                 .ComputeRefactoringsAsync(context).ConfigureAwait(false);
         }
 
-        protected abstract IAnalyzer CreateAnalyzer(SemanticModel semanticModel, Document document, CancellationToken cancellationToken);
+        protected abstract IAnalyzer CreateAnalyzer(SemanticModel semanticModel, CancellationToken cancellationToken);
 
         protected interface IAnalyzer
         {
@@ -46,13 +45,10 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
         {
             protected readonly SemanticModel _semanticModel;
             protected readonly CancellationToken _cancellationToken;
-            protected readonly Document _document;
 
-            public AnalyzerBase(SemanticModel semanticModel, Document document, CancellationToken cancellationToken)
+            public AnalyzerBase(SemanticModel semanticModel, CancellationToken cancellationToken)
             {
                 _semanticModel = semanticModel;
-                // TODO consider removing
-                _document = document;
                 _cancellationToken = cancellationToken;
             }
 
@@ -75,13 +71,7 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
 
                 if (TryConvert(refactor, out var result))
                 {
-                    // TODO should not be checked inside tryconvert?
                     if (!result.IsValid())
-                    {
-                        return;
-                    }
-
-                    if (!Validate(result))
                     {
                         return;
                     }
@@ -94,8 +84,6 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
 
             protected virtual TRefactor FindNodeToRefactor(SyntaxNode root, CodeRefactoringContext context) =>
                 root.FindNode(context.Span).FirstAncestorOrSelf<TRefactor>();
-
-            protected virtual bool Validate(DocumentUpdate documentUpdate) => true;
 
             protected abstract string Title { get; }
 
@@ -111,34 +99,32 @@ namespace Microsoft.CodeAnalysis.ConvertLinq
 
         protected sealed class DocumentUpdate
         {
-            private ImmutableArray<(SyntaxNode source, ImmutableArray<SyntaxNode> destinations)> _updates;
+            private ImmutableArray<(SyntaxNode Source, ImmutableArray<SyntaxNode> Destinations)> _updates;
 
             public DocumentUpdate(SyntaxNode source, SyntaxNode destination)
                 => _updates = ImmutableArray.Create((source, ImmutableArray.Create(destination)));
 
             public DocumentUpdate(SyntaxNode source, IEnumerable<SyntaxNode> destination)
-            => _updates = ImmutableArray.Create((source, ImmutableArray.CreateRange(destination)));
+                => _updates = ImmutableArray.Create((source, ImmutableArray.CreateRange(destination)));
 
-            // TODO add a ctor for multiple sources
             public bool IsValid()
             {
-                return _updates.Any() && _updates.All(item => item.source != null && item.destinations != null);
+                return _updates.Any() && _updates.All(item => item.Source != null && item.Destinations != null);
             }
 
             public SyntaxNode UpdateRoot(SyntaxNode root)
             {
-                // SyntaxEditor
-                // TODO do we need to sort nodes by span desc?
-                foreach (var updateItem in _updates)
+                foreach (var updateItem in _updates.OrderByDescending(update => update.Source.Span.End))
                 {
-                    if (updateItem.destinations.Any())
+                    if (updateItem.Destinations.Any())
                     {
                         // TODO do we need to find node?
-                        root = root.ReplaceNode(root.FindNode(updateItem.source.Span), updateItem.destinations.Select(node => node.WithAdditionalAnnotations(Simplifier.Annotation)));
+                        // TODO consider using SyntaxEditor
+                        root = root.ReplaceNode(root.FindNode(updateItem.Source.Span), updateItem.Destinations.Select(node => node.WithAdditionalAnnotations(Simplifier.Annotation)));
                     }
                     else
                     {
-                        root = root.RemoveNode(updateItem.source, SyntaxRemoveOptions.AddElasticMarker);
+                        root = root.RemoveNode(updateItem.Source, SyntaxRemoveOptions.AddElasticMarker);
                     }
                 }
 
