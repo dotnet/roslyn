@@ -43,8 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />
-    <PackageReference Include="Microsoft.VisualStudio.Text.UI.Wpf" Version="$(MicrosoftVisualStudioTextUIWpfVersion)" />
+    <PackageReference Include="Microsoft.VisualStudio.Language.Intellisense" Version="$(MicrosoftVisualStudioLanguageIntellisenseVersion)" />    
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Update="CSharpEditorResources.resx">
