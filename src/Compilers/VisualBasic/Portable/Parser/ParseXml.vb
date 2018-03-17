@@ -18,11 +18,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Expression* .Parser::ParseXmlExpression( [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseXmlExpression() As XmlNodeSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.LessThanToken OrElse
-                 CurrentToken.Kind = SyntaxKind.LessThanGreaterThanToken OrElse
-                 CurrentToken.Kind = SyntaxKind.LessThanSlashToken OrElse
-                 CurrentToken.Kind = SyntaxKind.BeginCDataToken OrElse
-                 CurrentToken.Kind = SyntaxKind.LessThanExclamationMinusMinusToken OrElse
-                 CurrentToken.Kind = SyntaxKind.LessThanQuestionToken, "ParseXmlMarkup called on the wrong token.")
+                         CurrentToken.Kind = SyntaxKind.LessThanGreaterThanToken OrElse
+                         CurrentToken.Kind = SyntaxKind.LessThanSlashToken OrElse
+                         CurrentToken.Kind = SyntaxKind.BeginCDataToken OrElse
+                         CurrentToken.Kind = SyntaxKind.LessThanExclamationMinusMinusToken OrElse
+                         CurrentToken.Kind = SyntaxKind.LessThanQuestionToken, "ParseXmlMarkup called on the wrong token.")
 
             ' The < token must be reset because a VB scanned < might following trivia attached to it.
             ResetCurrentToken(ScannerState.Content)
@@ -99,8 +99,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' XmlDocumentExpression* .Parser::ParseXmlDecl( [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseXmlDeclaration() As XmlDeclarationSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.LessThanQuestionToken AndAlso
-                              PeekNextToken(ScannerState.Element).Kind = SyntaxKind.XmlNameToken AndAlso
-                              DirectCast(PeekNextToken(ScannerState.Element), XmlNameTokenSyntax).PossibleKeywordKind = SyntaxKind.XmlKeyword, "ParseXmlDecl called on the wrong token.")
+                         PeekNextToken(ScannerState.Element).Kind = SyntaxKind.XmlNameToken AndAlso
+                         DirectCast(PeekNextToken(ScannerState.Element), XmlNameTokenSyntax).PossibleKeywordKind = SyntaxKind.XmlKeyword, NameOf(ParseXmlDeclaration) & " called on the wrong token.")
 
             Dim beginPrologue = DirectCast(CurrentToken, PunctuationSyntax)
             GetNextToken(ScannerState.Element)
@@ -314,7 +314,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' Lines: 13452 - 13452
         ' ExpressionList** .Parser::ParseXmlMisc( [ _Inout_ ParseTree::ExpressionList** Prev ] [ bool IsProlog ] [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseXmlMisc(IsProlog As Boolean, whitespaceChecker As XmlWhitespaceChecker, ByRef outerNode As VisualBasicSyntaxNode) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
-            Dim Content = Me._pool.Allocate(Of XmlNodeSyntax)()
+            Dim Content = _pool.Allocate(Of XmlNodeSyntax)()
 
             While True
                 Dim result As XmlNodeSyntax = Nothing
@@ -354,38 +354,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             End While
 
-            Dim ContentList = Content.ToList
-            Me._pool.Free(Content)
-
+            Dim ContentList = _pool.ToListAndFree(Content)
             Return ContentList
         End Function
 
         Private Function ParseXmlDocType(enclosingState As ScannerState) As GreenNode
             Debug.Assert(CurrentToken.Kind = SyntaxKind.BadToken AndAlso
-                         DirectCast(CurrentToken, BadTokenSyntax).SubKind = SyntaxSubKind.BeginDocTypeToken, "ParseDTD called on wrong token.")
+                         DirectCast(CurrentToken, BadTokenSyntax).SubKind = SyntaxSubKind.BeginDocTypeToken, NameOf(ParseXmlDocType) & " called on wrong token.")
 
 
-            Dim builder = SyntaxListBuilder(Of GreenNode).Create()
+            Dim builder = _pool.Allocate(Of GreenNode)
+            With builder
+                Dim beginDocType = DirectCast(CurrentToken, BadTokenSyntax)
+                .Add(beginDocType)
 
-            Dim beginDocType = DirectCast(CurrentToken, BadTokenSyntax)
-            builder.Add(beginDocType)
+                Dim name As XmlNameTokenSyntax = Nothing
 
-            Dim name As XmlNameTokenSyntax = Nothing
+                GetNextToken(ScannerState.DocType)
+                VerifyExpectedToken(SyntaxKind.XmlNameToken, name, ScannerState.DocType)
+                .Add(name)
 
-            GetNextToken(ScannerState.DocType)
-            VerifyExpectedToken(SyntaxKind.XmlNameToken, name, ScannerState.DocType)
-            builder.Add(name)
+                ParseExternalID(builder)
 
-            ParseExternalID(builder)
+                ParseInternalSubSet(builder)
 
-            ParseInternalSubSet(builder)
-
-            Dim greaterThan As PunctuationSyntax = Nothing
-            VerifyExpectedToken(SyntaxKind.GreaterThanToken, greaterThan, enclosingState)
-            builder.Add(greaterThan)
-
-            Return builder.ToList().Node
+                Dim greaterThan As PunctuationSyntax = Nothing
+                VerifyExpectedToken(SyntaxKind.GreaterThanToken, greaterThan, enclosingState)
+                .Add(greaterThan)
+            End With
+            Dim result = _pool.ToListAndFree(Of GreenNode)(builder).Node
+            Return result
         End Function
+
+        Private Sub Add_SystemLiteral(ByRef builder As SyntaxListBuilder(Of GreenNode))
+            Dim systemLiteral = ParseXmlString(ScannerState.DocType)
+            builder.Add(systemLiteral)
+        End Sub
+
+        Private Sub Add_PublicLiteral(ByRef builder As SyntaxListBuilder(Of GreenNode))
+            Dim publicLiteral = ParseXmlString(ScannerState.DocType)
+            builder.Add(publicLiteral)
+        End Sub
 
         Private Sub ParseExternalID(builder As SyntaxListBuilder(Of GreenNode))
 
@@ -397,17 +406,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Case "SYSTEM"
                         builder.Add(name)
                         GetNextToken(ScannerState.DocType)
-                        Dim systemLiteral = ParseXmlString(ScannerState.DocType)
-                        builder.Add(systemLiteral)
+                        Add_SystemLiteral(builder)
 
                     Case "PUBLIC"
                         builder.Add(name)
                         GetNextToken(ScannerState.DocType)
-                        Dim publicLiteral = ParseXmlString(ScannerState.DocType)
-                        builder.Add(publicLiteral)
-                        Dim systemLiteral = ParseXmlString(ScannerState.DocType)
-                        builder.Add(systemLiteral)
-
+                        Add_PublicLiteral(builder)
+                        Add_SystemLiteral(builder)
                 End Select
             End If
 
@@ -663,8 +668,7 @@ LessThanSlashTokenCase:
                             newKind = SyntaxKind.XmlEntityLiteralToken OrElse
                             newKind = SyntaxKind.DocumentationCommentLineBreakToken
 
-                        Dim textResult = textTokens.ToList
-                        _pool.Free(textTokens)
+                        Dim textResult = _pool.ToListAndFree(textTokens)
                         xml = SyntaxFactory.XmlText(textResult)
 
                     Case SyntaxKind.BadToken
@@ -922,7 +926,7 @@ LessThanSlashTokenCase:
 
         Private Function ParseXmlAttributes(requireLeadingWhitespace As Boolean, xmlElementName As XmlNodeSyntax) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
 
-            Dim Attributes = Me._pool.Allocate(Of XmlNodeSyntax)()
+            Dim Attributes = _pool.Allocate(Of XmlNodeSyntax)()
 
             Do
                 Select Case CurrentToken.Kind
@@ -944,8 +948,7 @@ LessThanSlashTokenCase:
                 End Select
             Loop
 
-            Dim result = Attributes.ToList
-            Me._pool.Free(Attributes)
+            Dim result = _pool.ToListAndFree(Attributes)
             Return result
         End Function
 
@@ -958,8 +961,7 @@ LessThanSlashTokenCase:
                                  SyntaxKind.LessThanPercentEqualsToken,
                                  SyntaxKind.EqualsToken,
                                  SyntaxKind.SingleQuoteToken,
-                                 SyntaxKind.DoubleQuoteToken),
-                             "ParseXmlAttribute called on wrong token.")
+                                 SyntaxKind.DoubleQuoteToken), NameOf(ParseXmlAttribute) & " called on wrong token.")
 
             Dim Result As XmlNodeSyntax = Nothing
 
@@ -984,9 +986,9 @@ LessThanSlashTokenCase:
                         value = ParseXmlEmbedded(ScannerState.Element)
                         Result = SyntaxFactory.XmlAttribute(Name, equals, value)
 
-                    ElseIf Not Me._scanner.IsScanningXmlDoc OrElse
-                                Not TryParseXmlCrefAttributeValue(Name, equals, Result) AndAlso
-                                Not TryParseXmlNameAttributeValue(Name, equals, Result, xmlElementName) Then
+                    ElseIf Not _scanner.IsScanningXmlDoc OrElse
+                           Not TryParseXmlCrefAttributeValue(Name, equals, Result) AndAlso
+                           Not TryParseXmlNameAttributeValue(Name, equals, Result, xmlElementName) Then
 
                         ' Try parsing as a string (quoted or unquoted)
                         value = ParseXmlString(ScannerState.Element)
@@ -1003,7 +1005,7 @@ LessThanSlashTokenCase:
 
                     Dim value As XmlNodeSyntax
                     If CurrentToken.Kind <> SyntaxKind.SingleQuoteToken AndAlso
-                        CurrentToken.Kind <> SyntaxKind.DoubleQuoteToken Then
+                       CurrentToken.Kind <> SyntaxKind.DoubleQuoteToken Then
 
                         Dim missingQuote = DirectCast(InternalSyntaxFactory.MissingToken(SyntaxKind.SingleQuoteToken), PunctuationSyntax)
                         value = SyntaxFactory.XmlString(missingQuote, Nothing, missingQuote)
@@ -1040,7 +1042,7 @@ LessThanSlashTokenCase:
         End Function
 
         Private Function TryParseXmlCrefAttributeValue(name As XmlNodeSyntax, equals As PunctuationSyntax, <Out> ByRef crefAttribute As XmlNodeSyntax) As Boolean
-            Debug.Assert(Me._scanner.IsScanningXmlDoc)
+            Debug.Assert(_scanner.IsScanningXmlDoc)
 
             If name.Kind <> SyntaxKind.XmlName Then
                 Return False
@@ -1114,10 +1116,10 @@ LessThanSlashTokenCase:
             ' We need to reset the current token and possibly peeked tokens because those 
             ' were created using default scanner state, but we want to see from this 
             ' point tokens received using custom scanner state saved in 'state'
-            Me.ResetCurrentToken(state)
+            ResetCurrentToken(state)
 
             Do
-                Select Case Me.CurrentToken.Kind
+                Select Case CurrentToken.Kind
                     Case SyntaxKind.SingleQuoteToken,
                          SyntaxKind.DoubleQuoteToken
 
@@ -1153,7 +1155,7 @@ LessThanSlashTokenCase:
 
 lFailed:
             restorePoint.Restore()
-            Me.ResetCurrentToken(ScannerState.Element)
+            ResetCurrentToken(ScannerState.Element)
             Return False
         End Function
 
@@ -1219,9 +1221,7 @@ lFailed:
                         GetNextToken()
                     End If
 
-                    Dim typeArguments As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CrefSignaturePartSyntax) = signatureTypes.ToList
-                    _pool.Free(signatureTypes)
-
+                    Dim typeArguments As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CrefSignaturePartSyntax) = _pool.ToListAndFree(signatureTypes)
                     Return SyntaxFactory.CrefSignature(openParen, typeArguments, closeParen)
                 End If
 
@@ -1294,8 +1294,7 @@ lFailed:
                 ' while [cref="system.object.tostring"] is resolved into "M:System.Object.ToString", 
                 ' [cref="object.tostring"] produces an error. We fix this in Roslyn
                 result = SyntaxFactory.IdentifierName(
-                            Me._scanner.MakeIdentifier(
-                                DirectCast(Me.CurrentToken, KeywordSyntax)))
+                                            _scanner.MakeIdentifier(DirectCast(CurrentToken, KeywordSyntax)))
                 GetNextToken()
 
             ElseIf CurrentToken.Kind = SyntaxKind.OperatorKeyword Then
@@ -1358,7 +1357,7 @@ lFailed:
         End Function
 
         Private Function TryParseXmlNameAttributeValue(name As XmlNodeSyntax, equals As PunctuationSyntax, <Out> ByRef nameAttribute As XmlNodeSyntax, xmlElementName As XmlNodeSyntax) As Boolean
-            Debug.Assert(Me._scanner.IsScanningXmlDoc)
+            Debug.Assert(_scanner.IsScanningXmlDoc)
 
             If name.Kind <> SyntaxKind.XmlName Then
                 Return False
@@ -1402,7 +1401,7 @@ lFailed:
             Dim identToken As SyntaxToken = CurrentToken
             If identToken.Kind <> SyntaxKind.IdentifierToken Then
                 If identToken.IsKeyword Then
-                    identToken = Me._scanner.MakeIdentifier(DirectCast(Me.CurrentToken, KeywordSyntax))
+                    identToken = _scanner.MakeIdentifier(DirectCast(Me.CurrentToken, KeywordSyntax))
                 Else
                     GoTo lFailed
                 End If
@@ -1433,7 +1432,7 @@ lFailed:
 
 lFailed:
             restorePoint.Restore()
-            Me.ResetCurrentToken(ScannerState.Element)
+            ResetCurrentToken(ScannerState.Element)
             Return False
         End Function
 
@@ -1513,11 +1512,11 @@ lFailed:
         ' Lines: 13931 - 13931
         ' Expression* .Parser::ParseXmlQualifiedName( [ bool AllowExpr ] [ bool IsBracketed ] [ bool IsElementName ] [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseXmlQualifiedName(
-            requireLeadingWhitespace As Boolean,
-            allowExpr As Boolean,
-            stateForName As ScannerState,
-            nextState As ScannerState
-        ) As XmlNodeSyntax
+                                                requireLeadingWhitespace As Boolean,
+                                                allowExpr As Boolean,
+                                                stateForName As ScannerState,
+                                                nextState As ScannerState
+                                              ) As XmlNodeSyntax
             Select Case (CurrentToken.Kind)
 
                 Case SyntaxKind.XmlNameToken
@@ -1535,7 +1534,11 @@ lFailed:
             Return ReportExpectedXmlName()
         End Function
 
-        Private Function ParseXmlQualifiedName(requireLeadingWhitespace As Boolean, stateForName As ScannerState, nextState As ScannerState) As XmlNodeSyntax
+        Private Function ParseXmlQualifiedName(
+                                                requireLeadingWhitespace As Boolean,
+                                                stateForName As ScannerState,
+                                                nextState As ScannerState
+                                              ) As XmlNodeSyntax
 
             Dim hasPrecedingWhitespace = requireLeadingWhitespace AndAlso
                 (PrevToken.GetTrailingTrivia.ContainsWhitespaceTrivia() OrElse CurrentToken.GetLeadingTrivia.ContainsWhitespaceTrivia)
@@ -1668,24 +1671,23 @@ lFailed:
             End If
         End Function
 
+        Private Shared Function Report_IllegalXml(ErrID As ERRID, tk As XmlNameTokenSyntax, ch As Char) As XmlNameTokenSyntax
+            Debug.Assert(ErrID = ERRID.ERR_IllegalXmlStartNameChar OrElse
+                         ErrID = ERRID.ERR_IllegalXmlNameChar)
+            Return ReportSyntaxError(tk, ErrID, ch, "0x" & Convert.ToInt32(ch).ToString("X4"))
+        End Function
+
         Private Shared Function VerifyXmlNameToken(tk As XmlNameTokenSyntax) As XmlNameTokenSyntax
             Dim text = tk.ValueText
 
             If Not String.IsNullOrEmpty(text) Then
                 If Not isStartNameChar(text(0)) Then
-                    Dim ch = text(0)
-                    Return ReportSyntaxError(tk,
-                        ERRID.ERR_IllegalXmlStartNameChar,
-                        ch,
-                        "0x" & Convert.ToInt32(ch).ToString("X4"))
+                    Return Report_IllegalXml(ERRID.ERR_IllegalXmlStartNameChar, tk, text(0))
                 End If
 
                 For Each ch In text
                     If Not isNameChar(ch) Then
-                        Return ReportSyntaxError(tk,
-                            ERRID.ERR_IllegalXmlNameChar,
-                            ch,
-                            "0x" & Convert.ToInt32(ch).ToString("X4"))
+                        Return Report_IllegalXml(ERRID.ERR_IllegalXmlNameChar, tk, ch)
                     End If
                 Next
             End If
@@ -1694,7 +1696,7 @@ lFailed:
         End Function
 
         Friend Function ParseRestOfDocCommentContent(nodesSoFar As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)) As CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of XmlNodeSyntax)
-            Dim content = Me._pool.Allocate(Of XmlNodeSyntax)()
+            Dim content = _pool.Allocate(Of XmlNodeSyntax)()
 
             For Each node In nodesSoFar.Nodes
                 content.Add(DirectCast(node, XmlNodeSyntax))
@@ -1713,9 +1715,7 @@ lFailed:
                 End If
             End If
 
-            Dim result = content.ToList
-            Me._pool.Free(content)
-
+            Dim result = _pool.ToListAndFree(content)
             Return result
         End Function
 
@@ -1737,9 +1737,9 @@ lFailed:
                                  SyntaxKind.EndOfFileToken,
                                  SyntaxKind.EndOfXmlToken,
                                  SyntaxKind.BadToken),
-                             "ParseXmlContent called on wrong token.")
+                         NameOf(ParseXmlContent) & " called on wrong token.")
 
-            Dim Content = Me._pool.Allocate(Of XmlNodeSyntax)()
+            Dim Content = _pool.Allocate(Of XmlNodeSyntax)()
             Dim whitespaceChecker As New XmlWhitespaceChecker()
             Dim xml As XmlNodeSyntax
 
@@ -1779,8 +1779,7 @@ lFailed:
                             newKind = SyntaxKind.XmlEntityLiteralToken OrElse
                             newKind = SyntaxKind.DocumentationCommentLineBreakToken
 
-                        Dim textResult = textTokens.ToList
-                        _pool.Free(textTokens)
+                        Dim textResult = _pool.ToListAndFree(textTokens)
                         xml = SyntaxFactory.XmlText(textResult)
 
                     Case SyntaxKind.EndOfFileToken,
@@ -1813,9 +1812,7 @@ TryResync:
                 Content.Add(xml)
             Loop
 
-            Dim result = Content.ToList
-            Me._pool.Free(Content)
-
+            Dim result = _pool.ToListAndFree(Content)
             Return result
         End Function
 
@@ -1823,7 +1820,7 @@ TryResync:
         ' Lines: 14078 - 14078
         ' Expression* .Parser::ParseXmlPI( [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseXmlProcessingInstruction(nextState As ScannerState, whitespaceChecker As XmlWhitespaceChecker) As XmlProcessingInstructionSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.LessThanQuestionToken, "ParseXmlPI called on the wrong token.")
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.LessThanQuestionToken, NameOf(ParseXmlProcessingInstruction) & " called on the wrong token.")
 
             Dim beginProcessingInstruction = DirectCast(CurrentToken, PunctuationSyntax)
 
@@ -1872,11 +1869,9 @@ TryResync:
             Dim endProcessingInstruction As PunctuationSyntax = Nothing
             VerifyExpectedToken(SyntaxKind.QuestionGreaterThanToken, endProcessingInstruction, nextState)
 
-            Dim result = SyntaxFactory.XmlProcessingInstruction(beginProcessingInstruction, name, values.ToList, endProcessingInstruction)
+            Dim result = SyntaxFactory.XmlProcessingInstruction(beginProcessingInstruction, name, _pool.ToListAndFree(values), endProcessingInstruction)
 
             result = DirectCast(whitespaceChecker.Visit(result), XmlProcessingInstructionSyntax)
-
-            _pool.Free(values)
 
             Return result
         End Function
@@ -1885,7 +1880,7 @@ TryResync:
         ' Lines: 14119 - 14119
         ' Expression* .Parser::ParseXmlCData( [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseXmlCData(nextState As ScannerState) As XmlCDataSectionSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.BeginCDataToken, "ParseXmlCData called on the wrong token.")
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.BeginCDataToken, NameOf(ParseXmlCData) & " called on the wrong token.")
 
             Dim beginCData = DirectCast(CurrentToken, PunctuationSyntax)
 
@@ -1901,8 +1896,7 @@ TryResync:
             Dim endCData As PunctuationSyntax = Nothing
             VerifyExpectedToken(SyntaxKind.EndCDataToken, endCData, nextState)
 
-            Dim result = values.ToList
-            _pool.Free(values)
+            Dim result = _pool.ToListAndFree(values)
 
             Return SyntaxFactory.XmlCDataSection(beginCData, result, endCData)
         End Function
@@ -1911,7 +1905,7 @@ TryResync:
         ' Lines: 14134 - 14134
         ' Expression* .Parser::ParseXmlComment( [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseXmlComment(nextState As ScannerState) As XmlNodeSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.LessThanExclamationMinusMinusToken, "ParseXmlComment called on wrong token.")
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.LessThanExclamationMinusMinusToken, NameOf(ParseXmlComment) & " called on wrong token.")
 
             Dim beginComment As PunctuationSyntax = DirectCast(CurrentToken, PunctuationSyntax)
             GetNextToken(ScannerState.Comment)
@@ -1930,8 +1924,7 @@ TryResync:
             Dim endComment As PunctuationSyntax = Nothing
             VerifyExpectedToken(SyntaxKind.MinusMinusGreaterThanToken, endComment, nextState)
 
-            Dim result = values.ToList
-            _pool.Free(values)
+            Dim result = _pool.ToListAndFree(values)
 
             Return SyntaxFactory.XmlComment(beginComment, result, endComment)
         End Function
@@ -1973,9 +1966,7 @@ TryResync:
 
                         GetNextToken(nextState)
 
-                        Dim result = SyntaxFactory.XmlString(startQuote, list.ToList, endQuote)
-                        _pool.Free(list)
-
+                        Dim result = SyntaxFactory.XmlString(startQuote, _pool.ToListAndFree(list), endQuote)
                         Return result
 
                     Case SyntaxKind.XmlTextLiteralToken,
@@ -1989,8 +1980,7 @@ TryResync:
                         ' TODO: is this ok?
                         Dim endQuote = HandleUnexpectedToken(startQuote.Kind)
 
-                        Dim result = SyntaxFactory.XmlString(startQuote, list.ToList, DirectCast(endQuote, PunctuationSyntax))
-                        _pool.Free(list)
+                        Dim result = SyntaxFactory.XmlString(startQuote, _pool.ToListAndFree(list), DirectCast(endQuote, PunctuationSyntax))
 
                         Return result
                 End Select
@@ -2002,7 +1992,7 @@ TryResync:
         ' Lines: 14379 - 14379
         ' Expression* .Parser::ParseXmlEmbedded( [ bool AllowEmbedded ] [ _Inout_ bool& ErrorInConstruct ] )
         Private Function ParseXmlEmbedded(enclosingState As ScannerState) As XmlEmbeddedExpressionSyntax
-            Debug.Assert(CurrentToken.Kind = SyntaxKind.LessThanPercentEqualsToken, "ParseXmlEmbedded called on wrong token")
+            Debug.Assert(CurrentToken.Kind = SyntaxKind.LessThanPercentEqualsToken, NameOf(ParseXmlEmbedded) & " called on wrong token")
 
             Dim beginXmlEmbedded As PunctuationSyntax = DirectCast(CurrentToken, PunctuationSyntax)
             GetNextToken(enclosingState)
@@ -2013,7 +2003,7 @@ TryResync:
 
             Dim endXmlEmbedded As PunctuationSyntax = Nothing
             If Not TryEatNewLineAndGetToken(SyntaxKind.PercentGreaterThanToken, endXmlEmbedded, createIfMissing:=False, state:=enclosingState) Then
-                Dim skippedTokens = Me._pool.Allocate(Of SyntaxToken)()
+                Dim skippedTokens = _pool.Allocate(Of SyntaxToken)()
 
                 ResyncAt(skippedTokens, ScannerState.VB, {SyntaxKind.PercentGreaterThanToken,
                                         SyntaxKind.GreaterThanToken,
@@ -2031,8 +2021,7 @@ TryResync:
                     endXmlEmbedded = DirectCast(HandleUnexpectedToken(SyntaxKind.PercentGreaterThanToken), PunctuationSyntax)
                 End If
 
-                Dim unexpectedSyntax = skippedTokens.ToList()
-                Me._pool.Free(skippedTokens)
+                Dim unexpectedSyntax = _pool.ToListAndFree(skippedTokens)
 
                 If unexpectedSyntax.Node IsNot Nothing Then
                     endXmlEmbedded = AddLeadingSyntax(endXmlEmbedded, unexpectedSyntax, ERRID.ERR_Syntax)
@@ -2044,6 +2033,7 @@ TryResync:
             result = TransitionFromVBToXml(enclosingState, result)
             Return result
         End Function
+
 
     End Class
 
@@ -2208,7 +2198,16 @@ TryResync:
             _options = saveOptions
 
             If anyChanges Then
-                Return New XmlNameAttributeSyntax(node.Kind, node.GetDiagnostics, node.GetAnnotations, nameNew, node.EqualsToken, node.StartQuoteToken, node.Reference, node.EndQuoteToken)
+                Return New XmlNameAttributeSyntax(
+                                                   node.Kind,
+                                                   node.GetDiagnostics,
+                                                   node.GetAnnotations,
+                                                   nameNew,
+                                                   node.EqualsToken,
+                                                   node.StartQuoteToken,
+                                                   node.Reference,
+                                                   node.EndQuoteToken
+                                                 )
             Else
                 Return node
             End If
@@ -2416,16 +2415,16 @@ TryResync:
             End If
             Return trivia
         End Function
+
     End Class
 
     Friend Structure XmlContext
-        Private ReadOnly _start As XmlElementStartTagSyntax
         Private _content As SyntaxListBuilder(Of XmlNodeSyntax)
         Private ReadOnly _pool As SyntaxListPool
 
         Public Sub New(pool As SyntaxListPool, start As XmlElementStartTagSyntax)
             _pool = pool
-            _start = start
+            StartElement = start
             _content = _pool.Allocate(Of XmlNodeSyntax)()
         End Sub
 
@@ -2434,32 +2433,23 @@ TryResync:
         End Sub
 
         Public ReadOnly Property StartElement As XmlElementStartTagSyntax
-            Get
-                Return _start
-            End Get
-        End Property
 
         Public Function CreateElement(endElement As XmlElementEndTagSyntax) As XmlNodeSyntax
             Debug.Assert(endElement IsNot Nothing)
-
-            Dim contentList = _content.ToList
-            _pool.Free(_content)
-
-            Return InternalSyntaxFactory.XmlElement(_start, contentList, endElement)
+            Dim contentList = _pool.ToListAndFree(_content)
+            Return InternalSyntaxFactory.XmlElement(StartElement, contentList, endElement)
         End Function
 
         Public Function CreateElement(endElement As XmlElementEndTagSyntax, diagnostic As DiagnosticInfo) As XmlNodeSyntax
             Debug.Assert(endElement IsNot Nothing)
-
-            Dim contentList = _content.ToList
-            _pool.Free(_content)
-
-            Return InternalSyntaxFactory.XmlElement(DirectCast(_start.AddError(diagnostic), XmlElementStartTagSyntax), contentList, endElement)
+            Dim contentList = _pool.ToListAndFree(_content)
+            Return InternalSyntaxFactory.XmlElement(DirectCast(StartElement.AddError(diagnostic), XmlElementStartTagSyntax), contentList, endElement)
         End Function
 
     End Structure
 
     Friend Module XmlContextExtensions
+
         <Extension()>
         Friend Sub Push(this As List(Of XmlContext), context As XmlContext)
             this.Add(context)
@@ -2521,6 +2511,7 @@ TryResync:
 
             Return i
         End Function
+
     End Module
 
 End Namespace

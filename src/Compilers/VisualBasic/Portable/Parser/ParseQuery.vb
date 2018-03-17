@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseSelectList() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)
 
-            Dim RangeVariables = Me._pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
+            Dim RangeVariables = _pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
 
             Do
                 Dim rangeVar = ParseSelectListInitializer()
@@ -71,9 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
             Loop
 
-            Dim result = RangeVariables.ToList
-            Me._pool.Free(RangeVariables)
-
+            Dim result = _pool.ToListAndFree(RangeVariables)
             Return result
         End Function
 
@@ -235,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             AllowGroupName As Boolean,
             IsGroupJoinProjection As Boolean) As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax)
 
-            Dim RangeVariables = Me._pool.AllocateSeparated(Of AggregationRangeVariableSyntax)()
+            Dim RangeVariables = _pool.AllocateSeparated(Of AggregationRangeVariableSyntax)()
 
             Do
                 Dim rangeVar = ParseAggregateListInitializer(AllowGroupName)
@@ -268,9 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
             Loop
 
-            Dim result = RangeVariables.ToList
-            Me._pool.Free(RangeVariables)
-
+            Dim result = _pool.ToListAndFree(RangeVariables)
             Return result
         End Function
 
@@ -281,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' TODO: Merge with ParseFromControlVars. The two methods are almost identical.
         Private Function ParseLetList() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionRangeVariableSyntax)
 
-            Dim RangeVariables = Me._pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
+            Dim RangeVariables = _pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
 
             Do
                 Dim varName As ModifiedIdentifierSyntax = ParseNullableModifiedIdentifier()
@@ -395,14 +391,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
             Loop
 
-            Dim result = RangeVariables.ToList
-            Me._pool.Free(RangeVariables)
-
+            Dim result = _pool.ToListAndFree(RangeVariables)
             Return result
         End Function
 
         Private Function ParseFromControlVars() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax)
-            Dim RangeVariables = Me._pool.AllocateSeparated(Of CollectionRangeVariableSyntax)()
+            Dim RangeVariables = _pool.AllocateSeparated(Of CollectionRangeVariableSyntax)()
 
             Do
                 Dim varName As ModifiedIdentifierSyntax = ParseNullableModifiedIdentifier()
@@ -512,9 +506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
             Loop
 
-            Dim result = RangeVariables.ToList
-            Me._pool.Free(RangeVariables)
-
+            Dim result = _pool.ToListAndFree(RangeVariables)
             Return result
         End Function
 
@@ -647,10 +639,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' // parse key selector
                 keys = ParseSelectList()
             Else
-                Dim rangeVariables = Me._pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
+                Dim rangeVariables = _pool.AllocateSeparated(Of ExpressionRangeVariableSyntax)()
                 rangeVariables.Add(InternalSyntaxFactory.ExpressionRangeVariable(Nothing, InternalSyntaxFactory.MissingExpression()))
-                keys = rangeVariables.ToList
-                Me._pool.Free(rangeVariables)
+                keys = _pool.ToListAndFree(rangeVariables)
             End If
 
             Dim intoKw As KeywordSyntax = Nothing
@@ -667,10 +658,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function MissingAggregationRangeVariables() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax)
-            Dim rangeVariables = Me._pool.AllocateSeparated(Of AggregationRangeVariableSyntax)()
+            Dim rangeVariables = _pool.AllocateSeparated(Of AggregationRangeVariableSyntax)()
             rangeVariables.Add(InternalSyntaxFactory.AggregationRangeVariable(Nothing, SyntaxFactory.FunctionAggregation(InternalSyntaxFactory.MissingIdentifier(), Nothing, Nothing, Nothing)))
-            Dim result As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = rangeVariables.ToList
-            Me._pool.Free(rangeVariables)
+            Dim result As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = _pool.ToListAndFree(rangeVariables)
             Return result
         End Function
 
@@ -711,12 +701,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Predicate = New CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax)(missingEq)
             End If
 
-            Dim joinVarList = New CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax)(joinVariable)
-            Dim moreJoins = moreJoinsBuilder.ToList()
-            _pool.Free(moreJoinsBuilder)
+            Dim joinVarList = _pool.AllocateSeparated(Of CollectionRangeVariableSyntax)
+            joinVarList.Add(joinVariable)
+            'New CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of CollectionRangeVariableSyntax)(joinVariable)
+            Dim moreJoins = _pool.ToListAndFree(moreJoinsBuilder)
 
             If groupKw Is Nothing Then
-                Return SyntaxFactory.SimpleJoinClause(joinKw, joinVarList, moreJoins, onKw, Predicate)
+                Return SyntaxFactory.SimpleJoinClause(joinKw, _pool.ToListAndFree(joinVarList), moreJoins, onKw, Predicate)
             Else
                 Dim intoKw As KeywordSyntax = Nothing
                 Dim Aggregation As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = Nothing
@@ -729,7 +720,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Aggregation = Me.MissingAggregationRangeVariables()
                 End If
 
-                Return SyntaxFactory.GroupJoinClause(groupKw, joinKw, joinVarList, moreJoins, onKw, Predicate, intoKw, Aggregation)
+                Return SyntaxFactory.GroupJoinClause(groupKw, joinKw, _pool.ToListAndFree(joinVarList), moreJoins, onKw, Predicate, intoKw, Aggregation)
             End If
         End Function
 
@@ -855,7 +846,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseJoinPredicateExpression() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax)
 
-            Dim Exprs = Me._pool.AllocateSeparated(Of JoinConditionSyntax)()
+            Dim Exprs = _pool.AllocateSeparated(Of JoinConditionSyntax)()
             Dim AndTk As KeywordSyntax = Nothing
 
             Do
@@ -918,8 +909,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Exit Do
             Loop
 
-            Dim result = Exprs.ToList
-            Me._pool.Free(Exprs)
+            Dim result = _pool.ToListAndFree(Exprs)
 
             ' // try to recover
             If result.Node.ContainsDiagnostics Then
@@ -929,7 +919,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                    SyntaxKind.AggregateKeyword, SyntaxKind.IntoKeyword, SyntaxKind.OnKeyword, SyntaxKind.SkipKeyword,
                                    SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
 
-                result = New CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax)(CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of JoinConditionSyntax)(CType(elements, GreenNode)), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)))
+                result = New CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of JoinConditionSyntax)(
+                    CType(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of JoinConditionSyntax)(CType(elements, GreenNode)), CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of GreenNode)))
             End If
 
             Return result

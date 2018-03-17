@@ -766,7 +766,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' File: Parser.cpp
         ' Lines: 15892 - 15892
         ' Expression* .Parser::ParseCastExpression( [ _Inout_ bool& ErrorInConstruct ] )
-
         Private Function ParseCastExpression() As ExpressionSyntax
             Debug.Assert(SyntaxFacts.IsPredefinedCastExpressionKeyword(CurrentToken.Kind), "ParseCastExpression called with the wrong token.")
 
@@ -787,7 +786,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' File: Parser.cpp
         ' Lines: 15971 - 15971
         ' Expression* .Parser::ParseNewExpression( [ _Inout_ bool& ErrorInConstruct ] )
-
         Private Function ParseNewExpression() As ExpressionSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.NewKeyword, "must be at a New expression.")
 
@@ -1218,7 +1216,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function ReportExpectedXmlName() As XmlNameSyntax
-            Return ReportSyntaxError(SyntaxFactory.XmlName(Nothing, SyntaxFactory.XmlNameToken("", SyntaxKind.XmlNameToken, Nothing, Nothing)), ERRID.ERR_ExpectedXmlName)
+            Return ReportSyntaxError(
+                            SyntaxFactory.XmlName(Nothing,
+                                                  SyntaxFactory.XmlNameToken("", SyntaxKind.XmlNameToken, Nothing, Nothing)
+                                                  ), ERRID.ERR_ExpectedXmlName)
         End Function
 
         Private Function ParseParenthesizedExpressionOrTupleLiteral() As ExpressionSyntax
@@ -1868,7 +1869,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Function ParseVariableList() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of ExpressionSyntax)
 
-            Dim variables As SeparatedSyntaxListBuilder(Of ExpressionSyntax) = Me._pool.AllocateSeparated(Of ExpressionSyntax)()
+            Dim variables As SeparatedSyntaxListBuilder(Of ExpressionSyntax) = _pool.AllocateSeparated(Of ExpressionSyntax)()
 
             Do
                 variables.Add(ParseVariable())
