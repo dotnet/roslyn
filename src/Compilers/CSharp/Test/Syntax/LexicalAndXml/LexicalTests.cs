@@ -3643,5 +3643,103 @@ class C
             Assert.Equal(trivia4.Span.Start, 36);
             Assert.Equal(trivia4.Span.Length, 24);
         }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestCommentsAtTheBeginningOfATextAreInterned()
+        {
+            var baseComment = "// aa";
+            var text = baseComment + "\r\n" + baseComment + "\r\n";
+            var token = LexToken(text);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            Assert.Equal(text.Length, token.FullWidth);
+
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+
+            var trivia = token.LeadingTrivia.ToArray();
+            Assert.Equal(4, trivia.Length);
+            Assert.NotNull(trivia[0]);
+            Assert.NotNull(trivia[1]);
+            Assert.NotNull(trivia[2]);
+            Assert.NotNull(trivia[3]);
+
+            Assert.Equal(baseComment, trivia[0].ToString());
+            Assert.Equal("\r\n", trivia[1].ToString());
+            Assert.Same(trivia[0].ToString(), trivia[2].ToString());
+            Assert.Same(trivia[1].ToString(), trivia[3].ToString());
+            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[0].Kind());
+            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[2].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestCommentsAtTheBeginningOfATextThatAreBigEnoughAreNotInterned()
+        {
+            var commentText = new string ('a', 256);
+            var baseComment = $"// {commentText}";
+            var text = baseComment + "\r\n" + baseComment + "\r\n";
+
+            var token = LexToken(text);
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(text, token.ToFullString());
+            Assert.Equal(text.Length, token.FullWidth);
+
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+
+            var trivia = token.LeadingTrivia.ToArray();
+            Assert.Equal(4, trivia.Length);
+            Assert.NotNull(trivia[0]);
+            Assert.NotNull(trivia[1]);
+            Assert.NotNull(trivia[2]);
+            Assert.NotNull(trivia[3]);
+
+            Assert.Equal(baseComment, trivia[0].ToString());
+            Assert.Equal("\r\n", trivia[1].ToString());
+            Assert.NotSame(trivia[0].ToString(), trivia[2].ToString());
+            Assert.Same(trivia[1].ToString(), trivia[3].ToString());
+            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[0].Kind());
+            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[2].Kind());
+        }
+
+        [Fact]
+        [Trait("Feature", "Comments")]
+        public void TestCommentsNotAtTheBeginningOfATextAreNotInterned()
+        {
+            var baseComment = "// aa";
+            var eofText = baseComment + "\r\n" + baseComment + "\r\n";
+            var text = "int x;\r\n" + eofText;
+
+            // Skip anything other than the EOF token.
+            var token = Lex(text).Last();
+
+            Assert.NotNull(token);
+            Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
+            Assert.Equal(eofText, token.ToFullString());
+            Assert.Equal(eofText.Length, token.FullWidth);
+
+            var errors = token.Errors();
+            Assert.Equal(0, errors.Length);
+
+            var trivia = token.LeadingTrivia.ToArray();
+            Assert.Equal(4, trivia.Length);
+            Assert.NotNull(trivia[0]);
+            Assert.NotNull(trivia[1]);
+            Assert.NotNull(trivia[2]);
+            Assert.NotNull(trivia[3]);
+
+            Assert.Equal(baseComment, trivia[0].ToString());
+            Assert.Equal("\r\n", trivia[1].ToString());
+            Assert.NotSame(trivia[0].ToString(), trivia[2].ToString());
+            Assert.Same(trivia[1].ToString(), trivia[3].ToString());
+            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[0].Kind());
+            Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[2].Kind());
+        }
     }
 }

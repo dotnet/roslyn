@@ -652,6 +652,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return this.GetText(this.LexemeStartPosition, this.Width, intern);
         }
 
+        public string GetText(int maximumInternLength)
+        {
+            int width = this.Width;
+
+            return this.GetText(this.LexemeStartPosition, width, width < maximumInternLength);
+        }
+
         public string GetText(int position, int length, bool intern)
         {
             int offset = position - _basis;

@@ -2236,6 +2236,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                         this.AddTrivia(this.ScanWhitespace(), ref triviaList);
                         break;
                     case '/':
+                        // PERF: This pools all the comments that are at the top of the file, i.e. file copyright headers.
+                        // Most of them repeat themselves and it can lead to a noticeable amount of string duplicates for huge projects.
+                        int maximumInternLength = afterFirstToken ? -1 : 256;
+
                         if ((ch = TextWindow.PeekChar(1)) == '/')
                         {
                             if (!this.SuppressDocumentationCommentParse && TextWindow.PeekChar(2) == '/' && TextWindow.PeekChar(3) != '/')
@@ -2253,7 +2257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
                             // normal single line comment
                             this.ScanToEndOfLine();
-                            var text = TextWindow.GetText(false);
+                            var text = TextWindow.GetText(maximumInternLength);
                             this.AddTrivia(SyntaxFactory.Comment(text), ref triviaList);
                             onlyWhitespaceOnLine = false;
                             break;
@@ -2282,7 +2286,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                                 this.AddError(ErrorCode.ERR_OpenEndedComment);
                             }
 
-                            var text = TextWindow.GetText(false);
+                            var text = TextWindow.GetText(maximumInternLength);
                             this.AddTrivia(SyntaxFactory.Comment(text), ref triviaList);
                             onlyWhitespaceOnLine = false;
                             break;
