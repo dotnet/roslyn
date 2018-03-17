@@ -799,5 +799,69 @@ public class C
   IL_0005:  ret
 }");
         }
+
+        [Fact, WorkItem(22654, "https://github.com/dotnet/roslyn/issues/22654")]
+        public void NoRedundantTypeCheck()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public void SwitchBasedPatternMatching(object o)
+    {
+        switch (o)
+        {
+            case int n when n == 1:
+                Console.WriteLine(""1""); break;
+            case string s:
+                Console.WriteLine(""s""); break;
+            case int n when n == 2:
+                Console.WriteLine(""2""); break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.SwitchBasedPatternMatching",
+@"{
+  // Code size       77 (0x4d)
+  .maxstack  2
+  .locals init (object V_0,
+                int V_1,
+                string V_2)
+  IL_0000:  ldarg.1
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  isinst     ""int""
+  IL_0008:  brfalse.s  IL_0013
+  IL_000a:  ldloc.0
+  IL_000b:  unbox.any  ""int""
+  IL_0010:  stloc.1
+  IL_0011:  br.s       IL_0024
+  IL_0013:  ldloc.0
+  IL_0014:  isinst     ""string""
+  IL_0019:  brfalse.s  IL_004c
+  IL_001b:  ldloc.0
+  IL_001c:  castclass  ""string""
+  IL_0021:  stloc.2
+  IL_0022:  br.s       IL_0033
+  IL_0024:  ldloc.1
+  IL_0025:  ldc.i4.1
+  IL_0026:  bne.un.s   IL_003e
+  IL_0028:  ldstr      ""1""
+  IL_002d:  call       ""void System.Console.WriteLine(string)""
+  IL_0032:  ret
+  IL_0033:  ldstr      ""s""
+  IL_0038:  call       ""void System.Console.WriteLine(string)""
+  IL_003d:  ret
+  IL_003e:  ldloc.1
+  IL_003f:  ldc.i4.2
+  IL_0040:  bne.un.s   IL_004c
+  IL_0042:  ldstr      ""2""
+  IL_0047:  call       ""void System.Console.WriteLine(string)""
+  IL_004c:  ret
+}");
+        }
     }
 }
