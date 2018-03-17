@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Execution
             // cache to remove lambda allocation
             private readonly static Func<ConcurrentDictionary<Checksum, CustomAsset>> s_additionalAssetsCreator = () => new ConcurrentDictionary<Checksum, CustomAsset>(concurrencyLevel: 2, capacity: 10);
 
-            private readonly Serializer _serializer;
+            private readonly ISerializer _serializer;
 
             // additional assets that is not part of solution but added explicitly
             private ConcurrentDictionary<Checksum, CustomAsset> _additionalAssets;
@@ -161,10 +161,10 @@ namespace Microsoft.CodeAnalysis.Execution
         private struct SolutionChecksumFinder
         {
             private readonly SolutionState _state;
-            private readonly Serializer _serializer;
+            private readonly ISerializer _serializer;
             private readonly CancellationToken _cancellationToken;
 
-            public SolutionChecksumFinder(SolutionState state, Serializer serializer, CancellationToken cancellationToken) : this()
+            public SolutionChecksumFinder(SolutionState state, ISerializer serializer, CancellationToken cancellationToken) : this()
             {
                 _state = state;
                 _serializer = serializer;

@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Execution
     /// </summary>
     internal class CustomAssetBuilder
     {
-        private readonly Serializer _serializer;
+        private readonly ISerializer _serializer;
 
         public CustomAssetBuilder(Solution solution) : this(solution.Workspace)
         {

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Execution
         {
         }
 
-        public static RemotableData Create(Checksum checksum, object value, Serializer serializer)
+        public static RemotableData Create(Checksum checksum, object value, ISerializer serializer)
         {
             // treat SourceText specially since we get TextDocumentState rather than SourceText when searching the checksum
             // from solution due to it requiring async-ness when retrieving SourceText.
@@ -38,9 +38,9 @@ namespace Microsoft.CodeAnalysis.Execution
         internal sealed class SimpleSolutionAsset : SolutionAsset
         {
             private readonly object _value;
-            private readonly Serializer _serializer;
+            private readonly ISerializer _serializer;
 
-            public SimpleSolutionAsset(Checksum checksum, object value, Serializer serializer) :
+            public SimpleSolutionAsset(Checksum checksum, object value, ISerializer serializer) :
                 base(checksum, value.GetWellKnownSynchronizationKind())
             {
                 _value = value;
@@ -61,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Execution
             //       we should think about whether we can change recoverable text to work like recoverable tree
             //       so we can serialize text without bring in text to memory first
             private readonly TextDocumentState _state;
-            private readonly Serializer _serializer;
+            private readonly ISerializer _serializer;
 
-            public SourceTextAsset(Checksum checksum, TextDocumentState state, Serializer serializer) :
+            public SourceTextAsset(Checksum checksum, TextDocumentState state, ISerializer serializer) :
                 base(checksum, WellKnownSynchronizationKind.SourceText)
             {
                 _state = state;

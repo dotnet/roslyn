@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        public static Checksum Create<T>(WellKnownSynchronizationKind kind, T value, Serializer serializer)
+        public static Checksum Create<T>(WellKnownSynchronizationKind kind, T value, ISerializer serializer)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var objectWriter = new ObjectWriter(stream))

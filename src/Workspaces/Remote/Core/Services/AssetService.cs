@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Remote
     /// </summary>
     internal class AssetService
     {
-        private static readonly Serializer s_serializer = new Serializer(SolutionService.PrimaryWorkspace);
+        private static readonly ISerializer s_serializer = new Serializer(SolutionService.PrimaryWorkspace);
 
         private readonly int _scopeId;
         private readonly AssetStorage _assetStorage;

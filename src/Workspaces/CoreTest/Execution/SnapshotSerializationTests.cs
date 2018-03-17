@@ -717,7 +717,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return workspace.AddSolution(SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects));
         }
 
-        private static async Task<RemotableData> CloneAssetAsync(Serializer serializer, RemotableData asset)
+        private static async Task<RemotableData> CloneAssetAsync(ISerializer serializer, RemotableData asset)
         {
             using (var stream = SerializableBytes.CreateWritableStream())
             using (var writer = new ObjectWriter(stream))

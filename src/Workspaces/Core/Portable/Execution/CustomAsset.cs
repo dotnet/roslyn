@@ -63,9 +63,9 @@ namespace Microsoft.CodeAnalysis.Execution
     internal sealed class WorkspaceAnalyzerReferenceAsset : CustomAsset
     {
         private readonly AnalyzerReference _reference;
-        private readonly Serializer _serializer;
+        private readonly ISerializer _serializer;
 
-        public WorkspaceAnalyzerReferenceAsset(AnalyzerReference reference, Serializer serializer) :
+        public WorkspaceAnalyzerReferenceAsset(AnalyzerReference reference, ISerializer serializer) :
             base(
                 serializer.CreateChecksum(reference, CancellationToken.None),
                 WellKnownSynchronizationKind.AnalyzerReference)

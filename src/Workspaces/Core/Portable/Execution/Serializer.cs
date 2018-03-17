@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Serialization
     /// also, consider moving this serializer to use C# BOND serializer 
     /// https://github.com/Microsoft/bond
     /// </summary>
-    internal partial class Serializer
+    internal partial class Serializer : ISerializer
     {
         private readonly HostWorkspaceServices _workspaceServices;
 
