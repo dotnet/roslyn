@@ -193,6 +193,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return true;
             }
 
+            // case (x) when y: -> case x when y:
+            if (node.IsParentKind(SyntaxKind.ConstantPattern) && 
+                node.Parent.IsParentKind(SyntaxKind.CasePatternSwitchLabel))
+            {
+                return true;
+            }
+
             // case x when (y): -> case x when y:
             if (node.IsParentKind(SyntaxKind.WhenClause))
             {

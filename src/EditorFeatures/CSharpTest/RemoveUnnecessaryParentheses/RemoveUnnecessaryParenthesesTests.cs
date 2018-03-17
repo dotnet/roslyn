@@ -841,6 +841,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
 
         [WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestSwitchCase_WithWhenClause_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case $$(default(bool)) when true:
+        }
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        switch (true)
+        {
+            case default(bool) when true:
+        }
+    }
+}", requireAllParenthesesForClarity: true);
+        }
+
+        [WorkItem(25554, "https://github.com/dotnet/roslyn/issues/25554")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
         public async Task TestWhenClause_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity()
         {
             await TestAsync(
