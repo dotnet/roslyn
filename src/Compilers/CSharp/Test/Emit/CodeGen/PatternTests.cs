@@ -774,5 +774,30 @@ public class C
   IL_0019:  ret
 }");
         }
+
+        [Fact, WorkItem(12813, "https://github.com/dotnet/roslyn/issues/12813")]
+        public void NoBoxingOnIntegerConstantPattern()
+        {
+            var source =
+@"public class C
+{
+    static bool M1(int x)
+    {
+        return x is 42;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M1",
+@"{
+  // Code size        6 (0x6)
+  .maxstack  2
+  IL_0000:  ldc.i4.s   42
+  IL_0002:  ldarg.0
+  IL_0003:  ceq
+  IL_0005:  ret
+}");
+        }
     }
 }
