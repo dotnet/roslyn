@@ -76,11 +76,6 @@ do
         fi
     elif [[ "${runtime}" == "mono" ]]; then
         runner=mono
-        if [[ "${file_name[@]}" == *'Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests.dll' || "${file_name[@]}" == *'Roslyn.Compilers.CompilerServer.UnitTests.dll' || "${file_name[@]}" == *'Roslyn.Compilers.CSharp.Emit.UnitTests.dll' ]]
-        then
-            echo "Skipping ${file_name[@]}"
-            continue
-        fi
     fi
     if ${runner} "${xunit_console}" "${file_name[@]}" -xml "${log_file}"
     then
