@@ -2068,6 +2068,54 @@ class C
             await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task VariableNotAfterRefReadonlyDeclaration()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        ref readonly $$
+    }
+}
+";
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeAfterRefDeclaration()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M()
+    {
+        ref $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeAfterRefReadonlyDeclaration()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M()
+    {
+        ref readonly $$
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+        }
+
         [WorkItem(539217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539217")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NestedType1()
