@@ -50,6 +50,7 @@
     <file src="Exes\VBCSCompiler\net46\VBCSCompiler.exe" target="tools" />
     <file src="Exes\VBCSCompiler\net46\VBCSCompiler.exe.config" target="tools" />
     <file src="Dlls\MSBuildTask\net46\Microsoft.Build.Tasks.CodeAnalysis.dll" target="tools" />
+    <file src="Dlls\MSbuildTask\net46\Microsoft.Managed.Core.targets" target="tools" />
     <file src="Dlls\MSbuildTask\net46\Microsoft.CSharp.Core.targets" target="tools" />
     <file src="Dlls\MSbuildTask\net46\Microsoft.VisualBasic.Core.targets" target="tools" />
 

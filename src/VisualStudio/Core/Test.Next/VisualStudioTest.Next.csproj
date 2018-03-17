@@ -94,4 +94,7 @@
   <ItemGroup>
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TestFiles\analyzer_input.csv" />
+  </ItemGroup>
 </Project>

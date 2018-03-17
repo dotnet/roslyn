@@ -242,6 +242,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     binder = rootBinder.GetBinder(current);
                 }
+                else if (kind == SyntaxKind.ThisConstructorInitializer || kind == SyntaxKind.BaseConstructorInitializer)
+                {
+                    binder = rootBinder.GetBinder(current);
+                }
+                else if (kind == SyntaxKind.ConstructorDeclaration)
+                {
+                    binder = rootBinder.GetBinder(current);
+                }
                 else if ((current as ExpressionSyntax).IsValidScopeDesignator())
                 {
                     binder = rootBinder.GetBinder(current);
@@ -1291,6 +1299,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _guardedNodeMap.TryGetValue(node, out result) ? result : default(ImmutableArray<BoundNode>);
         }
 
+        /// <summary>
+        /// Internal for test purposes only
+        /// </summary>
+        internal ImmutableArray<BoundNode> TestOnlyTryGetBoundNodesFromMap(CSharpSyntaxNode node)
+        {
+            ImmutableArray<BoundNode> result;
+            return _guardedNodeMap.TryGetValue(node, out result) ? result : default(ImmutableArray<BoundNode>);
+        }
+
         // Adds every syntax/bound pair in a tree rooted at the given bound node to the map, and the
         // performs a lookup of the given syntax node in the map. 
         private ImmutableArray<BoundNode> GuardedAddBoundTreeAndGetBoundNodeFromMap(CSharpSyntaxNode syntax, BoundNode bound)
@@ -1315,7 +1332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _guardedNodeMap.TryGetValue(syntax, out result) ? result : default(ImmutableArray<BoundNode>);
         }
 
-        internal void UnguardedAddBoundTreeForStandaloneSyntax(SyntaxNode syntax, BoundNode bound)
+        protected void UnguardedAddBoundTreeForStandaloneSyntax(SyntaxNode syntax, BoundNode bound)
         {
             using (_nodeMapLock.DisposableWrite())
             {
@@ -1373,6 +1390,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (current is StatementSyntax)
                 {
                     return current;
+                }
+
+                switch (current.Kind())
+                {
+                    case SyntaxKind.ThisConstructorInitializer:
+                    case SyntaxKind.BaseConstructorInitializer:
+                    case SyntaxKind.ArrowExpressionClause:
+                        return current;
                 }
             }
 
@@ -1807,13 +1832,11 @@ done:
                 case SyntaxKind.SetAccessorDeclaration:
                 case SyntaxKind.AddAccessorDeclaration:
                 case SyntaxKind.RemoveAccessorDeclaration:
-                    return ((AccessorDeclarationSyntax)node).Body;
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.DestructorDeclaration:
                 case SyntaxKind.OperatorDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
-                    return ((BaseMethodDeclarationSyntax)node).Body;
                 case SyntaxKind.GlobalStatement:
                     return node;
             }
@@ -1877,6 +1900,7 @@ done:
                             !(node is OrderingSyntax) &&
                             !(node is JoinIntoClauseSyntax) &&
                             !(node is QueryContinuationSyntax) &&
+                            !(node is ConstructorInitializerSyntax) &&
                             !(node is ArrowExpressionClauseSyntax))
                         {
                             return GetBindableSyntaxNode(parent);
@@ -2007,9 +2031,9 @@ done:
                     return synthesizedStatement;
                 }
 
-                ImmutableArray<BoundNode> boundNodes = _semanticModel.GuardedGetBoundNodesFromMap(node);
+                BoundNode boundNode = TryGetBoundNodeFromMap(node);
 
-                if (boundNodes.IsDefaultOrEmpty)
+                if (boundNode == null)
                 {
                     // Not bound already. Bind it. It will get added to the cache later by a MemberSemanticModel.NodeMapBuilder.
                     var statement = base.BindStatement(node, diagnostics);
@@ -2023,11 +2047,36 @@ done:
 
                     return statement;
                 }
-                else
+
+                return (BoundStatement)boundNode;
+            }
+
+            private BoundNode TryGetBoundNodeFromMap(CSharpSyntaxNode node)
+            {
+                ImmutableArray<BoundNode> boundNodes = _semanticModel.GuardedGetBoundNodesFromMap(node);
+
+                if (!boundNodes.IsDefaultOrEmpty)
                 {
                     // Already bound. Return the top-most bound node associated with the statement. 
-                    return (BoundStatement)boundNodes[0];
+                    return boundNodes[0];
                 }
+
+                return null;
+            }
+
+            public override BoundNode BindMethodBody(CSharpSyntaxNode node, DiagnosticBag diagnostics)
+            {
+                return TryGetBoundNodeFromMap(node) ?? base.BindMethodBody(node, diagnostics);
+            }
+
+            internal override BoundExpressionStatement BindConstructorInitializer(ConstructorInitializerSyntax node, DiagnosticBag diagnostics)
+            {
+                return (BoundExpressionStatement)TryGetBoundNodeFromMap(node) ?? base.BindConstructorInitializer(node, diagnostics);
+            }
+
+            internal override BoundBlock BindExpressionBodyAsBlock(ArrowExpressionClauseSyntax node, DiagnosticBag diagnostics)
+            {
+                return (BoundBlock)TryGetBoundNodeFromMap(node) ?? base.BindExpressionBodyAsBlock(node, diagnostics);
             }
         }
     }
