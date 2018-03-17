@@ -999,15 +999,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arrayType = arrayType.WithElementType(elementType);
             }
 
-            TypeSymbol elementTypeSymbol = elementType?.TypeSymbol;
-            bool elementTypeIsReferenceType = elementType?.IsReferenceType == true;
-            for (int i = 0; i < n; i++)
+            if ((object)elementType != null)
             {
-                var element = elementBuilder[i];
-                var result = GenerateConversionForAssignment(element, resultBuilder[i].Type, elementTypeSymbol);
-                if (elementTypeIsReferenceType)
+                TypeSymbol destinationType = elementType.TypeSymbol;
+                bool elementTypeIsReferenceType = elementType.IsReferenceType == true;
+                for (int i = 0; i < n; i++)
                 {
-                    TrackNullableStateForAssignment(element, -1, elementType, element, result.Type, result.Slot);
+                    var element = elementBuilder[i];
+                    var resultType = resultBuilder[i].Type;
+                    // See Binder.GenerateConversionForAssignment for initial binding.
+                    var sourceType = resultType?.TypeSymbol;
+                    Conversion conversion = GenerateConversion(_conversions, element, sourceType, destinationType);
+                    if (!conversion.Exists)
+                    {
+                        ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, element.Syntax, GetTypeAsDiagnosticArgument(sourceType), destinationType);
+                        continue;
+                    }
+                    Result result = InferResultNullability(element, conversion, destinationType, resultType);
+                    if (elementTypeIsReferenceType)
+                    {
+                        TrackNullableStateForAssignment(element, -1, elementType, element, result.Type, result.Slot);
+                    }
                 }
             }
             resultBuilder.Free();
@@ -1251,13 +1263,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     resultType = TypeSymbolWithAnnotations.Create(getLeftResultType(leftResult.Type.TypeSymbol, rightResult.Type?.TypeSymbol), resultIsNullable);
                     break;
                 case BoundNullCoalescingOperatorResultKind.LeftUnwrappedType:
-                    resultType = TypeSymbolWithAnnotations.Create(getLeftResultType(unwrapIfNullable(leftResult.Type.TypeSymbol), rightResult.Type?.TypeSymbol), resultIsNullable);
+                    resultType = TypeSymbolWithAnnotations.Create(getLeftResultType(leftResult.Type.TypeSymbol.StrippedType(), rightResult.Type?.TypeSymbol), resultIsNullable);
                     break;
                 case BoundNullCoalescingOperatorResultKind.RightType:
                     resultType = TypeSymbolWithAnnotations.Create(getRightResultType(leftResult.Type.TypeSymbol, rightResult.Type.TypeSymbol));
                     break;
                 case BoundNullCoalescingOperatorResultKind.LeftUnwrappedRightType:
-                    resultType = TypeSymbolWithAnnotations.Create(getRightResultType(unwrapIfNullable(leftResult.Type.TypeSymbol), rightResult.Type.TypeSymbol));
+                    resultType = TypeSymbolWithAnnotations.Create(getRightResultType(leftResult.Type.TypeSymbol.StrippedType(), rightResult.Type.TypeSymbol));
                     break;
                 case BoundNullCoalescingOperatorResultKind.RightDynamicType:
                     resultType = TypeSymbolWithAnnotations.Create(rightResult.Type.TypeSymbol, resultIsNullable);
@@ -1277,7 +1289,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // in both directions since it's possible the right operand is the better result type.
                 if ((object)rightType != null &&
                     node.RightOperand.Kind != BoundKind.Conversion &&
-                    GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: false))
+                    GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: false).Exists)
                 {
                     return rightType;
                 }
@@ -1288,10 +1300,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: true);
                 return rightType;
-            }
-            TypeSymbol unwrapIfNullable(TypeSymbol type)
-            {
-                return type.IsNullableType() ? type.GetNullableUnderlyingType() : type;
             }
         }
 
@@ -1721,25 +1729,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expr;
         }
 
-        // See Binder.GenerateConversionForAssignment for initial binding.
-        private Result GenerateConversionForAssignment(BoundExpression sourceExpression, TypeSymbolWithAnnotations sourceType, TypeSymbol destinationType)
-        {
-            if (destinationType is null)
-            {
-                return Result.Unset;
-            }
-            var type = sourceType?.TypeSymbol;
-            var conversion = GenerateConversion(_conversions, sourceExpression, type, destinationType);
-            if (!conversion.Exists)
-            {
-                ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, sourceExpression.Syntax, GetTypeAsDiagnosticArgument(type), destinationType);
-            }
-
-            return InferResultNullability(sourceExpression, conversion, destinationType, sourceType);
-        }
-
         // See Binder.BindNullCoalescingOperator for initial binding.
-        private bool GenerateConversionForConditionalOperator(BoundExpression sourceExpression, TypeSymbol sourceType, TypeSymbol destinationType, bool reportMismatch)
+        private Conversion GenerateConversionForConditionalOperator(BoundExpression sourceExpression, TypeSymbol sourceType, TypeSymbol destinationType, bool reportMismatch)
         {
             var conversion = GenerateConversion(_conversions, sourceExpression, sourceType, destinationType);
             bool canConvert = conversion.Exists;
@@ -1748,7 +1739,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(GenerateConversion(_conversions.WithNullability(false), sourceExpression, sourceType, destinationType).Exists);
                 ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, sourceExpression.Syntax, GetTypeAsDiagnosticArgument(sourceType), destinationType);
             }
-            return canConvert;
+            return conversion;
         }
 
         private static Conversion GenerateConversion(Conversions conversions, BoundExpression sourceExpression, TypeSymbol sourceType, TypeSymbol destinationType)
