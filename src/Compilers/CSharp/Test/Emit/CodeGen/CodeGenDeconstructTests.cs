@@ -8279,5 +8279,271 @@ class C
             Assert.Null(info.Method);
             Assert.Empty(info.Nested);
         }
+
+        [Fact]
+        public void TestDeconstructDefaultLiteral_InCSharp7_2()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        (int i, string s) = default;
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
+            comp.VerifyDiagnostics(
+                // (6,29): error CS8320: Feature 'deconstruction on default' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         (int i, string s) = default;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "default").WithArguments("deconstruction on default", "7.3").WithLocation(6, 29)
+                );
+        }
+
+        [Fact]
+        public void TestDeconstructDefaultLiteral_Nested_InCSharp7_2()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        (int x, (int i, string s)) = (42, default);
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
+            comp.VerifyDiagnostics(
+                // (6,43): error CS8320: Feature 'deconstruction on default' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         (int x, (int i, string s)) = (42, default);
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "default").WithArguments("deconstruction on default", "7.3").WithLocation(6, 43)
+                );
+        }
+
+        [Fact]
+        public void TestDeconstructDefaultLiteral_Nested2_InCSharp7_2()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        (int x, (int i, string s)) =  default;
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
+            comp.VerifyDiagnostics(
+                // (6,39): error CS8320: Feature 'deconstruction on default' is not available in C# 7.2. Please use language version 7.3 or greater.
+                //         (int x, (int i, string s)) =  default;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion7_2, "default").WithArguments("deconstruction on default", "7.3").WithLocation(6, 39)
+                );
+        }
+
+        [Fact]
+        public void TestDeconstructDefaultLiteral()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        (int i, string s) = default;
+        System.Console.Write($""{i} {s == null}"");
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0 True");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().First();
+            Assert.Equal("default", node.ToString());
+            var defaultType = model.GetTypeInfo(node);
+            Assert.Equal("(System.Int32, System.String)", defaultType.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.String)", defaultType.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TestDeconstructDefaultLiteral_Nested()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        (int x, (int i, string s)) = (42, default);
+        System.Console.Write($""{i} {s == null}"");
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 True");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ElementAt(1);
+            Assert.Equal("default", node.ToString());
+            var defaultType = model.GetTypeInfo(node);
+            Assert.Equal("(System.Int32, System.String)", defaultType.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.String)", defaultType.ConvertedType.ToTestDisplayString());
+
+            // We could optimize this (no need to construct a ValueTuple then access its elements)
+            // https://github.com/dotnet/roslyn/issues/21232
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       66 (0x42)
+  .maxstack  4
+  .locals init (int V_0, //x
+                int V_1, //i
+                string V_2, //s
+                System.ValueTuple<int, string> V_3)
+  IL_0000:  nop
+  IL_0001:  ldc.i4.s   42
+  IL_0003:  stloc.0
+  IL_0004:  ldloca.s   V_3
+  IL_0006:  initobj    ""System.ValueTuple<int, string>""
+  IL_000c:  ldloc.3
+  IL_000d:  ldfld      ""int System.ValueTuple<int, string>.Item1""
+  IL_0012:  stloc.1
+  IL_0013:  ldloca.s   V_3
+  IL_0015:  initobj    ""System.ValueTuple<int, string>""
+  IL_001b:  ldloc.3
+  IL_001c:  ldfld      ""string System.ValueTuple<int, string>.Item2""
+  IL_0021:  stloc.2
+  IL_0022:  ldstr      ""{0} {1}""
+  IL_0027:  ldloc.1
+  IL_0028:  box        ""int""
+  IL_002d:  ldloc.2
+  IL_002e:  ldnull
+  IL_002f:  ceq
+  IL_0031:  box        ""bool""
+  IL_0036:  call       ""string string.Format(string, object, object)""
+  IL_003b:  call       ""void System.Console.Write(string)""
+  IL_0040:  nop
+  IL_0041:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestDeconstructDefaultLiteral_Nested2()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        (int x, (int i, string s)) = default;
+        System.Console.Write($""{i} {s == null}"");
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            var verifier = CompileAndVerify(comp, expectedOutput: "0 True");
+
+            // We could optimize this (no need to construct a ValueTuple then access its elements)
+            // https://github.com/dotnet/roslyn/issues/21232
+            verifier.VerifyIL("C.Main", @"
+{
+  // Code size       75 (0x4b)
+  .maxstack  4
+  .locals init (int V_0, //x
+                int V_1, //i
+                string V_2, //s
+                System.ValueTuple<int, (int, string)> V_3)
+  IL_0000:  nop
+  IL_0001:  ldloca.s   V_3
+  IL_0003:  initobj    ""System.ValueTuple<int, (int, string)>""
+  IL_0009:  ldloc.3
+  IL_000a:  ldfld      ""(int, string) System.ValueTuple<int, (int, string)>.Item2""
+  IL_000f:  ldloca.s   V_3
+  IL_0011:  initobj    ""System.ValueTuple<int, (int, string)>""
+  IL_0017:  ldloc.3
+  IL_0018:  ldfld      ""int System.ValueTuple<int, (int, string)>.Item1""
+  IL_001d:  stloc.0
+  IL_001e:  dup
+  IL_001f:  ldfld      ""int System.ValueTuple<int, string>.Item1""
+  IL_0024:  stloc.1
+  IL_0025:  ldfld      ""string System.ValueTuple<int, string>.Item2""
+  IL_002a:  stloc.2
+  IL_002b:  ldstr      ""{0} {1}""
+  IL_0030:  ldloc.1
+  IL_0031:  box        ""int""
+  IL_0036:  ldloc.2
+  IL_0037:  ldnull
+  IL_0038:  ceq
+  IL_003a:  box        ""bool""
+  IL_003f:  call       ""string string.Format(string, object, object)""
+  IL_0044:  call       ""void System.Console.Write(string)""
+  IL_0049:  nop
+  IL_004a:  ret
+}
+");
+        }
+
+        [Fact]
+        public void TestDeconstructDefaultLiteral_Nested_Assignment()
+        {
+            string source = @"
+public class C
+{
+    public static void Main()
+    {
+        int x;
+        int i;
+        string s;
+        (x, (i, s)) = (42, default);
+        System.Console.Write($""{i} {s == null}"");
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3, options: TestOptions.DebugExe);
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "0 True");
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ElementAt(1);
+            Assert.Equal("default", node.ToString());
+            var defaultType = model.GetTypeInfo(node);
+            Assert.Equal("(System.Int32, System.String)", defaultType.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32, System.String)", defaultType.ConvertedType.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TestDeconstructDefaultLiteral_FailedInference()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        (int x, var (i, s)) = (0, default);
+    }
+}
+";
+            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_3);
+            comp.VerifyDiagnostics(
+                // (6,22): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 'i'.
+                //         (int x, var (i, s)) = (0, default);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "i").WithArguments("i").WithLocation(6, 22),
+                // (6,25): error CS8130: Cannot infer the type of implicitly-typed deconstruction variable 's'.
+                //         (int x, var (i, s)) = (0, default);
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedDeconstructionVariable, "s").WithArguments("s").WithLocation(6, 25)
+                );
+
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            var node = tree.GetRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().ElementAt(1);
+            Assert.Equal("default", node.ToString());
+            var defaultType = model.GetTypeInfo(node);
+            Assert.Null(defaultType.Type);
+            Assert.Null(defaultType.ConvertedType);
+        }
     }
 }
