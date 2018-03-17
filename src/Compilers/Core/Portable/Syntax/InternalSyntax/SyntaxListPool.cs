@@ -77,6 +77,14 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
             Array.Copy(_freeList, tmp, _freeList.Length);
             _freeList = tmp;
         }
+        
+        public SeparatedSyntaxList<TNode> ToListAndFree<TNode>(SeparatedSyntaxListBuilder<TNode> item)
+            where TNode : GreenNode
+        {
+            var list = item.ToList();
+            Free(item);
+            return list;
+        }
 
         public SyntaxList<TNode> ToListAndFree<TNode>(SyntaxListBuilder<TNode> item)
             where TNode : GreenNode
