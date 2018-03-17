@@ -6,7 +6,7 @@ Imports Microsoft.CodeAnalysis.CodeRefactorings
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.AddFileBanner
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic,
-        Name := PredefinedCodeRefactoringProviderNames.AddFileBanner), [Shared]>
+        Name:=PredefinedCodeRefactoringProviderNames.AddFileBanner), [Shared]>
     Friend Class VisualBasicAddFileBannerCodeRefactoringProvider
         Inherits AbstractAddFileBannerCodeRefactoringProvider
 
