@@ -543,5 +543,149 @@ class Program
   IL_0066:  ret
 }");
         }
+
+        [Fact]
+        public void DecimalEquality()
+        {
+            // demonstrate that pattern-matching against a decimal constant is
+            // at least as efficient as simply using ==
+            var source =
+@"using System;
+public class C
+{
+    public static void Main()
+    {
+        Console.Write(M1(1.0m));
+        Console.Write(M2(1.0m));
+        Console.Write(M1(2.0m));
+        Console.Write(M2(2.0m));
+    }
+
+    static int M1(decimal d)
+    {
+        if (M(d) is 1.0m) return 1;
+        return 0;
+    }
+
+    static int M2(decimal d)
+    {
+        if (M(d) == 1.0m) return 1;
+        return 0;
+    }
+
+    public static decimal M(decimal d)
+    {
+        return d;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            compilation.VerifyDiagnostics();
+            var expectedOutput = @"1100";
+            var compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M1",
+@"{
+  // Code size       39 (0x27)
+  .maxstack  5
+  .locals init (bool V_0,
+                decimal V_1,
+                int V_2)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""decimal C.M(decimal)""
+  IL_0007:  stloc.1
+  IL_0008:  ldc.i4.s   10
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.0
+  IL_000d:  ldc.i4.1
+  IL_000e:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_0013:  ldloc.1
+  IL_0014:  call       ""bool decimal.op_Equality(decimal, decimal)""
+  IL_0019:  stloc.0
+  IL_001a:  ldloc.0
+  IL_001b:  brfalse.s  IL_0021
+  IL_001d:  ldc.i4.1
+  IL_001e:  stloc.2
+  IL_001f:  br.s       IL_0025
+  IL_0021:  ldc.i4.0
+  IL_0022:  stloc.2
+  IL_0023:  br.s       IL_0025
+  IL_0025:  ldloc.2
+  IL_0026:  ret
+}");
+            compVerifier.VerifyIL("C.M2",
+@"{
+  // Code size       37 (0x25)
+  .maxstack  6
+  .locals init (bool V_0,
+                int V_1)
+  IL_0000:  nop
+  IL_0001:  ldarg.0
+  IL_0002:  call       ""decimal C.M(decimal)""
+  IL_0007:  ldc.i4.s   10
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_0012:  call       ""bool decimal.op_Equality(decimal, decimal)""
+  IL_0017:  stloc.0
+  IL_0018:  ldloc.0
+  IL_0019:  brfalse.s  IL_001f
+  IL_001b:  ldc.i4.1
+  IL_001c:  stloc.1
+  IL_001d:  br.s       IL_0023
+  IL_001f:  ldc.i4.0
+  IL_0020:  stloc.1
+  IL_0021:  br.s       IL_0023
+  IL_0023:  ldloc.1
+  IL_0024:  ret
+}");
+
+            compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            compVerifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            compVerifier.VerifyIL("C.M1",
+@"{
+  // Code size       30 (0x1e)
+  .maxstack  5
+  .locals init (decimal V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""decimal C.M(decimal)""
+  IL_0006:  stloc.0
+  IL_0007:  ldc.i4.s   10
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldc.i4.0
+  IL_000c:  ldc.i4.1
+  IL_000d:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_0012:  ldloc.0
+  IL_0013:  call       ""bool decimal.op_Equality(decimal, decimal)""
+  IL_0018:  brfalse.s  IL_001c
+  IL_001a:  ldc.i4.1
+  IL_001b:  ret
+  IL_001c:  ldc.i4.0
+  IL_001d:  ret
+}");
+            compVerifier.VerifyIL("C.M2",
+@"{
+  // Code size       28 (0x1c)
+  .maxstack  6
+  IL_0000:  ldarg.0
+  IL_0001:  call       ""decimal C.M(decimal)""
+  IL_0006:  ldc.i4.s   10
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldc.i4.0
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  newobj     ""decimal..ctor(int, int, int, bool, byte)""
+  IL_0011:  call       ""bool decimal.op_Equality(decimal, decimal)""
+  IL_0016:  brfalse.s  IL_001a
+  IL_0018:  ldc.i4.1
+  IL_0019:  ret
+  IL_001a:  ldc.i4.0
+  IL_001b:  ret
+}");
+        }
     }
 }
