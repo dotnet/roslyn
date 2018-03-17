@@ -216,6 +216,9 @@
   <data name="IDS_FeaturePrivateProtected" xml:space="preserve">
     <value>private protected</value>
   </data>
+  <data name="IDS_FeatureTupleEquality" xml:space="preserve">
+    <value>tuple equality</value>
+  </data>
   <data name="IDS_FeatureNullable" xml:space="preserve">
     <value>nullable types</value>
   </data>
@@ -2173,6 +2176,9 @@ If such a class is used as a base class and if the deriving class defines a dest
   </data>
   <data name="ERR_ExpressionTreeContainsBaseAccess" xml:space="preserve">
     <value>An expression tree may not contain a base access</value>
+  </data>
+  <data name="ERR_ExpressionTreeContainsTupleBinOp" xml:space="preserve">
+    <value>An expression tree may not contain a tuple == or != operator</value>
   </data>
   <data name="ERR_ExpressionTreeContainsAssignment" xml:space="preserve">
     <value>An expression tree may not contain an assignment operator</value>
@@ -5039,6 +5045,12 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="WRN_TupleLiteralNameMismatch_Title" xml:space="preserve">
     <value>The tuple element name is ignored because a different name or no name is specified by the assignment target.</value>
   </data>
+  <data name="WRN_TupleBinopLiteralNameMismatch" xml:space="preserve">
+    <value>The tuple element name '{0}' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</value>
+  </data>
+  <data name="WRN_TupleBinopLiteralNameMismatch_Title" xml:space="preserve">
+    <value>The tuple element name is ignored because a different name or no name is specified on the other side of the tuple == or != operator.</value>
+  </data>
   <data name="ERR_PredefinedValueTupleTypeMustBeStruct" xml:space="preserve">
     <value>Predefined type '{0}' must be a struct.</value>
   </data>
@@ -5266,6 +5278,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_InDynamicMethodArg" xml:space="preserve">
     <value>Arguments with 'in' modifier cannot be used in dynamically dispatched expessions.</value>
+  </data>
+  <data name="ERR_TupleSizesMismatchForBinOps" xml:space="preserve">
+    <value>Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality {0} on the left and {1} on the right.</value>
   </data>
   <data name="ERR_RefLocalOrParamExpected" xml:space="preserve">
     <value>The left-hand side of a ref assignment must be a ref local or parameter.</value>
