@@ -432,6 +432,7 @@ struct S
 }", parseOptions: s_parseOptions);
         }
 
+        [WorkItem(25456, "https://github.com/dotnet/roslyn/issues/25456")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsUseDefaultLiteral)]
         public async Task TestNotInSwitchCase()
         {

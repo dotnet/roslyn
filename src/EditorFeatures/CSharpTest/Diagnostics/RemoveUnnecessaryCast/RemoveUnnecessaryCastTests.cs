@@ -4028,6 +4028,7 @@ enum Sign
     }");
         }
 
+        [WorkItem(25456, "https://github.com/dotnet/roslyn/issues/25456#issuecomment-373549735")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
         public async Task DontIntroduceDefaultLiteralInSwitchCase()
         {
