@@ -170,7 +170,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                 ImmutableInterlocked.InterlockedCompareExchange(
                     _lazyAssemblyAttributes,
-                    If((moduleAssemblyAttributesBuilder IsNot Nothing),
+                    If(moduleAssemblyAttributesBuilder IsNot Nothing,
                        moduleAssemblyAttributesBuilder.ToImmutableAndFree(),
                        ImmutableArray(Of VisualBasicAttributeData).Empty),
                    Nothing)
@@ -266,7 +266,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Friend Sub OnNewTypeDeclarationsLoaded(
             typesDict As Dictionary(Of String, ImmutableArray(Of PENamedTypeSymbol))
         )
-            Dim keepLookingForDeclaredCorTypes As Boolean = (_ordinal = 0 AndAlso _assemblySymbol.KeepLookingForDeclaredSpecialTypes)
+            Dim keepLookingForDeclaredCorTypes As Boolean = _ordinal = 0 AndAlso _assemblySymbol.KeepLookingForDeclaredSpecialTypes
 
             For Each types In typesDict.Values
                 For Each t In types
@@ -275,7 +275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     Debug.Assert(added)
 
                     ' Register newly loaded COR types
-                    If (keepLookingForDeclaredCorTypes AndAlso t.SpecialType <> SpecialType.None) Then
+                    If keepLookingForDeclaredCorTypes AndAlso t.SpecialType <> SpecialType.None Then
                         _assemblySymbol.RegisterDeclaredSpecialType(t)
                         keepLookingForDeclaredCorTypes = _assemblySymbol.KeepLookingForDeclaredSpecialTypes
                     End If

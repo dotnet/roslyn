@@ -388,7 +388,7 @@ lReportErrorOnTwoTokens:
                 name = WellKnownMemberNames.StaticConstructorName
                 flags = flags Or SourceMemberFlags.MethodKindSharedConstructor
 
-                If (syntax.ParameterList IsNot Nothing AndAlso syntax.ParameterList.Parameters.Count > 0) Then
+                If syntax.ParameterList IsNot Nothing AndAlso syntax.ParameterList.Parameters.Count > 0 Then
                     ' shared constructor cannot have parameters.
                     binder.ReportDiagnostic(diagBag, syntax.ParameterList, ERRID.ERR_SharedConstructorWithParams)
                 End If
@@ -523,7 +523,7 @@ lReportErrorOnTwoTokens:
                 binder.ReportModifierError(modifiers, ERRID.ERR_ConstructorAsync, diagBag, SyntaxKind.AsyncKeyword)
             End If
 
-            If ((constructorModifiers.AllFlags And SourceMemberFlags.Shared) <> 0) Then
+            If (constructorModifiers.AllFlags And SourceMemberFlags.Shared) <> 0 Then
                 If (flags And SourceMemberFlags.AllAccessibilityModifiers) <> 0 Then
 
                     ' Shared constructors can't be declared with accessibility modifiers
@@ -641,7 +641,7 @@ lReportErrorOnTwoTokens:
         ' TODO (tomat): NotOverridable?
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return CType((m_flags And SourceMemberFlags.AccessibilityMask), Accessibility)
+                Return CType(m_flags And SourceMemberFlags.AccessibilityMask, Accessibility)
             End Get
         End Property
 
@@ -1991,13 +1991,13 @@ lReportErrorOnTwoTokens:
                 End If
 
                 Dim lazyCustomAttributesBag = Me.m_lazyCustomAttributesBag
-                If (lazyCustomAttributesBag IsNot Nothing AndAlso lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed) Then
+                If lazyCustomAttributesBag IsNot Nothing AndAlso lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed Then
                     Dim data = DirectCast(m_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, MethodEarlyWellKnownAttributeData)
                     Return If(data IsNot Nothing, data.ObsoleteAttributeData, Nothing)
                 End If
 
                 Dim reference = Me.DeclaringSyntaxReferences
-                If (reference.IsEmpty) Then
+                If reference.IsEmpty Then
                     ' no references -> no attributes
                     Return Nothing
                 End If
@@ -2077,7 +2077,7 @@ lReportErrorOnTwoTokens:
 
                 Dim errorLocation As SyntaxNodeOrToken = Nothing
                 Dim retType As TypeSymbol = GetReturnType(sourceModule, errorLocation, diagBag)
-                Debug.Assert(Me.IsAccessor OrElse retType.GetArity() = 0 OrElse Not (errorLocation.IsKind(SyntaxKind.None))) ' if we could have constraint errors, the location better exist.
+                Debug.Assert(Me.IsAccessor OrElse retType.GetArity() = 0 OrElse Not errorLocation.IsKind(SyntaxKind.None)) ' if we could have constraint errors, the location better exist.
 
                 ' For an overriding method, we need to copy custom modifiers from the method we override.
                 Dim overriddenMembers As OverriddenMembersResult(Of MethodSymbol)

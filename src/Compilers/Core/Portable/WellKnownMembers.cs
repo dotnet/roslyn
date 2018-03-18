@@ -2899,21 +2899,21 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
 
                  // System_Runtime_CompilerServices_IsReadOnlyAttribute__ctor
-                 (byte)(MemberFlags.Constructor),                                                                                                               // Flags
+                 (byte)MemberFlags.Constructor,                                                                                                               // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_IsReadOnlyAttribute - WellKnownType.ExtSentinel),        // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                      0,                                                                                                                                         // Method Signature
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
 
                  // System_Runtime_CompilerServices_IsByRefLikeAttribute__ctor
-                 (byte)(MemberFlags.Constructor),                                                                                                               // Flags
+                 (byte)MemberFlags.Constructor,                                                                                                               // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_IsByRefLikeAttribute - WellKnownType.ExtSentinel),       // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                      0,                                                                                                                                         // Method Signature
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
 
                  // System_ObsoleteAttribute__ctor
-                 (byte)(MemberFlags.Constructor),                                                                                                               // Flags
+                 (byte)MemberFlags.Constructor,                                                                                                               // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ObsoleteAttribute - WellKnownType.ExtSentinel),                                   // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                      2,                                                                                                                                         // Method Signature
@@ -2922,7 +2922,7 @@ namespace Microsoft.CodeAnalysis
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
                      
                  // System_Span__ctor
-                 (byte)(MemberFlags.Constructor),                                                                                                               // Flags
+                 (byte)MemberFlags.Constructor,                                                                                                               // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Span_T - WellKnownType.ExtSentinel),                                              // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                      2,                                                                                                                                         // Method Signature
@@ -2931,7 +2931,7 @@ namespace Microsoft.CodeAnalysis
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                  // System_Span__get_Item
-                 (byte)(MemberFlags.PropertyGet),                                                                                                               // Flags
+                 (byte)MemberFlags.PropertyGet,                                                                                                               // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Span_T - WellKnownType.ExtSentinel),                                              // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                     1,                                                                                                                                          // Method Signature
@@ -2939,14 +2939,14 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                  // System_Span__get_Length
-                 (byte)(MemberFlags.PropertyGet),                                                                                                               // Flags
+                 (byte)MemberFlags.PropertyGet,                                                                                                               // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Span_T - WellKnownType.ExtSentinel),                                              // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                     0,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                  // System_ReadOnlySpan__ctor
-                 (byte)(MemberFlags.Constructor),                                                                                                               // Flags
+                 (byte)MemberFlags.Constructor,                                                                                                               // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),                                              // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                      2,                                                                                                                                         // Method Signature
@@ -2955,7 +2955,7 @@ namespace Microsoft.CodeAnalysis
                      (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                  // System_ReadOnlySpan__get_Item
-                 (byte)(MemberFlags.PropertyGet),                                                                                                               // Flags
+                 (byte)MemberFlags.PropertyGet,                                                                                                               // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),                                      // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                     1,                                                                                                                                          // Method Signature
@@ -2963,14 +2963,14 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
 
                  // System_ReadOnlySpan__get_Length
-                 (byte)(MemberFlags.PropertyGet),                                                                                                               // Flags
+                 (byte)MemberFlags.PropertyGet,                                                                                                               // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ReadOnlySpan_T - WellKnownType.ExtSentinel),                                      // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                     0,                                                                                                                                          // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
                     
                  // System_Runtime_CompilerServices_IsUnmanagedAttribute__ctor
-                 (byte)(MemberFlags.Constructor),                                                                                                               // Flags
+                 (byte)MemberFlags.Constructor,                                                                                                               // Flags
                  (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Runtime_CompilerServices_IsUnmanagedAttribute - WellKnownType.ExtSentinel),       // DeclaringTypeId
                  0,                                                                                                                                             // Arity
                      0,                                                                                                                                         // Method Signature

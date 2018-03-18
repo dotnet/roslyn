@@ -1331,7 +1331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' Because fields declarations can define multiple symbols "Public a, b As Integer" 
                 ' We want to get the VariableDeclarator node inside the field declaration to print out the symbol for the name.
                 Case SyntaxKind.VariableDeclarator
-                    If (node.Parent.IsKind(SyntaxKind.FieldDeclaration)) Then
+                    If node.Parent.IsKind(SyntaxKind.FieldDeclaration) Then
                         Return True
                     End If
                     Return False

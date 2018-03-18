@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addRefReadOnlyModifier: IsVirtual || IsAbstract,
                 diagnostics: diagnostics);
 
-            _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
+            _lazyIsVararg = arglistToken.Kind() == SyntaxKind.ArgListKeyword;
             RefKind refKind;
             var returnTypeSyntax = syntax.ReturnType.SkipRef(out refKind);
             _lazyReturnType = signatureBinder.BindType(returnTypeSyntax, diagnostics);

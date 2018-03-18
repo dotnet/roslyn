@@ -23,12 +23,12 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Expansion
 
                 Dim root = Await document.GetSyntaxRootAsync()
 
-                If (hostDocument.AnnotatedSpans.ContainsKey("Expand")) Then
+                If hostDocument.AnnotatedSpans.ContainsKey("Expand") Then
                     For Each span In hostDocument.AnnotatedSpans("Expand")
                         Dim node = GetExpressionSyntaxWithSameSpan(root.FindToken(span.Start).Parent, span.End)
                         root = root.ReplaceNode(node, Await Simplifier.ExpandAsync(node, document, expandInsideNode:=Nothing, expandParameter:=expandParameter))
                     Next
-                ElseIf (hostDocument.AnnotatedSpans.ContainsKey("ExpandAndSimplify")) Then
+                ElseIf hostDocument.AnnotatedSpans.ContainsKey("ExpandAndSimplify") Then
                     For Each span In hostDocument.AnnotatedSpans("ExpandAndSimplify")
                         Dim node = GetExpressionSyntaxWithSameSpan(root.FindToken(span.Start).Parent, span.End)
                         root = root.ReplaceNode(node, Await Simplifier.ExpandAsync(node, document, expandInsideNode:=Nothing, expandParameter:=expandParameter))

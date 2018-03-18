@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         EmbeddedAttribute = 2
         VbCore = 4
         XmlHelper = 8
-        All = (EmbeddedAttribute Or VbCore Or XmlHelper)
+        All = EmbeddedAttribute Or VbCore Or XmlHelper
 
         LastValue = XmlHelper
     End Enum

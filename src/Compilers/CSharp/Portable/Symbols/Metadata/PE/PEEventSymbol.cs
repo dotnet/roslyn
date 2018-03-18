@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (isWindowsRuntimeEvent)
                 {
-                    NamedTypeSymbol eventRegistrationTokenTable_T = ((PEModuleSymbol)(this.ContainingModule)).EventRegistrationTokenTable_T;
+                    NamedTypeSymbol eventRegistrationTokenTable_T = ((PEModuleSymbol)this.ContainingModule).EventRegistrationTokenTable_T;
                     if (eventRegistrationTokenTable_T == candidateAssociatedFieldType.OriginalDefinition &&
                         _eventType == ((NamedTypeSymbol)candidateAssociatedFieldType).TypeArgumentsNoUseSiteDiagnostics[0])
                     {
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                NamedTypeSymbol token = ((PEModuleSymbol)(this.ContainingModule)).EventRegistrationToken;
+                NamedTypeSymbol token = ((PEModuleSymbol)this.ContainingModule).EventRegistrationToken;
 
                 // If the addMethod returns an EventRegistrationToken
                 // and the removeMethod accepts an EventRegistrationToken
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref _lazyObsoleteAttributeData, _handle, (PEModuleSymbol)(this.ContainingModule), ignoreByRefLikeMarker: false);
+                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref _lazyObsoleteAttributeData, _handle, (PEModuleSymbol)this.ContainingModule, ignoreByRefLikeMarker: false);
                 return _lazyObsoleteAttributeData;
             }
         }

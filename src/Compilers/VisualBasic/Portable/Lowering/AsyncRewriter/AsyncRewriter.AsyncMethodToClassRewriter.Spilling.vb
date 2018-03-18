@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     Else
                         ' We are to the left of an await-containing expression. Spill the arg.
-                        newExpression = SpillValue(arg, isReceiver:=(index = 0 AndAlso firstArgumentIsAReceiverOfAMethodCall), builder:=builder)
+                        newExpression = SpillValue(arg, isReceiver:=index = 0 AndAlso firstArgumentIsAReceiverOfAMethodCall, builder:=builder)
                     End If
 
                     newArgs(index) = newExpression

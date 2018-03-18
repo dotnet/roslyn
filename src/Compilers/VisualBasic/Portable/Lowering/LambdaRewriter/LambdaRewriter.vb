@@ -578,7 +578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     Dim variableNode As BoundNode = Nothing
-                    If ((Not _analysis.variableScope.TryGetValue(variable, variableNode)) OrElse (variableNode IsNot node)) Then
+                    If (Not _analysis.variableScope.TryGetValue(variable, variableNode)) OrElse (variableNode IsNot node) Then
                         Continue For
                     End If
 
@@ -1155,7 +1155,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' NOTE: we are not caching static lambdas in static ctors - cannot reuse such cache
             ' NOTE: we require lambdaScope IsNot Nothing. We do not want to introduce a field into a user's class (not a synthetic frame)
             Dim shouldCacheStaticlambda As Boolean =
-                (closureKind = ClosureKind.Static AndAlso CurrentMethod.MethodKind <> MethodKind.SharedConstructor AndAlso Not referencedMethod.IsGenericMethod)
+                closureKind = ClosureKind.Static AndAlso CurrentMethod.MethodKind <> MethodKind.SharedConstructor AndAlso Not referencedMethod.IsGenericMethod
 
             Dim shouldCacheInLoop As Boolean =
                 (lambdaScope IsNot Nothing AndAlso lambdaScope IsNot _analysis.blockParent(node.Body)) AndAlso
@@ -1183,7 +1183,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                            name:=cacheFieldName,
                                                                            topLevelMethod:=Me._topLevelMethod,
                                                                            accessibility:=Accessibility.Public,
-                                                                           isShared:=(closureKind = ClosureKind.Static))
+                                                                           isShared:=closureKind = ClosureKind.Static)
 
                 CompilationState.ModuleBuilderOpt.AddSynthesizedDefinition(translatedLambdaContainer, cacheField)
 
@@ -1227,7 +1227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '
         Private Shared Function InLoopOrLambda(lambdaSyntax As SyntaxNode, scopeSyntax As SyntaxNode) As Boolean
             Dim curSyntax = lambdaSyntax.Parent
-            While (curSyntax IsNot Nothing AndAlso curSyntax IsNot scopeSyntax)
+            While curSyntax IsNot Nothing AndAlso curSyntax IsNot scopeSyntax
                 Select Case curSyntax.Kind
                     Case SyntaxKind.ForBlock,
                          SyntaxKind.ForEachBlock,

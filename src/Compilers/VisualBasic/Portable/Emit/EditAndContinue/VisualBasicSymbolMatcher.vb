@@ -170,11 +170,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Function
 
             Protected Overrides Function GetNestedTypes(def As Cci.ITypeDefinition) As IEnumerable(Of Cci.INestedTypeDefinition)
-                Return (DirectCast(def, PENamedTypeSymbol)).GetTypeMembers().Cast(Of Cci.INestedTypeDefinition)()
+                Return DirectCast(def, PENamedTypeSymbol).GetTypeMembers().Cast(Of Cci.INestedTypeDefinition)()
             End Function
 
             Protected Overrides Function GetFields(def As Cci.ITypeDefinition) As IEnumerable(Of Cci.IFieldDefinition)
-                Return (DirectCast(def, PENamedTypeSymbol)).GetFieldsToEmit().Cast(Of Cci.IFieldDefinition)()
+                Return DirectCast(def, PENamedTypeSymbol).GetFieldsToEmit().Cast(Of Cci.IFieldDefinition)()
             End Function
 
             Private Overloads Shared Sub GetTopLevelTypes(builder As ArrayBuilder(Of Cci.INamespaceTypeDefinition), [namespace] As NamespaceSymbol)
@@ -357,7 +357,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                 Dim otherContainer As Symbol = Me.Visit([namespace].ContainingSymbol)
                 Dim kind As SymbolKind = otherContainer.Kind
                 If kind = SymbolKind.NetModule Then
-                    Return (DirectCast(otherContainer, ModuleSymbol)).GlobalNamespace
+                    Return DirectCast(otherContainer, ModuleSymbol).GlobalNamespace
                 End If
                 If kind <> SymbolKind.Namespace Then
                     Throw ExceptionUtilities.UnexpectedValue(kind)

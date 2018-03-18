@@ -23,8 +23,8 @@ namespace N
     }
 }
 ", new[] { MscorlibRef });
-            var n = ((NamespaceSymbol)c.Assembly.GlobalNamespace.GetMembers("N").Single());
-            var implicitClass = ((NamedTypeSymbol)n.GetMembers().Single());
+            var n = (NamespaceSymbol)c.Assembly.GlobalNamespace.GetMembers("N").Single();
+            var implicitClass = (NamedTypeSymbol)n.GetMembers().Single();
             Assert.Equal(0, implicitClass.GetAttributes().Length);
             Assert.Equal(0, implicitClass.Interfaces().Length);
             Assert.Equal(c.ObjectType, implicitClass.BaseType());
@@ -36,8 +36,8 @@ namespace N
 
             var c2 = CreateCompilationWithMscorlib45("", new[] { c.ToMetadataReference() });
 
-            n = ((NamespaceSymbol)c2.GlobalNamespace.GetMembers("N").Single());
-            implicitClass = ((NamedTypeSymbol)n.GetMembers().Single());
+            n = (NamespaceSymbol)c2.GlobalNamespace.GetMembers("N").Single();
+            implicitClass = (NamedTypeSymbol)n.GetMembers().Single();
             Assert.IsType<CSharp.Symbols.Retargeting.RetargetingNamedTypeSymbol>(implicitClass);
             Assert.Equal(0, implicitClass.Interfaces().Length);
             Assert.Equal(c2.ObjectType, implicitClass.BaseType());
@@ -53,7 +53,7 @@ void Goo()
 }
 ", parseOptions: TestOptions.Script);
 
-            var scriptClass = ((NamedTypeSymbol)c.Assembly.GlobalNamespace.GetMembers().Single());
+            var scriptClass = (NamedTypeSymbol)c.Assembly.GlobalNamespace.GetMembers().Single();
             Assert.Equal(0, scriptClass.GetAttributes().Length);
             Assert.Equal(0, scriptClass.Interfaces().Length);
             Assert.Null(scriptClass.BaseType());

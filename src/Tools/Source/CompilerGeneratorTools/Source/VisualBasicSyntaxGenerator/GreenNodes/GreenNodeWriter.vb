@@ -88,7 +88,7 @@ Friend Class GreenNodeWriter
 
         ' Class name
         _writer.Write("    ")
-        If (nodeStructure.PartialClass) Then
+        If nodeStructure.PartialClass Then
             _writer.Write("Partial ")
         End If
         Dim visibility As String = "Friend"
@@ -656,7 +656,7 @@ Friend Class GreenNodeWriter
         ' Put Shadows modifier on if useful.
         ' Object has Equals and GetType
         ' root name has members for every kind and structure (factory methods)
-        If (name = "Equals" OrElse name = "GetType") Then 'OrElse _parseTree.NodeKinds.ContainsKey(name) OrElse _parseTree.NodeStructures.ContainsKey(name)) Then
+        If name = "Equals" OrElse name = "GetType" Then 'OrElse _parseTree.NodeKinds.ContainsKey(name) OrElse _parseTree.NodeStructures.ContainsKey(name)) Then
             modifiers = "Shadows " + modifiers
         End If
         Return modifiers

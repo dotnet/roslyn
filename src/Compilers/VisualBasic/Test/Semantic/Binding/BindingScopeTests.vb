@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             For position As Integer = 0 To treeText.Length - 1
                 Dim names = semanticModel.LookupNames(position)
                 Dim found = names.Contains(symbolName)
-                Dim expectedToFind = (position >= expectedStart AndAlso position < expectedEnd)
+                Dim expectedToFind = position >= expectedStart AndAlso position < expectedEnd
                 If found <> expectedToFind Then
                     Dim locationText = If(treeText.Length > position + 50, treeText.Substring(position, 50), treeText.Substring(position))
                     If expectedToFind Then

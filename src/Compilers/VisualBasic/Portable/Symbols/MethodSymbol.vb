@@ -291,7 +291,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If Me.IsAccessor AndAlso Me.AssociatedSymbol.Kind = SymbolKind.Property Then
                     ' Property accessors use the overridden property to determine overriding.
-                    Return DirectCast(Me.AssociatedSymbol, PropertySymbol).GetAccessorOverride(getter:=(MethodKind = MethodKind.PropertyGet))
+                    Return DirectCast(Me.AssociatedSymbol, PropertySymbol).GetAccessorOverride(getter:=MethodKind = MethodKind.PropertyGet)
                 Else
                     If Me.IsOverrides AndAlso Me.ConstructedFrom Is Me Then
                         If IsDefinition Then

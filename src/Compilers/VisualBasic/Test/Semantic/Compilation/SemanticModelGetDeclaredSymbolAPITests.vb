@@ -1481,7 +1481,7 @@ End Class
 
             Dim defPropGetBlockSyntax = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.GetAccessorBlock, 1).AsNode(), AccessorBlockSyntax)
             Assert.Equal("Public Overridable Property Get DefProp(p As Integer) As String", model.GetDeclaredSymbol(defPropGetBlockSyntax).ToString())
-            Assert.True(TypeOf (model.GetDeclaredSymbol(defPropGetBlockSyntax)) Is MethodSymbol, "API should return a MethodSymbol")
+            Assert.True(TypeOf model.GetDeclaredSymbol(defPropGetBlockSyntax) Is MethodSymbol, "API should return a MethodSymbol")
             Dim defPropSetBlockSyntax = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SetAccessorBlock, 1).AsNode(), AccessorBlockSyntax)
             Assert.Equal("Public Overridable Property Set DefProp(p As Integer, value As String)", model.GetDeclaredSymbol(defPropSetBlockSyntax).ToString())
             Dim regularPropSetBlockSyntax = DirectCast(tree.FindNodeOrTokenByKind(SyntaxKind.SetAccessorBlock, 2).AsNode(), AccessorBlockSyntax)

@@ -5225,7 +5225,7 @@ End Class")
         Private Shared Function Verify(parts As ImmutableArray(Of SymbolDisplayPart), expectedText As String, ParamArray kinds As SymbolDisplayPartKind()) As ImmutableArray(Of SymbolDisplayPart)
             Assert.Equal(expectedText, parts.ToDisplayString())
 
-            If (kinds.Length > 0) Then
+            If kinds.Length > 0 Then
                 AssertEx.Equal(kinds, parts.Select(Function(p) p.Kind), itemInspector:=Function(p) $"                SymbolDisplayPartKind.{p}")
             End If
 

@@ -152,14 +152,14 @@ lSelect:
             Select Case stmt.Kind
                 Case BoundKind.ReturnStatement
                     ' The Return statement is not directly expressed in the expression tree, just the expression being returned.
-                    Dim expression As BoundExpression = (DirectCast(stmt, BoundReturnStatement)).ExpressionOpt
+                    Dim expression As BoundExpression = DirectCast(stmt, BoundReturnStatement).ExpressionOpt
                     If expression IsNot Nothing Then
                         Return Visit(expression)
                     End If
                 ' Otherwise fall through and generate an error
 
                 Case BoundKind.ExpressionStatement
-                    Return Visit((DirectCast(stmt, BoundExpressionStatement)).Expression)
+                    Return Visit(DirectCast(stmt, BoundExpressionStatement).Expression)
 
                 Case BoundKind.Block
                     Dim innerBlock = DirectCast(stmt, BoundBlock)
@@ -592,7 +592,7 @@ lSelect:
 
                 Dim memberRef As BoundExpression = If(leftSymbol.Kind = SymbolKind.Field,
                                                       Me._factory.FieldInfo(DirectCast(leftSymbol, FieldSymbol)),
-                                                      Me._factory.MethodInfo((DirectCast(leftSymbol, PropertySymbol)).SetMethod))
+                                                      Me._factory.MethodInfo(DirectCast(leftSymbol, PropertySymbol).SetMethod))
 
                 newInitializers(i) = _factory.Convert(MemberBindingType, ConvertRuntimeHelperToExpressionTree("Bind", memberRef, Visit(right)))
             Next

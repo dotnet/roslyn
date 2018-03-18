@@ -76,7 +76,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 End Get
                 Set(value As MethodKind)
                     Debug.Assert(value = (value And s_methodKindMask))
-                    _bits = (_bits And Not (s_methodKindMask << s_methodKindOffset)) Or (value << s_methodKindOffset) Or s_methodKindIsPopulatedBit
+                    _bits = (_bits And Not s_methodKindMask << s_methodKindOffset) Or (value << s_methodKindOffset) Or s_methodKindIsPopulatedBit
                 End Set
             End Property
 
@@ -775,11 +775,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
-                Dim flagsToCheck = (_flags And
+                Dim flagsToCheck = _flags And
                                     (MethodAttributes.Virtual Or
                                      MethodAttributes.Final Or
                                      MethodAttributes.Abstract Or
-                                     MethodAttributes.NewSlot))
+                                     MethodAttributes.NewSlot)
 
                 Return flagsToCheck = (MethodAttributes.Virtual Or MethodAttributes.NewSlot) OrElse
                        (flagsToCheck = MethodAttributes.Virtual AndAlso _containingType.BaseTypeNoUseSiteDiagnostics Is Nothing)
@@ -930,7 +930,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Dim signatureHeader As SignatureHeader
                 Dim mrEx As BadImageFormatException = Nothing
             Dim paramInfo() As ParamInfo(Of TypeSymbol) =
-                    (New MetadataDecoder(moduleSymbol, Me)).GetSignatureForMethod(_handle, signatureHeader, mrEx)
+                    New MetadataDecoder(moduleSymbol, Me).GetSignatureForMethod(_handle, signatureHeader, mrEx)
 
             ' If method is not generic, let's assign empty list for type parameters
             If Not signatureHeader.IsGeneric() AndAlso

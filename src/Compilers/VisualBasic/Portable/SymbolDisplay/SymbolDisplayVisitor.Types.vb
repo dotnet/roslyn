@@ -203,7 +203,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AddAnonymousTypeName(symbol)
                 Return
 
-            ElseIf (symbol.IsTupleType) Then
+            ElseIf symbol.IsTupleType Then
                 ' If top level tuple uses non-default names, there is no way to preserve them
                 ' unless we use tuple syntax for the type. So, we give them priority.
                 If HasNonDefaultTupleElements(symbol) OrElse CanUseTupleTypeName(symbol) Then

@@ -18,7 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Shared Sub DisallowTypeCharacter(identifier As SyntaxToken,
                                          diagBag As DiagnosticBag,
                                          Optional errid As ERRID = ERRID.ERR_TypecharNotallowed)
-            If (identifier.GetTypeCharacter() <> TypeCharacter.None) Then
+            If identifier.GetTypeCharacter() <> TypeCharacter.None Then
                 ReportDiagnostic(diagBag, identifier, errid)
             End If
         End Sub
@@ -164,7 +164,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ElseIf (currentModifier And SourceMemberFlags.AllAccessibilityModifiers) <> 0 AndAlso
                        (foundModifiers And SourceMemberFlags.AllAccessibilityModifiers) <> 0 AndAlso
                        Not ((foundModifiers Or currentModifier) And SourceMemberFlags.AllAccessibilityModifiers) = (SourceMemberFlags.Protected Or SourceMemberFlags.Friend) AndAlso
-                       Not (((foundModifiers Or currentModifier) And SourceMemberFlags.AllAccessibilityModifiers) = (SourceMemberFlags.Protected Or SourceMemberFlags.Private)) Then
+                       Not ((foundModifiers Or currentModifier) And SourceMemberFlags.AllAccessibilityModifiers) = (SourceMemberFlags.Protected Or SourceMemberFlags.Private) Then
                     ReportDiagnostic(diagBag, keywordSyntax, ERRID.ERR_DuplicateAccessCategoryUsed)
                 ElseIf (currentModifier And SourceMemberFlags.AllOverrideModifiers) <> 0 AndAlso
                        (foundModifiers And SourceMemberFlags.AllOverrideModifiers) <> 0 Then
@@ -393,7 +393,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' </summary>
         Private Shared Function HasDefaultType(identifierSyntax As SyntaxToken,
                                         asClauseOptSyntax As AsClauseSyntax) As Boolean
-            Return (identifierSyntax.GetTypeCharacter() = TypeCharacter.None AndAlso asClauseOptSyntax Is Nothing)
+            Return identifierSyntax.GetTypeCharacter() = TypeCharacter.None AndAlso asClauseOptSyntax Is Nothing
         End Function
 
         ''' <summary>

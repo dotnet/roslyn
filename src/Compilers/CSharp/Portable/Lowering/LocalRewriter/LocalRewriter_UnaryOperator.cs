@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // prefix:  (X)(T.Increment((T)operand)))
             // postfix: (X)(T.Increment((T)temp)))
-            var newValue = MakeIncrementOperator(node, rewrittenValueToIncrement: (isPrefix ? MakeRValue(transformedLHS) : boundTemp));
+            var newValue = MakeIncrementOperator(node, rewrittenValueToIncrement: isPrefix ? MakeRValue(transformedLHS) : boundTemp);
 
             // there are two strategies for completing the rewrite.
             // The reason is that indirect assignments read the target of the assignment before evaluating 

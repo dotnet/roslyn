@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.MoveType
             TopLevelTypeDeclarations(root).Skip(1).Any();
 
         private static IEnumerable<TTypeDeclarationSyntax> TopLevelTypeDeclarations(SyntaxNode root) =>
-            root.DescendantNodes(n => (n is TCompilationUnitSyntax || n is TNamespaceDeclarationSyntax))
+            root.DescendantNodes(n => n is TCompilationUnitSyntax || n is TNamespaceDeclarationSyntax)
                 .OfType<TTypeDeclarationSyntax>();
 
         private bool AnyTopLevelTypeMatchesDocumentName(State state, CancellationToken cancellationToken)

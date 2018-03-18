@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             this.name = name;
             this.arity = arity;
-            this.mangleName = (mangleName && arity > 0);
+            this.mangleName = mangleName && arity > 0;
         }
 
         public override string Name

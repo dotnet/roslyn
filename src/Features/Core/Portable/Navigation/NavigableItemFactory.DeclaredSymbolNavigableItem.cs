@@ -76,15 +76,15 @@ namespace Microsoft.CodeAnalysis.Navigation
                 switch (accessibility)
                 {
                     case Accessibility.Private:
-                        rawGlyph += (Glyph.ClassPrivate - Glyph.ClassPublic);
+                        rawGlyph += Glyph.ClassPrivate - Glyph.ClassPublic;
                         break;
                     case Accessibility.Internal:
-                        rawGlyph += (Glyph.ClassInternal - Glyph.ClassPublic);
+                        rawGlyph += Glyph.ClassInternal - Glyph.ClassPublic;
                         break;
                     case Accessibility.Protected:
                     case Accessibility.ProtectedOrInternal:
                     case Accessibility.ProtectedAndInternal:
-                        rawGlyph += (Glyph.ClassProtected - Glyph.ClassPublic);
+                        rawGlyph += Glyph.ClassProtected - Glyph.ClassPublic;
                         break;
                 }
 

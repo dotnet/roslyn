@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         public override Type GetElementType()
         {
-            return (TypeImpl)(Type.GetElementType());
+            return (TypeImpl)Type.GetElementType();
         }
 
         public override EventInfo GetEvent(string name, BindingFlags flags)

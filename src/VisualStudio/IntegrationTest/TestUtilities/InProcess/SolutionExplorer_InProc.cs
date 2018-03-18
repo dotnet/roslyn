@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
         public void AddMetadataReference(string assemblyName, string projectName)
         {
             var project = GetProject(projectName);
-            var vsproject = ((VSProject)project.Object);
+            var vsproject = (VSProject)project.Object;
             vsproject.References.Add(assemblyName);
         }
 

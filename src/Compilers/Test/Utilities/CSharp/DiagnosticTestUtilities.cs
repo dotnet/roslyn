@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     actualLength == 0 ? "<none>" : string.Join(Environment.NewLine, actualErrors)));
 
             var actualSortedDesp = (from ae in
-                                        (from e in actualErrors
+                                        from e in actualErrors
                                          let lineSpan = e.Location.GetMappedLineSpan()
                                          select new ErrorDescription
                                          {
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                              IsWarning = e.Severity == DiagnosticSeverity.Warning,
                                              Parameters = (e.Arguments != null && e.Arguments.Count > 0 && e.Arguments[0] != null) ?
                                                 e.Arguments.Select(x => x != null ? x.ToString() : null).ToArray() : Array.Empty<string>()
-                                         })
+                                         }
                                     orderby ae.Code, ae.Line, ae.Column
                                     select ae).ToList();
 

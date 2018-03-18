@@ -152,7 +152,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         ' Create an empty document to use as a non-null parameter when needed
         Private Shared ReadOnly s_document As Document =
-            (Function()
+            Function()
                  Dim workspace = TestWorkspace.CreateWorkspace(
                      <Workspace>
                          <Project Language="C#">
@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                          </Project>
                      </Workspace>)
                  Return workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
-             End Function)()
+             End Function()
         Private Shared ReadOnly s_bufferFactory As ITextBufferFactoryService = DirectCast(s_document.Project.Solution.Workspace, TestWorkspace).GetService(Of ITextBufferFactoryService)
 
         Private Shared ReadOnly s_controllerMocksMap As New ConditionalWeakTable(Of Controller, ControllerMocks)

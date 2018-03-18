@@ -751,7 +751,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Public Overrides ReadOnly Property AvailableSymbols As IEnumerable(Of AssemblySymbol)
                     Get
-                        If (_assemblies Is Nothing) Then
+                        If _assemblies Is Nothing Then
                             _assemblies = New List(Of AssemblySymbol)()
 
                             ' This should be done lazy because while we creating

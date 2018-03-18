@@ -89,7 +89,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             checkBoxItem = this.GetChildren().OfType<CheckBoxAutomationPeer>().SingleOrDefault();
             if (checkBoxItem != null)
             {
-                var toggleButton = ((CheckBox)checkBoxItem.Owner);
+                var toggleButton = (CheckBox)checkBoxItem.Owner;
                 toggleButton.Checked += Checkbox_CheckChanged;
                 toggleButton.Unchecked += Checkbox_CheckChanged;
                 return;
@@ -98,7 +98,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             radioButtonItem = this.GetChildren().OfType<RadioButtonAutomationPeer>().SingleOrDefault();
             if (radioButtonItem != null)
             {
-                var toggleButton = ((RadioButton)radioButtonItem.Owner);
+                var toggleButton = (RadioButton)radioButtonItem.Owner;
                 toggleButton.Checked +=   RadioButton_CheckChanged;
                 toggleButton.Unchecked += RadioButton_CheckChanged;
                 return;

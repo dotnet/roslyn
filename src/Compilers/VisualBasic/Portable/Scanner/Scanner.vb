@@ -269,10 +269,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim condLineStart = _lineBufferOffset
 
-            While (CanGet())
+            While CanGet()
                 Dim c As Char = Peek()
 
-                Select Case (c)
+                Select Case c
 
                     Case CARRIAGE_RETURN, LINE_FEED
                         EatThroughLineBreak(c)
@@ -849,7 +849,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Sub ScanSingleLineTriviaInXmlDoc(tList As SyntaxListBuilder)
             If CanGet() Then
                 Dim c As Char = Peek()
-                Select Case (c)
+                Select Case c
                     ' // Whitespace
                     ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
                     Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
@@ -1392,7 +1392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Select Case c
                     Case "!"c
                         If CanGet(length + 2) Then
-                            Select Case (Peek(length + 1))
+                            Select Case Peek(length + 1)
                                 Case "-"c
                                     If CanGet(length + 3) AndAlso Peek(length + 2) = "-"c Then
                                         Return XmlMakeBeginCommentToken(precedingTrivia, scanTrailingTrivia)
@@ -1765,7 +1765,7 @@ FullWidthRepeat:
             Else
                 ' no base specifier - just go through decimal digits.
                 IntegerLiteralStart = Here
-                UnderscoreInWrongPlace = (CanGet(Here) AndAlso Peek(Here) = "_"c)
+                UnderscoreInWrongPlace = CanGet(Here) AndAlso Peek(Here) = "_"c
                 While CanGet(Here)
                     ch = Peek(Here)
                     If Not IsDecimalDigit(ch) AndAlso ch <> "_"c Then
@@ -2379,7 +2379,7 @@ FullWidthRepeat2:
 
                 ' // Check if not a leap year
 
-                If Not ((YearValue Mod 4 = 0) AndAlso (Not (YearValue Mod 100 = 0) OrElse (YearValue Mod 400 = 0))) Then
+                If Not ((YearValue Mod 4 = 0) AndAlso (Not YearValue Mod 100 = 0 OrElse (YearValue Mod 400 = 0))) Then
                     DaysToMonth = DaysToMonth365
                 Else
                     DaysToMonth = DaysToMonth366

@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static string OperatorNameFromDeclaration(OperatorDeclarationSyntax declaration)
         {
-            return OperatorNameFromDeclaration((Syntax.InternalSyntax.OperatorDeclarationSyntax)(declaration.Green));
+            return OperatorNameFromDeclaration((Syntax.InternalSyntax.OperatorDeclarationSyntax)declaration.Green);
         }
 
         public static string OperatorNameFromDeclaration(Syntax.InternalSyntax.OperatorDeclarationSyntax declaration)

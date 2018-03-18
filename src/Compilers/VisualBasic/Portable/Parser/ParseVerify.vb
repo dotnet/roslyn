@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Shared Function GetUnexpectedTokenErrorId(kind As SyntaxKind) As ERRID
 
-            Select Case (kind)
+            Select Case kind
                 Case SyntaxKind.AsKeyword
                     Return ERRID.ERR_ExpectedAs
 

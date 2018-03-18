@@ -609,13 +609,13 @@ End Class
         Dim reference = c1.EmitToImageReference()
 
         Dim c2 As VisualBasicCompilation = CreateCompilationWithMscorlib40AndReferences(
-(<compilation name="WantsIVTAccess">
+<compilation name="WantsIVTAccess">
      <file name="a.vb"><![CDATA[
 Public Class C
 End Class
 ]]>
      </file>
- </compilation>), {reference}, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
+ </compilation>, {reference}, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
 
         'BC36981: Error extracting public key from container 'bogus': Keyset does not exist (Exception from HRESULT: 0x80090016)
         'c2.VerifyDiagnostics(Diagnostic(ERRID.ERR_PublicKeyContainerFailure).WithArguments("bogus", "Keyset does not exist (Exception from HRESULT: 0x80090016)"))
@@ -646,13 +646,13 @@ End Class
         Dim reference = c1.EmitToImageReference()
 
         Dim c2 As VisualBasicCompilation = CreateCompilationWithMscorlib40AndReferences(
-(<compilation name="WantsIVTAccess">
+<compilation name="WantsIVTAccess">
      <file name="a.vb"><![CDATA[
 Public Class C
 End Class
 ]]>
      </file>
- </compilation>), {reference}, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
+ </compilation>, {reference}, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultDesktopProvider))
 
         c2.VerifyDiagnostics(Diagnostic(ERRID.ERR_PublicKeyFileFailure).WithArguments("bogus", CodeAnalysisResources.FileNotFound))
     End Sub

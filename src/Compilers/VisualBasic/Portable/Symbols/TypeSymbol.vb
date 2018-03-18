@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Friend ReadOnly Property AllInterfacesNoUseSiteDiagnostics As ImmutableArray(Of NamedTypeSymbol)
             Get
-                If (_lazyAllInterfaces.IsDefault) Then
+                If _lazyAllInterfaces.IsDefault Then
                     ImmutableInterlocked.InterlockedInitialize(_lazyAllInterfaces, MakeAllInterfaces())
                 End If
 
@@ -437,7 +437,7 @@ Done:
         ''' with the given cardinality. 
         ''' </summary>
         Public Function IsTupleOrCompatibleWithTupleOfCardinality(targetCardinality As Integer) As Boolean
-            If (IsTupleType) Then
+            If IsTupleType Then
                 Return TupleElementTypes.Length = targetCardinality
             End If
 

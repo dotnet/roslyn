@@ -93,7 +93,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 Return New UnsupportedMetadataTypeSymbol()
             End If
 
-            position -= (type.MetadataArity - type.Arity)
+            position -= type.MetadataArity - type.Arity
             Debug.Assert(position >= 0 AndAlso position < type.Arity)
 
             Return type.TypeParameters(position)

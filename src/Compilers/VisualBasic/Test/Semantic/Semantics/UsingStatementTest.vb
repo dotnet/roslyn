@@ -339,8 +339,8 @@ BC36010: 'Using' operand of type 'Object' must implement 'System.IDisposable'.
             Dim declarator = usingStatements(Usingindex - 1).Variables(Declaratorindex - 1)
             Dim expression = declarator.DescendantNodes().OfType(Of ExpressionSyntax)().Where(Function(item) item.ToString() = expressionStr).First
             Dim type = model.GetSymbolInfo(expression)
-            If (type.Symbol.Kind = SymbolKind.Method) Then
-                If (DirectCast(type.Symbol, MethodSymbol).MethodKind = MethodKind.Constructor) Then
+            If type.Symbol.Kind = SymbolKind.Method Then
+                If DirectCast(type.Symbol, MethodSymbol).MethodKind = MethodKind.Constructor Then
 
                     For Each Symbol In symbols
                         Assert.Equal(symbols(i), type.Symbol.ContainingSymbol)
@@ -352,7 +352,7 @@ BC36010: 'Using' operand of type 'Object' must implement 'System.IDisposable'.
                         i = i + 1
                     Next
                 End If
-            ElseIf (type.Symbol.Kind = SymbolKind.Field) Then
+            ElseIf type.Symbol.Kind = SymbolKind.Field Then
                 For Each Symbol In symbols
                     Assert.Equal(symbols(i), DirectCast(type.Symbol, FieldSymbol).Type)
                     i = i + 1

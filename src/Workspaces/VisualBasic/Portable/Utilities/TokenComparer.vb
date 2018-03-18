@@ -62,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             ' that starts with a 'b' or 'B'.
             Dim value = CultureInfo.InvariantCulture.CompareInfo.Compare(string1, string2,
                 CompareOptions.IgnoreCase Or CompareOptions.IgnoreNonSpace Or CompareOptions.IgnoreWidth)
-            If (value <> 0) Then
+            If value <> 0 Then
                 Return value
             End If
 

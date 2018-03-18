@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public void SetFlattenedMembersIsSorted()
             {
-                ThreadSafeFlagOperations.Set(ref _flags2, (FlattenedMembersIsSortedBit));
+                ThreadSafeFlagOperations.Set(ref _flags2, FlattenedMembersIsSortedBit);
             }
 
             private static bool BitsAreUnsetOrSame(int bits, int mask)

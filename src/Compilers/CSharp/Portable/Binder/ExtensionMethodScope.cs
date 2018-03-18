@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return (_current.Binder != null);
+            return _current.Binder != null;
         }
 
         private static ExtensionMethodScope GetNextScope(Binder binder)

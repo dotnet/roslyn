@@ -339,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     hasIndexableTarget = True
 
                     Return BindLateBoundInvocation(node, Nothing, target, boundArguments, argumentNames, diagnostics,
-                                                   suppressLateBindingResolutionDiagnostics:=(target.Kind = BoundKind.LateMemberAccess))
+                                                   suppressLateBindingResolutionDiagnostics:=target.Kind = BoundKind.LateMemberAccess)
                 End If
 
                 If Not target.HasErrors Then
@@ -620,7 +620,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Exit For
                     End If
 
-                    If (method.IsSub) Then
+                    If method.IsSub Then
                         If method.CanBeCalledWithNoParameters() Then
                             ' If its a sub that could be called parameterlessly, it might hide the function. So it is included
                             ' in the group for further processing in overload resolution (which will process possible hiding).
@@ -695,7 +695,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(propertyGroup.Properties.Length > 0)
 
                 For Each prop In propertyGroup.Properties
-                    If (prop.ParameterCount > 0) Then
+                    If prop.ParameterCount > 0 Then
                         Return False
                     End If
                 Next
@@ -1606,7 +1606,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                         queryMode:=queryMode,
                                                         callerInfoOpt:=callerInfoOpt)
                     Else
-                        ReportUnspecificProcedures(diagnosticLocationOpt, bestSymbols, diagnostics, (delegateSymbol IsNot Nothing))
+                        ReportUnspecificProcedures(diagnosticLocationOpt, bestSymbols, diagnostics, delegateSymbol IsNot Nothing)
                     End If
 
                 Case Else
@@ -2291,7 +2291,7 @@ ProduceBoundNode:
                 ' as appropriate.
 
                 Dim argIndex As Integer
-                Dim candidateIsAProperty As Boolean = (candidateSymbol.Kind = SymbolKind.Property)
+                Dim candidateIsAProperty As Boolean = candidateSymbol.Kind = SymbolKind.Property
 
                 For paramIndex = 0 To candidate.ParameterCount - 1 Step 1
 
@@ -2635,7 +2635,7 @@ ProduceBoundNode:
 
             Debug.Assert(candidate.State = OverloadResolution.CandidateAnalysisResultState.Applicable)
 
-            If (arguments.IsDefault) Then
+            If arguments.IsDefault Then
                 arguments = ImmutableArray(Of BoundExpression).Empty
             End If
 
@@ -2678,8 +2678,8 @@ ProduceBoundNode:
                     paramIndex = argsToParams(i)
 
                     If arguments(i).Kind <> BoundKind.OmittedArgument Then
-                        If (candidate.IsExpandedParamArrayForm AndAlso
-                            paramIndex = candidate.Candidate.ParameterCount - 1) Then
+                        If candidate.IsExpandedParamArrayForm AndAlso
+                            paramIndex = candidate.Candidate.ParameterCount - 1 Then
 
                             paramArrayItems.Add(i)
                         Else
@@ -2691,7 +2691,7 @@ ProduceBoundNode:
 
             ' Traverse the parameters, converting corresponding arguments
             ' as appropriate.
-            Dim candidateIsAProperty As Boolean = (candidate.Candidate.UnderlyingSymbol.Kind = SymbolKind.Property)
+            Dim candidateIsAProperty As Boolean = candidate.Candidate.UnderlyingSymbol.Kind = SymbolKind.Property
 
             For paramIndex = 0 To paramCount - 1 Step 1
 

@@ -265,7 +265,7 @@ public class Test
             ConversionTestHelper(model, v8[0].Initializer.Value, ConversionKind.ImplicitEnumeration, ConversionKind.ExplicitEnumeration);
             // E e2 = E.Two;
             var v9 = (mainStats[8] as LocalDeclarationStatementSyntax).Declaration.Variables;
-            var v9val = (MemberAccessExpressionSyntax)(v9[0].Initializer.Value);
+            var v9val = (MemberAccessExpressionSyntax)v9[0].Initializer.Value;
             var v9right = v9val.Name;
             ConversionTestHelper(model, v9right, ConversionKind.Identity, ConversionKind.Identity);
         }
@@ -870,8 +870,8 @@ class C {
             // sbyte
             EnumOffset(ConstantValue.Create((sbyte)sbyte.MinValue), 1, EnumOverflowKind.NoOverflow, ConstantValue.Create((sbyte)(sbyte.MinValue + 1)));
             EnumOffset(ConstantValue.Create((sbyte)sbyte.MinValue), 2, EnumOverflowKind.NoOverflow, ConstantValue.Create((sbyte)(sbyte.MinValue + 2)));
-            EnumOffset(ConstantValue.Create((sbyte)-2), 1, EnumOverflowKind.NoOverflow, ConstantValue.Create((sbyte)(-1)));
-            EnumOffset(ConstantValue.Create((sbyte)-2), 3, EnumOverflowKind.NoOverflow, ConstantValue.Create((sbyte)(1)));
+            EnumOffset(ConstantValue.Create((sbyte)-2), 1, EnumOverflowKind.NoOverflow, ConstantValue.Create((sbyte)-1));
+            EnumOffset(ConstantValue.Create((sbyte)-2), 3, EnumOverflowKind.NoOverflow, ConstantValue.Create((sbyte)1));
             EnumOffset(ConstantValue.Create((sbyte)(sbyte.MaxValue - 3)), 3, EnumOverflowKind.NoOverflow, ConstantValue.Create((sbyte)sbyte.MaxValue));
             EnumOffset(ConstantValue.Create((sbyte)(sbyte.MaxValue - 3)), 4, EnumOverflowKind.OverflowReport, ConstantValue.Bad);
             EnumOffset(ConstantValue.Create((sbyte)(sbyte.MaxValue - 3)), 5, EnumOverflowKind.OverflowIgnore, ConstantValue.Bad);
@@ -886,8 +886,8 @@ class C {
             // short
             EnumOffset(ConstantValue.Create((short)short.MinValue), 1, EnumOverflowKind.NoOverflow, ConstantValue.Create((short)(short.MinValue + 1)));
             EnumOffset(ConstantValue.Create((short)short.MinValue), 2, EnumOverflowKind.NoOverflow, ConstantValue.Create((short)(short.MinValue + 2)));
-            EnumOffset(ConstantValue.Create((short)-2), 1, EnumOverflowKind.NoOverflow, ConstantValue.Create((short)(-1)));
-            EnumOffset(ConstantValue.Create((short)-2), 3, EnumOverflowKind.NoOverflow, ConstantValue.Create((short)(1)));
+            EnumOffset(ConstantValue.Create((short)-2), 1, EnumOverflowKind.NoOverflow, ConstantValue.Create((short)-1));
+            EnumOffset(ConstantValue.Create((short)-2), 3, EnumOverflowKind.NoOverflow, ConstantValue.Create((short)1));
             EnumOffset(ConstantValue.Create((short)(short.MaxValue - 3)), 3, EnumOverflowKind.NoOverflow, ConstantValue.Create((short)short.MaxValue));
             EnumOffset(ConstantValue.Create((short)(short.MaxValue - 3)), 4, EnumOverflowKind.OverflowReport, ConstantValue.Bad);
             EnumOffset(ConstantValue.Create((short)(short.MaxValue - 3)), 5, EnumOverflowKind.OverflowIgnore, ConstantValue.Bad);
@@ -902,8 +902,8 @@ class C {
             // int
             EnumOffset(ConstantValue.Create((int)int.MinValue), 1, EnumOverflowKind.NoOverflow, ConstantValue.Create((int)(int.MinValue + 1)));
             EnumOffset(ConstantValue.Create((int)int.MinValue), 2, EnumOverflowKind.NoOverflow, ConstantValue.Create((int)(int.MinValue + 2)));
-            EnumOffset(ConstantValue.Create((int)-2), 1, EnumOverflowKind.NoOverflow, ConstantValue.Create((int)(-1)));
-            EnumOffset(ConstantValue.Create((int)-2), 3, EnumOverflowKind.NoOverflow, ConstantValue.Create((int)(1)));
+            EnumOffset(ConstantValue.Create((int)-2), 1, EnumOverflowKind.NoOverflow, ConstantValue.Create((int)-1));
+            EnumOffset(ConstantValue.Create((int)-2), 3, EnumOverflowKind.NoOverflow, ConstantValue.Create((int)1));
             EnumOffset(ConstantValue.Create((int)(int.MaxValue - 3)), 3, EnumOverflowKind.NoOverflow, ConstantValue.Create((int)int.MaxValue));
             EnumOffset(ConstantValue.Create((int)(int.MaxValue - 3)), 4, EnumOverflowKind.OverflowReport, ConstantValue.Bad);
             EnumOffset(ConstantValue.Create((int)(int.MaxValue - 3)), 5, EnumOverflowKind.OverflowIgnore, ConstantValue.Bad);
@@ -918,8 +918,8 @@ class C {
             // long
             EnumOffset(ConstantValue.Create((long)long.MinValue), 1, EnumOverflowKind.NoOverflow, ConstantValue.Create((long)(long.MinValue + 1)));
             EnumOffset(ConstantValue.Create((long)long.MinValue), 2, EnumOverflowKind.NoOverflow, ConstantValue.Create((long)(long.MinValue + 2)));
-            EnumOffset(ConstantValue.Create((long)-2), 1, EnumOverflowKind.NoOverflow, ConstantValue.Create((long)(-1)));
-            EnumOffset(ConstantValue.Create((long)-2), 3, EnumOverflowKind.NoOverflow, ConstantValue.Create((long)(1)));
+            EnumOffset(ConstantValue.Create((long)-2), 1, EnumOverflowKind.NoOverflow, ConstantValue.Create((long)-1));
+            EnumOffset(ConstantValue.Create((long)-2), 3, EnumOverflowKind.NoOverflow, ConstantValue.Create((long)1));
             EnumOffset(ConstantValue.Create((long)(long.MaxValue - 3)), 3, EnumOverflowKind.NoOverflow, ConstantValue.Create((long)long.MaxValue));
             EnumOffset(ConstantValue.Create((long)(long.MaxValue - 3)), 4, EnumOverflowKind.OverflowReport, ConstantValue.Bad);
             EnumOffset(ConstantValue.Create((long)(long.MaxValue - 3)), 5, EnumOverflowKind.OverflowIgnore, ConstantValue.Bad);

@@ -759,7 +759,7 @@ namespace Microsoft.CodeAnalysis
             bool inQuotes = false;
 
             var result = Split(str,
-                (c =>
+                c =>
                 {
                     if (c == '\"')
                     {
@@ -767,7 +767,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     return !inQuotes && separators.Contains(c);
-                }));
+                });
 
             return (options == StringSplitOptions.RemoveEmptyEntries) ? result.Where(s => s.Length > 0) : result;
         }

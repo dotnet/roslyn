@@ -55,17 +55,17 @@ namespace Roslyn.Utilities
 
         // Size of local cache.
         private const int LocalSizeBits = 11;
-        private const int LocalSize = (1 << LocalSizeBits);
+        private const int LocalSize = 1 << LocalSizeBits;
         private const int LocalSizeMask = LocalSize - 1;
 
         // max size of shared cache.
         private const int SharedSizeBits = 16;
-        private const int SharedSize = (1 << SharedSizeBits);
+        private const int SharedSize = 1 << SharedSizeBits;
         private const int SharedSizeMask = SharedSize - 1;
 
         // size of bucket in shared cache. (local cache has bucket size 1).
         private const int SharedBucketBits = 4;
-        private const int SharedBucketSize = (1 << SharedBucketBits);
+        private const int SharedBucketSize = 1 << SharedBucketBits;
         private const int SharedBucketSizeMask = SharedBucketSize - 1;
 
         // local cache

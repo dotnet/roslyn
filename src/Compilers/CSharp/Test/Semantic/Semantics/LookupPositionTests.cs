@@ -1463,7 +1463,7 @@ label1:
             var compilation = CreateCompilation(source, references: new[] { LinqAssemblyRef });
 
             var tree = compilation.SyntaxTrees.Single();
-            var model = (Microsoft.CodeAnalysis.SemanticModel)(compilation.GetSemanticModel(tree));
+            var model = (Microsoft.CodeAnalysis.SemanticModel)compilation.GetSemanticModel(tree);
             var symbols = model.LookupLabels(source.ToString().IndexOf("label1;", StringComparison.Ordinal));
             Assert.True(symbols.IsEmpty);
         }

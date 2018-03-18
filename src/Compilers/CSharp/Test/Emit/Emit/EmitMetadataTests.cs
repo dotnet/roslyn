@@ -1047,7 +1047,7 @@ class Program
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
                 var type = module.GlobalNamespace.GetTypeMembers("C").Single();
-                bool checkValidProperties = (type is PENamedTypeSymbol);
+                bool checkValidProperties = type is PENamedTypeSymbol;
 
                 var propertyP = (PropertySymbol)type.GetMembers("P").Single();
                 if (isFromSource)

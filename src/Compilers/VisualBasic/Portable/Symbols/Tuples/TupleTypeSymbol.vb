@@ -329,7 +329,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                         elementNames As ImmutableArray(Of String), elementTypes As ImmutableArray(Of TypeSymbol),
                         errorPositions As ImmutableArray(Of Boolean))
 
-            Me.New(If((locationOpt Is Nothing), ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(locationOpt)),
+            Me.New(If(locationOpt Is Nothing, ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(locationOpt)),
                    underlyingType, elementLocations, elementNames, elementTypes, errorPositions)
         End Sub
 
@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                       elementLocations As ImmutableArray(Of Location), elementNames As ImmutableArray(Of String),
                                       errorPositions As ImmutableArray(Of Boolean)) As TupleTypeSymbol
 
-            Return TupleTypeSymbol.Create(If((locationOpt Is Nothing), ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(locationOpt)),
+            Return TupleTypeSymbol.Create(If(locationOpt Is Nothing, ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(locationOpt)),
                                           tupleCompatibleType, elementLocations, elementNames, errorPositions)
         End Function
 
@@ -972,7 +972,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             Dim otherUnderlying = otherTuple.TupleUnderlyingType
-            If (Me.TupleUnderlyingType <> otherUnderlying) Then
+            If Me.TupleUnderlyingType <> otherUnderlying Then
                 Return False
             End If
 

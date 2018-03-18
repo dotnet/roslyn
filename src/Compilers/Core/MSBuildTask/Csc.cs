@@ -483,7 +483,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 CheckHostObjectSupport(param = nameof(DebugType), cscHostObject.SetDebugType(DebugType));
 
                 CheckHostObjectSupport(param = nameof(DefineConstants), cscHostObject.SetDefineConstants(GetDefineConstantsSwitch(DefineConstants, Log)));
-                CheckHostObjectSupport(param = nameof(DelaySign), cscHostObject.SetDelaySign((_store["DelaySign"] != null), DelaySign));
+                CheckHostObjectSupport(param = nameof(DelaySign), cscHostObject.SetDelaySign(_store["DelaySign"] != null, DelaySign));
                 CheckHostObjectSupport(param = nameof(DisabledWarnings), cscHostObject.SetDisabledWarnings(DisabledWarnings));
                 CheckHostObjectSupport(param = nameof(DocumentationFile), cscHostObject.SetDocumentationFile(DocumentationFile));
                 CheckHostObjectSupport(param = nameof(ErrorReport), cscHostObject.SetErrorReport(ErrorReport));
@@ -619,7 +619,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 }
             }
 
-            return (success);
+            return success;
         }
 
         /// <summary>

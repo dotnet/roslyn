@@ -1150,7 +1150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
                 : null;
             if (possibleLambdaExpression != null)
             {
-                var lambdaExpression = ((LambdaExpressionSyntax)possibleLambdaExpression);
+                var lambdaExpression = (LambdaExpressionSyntax)possibleLambdaExpression;
                 if (lambdaExpression.Body is ExpressionSyntax)
                 {
                     return lambdaExpression.Body;

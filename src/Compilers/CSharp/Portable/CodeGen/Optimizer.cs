@@ -940,9 +940,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // Such call will push the receiver ref before the arguments
             // so we need to ensure that arguments cannot use stack temps
             BoundExpression right = node.Right;
-            bool mayPushReceiver = (right.Kind == BoundKind.ObjectCreationExpression &&
+            bool mayPushReceiver = right.Kind == BoundKind.ObjectCreationExpression &&
                 right.Type.IsVerifierValue() &&
-                ((BoundObjectCreationExpression)right).Constructor.ParameterCount != 0);
+                ((BoundObjectCreationExpression)right).Constructor.ParameterCount != 0;
 
             if (mayPushReceiver)
             {

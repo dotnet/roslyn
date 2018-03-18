@@ -347,7 +347,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Private Shared Function GetSpecialType(predefinedType As PredefinedTypeSyntax) As SpecialType
             Dim kind = predefinedType.Keyword.Kind
-            Select Case (kind)
+            Select Case kind
                 Case SyntaxKind.ShortKeyword
                     Return SpecialType.System_Int16
 
@@ -865,36 +865,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         End If
                         Select Case specialType
                             Case SpecialType.System_Boolean
-                                Return CConst.Create(-(CShort(DirectCast(val, CConst(Of Boolean)).Value)))
+                                Return CConst.Create(-CShort(DirectCast(val, CConst(Of Boolean)).Value))
                             Case SpecialType.System_Byte
-                                Return CConst.Create(-(DirectCast(val, CConst(Of Byte)).Value))
+                                Return CConst.Create(-DirectCast(val, CConst(Of Byte)).Value)
                             Case SpecialType.System_Decimal
-                                Return CConst.Create(-(DirectCast(val, CConst(Of Decimal)).Value))
+                                Return CConst.Create(-DirectCast(val, CConst(Of Decimal)).Value)
                             Case SpecialType.System_Double
-                                Return CConst.Create(-(DirectCast(val, CConst(Of Double)).Value))
+                                Return CConst.Create(-DirectCast(val, CConst(Of Double)).Value)
                             Case SpecialType.System_Int16
-                                Return CConst.Create(-(DirectCast(val, CConst(Of Int16)).Value))
+                                Return CConst.Create(-DirectCast(val, CConst(Of Int16)).Value)
                             Case SpecialType.System_Int32
-                                Return CConst.Create(-(DirectCast(val, CConst(Of Int32)).Value))
+                                Return CConst.Create(-DirectCast(val, CConst(Of Int32)).Value)
                             Case SpecialType.System_Int64
-                                Return CConst.Create(-(DirectCast(val, CConst(Of Int64)).Value))
+                                Return CConst.Create(-DirectCast(val, CConst(Of Int64)).Value)
                             Case SpecialType.System_SByte
-                                Return CConst.Create(-(DirectCast(val, CConst(Of SByte)).Value))
+                                Return CConst.Create(-DirectCast(val, CConst(Of SByte)).Value)
                             Case SpecialType.System_Single
-                                Return CConst.Create(-(DirectCast(val, CConst(Of Single)).Value))
+                                Return CConst.Create(-DirectCast(val, CConst(Of Single)).Value)
                             Case SpecialType.System_UInt16
-                                Return CConst.Create(-(DirectCast(val, CConst(Of UInt16)).Value))
+                                Return CConst.Create(-DirectCast(val, CConst(Of UInt16)).Value)
                             Case SpecialType.System_UInt32
-                                Return CConst.Create(-(DirectCast(val, CConst(Of UInt32)).Value))
+                                Return CConst.Create(-DirectCast(val, CConst(Of UInt32)).Value)
                             Case SpecialType.System_UInt64
-                                Return CConst.Create(-(DirectCast(val, CConst(Of UInt64)).Value))
+                                Return CConst.Create(-DirectCast(val, CConst(Of UInt64)).Value)
                             Case Else
                                 Throw ExceptionUtilities.UnexpectedValue(specialType)
                         End Select
 
                     Case SyntaxKind.UnaryPlusExpression
                         If specialType = SpecialType.System_Boolean Then
-                            Return CConst.Create(+(CShort(DirectCast(val, CConst(Of Boolean)).Value)))
+                            Return CConst.Create(+CShort(DirectCast(val, CConst(Of Boolean)).Value))
                         End If
                         Return val
 
@@ -904,29 +904,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         End If
                         Select Case specialType
                             Case SpecialType.System_Boolean
-                                Return CConst.Create(Not (DirectCast(val, CConst(Of Boolean)).Value))
+                                Return CConst.Create(Not DirectCast(val, CConst(Of Boolean)).Value)
                             Case SpecialType.System_Byte
-                                Return CConst.Create(Not (DirectCast(val, CConst(Of Byte)).Value))
+                                Return CConst.Create(Not DirectCast(val, CConst(Of Byte)).Value)
                             Case SpecialType.System_Decimal
                                 Return CConst.Create(Not CLng(DirectCast(val, CConst(Of Decimal)).Value))
                             Case SpecialType.System_Double
                                 Return CConst.Create(Not CLng(DirectCast(val, CConst(Of Double)).Value))
                             Case SpecialType.System_Int16
-                                Return CConst.Create(Not (DirectCast(val, CConst(Of Int16)).Value))
+                                Return CConst.Create(Not DirectCast(val, CConst(Of Int16)).Value)
                             Case SpecialType.System_Int32
-                                Return CConst.Create(Not (DirectCast(val, CConst(Of Int32)).Value))
+                                Return CConst.Create(Not DirectCast(val, CConst(Of Int32)).Value)
                             Case SpecialType.System_Int64
-                                Return CConst.Create(Not (DirectCast(val, CConst(Of Int64)).Value))
+                                Return CConst.Create(Not DirectCast(val, CConst(Of Int64)).Value)
                             Case SpecialType.System_SByte
-                                Return CConst.Create(Not (DirectCast(val, CConst(Of SByte)).Value))
+                                Return CConst.Create(Not DirectCast(val, CConst(Of SByte)).Value)
                             Case SpecialType.System_Single
                                 Return CConst.Create(Not CLng(DirectCast(val, CConst(Of Single)).Value))
                             Case SpecialType.System_UInt16
-                                Return CConst.Create(Not (DirectCast(val, CConst(Of UInt16)).Value))
+                                Return CConst.Create(Not DirectCast(val, CConst(Of UInt16)).Value)
                             Case SpecialType.System_UInt32
-                                Return CConst.Create(Not (DirectCast(val, CConst(Of UInt32)).Value))
+                                Return CConst.Create(Not DirectCast(val, CConst(Of UInt32)).Value)
                             Case SpecialType.System_UInt64
-                                Return CConst.Create(Not (DirectCast(val, CConst(Of UInt64)).Value))
+                                Return CConst.Create(Not DirectCast(val, CConst(Of UInt64)).Value)
                             Case Else
                                 Throw ExceptionUtilities.UnexpectedValue(specialType)
                         End Select
@@ -1011,7 +1011,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 If IsNothing(Left) Then
                     OperandType = Right.SpecialType
 
-                    Select Case (BoundOpcode)
+                    Select Case BoundOpcode
 
                         Case SyntaxKind.ConcatenateExpression,
                             SyntaxKind.LikeExpression
@@ -1033,7 +1033,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ElseIf IsNothing(Right) Then
                     OperandType = Left.SpecialType
 
-                    Select Case (BoundOpcode)
+                    Select Case BoundOpcode
 
                         Case SyntaxKind.ConcatenateExpression,
                             SyntaxKind.LikeExpression
@@ -1114,7 +1114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 If resultType = SpecialType.System_Boolean Then
                     Dim ComparisonSucceeds As Boolean = False
 
-                    Select Case (opcode)
+                    Select Case opcode
                         Case SyntaxKind.EqualsExpression
                             ComparisonSucceeds =
                                 If(left.SpecialType.IsUnsignedIntegralType(),
@@ -1161,7 +1161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Dim ResultValue As Int64 = 0
                     Dim Overflow As Boolean = False
 
-                    Select Case (opcode)
+                    Select Case opcode
                         Case SyntaxKind.AddExpression
                             ResultValue = NarrowIntegralResult(
                                 LeftValue + RightValue,
@@ -1176,9 +1176,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                     Overflow = True
                                 End If
 
-                            ElseIf (
-                                UncheckedCULng(ResultValue) < UncheckedCULng(LeftValue)
-                            ) Then
+                            ElseIf UncheckedCULng(ResultValue) < UncheckedCULng(LeftValue) Then
                                 Overflow = True
                             End If
 
@@ -1258,7 +1256,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         Case SyntaxKind.RightShiftExpression
                             RightValue = RightValue And left.SpecialType.GetShiftSizeMask()
                             If resultType.IsUnsignedIntegralType() Then
-                                ResultValue = CompileTimeCalculations.UncheckedCLng((UncheckedCULng(LeftValue) >> CType(RightValue, Integer)))
+                                ResultValue = CompileTimeCalculations.UncheckedCLng(UncheckedCULng(LeftValue) >> CType(RightValue, Integer))
                             Else
                                 ResultValue = LeftValue >> CType(RightValue, Integer)
                             End If
@@ -1279,7 +1277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 If resultType = SpecialType.System_Boolean Then
                     Dim ComparisonSucceeds As Boolean = False
-                    Select Case (opcode)
+                    Select Case opcode
                         Case SyntaxKind.EqualsExpression
                             ComparisonSucceeds = LeftValue = RightValue
 
@@ -1307,7 +1305,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Dim resultValue As Double = 0
                     Dim overflow As Boolean = False
 
-                    Select Case (opcode)
+                    Select Case opcode
                         Case SyntaxKind.AddExpression
                             resultValue = LeftValue + RightValue
 
@@ -1319,9 +1317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         Case SyntaxKind.ExponentiateExpression
                             'IS_DBL_INFINITY(RightValue) 
-                            If (
-                                Double.IsInfinity(RightValue)
-                            ) Then
+                            If Double.IsInfinity(RightValue) Then
                                 'IS_DBL_ONE(LeftValue)
                                 If LeftValue = 1.0 Then
                                     resultValue = LeftValue
@@ -1334,9 +1330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                     Exit Select
                                 End If
 
-                            ElseIf (
-                                Double.IsNaN(RightValue)
-                            ) Then
+                            ElseIf Double.IsNaN(RightValue) Then
                                 resultValue = Double.NaN
                                 Exit Select
                             End If
@@ -1410,24 +1404,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Dim ComparisonSucceeds As Boolean = False
                     Dim ComparisonResult As Integer = LeftValue.CompareTo(RightValue)
 
-                    Select Case (opcode)
+                    Select Case opcode
                         Case SyntaxKind.EqualsExpression
-                            ComparisonSucceeds = (ComparisonResult = 0)
+                            ComparisonSucceeds = ComparisonResult = 0
 
                         Case SyntaxKind.NotEqualsExpression
-                            ComparisonSucceeds = Not (ComparisonResult = 0)
+                            ComparisonSucceeds = Not ComparisonResult = 0
 
                         Case SyntaxKind.LessThanOrEqualExpression
-                            ComparisonSucceeds = (ComparisonResult <= 0)
+                            ComparisonSucceeds = ComparisonResult <= 0
 
                         Case SyntaxKind.GreaterThanOrEqualExpression
-                            ComparisonSucceeds = (ComparisonResult >= 0)
+                            ComparisonSucceeds = ComparisonResult >= 0
 
                         Case SyntaxKind.LessThanExpression
-                            ComparisonSucceeds = (ComparisonResult < 0)
+                            ComparisonSucceeds = ComparisonResult < 0
 
                         Case SyntaxKind.GreaterThanExpression
-                            ComparisonSucceeds = (ComparisonResult > 0)
+                            ComparisonSucceeds = ComparisonResult > 0
 
                         Case Else
                             Throw ExceptionUtilities.UnexpectedValue(opcode)
@@ -1438,7 +1432,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Dim ResultValue As Decimal
                     Dim Overflow As Boolean = False
 
-                    Select Case (opcode)
+                    Select Case opcode
                         Case SyntaxKind.AddExpression
                             Overflow = VarDecAdd(LeftValue, RightValue, ResultValue)
 
@@ -1492,7 +1486,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim LeftSpelling = If(CStr(left.ValueAsObject), "")
                 Dim RightSpelling = If(CStr(right.ValueAsObject), "")
 
-                Select Case (opcode)
+                Select Case opcode
                     Case SyntaxKind.ConcatenateExpression
                         Dim ResultString As String = String.Concat(LeftSpelling, RightSpelling)
                         Return CConst.Create(ResultString)
@@ -1509,7 +1503,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         ' // ignore Option Text when conditional compilation(b112186)
                         Dim ComparisonResult = StringComparer.Ordinal.Compare(LeftSpelling, RightSpelling)
 
-                        Select Case (opcode)
+                        Select Case opcode
                             Case SyntaxKind.EqualsExpression
                                 StringComparisonSucceeds = ComparisonResult = 0
 
@@ -1541,7 +1535,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Dim OperationSucceeds As Boolean = False
 
-                Select Case (opcode)
+                Select Case opcode
                     Case SyntaxKind.EqualsExpression
                         OperationSucceeds = LeftValue = RightValue
 

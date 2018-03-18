@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
 
                 position = change.Span.End;
-                delta += (change.NewLength - change.Span.Length);
+                delta += change.NewLength - change.Span.Length;
             }
 
             // include existing line starts that occur after all changes

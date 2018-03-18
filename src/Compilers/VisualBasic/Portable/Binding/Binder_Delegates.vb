@@ -303,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim addressOfSyntax As SyntaxNode = addressOfExpression.Syntax
                     Dim addressOfExpressionSyntax = DirectCast(addressOfExpression.Syntax, UnaryExpressionSyntax)
-                    If (addressOfExpressionSyntax IsNot Nothing) Then
+                    If addressOfExpressionSyntax IsNot Nothing Then
                         addressOfSyntax = addressOfExpressionSyntax.Operand
                     End If
 

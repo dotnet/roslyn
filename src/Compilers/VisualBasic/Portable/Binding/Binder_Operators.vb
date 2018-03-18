@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As BoundExpression
 
             Debug.Assert(node.Kind = SyntaxKind.IsExpression OrElse node.Kind = SyntaxKind.IsNotExpression)
-            Dim [isNot] As Boolean = (node.Kind = SyntaxKind.IsNotExpression)
+            Dim [isNot] As Boolean = node.Kind = SyntaxKind.IsNotExpression
 
             ' The function below will make sure they are RValues.
             Dim left As BoundExpression = BindExpression(node.Left, diagnostics)
@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim originalDiagnostics = diagnostics
 
-            If (left.HasErrors OrElse right.HasErrors) Then
+            If left.HasErrors OrElse right.HasErrors Then
                 ' Suppress any additional diagnostics by overriding DiagnosticBag.
                 diagnostics = New DiagnosticBag()
             End If
@@ -221,7 +221,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             left = MakeRValue(left, diagnostics)
             right = MakeRValue(right, diagnostics)
 
-            If (left.HasErrors OrElse right.HasErrors) Then
+            If left.HasErrors OrElse right.HasErrors Then
                 ' Suppress any additional diagnostics by overriding DiagnosticBag.
                 If diagnostics Is originalDiagnostics Then
                     diagnostics = New DiagnosticBag()
@@ -488,7 +488,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If (operatorKind And BinaryOperatorKind.OpMask) = BinaryOperatorKind.Add AndAlso operatorResultType.IsStringType() Then
                 ' Transform the addition into a string concatenation.  This won't use a runtime helper - it will turn into System.String::Concat
-                operatorKind = (operatorKind And (Not BinaryOperatorKind.OpMask))
+                operatorKind = operatorKind And (Not BinaryOperatorKind.OpMask)
                 operatorKind = operatorKind Or BinaryOperatorKind.Concatenate
             End If
 
@@ -516,7 +516,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ElseIf compoundLengthOutOfLimit Then
                         Debug.Assert(value.IsBad)
                         ReportDiagnostic(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ConstantStringTooLong))
-                    ElseIf (value.IsBad OrElse integerOverflow) Then
+                    ElseIf value.IsBad OrElse integerOverflow Then
                         ' Overflows are reported regardless of the value of OptionRemoveIntegerOverflowChecks, Dev10 behavior.
                         ReportDiagnostic(diagnostics, node, ErrorFactory.ErrorInfo(ERRID.ERR_ExpressionOverflow1, operatorResultType))
 

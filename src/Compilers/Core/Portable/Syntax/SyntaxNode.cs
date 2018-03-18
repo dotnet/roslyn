@@ -1213,7 +1213,7 @@ namespace Microsoft.CodeAnalysis
             var annotations = this.Green.GetAnnotations();
             if (annotations?.Length > 0)
             {
-                return (T)(node.Green.WithAdditionalAnnotationsGreen(annotations)).CreateRed();
+                return (T)node.Green.WithAdditionalAnnotationsGreen(annotations).CreateRed();
             }
             return node;
         }

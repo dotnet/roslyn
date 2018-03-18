@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
                 WpfTestCase.RequireWpfFact($"{nameof(TestPreviewDiagnosticTaggerInPreviewPane)} creates a {nameof(DifferenceViewerPreview)}");
 
                 var previewFactoryService = workspace.ExportProvider.GetExportedValue<IPreviewFactoryService>();
-                using (var diffView = (DifferenceViewerPreview)(await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None)))
+                using (var diffView = (DifferenceViewerPreview)await previewFactoryService.CreateChangedDocumentPreviewViewAsync(oldDocument, newDocument, CancellationToken.None))
                 {
                     var foregroundService = workspace.GetService<IForegroundNotificationService>();
 

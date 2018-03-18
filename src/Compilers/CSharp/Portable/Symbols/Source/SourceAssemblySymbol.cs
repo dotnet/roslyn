@@ -862,7 +862,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                return (this.AssemblyDelaySignAttributeSetting == ThreeState.True);
+                return this.AssemblyDelaySignAttributeSetting == ThreeState.True;
             }
         }
 
@@ -966,7 +966,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (_modules.Length > 1 && !_compilation.Options.OutputKind.IsNetModule())
             {
                 var assemblyMachine = this.Machine;
-                bool isPlatformAgnostic = (assemblyMachine == System.Reflection.PortableExecutable.Machine.I386 && !this.Bit32Required);
+                bool isPlatformAgnostic = assemblyMachine == System.Reflection.PortableExecutable.Machine.I386 && !this.Bit32Required;
                 var knownModuleNames = new HashSet<String>(StringComparer.OrdinalIgnoreCase);
 
                 for (int i = 1; i < _modules.Length; i++)

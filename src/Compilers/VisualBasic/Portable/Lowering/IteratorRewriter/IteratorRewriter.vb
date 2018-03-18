@@ -185,11 +185,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim currentManagedThreadIdProperty As PropertySymbol = F.WellKnownMember(Of PropertySymbol)(WellKnownMember.System_Environment__CurrentManagedThreadId, isOptional:=True)
 
-                If (currentManagedThreadIdProperty IsNot Nothing) Then
+                If currentManagedThreadIdProperty IsNot Nothing Then
                     currentManagedThreadIdMethod = currentManagedThreadIdProperty.GetMethod()
                 End If
 
-                If (currentManagedThreadIdMethod IsNot Nothing) Then
+                If currentManagedThreadIdMethod IsNot Nothing Then
                     managedThreadId = F.Call(Nothing, currentManagedThreadIdMethod)
                 Else
                     managedThreadId = F.Property(F.Property(WellKnownMember.System_Threading_Thread__CurrentThread), WellKnownMember.System_Threading_Thread__ManagedThreadId)
@@ -229,7 +229,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If Not Method.IsShared Then
                     ' starting with "this"
                     Dim proxy As FieldSymbol = Nothing
-                    If (copyDest.TryGetValue(Method.MeParameter, proxy)) Then
+                    If copyDest.TryGetValue(Method.MeParameter, proxy) Then
                         bodyBuilder.Add(
                             F.Assignment(
                                 F.Field(F.Local(resultVariable, True), proxy.AsMember(StateMachineType), True),
@@ -241,7 +241,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 For Each parameter In Method.Parameters
                     Dim proxy As FieldSymbol = Nothing
-                    If (copyDest.TryGetValue(parameter, proxy)) Then
+                    If copyDest.TryGetValue(parameter, proxy) Then
                         bodyBuilder.Add(
                             F.Assignment(
                                 F.Field(F.Local(resultVariable, True), proxy.AsMember(StateMachineType), True),

@@ -24,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Overrides Function BinderSpecificLookupOptions(ByVal options As LookupOptions) As LookupOptions
-            If (_ignoreAccessibility) Then
+            If _ignoreAccessibility Then
                 Return MyBase.BinderSpecificLookupOptions(options) Or LookupOptions.IgnoreAccessibility
             Else
                 Return MyBase.BinderSpecificLookupOptions(options)

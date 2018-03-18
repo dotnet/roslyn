@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (this.Syntax.Kind() == SyntaxKind.DeclarationExpression &&
                     ((DeclarationExpressionSyntax)this.Syntax).Designation.Kind() == SyntaxKind.SingleVariableDesignation));
 
-            bool inferenceFailed = ((object)type == null);
+            bool inferenceFailed = (object)type == null;
 
             if (inferenceFailed)
             {

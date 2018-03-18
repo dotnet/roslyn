@@ -174,42 +174,42 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property IsMustOverride As Boolean
             Get
                 Dim method = Me.GetterOrSetter
-                Return If((method IsNot Nothing), method.IsMustOverride, False)
+                Return If(method IsNot Nothing, method.IsMustOverride, False)
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsNotOverridable As Boolean
             Get
                 Dim method = Me.GetterOrSetter
-                Return If((method IsNot Nothing), method.IsNotOverridable, False)
+                Return If(method IsNot Nothing, method.IsNotOverridable, False)
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverridable As Boolean
             Get
                 Dim method = Me.GetterOrSetter
-                Return If((method IsNot Nothing), method.IsOverridable, False)
+                Return If(method IsNot Nothing, method.IsOverridable, False)
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverrides As Boolean
             Get
                 Dim method = Me.GetterOrSetter
-                Return If((method IsNot Nothing), method.IsOverrides, False)
+                Return If(method IsNot Nothing, method.IsOverrides, False)
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsOverloads As Boolean
             Get
                 Dim method = Me.GetterOrSetter
-                Return If((method IsNot Nothing), method.IsOverloads, False)
+                Return If(method IsNot Nothing, method.IsOverloads, False)
             End Get
         End Property
 
         Public Overrides ReadOnly Property IsShared As Boolean
             Get
                 Dim method = Me.GetterOrSetter
-                Return If((method IsNot Nothing), method.IsShared, True)
+                Return If(method IsNot Nothing, method.IsShared, True)
             End Get
         End Property
 
@@ -410,16 +410,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Dim getMethod = [property].GetMethod
             Dim setMethod = [property].SetMethod
             If getMethod Is Nothing Then
-                Return If((setMethod Is Nothing), Accessibility.NotApplicable, setMethod.DeclaredAccessibility)
+                Return If(setMethod Is Nothing, Accessibility.NotApplicable, setMethod.DeclaredAccessibility)
             ElseIf setMethod Is Nothing Then
                 Return getMethod.DeclaredAccessibility
             End If
 
             Dim getAccessibility = getMethod.DeclaredAccessibility
             Dim setAccessibility = setMethod.DeclaredAccessibility
-            Dim minAccessibility = If((getAccessibility > setAccessibility), setAccessibility, getAccessibility)
-            Dim maxAccessibility = If((getAccessibility > setAccessibility), getAccessibility, setAccessibility)
-            Return If(((minAccessibility = Accessibility.Protected) AndAlso (maxAccessibility = Accessibility.Friend)), Accessibility.ProtectedOrFriend, maxAccessibility)
+            Dim minAccessibility = If(getAccessibility > setAccessibility, setAccessibility, getAccessibility)
+            Dim maxAccessibility = If(getAccessibility > setAccessibility, getAccessibility, setAccessibility)
+            Return If((minAccessibility = Accessibility.Protected) AndAlso (maxAccessibility = Accessibility.Friend), Accessibility.ProtectedOrFriend, maxAccessibility)
         End Function
 
         Private Shared Function GetParameters(

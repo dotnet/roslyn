@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 parameterBuilder.Add(_thisParameter);
             }
 
-            var ordinalOffset = (substitutedSourceHasThisParameter ? 1 : 0);
+            var ordinalOffset = substitutedSourceHasThisParameter ? 1 : 0;
             foreach (var substitutedSourceParameter in this.SubstitutedSourceMethod.Parameters)
             {
                 var ordinal = substitutedSourceParameter.Ordinal + ordinalOffset;

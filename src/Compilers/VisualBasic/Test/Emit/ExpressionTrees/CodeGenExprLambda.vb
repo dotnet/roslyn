@@ -1402,7 +1402,7 @@ Lambda(
                                  String.Format("-=-=-=-=-=-=-=-=- implicit {0} -> {1} for {2} and {3} -=-=-=-=-=-=-=-=-",
                                                typeFrom, typeTo, typeFromDescr, typeToDescr))
 
-            Dim opPattern = If(isNarrowing, ("CType({0}, " & typeTo & ")"), "{0}")
+            Dim opPattern = If(isNarrowing, "CType({0}, " & typeTo & ")", "{0}")
 
             list.Add(New ExpressionTreeTest With {.Description = description,
                                                   .ExpressionTypeArgument = String.Format("Func(Of {0}, {1})", typeFrom, typeTo),

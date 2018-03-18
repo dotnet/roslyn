@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' For property accessors we report a special diagnostic which indicates whether the getter or setter is obsolete.
             ' For all other symbols, report the regular diagnostic.
-            If symbol.IsAccessor() AndAlso (DirectCast(symbol, MethodSymbol).AssociatedSymbol).Kind = SymbolKind.Property Then
+            If symbol.IsAccessor() AndAlso DirectCast(symbol, MethodSymbol).AssociatedSymbol.Kind = SymbolKind.Property Then
                 Dim accessorSymbol = DirectCast(symbol, MethodSymbol)
                 Dim accessorString = If(accessorSymbol.MethodKind = MethodKind.PropertyGet, "Get", "Set")
 

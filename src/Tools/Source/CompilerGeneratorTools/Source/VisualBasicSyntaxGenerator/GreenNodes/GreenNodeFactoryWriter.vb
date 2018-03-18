@@ -287,11 +287,11 @@ Friend Class GreenNodeFactoryWriter
         '----------------------------------------
 
         ' the non-simplified form calls the constructor
-        If (nodeStructure.IsTerminal OrElse
+        If nodeStructure.IsTerminal OrElse
             nodeStructure.Name = "SkippedTokensTriviaSyntax" OrElse
             nodeStructure.Name = "DocumentationCommentTriviaSyntax" OrElse
             nodeStructure.Name.EndsWith("DirectiveTriviaSyntax", StringComparison.Ordinal) OrElse
-            allFields.Count + allChildren.Count > 3) Then
+            allFields.Count + allChildren.Count > 3 Then
 
             _writer.Write("            Return New {0}(", StructureTypeName(nodeStructure))
             GenerateCtorArgs(nodeStructure, nodeKind, contextual, factoryFunctionName)

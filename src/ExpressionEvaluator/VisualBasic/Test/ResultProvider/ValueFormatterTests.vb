@@ -203,14 +203,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
         Public Sub InvalidValue_1()
             Const errorMessage = "An error has occurred."
             Dim clrValue = CreateDkmClrValue(errorMessage, GetType(String), evalFlags:=DkmEvaluationResultFlags.None, valueFlags:=DkmClrValueFlags.Error)
-            Assert.Equal(errorMessage, (DirectCast(FormatResult("invalidIdentifier", clrValue), DkmFailedEvaluationResult)).ErrorMessage)
+            Assert.Equal(errorMessage, DirectCast(FormatResult("invalidIdentifier", clrValue), DkmFailedEvaluationResult).ErrorMessage)
         End Sub
 
         <Fact>
         Public Sub InvalidValue_2()
             Const errorMessage = "An error has occurred."
             Dim clrValue = CreateDkmClrValue(errorMessage, GetType(Integer), evalFlags:=DkmEvaluationResultFlags.None, valueFlags:=DkmClrValueFlags.Error)
-            Assert.Equal(errorMessage, (DirectCast(FormatResult("invalidIdentifier", clrValue), DkmFailedEvaluationResult)).ErrorMessage)
+            Assert.Equal(errorMessage, DirectCast(FormatResult("invalidIdentifier", clrValue), DkmFailedEvaluationResult).ErrorMessage)
         End Sub
 
         <Fact>

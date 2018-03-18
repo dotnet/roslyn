@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     {
                         var s1 = typeSym.ToDisplayString(SymbolDisplayFormat.TestFormat);
                         var s2 = expected.ToString();
-                        if ((s1 == s2))
+                        if (s1 == s2)
                         {
                             return true;
                         }
@@ -359,16 +359,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             // namedType
 
-            if ((typeSym.TypeKind == TypeKind.Interface || typeSym.TypeKind == TypeKind.Class || typeSym.TypeKind == TypeKind.Struct || typeSym.TypeKind == TypeKind.Delegate))
+            if (typeSym.TypeKind == TypeKind.Interface || typeSym.TypeKind == TypeKind.Class || typeSym.TypeKind == TypeKind.Struct || typeSym.TypeKind == TypeKind.Delegate)
             {
                 NamedTypeSymbol namedType = (NamedTypeSymbol)typeSym;
                 // name should be same if it's not generic (NO ByRef in attribute)
-                if ((namedType.Arity == 0))
+                if (namedType.Arity == 0)
                 {
                     return typeSym.Name == expType.Name;
                 }
                 // generic
-                if (!(expType.GetTypeInfo().IsGenericType))
+                if (!expType.GetTypeInfo().IsGenericType)
                 {
                     return false;
                 }
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var nameOnly = expType.Name;
                 //generic <Name>'1
                 var idx = expType.Name.LastIndexOfAny(new char[] { '`' });
-                if ((idx > 0))
+                if (idx > 0)
                 {
                     nameOnly = expType.Name.Substring(0, idx);
                 }

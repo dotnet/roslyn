@@ -573,7 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ((MethodKind == MethodKind.Constructor || MethodKind == MethodKind.StaticConstructor) && IsImplicitlyDeclared);
+                return (MethodKind == MethodKind.Constructor || MethodKind == MethodKind.StaticConstructor) && IsImplicitlyDeclared;
             }
         }
 

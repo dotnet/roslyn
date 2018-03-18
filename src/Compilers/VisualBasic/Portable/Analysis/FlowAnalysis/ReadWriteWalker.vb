@@ -105,7 +105,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Sub NoteRead(fieldAccess As BoundFieldAccess)
             MyBase.NoteRead(fieldAccess)
-            If (Me._regionPlace <> RegionPlace.Inside AndAlso fieldAccess.Syntax.Span.Contains(_region)) Then NoteReceiverRead(fieldAccess)
+            If Me._regionPlace <> RegionPlace.Inside AndAlso fieldAccess.Syntax.Span.Contains(_region) Then NoteReceiverRead(fieldAccess)
         End Sub
 
         Protected Overrides Sub NoteWrite(node As BoundExpression, value As BoundExpression)
@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Shared Function IsCompilerGeneratedTempLocal(variable As Symbol) As Boolean
-            Return TypeOf (variable) Is SynthesizedLocal
+            Return TypeOf variable Is SynthesizedLocal
         End Function
 
         Private Sub CheckCaptured(variable As Symbol)

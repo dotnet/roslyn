@@ -134,7 +134,7 @@ Public Class ParseTree
     End Sub
 
     Public Function ParseEnumType(enumString As String, referencingElement As XNode) As Object
-        If (Enumerations.ContainsKey(enumString)) Then
+        If Enumerations.ContainsKey(enumString) Then
             Return Enumerations(enumString)
         End If
 
@@ -144,7 +144,7 @@ Public Class ParseTree
 
 
     Public Function ParseOneNodeKind(typeString As String, referencingNode As XNode) As ParseNodeKind
-        If (NodeKinds.ContainsKey(typeString)) Then
+        If NodeKinds.ContainsKey(typeString) Then
             Return NodeKinds(typeString)
         End If
 
@@ -175,7 +175,7 @@ Public Class ParseTree
     End Function
 
     Public Function ParseNodeKind(typeString As String, referencingNode As XNode) As Object
-        If (typeString.Contains("|")) Then
+        If typeString.Contains("|") Then
             Dim typeList As New List(Of ParseNodeKind)
             For Each typePart As String In typeString.Split("|"c)
                 Dim foundType = ParseNodeKind(typePart, referencingNode)
@@ -213,12 +213,12 @@ Public Class ParseTree
     ' Is this structure some base structure of another, or the same
     Public Function IsAncestorOrSame(parent As ParseNodeStructure, child As ParseNodeStructure) As Boolean
         Do
-            If (parent Is child) Then
+            If parent Is child Then
                 Return True
             End If
 
             child = child.ParentStructure
-        Loop While (child IsNot Nothing)
+        Loop While child IsNot Nothing
 
         Return False
     End Function

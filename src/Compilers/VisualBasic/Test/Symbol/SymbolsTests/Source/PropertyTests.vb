@@ -3751,7 +3751,7 @@ End Class
 </compilation>
 
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib40AndVBRuntime(source, TestOptions.ReleaseExe)
-            Dim position = (source...<file>.Single().Value.IndexOf("' bind-position", StringComparison.Ordinal))
+            Dim position = source...<file>.Single().Value.IndexOf("' bind-position", StringComparison.Ordinal)
 
             Dim bindings = compilation.GetSemanticModel(CompilationUtils.GetTree(compilation, "a.vb"))
             Assert.Equal(SpecialType.System_Int32, bindings.GetSpeculativeSemanticInfoSummary(position, SyntaxFactory.ParseExpression("Goo().Items(1)"), SpeculativeBindingOption.BindAsExpression).Type.SpecialType)
@@ -8130,7 +8130,7 @@ End Class
             Assert.Same(accessor.AssociatedSymbol, associatedProperty)
             Assert.Equal(accessor.MethodKind, methodKind)
             If associatedProperty IsNot Nothing Then
-                Dim method = If((methodKind = MethodKind.PropertyGet), associatedProperty.GetMethod, associatedProperty.SetMethod)
+                Dim method = If(methodKind = MethodKind.PropertyGet, associatedProperty.GetMethod, associatedProperty.SetMethod)
                 Assert.Same(accessor, method)
             End If
         End Sub

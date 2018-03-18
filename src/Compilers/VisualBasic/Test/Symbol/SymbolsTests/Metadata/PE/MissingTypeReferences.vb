@@ -461,7 +461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
             For i As Integer = 0 To missingTypes1.Length - 1
                 For j As Integer = 0 To missingTypes2.Length - 1
-                    If (i = j) Then
+                    If i = j Then
                         Assert.Equal(missingTypes2(j), missingTypes1(i))
                         Assert.Equal(missingTypes1(i), missingTypes2(j))
                     Else

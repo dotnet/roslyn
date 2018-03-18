@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Public Overrides Function Equals(obj As Object) As Boolean
-            If (Me Is obj) Then
+            If Me Is obj Then
                 Return True
             End If
 

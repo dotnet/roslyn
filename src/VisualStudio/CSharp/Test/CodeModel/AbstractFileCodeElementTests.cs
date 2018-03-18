@@ -52,7 +52,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
                 throw new ArgumentException("path must be non-empty.", nameof(path));
             }
 
-            CodeElement codeElement = (GetCodeModel()).CodeElements.Item(path[0]);
+            CodeElement codeElement = GetCodeModel().CodeElements.Item(path[0]);
 
             foreach (var pathElement in path.Skip(1))
             {
@@ -72,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
         /// </summary>
         protected string GetFileText()
         {
-            return (GetWorkspace()).Documents.Single().GetTextBuffer().CurrentSnapshot.GetText();
+            return GetWorkspace().Documents.Single().GetTextBuffer().CurrentSnapshot.GetText();
         }
     }
 }

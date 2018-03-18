@@ -238,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Function PushBlock(node As BoundNode, locals As ImmutableArray(Of LocalSymbol)) As BoundNode
-                If (locals.IsEmpty) Then
+                If locals.IsEmpty Then
                     Return _currentBlock
                 End If
 

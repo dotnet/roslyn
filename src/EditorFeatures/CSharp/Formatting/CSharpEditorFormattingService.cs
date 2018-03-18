@@ -330,11 +330,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting
             // keywords.  
             switch (typedChar)
             {
-                case ('n'):
+                case 'n':
                     return kind == SyntaxKind.RegionKeyword || kind == SyntaxKind.EndRegionKeyword;
-                case ('t'):
+                case 't':
                     return kind == SyntaxKind.SelectKeyword;
-                case ('e'):
+                case 'e':
                     return kind == SyntaxKind.WhereKeyword;
                 default:
                     return true;

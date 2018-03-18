@@ -278,7 +278,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     isChecked = False
                 End If
 
-                If fromIsNullable AndAlso Not (typeBeforeNegation IsNot underlyingTo) Then
+                If fromIsNullable AndAlso Not typeBeforeNegation IsNot underlyingTo Then
                     typeBeforeNegation = Me._factory.NullableOf(typeBeforeNegation)
                 End If
 
@@ -401,7 +401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Function CreateTypeAsIfNeeded(operand As BoundExpression, oldType As TypeSymbol, newType As TypeSymbol) As BoundExpression
-            Return If((oldType = newType), operand, CreateTypeAs(operand, newType))
+            Return If(oldType = newType, operand, CreateTypeAs(operand, newType))
         End Function
 
         ' Emit a Convert node to a specific type with no helper method.
@@ -416,7 +416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ' Emit a convert node if types are different.
         Private Function ConvertIfNeeded(operand As BoundExpression, oldType As TypeSymbol, newType As TypeSymbol, isChecked As Boolean) As BoundExpression
-            Return If((oldType = newType), operand, Convert(operand, newType, isChecked))
+            Return If(oldType = newType, operand, Convert(operand, newType, isChecked))
         End Function
 
         ''' <summary>

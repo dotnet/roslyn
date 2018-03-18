@@ -151,7 +151,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                         Catch mrEx As BadImageFormatException
                         End Try
 
-                        Select Case (flags And TypeAttributes.VisibilityMask)
+                        Select Case flags And TypeAttributes.VisibilityMask
                             Case TypeAttributes.Public
                                 Return Accessibility.Public
 

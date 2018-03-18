@@ -647,7 +647,7 @@ namespace BoundTreeGenerator
 
                 foreach (Field field in nullCheckFields)
                 {
-                    bool isROArray = (GetGenericType(field.Type) == "ImmutableArray");
+                    bool isROArray = GetGenericType(field.Type) == "ImmutableArray";
                     switch (_targetLang)
                     {
                         case TargetLanguage.CSharp:
@@ -793,18 +793,18 @@ namespace BoundTreeGenerator
                     if (IsPropertyOverrides(field))
                     {
                         WriteLine("private readonly {0} _{1};", field.Type, field.Name);
-                        WriteLine("public override {0}{1} {2} {{ get {{ return _{2};}} }}", (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                        WriteLine("public override {0}{1} {2} {{ get {{ return _{2};}} }}", IsNew(field) ? "new " : "", field.Type, field.Name);
                     }
                     else
                     {
-                        WriteLine("public {0}{1} {2} {{ get; }}", (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                        WriteLine("public {0}{1} {2} {{ get; }}", IsNew(field) ? "new " : "", field.Type, field.Name);
                     }
                     break;
 
                 case TargetLanguage.VB:
                     Blank();
-                    WriteLine("Private {0}ReadOnly _{2} As {1}", (IsNew(field) ? "Shadows " : ""), field.Type, field.Name);
-                    WriteLine("Public {0}ReadOnly Property {2} As {1}", (IsNew(field) ? "Shadows " : IsPropertyOverrides(field) ? "Overrides " : ""), field.Type, field.Name);
+                    WriteLine("Private {0}ReadOnly _{2} As {1}", IsNew(field) ? "Shadows " : "", field.Type, field.Name);
+                    WriteLine("Public {0}ReadOnly Property {2} As {1}", IsNew(field) ? "Shadows " : IsPropertyOverrides(field) ? "Overrides " : "", field.Type, field.Name);
                     Indent();
                     WriteLine("Get");
                     Indent();

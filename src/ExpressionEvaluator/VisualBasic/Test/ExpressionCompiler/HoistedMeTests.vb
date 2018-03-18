@@ -547,7 +547,7 @@ End Class
             WithRuntimeInstance(comp,
                 Sub(runtime)
                     Dim compOptions = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All)
-                    Dim dummyComp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences((<Compilation/>), {comp.EmitToImageReference()}, compOptions)
+                    Dim dummyComp = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(<Compilation/>, {comp.EmitToImageReference()}, compOptions)
                     Dim typeC = dummyComp.GlobalNamespace.GetMember(Of NamedTypeSymbol)("C")
                     Dim displayClassTypes = typeC.GetMembers().OfType(Of NamedTypeSymbol)()
                     Assert.True(displayClassTypes.Any())

@@ -234,7 +234,7 @@ Friend Class RedNodeWriter
 
         ' Class name
         _writer.Write("    ")
-        If (nodeStructure.PartialClass) Then
+        If nodeStructure.PartialClass Then
             _writer.Write("Partial ")
         End If
         If _parseTree.IsAbstract(nodeStructure) Then
@@ -522,7 +522,7 @@ Friend Class RedNodeWriter
         ' Put Shadows modifier on if useful.
         ' Object has Equals and GetType
         ' root name has members for every kind and structure (factory methods)
-        If (name = "Equals" OrElse name = "GetType") Then ' OrElse _parseTree.NodeKinds.ContainsKey(name) OrElse _parseTree.NodeStructures.ContainsKey(name)) Then
+        If name = "Equals" OrElse name = "GetType" Then ' OrElse _parseTree.NodeKinds.ContainsKey(name) OrElse _parseTree.NodeStructures.ContainsKey(name)) Then
             modifiers = "Shadows " + modifiers
         End If
         Return modifiers
@@ -636,7 +636,7 @@ Friend Class RedNodeWriter
     End Sub
 
     Private Function GetChildPosition(i As Integer) As String
-        If (i = 0) Then
+        If i = 0 Then
             Return "Me.Position"
         Else
             Return "Me.GetChildPosition(" & i & ")"
@@ -644,7 +644,7 @@ Friend Class RedNodeWriter
     End Function
 
     Private Function GetChildIndex(i As Integer) As String
-        If (i = 0) Then
+        If i = 0 Then
             Return "0"
         Else
             Return "Me.GetChildIndex(" & i & ")"
@@ -749,7 +749,7 @@ Friend Class RedNodeWriter
         Dim structureName = StructureTypeName(nodeStructure)
         Dim factory = FactoryName(nodeStructure)
         Dim needComma = False
-        Dim isMultiKind As Boolean = (nodeStructure.NodeKinds.Count >= 2)
+        Dim isMultiKind As Boolean = nodeStructure.NodeKinds.Count >= 2
 
         _writer.WriteLine()
 
@@ -865,7 +865,7 @@ Friend Class RedNodeWriter
                 If KindTypeStructure(child.ChildKind).IsToken Then
                     _writer.WriteLine("                    Return DirectCast(Me.Green, Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.{0}).{1}", StructureTypeName(nodeStructure), ChildVarName(child))
                 ElseIf child.IsList Then
-                    If (i = 0) Then
+                    If i = 0 Then
                         _writer.WriteLine("                    Return GetRedAtZero({0})", ChildVarName(child))
                     Else
                         _writer.WriteLine("                    Return GetRed({0}, {1})", ChildVarName(child), i)

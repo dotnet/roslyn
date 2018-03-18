@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         return ArrayInitializerStyle.Block;
                     }
 
-                    int thresholdCnt = Math.Max(3, (initCount / 3));
+                    int thresholdCnt = Math.Max(3, initCount / 3);
 
                     if (constCount >= thresholdCnt)
                     {
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return false;
             }
 
-            var ctor = ((MethodSymbol)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor));
+            var ctor = (MethodSymbol)this._module.Compilation.GetWellKnownTypeMember(WellKnownMember.System_ReadOnlySpan_T__ctor);
             if (ctor == null)
             {
                 return false;

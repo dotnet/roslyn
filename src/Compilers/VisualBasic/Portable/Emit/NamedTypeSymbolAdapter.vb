@@ -171,29 +171,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If Not Me.IsDefinition Then
                 If Me.Arity > 0 AndAlso Me.ConstructedFrom IsNot Me Then
-                    Debug.Assert((DirectCast(Me, ITypeReference)).AsGenericTypeInstanceReference IsNot Nothing)
+                    Debug.Assert(DirectCast(Me, ITypeReference).AsGenericTypeInstanceReference IsNot Nothing)
                     visitor.Visit(DirectCast(Me, IGenericTypeInstanceReference))
                 Else
-                    Debug.Assert((DirectCast(Me, ITypeReference)).AsSpecializedNestedTypeReference IsNot Nothing)
+                    Debug.Assert(DirectCast(Me, ITypeReference).AsSpecializedNestedTypeReference IsNot Nothing)
                     visitor.Visit(DirectCast(Me, ISpecializedNestedTypeReference))
                 End If
             Else
                 Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(visitor.Context.Module, PEModuleBuilder)
-                Dim asDefinition As Boolean = (Me.ContainingModule.Equals(moduleBeingBuilt.SourceModule))
+                Dim asDefinition As Boolean = Me.ContainingModule.Equals(moduleBeingBuilt.SourceModule)
                 If Me.ContainingType Is Nothing Then
                     If asDefinition Then
-                        Debug.Assert((DirectCast(Me, ITypeReference)).AsNamespaceTypeDefinition(visitor.Context) IsNot Nothing)
+                        Debug.Assert(DirectCast(Me, ITypeReference).AsNamespaceTypeDefinition(visitor.Context) IsNot Nothing)
                         visitor.Visit(DirectCast(Me, INamespaceTypeDefinition))
                     Else
-                        Debug.Assert((DirectCast(Me, ITypeReference)).AsNamespaceTypeReference IsNot Nothing)
+                        Debug.Assert(DirectCast(Me, ITypeReference).AsNamespaceTypeReference IsNot Nothing)
                         visitor.Visit(DirectCast(Me, INamespaceTypeReference))
                     End If
                 Else
                     If asDefinition Then
-                        Debug.Assert((DirectCast(Me, ITypeReference)).AsNestedTypeDefinition(visitor.Context) IsNot Nothing)
+                        Debug.Assert(DirectCast(Me, ITypeReference).AsNestedTypeDefinition(visitor.Context) IsNot Nothing)
                         visitor.Visit(DirectCast(Me, INestedTypeDefinition))
                     Else
-                        Debug.Assert((DirectCast(Me, ITypeReference)).AsNestedTypeReference IsNot Nothing)
+                        Debug.Assert(DirectCast(Me, ITypeReference).AsNestedTypeReference IsNot Nothing)
                         visitor.Visit(DirectCast(Me, INestedTypeReference))
                     End If
                 End If
@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function ITypeDefinitionGetBaseClass(context As EmitContext) As ITypeReference Implements ITypeDefinition.GetBaseClass
             Debug.Assert(Not Me.IsAnonymousType)
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
-            Debug.Assert((DirectCast(Me, ITypeReference)).AsTypeDefinition(context) IsNot Nothing)
+            Debug.Assert(DirectCast(Me, ITypeReference).AsTypeDefinition(context) IsNot Nothing)
 
             Dim baseType As NamedTypeSymbol = Me.BaseTypeNoUseSiteDiagnostics
 
@@ -407,7 +407,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Iterator Function ITypeDefinitionInterfaces(context As EmitContext) _
             As IEnumerable(Of Cci.TypeReferenceWithAttributes) Implements ITypeDefinition.Interfaces
             Debug.Assert(Not Me.IsAnonymousType)
-            Debug.Assert((DirectCast(Me, ITypeReference)).AsTypeDefinition(context) IsNot Nothing)
+            Debug.Assert(DirectCast(Me, ITypeReference).AsTypeDefinition(context) IsNot Nothing)
 
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
             For Each [interface] In GetInterfacesToEmit()
@@ -820,13 +820,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function INamespaceTypeReferenceGetUnit(context As EmitContext) As IUnitReference Implements INamespaceTypeReference.GetUnit
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
-            Debug.Assert((DirectCast(Me, ITypeReference)).AsNamespaceTypeReference IsNot Nothing)
+            Debug.Assert(DirectCast(Me, ITypeReference).AsNamespaceTypeReference IsNot Nothing)
             Return moduleBeingBuilt.Translate(Me.ContainingModule, context.Diagnostics)
         End Function
 
         Private ReadOnly Property INamespaceTypeReferenceNamespaceName As String Implements INamespaceTypeReference.NamespaceName
             Get
-                Debug.Assert((DirectCast(Me, ITypeReference)).AsNamespaceTypeReference IsNot Nothing)
+                Debug.Assert(DirectCast(Me, ITypeReference).AsNamespaceTypeReference IsNot Nothing)
                 Return If(Me.GetEmittedNamespaceName(), Me.ContainingNamespace.ToDisplayString(SymbolDisplayFormat.QualifiedNameOnlyFormat))
             End Get
         End Property
@@ -842,7 +842,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function ITypeMemberReferenceGetContainingType(context As EmitContext) As ITypeReference Implements ITypeMemberReference.GetContainingType
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
-            Debug.Assert((DirectCast(Me, ITypeReference)).AsNestedTypeReference IsNot Nothing)
+            Debug.Assert(DirectCast(Me, ITypeReference).AsNestedTypeReference IsNot Nothing)
             Debug.Assert(Me.IsDefinitionOrDistinct())
 
             If Not Me.IsDefinition Then
@@ -875,7 +875,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function IGenericTypeInstanceReferenceGetGenericArguments(context As EmitContext) As ImmutableArray(Of ITypeReference) Implements IGenericTypeInstanceReference.GetGenericArguments
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
-            Debug.Assert((DirectCast(Me, ITypeReference)).AsGenericTypeInstanceReference IsNot Nothing)
+            Debug.Assert(DirectCast(Me, ITypeReference).AsGenericTypeInstanceReference IsNot Nothing)
 
             Dim hasModifiers = Me.HasTypeArgumentsCustomModifiers
 
@@ -898,7 +898,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Function IGenericTypeInstanceReferenceGetGenericType(context As EmitContext) As INamedTypeReference Implements IGenericTypeInstanceReference.GetGenericType
-            Debug.Assert((DirectCast(Me, ITypeReference)).AsGenericTypeInstanceReference IsNot Nothing)
+            Debug.Assert(DirectCast(Me, ITypeReference).AsGenericTypeInstanceReference IsNot Nothing)
             Return GenericTypeImpl(context)
         End Function
 
@@ -911,7 +911,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Function ISpecializedNestedTypeReferenceGetUnspecializedVersion(context As EmitContext) As INestedTypeReference Implements ISpecializedNestedTypeReference.GetUnspecializedVersion
-            Debug.Assert((DirectCast(Me, ITypeReference)).AsSpecializedNestedTypeReference IsNot Nothing)
+            Debug.Assert(DirectCast(Me, ITypeReference).AsSpecializedNestedTypeReference IsNot Nothing)
 
             Dim result = GenericTypeImpl(context).AsNestedTypeReference
             Debug.Assert(result IsNot Nothing)

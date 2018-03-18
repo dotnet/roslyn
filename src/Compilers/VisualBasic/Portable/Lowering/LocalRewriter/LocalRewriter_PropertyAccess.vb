@@ -17,8 +17,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If asArrayType.IsSZArray Then
                     ' NOTE: we are not interested in potential badness of Array.Length property.
                     ' If it is bad reference compare will not succeed.
-                    If (node.PropertySymbol Is GetSpecialTypeMember(SpecialMember.System_Array__Length) OrElse
-                        node.PropertySymbol Is GetSpecialTypeMember(SpecialMember.System_Array__LongLength)) Then
+                    If node.PropertySymbol Is GetSpecialTypeMember(SpecialMember.System_Array__Length) OrElse
+                        node.PropertySymbol Is GetSpecialTypeMember(SpecialMember.System_Array__LongLength) Then
 
                         Return New BoundArrayLength(node.Syntax, VisitExpressionNode(receiverOpt), node.Type)
                     End If

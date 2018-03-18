@@ -238,7 +238,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Public Overrides ReadOnly Property Variance As VarianceKind
             Get
-                Return CType((_flags And GenericParameterAttributes.VarianceMask), VarianceKind)
+                Return CType(_flags And GenericParameterAttributes.VarianceMask, VarianceKind)
             End Get
         End Property
 

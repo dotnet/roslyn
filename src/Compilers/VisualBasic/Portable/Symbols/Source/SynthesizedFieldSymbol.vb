@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             MyBase.AddSynthesizedAttributes(compilationState, attributes)
 
             ' enum fields do not need to be marked as generated
-            If (_isSpecialNameAndRuntimeSpecial) Then
+            If _isSpecialNameAndRuntimeSpecial Then
                 Return
             End If
 
@@ -139,7 +139,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return CType((_flags And SourceMemberFlags.AccessibilityMask), Accessibility)
+                Return CType(_flags And SourceMemberFlags.AccessibilityMask, Accessibility)
             End Get
         End Property
 

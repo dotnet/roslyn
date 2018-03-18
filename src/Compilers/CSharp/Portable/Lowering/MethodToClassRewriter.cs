@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ImmutableArray<TypeParameterSymbol> typeParameters;
 
                 var substitutedType = methodBeingWrapped.ContainingType as SubstitutedNamedTypeSymbol;
-                typeMap = ((object)substitutedType == null ? TypeMap.Empty : substitutedType.TypeSubstitution);
+                typeMap = (object)substitutedType == null ? TypeMap.Empty : substitutedType.TypeSubstitution;
 
                 if (!methodBeingWrapped.IsGenericMethod)
                 {

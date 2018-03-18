@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 var deconstructMethod = ((BoundCall)result).Method;
                 var parameters = deconstructMethod.Parameters;
-                for (int i = (deconstructMethod.IsExtensionMethod ? 1 : 0); i < parameters.Length; i++)
+                for (int i = deconstructMethod.IsExtensionMethod ? 1 : 0; i < parameters.Length; i++)
                 {
                     if (parameters[i].RefKind != RefKind.Out)
                     {

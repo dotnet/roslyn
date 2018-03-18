@@ -55,8 +55,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.IncorrectExitContinue
             Dim node = token.GetAncestors(Of SyntaxNode) _
                        .FirstOrDefault(Function(c)
                                            Return c.Span.IntersectsWith(span) AndAlso (
-                                               TypeOf (c) Is ContinueStatementSyntax OrElse
-                                               TypeOf (c) Is ExitStatementSyntax)
+                                               TypeOf c Is ContinueStatementSyntax OrElse
+                                               TypeOf c Is ExitStatementSyntax)
                                        End Function)
             If node Is Nothing Then
                 Return

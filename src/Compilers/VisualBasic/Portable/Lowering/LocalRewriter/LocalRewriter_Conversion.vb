@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                          node.Type.SpecialType <> SpecialType.System_MulticastDelegate)
 
             Dim F As New SyntheticBoundNodeFactory(Me._topMethod, Me._currentMethodOrLambda, node.Syntax, Me._compilationState, Me._diagnostics)
-            If (node.Operand.IsDefaultValueConstant) Then
+            If node.Operand.IsDefaultValueConstant Then
                 Return F.Null(node.Type)
             Else
                 Dim lambdaOpt As BoundLambda
@@ -335,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     receiverPlaceholderOpt = Nothing
                 End If
 
-                If (Not Me._inExpressionLambda AndAlso CouldPossiblyBeNothing(F, node.Operand)) Then
+                If Not Me._inExpressionLambda AndAlso CouldPossiblyBeNothing(F, node.Operand) Then
                     Dim savedOriginalValue = F.SynthesizedLocal(node.Operand.Type)
                     Dim checkIfNothing = F.ReferenceIsNothing(F.Local(savedOriginalValue, False))
                     Dim conversionIfNothing = F.Null(node.Type)

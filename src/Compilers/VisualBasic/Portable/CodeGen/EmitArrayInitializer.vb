@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End If
 
             If elementType.SpecialType.IsBlittable() Then
-                If (_module.GetInitArrayHelper Is Nothing) Then
+                If _module.GetInitArrayHelper Is Nothing Then
                     Return ArrayInitializerStyle.Element
                 End If
 
@@ -212,7 +212,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         Return ArrayInitializerStyle.Block
                     End If
 
-                    Dim thresholdCnt As Integer = Math.Max(3, (initCount \ 3))
+                    Dim thresholdCnt As Integer = Math.Max(3, initCount \ 3)
 
                     If constCount >= thresholdCnt Then
                         Return ArrayInitializerStyle.Mixed

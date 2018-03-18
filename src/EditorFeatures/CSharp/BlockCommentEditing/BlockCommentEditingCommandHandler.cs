@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.BlockCommentEditing
             Debug.Assert(firstNonWhitespaceOffset > -1);
 
             var lineText = currentLine.GetText();
-            if ((lineText.Length == firstNonWhitespaceOffset + exteriorText.Length))
+            if (lineText.Length == firstNonWhitespaceOffset + exteriorText.Length)
             {
                 //     *|
                 return " ";

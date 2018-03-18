@@ -252,7 +252,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
                                                 .First()
 
             Contract.ThrowIfNull(lastStatement)
-            Contract.ThrowIfFalse(lastStatement.Parent Is (GetFirstStatementUnderContainer()).Parent)
+            Contract.ThrowIfFalse(lastStatement.Parent Is GetFirstStatementUnderContainer().Parent)
 
             Return lastStatement
         End Function

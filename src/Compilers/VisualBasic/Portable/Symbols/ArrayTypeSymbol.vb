@@ -320,13 +320,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function IsSameType(obj As Object, compareKind As TypeCompareKind) As Boolean
             Debug.Assert((compareKind And Not (TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds Or TypeCompareKind.IgnoreTupleNames)) = 0)
 
-            If (Me Is obj) Then
+            If Me Is obj Then
                 Return True
             End If
 
             Dim other = TryCast(obj, ArrayTypeSymbol)
 
-            If (other Is Nothing OrElse Not other.HasSameShapeAs(Me) OrElse Not other.ElementType.IsSameType(ElementType, compareKind)) Then
+            If other Is Nothing OrElse Not other.HasSameShapeAs(Me) OrElse Not other.ElementType.IsSameType(ElementType, compareKind) Then
                 Return False
             End If
 
@@ -354,7 +354,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim hashCode = 0
             Dim current As TypeSymbol = Me
-            While (current.TypeKind = TypeKind.Array)
+            While current.TypeKind = TypeKind.Array
                 Dim cur = DirectCast(current, ArrayTypeSymbol)
                 hashCode = Hash.Combine(cur.Rank, hashCode)
                 current = cur.ElementType

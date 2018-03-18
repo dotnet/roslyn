@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool any = false;
             for (int i = 0; ; i++)
             {
-                int bit = (1 << i);
+                int bit = 1 << i;
                 if ((bit & (int)CompletionPart.All) == 0) break;
                 if ((bit & _completeParts) != 0)
                 {

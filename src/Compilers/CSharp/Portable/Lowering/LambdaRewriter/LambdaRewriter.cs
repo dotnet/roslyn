@@ -790,9 +790,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       Actually, considering that method group expression does not evaluate to a particular value 
             //       why do we have it in the lowered tree at all?
 
-            return (_currentMethod == _topLevelMethod || _topLevelMethod.ThisParameter == null ?
+            return _currentMethod == _topLevelMethod || _topLevelMethod.ThisParameter == null ?
                 node :
-                FramePointer(node.Syntax, (NamedTypeSymbol)node.Type));
+                FramePointer(node.Syntax, (NamedTypeSymbol)node.Type);
         }
 
         public override BoundNode VisitBaseReference(BoundBaseReference node)

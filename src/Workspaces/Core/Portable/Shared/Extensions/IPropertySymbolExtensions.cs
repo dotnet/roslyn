@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         }
 
         public static bool IsWritableInConstructor(this IPropertySymbol property)
-            => (property.SetMethod != null || ContainsBackingField(property));
+            => property.SetMethod != null || ContainsBackingField(property);
 
         public static IFieldSymbol GetBackingFieldIfAny(this IPropertySymbol property)
             => property.ContainingType.GetMembers()

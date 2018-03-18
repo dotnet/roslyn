@@ -94,11 +94,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(TypeOf within Is NamedTypeSymbol OrElse TypeOf within Is AssemblySymbol)
             Debug.Assert(within.IsDefinition)
 
-            Dim withinAssembly = If(TryCast(within, AssemblySymbol), (DirectCast(within, NamedTypeSymbol)).ContainingAssembly)
+            Dim withinAssembly = If(TryCast(within, AssemblySymbol), DirectCast(within, NamedTypeSymbol).ContainingAssembly)
 
             Select Case symbol.Kind
                 Case SymbolKind.ArrayType
-                    Return CheckSymbolAccessibilityCore((DirectCast(symbol, ArrayTypeSymbol)).ElementType, within, Nothing, basesBeingResolved, useSiteDiagnostics)
+                    Return CheckSymbolAccessibilityCore(DirectCast(symbol, ArrayTypeSymbol).ElementType, within, Nothing, basesBeingResolved, useSiteDiagnostics)
 
                 Case SymbolKind.NamedType
                     Return CheckNamedTypeAccessibility(DirectCast(symbol, NamedTypeSymbol), within, basesBeingResolved, useSiteDiagnostics)

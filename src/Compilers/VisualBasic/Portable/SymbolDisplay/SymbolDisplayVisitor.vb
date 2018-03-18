@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Overrides Sub VisitAssembly(symbol As IAssemblySymbol)
-            Dim text = If((format.TypeQualificationStyle = SymbolDisplayTypeQualificationStyle.NameOnly), symbol.Identity.Name, symbol.Identity.GetDisplayName())
+            Dim text = If(format.TypeQualificationStyle = SymbolDisplayTypeQualificationStyle.NameOnly, symbol.Identity.Name, symbol.Identity.GetDisplayName())
             builder.Add(CreatePart(SymbolDisplayPartKind.AssemblyName, symbol, text, False))
         End Sub
 
@@ -341,7 +341,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 containingSymbol IsNot Nothing AndAlso
                 containingSymbol.Kind = SymbolKind.Namespace AndAlso
                 format.TypeQualificationStyle = SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces AndAlso
-                (Not (DirectCast(containingSymbol, INamespaceSymbol)).IsGlobalNamespace OrElse
+                (Not DirectCast(containingSymbol, INamespaceSymbol).IsGlobalNamespace OrElse
                  format.GlobalNamespaceStyle = SymbolDisplayGlobalNamespaceStyle.Included)
         End Function
 

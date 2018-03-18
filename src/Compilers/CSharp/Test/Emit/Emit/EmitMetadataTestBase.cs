@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static XElement LoadChildNamespace(NamespaceSymbol n)
         {
-            XElement elem = new XElement((n.Name.Length == 0 ? "Global" : n.Name));
+            XElement elem = new XElement(n.Name.Length == 0 ? "Global" : n.Name);
 
             var childrenTypes = n.GetTypeMembers().OrderBy((t) => t, new NameAndArityComparer());
 

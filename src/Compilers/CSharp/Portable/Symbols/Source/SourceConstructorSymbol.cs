@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 addRefReadOnlyModifier: false,
                 diagnostics: diagnostics);
 
-            _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
+            _lazyIsVararg = arglistToken.Kind() == SyntaxKind.ArgListKeyword;
             _lazyReturnType = bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
 
             var location = this.Locations[0];

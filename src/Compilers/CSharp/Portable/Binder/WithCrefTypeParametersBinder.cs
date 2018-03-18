@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 case SyntaxKind.QualifiedCref:
                     {
-                        QualifiedCrefSyntax qualifiedCrefSyntax = ((QualifiedCrefSyntax)_crefSyntax);
+                        QualifiedCrefSyntax qualifiedCrefSyntax = (QualifiedCrefSyntax)_crefSyntax;
                         AddTypeParameters(qualifiedCrefSyntax.Member, map);
                         AddTypeParameters(qualifiedCrefSyntax.Container, map);
                         break;

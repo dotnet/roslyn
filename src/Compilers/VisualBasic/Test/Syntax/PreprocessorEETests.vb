@@ -157,7 +157,7 @@ Public Class PreprocessorEETests
         Dim res = ExpressionEvaluator.EvaluateExpression(tree)
         Assert.Equal(True, res.ValueAsObject)
 
-#Const x = (-1 = 3 > 1)
+#Const x = -1 = 3 > 1
         tree = ParseExpression("(-1 = 3 > 1)")
         res = ExpressionEvaluator.EvaluateExpression(tree)
         Assert.Equal(False, res.ValueAsObject)

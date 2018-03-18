@@ -263,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' so we use a simple hare/tortoise here.
 
             Dim slow = this.OriginalDefinition
-            If (slow Is Nothing) Then
+            If slow Is Nothing Then
                 Return Nothing
             End If
 
@@ -336,7 +336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 For Each base In bases
                     base = TryCast(base.OriginalDefinition, NamedTypeSymbol)
 
-                    If (base Is Nothing) Then
+                    If base Is Nothing Then
                         Continue For   ' not a named type
                     End If
 

@@ -74,7 +74,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(argument.IsValue)
 
             ' Deal with erroneous arguments
-            If (argument.HasErrors OrElse targetType.IsErrorType) Then
+            If argument.HasErrors OrElse targetType.IsErrorType Then
                 argument = MakeRValue(argument, diagnostics)
 
                 Return New BoundDirectCast(node, argument, conversionKind:=Nothing, type:=targetType, hasErrors:=True)
@@ -181,7 +181,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(argument.IsValue)
 
             ' Deal with erroneous arguments
-            If (argument.HasErrors OrElse targetType.IsErrorType) Then
+            If argument.HasErrors OrElse targetType.IsErrorType Then
                 argument = MakeRValue(argument, diagnostics)
 
                 Return New BoundTryCast(node, argument, conversionKind:=Nothing, type:=targetType, hasErrors:=True)
@@ -1419,7 +1419,7 @@ DoneWithDiagnostics:
                 ' First, we need to get an Anonymous Delegate of the same shape as the lambdaSymbol.
                 Dim lambdaSymbol As LambdaSymbol = boundLambda.LambdaSymbol
                 Dim anonymousDelegateType As NamedTypeSymbol = ConstructAnonymousDelegateSymbol(unboundLambda,
-                                                                                       (lambdaSymbol.Parameters.As(Of BoundLambdaParameterSymbol)),
+                                                                                       lambdaSymbol.Parameters.As(Of BoundLambdaParameterSymbol),
                                                                                        lambdaSymbol.ReturnType,
                                                                                        diagnostics)
 

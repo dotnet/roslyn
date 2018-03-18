@@ -35,9 +35,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property AlwaysAssigned As IEnumerable(Of Symbol)
             Get
                 Dim result As New List(Of Symbol)
-                If (_endOfRegionState.Reachable) Then
+                If _endOfRegionState.Reachable Then
                     For Each i In _endOfRegionState.Assigned.TrueBits
-                        If (i >= variableBySlot.Length) Then
+                        If i >= variableBySlot.Length Then
                             Continue For
                         End If
 

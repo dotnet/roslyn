@@ -973,7 +973,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return
                 ElseIf lookupResult.HasDiagnostic AndAlso Not reportedAnError Then
                     Binder.ReportDiagnostic(diagBag, leftNameSyntax, lookupResult.Diagnostic)
-                    reportedAnError = (lookupResult.Diagnostic.Severity = DiagnosticSeverity.Error)
+                    reportedAnError = lookupResult.Diagnostic.Severity = DiagnosticSeverity.Error
                 End If
 
                 Dim leftSymbol As NamespaceOrTypeSymbol = DirectCast(lookupResult.SingleSymbol, NamespaceOrTypeSymbol)
@@ -1063,7 +1063,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return
                 ElseIf lookupResult.HasDiagnostic AndAlso Not reportedAnError Then
                     Binder.ReportDiagnostic(diagBag, leftNameSyntax, lookupResult.Diagnostic)
-                    reportedAnError = (lookupResult.Diagnostic.Severity = DiagnosticSeverity.Error)
+                    reportedAnError = lookupResult.Diagnostic.Severity = DiagnosticSeverity.Error
                 End If
 
                 Dim leftSymbol As NamespaceOrTypeSymbol = DirectCast(lookupResult.SingleSymbol, NamespaceOrTypeSymbol)

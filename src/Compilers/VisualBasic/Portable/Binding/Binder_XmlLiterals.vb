@@ -222,7 +222,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return New BoundXmlContainerRewriterInfo(objectCreation)
             End If
 
-            Dim placeholder = (New BoundRValuePlaceholder(syntax, objectCreation.Type)).MakeCompilerGenerated()
+            Dim placeholder = New BoundRValuePlaceholder(syntax, objectCreation.Type).MakeCompilerGenerated()
             Dim sideEffectBuilder = ArrayBuilder(Of BoundExpression).GetInstance()
             Dim addGroup = GetXmlMethodOrPropertyGroup(syntax,
                                                         GetWellKnownType(WellKnownType.System_Xml_Linq_XContainer, syntax, diagnostics),
@@ -288,10 +288,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If prefixesPlaceholder Is Nothing Then
                         Dim prefixesType = CreateArrayType(GetSpecialType(SpecialType.System_String, syntax, diagnostics))
-                        prefixesPlaceholder = (New BoundRValuePlaceholder(syntax, prefixesType)).MakeCompilerGenerated()
+                        prefixesPlaceholder = New BoundRValuePlaceholder(syntax, prefixesType).MakeCompilerGenerated()
 
                         Dim namespacesType = CreateArrayType(GetWellKnownType(WellKnownType.System_Xml_Linq_XNamespace, syntax, diagnostics))
-                        namespacesPlaceholder = (New BoundRValuePlaceholder(syntax, namespacesType)).MakeCompilerGenerated()
+                        namespacesPlaceholder = New BoundRValuePlaceholder(syntax, namespacesType).MakeCompilerGenerated()
                     End If
 
                     ' Generate update to child using RemoveNamespaceAttributes.
@@ -351,7 +351,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If xmlnsAttributesPlaceholder Is Nothing Then
                 Dim listType = GetWellKnownType(WellKnownType.System_Collections_Generic_List_T, syntax, diagnostics).Construct(
                     GetWellKnownType(WellKnownType.System_Xml_Linq_XAttribute, syntax, diagnostics))
-                xmlnsAttributesPlaceholder = (New BoundRValuePlaceholder(syntax, listType)).MakeCompilerGenerated()
+                xmlnsAttributesPlaceholder = New BoundRValuePlaceholder(syntax, listType).MakeCompilerGenerated()
 
                 ' Generate method group and arguments for RemoveNamespaceAttributes.
                 removeNamespacesGroup = GetXmlMethodOrPropertyGroup(syntax,

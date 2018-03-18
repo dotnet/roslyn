@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         private static int GetCacheHash(int kind, GreenNode.NodeFlags flags, GreenNode child1)
         {
-            int code = (int)(flags) ^ kind;
+            int code = (int)flags ^ kind;
             // the only child is never null
             code = Hash.Combine(System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(child1), code);
 
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         private static int GetCacheHash(int kind, GreenNode.NodeFlags flags, GreenNode child1, GreenNode child2)
         {
-            int code = (int)(flags) ^ kind;
+            int code = (int)flags ^ kind;
 
             if (child1 != null)
             {
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         private static int GetCacheHash(int kind, GreenNode.NodeFlags flags, GreenNode child1, GreenNode child2, GreenNode child3)
         {
-            int code = (int)(flags) ^ kind;
+            int code = (int)flags ^ kind;
 
             if (child1 != null)
             {

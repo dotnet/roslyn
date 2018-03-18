@@ -135,7 +135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Continue For
                 End If
 
-                foundMatch = (targetSignature.Length = 3)
+                foundMatch = targetSignature.Length = 3
                 Dim k = 0
                 For j = 3 To targetSignature.Length - 1
                     If k >= parameters.Length Then

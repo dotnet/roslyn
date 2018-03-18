@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // These are exclusive; both must not be present.
-            LookupOptions mustBeAndNotBeInstance = (LookupOptions.MustBeInstance | LookupOptions.MustNotBeInstance);
+            LookupOptions mustBeAndNotBeInstance = LookupOptions.MustBeInstance | LookupOptions.MustNotBeInstance;
             if ((options & mustBeAndNotBeInstance) == mustBeAndNotBeInstance)
             {
                 return false;

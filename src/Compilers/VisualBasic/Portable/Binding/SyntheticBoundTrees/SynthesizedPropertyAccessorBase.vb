@@ -248,14 +248,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     Dim conditionalRemoval = New BoundIfStatement(
                                              syntax,
-                                             (New BoundBinaryOperator(
+                                             New BoundBinaryOperator(
                                                  syntax,
                                                  BinaryOperatorKind.IsNot,
                                                  withEventsLocalAccess.MakeRValue(),
                                                  New BoundLiteral(syntax, ConstantValue.Nothing,
                                                                   accessor.ContainingAssembly.GetSpecialType(SpecialType.System_Object)),
                                                  False,
-                                                 accessor.ContainingAssembly.GetSpecialType(SpecialType.System_Boolean))).MakeCompilerGenerated,
+                                                 accessor.ContainingAssembly.GetSpecialType(SpecialType.System_Boolean)).MakeCompilerGenerated,
                                              removalStatement,
                                              Nothing)
 
@@ -287,9 +287,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 statements.Add(
-                    (New BoundExpressionStatement(
+                    New BoundExpressionStatement(
                         syntax,
-                        valueSettingExpression).MakeCompilerGenerated()))
+                        valueSettingExpression).MakeCompilerGenerated())
 
 
                 ' after setting new event source, hookup handlers
@@ -329,14 +329,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     Dim conditionalAdd = New BoundIfStatement(
                                              syntax,
-                                             (New BoundBinaryOperator(
+                                             New BoundBinaryOperator(
                                                  syntax,
                                                  BinaryOperatorKind.IsNot,
                                                  withEventsLocalAccess.MakeRValue(),
                                                  New BoundLiteral(syntax, ConstantValue.Nothing,
                                                                   accessor.ContainingAssembly.GetSpecialType(SpecialType.System_Object)),
                                                  False,
-                                                 accessor.ContainingAssembly.GetSpecialType(SpecialType.System_Boolean))).MakeCompilerGenerated,
+                                                 accessor.ContainingAssembly.GetSpecialType(SpecialType.System_Boolean)).MakeCompilerGenerated,
                                              addStatement,
                                              Nothing)
 
@@ -352,10 +352,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            statements.Add((New BoundLabelStatement(syntax, exitLabel)).MakeCompilerGenerated())
-            statements.Add((New BoundReturnStatement(syntax, returnLocal, Nothing, Nothing)).MakeCompilerGenerated())
+            statements.Add(New BoundLabelStatement(syntax, exitLabel).MakeCompilerGenerated())
+            statements.Add(New BoundReturnStatement(syntax, returnLocal, Nothing, Nothing).MakeCompilerGenerated())
 
-            Return (New BoundBlock(syntax, Nothing, locals, statements.ToImmutableAndFree())).MakeCompilerGenerated()
+            Return New BoundBlock(syntax, Nothing, locals, statements.ToImmutableAndFree()).MakeCompilerGenerated()
         End Function
 
     End Module

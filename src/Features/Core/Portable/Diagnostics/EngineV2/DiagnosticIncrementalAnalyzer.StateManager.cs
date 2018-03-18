@@ -290,7 +290,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 foreach (var stateSet in stateSets)
                 {
-                    if (!(set.Add(ValueTuple.Create(stateSet.Language, stateSet.StateName))))
+                    if (!set.Add(ValueTuple.Create(stateSet.Language, stateSet.StateName)))
                     {
                         Contract.Fail();
                     }

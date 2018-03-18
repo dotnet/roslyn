@@ -198,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
                 if (newParentingNode.IsKind(SyntaxKind.PropertyDeclaration))
                 {
-                    var propertyDeclaration = ((PropertyDeclarationSyntax)newParentingNode);
+                    var propertyDeclaration = (PropertyDeclarationSyntax)newParentingNode;
                     newParentingNode = propertyDeclaration
                         .WithAccessorList(accessorList)
                         .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
                 }
                 else if (newParentingNode.IsKind(SyntaxKind.IndexerDeclaration))
                 {
-                    var indexerDeclaration = ((IndexerDeclarationSyntax)newParentingNode);
+                    var indexerDeclaration = (IndexerDeclarationSyntax)newParentingNode;
                     newParentingNode = indexerDeclaration
                         .WithAccessorList(accessorList)
                         .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
@@ -220,21 +220,21 @@ namespace Microsoft.CodeAnalysis.CSharp.IntroduceVariable
 
                 if (newParentingNode.IsKind(SyntaxKind.MethodDeclaration))
                 {
-                    var methodDeclaration = ((MethodDeclarationSyntax)newParentingNode);
+                    var methodDeclaration = (MethodDeclarationSyntax)newParentingNode;
                     newParentingNode = methodDeclaration
                         .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
                         .WithTrailingTrivia(methodDeclaration.SemicolonToken.TrailingTrivia);
                 }
                 else if (newParentingNode.IsKind(SyntaxKind.OperatorDeclaration))
                 {
-                    var operatorDeclaration = ((OperatorDeclarationSyntax)newParentingNode);
+                    var operatorDeclaration = (OperatorDeclarationSyntax)newParentingNode;
                     newParentingNode = operatorDeclaration
                         .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
                         .WithTrailingTrivia(operatorDeclaration.SemicolonToken.TrailingTrivia);
                 }
                 else if (newParentingNode.IsKind(SyntaxKind.ConversionOperatorDeclaration))
                 {
-                    var conversionOperatorDeclaration = ((ConversionOperatorDeclarationSyntax)newParentingNode);
+                    var conversionOperatorDeclaration = (ConversionOperatorDeclarationSyntax)newParentingNode;
                     newParentingNode = conversionOperatorDeclaration
                         .WithSemicolonToken(SyntaxFactory.Token(SyntaxKind.None))
                         .WithTrailingTrivia(conversionOperatorDeclaration.SemicolonToken.TrailingTrivia);

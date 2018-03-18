@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim containingAssembly As AssemblySymbol = Me.ContainingAssembly
 
-            If (containingAssembly.KeepLookingForDeclaredSpecialTypes) Then
+            If containingAssembly.KeepLookingForDeclaredSpecialTypes Then
                 ' Register newly declared COR types
                 For Each array In _nameToMembersMap.Values
                     For Each member In array
@@ -509,7 +509,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' Validate a particular namespace name.
         Private Sub ValidateNamespaceNameSyntax(node As SimpleNameSyntax, diagnostics As DiagnosticBag, ByRef reportedNamespaceMismatch As Boolean)
-            If (node.Identifier.GetTypeCharacter() <> TypeCharacter.None) Then
+            If node.Identifier.GetTypeCharacter() <> TypeCharacter.None Then
                 Dim diag = New VBDiagnostic(ErrorFactory.ErrorInfo(ERRID.ERR_TypecharNotallowed), node.GetLocation())
                 diagnostics.Add(diag)
             End If

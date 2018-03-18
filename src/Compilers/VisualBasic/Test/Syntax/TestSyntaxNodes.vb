@@ -105,11 +105,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Next
 
             Assert.Equal(ItemList.Count, ItemListRev.Count)
-            If (ItemList.Count > 0) Then
-                Dim L0 As Integer = (ItemList.Count - 1)
+            If ItemList.Count > 0 Then
+                Dim L0 As Integer = ItemList.Count - 1
                 Dim I0 As Integer = 0
-                Do While (I0 <= L0)
-                    Assert.Equal(ItemList.Item(I0), ItemListRev.Item(((ItemList.Count - 1) - I0)))
+                Do While I0 <= L0
+                    Assert.Equal(ItemList.Item(I0), ItemListRev.Item((ItemList.Count - 1) - I0))
                     I0 += 1
                 Loop
             End If
@@ -129,11 +129,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 b2 += 1
             Loop
             Assert.Equal(b1, b2)
-            Assert.Throws(Of ArgumentOutOfRangeException)((Sub()
+            Assert.Throws(Of ArgumentOutOfRangeException)(Sub()
                                                                Dim i1 As SyntaxNodeOrToken = children.Item(-1)
                                                            End Sub
-                                                       ))
-            Assert.Equal(ItemList.Item((ItemList.Count - 1)), children.Last.ToString)
+                                                       )
+            Assert.Equal(ItemList.Item(ItemList.Count - 1), children.Last.ToString)
             Assert.Equal(ItemList.Item(0), Enumerable.First(Of SyntaxNodeOrToken)(DirectCast(children, IEnumerable(Of SyntaxNodeOrToken))).ToString)
 
             'Comparison operators = and <>   
@@ -333,13 +333,13 @@ End Class
                 If precedingTrivia.Count = 0 Then
                     Assert.Equal(tree.SpanStart, tree.FullSpan.Start)
                 Else
-                    VerifyListSpans(precedingTrivia, New TextSpan(tree.FullSpan.Start, (tree.SpanStart - tree.FullSpan.Start)))
+                    VerifyListSpans(precedingTrivia, New TextSpan(tree.FullSpan.Start, tree.SpanStart - tree.FullSpan.Start))
                 End If
 
                 If followingTrivia.Count = 0 Then
                     Assert.Equal(tree.Span.End, tree.FullSpan.End)
                 Else
-                    VerifyListSpans(followingTrivia, New TextSpan(tree.Span.End, (tree.FullSpan.End - tree.Span.End)))
+                    VerifyListSpans(followingTrivia, New TextSpan(tree.Span.End, tree.FullSpan.End - tree.Span.End))
                 End If
             End If
 
@@ -358,13 +358,13 @@ End Class
             If precedingTrivia.Count = 0 Then
                 Assert.Equal(tree.SpanStart, tree.FullSpan.Start)
             Else
-                VerifyListSpans(precedingTrivia, New TextSpan(tree.FullSpan.Start, (tree.SpanStart - tree.FullSpan.Start)))
+                VerifyListSpans(precedingTrivia, New TextSpan(tree.FullSpan.Start, tree.SpanStart - tree.FullSpan.Start))
             End If
 
             If followingTrivia.Count = 0 Then
                 Assert.Equal(tree.Span.End, tree.FullSpan.End)
             Else
-                VerifyListSpans(followingTrivia, New TextSpan(tree.Span.End, (tree.FullSpan.End - tree.Span.End)))
+                VerifyListSpans(followingTrivia, New TextSpan(tree.Span.End, tree.FullSpan.End - tree.Span.End))
             End If
 
         End Sub

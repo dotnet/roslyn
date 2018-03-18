@@ -172,7 +172,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
 
             var title = new StringBuilder(titleLength.ToInt32() + 1);
 
-            NativeMethods.SendMessage(window, NativeMethods.WM_GETTEXT, (IntPtr)(title.Capacity), title);
+            NativeMethods.SendMessage(window, NativeMethods.WM_GETTEXT, (IntPtr)title.Capacity, title);
             return title.ToString();
         }
 
@@ -242,7 +242,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 }
 
                 // Make the window a top-most window so it will appear above any existing top-most windows
-                NativeMethods.SetWindowPos(window, (IntPtr)NativeMethods.HWND_TOPMOST, 0, 0, 0, 0, (NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOMOVE));
+                NativeMethods.SetWindowPos(window, (IntPtr)NativeMethods.HWND_TOPMOST, 0, 0, 0, 0, NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOMOVE);
 
                 // Move the window into the foreground as it may not have been achieved by the 'SetWindowPos' call
                 var success = NativeMethods.SetForegroundWindow(window);
@@ -259,7 +259,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities
                 NativeMethods.SetFocus(window);
 
                 // Remove the 'Top-Most' qualification from the window
-                NativeMethods.SetWindowPos(window, (IntPtr)NativeMethods.HWND_NOTOPMOST, 0, 0, 0, 0, (NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOMOVE));
+                NativeMethods.SetWindowPos(window, (IntPtr)NativeMethods.HWND_NOTOPMOST, 0, 0, 0, 0, NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOMOVE);
             }
             finally
             {

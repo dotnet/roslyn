@@ -376,7 +376,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
             Dim lastConcatenandWasQuoted = False
             Dim i = 0
             While i < str.Length
-                Dim isFirst = (i = 0)
+                Dim isFirst = i = 0
                 Dim c = str(i)
                 i += 1
                 Dim wellKnown As String
@@ -443,7 +443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ObjectDisplay
                         End If
 
                         startNewConcatenand = True
-                    ElseIf (isCrLf) Then
+                    ElseIf isCrLf Then
                         Yield Character(s_Cr)
                         Yield Character(s_Lf)
                     Else

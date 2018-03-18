@@ -2559,7 +2559,7 @@ End Class
             Dim integerType = helper.GetSpecialType(SpecialType.System_Int32)
 
             For Each st As SpecialType In [Enum].GetValues(GetType(SpecialType))
-                Select Case (st)
+                Select Case st
                     Case SpecialType.None, SpecialType.System_Void, SpecialType.System_Runtime_CompilerServices_IsVolatile
                         Continue For
                 End Select
@@ -2573,7 +2573,7 @@ End Class
                 Dim source = String.Format(sourceTemplate, qualifiedName)
                 Dim comp = CreateCompilationWithMscorlib40({source}, Nothing)
 
-                Select Case (st)
+                Select Case st
                     Case SpecialType.System_SByte, SpecialType.System_UInt16, SpecialType.System_UInt32, SpecialType.System_UInt64, SpecialType.System_UIntPtr, SpecialType.System_TypedReference
                         Assert.Equal(ERRID.WRN_ParamNotCLSCompliant1, DirectCast(comp.GetDeclarationDiagnostics().Single().Code, ERRID))
                 End Select

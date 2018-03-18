@@ -2570,8 +2570,8 @@ class C
             var internalParameters = internalParameterList.Parameters;
 
             Assert.Equal(internalParameters.SeparatorCount, 2);
-            Assert.Equal((new SyntaxToken(internalParameters.GetSeparator(0))).Kind(), SyntaxKind.CommaToken);
-            Assert.Equal((new SyntaxToken(internalParameters.GetSeparator(1))).Kind(), SyntaxKind.CommaToken);
+            Assert.Equal(new SyntaxToken(internalParameters.GetSeparator(0)).Kind(), SyntaxKind.CommaToken);
+            Assert.Equal(new SyntaxToken(internalParameters.GetSeparator(1)).Kind(), SyntaxKind.CommaToken);
 
             Assert.Equal(internalParameters.Count, 3);
             Assert.Equal(internalParameters[0].Identifier.ValueText, "a");

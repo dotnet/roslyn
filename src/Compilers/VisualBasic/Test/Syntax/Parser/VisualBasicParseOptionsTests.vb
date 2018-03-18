@@ -229,7 +229,7 @@ Public Class VisualBasicParseOptionsTests
     <Fact>
     Public Sub TestFieldsForEqualsAndGetHashCode()
         ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
-                (GetType(VisualBasicParseOptions)),
+                GetType(VisualBasicParseOptions),
                 "Features",
                 "Language",
                 "LanguageVersion",

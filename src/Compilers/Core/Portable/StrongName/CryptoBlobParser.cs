@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis
                     return new[]
                     {
                         (byte)(exponent >> 8),
-                        (byte)(exponent)
+                        (byte)exponent
                     };
                 }
             }
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         (byte)(exponent >> 16),
                         (byte)(exponent >> 8),
-                        (byte)(exponent)
+                        (byte)exponent
                     };
                 }
             }
@@ -321,7 +321,7 @@ namespace Microsoft.CodeAnalysis
                     (byte)(exponent >> 24),
                     (byte)(exponent >> 16),
                     (byte)(exponent >> 8),
-                    (byte)(exponent)
+                    (byte)exponent
                 };
             }
 }

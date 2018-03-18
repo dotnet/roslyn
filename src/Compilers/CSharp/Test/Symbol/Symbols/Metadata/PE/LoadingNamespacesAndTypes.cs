@@ -45,14 +45,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
         internal static XElement LoadChildNamespace1(NamespaceSymbol n)
         {
-            XElement elem = new XElement((n.Name.Length == 0 ? "Global" : n.Name));
+            XElement elem = new XElement(n.Name.Length == 0 ? "Global" : n.Name);
 
             var childrenTypes = n.GetTypeMembers().OrderBy((t) => t, new NameAndArityComparer());
 
             elem.Add(from t in childrenTypes select LoadChildType(t));
 
             var childrenNS = n.GetMembers().
-                                Select((m) => (m as NamespaceSymbol)).
+                                Select((m) => m as NamespaceSymbol).
                                 Where((m) => m != null).
                                 OrderBy((child) => child.Name, StringComparer.OrdinalIgnoreCase);
 
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
         private XElement LoadChildNamespace2(NamespaceSymbol n)
         {
-            XElement elem = new XElement((n.Name.Length == 0 ? "Global" : n.Name));
+            XElement elem = new XElement(n.Name.Length == 0 ? "Global" : n.Name);
 
             var children = n.GetMembers();
             n = null;
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
                 }
                 else
                 {
-                    namespaces.Add(((NamespaceSymbol)c));
+                    namespaces.Add((NamespaceSymbol)c);
                 }
             }
 
@@ -176,11 +176,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             someName = module0.GlobalNamespace.GetMembers("somEnamE");
             Assert.Equal(someName.Length, 1);
-            Assert.NotNull((someName[0] as NamedTypeSymbol));
+            Assert.NotNull(someName[0] as NamedTypeSymbol);
 
             someName = module0.GlobalNamespace.GetMembers("SomeName");
             Assert.Equal(someName.Length, 1);
-            Assert.NotNull((someName[0] as NamespaceSymbol));
+            Assert.NotNull(someName[0] as NamespaceSymbol);
 
             var someName1_1 = module0.GlobalNamespace.GetTypeMembers("somEnamE1").OrderBy((t) => t.Name).ToArray();
             var someName1_2 = module0.GlobalNamespace.GetTypeMembers("SomeName1").OrderBy((t) => t.Name).ToArray();
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             var generic = collections.GetMembers("Generic");
             Assert.Equal(generic.Length, 1);
-            Assert.NotNull((generic[0] as NamespaceSymbol));
+            Assert.NotNull(generic[0] as NamespaceSymbol);
 
             var dictionaryArray = ((NamespaceSymbol)generic[0]).GetMembers("Dictionary");
             Assert.Equal(dictionaryArray.Length, 1);

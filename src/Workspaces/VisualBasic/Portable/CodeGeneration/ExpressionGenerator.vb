@@ -261,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return SyntaxFactory.DivideExpression(
                         GenerateFloatLiteral(1.0, "1.0"),
                         GenerateFloatLiteral(0.0, "0.0"))
-                ElseIf (Double.IsNegativeInfinity(value)) Then
+                ElseIf Double.IsNegativeInfinity(value) Then
                     Return SyntaxFactory.DivideExpression(
                         SyntaxFactory.UnaryMinusExpression(GenerateFloatLiteral(1.0, "1.0")),
                         GenerateFloatLiteral(0.0, "0.0"))
@@ -283,7 +283,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                     Return SyntaxFactory.DivideExpression(
                         GenerateFloatLiteral(1.0, "1.0F"),
                         GenerateFloatLiteral(0.0, "0.0F"))
-                ElseIf (Double.IsNegativeInfinity(value)) Then
+                ElseIf Double.IsNegativeInfinity(value) Then
                     Return SyntaxFactory.DivideExpression(
                         SyntaxFactory.UnaryMinusExpression(GenerateFloatLiteral(1.0, "1.0F")),
                         GenerateFloatLiteral(0.0, "0.0F"))

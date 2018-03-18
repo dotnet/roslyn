@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             get
             {
                 var metadataDecoder = new MetadataDecoder(_containingType.ContainingPEModule, _containingType);
-                return (Microsoft.Cci.CallingConvention)(metadataDecoder.GetSignatureHeaderForProperty(_handle).RawValue);
+                return (Microsoft.Cci.CallingConvention)metadataDecoder.GetSignatureHeaderForProperty(_handle).RawValue;
             }
         }
 
@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref _lazyObsoleteAttributeData, _handle, (PEModuleSymbol)(this.ContainingModule), ignoreByRefLikeMarker: false);
+                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref _lazyObsoleteAttributeData, _handle, (PEModuleSymbol)this.ContainingModule, ignoreByRefLikeMarker: false);
                 return _lazyObsoleteAttributeData;
             }
         }

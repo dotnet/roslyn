@@ -263,7 +263,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
             Dim inNameOfExpression = node.IsParentKind(SyntaxKind.NameOfExpression)
 
             Dim container = DirectCast(leftHandTypeInfo.Type, INamespaceOrTypeSymbol)
-            If container Is Nothing AndAlso TypeOf (leftHandTypeInfo.ConvertedType) Is IArrayTypeSymbol Then
+            If container Is Nothing AndAlso TypeOf leftHandTypeInfo.ConvertedType Is IArrayTypeSymbol Then
                 container = DirectCast(leftHandTypeInfo.ConvertedType, INamespaceOrTypeSymbol)
             End If
             If container.IsErrorType() AndAlso leftHandSymbolInfo.Symbol IsNot Nothing Then

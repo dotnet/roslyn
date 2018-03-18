@@ -138,12 +138,12 @@ class C1<C1T1, C1T2>
 
             Assert.Equal("C1<System.Byte, System.Char>", c1OfByteChar.ToTestDisplayString());
 
-            var c1OfByteChar_c2 = (NamedTypeSymbol)(c1OfByteChar.GetMembers()[0]);
+            var c1OfByteChar_c2 = (NamedTypeSymbol)c1OfByteChar.GetMembers()[0];
             var c1OfByteChar_c2OfIntInt = c1OfByteChar_c2.Construct(_int, _int);
 
             Assert.Equal("C1<System.Byte, System.Char>.C2<System.Int32, System.Int32>", c1OfByteChar_c2OfIntInt.ToTestDisplayString());
 
-            var c1OfByteChar_c2OfIntInt_c3 = (NamedTypeSymbol)(c1OfByteChar_c2OfIntInt.GetMembers()[0]);
+            var c1OfByteChar_c2OfIntInt_c3 = (NamedTypeSymbol)c1OfByteChar_c2OfIntInt.GetMembers()[0];
             var c1OfByteChar_c2OfIntInt_c3OfIntByte = c1OfByteChar_c2OfIntInt_c3.Construct(_int, _byte);
 
             Assert.Equal("C1<System.Byte, System.Char>.C2<System.Int32, System.Int32>.C3<System.Int32, System.Byte>", c1OfByteChar_c2OfIntInt_c3OfIntByte.ToTestDisplayString());
@@ -180,7 +180,7 @@ class C1<C1T1, C1T2>
             var c1OfByteChar = C1.Construct(_byte, _char);
 
             Assert.Equal("C1<System.Byte, System.Char>", c1OfByteChar.ToTestDisplayString());
-            var c1OfByteChar_c2 = (NamedTypeSymbol)(c1OfByteChar.GetMembers()[0]);
+            var c1OfByteChar_c2 = (NamedTypeSymbol)c1OfByteChar.GetMembers()[0];
             Assert.Throws<ArgumentException>(() =>
             {
                 var c1OfByteChar_c2OfIntInt = c1OfByteChar_c2.Construct(_byte, _char, _int, _int);

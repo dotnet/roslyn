@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
         public Document UpdateDocument(string text, SourceCodeKind sourceCodeKind, bool cleanBeforeUpdate = true)
         {
-            var hostDocument = (GetWorkspace()).Documents.Single();
+            var hostDocument = GetWorkspace().Documents.Single();
             var textBuffer = hostDocument.TextBuffer;
 
             // clear the document
@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
             // and set the content
             UpdateText(hostDocument.TextBuffer, text);
 
-            (GetWorkspace()).OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind);
+            GetWorkspace().OnDocumentSourceCodeKindChanged(hostDocument.Id, sourceCodeKind);
 
-            return (GetWorkspace()).CurrentSolution.GetDocument(hostDocument.Id);
+            return GetWorkspace().CurrentSolution.GetDocument(hostDocument.Id);
         }
 
         private static void UpdateText(ITextBuffer textBuffer, string text)

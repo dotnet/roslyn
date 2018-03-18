@@ -131,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(Me.IsDefinition)
             Dim kind As SymbolKind = Me.ContainingSymbol.Kind
 
-            If (DirectCast(visitor.Context.Module, PEModuleBuilder)).SourceModule = Me.ContainingModule Then
+            If DirectCast(visitor.Context.Module, PEModuleBuilder).SourceModule = Me.ContainingModule Then
                 If kind = SymbolKind.NamedType Then
                     visitor.Visit(DirectCast(Me, IGenericTypeParameter))
                 Else

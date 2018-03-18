@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim missingHash = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.HashToken)
                 missingHash = missingHash.AddLeadingSyntax(New CodeAnalysis.Syntax.InternalSyntax.SyntaxList(Of SyntaxToken)(CurrentToken))
                 GetNextToken()
-                Return (ParseBadDirective(missingHash))
+                Return ParseBadDirective(missingHash)
             End If
 
             Debug.Assert(CurrentToken.Kind = SyntaxKind.HashToken, "Conditional compilation lines start with '#'.")

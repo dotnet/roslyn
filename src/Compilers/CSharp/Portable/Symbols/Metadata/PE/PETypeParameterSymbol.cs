@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             }
 
                             // Drop 'System.ValueType' constraint type if the 'valuetype' constraint was also specified.
-                            if (((_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0))
+                            if ((_flags & GenericParameterAttributes.NotNullableValueTypeConstraint) != 0)
                             {
                                 continue;
                             }

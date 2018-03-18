@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim opName As String = OverloadResolution.TryGetOperatorName(OperatorKind)
 
                     If opName IsNot Nothing Then
-                        Dim op As UnaryOperatorKind = (OperatorKind And UnaryOperatorKind.OpMask)
+                        Dim op As UnaryOperatorKind = OperatorKind And UnaryOperatorKind.OpMask
                         Dim operandType = DirectCast(Operand.Type.GetNullableUnderlyingTypeOrSelf(), NamedTypeSymbol)
                         Return New SynthesizedIntrinsicOperatorSymbol(operandType,
                                                                       opName,

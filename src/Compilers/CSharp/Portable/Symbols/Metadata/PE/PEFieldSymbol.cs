@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                return ((_flags & FieldAttributes.HasFieldMarshal) != 0);
+                return (_flags & FieldAttributes.HasFieldMarshal) != 0;
             }
         }
 
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 var moduleSymbol = _containingType.ContainingPEModule;
                 bool isVolatile;
                 ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers;
-                TypeSymbol type = (new MetadataDecoder(moduleSymbol, _containingType)).DecodeFieldSignature(_handle, out isVolatile, out customModifiers);
+                TypeSymbol type = new MetadataDecoder(moduleSymbol, _containingType).DecodeFieldSignature(_handle, out isVolatile, out customModifiers);
                 ImmutableArray<CustomModifier> customModifiersArray = CSharpCustomModifier.Convert(customModifiers);
                 type = DynamicTypeDecoder.TransformType(type, customModifiersArray.Length, _handle, moduleSymbol);
 
@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref _lazyObsoleteAttributeData, _handle, (PEModuleSymbol)(this.ContainingModule), ignoreByRefLikeMarker: false);
+                ObsoleteAttributeHelpers.InitializeObsoleteDataFromMetadata(ref _lazyObsoleteAttributeData, _handle, (PEModuleSymbol)this.ContainingModule, ignoreByRefLikeMarker: false);
                 return _lazyObsoleteAttributeData;
             }
         }

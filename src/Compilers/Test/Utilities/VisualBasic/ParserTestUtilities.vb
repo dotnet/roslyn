@@ -224,7 +224,7 @@ Friend Module ParserTestUtilities
         ' IsEquivalentTo should be a bit faster than comparing Xml
         If Not newTreeRoot.IsEquivalentTo(incTreeRoot) Then
             ' init
-            If (NodeHelpers.KindProvider Is Nothing) Then
+            If NodeHelpers.KindProvider Is Nothing Then
                 NodeHelpers.KindProvider = New VBKindProvider()
             End If
             Dim x1 = newTreeRoot.ToXml(newTree)

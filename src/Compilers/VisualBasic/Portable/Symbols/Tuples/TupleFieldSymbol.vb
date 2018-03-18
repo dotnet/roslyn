@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             MyBase.New(container, underlyingField, If(correspondingDefaultFieldOpt Is Nothing, tupleElementIndex << 1, (tupleElementIndex << 1) + 1))
 
-            Me._locations = If((location Is Nothing), ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(location))
+            Me._locations = If(location Is Nothing, ImmutableArray(Of Location).Empty, ImmutableArray.Create(Of Location)(location))
             Me._isImplicitlyDeclared = isImplicitlyDeclared
 
             Debug.Assert(correspondingDefaultFieldOpt Is Nothing = Me.IsDefaultTupleElement)

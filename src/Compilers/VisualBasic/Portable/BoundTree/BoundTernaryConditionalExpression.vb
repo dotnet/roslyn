@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Not HasErrors Then
                 Condition.AssertRValue()
-                If (Not Type.IsVoidType) Then
+                If Not Type.IsVoidType Then
                     WhenTrue.AssertRValue()
                     WhenFalse.AssertRValue()
                 End If

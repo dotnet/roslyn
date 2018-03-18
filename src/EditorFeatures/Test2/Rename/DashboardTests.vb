@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameOverloads, True)
             Await VerifyDashboard(
-                    (<Workspace>
+                    <Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
                                 using System;
@@ -31,7 +31,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                                 }
                             </Document>
                          </Project>
-                     </Workspace>),
+                     </Workspace>,
                     newName:="",
                     searchResultText:=EditorFeaturesResources.Rename_will_update_1_reference_in_1_file,
                     changedOptionSet:=changingOptions)
@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameOverloads, True)
             Await VerifyDashboard(
-                    (<Workspace>
+                    <Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
                                 using System;
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                                 }
                             </Document>
                          </Project>
-                     </Workspace>),
+                     </Workspace>,
                     newName:="",
                     searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 2),
                     hasRenameOverload:=True,
@@ -106,7 +106,7 @@ class Program
         <WorkItem(853839, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/853839")>
         Public Async Function RenameAttributeAlias() As Task
             Await VerifyDashboard(
-                    (<Workspace>
+                    <Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
 using $$Evil = AttributeAttribute; 
@@ -114,7 +114,7 @@ using $$Evil = AttributeAttribute;
 class AttributeAttribute : System.Attribute { }
                             </Document>
                          </Project>
-                     </Workspace>),
+                     </Workspace>,
                     newName:="AttributeAttributeAttribute",
                     searchResultText:=EditorFeaturesResources.Rename_will_update_1_reference_in_1_file,
                     resolvableConflictText:=String.Format(EditorFeaturesResources._0_conflict_s_will_be_resolved, 1),
@@ -130,7 +130,7 @@ class AttributeAttribute : System.Attribute { }
             changingOptions.Add(RenameOptions.RenameInStrings, True)
             changingOptions.Add(RenameOptions.RenameInComments, True)
             Await VerifyDashboard(
-                    (<Workspace>
+                    <Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
                                 using System;
@@ -153,7 +153,7 @@ class AttributeAttribute : System.Attribute { }
                                 }
                             </Document>
                          </Project>
-                     </Workspace>),
+                     </Workspace>,
                     newName:="",
                     searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 5),
                     hasRenameOverload:=True,
@@ -167,7 +167,7 @@ class AttributeAttribute : System.Attribute { }
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameInComments, True)
             Await VerifyDashboard(
-                    (<Workspace>
+                    <Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
                                  <![CDATA[
@@ -194,7 +194,7 @@ class $$Program
 ]]>
                              </Document>
                          </Project>
-                     </Workspace>),
+                     </Workspace>,
                     newName:="P",
                     searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 6),
                     changedOptionSet:=changingOptions)
@@ -207,7 +207,7 @@ class $$Program
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameInStrings, True)
             Await VerifyDashboard(
-                    (<Workspace>
+                    <Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
                                  <![CDATA[
@@ -234,7 +234,7 @@ class $$Program
 ]]>
                              </Document>
                          </Project>
-                     </Workspace>),
+                     </Workspace>,
                     newName:="P",
                     searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 2),
                     changedOptionSet:=changingOptions)
@@ -248,7 +248,7 @@ class $$Program
             changingOptions.Add(RenameOptions.RenameInComments, True)
             changingOptions.Add(RenameOptions.RenameInStrings, True)
             Await VerifyDashboard(
-                    (<Workspace>
+                    <Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
                                  <![CDATA[
@@ -275,7 +275,7 @@ class $$Program
 ]]>
                              </Document>
                          </Project>
-                     </Workspace>),
+                     </Workspace>,
                     newName:="P",
                     searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 7),
                     changedOptionSet:=changingOptions)
@@ -285,7 +285,7 @@ class $$Program
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function NonConflictingEditWithMultipleLocations() As Task
             Await VerifyDashboard(
-                    (<Workspace>
+                    <Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
                                 class $$Goo
@@ -297,7 +297,7 @@ class $$Program
                                 }
                             </Document>
                          </Project>
-                     </Workspace>),
+                     </Workspace>,
                     newName:="",
                     searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 3))
         End Function
@@ -306,7 +306,7 @@ class $$Program
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function NonConflictingEditWithSingleLocation() As Task
             Await VerifyDashboard(
-                    (<Workspace>
+                    <Workspace>
                          <Project Language="C#" CommonReferences="true">
                              <Document>
                                 class $$UniqueClassName
@@ -318,7 +318,7 @@ class $$Program
                                 }
                             </Document>
                          </Project>
-                     </Workspace>),
+                     </Workspace>,
                     newName:="",
                     searchResultText:=EditorFeaturesResources.Rename_will_update_1_reference_in_1_file)
         End Function
@@ -327,7 +327,7 @@ class $$Program
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function ParameterConflictingWithInstanceField() As Task
             Await VerifyDashboard(
-                (<Workspace>
+                <Workspace>
                      <Project Language="C#">
                          <Document>
                                class Goo
@@ -340,7 +340,7 @@ class $$Program
                                }
                            </Document>
                      </Project>
-                 </Workspace>),
+                 </Workspace>,
                 newName:="goo",
                 searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 2),
                 resolvableConflictText:=String.Format(EditorFeaturesResources._0_conflict_s_will_be_resolved, 1),
@@ -352,7 +352,7 @@ class $$Program
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function ParameterConflictingWithInstanceFieldMoreThanOnce() As Task
             Await VerifyDashboard(
-                (<Workspace>
+                <Workspace>
                      <Project Language="C#">
                          <Document>
                                class Goo
@@ -365,7 +365,7 @@ class $$Program
                                }
                            </Document>
                      </Project>
-                 </Workspace>),
+                 </Workspace>,
                 newName:="goo",
                 searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 2),
                 resolvableConflictText:=String.Format(EditorFeaturesResources._0_conflict_s_will_be_resolved, 2),
@@ -376,7 +376,7 @@ class $$Program
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function ParameterConflictingWithLocal_Unresolvable() As Task
             Await VerifyDashboard(
-                (<Workspace>
+                <Workspace>
                      <Project Language="C#">
                          <Document>
                                class Goo
@@ -388,7 +388,7 @@ class $$Program
                                }
                            </Document>
                      </Project>
-                 </Workspace>),
+                 </Workspace>,
                 newName:="goo",
                 searchResultText:=EditorFeaturesResources.Rename_will_update_1_reference_in_1_file,
                 unresolvableConflictText:=String.Format(EditorFeaturesResources._0_unresolvable_conflict_s, 1),
@@ -399,7 +399,7 @@ class $$Program
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function MoreThanOneUnresolvableConflicts() As Task
             Await VerifyDashboard(
-                (<Workspace>
+                <Workspace>
                      <Project Language="C#">
                          <Document>
                                class Goo
@@ -413,7 +413,7 @@ class $$Program
                                }
                            </Document>
                      </Project>
-                 </Workspace>),
+                 </Workspace>,
                 newName:="goo",
                 searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 3),
                 unresolvableConflictText:=String.Format(EditorFeaturesResources._0_unresolvable_conflict_s, 3),
@@ -424,7 +424,7 @@ class $$Program
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function ConflictsAcrossLanguages_Resolvable() As Task
             Await VerifyDashboard(
-                (<Workspace>
+                <Workspace>
                      <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                          <Document>
                                namespace N
@@ -450,7 +450,7 @@ class $$Program
                                End Class
                            </Document>
                      </Project>
-                 </Workspace>),
+                 </Workspace>,
                    newName:="Bar",
                    searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_files, 4, 2),
                    resolvableConflictText:=String.Format(EditorFeaturesResources._0_conflict_s_will_be_resolved, 1),
@@ -461,7 +461,7 @@ class $$Program
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithNameof_FromDefinition_DoesNotForceRenameOverloadsOption() As Task
             Await VerifyDashboard(
-                (<Workspace>
+                <Workspace>
                      <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                          <Document>
 class C
@@ -474,7 +474,7 @@ class C
 }
                         </Document>
                      </Project>
-                 </Workspace>),
+                 </Workspace>,
                    newName:="Mo",
                    searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_1_reference_in_1_file),
                    hasRenameOverload:=True,
@@ -485,7 +485,7 @@ class C
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Async Function RenameWithNameof_FromReference_DoesForceRenameOverloadsOption() As Task
             Await VerifyDashboard(
-                (<Workspace>
+                <Workspace>
                      <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                          <Document>
 class C
@@ -498,7 +498,7 @@ class C
 }
                         </Document>
                      </Project>
-                 </Workspace>),
+                 </Workspace>,
                    newName:="Mo",
                    searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 3),
                    hasRenameOverload:=True,
@@ -511,7 +511,7 @@ class C
             Dim changingOptions = New Dictionary(Of OptionKey, Object)()
             changingOptions.Add(RenameOptions.RenameOverloads, True)
             Await VerifyDashboard(
-                (<Workspace>
+                <Workspace>
                      <Project Language="C#" AssemblyName="CSharpAssembly" CommonReferences="true">
                          <Document>
 class B
@@ -535,7 +535,7 @@ class D : B
 }
                         </Document>
                      </Project>
-                 </Workspace>),
+                 </Workspace>,
                    newName:="Mo",
                    searchResultText:=String.Format(EditorFeaturesResources.Rename_will_update_0_references_in_1_file, 5),
                    changedOptionSet:=changingOptions,

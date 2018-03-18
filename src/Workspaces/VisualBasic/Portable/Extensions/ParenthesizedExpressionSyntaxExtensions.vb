@@ -245,9 +245,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                 If invocationExpression.Expression.IsKind(SyntaxKind.SimpleMemberAccessExpression) Then
                     Dim memberAccess = DirectCast(invocationExpression.Expression, MemberAccessExpressionSyntax)
-                    If (TypeOf memberAccess.Expression Is XmlNodeSyntax AndAlso
+                    If TypeOf memberAccess.Expression Is XmlNodeSyntax AndAlso
                         (previousToken.IsKindOrHasMatchingText(SyntaxKind.LessThanToken) OrElse
-                        previousToken.IsKindOrHasMatchingText(SyntaxKind.GreaterThanToken))) Then
+                        previousToken.IsKindOrHasMatchingText(SyntaxKind.GreaterThanToken)) Then
 
                         Return False
                     End If
@@ -426,10 +426,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 '                                End Sub) Is Object
                 ' 4. TypeOf (Sub() If True Then Dim y = Sub()
                 '                                End Sub) IsNot Object
-                If (node.Parent.Kind = SyntaxKind.InvocationExpression OrElse
+                If node.Parent.Kind = SyntaxKind.InvocationExpression OrElse
                         node.Parent.Kind = SyntaxKind.IsExpression OrElse
                         node.Parent.Kind = SyntaxKind.TypeOfIsExpression OrElse
-                        node.Parent.Kind = SyntaxKind.TypeOfIsNotExpression) Then
+                        node.Parent.Kind = SyntaxKind.TypeOfIsNotExpression Then
                     Return False
                 End If
 

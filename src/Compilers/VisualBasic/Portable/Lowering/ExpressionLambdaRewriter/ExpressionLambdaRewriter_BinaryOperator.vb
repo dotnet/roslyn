@@ -591,7 +591,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function GetBinaryOperatorMethodName(opKind As BinaryOperatorKind, isChecked As Boolean) As String
-            Select Case (opKind And BinaryOperatorKind.OpMask)
+            Select Case opKind And BinaryOperatorKind.OpMask
                 Case BinaryOperatorKind.Add
                     Return If(isChecked, "AddChecked", "Add")
                 Case BinaryOperatorKind.Subtract

@@ -144,12 +144,12 @@ namespace CSharpSyntaxGenerator
                             IsNodeList(field.Type))
                         {
                             WriteLine("    public abstract {0}Microsoft.CodeAnalysis.Syntax.InternalSyntax.{1} {2} {{ get; }}",
-                                (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                                IsNew(field) ? "new " : "", field.Type, field.Name);
                         }
                         else
                         {
                             WriteLine("    public abstract {0}{1} {2} {{ get; }}",
-                                (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                                IsNew(field) ? "new " : "", field.Type, field.Name);
                         }
                     }
                 }
@@ -161,7 +161,7 @@ namespace CSharpSyntaxGenerator
                     WriteComment(field.PropertyComment, "    ");
 
                     WriteLine("   public abstract {0}{1} {2} {{ get; }}",
-                        (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                        IsNew(field) ? "new " : "", field.Type, field.Name);
                 }
 
                 WriteLine("  }");
@@ -953,7 +953,7 @@ namespace CSharpSyntaxGenerator
                         var fieldType = field.Type == "SyntaxList<SyntaxToken>" ? "SyntaxTokenList" : field.Type;
                         WriteLine();
                         WriteComment(field.PropertyComment, "    ");
-                        WriteLine("    {0} abstract {1}{2} {3} {{ get; }}", "public", (IsNew(field) ? "new " : ""), fieldType, field.Name);
+                        WriteLine("    {0} abstract {1}{2} {3} {{ get; }}", "public", IsNew(field) ? "new " : "", fieldType, field.Name);
                     }
                 }
 
@@ -962,7 +962,7 @@ namespace CSharpSyntaxGenerator
                     var field = valueFields[i];
                     WriteLine();
                     WriteComment(field.PropertyComment, "    ");
-                    WriteLine("    {0} abstract {1}{2} {3} {{ get; }}", "public", (IsNew(field) ? "new " : ""), field.Type, field.Name);
+                    WriteLine("    {0} abstract {1}{2} {3} {{ get; }}", "public", IsNew(field) ? "new " : "", field.Type, field.Name);
                 }
 
                 WriteLine("  }");
@@ -1516,7 +1516,7 @@ namespace CSharpSyntaxGenerator
         private bool IsAutoCreatableNode(Node node, Field field)
         {
             var referencedNode = GetNode(field.Type);
-            return (referencedNode != null && RequiredFactoryArgumentCount(referencedNode) == 0);
+            return referencedNode != null && RequiredFactoryArgumentCount(referencedNode) == 0;
         }
 
         private bool IsRequiredFactoryField(Node node, Field field)

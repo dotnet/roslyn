@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         // becomes a nop block
                         this.SetBranch(null, ILOpCode.Nop);
 
-                        delta -= (curBranchCode.Size() + curBranchCode.GetBranchOperandSize());
+                        delta -= curBranchCode.Size() + curBranchCode.GetBranchOperandSize();
                         return true;
                     }
 
@@ -507,7 +507,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         this.SetBranch(null, ILOpCode.Ret);
 
                         // curBranchCode.Size() + curBranchCode.BranchOperandSize() - Ret.Size()
-                        delta -= (curBranchCode.Size() + curBranchCode.GetBranchOperandSize() - 1);
+                        delta -= curBranchCode.Size() + curBranchCode.GetBranchOperandSize() - 1;
                         return true;
                     }
                 }
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         this.Writer.WriteByte((byte)ILOpCode.Pop);
 
                         // curBranchCode.Size() + curBranchCode.BranchOperandSize() - ILOpCode.Pop.Size()
-                        delta -= (curBranchCode.Size() + curBranchCode.GetBranchOperandSize() - 1);
+                        delta -= curBranchCode.Size() + curBranchCode.GetBranchOperandSize() - 1;
 
                         if (curBranchCode.IsRelationalBranch())
                         {

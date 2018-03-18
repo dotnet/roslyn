@@ -1245,8 +1245,8 @@ class Test
             using (var workspace1 = TestWorkspace.CreateCSharp(code))
             using (var workspace2 = TestWorkspace.CreateCSharp(code))
             {
-                var comp1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync());
-                var comp2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync());
+                var comp1 = await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync();
+                var comp2 = await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync();
 
                 TestReducedExtension<CS.Syntax.InvocationExpressionSyntax>(comp1, comp2, "Test", "NotGeneric");
                 TestReducedExtension<CS.Syntax.InvocationExpressionSyntax>(comp1, comp2, "Test", "GenericThis");
@@ -1321,8 +1321,8 @@ End Class
             using (var workspace1 = TestWorkspace.CreateVisualBasic(code))
             using (var workspace2 = TestWorkspace.CreateVisualBasic(code))
             {
-                var comp1 = (await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync());
-                var comp2 = (await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync());
+                var comp1 = await workspace1.CurrentSolution.Projects.Single().GetCompilationAsync();
+                var comp2 = await workspace2.CurrentSolution.Projects.Single().GetCompilationAsync();
 
                 TestReducedExtension<VB.Syntax.InvocationExpressionSyntax>(comp1, comp2, "Test", "NotGeneric");
                 TestReducedExtension<VB.Syntax.InvocationExpressionSyntax>(comp1, comp2, "Test", "GenericThis");

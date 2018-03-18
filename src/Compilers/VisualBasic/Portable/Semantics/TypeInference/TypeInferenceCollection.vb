@@ -152,8 +152,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' well it satisfied them. So we store that information.
                 ' Incidentally, when we restart the type inference algorithm, the "candidateTypeData" object
                 ' persists. That's not a problem because we're overriding its boolean fields.
-                candidateTypeData.IsStrictCandidate = (numberSatisfied(HintSatisfaction.Unsatisfied) = 0 AndAlso numberSatisfied(HintSatisfaction.ThroughNarrowing) = 0)
-                candidateTypeData.IsUnstrictCandidate = (numberSatisfied(HintSatisfaction.Unsatisfied) = 0)
+                candidateTypeData.IsStrictCandidate = numberSatisfied(HintSatisfaction.Unsatisfied) = 0 AndAlso numberSatisfied(HintSatisfaction.ThroughNarrowing) = 0
+                candidateTypeData.IsUnstrictCandidate = numberSatisfied(HintSatisfaction.Unsatisfied) = 0
 
                 ' We might save the current candidate, as a shortcut: if in the end it turns out that there
                 ' was only one strict candidate, or only one unstrict candidate, then we can return that immediately.

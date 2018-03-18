@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return base.VisitReturnStatement(node);
             }
 
-            var returnExpr = (BoundExpression)(this.Visit(node.ExpressionOpt));
+            var returnExpr = (BoundExpression)this.Visit(node.ExpressionOpt);
             if (returnExpr != null)
             {
                 return _F.Block(

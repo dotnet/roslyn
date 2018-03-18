@@ -56,10 +56,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             AddMemberModifiersIfRequired(symbol)
 
             If format.PropertyStyle = SymbolDisplayPropertyStyle.ShowReadWriteDescriptor Then
-                If (symbol.IsReadOnly) Then
+                If symbol.IsReadOnly Then
                     AddKeyword(SyntaxKind.ReadOnlyKeyword)
                     AddSpace()
-                ElseIf (symbol.IsWriteOnly) Then
+                ElseIf symbol.IsWriteOnly Then
                     AddKeyword(SyntaxKind.WriteOnlyKeyword)
                     AddSpace()
                 End If

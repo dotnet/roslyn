@@ -303,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If _lazyWellKnownTypeMembers Is Nothing OrElse _lazyWellKnownTypeMembers(member) Is ErrorTypeSymbol.UnknownResultType Then
-                If (_lazyWellKnownTypeMembers Is Nothing) Then
+                If _lazyWellKnownTypeMembers Is Nothing Then
                     Dim wellKnownTypeMembers = New Symbol(WellKnownMember.Count - 1) {}
 
                     For i As Integer = 0 To wellKnownTypeMembers.Length - 1
@@ -355,7 +355,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim index As Integer = type - WellKnownType.First
 
             If _lazyWellKnownTypes Is Nothing OrElse _lazyWellKnownTypes(index) Is Nothing Then
-                If (_lazyWellKnownTypes Is Nothing) Then
+                If _lazyWellKnownTypes Is Nothing Then
                     Interlocked.CompareExchange(_lazyWellKnownTypes,
                         New NamedTypeSymbol(WellKnownTypes.Count - 1) {}, Nothing)
                 End If
@@ -392,7 +392,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                If (Interlocked.CompareExchange(_lazyWellKnownTypes(index), result, Nothing) IsNot Nothing) Then
+                If Interlocked.CompareExchange(_lazyWellKnownTypes(index), result, Nothing) IsNot Nothing Then
                     Debug.Assert(result Is _lazyWellKnownTypes(index) OrElse
                                           (_lazyWellKnownTypes(index).IsErrorType() AndAlso result.IsErrorType()))
                 End If

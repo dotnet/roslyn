@@ -6323,7 +6323,7 @@ tryAgain:
 
                 // Don't end on a comma.
                 // If the omitted size would be the only element, then skip it unless sizes were expected.
-                if (((list.Count & 1) == 0))
+                if ((list.Count & 1) == 0)
                 {
                     sawOmittedSize = true;
                     list.Add(omittedArraySizeExpressionInstance);

@@ -1393,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return true;
 
                 case BoundKind.Sequence:
-                    var seqValue = ((BoundSequence)(receiver)).Value;
+                    var seqValue = ((BoundSequence)receiver).Value;
                     return CanUseCallOnRefTypeReceiver(seqValue);
 
                 case BoundKind.AssignmentOperator:
@@ -1423,7 +1423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     return true;
 
                 case BoundKind.Sequence:
-                    var seqValue = ((BoundSequence)(receiver)).Value;
+                    var seqValue = ((BoundSequence)receiver).Value;
                     return IsThisReceiver(seqValue);
             }
 

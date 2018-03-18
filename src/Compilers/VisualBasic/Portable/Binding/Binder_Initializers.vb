@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If initializer.FieldsOrProperties.IsDefault Then
                         ' use the binder of the Script class for global statements
-                        Dim isLast = (i = initializers.Length - 1 AndAlso j = siblingInitializers.Length - 1)
+                        Dim isLast = i = initializers.Length - 1 AndAlso j = siblingInitializers.Length - 1
                         boundInitializers.Add(parentBinder.BindGlobalStatement(scriptInitializerOpt, DirectCast(initializerNode, StatementSyntax), diagnostics, isLast))
                         Continue For
                     End If
@@ -208,7 +208,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             If Me.Compilation.IsSubmission AndAlso isLast AndAlso boundStatement.Kind = BoundKind.ExpressionStatement AndAlso Not boundStatement.HasErrors Then
                 ' insert an implicit conversion to the submission return type (if needed):
-                Dim expression = (DirectCast(boundStatement, BoundExpressionStatement)).Expression
+                Dim expression = DirectCast(boundStatement, BoundExpressionStatement).Expression
                 If expression.Type Is Nothing OrElse expression.Type.SpecialType <> SpecialType.System_Void Then
                     Dim submissionReturnType = scriptInitializerOpt.ResultType
                     expression = ApplyImplicitConversion(expression.Syntax, submissionReturnType, expression, diagnostics)
@@ -610,7 +610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' ExpressionIsConstant is called to report diagnostics at the correct location in the expression.
                     ' Only call ExpressionIsConstant if the expression is good to avoid reporting a bad expression is not
                     ' a constant. 
-                    If (valueExpression.Type Is Nothing OrElse Not valueExpression.Type.IsErrorType) Then
+                    If valueExpression.Type Is Nothing OrElse Not valueExpression.Type.IsErrorType Then
                         constValue = binder.GetExpressionConstantValueIfAny(valueExpression, diagnostics, ConstantContext.Default)
                         If constValue IsNot Nothing Then
                             Return valueExpression

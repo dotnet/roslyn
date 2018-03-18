@@ -249,7 +249,7 @@ BC2014: the value '' is invalid for option 'ScriptClassName'
 
             Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, mainTypeName:=Nothing).Errors.IsEmpty)
 
-            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, mainTypeName:=("blah" & ChrW(0) & "goo")).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, mainTypeName:="blah" & ChrW(0) & "goo").Errors,
 <expected>
 BC2014: the value '<%= "blah" & ChrW(0) & "goo" %>' is invalid for option 'MainTypeName'
 </expected>)
@@ -262,7 +262,7 @@ BC2014: the value '' is invalid for option 'MainTypeName'
 
             Assert.True(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:=Nothing).Errors.IsEmpty)
 
-            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:=("blah" & ChrW(0) & "goo")).Errors,
+            AssertTheseDiagnostics(New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, rootNamespace:="blah" & ChrW(0) & "goo").Errors,
 <expected>
 BC2014: the value '<%= "blah" & ChrW(0) & "goo" %>' is invalid for option 'RootNamespace'
 </expected>)
@@ -526,7 +526,7 @@ BC2042: The options /vbruntime* and /target:module cannot be combined.
         <Fact>
         Public Sub TestFieldsForEqualsAndGetHashCode()
             ReflectionAssert.AssertPublicAndInternalFieldsAndProperties(
-                (GetType(VisualBasicCompilationOptions)),
+                GetType(VisualBasicCompilationOptions),
                 "GlobalImports",
                 "Language",
                 "RootNamespace",

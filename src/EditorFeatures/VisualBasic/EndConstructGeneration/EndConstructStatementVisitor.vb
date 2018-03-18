@@ -167,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.EndConstructGeneration
                 Return New ReplaceSpanResult(New SnapshotSpan(_subjectBuffer.CurrentSnapshot, _state.CaretPosition, 0),
                                              stringBuilder.ToString(), newCaretPosition:=finalCaretPoint)
             Else
-                Return (Nothing)
+                Return Nothing
             End If
         End Function
 

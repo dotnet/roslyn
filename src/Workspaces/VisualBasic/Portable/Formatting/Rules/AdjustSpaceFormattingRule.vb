@@ -322,8 +322,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             ' * > in xml literal
-            If (currentToken.Kind = SyntaxKind.GreaterThanToken AndAlso
-                FormattingHelpers.IsXmlToken(currentToken)) Then
+            If currentToken.Kind = SyntaxKind.GreaterThanToken AndAlso
+                FormattingHelpers.IsXmlToken(currentToken) Then
                 Return CreateAdjustSpacesOperation(0, AdjustSpacesOption.ForceSpacesIfOnSingleLine)
             End If
 

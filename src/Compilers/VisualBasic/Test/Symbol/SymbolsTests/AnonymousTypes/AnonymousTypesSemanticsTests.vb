@@ -1847,8 +1847,8 @@ End Module
             Dim tree = comp.SyntaxTrees(0)
             Dim model = comp.GetSemanticModel(tree)
 
-            Dim programType = DirectCast((comp.GlobalNamespace.GetTypeMembers("Module1").Single()), NamedTypeSymbol)
-            Dim mainMethod = DirectCast((programType.GetMembers("Main").Single()), MethodSymbol)
+            Dim programType = DirectCast(comp.GlobalNamespace.GetTypeMembers("Module1").Single(), NamedTypeSymbol)
+            Dim mainMethod = DirectCast(programType.GetMembers("Main").Single(), MethodSymbol)
             Dim mainSyntax = TryCast(mainMethod.DeclaringSyntaxReferences.Single().GetSyntax(), MethodBaseSyntax)
             Dim mainBlock = DirectCast(mainSyntax.Parent, MethodBlockSyntax)
             Dim statement1 = TryCast(mainBlock.Statements(0), LocalDeclarationStatementSyntax)
@@ -1897,8 +1897,8 @@ End Module
             Dim tree = comp.SyntaxTrees(0)
             Dim model = comp.GetSemanticModel(tree)
 
-            Dim programType = DirectCast((comp.GlobalNamespace.GetTypeMembers("Module1").Single()), NamedTypeSymbol)
-            Dim mainMethod = DirectCast((programType.GetMembers("Main").Single()), MethodSymbol)
+            Dim programType = DirectCast(comp.GlobalNamespace.GetTypeMembers("Module1").Single(), NamedTypeSymbol)
+            Dim mainMethod = DirectCast(programType.GetMembers("Main").Single(), MethodSymbol)
             Dim mainSyntax = TryCast(mainMethod.DeclaringSyntaxReferences.Single().GetSyntax(), MethodBaseSyntax)
             Dim mainBlock = DirectCast(mainSyntax.Parent, MethodBlockSyntax)
             Dim statement1 = TryCast(mainBlock.Statements(0), LocalDeclarationStatementSyntax)
@@ -2027,7 +2027,7 @@ End Module
             Dim nameParts = namedTypeName.Split("."c)
 
             Dim srcAssembly = DirectCast(c.Assembly, SourceAssemblySymbol)
-            Dim nsSymbol As NamespaceSymbol = (If(fromCorLib, srcAssembly.CorLibrary, srcAssembly)).GlobalNamespace
+            Dim nsSymbol As NamespaceSymbol = If(fromCorLib, srcAssembly.CorLibrary, srcAssembly).GlobalNamespace
             For Each ns In nameParts.Take(nameParts.Length - 1)
                 nsSymbol = DirectCast(nsSymbol.GetMember(ns), NamespaceSymbol)
             Next

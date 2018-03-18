@@ -145,7 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim hashSet = New HashSet(Of ISymbol)(symbols.ToArray() _
                                            .Where(Function(s As ISymbol) interfacesAndContainers.Contains(s, SymbolEquivalenceComparer.Instance) OrElse
-                                                      (TypeOf (s) Is INamespaceSymbol AndAlso namespaces.Contains(TryCast(s, INamespaceSymbol), INamespaceSymbolExtensions.EqualityComparer)) OrElse
+                                                      (TypeOf s Is INamespaceSymbol AndAlso namespaces.Contains(TryCast(s, INamespaceSymbol), INamespaceSymbolExtensions.EqualityComparer)) OrElse
                                                       members.Contains(s)))
             Return hashSet.ToImmutableArray()
         End Function

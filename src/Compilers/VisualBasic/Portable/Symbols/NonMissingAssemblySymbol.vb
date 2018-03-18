@@ -127,7 +127,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Next
             End If
 
-            Dim foundMatchInThisAssembly As Boolean = (i < count)
+            Dim foundMatchInThisAssembly As Boolean = i < count
 
             Debug.Assert(Not foundMatchInThisAssembly OrElse result.ContainingAssembly Is Me)
 

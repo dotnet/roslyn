@@ -343,7 +343,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Create(
                 assemblyName,
                 If(options, New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary)).WithReferencesSupersedeLowerVersions(True),
-                If((syntaxTree IsNot Nothing), {syntaxTree}, SpecializedCollections.EmptyEnumerable(Of SyntaxTree)()),
+                If(syntaxTree IsNot Nothing, {syntaxTree}, SpecializedCollections.EmptyEnumerable(Of SyntaxTree)()),
                 references,
                 previousScriptCompilation,
                 returnType,
@@ -1210,7 +1210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Uses object identity when comparing two references. 
         ''' </remarks>
         Friend Shadows Function GetAssemblyOrModuleSymbol(reference As MetadataReference) As Symbol
-            If (reference Is Nothing) Then
+            If reference Is Nothing Then
                 Throw New ArgumentNullException(NameOf(reference))
             End If
 
@@ -1934,7 +1934,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim builder = DiagnosticBag.GetInstance()
 
             ' Add all parsing errors.
-            If (stage = CompilationStage.Parse OrElse stage > CompilationStage.Parse AndAlso includeEarlierStages) Then
+            If stage = CompilationStage.Parse OrElse stage > CompilationStage.Parse AndAlso includeEarlierStages Then
 
                 ' Embedded trees shouldn't have any errors, let's avoid making decision if they should be added too early.
                 ' Otherwise IDE performance might be affect.
@@ -1966,7 +1966,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Add declaration errors
-            If (stage = CompilationStage.Declare OrElse stage > CompilationStage.Declare AndAlso includeEarlierStages) Then
+            If stage = CompilationStage.Declare OrElse stage > CompilationStage.Declare AndAlso includeEarlierStages Then
                 CheckAssemblyName(builder)
                 builder.AddRange(Options.Errors)
                 builder.AddRange(GetBoundReferenceManager().Diagnostics)
@@ -1979,7 +1979,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Add method body compilation errors.
-            If (stage = CompilationStage.Compile OrElse stage > CompilationStage.Compile AndAlso includeEarlierStages) Then
+            If stage = CompilationStage.Compile OrElse stage > CompilationStage.Compile AndAlso includeEarlierStages Then
                 ' Note: this phase does not need to be parallelized because 
                 '       it is already implemented in method compiler
                 Dim methodBodyDiagnostics = DiagnosticBag.GetInstance()
@@ -2029,7 +2029,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim builder = DiagnosticBag.GetInstance()
 
-            If (stage = CompilationStage.Parse OrElse stage > CompilationStage.Parse AndAlso includeEarlierStages) Then
+            If stage = CompilationStage.Parse OrElse stage > CompilationStage.Parse AndAlso includeEarlierStages Then
                 ' Add all parsing errors.
                 cancellationToken.ThrowIfCancellationRequested()
                 Dim syntaxDiagnostics = tree.GetDiagnostics(cancellationToken)
@@ -2038,7 +2038,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Add declaring errors
-            If (stage = CompilationStage.Declare OrElse stage > CompilationStage.Declare AndAlso includeEarlierStages) Then
+            If stage = CompilationStage.Declare OrElse stage > CompilationStage.Declare AndAlso includeEarlierStages Then
                 Dim declarationDiags = DirectCast(SourceModule, SourceModuleSymbol).GetDeclarationErrorsInTree(tree, filterSpanWithinTree, AddressOf FilterDiagnosticsByLocation, cancellationToken)
                 Dim filteredDiags = FilterDiagnosticsByLocation(declarationDiags, tree, filterSpanWithinTree)
                 builder.AddRange(filteredDiags)
@@ -2046,7 +2046,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             ' Add method body declaring errors.
-            If (stage = CompilationStage.Compile OrElse stage > CompilationStage.Compile AndAlso includeEarlierStages) Then
+            If stage = CompilationStage.Compile OrElse stage > CompilationStage.Compile AndAlso includeEarlierStages Then
                 Dim methodBodyDiagnostics = DiagnosticBag.GetInstance()
                 GetDiagnosticsForMethodBodiesInTree(tree, filterSpanWithinTree, builder.HasAnyErrors(), methodBodyDiagnostics, stage, cancellationToken)
 

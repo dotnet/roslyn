@@ -383,14 +383,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Case "preferreduilang"
                         value = RemoveQuotesAndSlashes(value)
-                        If (String.IsNullOrEmpty(value)) Then
+                        If String.IsNullOrEmpty(value) Then
                             AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<string>")
                             Continue For
                         End If
 
                         Try
                             preferredUILang = New CultureInfo(value)
-                            If (CorLightup.Desktop.IsUserCustomCulture(preferredUILang)) Then
+                            If CorLightup.Desktop.IsUserCustomCulture(preferredUILang) Then
                                 ' Do not use user custom cultures.
                                 preferredUILang = Nothing
                             End If
@@ -1053,7 +1053,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         Case "touchedfiles"
                             Dim unquoted = RemoveQuotesAndSlashes(value)
-                            If (String.IsNullOrEmpty(unquoted)) Then
+                            If String.IsNullOrEmpty(unquoted) Then
                                 AddDiagnostic(diagnostics, ERRID.ERR_ArgumentRequired, name, ":<touchedfiles>")
                                 Continue For
                             Else

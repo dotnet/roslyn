@@ -156,7 +156,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.AddImport
         End Function
 
         Private Shared Function GetLeftMostSimpleName(qn As QualifiedNameSyntax) As SimpleNameSyntax
-            While (qn IsNot Nothing)
+            While qn IsNot Nothing
                 Dim left = qn.Left
                 Dim simpleName = TryCast(left, SimpleNameSyntax)
                 If simpleName IsNot Nothing Then

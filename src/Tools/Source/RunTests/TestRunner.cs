@@ -112,7 +112,7 @@ namespace RunTests
 
             Print(completed);
 
-            return new RunAllResult((failures == 0), cacheCount, completed.ToImmutableArray());
+            return new RunAllResult(failures == 0, cacheCount, completed.ToImmutableArray());
         }
 
         private void Print(List<TestResult> testResults)

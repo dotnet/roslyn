@@ -12,11 +12,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
         NoName = EnvDTE.vsCMPrototype.vsCMPrototypeNoName,
         TypeName = EnvDTE.vsCMPrototype.vsCMPrototypeClassName,
         BaseName = 0,
-        NameMask = (FullName | NoName | TypeName | BaseName),
+        NameMask = FullName | NoName | TypeName | BaseName,
         ParameterTypes = EnvDTE.vsCMPrototype.vsCMPrototypeParamTypes,
         ParameterNames = EnvDTE.vsCMPrototype.vsCMPrototypeParamNames,
         ParameterDefaultValues = EnvDTE.vsCMPrototype.vsCMPrototypeParamDefaultValues,
-        ParametersMask = (ParameterTypes | ParameterNames | ParameterDefaultValues),
+        ParametersMask = ParameterTypes | ParameterNames | ParameterDefaultValues,
         Type = EnvDTE.vsCMPrototype.vsCMPrototypeType,
         Initializer = EnvDTE.vsCMPrototype.vsCMPrototypeInitExpression
     }

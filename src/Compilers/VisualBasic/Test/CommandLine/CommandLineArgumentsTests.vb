@@ -21,21 +21,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(8, dict.Count)
             Assert.Equal(1, dict("Config"))
-            Assert.Equal(GetType(Integer), (dict("Config")).GetType)
+            Assert.Equal(GetType(Integer), dict("Config").GetType)
             Assert.Equal("Nightly", dict("Config2"))
-            Assert.Equal(GetType(String), (dict("Config2")).GetType)
+            Assert.Equal(GetType(String), dict("Config2").GetType)
             Assert.Equal(4, dict("Framework"))
-            Assert.Equal(GetType(Integer), (dict("Framework")).GetType)
+            Assert.Equal(GetType(Integer), dict("Framework").GetType)
             Assert.Equal(2, dict("Alpha"))
-            Assert.Equal(GetType(Integer), (dict("Alpha")).GetType)
+            Assert.Equal(GetType(Integer), dict("Alpha").GetType)
 
             text = "OnlyEqualsNoValue1, OnlyEqualsNoValue2"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(2, dict.Count)
             Assert.Equal(True, dict("OnlyEqualsNoValue1"))
-            Assert.Equal(GetType(Boolean), (dict("OnlyEqualsNoValue1")).GetType)
+            Assert.Equal(GetType(Boolean), dict("OnlyEqualsNoValue1").GetType)
             Assert.Equal(True, dict("OnlyEqualsNoValue2"))
-            Assert.Equal(GetType(Boolean), (dict("OnlyEqualsNoValue2")).GetType)
+            Assert.Equal(GetType(Boolean), dict("OnlyEqualsNoValue2").GetType)
 
             text = ",,,,,goo=bar,,,,,,,,,,"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
@@ -70,13 +70,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(1, dict.Count)
             Assert.Equal(True, dict("OnlyEqualsNoValue1"))
-            Assert.Equal(GetType(Boolean), (dict("OnlyEqualsNoValue1")).GetType)
+            Assert.Equal(GetType(Boolean), dict("OnlyEqualsNoValue1").GetType)
 
             text = "key=\""value\"""
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(1, dict.Count)
             Assert.Equal("value", dict("key"))
-            Assert.Equal(GetType(String), (dict("key")).GetType)
+            Assert.Equal(GetType(String), dict("key").GetType)
 
             text = "then=bar" ' keyword :)
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
@@ -92,17 +92,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(2, dict.Count)
             Assert.Equal(True, dict("GOO"))
-            Assert.Equal(GetType(Boolean), (dict("GOO")).GetType)
+            Assert.Equal(GetType(Boolean), dict("GOO").GetType)
             Assert.Equal(True, dict("BAR"))
-            Assert.Equal(GetType(Boolean), (dict("BAR")).GetType)
+            Assert.Equal(GetType(Boolean), dict("BAR").GetType)
 
             text = "GOO::::::::BAR"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(2, dict.Count)
             Assert.Equal(True, dict("GOO"))
-            Assert.Equal(GetType(Boolean), (dict("GOO")).GetType)
+            Assert.Equal(GetType(Boolean), dict("GOO").GetType)
             Assert.Equal(True, dict("BAR"))
-            Assert.Equal(GetType(Boolean), (dict("BAR")).GetType)
+            Assert.Equal(GetType(Boolean), dict("BAR").GetType)
 
             text = "GOO=23::,,:::BAR"
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
@@ -118,11 +118,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)
             Assert.Equal(3, dict.Count)
             Assert.Equal(True, dict("GOO"))
-            Assert.Equal(GetType(Boolean), (dict("GOO")).GetType)
+            Assert.Equal(GetType(Boolean), dict("GOO").GetType)
             Assert.Equal(True, dict("BAR"))
-            Assert.Equal(GetType(Boolean), (dict("BAR")).GetType)
+            Assert.Equal(GetType(Boolean), dict("BAR").GetType)
             Assert.Equal(True, dict("BAZ"))
-            Assert.Equal(GetType(Boolean), (dict("BAZ")).GetType)
+            Assert.Equal(GetType(Boolean), dict("BAZ").GetType)
         End Sub
 
         <Fact()>
@@ -171,11 +171,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CommandLine.UnitTests
             Assert.Equal(Nothing, dict("BAR0"))
             'Assert.Equal(GetType(Object), (dict("BAR0")).GetType)
             Assert.Equal(2.0#, dict("BAR1"))
-            Assert.Equal(GetType(Double), (dict("BAR1")).GetType)
+            Assert.Equal(GetType(Double), dict("BAR1").GetType)
             Assert.Equal(0.03232323@, dict("BAR2"))
-            Assert.Equal(GetType(Decimal), (dict("BAR2")).GetType)
+            Assert.Equal(GetType(Decimal), dict("BAR2").GetType)
             Assert.Equal(True, dict("BAR3b"))
-            Assert.Equal(GetType(Boolean), (dict("BAR3b")).GetType)
+            Assert.Equal(GetType(Boolean), dict("BAR3b").GetType)
 
             text = "A=""A"",B=""B"",T=IF(1>0, A, B)+B+""C"",RRR=1+""3"""
             dict = VisualBasicCommandLineParser.ParseConditionalCompilationSymbols(text, errors)

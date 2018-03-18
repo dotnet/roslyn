@@ -1112,7 +1112,7 @@ End Module
 
             Dim model = GetModel(compilation)
             Dim ternaryExpression = GetTernaryConditionalExpression(compilation, index)
-            If (ternaryExpression Is Nothing) Then
+            If ternaryExpression Is Nothing Then
                 Return Nothing
             End If
             Dim conditionExpression = ternaryExpression.Condition
@@ -1197,7 +1197,7 @@ End Module
 
             Dim model = GetModel(compilation)
             Dim ternaryExpression = GetTernaryConditionalExpression(compilation, index)
-            If (ternaryExpression Is Nothing) Then
+            If ternaryExpression Is Nothing Then
                 Return Nothing
             End If
             Dim conditionExpression = ternaryExpression.Condition
@@ -1216,14 +1216,14 @@ End Module
                 Dim semanticInfo = model.GetSemanticInfoSummary(expression)
                 Dim conv = model.ClassifyConversion(expression, semanticInfo.ConvertedType)
                 convs.Add(conv)
-                If (conv.Kind = ConversionKind.Identity) Then
+                If conv.Kind = ConversionKind.Identity Then
                     Assert.True(conv.Exists)
                     Assert.True(conv.IsIdentity)
                 End If
 
                 If semanticInfo.Type Is Nothing Then
                     Assert.True(Conversions.IsWideningConversion(semanticInfo.ImplicitConversion.Kind))
-                ElseIf (semanticInfo.Type.ToDisplayString() <> "?" And semanticInfo.Type.ToDisplayString() <> "Void" And semanticInfo.ConvertedType.ToDisplayString() <> "?" And semanticInfo.ConvertedType.ToDisplayString() <> "Void") Then
+                ElseIf semanticInfo.Type.ToDisplayString() <> "?" And semanticInfo.Type.ToDisplayString() <> "Void" And semanticInfo.ConvertedType.ToDisplayString() <> "?" And semanticInfo.ConvertedType.ToDisplayString() <> "Void" Then
                     Assert.Equal(conv.Kind, semanticInfo.ImplicitConversion.Kind)
                 End If
             Next

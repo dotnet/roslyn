@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis
                 result.Mantissa = mantissaBuilder.ToString();
                 if (i < source.Length && (source[i] == 'e' || source[i] == 'E'))
                 {
-                    const int MAX_EXP = (1 << 30); // even playing ground
+                    const int MAX_EXP = 1 << 30; // even playing ground
                     char exponentSign = '\0';
                     i++;
                     if (i < source.Length && (source[i] == '-' || source[i] == '+'))
@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis
             // use in rounding.  
             int finalExponent = integerBitsOfPrecision > 0
                 ? (int)integerBitsOfPrecision - 2
-                : -(int)(fractionalExponent) - 1;
+                : -(int)fractionalExponent - 1;
 
             return type.AssembleFloatingPointValue(completeMantissa, finalExponent, hasZeroTail, out result);
         }
@@ -700,7 +700,7 @@ namespace Microsoft.CodeAnalysis
             if (shift >= 64) return 0;
 
             ulong extraBitsMask = (1UL << (shift - 1)) - 1;
-            ulong roundBitMask = (1UL << (shift - 1));
+            ulong roundBitMask = 1UL << (shift - 1);
             ulong lsbBitMask = 1UL << shift;
 
             bool lsbBit = (value & lsbBitMask) != 0;

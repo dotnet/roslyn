@@ -116,11 +116,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             While True
                 current = current.WalkDownParentheses()
                 If current.Kind = SyntaxKind.IdentifierName Then
-                    Return (DirectCast(current, IdentifierNameSyntax)).Identifier.ValueText.ToCamelCase()
+                    Return DirectCast(current, IdentifierNameSyntax).Identifier.ValueText.ToCamelCase()
                 ElseIf TypeOf current Is MemberAccessExpressionSyntax Then
-                    Return (DirectCast(current, MemberAccessExpressionSyntax)).Name.Identifier.ValueText.ToCamelCase()
+                    Return DirectCast(current, MemberAccessExpressionSyntax).Name.Identifier.ValueText.ToCamelCase()
                 ElseIf TypeOf current Is CastExpressionSyntax Then
-                    current = (DirectCast(current, CastExpressionSyntax)).Expression
+                    current = DirectCast(current, CastExpressionSyntax).Expression
                 Else
                     Exit While
                 End If

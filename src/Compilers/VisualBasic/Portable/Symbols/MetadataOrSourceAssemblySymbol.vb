@@ -69,12 +69,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Debug.Assert(corType.ContainingModule.Ordinal = 0)
             Debug.Assert(Me.CorLibrary Is Me)
 
-            If (_lazySpecialTypes Is Nothing) Then
+            If _lazySpecialTypes Is Nothing Then
                 Interlocked.CompareExchange(_lazySpecialTypes,
                     New NamedTypeSymbol(SpecialType.Count) {}, Nothing)
             End If
 
-            If (Interlocked.CompareExchange(_lazySpecialTypes(typeId), corType, Nothing) IsNot Nothing) Then
+            If Interlocked.CompareExchange(_lazySpecialTypes(typeId), corType, Nothing) IsNot Nothing Then
                 Debug.Assert(corType Is _lazySpecialTypes(typeId) OrElse
                                         (corType.Kind = SymbolKind.ErrorType AndAlso
                                         _lazySpecialTypes(typeId).Kind = SymbolKind.ErrorType))

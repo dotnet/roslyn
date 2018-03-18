@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         Next
 
                                         Dim generatedDiagnostics As Boolean = False
-                                        Dim data As VisualBasicAttributeData = (New EarlyWellKnownAttributeBinder(Me, binder)).GetAttribute(attr, attributeType, generatedDiagnostics)
+                                        Dim data As VisualBasicAttributeData = New EarlyWellKnownAttributeBinder(Me, binder).GetAttribute(attr, attributeType, generatedDiagnostics)
                                         If Not data.HasErrors AndAlso Not generatedDiagnostics AndAlso
                                            data.IsTargetAttribute(Me, AttributeDescription.MyGroupCollectionAttribute) Then
                                             ' Looks like we've found MyGroupCollectionAttribute

@@ -355,7 +355,7 @@ Namespace Global
         Protected Overrides Function VisitNew(node As NewExpression) As Expression
             Dim indent = Me._indent
 
-            _s.AppendLine(indent + If((node.Constructor IsNot Nothing), node.Constructor.ToString(), "<.ctor>") + "(")
+            _s.AppendLine(indent + If(node.Constructor IsNot Nothing, node.Constructor.ToString(), "<.ctor>") + "(")
             Dim n As Integer = node.Arguments.Count
             For i = 0 To n - 1
                 Me._indent = indent + _indentStep

@@ -23,9 +23,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     ' If overflow checking is on, we must subtract from zero because Neg doesn't
                     ' check for overflow.
                     Dim targetPrimitiveType = expression.Type.PrimitiveTypeCode
-                    Dim useCheckedSubtraction As Boolean = (expression.Checked AndAlso
+                    Dim useCheckedSubtraction As Boolean = expression.Checked AndAlso
                                                      (targetPrimitiveType = Cci.PrimitiveTypeCode.Int32 OrElse
-                                                      targetPrimitiveType = Cci.PrimitiveTypeCode.Int64))
+                                                      targetPrimitiveType = Cci.PrimitiveTypeCode.Int64)
 
                     If useCheckedSubtraction Then
                         ' Generate the zero const first.
@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Function IsCondOperator(operationKind As BinaryOperatorKind) As Boolean
-            Select Case (operationKind And BinaryOperatorKind.OpMask)
+            Select Case operationKind And BinaryOperatorKind.OpMask
                 Case BinaryOperatorKind.OrElse,
                      BinaryOperatorKind.AndAlso,
                      BinaryOperatorKind.Equals,
@@ -173,7 +173,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 EmitExpression(binary.Right, True)
 
-                Select Case (binary.OperatorKind And BinaryOperatorKind.OpMask)
+                Select Case binary.OperatorKind And BinaryOperatorKind.OpMask
                     Case BinaryOperatorKind.And
                         _builder.EmitOpCode(ILOpCode.And)
 
@@ -194,7 +194,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         Private Sub EmitBinaryOperatorSimple(expression As BoundBinaryOperator)
 
-            Select Case (expression.OperatorKind And BinaryOperatorKind.OpMask)
+            Select Case expression.OperatorKind And BinaryOperatorKind.OpMask
                 Case BinaryOperatorKind.And
                     EmitExpression(expression.Left, True)
                     EmitExpression(expression.Right, True)
@@ -410,7 +410,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Sub EmitBinaryCondOperator(binOp As BoundBinaryOperator, sense As Boolean)
             Dim andOrSense As Boolean = sense
             Dim opIdx As Integer
-            Dim opKind = (binOp.OperatorKind And BinaryOperatorKind.OpMask)
+            Dim opKind = binOp.OperatorKind And BinaryOperatorKind.OpMask
             Dim operandType = binOp.Left.Type
 
             Debug.Assert(operandType IsNot Nothing OrElse (binOp.Left.IsNothingLiteral() AndAlso (opKind = BinaryOperatorKind.Is OrElse opKind = BinaryOperatorKind.IsNot)))
@@ -513,7 +513,7 @@ BinaryOperatorKindEqual:
                     Debug.Assert(binOp.Right.Type.SpecialType = SpecialType.System_Boolean)
 
                     ' Xor is equivalent to not equal.
-                    If (sense) Then
+                    If sense Then
                         EmitBinaryCondOperatorHelper(ILOpCode.Xor, binOp.Left, binOp.Right, True)
                     Else
                         EmitBinaryCondOperatorHelper(ILOpCode.Ceq, binOp.Left, binOp.Right, True)
@@ -606,7 +606,7 @@ BinaryOperatorKindEqual:
                 Dim constant = constValue.BooleanValue
 
                 _builder.EmitBoolConstant(constant = sense)
-                Return (If(constant = sense, ConstResKind.ConstTrue, ConstResKind.ConstFalse))
+                Return If(constant = sense, ConstResKind.ConstTrue, ConstResKind.ConstFalse)
             End If
 
             If condition.Kind = BoundKind.BinaryOperator Then

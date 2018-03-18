@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests
         ''' </summary>
         <Extension()>
         Friend Function FindFirstNodeOfType(Of T As SyntaxNode)(node As SyntaxNode) As T
-            If TypeOf (node) Is T Then
+            If TypeOf node Is T Then
                 Return CType(node, T)
             End If
             For Each child In node.ChildNodesAndTokens()

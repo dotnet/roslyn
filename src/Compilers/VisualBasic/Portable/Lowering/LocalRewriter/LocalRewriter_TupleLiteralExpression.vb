@@ -85,7 +85,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim constructor As MethodSymbol = tuple8Ctor.AsMember(underlyingTupleTypeChain.Pop())
                         currentCreation = New BoundObjectCreationExpression(syntax, constructor, ctorArguments, initializerOpt:=Nothing, type:=constructor.ContainingType)
 
-                    Loop While (underlyingTupleTypeChain.Count > 0)
+                    Loop While underlyingTupleTypeChain.Count > 0
 
                 End If
 

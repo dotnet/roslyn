@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim initializerSyntax As VisualBasicSyntaxNode = declarator.Initializer
 
             If asClauseOpt IsNot Nothing Then
-                If (asClauseOpt.Kind <> SyntaxKind.AsNewClause OrElse (DirectCast(asClauseOpt, AsNewClauseSyntax).NewExpression.Kind <> SyntaxKind.AnonymousObjectCreationExpression)) Then
+                If asClauseOpt.Kind <> SyntaxKind.AsNewClause OrElse (DirectCast(asClauseOpt, AsNewClauseSyntax).NewExpression.Kind <> SyntaxKind.AnonymousObjectCreationExpression) Then
                     If ignoreTypeSyntaxDiagnostics Then
                         Dim ignoredDiagnostics = DiagnosticBag.GetInstance()
                         asClauseType = binder.BindTypeSyntax(asClauseOpt.Type, ignoredDiagnostics)
@@ -167,8 +167,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim omitFurtherDiagnostics As Boolean = String.IsNullOrEmpty(modifiedIdentifierSyntax.Identifier.ValueText)
 
             Dim varType As TypeSymbol
-            If (asClauseOpt IsNot Nothing AndAlso asClauseOpt.Kind = SyntaxKind.AsNewClause AndAlso
-             (DirectCast(asClauseOpt, AsNewClauseSyntax).NewExpression.Kind = SyntaxKind.AnonymousObjectCreationExpression)) Then
+            If asClauseOpt IsNot Nothing AndAlso asClauseOpt.Kind = SyntaxKind.AsNewClause AndAlso
+             (DirectCast(asClauseOpt, AsNewClauseSyntax).NewExpression.Kind = SyntaxKind.AnonymousObjectCreationExpression) Then
                 varType = ErrorTypeSymbol.UnknownResultType
             Else
                 Dim getErrorInfo As Func(Of DiagnosticInfo) = Nothing

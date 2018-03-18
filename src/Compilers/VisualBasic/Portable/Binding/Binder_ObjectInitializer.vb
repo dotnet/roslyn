@@ -247,7 +247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                                 ' Check accessibility
                                 Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
-                                Dim isInAccessible As Boolean = (Me.CheckAccessibility(namedCoClass, useSiteDiagnostics) <> AccessCheckResult.Accessible)
+                                Dim isInAccessible As Boolean = Me.CheckAccessibility(namedCoClass, useSiteDiagnostics) <> AccessCheckResult.Accessible
                                 diagnostics.Add(node, useSiteDiagnostics)
 
                                 If isInAccessible Then

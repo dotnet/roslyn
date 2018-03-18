@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         private void MarkReachableBlocks()
         {
-            Debug.Assert(AllBlocks(block => (block.Reachability == Reachability.NotReachable)));
+            Debug.Assert(AllBlocks(block => block.Reachability == Reachability.NotReachable));
 
             ArrayBuilder<BasicBlock> reachableBlocks = ArrayBuilder<BasicBlock>.GetInstance();
             MarkReachableFrom(reachableBlocks, leaderBlock);

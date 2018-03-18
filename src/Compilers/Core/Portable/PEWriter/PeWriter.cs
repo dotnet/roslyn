@@ -303,7 +303,7 @@ namespace Microsoft.Cci
                 int machineOffset = 128 + 4;
                 int timeDateStampOffset = 128 + 4 + 2 + 2;
                 ushort amd64MachineType = (ushort)Machine.Amd64;
-                Debug.Assert(ReadByteFromBlobBuilder(peBlob, machineOffset) == (byte)(amd64MachineType));
+                Debug.Assert(ReadByteFromBlobBuilder(peBlob, machineOffset) == (byte)amd64MachineType);
                 Debug.Assert(ReadByteFromBlobBuilder(peBlob, machineOffset + 1) == (byte)(amd64MachineType >> 8));
 
                 ushort realMachineType = (ushort)properties.Machine;

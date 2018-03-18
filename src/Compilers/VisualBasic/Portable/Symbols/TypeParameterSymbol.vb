@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public NotOverridable Overrides ReadOnly Property IsReferenceType As Boolean
             Get
-                If (Me.HasReferenceTypeConstraint) Then
+                If Me.HasReferenceTypeConstraint Then
                     Return True
                 End If
 
@@ -231,7 +231,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' > (e.g. "class A<S, T> where S : T, where T : class" does not guarantee that S is ObjRef)
         Private Function IsReferenceTypeIgnoringIsClass() As Boolean
             For Each constraint In Me.ConstraintTypesNoUseSiteDiagnostics
-                If (ConstraintImpliesReferenceType(constraint)) Then
+                If ConstraintImpliesReferenceType(constraint) Then
                     Return True
                 End If
             Next
@@ -240,15 +240,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Shared Function ConstraintImpliesReferenceType(constraint As TypeSymbol) As Boolean
-            If (constraint.TypeKind = TypeKind.TypeParameter) Then
+            If constraint.TypeKind = TypeKind.TypeParameter Then
                 Return DirectCast(constraint, TypeParameterSymbol).IsReferenceTypeIgnoringIsClass()
             Else
-                If (constraint.IsReferenceType) Then
-                    If (constraint.IsInterfaceType()) Then
+                If constraint.IsReferenceType Then
+                    If constraint.IsInterfaceType() Then
                         Return False ' can be satisfied by valuetypes 
                     End If
 
-                    Select Case (constraint.SpecialType)
+                    Select Case constraint.SpecialType
                         Case SpecialType.System_Object,
                              SpecialType.System_ValueType,
                              SpecialType.System_Enum
@@ -287,7 +287,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 '
                 ' therefore we need to check the type constraints for value types as well
                 For Each constraint In Me.ConstraintTypesNoUseSiteDiagnostics
-                    If (constraint.IsValueType) Then
+                    If constraint.IsValueType Then
                         Return True
                     End If
                 Next

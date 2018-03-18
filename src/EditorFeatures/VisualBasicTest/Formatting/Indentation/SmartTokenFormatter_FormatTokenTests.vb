@@ -186,7 +186,7 @@ End Class
                 Dim document = workspace.CurrentSolution.GetDocument(hostdoc.Id)
                 Dim root = DirectCast(Await document.GetSyntaxRootAsync(), CompilationUnitSyntax)
 
-                Dim formattingRules = (New SpecialFormattingRule()).Concat(Formatter.GetDefaultFormattingRules(document))
+                Dim formattingRules = New SpecialFormattingRule().Concat(Formatter.GetDefaultFormattingRules(document))
 
                 ' get token
                 Dim token = root.FindToken(position)

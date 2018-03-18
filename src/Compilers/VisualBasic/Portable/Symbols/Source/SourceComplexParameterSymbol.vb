@@ -349,7 +349,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             ' Attributes and default values are computed lazily and need access to the parameter's syntax.
             ' If the parameter syntax includes either of these get a syntax reference and pass it to the parameter symbol.
-            If (syntax.AttributeLists.Count <> 0 OrElse syntax.Default IsNot Nothing) Then
+            If syntax.AttributeLists.Count <> 0 OrElse syntax.Default IsNot Nothing Then
                 syntaxRef = binder.GetSyntaxReference(syntax)
             End If
 

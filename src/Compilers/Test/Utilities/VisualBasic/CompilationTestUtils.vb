@@ -457,7 +457,7 @@ Friend Module CompilationUtils
         Dim hasMatchingText As Func(Of SyntaxNode, Boolean) = Function(n) n.ToString = bindText OrElse
             (prefixMatch AndAlso TryCast(n, TNode) IsNot Nothing AndAlso n.ToString.StartsWith(bindText))
 
-        While (node IsNot Nothing AndAlso Not hasMatchingText(node))
+        While node IsNot Nothing AndAlso Not hasMatchingText(node)
             node = node.Parent
         End While
 
@@ -535,7 +535,7 @@ Friend Module CompilationUtils
         Dim token As SyntaxToken = tree.GetRoot().FindToken(bindPoint)
         Dim node = token.Parent
 
-        While (node IsNot Nothing AndAlso node.ToString.StartsWith(bindText, StringComparison.Ordinal) AndAlso Not (TypeOf node Is TNode))
+        While node IsNot Nothing AndAlso node.ToString.StartsWith(bindText, StringComparison.Ordinal) AndAlso Not (TypeOf node Is TNode)
             node = node.Parent
         End While
 
@@ -1180,7 +1180,7 @@ Friend Module CompilationUtils
             End If
         Loop
 
-        If (isDistinct) Then
+        If isDistinct Then
             symType = (From temp In symType Distinct Select temp Order By temp.ToDisplayString()).ToList()
         Else
             symType = (From temp In symType Select temp Order By temp.ToDisplayString()).ToList()
@@ -1218,7 +1218,7 @@ Friend Module CompilationUtils
     Public Function VerifyIsGlobal(globalNS1 As ISymbol, Optional expected As Boolean = True) As NamespaceSymbol
         Dim nsSymbol = DirectCast(globalNS1, NamespaceSymbol)
         Assert.NotNull(nsSymbol)
-        If (expected) Then
+        If expected Then
             Assert.True(nsSymbol.IsGlobalNamespace)
         Else
             Assert.False(nsSymbol.IsGlobalNamespace)

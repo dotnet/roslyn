@@ -261,7 +261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Return containingBinder
                     End Select
 
-                    Return BuildMethodBinder(containingNamedTypeBinder, methodBase, (usage = NodeUsage.MethodInterior))
+                    Return BuildMethodBinder(containingNamedTypeBinder, methodBase, usage = NodeUsage.MethodInterior)
 
                 Case NodeUsage.FieldOrPropertyInitializer
                     Dim fieldOrProperty As Symbol = Nothing
@@ -464,7 +464,7 @@ lAgain:
                     ' them like methods.
 
                     nodeForOuterBinder = parent.Parent
-                    If nodeForOuterBinder IsNot Nothing AndAlso TypeOf (nodeForOuterBinder) Is MethodBlockBaseSyntax Then
+                    If nodeForOuterBinder IsNot Nothing AndAlso TypeOf nodeForOuterBinder Is MethodBlockBaseSyntax Then
                         nodeForOuterBinder = nodeForOuterBinder.Parent
                     End If
 

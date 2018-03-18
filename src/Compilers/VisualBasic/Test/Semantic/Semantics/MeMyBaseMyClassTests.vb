@@ -563,9 +563,9 @@ End Structure
             Dim expression = expressions.Where(Function(x) x.ToString = nodeName).First()
             Dim symbolInfo = model.GetSymbolInfo(DirectCast(expression, ExpressionSyntax))
 
-            If (Equals(expectedSymbol, Nothing)) Then
+            If Equals(expectedSymbol, Nothing) Then
                 Assert.Equal(expectedSymbol, symbolInfo.Symbol)
-            ElseIf (DirectCast(expectedSymbol, Symbol).IsReducedExtensionMethod = False) Then
+            ElseIf DirectCast(expectedSymbol, Symbol).IsReducedExtensionMethod = False Then
                 Assert.Equal(expectedSymbol, symbolInfo.Symbol)
             Else
                 Dim methodActual = DirectCast(symbolInfo.Symbol, MethodSymbol)

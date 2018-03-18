@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Debug.Assert(namespaceArray.Count <> 0)
 
-            If (namespaceArray.Count = 1) Then
+            If namespaceArray.Count = 1 Then
                 Dim result = namespaceArray(0)
                 namespaceArray.Free()
                 Return result
@@ -167,7 +167,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Debug.Assert(namespaceArray.Count <> 0)
 
-            If (namespaceArray.Count = 1) Then
+            If namespaceArray.Count = 1 Then
                 Dim result = namespaceArray(0)
                 namespaceArray.Free()
                 Return result
@@ -211,7 +211,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Accumulate all the child namespaces and types.
             For Each nsSym As NamespaceSymbol In _namespacesToMerge
                 For Each childSym As Symbol In nsSym.GetMembers(name)
-                    If (childSym.Kind = SymbolKind.Namespace) Then
+                    If childSym.Kind = SymbolKind.Namespace Then
                         nsSymbols = If(nsSymbols, ArrayBuilder(Of NamespaceSymbol).GetInstance())
                         nsSymbols.Add(DirectCast(childSym, NamespaceSymbol))
                     Else
@@ -335,7 +335,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                Return ImmutableArray.CreateRange(Of Location)((From ns In _namespacesToMerge, loc In ns.Locations Select loc))
+                Return ImmutableArray.CreateRange(Of Location)(From ns In _namespacesToMerge, loc In ns.Locations Select loc)
             End Get
         End Property
 

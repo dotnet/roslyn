@@ -812,8 +812,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            If (parent.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.UsingStatement, SyntaxKind.FieldDeclaration) AndAlso
-                variableDeclarator.Initializer IsNot Nothing) Then
+            If parent.IsKind(SyntaxKind.LocalDeclarationStatement, SyntaxKind.UsingStatement, SyntaxKind.FieldDeclaration) AndAlso
+                variableDeclarator.Initializer IsNot Nothing Then
 
                 ' Type Check
 
@@ -843,7 +843,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return True
             End If
 
-            If (parent.IsKind(SyntaxKind.ForEachStatement, SyntaxKind.ForStatement)) Then
+            If parent.IsKind(SyntaxKind.ForEachStatement, SyntaxKind.ForStatement) Then
                 ' Type Check for ForStatement
                 If parent.IsKind(SyntaxKind.ForStatement) Then
                     Dim declaredSymbolType As ITypeSymbol = Nothing
@@ -935,7 +935,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                                               issueSpan,
                                               optionSet,
                                               cancellationToken)
-            ElseIf TypeOf (expression) Is NameSyntax Then
+            ElseIf TypeOf expression Is NameSyntax Then
                 Dim name = DirectCast(expression, NameSyntax)
                 Return name.TryReduce(semanticModel,
                                       replacementNode,
@@ -1003,7 +1003,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                     If PreferPredefinedTypeKeywordInMemberAccess(memberAccess, optionSet) Then
                         Dim symbol = semanticModel.GetSymbolInfo(memberAccess).Symbol
-                        If (symbol IsNot Nothing AndAlso symbol.IsKind(SymbolKind.NamedType)) Then
+                        If symbol IsNot Nothing AndAlso symbol.IsKind(SymbolKind.NamedType) Then
                             Dim keywordKind = GetPredefinedKeywordKind(DirectCast(symbol, INamedTypeSymbol).SpecialType)
                             If keywordKind <> SyntaxKind.None Then
                                 replacementNode = SyntaxFactory.PredefinedType(
@@ -1096,7 +1096,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         ''' support simplifying types names Like System.Int32.MaxValue to Integer.MaxValue.
         ''' </Remarks>
         Private Function IsInCrefReferenceForPredefinedTypeInMemberAccessContext(expression As ExpressionSyntax) As Boolean
-            Return (InsideCrefReference(expression) AndAlso Not expression.IsLeftSideOfQualifiedName)
+            Return InsideCrefReference(expression) AndAlso Not expression.IsLeftSideOfQualifiedName
         End Function
 
         <Extension>
@@ -1493,8 +1493,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                 ' When the replacement is an Alias we don't want the "Attribute" Suffix to be removed because this will result in symbol change
                 Dim aliasSymbol = semanticModel.GetAliasInfo(name, cancellationToken)
-                If (aliasSymbol IsNot Nothing AndAlso preferAliasToQualification AndAlso
-                    String.Compare(aliasSymbol.Name, identifierToken.ValueText, StringComparison.OrdinalIgnoreCase) = 0) Then
+                If aliasSymbol IsNot Nothing AndAlso preferAliasToQualification AndAlso
+                    String.Compare(aliasSymbol.Name, identifierToken.ValueText, StringComparison.OrdinalIgnoreCase) = 0 Then
                     Return False
                 End If
 
@@ -1669,10 +1669,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
                             Dim namedType = TryCast(leftSymbol, INamedTypeSymbol)
                             If namedType IsNot Nothing Then
-                                If ((namedType.GetBaseTypes().Contains(containingType) AndAlso
+                                If (namedType.GetBaseTypes().Contains(containingType) AndAlso
                                     Not optionSet.GetOption(SimplificationOptions.AllowSimplificationToBaseType)) OrElse
                                     (Not optionSet.GetOption(SimplificationOptions.AllowSimplificationToGenericType) AndAlso
-                                    containingType.TypeArguments.Count() <> 0)) Then
+                                    containingType.TypeArguments.Count() <> 0) Then
                                     Return False
                                 End If
                             End If
@@ -1704,7 +1704,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
 
             Dim symbol = semanticModel.GetSymbolInfo(node).Symbol
 
-            If (symbol.IsConstructor()) Then
+            If symbol.IsConstructor() Then
                 symbol = symbol.ContainingType
             End If
 
@@ -1738,7 +1738,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 Return False
             End If
 
-            If symbol Is Nothing OrElse Not TypeOf (symbol) Is INamespaceOrTypeSymbol Then
+            If symbol Is Nothing OrElse Not TypeOf symbol Is INamespaceOrTypeSymbol Then
                 Return False
             End If
 

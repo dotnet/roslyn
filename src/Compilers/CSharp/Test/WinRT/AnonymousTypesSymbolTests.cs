@@ -1704,8 +1704,8 @@ class Program
             var tree = SyntaxFactory.ParseSyntaxTree(source);
             var comp = CreateCompilation(tree);
             var model = comp.GetSemanticModel(tree);
-            var programType = (NamedTypeSymbol)(comp.GlobalNamespace.GetTypeMembers("Program").Single());
-            var mainMethod = (MethodSymbol)(programType.GetMembers("Main").Single());
+            var programType = (NamedTypeSymbol)comp.GlobalNamespace.GetTypeMembers("Program").Single();
+            var mainMethod = (MethodSymbol)programType.GetMembers("Main").Single();
             var mainSyntax = mainMethod.DeclaringSyntaxReferences.Single().GetSyntax() as MethodDeclarationSyntax;
             var mainBlock = mainSyntax.Body;
             var statement1 = mainBlock.Statements[0] as LocalDeclarationStatementSyntax;

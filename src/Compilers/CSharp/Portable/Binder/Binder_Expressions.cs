@@ -1322,8 +1322,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node.Identifier.ContextualKind() == SyntaxKind.UnderscoreToken);
 
             CSharpSyntaxNode parent = node.Parent;
-            return (parent?.Kind() == SyntaxKind.Argument &&
-                ((ArgumentSyntax)parent).RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword);
+            return parent?.Kind() == SyntaxKind.Argument &&
+                ((ArgumentSyntax)parent).RefOrOutKeyword.Kind() == SyntaxKind.OutKeyword;
         }
 
         private BoundExpression SynthesizeMethodGroupReceiver(CSharpSyntaxNode syntax, ArrayBuilder<Symbol> members)
@@ -6128,7 +6128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool hasError = false;
             NamedTypeSymbol type = fieldSymbol.ContainingType;
-            var isEnumField = (fieldSymbol.IsStatic && type.IsEnumType());
+            var isEnumField = fieldSymbol.IsStatic && type.IsEnumType();
 
             if (isEnumField && !type.IsValidEnumType())
             {
@@ -6184,7 +6184,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             TypeSymbol fieldType = fieldSymbol.GetFieldType(this.FieldsBeingBound);
-            BoundExpression expr = new BoundFieldAccess(node, receiver, fieldSymbol, constantValueOpt, resultKind, fieldType, hasErrors: (hasErrors || hasError));
+            BoundExpression expr = new BoundFieldAccess(node, receiver, fieldSymbol, constantValueOpt, resultKind, fieldType, hasErrors: hasErrors || hasError);
 
             // Spec 14.3: "Within an enum member initializer, values of other enum members are
             // always treated as having the type of their underlying type"
@@ -6252,7 +6252,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
-            return new BoundPropertyAccess(node, receiver, propertySymbol, lookupResult, propertySymbol.Type, hasErrors: (hasErrors || hasError));
+            return new BoundPropertyAccess(node, receiver, propertySymbol, lookupResult, propertySymbol.Type, hasErrors: hasErrors || hasError);
         }
 
         private BoundExpression BindEventAccess(
@@ -6274,7 +6274,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
 
-            return new BoundEventAccess(node, receiver, eventSymbol, isUsableAsField, lookupResult, eventSymbol.Type, hasErrors: (hasErrors || hasError));
+            return new BoundEventAccess(node, receiver, eventSymbol, isUsableAsField, lookupResult, eventSymbol.Type, hasErrors: hasErrors || hasError);
         }
 
         // Say if the receive is an instance or a type, or could be either (returns null).
@@ -6416,7 +6416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (result.Error != null)
                     {
                         Error(diagnostics, result.Error, node);
-                        wasError = (result.Error.Severity == DiagnosticSeverity.Error);
+                        wasError = result.Error.Severity == DiagnosticSeverity.Error;
                     }
 
                     return null;

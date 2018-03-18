@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.EncapsulateField
                 typeCharacter:=TypeCharacter.None)
             root = root.ReplaceNode(fieldIdentifier, fieldIdentifier.WithIdentifier(newIdentifier).WithAdditionalAnnotations(annotation, Formatter.Annotation))
             fieldIdentifier = root.GetAnnotatedNodes(Of ModifiedIdentifierSyntax)(annotation).First()
-            If (DirectCast(fieldIdentifier.Parent, VariableDeclaratorSyntax).Names.Count = 1) Then
+            If DirectCast(fieldIdentifier.Parent, VariableDeclaratorSyntax).Names.Count = 1 Then
                 Dim fieldDeclaration = DirectCast(fieldIdentifier.Parent.Parent, FieldDeclarationSyntax)
 
                 Dim modifierKinds = {SyntaxKind.FriendKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.ProtectedKeyword, SyntaxKind.PrintStatement, SyntaxKind.PublicKeyword}

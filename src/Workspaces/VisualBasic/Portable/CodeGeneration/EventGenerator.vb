@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 EventBlockSyntax)
             result = DirectCast(result.WithModifiers(GenerateModifiers([event], destination, options)), EventBlockSyntax)
             Dim explicitInterface = [event].ExplicitInterfaceImplementations.FirstOrDefault()
-            If (explicitInterface IsNot Nothing)
+            If explicitInterface IsNot Nothing
                 result = result.WithEventStatement(
                     result.EventStatement.WithImplementsClause(GenerateImplementsClause(explicitInterface)))
             End If

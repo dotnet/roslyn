@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void SyntaxNodeOrToken1()
         {
-            var d = (SyntaxNodeOrToken)((SyntaxNode)null);
+            var d = (SyntaxNodeOrToken)(SyntaxNode)null;
 
             Assert.False(d.IsToken);
             Assert.True(d.IsNode);

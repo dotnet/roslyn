@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
 
             // Construct a new namedType, if required.
-            bool containerIsChanged = (newContainingType != containingType);
+            bool containerIsChanged = newContainingType != containingType;
 
             if (containerIsChanged || transformedTypeArguments != typeArguments)
             {

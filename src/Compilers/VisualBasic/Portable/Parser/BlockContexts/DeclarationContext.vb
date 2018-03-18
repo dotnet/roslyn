@@ -362,7 +362,7 @@ HandleMethodBase:
             Dim ErrorId As ERRID = ERRID.ERR_Syntax
             Dim stmtKind = statement.Kind
 
-            Select Case (stmtKind)
+            Select Case stmtKind
 
                 Case SyntaxKind.EndIfStatement
                     ErrorId = ERRID.ERR_EndIfNoMatchingIf

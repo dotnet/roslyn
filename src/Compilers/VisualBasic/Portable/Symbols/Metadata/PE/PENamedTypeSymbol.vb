@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
             Else
                 ' Unmangle name for a generic type.
                 _name = MetadataHelpers.UnmangleMetadataNameForArity(name, _arity)
-                _mangleName = (_name IsNot name)
+                _mangleName = _name IsNot name
             End If
 
             If makeBad OrElse metadataArity < containerMetadataArity Then
@@ -306,7 +306,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
         Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Dim declaredInterfaces As ImmutableArray(Of NamedTypeSymbol) = GetDeclaredInterfacesNoUseSiteDiagnostics(Nothing)
-            If (Not Me.IsInterface) Then
+            If Not Me.IsInterface Then
                 ' only interfaces needs to check for inheritance cycles via interfaces.
                 Return declaredInterfaces
             End If
@@ -379,11 +379,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                     Dim underlyingType As NamedTypeSymbol = Nothing
                     For Each member In GetMembers()
-                        If (Not member.IsShared AndAlso member.Kind = SymbolKind.Field) Then
+                        If Not member.IsShared AndAlso member.Kind = SymbolKind.Field Then
                             Dim type = DirectCast(member, FieldSymbol).Type
 
-                            If (type.SpecialType.IsClrInteger()) Then
-                                If (underlyingType Is Nothing) Then
+                            If type.SpecialType.IsClrInteger() Then
+                                If underlyingType Is Nothing Then
                                     underlyingType = DirectCast(type, NamedTypeSymbol)
                                 Else
                                     underlyingType = New UnsupportedMetadataTypeSymbol()
@@ -1014,8 +1014,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                                    (baseCorTypeId = SpecialType.System_Delegate AndAlso Me.SpecialType <> SpecialType.System_MulticastDelegate) Then
                                 ' Delegate
                                 result = TypeKind.Delegate
-                            ElseIf (baseCorTypeId = SpecialType.System_ValueType AndAlso
-                                     Me.SpecialType <> SpecialType.System_Enum) Then
+                            ElseIf baseCorTypeId = SpecialType.System_ValueType AndAlso
+                                     Me.SpecialType <> SpecialType.System_Enum Then
                                 ' Struct
                                 result = TypeKind.Structure
                             ElseIf Me.Arity = 0 AndAlso

@@ -159,7 +159,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function IsValid(options As LookupOptions) As Boolean
             ' These are exclusive; both must not be present.
             Dim mustBeAndNotBeInstance As LookupOptions = LookupOptions.MustBeInstance Or LookupOptions.MustNotBeInstance
-            If ((options And mustBeAndNotBeInstance) = mustBeAndNotBeInstance) Then
+            If (options And mustBeAndNotBeInstance) = mustBeAndNotBeInstance Then
                 Return False
             End If
 

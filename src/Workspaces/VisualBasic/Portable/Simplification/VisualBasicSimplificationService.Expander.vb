@@ -233,7 +233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                 Dim binding = _semanticModel.GetSpeculativeSymbolInfo(originalNode.SpanStart, expression, SpeculativeBindingOption.BindAsExpression)
 
-                If (Not binding.Symbol Is Nothing) Then
+                If Not binding.Symbol Is Nothing Then
                     Return expression
                 End If
 
@@ -609,9 +609,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                 Dim parent = originalSimpleName.Parent
 
                 ' do not complexify further for location where only simple names are allowed
-                If (TypeOf (parent) Is FieldInitializerSyntax) OrElse
-                    ((TypeOf (parent) Is DeclarationStatementSyntax) AndAlso Not TypeOf (parent) Is InheritsOrImplementsStatementSyntax) OrElse
-                    (TypeOf (parent) Is MemberAccessExpressionSyntax AndAlso parent.Kind <> SyntaxKind.SimpleMemberAccessExpression) OrElse
+                If (TypeOf parent Is FieldInitializerSyntax) OrElse
+                    ((TypeOf parent Is DeclarationStatementSyntax) AndAlso Not TypeOf parent Is InheritsOrImplementsStatementSyntax) OrElse
+                    (TypeOf parent Is MemberAccessExpressionSyntax AndAlso parent.Kind <> SyntaxKind.SimpleMemberAccessExpression) OrElse
                     (parent.Kind = SyntaxKind.SimpleMemberAccessExpression AndAlso originalSimpleName.IsRightSideOfDot()) OrElse
                     (parent.Kind = SyntaxKind.QualifiedName AndAlso originalSimpleName.IsRightSideOfQualifiedName()) Then
 
@@ -643,7 +643,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                    symbol.Kind = SymbolKind.Property Then
 
                     If symbol.IsStatic OrElse
-                       (TypeOf (parent) Is CrefReferenceSyntax) OrElse
+                       (TypeOf parent Is CrefReferenceSyntax) OrElse
                        _semanticModel.SyntaxTree.IsNameOfContext(originalSimpleName.SpanStart, _cancellationToken) Then
 
                         newNode = FullyQualifyIdentifierName(
@@ -768,9 +768,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
                                     DirectCast(rewrittenNode, SimpleNameSyntax)))
 
                         Case Else
-                            Debug.Assert(TypeOf (rewrittenNode) Is SimpleNameSyntax)
+                            Debug.Assert(TypeOf rewrittenNode Is SimpleNameSyntax)
 
-                            If SyntaxFacts.IsInNamespaceOrTypeContext(originalNode) OrElse TypeOf (parent) Is CrefReferenceSyntax Then
+                            If SyntaxFacts.IsInNamespaceOrTypeContext(originalNode) OrElse TypeOf parent Is CrefReferenceSyntax Then
                                 Dim right = DirectCast(rewrittenNode, SimpleNameSyntax)
                                 result = rewrittenNode.CopyAnnotationsTo(SyntaxFactory.QualifiedName(DirectCast(left, NameSyntax), right.WithAdditionalAnnotations(Simplifier.SpecialTypeAnnotation)))
                             Else

@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                                                                     .Where(c => c.Parameters.Length == 1 && c.Parameters[0].Type == editorBrowsableStateType);
 
             // Ensure the constructor adheres to the expected EditorBrowsable pattern
-            candidateConstructors = candidateConstructors.Where(c => (!c.IsVararg &&
+            candidateConstructors = candidateConstructors.Where(c => !c.IsVararg &&
                                                                       !c.Parameters[0].IsRefOrOut() &&
-                                                                      !c.Parameters[0].CustomModifiers.Any()));
+                                                                      !c.Parameters[0].CustomModifiers.Any());
 
             // If there are multiple constructors that look correct then the discovered types do not match the
             // expected pattern, so return null.
@@ -95,9 +95,9 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
                                                             .Where(c => c.Parameters.Length == 1 &&
                                                                         (c.Parameters[0].Type == typeLibFlagsType || c.Parameters[0].Type == shortType));
 
-            candidateConstructors = candidateConstructors.Where(c => (!c.IsVararg &&
+            candidateConstructors = candidateConstructors.Where(c => !c.IsVararg &&
                                                                       !c.Parameters[0].IsRefOrOut() &&
-                                                                      !c.Parameters[0].CustomModifiers.Any()));
+                                                                      !c.Parameters[0].CustomModifiers.Any());
 
             return candidateConstructors.ToList();
         }

@@ -925,7 +925,7 @@ HandleAsAGeneralExpression:
                 Dim arguments As ImmutableArray(Of BoundExpression) = Me.Arguments
                 Dim parameterToArgumentMap As ArrayBuilder(Of Integer) = Me.ParameterToArgumentMap
                 Dim paramArrayItems As ArrayBuilder(Of Integer) = Me.ParamArrayItems
-                Dim isExpandedParamArrayForm As Boolean = (paramArrayItems IsNot Nothing)
+                Dim isExpandedParamArrayForm As Boolean = paramArrayItems IsNot Nothing
 
                 Dim argIndex As Integer
 
@@ -1087,7 +1087,7 @@ HandleAsAGeneralExpression:
                                 typeParameterNode.SetParameter(argNode.Parameter)
                             End If
 
-                            If (isOutgoingEdge) Then
+                            If isOutgoingEdge Then
                                 AddEdge(argNode, typeParameterNode)
                             Else
                                 AddEdge(typeParameterNode, argNode)
@@ -2020,7 +2020,7 @@ HandleAsAGeneralExpression:
                             ' Infer Anonymous Delegate type from unbound lambda.
                             Dim inferredAnonymousDelegate As KeyValuePair(Of NamedTypeSymbol, ImmutableArray(Of Diagnostic)) = DirectCast(argument, UnboundLambda).InferredAnonymousDelegate
 
-                            If (inferredAnonymousDelegate.Value.IsDefault OrElse Not inferredAnonymousDelegate.Value.HasAnyErrors()) Then
+                            If inferredAnonymousDelegate.Value.IsDefault OrElse Not inferredAnonymousDelegate.Value.HasAnyErrors() Then
 
                                 Dim delegateInvokeMethod As MethodSymbol = Nothing
 

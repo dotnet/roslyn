@@ -245,7 +245,7 @@ End Class
 
             'TestClass1.M1(Nothing) 'error BC30057: Too many arguments to 'Public Shared Sub M1()'.
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M1)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M1}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={[nothing]}.AsImmutableOrNull(),
@@ -261,7 +261,7 @@ End Class
 
             'TestClass1.M2() 'error BC32050: Type parameter 'T' for 'Public Shared Sub M2(Of T)()' cannot be inferred.
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M2)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M2}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:=Nothing,
@@ -277,7 +277,7 @@ End Class
 
             'TestClass1.M2(Of TestClass1)()
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M2)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M2}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=(New TypeSymbol() {TestClass1}).AsImmutableOrNull(),
                 arguments:=Nothing,
@@ -293,7 +293,7 @@ End Class
 
             'TestClass1.M3()
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M3)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M3}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:=Nothing,
@@ -310,7 +310,7 @@ End Class
 
             'TestClass1.M3(intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M3)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M3}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal}.AsImmutableOrNull(),
@@ -330,7 +330,7 @@ End Class
 
             'TestClass1.M3(intArray)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M3)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M3}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intArray}.AsImmutableOrNull(),
@@ -350,7 +350,7 @@ End Class
 
             'TestClass1.M3(Nothing)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M3)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M3}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={[nothing]}.AsImmutableOrNull(),
@@ -370,7 +370,7 @@ End Class
 
             'TestClass1.M4(intVal, TestClass1Val)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M4}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, TestClass1Val}.AsImmutableOrNull(),
@@ -388,7 +388,7 @@ End Class
             'error BC30311: Value of type 'TestClass1' cannot be converted to 'Integer'.
             'TestClass1.M4(TestClass1Val, TestClass1Val)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M4}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={TestClass1Val, TestClass1Val}.AsImmutableOrNull(),
@@ -405,7 +405,7 @@ End Class
             'error BC30311: Value of type 'Integer' cannot be converted to 'TestClass1'.
             'TestClass1.M4(intVal, intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M4}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -421,7 +421,7 @@ End Class
 
             'TestClass1.M4(intVal, y:=TestClass1Val)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M4}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, TestClass1Val}.AsImmutableOrNull(),
@@ -438,7 +438,7 @@ End Class
 
             'TestClass1.M4(X:=intVal, y:=TestClass1Val)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M4}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, TestClass1Val}.AsImmutableOrNull(),
@@ -455,7 +455,7 @@ End Class
 
             'TestClass1.M4(y:=TestClass1Val, x:=intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M4}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={TestClass1Val, intVal}.AsImmutableOrNull(),
@@ -473,7 +473,7 @@ End Class
             'error BC30311: Value of type 'Integer' cannot be converted to 'TestClass1'.
             'TestClass1.M4(y:=intVal, x:=intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M4}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -492,7 +492,7 @@ End Class
             'error BC30274: Parameter 'x' of 'Public Shared Sub M4(x As Integer, y As TestClass1)' already has a matching argument.
             'TestClass1.M4(intVal, x:=intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M4}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -510,7 +510,7 @@ End Class
             'error BC32021: Parameter 'x' in 'Public Shared Sub M4(x As Integer, y As TestClass1)' already has a matching omitted argument.
             'TestClass1.M4(, x:=intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M4}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={omitted, intVal}.AsImmutableOrNull(),
@@ -528,7 +528,7 @@ End Class
             'error BC30274: Parameter 'x' of 'Public Shared Sub M4(x As Integer, y As TestClass1)' already has a matching argument.
             'TestClass1.M4(x:=intVal, x:=intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M4}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -546,7 +546,7 @@ End Class
             'error BC30272: 'z' is not a parameter of 'Public Shared Sub M4(x As Integer, y As TestClass1)'.
             'TestClass1.M4(z:=intVal, y:=TestClass1Val)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M4}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, TestClass1Val}.AsImmutableOrNull(),
@@ -564,7 +564,7 @@ End Class
             'error BC30272: 'z' is not a parameter of 'Public Shared Sub M4(x As Integer, y As TestClass1)'.
             'TestClass1.M4(z:=TestClass1Val, x:=intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M4}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={TestClass1Val, intVal}.AsImmutableOrNull(),
@@ -581,7 +581,7 @@ End Class
             'error BC30455: Argument not specified for parameter 'x' of 'Public Shared Sub M4(x As Integer, y As TestClass1)'.
             'TestClass1.M4(, TestClass1Val)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M4}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={omitted, TestClass1Val}.AsImmutableOrNull(),
@@ -598,7 +598,7 @@ End Class
             'error BC30455: Argument not specified for parameter 'y' of 'Public Shared Sub M4(x As Integer, y As TestClass1)'.
             'TestClass1.M4(intVal, )
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M4}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, omitted}.AsImmutableOrNull(),
@@ -615,7 +615,7 @@ End Class
             'error BC30587: Named argument cannot match a ParamArray parameter.
             'TestClass1.M3(x:=intArray)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M3)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M3}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intArray}.AsImmutableOrNull(),
@@ -636,7 +636,7 @@ End Class
             'error BC30587: Named argument cannot match a ParamArray parameter.
             'TestClass1.M3(x:=intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M3)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M3}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal}.AsImmutableOrNull(),
@@ -657,7 +657,7 @@ End Class
             'error BC30588: Omitted argument cannot match a ParamArray parameter.
             'TestClass1.M5(intVal, )
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M5)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M5}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, omitted}.AsImmutableOrNull(),
@@ -677,7 +677,7 @@ End Class
 
             'TestClass1.M4(x:=intVal, TestClass1Val)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M4)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M4}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, TestClass1Val}.AsImmutableOrNull(),
@@ -694,7 +694,7 @@ End Class
             'error BC30057: Too many arguments to 'Public Shared Sub M2(Of T)()'.
             'TestClass1.M2(Of TestClass1)(intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M2)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M2}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=(New TypeSymbol() {TestClass1}).AsImmutableOrNull(),
                 arguments:={intVal}.AsImmutableOrNull(),
@@ -710,7 +710,7 @@ End Class
 
             'TestClass1.M6(shortVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M6)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M6}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={shortVal}.AsImmutableOrNull(),
@@ -727,7 +727,7 @@ End Class
             'error BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Single'.
             'TestClass1.M6(doubleVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M6)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M6}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={doubleVal}.AsImmutableOrNull(),
@@ -742,7 +742,7 @@ End Class
             Assert.True(result.Candidates(0).RequiresNarrowingNotFromNumericConstant)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M6)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M6}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={doubleVal}.AsImmutableOrNull(),
@@ -758,7 +758,7 @@ End Class
 
             'TestClass1.M6(doubleConst)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M6)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M6}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={doubleConst}.AsImmutableOrNull(),
@@ -775,7 +775,7 @@ End Class
             'error BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Integer'.
             'TestClass1.M6(objectVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M6)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M6}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal}.AsImmutableOrNull(),
@@ -790,7 +790,7 @@ End Class
             Assert.True(result.Candidates(0).RequiresNarrowingNotFromNumericConstant)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M6)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M6}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal}.AsImmutableOrNull(),
@@ -806,7 +806,7 @@ End Class
 
             'TestClass1.M7(shortVal, shortVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={shortVal, shortVal}.AsImmutableOrNull(),
@@ -823,7 +823,7 @@ End Class
             'error BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Single'.
             'TestClass1.M7(doubleVal, shortVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={doubleVal, shortVal}.AsImmutableOrNull(),
@@ -838,7 +838,7 @@ End Class
             Assert.True(result.Candidates(0).RequiresNarrowingNotFromNumericConstant)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={doubleVal, shortVal}.AsImmutableOrNull(),
@@ -854,7 +854,7 @@ End Class
             'error BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Single'.
             'TestClass1.M7(shortVal, doubleVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={shortVal, doubleVal}.AsImmutableOrNull(),
@@ -869,7 +869,7 @@ End Class
             Assert.True(result.Candidates(0).RequiresNarrowingNotFromNumericConstant)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={shortVal, doubleVal}.AsImmutableOrNull(),
@@ -885,7 +885,7 @@ End Class
             'error BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Single'.
             'TestClass1.M7(doubleVal, doubleVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={doubleVal, doubleVal}.AsImmutableOrNull(),
@@ -900,7 +900,7 @@ End Class
             Assert.True(result.Candidates(0).RequiresNarrowingNotFromNumericConstant)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={doubleVal, doubleVal}.AsImmutableOrNull(),
@@ -915,7 +915,7 @@ End Class
 
             'TestClass1.M7(doubleConst, shortVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={doubleConst, shortVal}.AsImmutableOrNull(),
@@ -932,7 +932,7 @@ End Class
 
             'TestClass1.M7(shortVal, doubleConst)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={shortVal, doubleConst}.AsImmutableOrNull(),
@@ -948,7 +948,7 @@ End Class
 
             'TestClass1.M7(doubleConst, doubleConst)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={doubleConst, doubleConst}.AsImmutableOrNull(),
@@ -965,7 +965,7 @@ End Class
             'error BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Single'.
             'TestClass1.M7(objectVal, shortVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal, shortVal}.AsImmutableOrNull(),
@@ -980,7 +980,7 @@ End Class
             Assert.True(result.Candidates(0).RequiresNarrowingNotFromNumericConstant)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal, shortVal}.AsImmutableOrNull(),
@@ -996,7 +996,7 @@ End Class
             'error BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Single'.
             'TestClass1.M7(shortVal, objectVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={shortVal, objectVal}.AsImmutableOrNull(),
@@ -1011,7 +1011,7 @@ End Class
             Assert.True(result.Candidates(0).RequiresNarrowingNotFromNumericConstant)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={shortVal, objectVal}.AsImmutableOrNull(),
@@ -1027,7 +1027,7 @@ End Class
             'error BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Single'.
             'TestClass1.M7(objectVal, objectVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal, objectVal}.AsImmutableOrNull(),
@@ -1045,7 +1045,7 @@ End Class
             'error BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Single'.
             'TestClass1.M7(objectVal, doubleVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal, doubleVal}.AsImmutableOrNull(),
@@ -1062,7 +1062,7 @@ End Class
             'error BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Single'.
             'TestClass1.M7(doubleConst, doubleVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={doubleConst, doubleVal}.AsImmutableOrNull(),
@@ -1079,7 +1079,7 @@ End Class
             'error BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Single'.
             'TestClass1.M7(objectVal, doubleConst)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M7)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal, doubleConst}.AsImmutableOrNull(),
@@ -1097,7 +1097,7 @@ End Class
             'error BC32029: Option Strict On disallows narrowing from type 'Double' to type 'Short' in copying the value of 'ByRef' parameter 'x' back to the matching argument.
             'TestClass1.M8(TestClass1.ShortField)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M8)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M8}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={shortField}.AsImmutableOrNull(),
@@ -1113,7 +1113,7 @@ End Class
 
             'TestClass1.M8((shortVal))
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M8)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M8}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={shortVal}.AsImmutableOrNull(),
@@ -1130,7 +1130,7 @@ End Class
             'error BC32029: Option Strict On disallows narrowing from type 'Object' to type 'Short' in copying the value of 'ByRef' parameter 'x' back to the matching argument.
             'TestClass1.M9(TestClass1.ShortField)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M9)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M9}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={shortField}.AsImmutableOrNull(),
@@ -1146,7 +1146,7 @@ End Class
 
             'TestClass1.M9((shortVal))
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M9)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M9}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={shortVal}.AsImmutableOrNull(),
@@ -1162,7 +1162,7 @@ End Class
 
             'TestClass1.M10(doubleConst)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M10)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M10}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={doubleConst}.AsImmutableOrNull(),
@@ -1179,7 +1179,7 @@ End Class
             'error BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Single'.
             'TestClass1.M10(TestClass1.DoubleField)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M10)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M10}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={doubleField}.AsImmutableOrNull(),
@@ -1196,7 +1196,7 @@ End Class
             'error BC30512: Option Strict On disallows implicit conversions from 'Object' to 'Single'.
             'TestClass1.M10(TestClass1.ObjectField)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M10)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M10}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectField}.AsImmutableOrNull(),
@@ -1213,7 +1213,7 @@ End Class
             'error BC30512: Option Strict On disallows implicit conversions from 'Double' to 'Single'.
             'TestClass1.M10((doubleVal))
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M10)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M10}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={doubleVal}.AsImmutableOrNull(),
@@ -1230,7 +1230,7 @@ End Class
             'Option Strict On disallows implicit conversions from 'Object' to 'Single'.
             'TestClass1.M10((objectVal))
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M10)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M10}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal}.AsImmutableOrNull(),
@@ -1246,7 +1246,7 @@ End Class
 
             'TestClass1.M11(objectVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M11)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M11}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal}.AsImmutableOrNull(),
@@ -1264,7 +1264,7 @@ End Class
 
             'TestClass1.M11(objectArray)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M11)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M11}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectArray}.AsImmutableOrNull(),
@@ -1282,7 +1282,7 @@ End Class
 
             'TestClass1.M12(intVal, intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M12(0)), (TestClass1_M12(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M12(0), TestClass1_M12(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -1299,7 +1299,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(1))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M12(0)), (TestClass1_M12(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M12(0), TestClass1_M12(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -1317,7 +1317,7 @@ End Class
 
             'TestClass1.M13(intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M13(0)), (TestClass1_M13(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M13(0), TestClass1_M13(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal}.AsImmutableOrNull(),
@@ -1336,7 +1336,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M13(0)), (TestClass1_M13(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M13(0), TestClass1_M13(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal}.AsImmutableOrNull(),
@@ -1356,7 +1356,7 @@ End Class
 
             'TestClass1.M13(intVal, intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M13(0)), (TestClass1_M13(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M13(0), TestClass1_M13(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -1375,7 +1375,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(1))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M13(0)), (TestClass1_M13(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M13(0), TestClass1_M13(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -1397,7 +1397,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(2))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M13(1)), (TestClass1_M13(0))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M13(1), TestClass1_M13(0)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -1418,7 +1418,7 @@ End Class
 
             'TestClass1.M13(intVal, intVal, intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M13(0)), (TestClass1_M13(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M13(0), TestClass1_M13(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, intVal, intVal}.AsImmutableOrNull(),
@@ -1439,7 +1439,7 @@ End Class
 
             'Derived.M1(intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(derived_M1), (base_M1)}.AsImmutableOrNull(),
+                instanceMethods:={derived_M1, base_M1}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal}.AsImmutableOrNull(),
@@ -1455,7 +1455,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(base_M1), (derived_M1)}.AsImmutableOrNull(),
+                instanceMethods:={base_M1, derived_M1}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal}.AsImmutableOrNull(),
@@ -1472,7 +1472,7 @@ End Class
 
             'Derived.M2(intVal, z:=stringVal) ' Should bind to Base.M2
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(derived_M2), (base_M2)}.AsImmutableOrNull(),
+                instanceMethods:={derived_M2, base_M2}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, stringVal}.AsImmutableOrNull(),
@@ -1490,7 +1490,7 @@ End Class
 
             'Derived.M2(intVal, z:=stringVal) ' Should bind to Base.M2
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(derived_M2), (base_M2)}.AsImmutableOrNull(),
+                instanceMethods:={derived_M2, base_M2}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, stringVal}.AsImmutableOrNull(),
@@ -1508,7 +1508,7 @@ End Class
 
             'derived.M3(intVal, z:=intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(derived_M3), (base_M3)}.AsImmutableOrNull(),
+                instanceMethods:={derived_M3, base_M3}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -1525,7 +1525,7 @@ End Class
             'error BC30272: 'z' is not a parameter of 'Public Shared Overloads Sub M4(u As Integer, [v As Integer = 0], [w As Integer = 0])'.
             'Derived.M4(intVal, z:=intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(derived_M4), (base_M4)}.AsImmutableOrNull(),
+                instanceMethods:={derived_M4, base_M4}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -1541,7 +1541,7 @@ End Class
 
             'derived.M5(a:=objectVal) ' Should bind to Base.M5
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(derived_M5), (base_M5)}.AsImmutableOrNull(),
+                instanceMethods:={derived_M5, base_M5}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal}.AsImmutableOrNull(),
@@ -1561,7 +1561,7 @@ End Class
 
             'derived.M6(a:=objectVal) ' Should bind to Base.M6
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(derived_M6), (base_M6)}.AsImmutableOrNull(),
+                instanceMethods:={derived_M6, base_M6}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal}.AsImmutableOrNull(),
@@ -1581,7 +1581,7 @@ End Class
 
             'derived.M7(objectVal, objectVal) ' Should bind to Base.M7
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(derived_M7), (base_M7)}.AsImmutableOrNull(),
+                instanceMethods:={derived_M7, base_M7}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal, objectVal}.AsImmutableOrNull(),
@@ -1601,7 +1601,7 @@ End Class
 
             'derived.M8(objectVal, objectVal) ' Should bind to Derived.M8
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(derived_M8), (base_M8)}.AsImmutableOrNull(),
+                instanceMethods:={derived_M8, base_M8}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal, objectVal}.AsImmutableOrNull(),
@@ -1621,7 +1621,7 @@ End Class
 
             'Derived.M9(a:=TestClass1Val, b:=1) ' Should bind to Derived.M9
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(derived_M9), (base_M9)}.AsImmutableOrNull(),
+                instanceMethods:={derived_M9, base_M9}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={TestClass1Val, intVal}.AsImmutableOrNull(),
@@ -1640,7 +1640,7 @@ End Class
             'error BC30311: Value of type 'TestClass1' cannot be converted to 'Integer'.
             'Derived.M9(a:=intVal, b:=TestClass1Val)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(derived_M9), (base_M9)}.AsImmutableOrNull(),
+                instanceMethods:={derived_M9, base_M9}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, TestClass1Val}.AsImmutableOrNull(),
@@ -1657,7 +1657,7 @@ End Class
 
             'Derived.M9(Nothing, Nothing) ' Should bind to Derived.M9
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(derived_M9), (base_M9)}.AsImmutableOrNull(),
+                instanceMethods:={derived_M9, base_M9}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={[nothing], [nothing]}.AsImmutableOrNull(),
@@ -1674,7 +1674,7 @@ End Class
 
             ' Calls BaseExt.M
             'b.M10(intVal)
-            Dim base_M10_Candidate = (base_M10.ReduceExtensionMethod(derived, 0))
+            Dim base_M10_Candidate = base_M10.ReduceExtensionMethod(derived, 0)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
                 instanceMethods:=Nothing,
                 extensionMethods:={base_M10_Candidate}.AsImmutableOrNull(),
@@ -1692,7 +1692,7 @@ End Class
 
             ' Calls DerivedExt.M 
             'd.M10(intVal)
-            Dim derived_M10_Candidate = (derived_M10.ReduceExtensionMethod(derived, 0))
+            Dim derived_M10_Candidate = derived_M10.ReduceExtensionMethod(derived, 0)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
                 instanceMethods:=Nothing,
                 extensionMethods:={base_M10_Candidate, derived_M10_Candidate}.AsImmutableOrNull(),
@@ -1726,8 +1726,8 @@ End Class
             ' Calls Ext.M11(derived, ...), because Ext.M11(I1, ...) is hidden since it extends
             ' an interface.
             'd.M11(intVal)
-            Dim derived_M11_Candidate = (derived_M11.ReduceExtensionMethod(derived, 0))
-            Dim i1_M11_Candidate = (ext_M11.ReduceExtensionMethod(derived, 0))
+            Dim derived_M11_Candidate = derived_M11.ReduceExtensionMethod(derived, 0)
+            Dim i1_M11_Candidate = ext_M11.ReduceExtensionMethod(derived, 0)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
                 instanceMethods:=Nothing,
@@ -1761,8 +1761,8 @@ End Class
 
             ' Calls derived.M12 since T.M12 target type is more generic.
             'd.M12(10)
-            Dim derived_M12_Candidate = (derived_M12.ReduceExtensionMethod(derived, 0))
-            Dim ext_M12_Candidate = (ext_M12.ReduceExtensionMethod(derived, 0))
+            Dim derived_M12_Candidate = derived_M12.ReduceExtensionMethod(derived, 0)
+            Dim ext_M12_Candidate = ext_M12.ReduceExtensionMethod(derived, 0)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
                 instanceMethods:=Nothing,
@@ -1812,7 +1812,7 @@ End Class
 
             'tc2.S1(10, 10)    ' Calls S1(U, T)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass2OfInteger_S1(0)), (TestClass2OfInteger_S1(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass2OfInteger_S1(0), TestClass2OfInteger_S1(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:={intVal.Type}.AsImmutableOrNull(),
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -1829,7 +1829,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass2OfInteger_S1(1)), (TestClass2OfInteger_S1(0))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass2OfInteger_S1(1), TestClass2OfInteger_S1(0)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:={intVal.Type}.AsImmutableOrNull(),
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -1846,7 +1846,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(1))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass2OfInteger_S1(1)), (TestClass2OfInteger_S1(0))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass2OfInteger_S1(1), TestClass2OfInteger_S1(0)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:={intVal.Type}.AsImmutableOrNull(),
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -1864,7 +1864,7 @@ End Class
 
             'tc2.S2(10, 10)    ' Calls S2(Integer, T)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass2OfInteger_S2(0)), (TestClass2OfInteger_S2(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass2OfInteger_S2(0), TestClass2OfInteger_S2(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -1881,7 +1881,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass2OfInteger_S2(1)), (TestClass2OfInteger_S2(0))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass2OfInteger_S2(1), TestClass2OfInteger_S2(0)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -1898,7 +1898,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(1))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass2OfInteger_S2(0)), (TestClass2OfInteger_S2(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass2OfInteger_S2(0), TestClass2OfInteger_S2(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -1916,8 +1916,8 @@ End Class
 
             'M13(Of T, U)(x As T, y As U, z As T)
             'intVal.M13(intVal, intVal)
-            Dim ext_M13_0_Candidate = (ext_M13(0).ReduceExtensionMethod(intVal.Type, 0))
-            Dim ext_M13_1_Candidate = (ext_M13(1).ReduceExtensionMethod(intVal.Type, 0))
+            Dim ext_M13_0_Candidate = ext_M13(0).ReduceExtensionMethod(intVal.Type, 0)
+            Dim ext_M13_1_Candidate = ext_M13(1).ReduceExtensionMethod(intVal.Type, 0)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
                 instanceMethods:=Nothing,
@@ -1956,8 +1956,8 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             ' Extension method precedence
-            Dim derived_M11_Candidate_0 = (derived_M11.ReduceExtensionMethod(derived, 0))
-            Dim derived_M11_Candidate_1 = (derived_M11.ReduceExtensionMethod(derived, 1))
+            Dim derived_M11_Candidate_0 = derived_M11.ReduceExtensionMethod(derived, 0)
+            Dim derived_M11_Candidate_1 = derived_M11.ReduceExtensionMethod(derived, 1)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
                 instanceMethods:=Nothing,
@@ -1994,8 +1994,8 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(1))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass2OfInteger_S3(0)),
-                                  (TestClass2OfInteger_S3(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass2OfInteger_S3(0),
+                                  TestClass2OfInteger_S3(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:={intVal.Type}.AsImmutableOrNull(),
                 arguments:={intVal, intVal, intVal, intVal}.AsImmutableOrNull(),
@@ -2015,8 +2015,8 @@ End Class
             'Extension(method) 'Public Sub M14(Of Integer)(y As Integer, z As Integer)' defined in 'Ext1': Not most specific.
             'Extension(method) 'Public Sub M14(Of Integer)(y As Integer, z As Integer)' defined in 'Ext': Not most specific.
             'intVal.M14(intVal, intVal)
-            Dim ext_M14_Candidate = (ext_M14.ReduceExtensionMethod(intVal.Type, 0))
-            Dim ext1_M14_Candidate = (ext1_M14.ReduceExtensionMethod(intVal.Type, 0))
+            Dim ext_M14_Candidate = ext_M14.ReduceExtensionMethod(intVal.Type, 0)
+            Dim ext1_M14_Candidate = ext1_M14.ReduceExtensionMethod(intVal.Type, 0)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
                 instanceMethods:=Nothing,
@@ -2041,8 +2041,8 @@ End Class
             'Public Sub S4(Of Integer)(x As Integer, y() As Integer, z As TestClass2(Of Integer), v As Integer)': Not most specific.
             'tc2.S4(intVal, Nothing, Nothing, intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass2OfInteger_S4(0)),
-                                  (TestClass2OfInteger_S4(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass2OfInteger_S4(0),
+                                  TestClass2OfInteger_S4(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:={intVal.Type}.AsImmutableOrNull(),
                 arguments:={intVal, [nothing], [nothing], intVal}.AsImmutableOrNull(),
@@ -2063,9 +2063,9 @@ End Class
             'Public Sub S5(x As Integer, y As TestClass2(Of Integer))': Not most specific.
             'tc2.S5(intVal, Nothing)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass2OfInteger_S5(0)),
-                                  (TestClass2OfInteger_S5(1)),
-                                  (TestClass2OfInteger_S5(2))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass2OfInteger_S5(0),
+                                  TestClass2OfInteger_S5(1),
+                                  TestClass2OfInteger_S5(2)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, [nothing]}.AsImmutableOrNull(),
@@ -2084,9 +2084,9 @@ End Class
             Assert.False(result.BestResult.HasValue)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass2OfInteger_S5(0)),
-                                  (TestClass2OfInteger_S5(1)),
-                                  (TestClass2OfInteger_S5(2))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass2OfInteger_S5(0),
+                                  TestClass2OfInteger_S5(1),
+                                  TestClass2OfInteger_S5(2)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, [nothing]}.AsImmutableOrNull(),
@@ -2105,7 +2105,7 @@ End Class
             Assert.False(result.BestResult.HasValue)
 
             'intVal.M15(intVal, intVal)
-            Dim ext_M15_Candidate = (ext_M15.ReduceExtensionMethod(intVal.Type, 0))
+            Dim ext_M15_Candidate = ext_M15.ReduceExtensionMethod(intVal.Type, 0)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
                 instanceMethods:=Nothing,
@@ -2126,8 +2126,8 @@ End Class
             'S6(x As T, ParamArray y As Integer())
             'tc2.S6(intVal, intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass2OfInteger_S6(0)),
-                                  (TestClass2OfInteger_S6(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass2OfInteger_S6(0),
+                                  TestClass2OfInteger_S6(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -2154,7 +2154,7 @@ End Class
             'M14(a As Integer)
             'TestClass1.M14(shortVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M14(0)), (TestClass1_M14(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M14(0), TestClass1_M14(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={shortVal}.AsImmutableOrNull(),
@@ -2171,7 +2171,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M14(1)), (TestClass1_M14(0))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M14(1), TestClass1_M14(0)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={shortVal}.AsImmutableOrNull(),
@@ -2190,7 +2190,7 @@ End Class
             'M15(a As Integer)
             'TestClass1.M15(0)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M15(0)), (TestClass1_M15(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M15(0), TestClass1_M15(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intZero}.AsImmutableOrNull(),
@@ -2207,7 +2207,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M15(1)), (TestClass1_M15(0))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M15(1), TestClass1_M15(0)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intZero}.AsImmutableOrNull(),
@@ -2226,7 +2226,7 @@ End Class
             'M16(a As Short)
             'TestClass1.M16(0L)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M16(0)), (TestClass1_M16(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M16(0), TestClass1_M16(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={longZero}.AsImmutableOrNull(),
@@ -2251,7 +2251,7 @@ End Class
             'Public Shared Sub M16(a As System.TypeCode)': Argument matching parameter 'a' narrows from 'Long' to 'System.TypeCode'.
             'Public Shared Sub M16(a As Short)': Argument matching parameter 'a' narrows from 'Long' to 'Short'.
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M16(0)), (TestClass1_M16(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M16(0), TestClass1_M16(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={longZero}.AsImmutableOrNull(),
@@ -2272,7 +2272,7 @@ End Class
             Assert.False(result.BestResult.HasValue)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M16(1)), (TestClass1_M16(0))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M16(1), TestClass1_M16(0)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={longZero}.AsImmutableOrNull(),
@@ -2295,7 +2295,7 @@ End Class
             'M16(a As System.TypeCode)
             'TestClass1.M16(0)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M16(0)), (TestClass1_M16(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M16(0), TestClass1_M16(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intZero}.AsImmutableOrNull(),
@@ -2312,7 +2312,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(1))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M16(1)), (TestClass1_M16(0))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M16(1), TestClass1_M16(0)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intZero}.AsImmutableOrNull(),
@@ -2332,7 +2332,7 @@ End Class
             'Byte
             'TestClass1.M17(Nothing)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M17(0)), (TestClass1_M17(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M17(0), TestClass1_M17(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={[nothing]}.AsImmutableOrNull(),
@@ -2349,7 +2349,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M17(1)), (TestClass1_M17(0))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M17(1), TestClass1_M17(0)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={[nothing]}.AsImmutableOrNull(),
@@ -2368,7 +2368,7 @@ End Class
             'Short
             'TestClass1.M18(Nothing)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M18(0)), (TestClass1_M18(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M18(0), TestClass1_M18(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={[nothing]}.AsImmutableOrNull(),
@@ -2385,7 +2385,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M18(1)), (TestClass1_M18(0))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M18(1), TestClass1_M18(0)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={[nothing]}.AsImmutableOrNull(),
@@ -2404,7 +2404,7 @@ End Class
             'Integer
             'TestClass1.M19(Nothing)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M19(0)), (TestClass1_M19(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M19(0), TestClass1_M19(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={[nothing]}.AsImmutableOrNull(),
@@ -2421,7 +2421,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M19(1)), (TestClass1_M19(0))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M19(1), TestClass1_M19(0)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={[nothing]}.AsImmutableOrNull(),
@@ -2440,7 +2440,7 @@ End Class
             'Long
             'TestClass1.M20(Nothing)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M20(0)), (TestClass1_M20(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M20(0), TestClass1_M20(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={[nothing]}.AsImmutableOrNull(),
@@ -2457,7 +2457,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M20(1)), (TestClass1_M20(0))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M20(1), TestClass1_M20(0)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={[nothing]}.AsImmutableOrNull(),
@@ -2476,7 +2476,7 @@ End Class
             'Integer
             'TestClass1.M21(ushortVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M21(0)), (TestClass1_M21(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M21(0), TestClass1_M21(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={ushortVal}.AsImmutableOrNull(),
@@ -2493,7 +2493,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M21(1)), (TestClass1_M21(0))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M21(1), TestClass1_M21(0)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={ushortVal}.AsImmutableOrNull(),
@@ -2525,7 +2525,7 @@ End Class
             'Public Shared Sub M22(a As Byte, b As ULong)': Not most specific.
             'TestClass1.M22(Nothing, Nothing)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M22(0)), (TestClass1_M22(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M22(0), TestClass1_M22(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={[nothing], [nothing]}.AsImmutableOrNull(),
@@ -2542,7 +2542,7 @@ End Class
             Assert.False(result.BestResult.HasValue)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M22(1)), (TestClass1_M22(0))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M22(1), TestClass1_M22(0)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={[nothing], [nothing]}.AsImmutableOrNull(),
@@ -2561,7 +2561,7 @@ End Class
             'M23(a As Long)
             'TestClass1.M23(intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M23(0)), (TestClass1_M23(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M23(0), TestClass1_M23(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal}.AsImmutableOrNull(),
@@ -2578,7 +2578,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M23(0)), (TestClass1_M23(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M23(0), TestClass1_M23(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal}.AsImmutableOrNull(),
@@ -2599,7 +2599,7 @@ End Class
             'Option strict OFF: late call
             'TestClass1.M23(objectVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M23(0)), (TestClass1_M23(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M23(0), TestClass1_M23(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal}.AsImmutableOrNull(),
@@ -2622,7 +2622,7 @@ End Class
             'Public Shared Sub M23(a As Long)': Option Strict On disallows implicit conversions from 'Object' to 'Long'.
             'TestClass1.M23(objectVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M23(0)), (TestClass1_M23(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M23(0), TestClass1_M23(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal}.AsImmutableOrNull(),
@@ -2640,7 +2640,7 @@ End Class
             Assert.False(result.BestResult.HasValue)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M23(0)), (TestClass1_M23(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M23(0), TestClass1_M23(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal}.AsImmutableOrNull(),
@@ -2661,7 +2661,7 @@ End Class
             'warning BC42016: Implicit conversion from 'Object' to 'Short'.
             'TestClass1.M24(objectVal, intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M24(0)), (TestClass1_M24(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M24(0), TestClass1_M24(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal, intVal}.AsImmutableOrNull(),
@@ -2686,7 +2686,7 @@ End Class
             'Public Shared Sub M24(a As Long, b As Short)': Option Strict On disallows implicit conversions from 'Integer' to 'Short'.
             'TestClass1.M24(objectVal, intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M24(0)), (TestClass1_M24(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M24(0), TestClass1_M24(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal, intVal}.AsImmutableOrNull(),
@@ -2704,7 +2704,7 @@ End Class
             Assert.False(result.BestResult.HasValue)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M24(0)), (TestClass1_M24(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M24(0), TestClass1_M24(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={objectVal, intVal}.AsImmutableOrNull(),
@@ -2724,9 +2724,9 @@ End Class
             'M25(a As SByte)
             'TestClass1.M25(-1L)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M25(0)),
-                                  (TestClass1_M25(1)),
-                                  (TestClass1_M25(2))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M25(0),
+                                  TestClass1_M25(1),
+                                  TestClass1_M25(2)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={longConst}.AsImmutableOrNull(),
@@ -2746,9 +2746,9 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(2))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M25(2)),
-                                  (TestClass1_M25(0)),
-                                  (TestClass1_M25(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M25(2),
+                                  TestClass1_M25(0),
+                                  TestClass1_M25(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={longConst}.AsImmutableOrNull(),
@@ -2768,9 +2768,9 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M25(1)),
-                                  (TestClass1_M25(2)),
-                                  (TestClass1_M25(0))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M25(1),
+                                  TestClass1_M25(2),
+                                  TestClass1_M25(0)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={longConst}.AsImmutableOrNull(),
@@ -2794,8 +2794,8 @@ End Class
             'Public Shared Sub M26(a As Short, b As Integer)': Option Strict On disallows implicit conversions from 'Double' to 'Integer'.
             'TestClass1.M26(-1L, doubleVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M26(0)),
-                                  (TestClass1_M26(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M26(0),
+                                  TestClass1_M26(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={longConst, doubleVal}.AsImmutableOrNull(),
@@ -2813,8 +2813,8 @@ End Class
             Assert.False(result.BestResult.HasValue)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M26(1)),
-                                  (TestClass1_M26(0))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M26(1),
+                                  TestClass1_M26(0)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={longConst, doubleVal}.AsImmutableOrNull(),
@@ -2834,7 +2834,7 @@ End Class
             'error BC30512: Option Strict On disallows implicit conversions from 'Integer' to 'Short'.
             'TestClass1.M27(intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M27)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M27}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal}.AsImmutableOrNull(),
@@ -2850,7 +2850,7 @@ End Class
             Assert.Equal(result.BestResult.Value, result.Candidates(0))
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M27)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M27}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal}.AsImmutableOrNull(),
@@ -2868,7 +2868,7 @@ End Class
             'Sub M14(a As Long)
             'TestClass1.M14(0L)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M14(0)), (TestClass1_M14(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M14(0), TestClass1_M14(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={longZero}.AsImmutableOrNull(),
@@ -2894,7 +2894,7 @@ End Class
             'error BC30439: Constant expression not representable in type 'Short'.
             'TestClass1.M27(Integer.MaxValue)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M27)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M27}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={IntegerMaxValue}.AsImmutableOrNull(),
@@ -2911,7 +2911,7 @@ End Class
             'error BC30439: Constant expression not representable in type 'Short'.
             'TestClass1.M27(Double.MaxValue)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M27)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M27}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={DoubleMaxValue}.AsImmutableOrNull(),
@@ -2930,8 +2930,8 @@ End Class
             'Public Shared Sub M26(a As Short, b As Integer)': Argument matching parameter 'a' narrows from 'Integer' to 'Short'.
             'TestClass1.M26(intVal, intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M26(0)),
-                                  (TestClass1_M26(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M26(0),
+                                  TestClass1_M26(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={intVal, intVal}.AsImmutableOrNull(),
@@ -2951,8 +2951,8 @@ End Class
             'Overflow On - Sub M26(a As Integer, b As Short)
             'TestClass1.M26(Integer.MaxValue, intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M26(0)),
-                                  (TestClass1_M26(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M26(0),
+                                  TestClass1_M26(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={IntegerMaxValue, intVal}.AsImmutableOrNull(),
@@ -2973,9 +2973,9 @@ End Class
             'error BC30521: Overload resolution failed because no accessible 'g' is most specific for these arguments
             'TestClass1.g(1UI)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_g(0)),
-                                  (TestClass1_g(1)),
-                                  (TestClass1_g(2))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_g(0),
+                                  TestClass1_g(1),
+                                  TestClass1_g(2)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={unsignedOne}.AsImmutableOrNull(),
@@ -2996,10 +2996,10 @@ End Class
 
             'Should bind to extension method
             'TestClass1Val.SM(x:=intVal, y:=objectVal)
-            Dim ext_SM_Candidate = (ext_SM.ReduceExtensionMethod(TestClass1Val.Type, 0))
+            Dim ext_SM_Candidate = ext_SM.ReduceExtensionMethod(TestClass1Val.Type, 0)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_SM)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_SM}.AsImmutableOrNull(),
                 extensionMethods:={ext_SM_Candidate}.AsImmutableOrNull(),
                 typeArguments:=Nothing,
                 arguments:={intVal, objectVal}.AsImmutableOrNull(),
@@ -3020,11 +3020,11 @@ End Class
             'Extension(method) 'Public Sub SM1(y As Object, x As Short)' defined in 'Ext': Argument matching parameter 'x' narrows from 'Integer' to 'Short'.
             'Extension(method) 'Public Sub SM1(y As Double, x As Integer)' defined in 'Ext': Argument matching parameter 'y' narrows from 'Object' to 'Double'.
             'TestClass1Val.SM1(x:=intVal, y:=objectVal)
-            Dim ext_SM1_0_Candidate = (ext_SM1(0).ReduceExtensionMethod(TestClass1Val.Type, 0))
-            Dim ext_SM1_1_Candidate = (ext_SM1(1).ReduceExtensionMethod(TestClass1Val.Type, 0))
+            Dim ext_SM1_0_Candidate = ext_SM1(0).ReduceExtensionMethod(TestClass1Val.Type, 0)
+            Dim ext_SM1_1_Candidate = ext_SM1(1).ReduceExtensionMethod(TestClass1Val.Type, 0)
 
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_SM1)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_SM1}.AsImmutableOrNull(),
                 extensionMethods:={ext_SM1_0_Candidate, ext_SM1_1_Candidate}.AsImmutableOrNull(),
                 typeArguments:=Nothing,
                 arguments:={intVal, objectVal}.AsImmutableOrNull(),
@@ -3088,7 +3088,7 @@ End Class
             'Overflow Off
             'TestClass1.M27(Integer.MaxValue)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M27)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M27}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={IntegerMaxValue}.AsImmutableOrNull(),
@@ -3106,7 +3106,7 @@ End Class
             'error BC30439: Constant expression not representable in type 'Short'.
             'TestClass1.M27(Double.MaxValue)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M27)}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M27}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={DoubleMaxValue}.AsImmutableOrNull(),
@@ -3126,8 +3126,8 @@ End Class
             'Public Shared Sub M26(a As Short, b As Integer)': Argument matching parameter 'a' narrows from 'Integer' to 'Short'.
             'TestClass1.M26(Integer.MaxValue, intVal)
             result = ResolveMethodOverloading(includeEliminatedCandidates:=True,
-                instanceMethods:={(TestClass1_M26(0)),
-                                  (TestClass1_M26(1))}.AsImmutableOrNull(),
+                instanceMethods:={TestClass1_M26(0),
+                                  TestClass1_M26(1)}.AsImmutableOrNull(),
                 extensionMethods:=Nothing,
                 typeArguments:=Nothing,
                 arguments:={IntegerMaxValue, intVal}.AsImmutableOrNull(),

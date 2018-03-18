@@ -182,7 +182,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Me.F.Field(Me.F.Me(), Me.StateField, True),
                         Me.F.AssignmentExpression(Me.F.Local(Me.CachedState, True), Me.F.Literal(StateMachineStates.FinishedStateMachine)))
                 Dim block As MethodBlockSyntax = TryCast(body.Syntax, MethodBlockSyntax)
-                If (block Is Nothing) Then
+                If block Is Nothing Then
                     bodyBuilder.Add(stateDone)
                 Else
                     bodyBuilder.Add(Me.F.SequencePointWithSpan(block, block.EndBlockStatement.Span, stateDone))

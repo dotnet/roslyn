@@ -1360,17 +1360,17 @@ End Module
             End If
             Dim conv = model.ClassifyConversion(expression, semanticInfo.ConvertedType)
 
-            If (conv.Kind = ConversionKind.Identity) Then
+            If conv.Kind = ConversionKind.Identity Then
                 Assert.True(conv.Exists)
                 Assert.True(conv.IsIdentity)
             End If
 
-            If (semanticInfo.Type IsNot Nothing AndAlso
+            If semanticInfo.Type IsNot Nothing AndAlso
                 semanticInfo.ConvertedType IsNot Nothing AndAlso
                 semanticInfo.Type.ToDisplayString() <> "?" AndAlso
                 semanticInfo.Type.ToDisplayString() <> "Void" AndAlso
                 semanticInfo.ConvertedType.ToDisplayString() <> "?" AndAlso
-                semanticInfo.ConvertedType.ToDisplayString() <> "Void") Then
+                semanticInfo.ConvertedType.ToDisplayString() <> "Void" Then
                 Assert.Equal(conv.Kind, semanticInfo.ImplicitConversion.Kind)
             End If
 
@@ -1409,7 +1409,7 @@ End Module
             'Assert.Null(foreachStatementInfo.DisposeMethod)
             'Assert.Null(foreachStatementInfo.GetEnumeratorMethod)
             'Assert.Null(foreachStatementInfo.MoveNextMethod)
-            Return (foreachStatementInfo)
+            Return foreachStatementInfo
         End Function
 
         'Private Function GetVariableDeclarator(compilation As VisualBasicCompilation, index As Integer) As VariableDeclaratorSyntax

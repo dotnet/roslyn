@@ -235,7 +235,7 @@ lNotAndMinus:
         ''' Get the name of the expression tree function for a particular unary operator
         ''' </summary>
         Private Shared Function GetUnaryOperatorMethodName(opKind As UnaryOperatorKind, isChecked As Boolean) As String
-            Select Case (opKind And UnaryOperatorKind.OpMask)
+            Select Case opKind And UnaryOperatorKind.OpMask
                 Case UnaryOperatorKind.Not
                     Return "Not"
                 Case UnaryOperatorKind.Plus

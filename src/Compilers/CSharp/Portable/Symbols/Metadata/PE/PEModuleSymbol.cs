@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         internal void OnNewTypeDeclarationsLoaded(
             Dictionary<string, ImmutableArray<PENamedTypeSymbol>> typesDict)
         {
-            bool keepLookingForDeclaredCorTypes = (_ordinal == 0 && _assemblySymbol.KeepLookingForDeclaredSpecialTypes);
+            bool keepLookingForDeclaredCorTypes = _ordinal == 0 && _assemblySymbol.KeepLookingForDeclaredSpecialTypes;
 
             foreach (var types in typesDict.Values)
             {

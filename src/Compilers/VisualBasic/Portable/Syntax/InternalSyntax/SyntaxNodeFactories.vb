@@ -39,9 +39,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Dim useIntegerType As Boolean = False
 
                     If base = LiteralBase.Decimal Then
-                        useIntegerType = (value <= Integer.MaxValue)
+                        useIntegerType = value <= Integer.MaxValue
                     Else
-                        useIntegerType = ((value And (Not &HFFFFFFFFUL)) = 0)
+                        useIntegerType = (value And (Not &HFFFFFFFFUL)) = 0
                     End If
 
                     If useIntegerType Then

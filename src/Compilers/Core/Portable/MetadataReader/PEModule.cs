@@ -1656,7 +1656,7 @@ namespace Microsoft.CodeAnalysis
                     var boolArray = new bool[arrayLen];
                     for (int i = 0; i < arrayLen; i++)
                     {
-                        boolArray[i] = (sig.ReadByte() == 1);
+                        boolArray[i] = sig.ReadByte() == 1;
                     }
 
                     value = boolArray.AsImmutableOrNull();

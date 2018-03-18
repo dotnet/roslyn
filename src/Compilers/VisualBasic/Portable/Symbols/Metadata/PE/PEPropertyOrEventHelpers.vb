@@ -48,16 +48,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ' restrictive level that is no more restrictive than the getter/adder and setter/remover.
         Friend Shared Function GetDeclaredAccessibilityFromAccessors(accessor1 As MethodSymbol, accessor2 As MethodSymbol) As Accessibility
             If accessor1 Is Nothing Then
-                Return If((accessor2 Is Nothing), Accessibility.NotApplicable, accessor2.DeclaredAccessibility)
+                Return If(accessor2 Is Nothing, Accessibility.NotApplicable, accessor2.DeclaredAccessibility)
             ElseIf accessor2 Is Nothing Then
                 Return accessor1.DeclaredAccessibility
             End If
 
             Dim accessibility1 = accessor1.DeclaredAccessibility
             Dim accessibility2 = accessor2.DeclaredAccessibility
-            Dim minAccessibility = If((accessibility1 > accessibility2), accessibility2, accessibility1)
-            Dim maxAccessibility = If((accessibility1 > accessibility2), accessibility1, accessibility2)
-            Return If(((minAccessibility = Accessibility.[Protected]) AndAlso (maxAccessibility = Accessibility.Friend)), Accessibility.ProtectedOrFriend, maxAccessibility)
+            Dim minAccessibility = If(accessibility1 > accessibility2, accessibility2, accessibility1)
+            Dim maxAccessibility = If(accessibility1 > accessibility2, accessibility1, accessibility2)
+            Return If((minAccessibility = Accessibility.[Protected]) AndAlso (maxAccessibility = Accessibility.Friend), Accessibility.ProtectedOrFriend, maxAccessibility)
         End Function
 
     End Class

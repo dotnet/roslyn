@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis
                     case WellKnownType.ExtSentinel:
                         typeIdName = "";
                         continue;
-                    case (WellKnownType.NextAvailable - 1):
+                    case WellKnownType.NextAvailable - 1:
                         typeIdName = "Microsoft.CodeAnalysis.Runtime.Instrumentation";
                         continue;
                     default:

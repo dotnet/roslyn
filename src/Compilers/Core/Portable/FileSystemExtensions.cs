@@ -42,9 +42,9 @@ namespace Microsoft.CodeAnalysis
             }
 
             using (var outputStream = FileUtilities.CreateFileStreamChecked(File.Create, outputPath, nameof(outputPath)))
-            using (var pdbStream = (pdbPath == null ? null : FileUtilities.CreateFileStreamChecked(File.Create, pdbPath, nameof(pdbPath))))
-            using (var xmlDocStream = (xmlDocPath == null ? null : FileUtilities.CreateFileStreamChecked(File.Create, xmlDocPath, nameof(xmlDocPath))))
-            using (var win32ResourcesStream = (win32ResourcesPath == null ? null : FileUtilities.CreateFileStreamChecked(File.OpenRead, win32ResourcesPath, nameof(win32ResourcesPath))))
+            using (var pdbStream = pdbPath == null ? null : FileUtilities.CreateFileStreamChecked(File.Create, pdbPath, nameof(pdbPath)))
+            using (var xmlDocStream = xmlDocPath == null ? null : FileUtilities.CreateFileStreamChecked(File.Create, xmlDocPath, nameof(xmlDocPath)))
+            using (var win32ResourcesStream = win32ResourcesPath == null ? null : FileUtilities.CreateFileStreamChecked(File.OpenRead, win32ResourcesPath, nameof(win32ResourcesPath)))
             {
                 return compilation.Emit(
                     outputStream,

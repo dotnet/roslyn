@@ -434,10 +434,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case symbol.Kind
                 Case SymbolKind.Field
                     code = ERRID.WRN_FieldNotCLSCompliant1
-                    type = (DirectCast(symbol, FieldSymbol)).Type
+                    type = DirectCast(symbol, FieldSymbol).Type
                 Case SymbolKind.Property
                     code = ERRID.WRN_ProcTypeNotCLSCompliant1
-                    type = (DirectCast(symbol, PropertySymbol)).Type
+                    type = DirectCast(symbol, PropertySymbol).Type
                 Case SymbolKind.Method
                     code = ERRID.WRN_ProcTypeNotCLSCompliant1
                     Dim method As MethodSymbol = DirectCast(symbol, MethodSymbol)
@@ -608,7 +608,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub ReportNonCompliantTypeArguments(type As TypeSymbol, context As NamedTypeSymbol, diagnosticSymbol As Symbol)
             Select Case type.TypeKind
                 Case TypeKind.Array
-                    ReportNonCompliantTypeArguments((DirectCast(type, ArrayTypeSymbol)).ElementType, context, diagnosticSymbol)
+                    ReportNonCompliantTypeArguments(DirectCast(type, ArrayTypeSymbol).ElementType, context, diagnosticSymbol)
                 Case TypeKind.Error, TypeKind.TypeParameter
                     Return
                 Case TypeKind.Class, TypeKind.Structure, TypeKind.Interface, TypeKind.Delegate, TypeKind.Enum, TypeKind.Submission, TypeKind.Module
@@ -634,7 +634,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Function IsCompliantType(type As TypeSymbol, context As NamedTypeSymbol) As Boolean
             Select Case type.TypeKind
                 Case TypeKind.Array
-                    Return IsCompliantType((DirectCast(type, ArrayTypeSymbol)).ElementType, context)
+                    Return IsCompliantType(DirectCast(type, ArrayTypeSymbol).ElementType, context)
                 Case TypeKind.Error, TypeKind.TypeParameter
                     Return True
                 Case TypeKind.Class, TypeKind.Structure, TypeKind.Interface, TypeKind.Delegate, TypeKind.Enum, TypeKind.Submission, TypeKind.Module
@@ -711,7 +711,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 compliance = If(IsTrue(GetInheritedCompliance(symbol)), Compliance.InheritedTrue, Compliance.InheritedFalse)
             End If
 
-            Select Case (symbol.Kind)
+            Select Case symbol.Kind
                 Case SymbolKind.Assembly, SymbolKind.NetModule, SymbolKind.NamedType
                     Return Me._declaredOrInheritedCompliance.GetOrAdd(symbol, compliance)
                 Case Else
@@ -866,7 +866,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         Private Shared Function IsImplicitClass(symbol As Symbol) As Boolean
-            Return symbol.Kind = SymbolKind.NamedType AndAlso (DirectCast(symbol, NamedTypeSymbol)).IsImplicitClass
+            Return symbol.Kind = SymbolKind.NamedType AndAlso DirectCast(symbol, NamedTypeSymbol).IsImplicitClass
         End Function
 
         Private Shared Function IsTrue(compliance As Compliance) As Boolean
@@ -953,7 +953,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Function GetParameterTypes(symbol As Symbol) As ImmutableArray(Of TypeSymbol)
             Dim parameters As ImmutableArray(Of ParameterSymbol)
-            Select Case (symbol.Kind)
+            Select Case symbol.Kind
                 Case SymbolKind.Method
                     parameters = DirectCast(symbol, MethodSymbol).Parameters
                 Case SymbolKind.Property
@@ -975,7 +975,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Shared Function GetParameterRefKinds(symbol As Symbol) As ImmutableArray(Of RefKind)
             Dim parameters As ImmutableArray(Of ParameterSymbol)
-            Select Case (symbol.Kind)
+            Select Case symbol.Kind
                 Case SymbolKind.Method
                     parameters = DirectCast(symbol, MethodSymbol).Parameters
                 Case SymbolKind.Property

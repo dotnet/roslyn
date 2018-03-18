@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Shared Sub GrowPool(count As Integer)
             Dim initialPool = s_parameterPool
             While count > initialPool.Length
-                Dim newPoolSize = ((count + &HF) And Not &HF)
+                Dim newPoolSize = (count + &HF) And Not &HF
                 Dim newPool = New TypeParameterSymbol(0 To newPoolSize - 1) {}
 
                 Array.Copy(initialPool, newPool, initialPool.Length)

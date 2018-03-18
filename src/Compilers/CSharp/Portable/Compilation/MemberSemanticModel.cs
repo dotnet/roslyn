@@ -1578,7 +1578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     result = GetLambdaEnclosingBinder(position, node, innerLambdaOrQuery, ((BoundLambda)boundInnerLambdaOrQuery).Binder);
                     break;
                 case BoundKind.QueryClause:
-                    result = GetQueryEnclosingBinder(position, node, ((BoundQueryClause)boundInnerLambdaOrQuery));
+                    result = GetQueryEnclosingBinder(position, node, (BoundQueryClause)boundInnerLambdaOrQuery);
                     break;
                 default:
                     return GetEnclosingBinderInternalWithinRoot(node, position); // Known to return non-null with BinderFlags.SemanticModel.

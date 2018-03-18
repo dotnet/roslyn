@@ -161,9 +161,9 @@ namespace C.B
 
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
-            var classY = ((root.
+            var classY = (root.
                 Members[1] as NamespaceDeclarationSyntax).
-                Members[0] as TypeDeclarationSyntax);
+                Members[0] as TypeDeclarationSyntax;
 
             var model = compilation.GetSemanticModel(tree);
 
@@ -202,9 +202,9 @@ namespace C<int>.B
 
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
-            var classY = ((root.
+            var classY = (root.
                 Members[0] as NamespaceDeclarationSyntax).
-                Members[0] as TypeDeclarationSyntax);
+                Members[0] as TypeDeclarationSyntax;
 
             var model = compilation.GetSemanticModel(tree);
 
@@ -225,9 +225,9 @@ namespace alias::C<int>.B
 
             var tree = compilation.SyntaxTrees[0];
             var root = tree.GetCompilationUnitRoot();
-            var classY = ((root.
+            var classY = (root.
                 Members[0] as NamespaceDeclarationSyntax).
-                Members[0] as TypeDeclarationSyntax);
+                Members[0] as TypeDeclarationSyntax;
 
             var model = compilation.GetSemanticModel(tree);
 
@@ -830,7 +830,7 @@ class C
 delegate D(int x);
 ");
             var tree = compilation.SyntaxTrees[0];
-            var delegateDecl = (DelegateDeclarationSyntax)(tree.GetCompilationUnitRoot().Members[0]);
+            var delegateDecl = (DelegateDeclarationSyntax)tree.GetCompilationUnitRoot().Members[0];
 
             var model = compilation.GetSemanticModel(tree);
             var symbol = model.GetDeclaredSymbol(delegateDecl.ParameterList.Parameters[0]);
@@ -1624,10 +1624,10 @@ interface IB<T3, T4>
             var someMemberInC = (MemberDeclarationSyntax)typeDeclC.Members[0];
             int position = someMemberInC.SpanStart;
 
-            var symbols = model.LookupSymbols(position).Where(s => !s.IsStatic && !((s is TypeSymbol)));
+            var symbols = model.LookupSymbols(position).Where(s => !s.IsStatic && !(s is TypeSymbol));
             Assert.Equal(9, symbols.Count());  // A.X, B.Y, C.Z, Object.ToString, Object.Equals, Object.Finalize, Object.GetHashCode, Object.GetType, Object.MemberwiseClone
 
-            var symbols2 = model.LookupSymbols(position, container: symbolC).Where(s => !s.IsStatic && !((s is TypeSymbol)));
+            var symbols2 = model.LookupSymbols(position, container: symbolC).Where(s => !s.IsStatic && !(s is TypeSymbol));
             Assert.Equal(9, symbols2.Count());  // A.X, B.Y, C.Z, Object.ToString, Object.Equals, Object.Finalize, Object.GetHashCode, Object.GetType, Object.MemberwiseClone
         }
 
@@ -2779,7 +2779,7 @@ namespace NS {
             var n1 = globalNS.GetMembers("NS").First() as NamespaceSymbol;
             var typeB = n1.GetTypeMembers("B").First() as NamedTypeSymbol;
             Assert.Equal(2, root.Members.Count);
-            var nsSyntax = (root.Members[1] as NamespaceDeclarationSyntax);
+            var nsSyntax = root.Members[1] as NamespaceDeclarationSyntax;
             Assert.Equal(1, nsSyntax.Members.Count);
             var classB = model.GetDeclaredSymbol(nsSyntax.Members[0] as TypeDeclarationSyntax);
             // Reference equal
@@ -2901,10 +2901,10 @@ namespace N1 {
             var n2 = n1.GetMembers().First() as NamespaceSymbol;
             var n3 = n2.GetMembers().First() as NamespaceSymbol;
 
-            var nsSyntax = (root.Members[0] as NamespaceDeclarationSyntax);
+            var nsSyntax = root.Members[0] as NamespaceDeclarationSyntax;
             var dn1 = model.GetDeclaredSymbol(nsSyntax);
 
-            var nsSyntax23 = (nsSyntax.Members[0] as NamespaceDeclarationSyntax);
+            var nsSyntax23 = nsSyntax.Members[0] as NamespaceDeclarationSyntax;
             var dn23 = model.GetDeclaredSymbol(nsSyntax23);
 
             // Reference equal
@@ -2928,7 +2928,7 @@ class Test { }
 
             var compSym = compilation.GlobalNamespace.GetMembers("System").First() as NamespaceSymbol;
 
-            var nsSyntax = (root.Members[0] as NamespaceDeclarationSyntax);
+            var nsSyntax = root.Members[0] as NamespaceDeclarationSyntax;
             var declsym = model.GetDeclaredSymbol(nsSyntax);
             // Reference equal
             Assert.Equal(compSym, declsym);
@@ -2962,7 +2962,7 @@ class CGoo
 
             var sym1 = globalNS.GetMembers("CGoo").First() as NamedTypeSymbol;
             var mems = sym1.GetMembers("M");
-            var node1 = (root.Members[0] as TypeDeclarationSyntax);
+            var node1 = root.Members[0] as TypeDeclarationSyntax;
 
             var dsyma1 = model.GetDeclaredSymbol(node1.Members[0] as MethodDeclarationSyntax);
             var dsyma2 = model.GetDeclaredSymbol(node1.Members[1]);
@@ -2970,12 +2970,12 @@ class CGoo
             Assert.NotEqual(dsyma1, dsyma2);
             // for CC?
             var sym2 = sym1.GetMembers("IGoo").First() as NamedTypeSymbol;
-            var node2 = (node1.Members[2] as TypeDeclarationSyntax);
+            var node2 = node1.Members[2] as TypeDeclarationSyntax;
             var dsym2 = model.GetDeclaredSymbol(node2);
             Assert.Equal(TypeKind.Interface, dsym2.TypeKind);
 
             var sym3 = sym1.GetMembers("SGoo").First() as NamedTypeSymbol;
-            var node3 = (node1.Members[3] as TypeDeclarationSyntax);
+            var node3 = node1.Members[3] as TypeDeclarationSyntax;
             // CC?
             var dsym3 = model.GetDeclaredSymbol(node3);
             Assert.Equal(TypeKind.Struct, dsym3.TypeKind);
@@ -3010,7 +3010,7 @@ namespace NS
             var ns1 = globalNS.GetMembers("NS").Single() as NamespaceSymbol;
             var srcSym = ns1.GetMembers("A").Single() as NamedTypeSymbol;
 
-            var nsSyntax = (root.Members[0] as NamespaceDeclarationSyntax);
+            var nsSyntax = root.Members[0] as NamespaceDeclarationSyntax;
             var declSym = model.GetDeclaredSymbol(nsSyntax.Members[0] as TypeDeclarationSyntax);
 
             Assert.Equal(srcSym, declSym);
@@ -3038,7 +3038,7 @@ namespace NS
             var mems = ns1.GetMembers("Test");
             Assert.Equal(1, mems.Length);
 
-            var nsSyntax = (root.Members[0] as NamespaceDeclarationSyntax);
+            var nsSyntax = root.Members[0] as NamespaceDeclarationSyntax;
             var dsym1 = model.GetDeclaredSymbol(nsSyntax.Members[0] as TypeDeclarationSyntax);
             var dsym2 = model.GetDeclaredSymbol(nsSyntax.Members[1] as TypeDeclarationSyntax);
 
@@ -3067,7 +3067,7 @@ namespace NS {
             var ns1 = globalNS.GetMembers("NS").Single() as NamespaceSymbol;
             var typeA = ns1.GetTypeMembers("A").First() as NamedTypeSymbol;
 
-            var nsSyntax = (root.Members[1] as NamespaceDeclarationSyntax);
+            var nsSyntax = root.Members[1] as NamespaceDeclarationSyntax;
             var dsym1 = model.GetDeclaredSymbol(nsSyntax.Members[0] as TypeDeclarationSyntax);
 
             Assert.Equal(typeA, dsym1);
@@ -3103,8 +3103,8 @@ namespace NS1 {
             var ns1 = nsg.GetMembers("NS1").Single() as NamespaceSymbol;
             var ns2 = ns1.GetMembers("NS2").Single() as NamespaceSymbol;
 
-            var nsSyntax1 = (root.Members[0] as NamespaceDeclarationSyntax);
-            var nsSyntax2 = (nsSyntax1.Members[0] as NamespaceDeclarationSyntax);
+            var nsSyntax1 = root.Members[0] as NamespaceDeclarationSyntax;
+            var nsSyntax2 = nsSyntax1.Members[0] as NamespaceDeclarationSyntax;
             var dsym1 = model.GetDeclaredSymbol(nsSyntax1);
             var dsym2 = model.GetDeclaredSymbol(nsSyntax2);
 

@@ -20,7 +20,7 @@ namespace Roslyn.Utilities
             // Documents can't be added to containers, so our usual copy trick won't work.
             if (node.NodeType == XmlNodeType.Document)
             {
-                copy = new XDocument(((XDocument)(object)node));
+                copy = new XDocument((XDocument)(object)node);
             }
             else
             {
@@ -41,8 +41,8 @@ namespace Roslyn.Utilities
             // since we report errors with attribute locations.
             if (copyAttributeAnnotations && node.NodeType == XmlNodeType.Element)
             {
-                var sourceElement = ((XElement)(object)node);
-                var targetElement = ((XElement)copy);
+                var sourceElement = (XElement)(object)node;
+                var targetElement = (XElement)copy;
 
                 IEnumerator<XAttribute> sourceAttributes = sourceElement.Attributes().GetEnumerator();
                 IEnumerator<XAttribute> targetAttributes = targetElement.Attributes().GetEnumerator();

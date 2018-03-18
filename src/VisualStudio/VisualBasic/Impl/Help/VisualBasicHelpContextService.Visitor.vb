@@ -132,7 +132,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Help
             End Sub
 
             Public Overrides Sub VisitCollectionInitializer(node As CollectionInitializerSyntax)
-                If TypeOf (node.Parent) Is ArrayCreationExpressionSyntax Then
+                If TypeOf node.Parent Is ArrayCreationExpressionSyntax Then
                     Visit(node.Parent)
                 Else
                     result = HelpKeywords.CollectionInitializer

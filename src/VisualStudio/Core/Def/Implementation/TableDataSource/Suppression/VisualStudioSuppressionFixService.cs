@@ -611,8 +611,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                 if (filterStaleDiagnostics)
                 {
                     var uniqueDiagnosticIds = diagnostics.Select(d => d.Id).ToImmutableHashSet();
-                    var latestDiagnosticsFromDiagnosticService = (await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds: uniqueDiagnosticIds, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken)
-                        .ConfigureAwait(false));
+                    var latestDiagnosticsFromDiagnosticService = await _diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id, diagnosticIds: uniqueDiagnosticIds, includeSuppressedDiagnostics: true, cancellationToken: cancellationToken)
+                        .ConfigureAwait(false);
 
                     latestDiagnosticsToFixOpt.Clear();
                     latestDiagnosticsToFixOpt.AddRange(latestDiagnosticsFromDiagnosticService.Where(isProjectDiagnostic));

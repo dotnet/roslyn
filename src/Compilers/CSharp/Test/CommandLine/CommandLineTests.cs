@@ -7639,7 +7639,7 @@ class Program
         public void CS1691WRN_BadWarningNumber_AllErrorCodes()
         {
             const int jump = 200;
-            for (int i = 0; i < 8000; i += (8000 / jump))
+            for (int i = 0; i < 8000; i += 8000 / jump)
             {
                 int startErrorCode = (int)i * jump;
                 int endErrorCode = startErrorCode + jump;

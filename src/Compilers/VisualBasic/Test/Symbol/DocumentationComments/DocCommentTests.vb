@@ -36,7 +36,7 @@ End Class
 ]]>
     </file>
 </compilation>
-            Using(new EnsureEnglishUICulture()) 
+            Using new EnsureEnglishUICulture() 
             
                 Dim comp = CreateCompilationWithMscorlib40(sources)
                 Dim diags = New DiagnosticBag()
@@ -114,7 +114,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
-                sources, parseOptions:=(New VisualBasicParseOptions()).WithDocumentationMode(DocumentationMode.None))
+                sources, parseOptions:=New VisualBasicParseOptions().WithDocumentationMode(DocumentationMode.None))
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim moduleStatement = tree.FindNodeOrTokenByKind(SyntaxKind.ModuleStatement)
@@ -145,7 +145,7 @@ End Module
 </compilation>
 
             Dim compilation = CreateCompilationWithMscorlib40AndVBRuntime(
-                sources, parseOptions:=(New VisualBasicParseOptions()).WithDocumentationMode(DocumentationMode.Parse))
+                sources, parseOptions:=New VisualBasicParseOptions().WithDocumentationMode(DocumentationMode.Parse))
 
             Dim tree = compilation.SyntaxTrees(0)
             Dim moduleStatement = tree.FindNodeOrTokenByKind(SyntaxKind.ModuleStatement)

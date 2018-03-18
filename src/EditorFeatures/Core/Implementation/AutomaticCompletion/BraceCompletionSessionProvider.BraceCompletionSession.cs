@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.AutomaticCompletion
                     // switch from positive to negative tracking so it stays against the closing brace
                     ClosingPoint = SubjectBuffer.CurrentSnapshot.CreateTrackingPoint(ClosingPoint.GetPoint(snapshot), PointTrackingMode.Negative);
 
-                    Debug.Assert(ClosingPoint.GetPoint(snapshot).Position > 0 && (new SnapshotSpan(ClosingPoint.GetPoint(snapshot).Subtract(1), 1))
+                    Debug.Assert(ClosingPoint.GetPoint(snapshot).Position > 0 && new SnapshotSpan(ClosingPoint.GetPoint(snapshot).Subtract(1), 1)
                                 .GetText().Equals(ClosingBrace.ToString()), "The closing point does not match the closing brace character");
 
                     // move the caret back between the braces

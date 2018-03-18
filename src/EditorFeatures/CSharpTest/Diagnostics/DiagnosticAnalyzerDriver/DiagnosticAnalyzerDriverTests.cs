@@ -314,7 +314,7 @@ class C
             var analyzer = new InvalidSpanAnalyzer();
             using (var compilerEngineWorkspace = TestWorkspace.CreateCSharp(source))
             {
-                var compilerEngineCompilation = (CSharpCompilation)(await compilerEngineWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync());
+                var compilerEngineCompilation = (CSharpCompilation)await compilerEngineWorkspace.CurrentSolution.Projects.Single().GetCompilationAsync();
 
                 var diagnostics = compilerEngineCompilation.GetAnalyzerDiagnostics(new[] { analyzer });
                 AssertEx.Any(diagnostics, d => d.Id == AnalyzerHelper.AnalyzerExceptionDiagnosticId);

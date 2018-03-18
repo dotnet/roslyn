@@ -284,10 +284,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
 
                         If simpleArgumentExpression.IsKind(SyntaxKind.AddressOfExpression) Then
                             generateTypeServiceStateOptions.DelegateCreationMethodSymbol = GetMemberGroupIfPresent(semanticModel, DirectCast(simpleArgumentExpression, UnaryExpressionSyntax).Operand, cancellationToken)
-                        ElseIf (simpleArgumentExpression.IsKind(SyntaxKind.MultiLineFunctionLambdaExpression) OrElse
+                        ElseIf simpleArgumentExpression.IsKind(SyntaxKind.MultiLineFunctionLambdaExpression) OrElse
                                 simpleArgumentExpression.IsKind(SyntaxKind.SingleLineFunctionLambdaExpression) OrElse
                                 simpleArgumentExpression.IsKind(SyntaxKind.MultiLineSubLambdaExpression) OrElse
-                                simpleArgumentExpression.IsKind(SyntaxKind.SingleLineSubLambdaExpression)) Then
+                                simpleArgumentExpression.IsKind(SyntaxKind.SingleLineSubLambdaExpression) Then
                             generateTypeServiceStateOptions.DelegateCreationMethodSymbol = TryCast(semanticModel.GetSymbolInfo(simpleArgumentExpression, cancellationToken).Symbol, IMethodSymbol)
                         End If
                     ElseIf objectCreationExpressionOpt.ArgumentList.Arguments.Count <> 1 Then
@@ -634,7 +634,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
             Dim placeSystemNamespaceFirst = documentOptions.GetOption(GenerationOptions.PlaceSystemNamespaceFirst)
 
             Dim root As SyntaxNode = Nothing
-            If (modifiedRoot Is Nothing) Then
+            If modifiedRoot Is Nothing Then
                 root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
             Else
                 root = modifiedRoot

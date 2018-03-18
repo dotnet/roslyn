@@ -1095,7 +1095,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel
                     Assert.NotNull(parameters)
 
                     Assert.Equal(parameters.Count(), expectedParameterNames.Count())
-                    If (expectedParameterNames.Any()) Then
+                    If expectedParameterNames.Any() Then
                         TestAllParameterNamesByIndex(parameters, expectedParameterNames)
                         TestAllParameterNamesByName(parameters, expectedParameterNames)
                     End If

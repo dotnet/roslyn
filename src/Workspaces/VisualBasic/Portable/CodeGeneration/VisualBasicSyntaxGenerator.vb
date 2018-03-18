@@ -1227,7 +1227,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 Dim accessors = New List(Of AccessorBlockSyntax)
                 accessors.Add(CreateGetAccessorBlock(Nothing))
 
-                If (Not prop.Modifiers.Any(SyntaxKind.ReadOnlyKeyword)) Then
+                If Not prop.Modifiers.Any(SyntaxKind.ReadOnlyKeyword) Then
                     accessors.Add(CreateSetAccessorBlock(prop.AsClause.Type, Nothing))
                 End If
 
@@ -1274,7 +1274,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
 
             Dim stats = GetStatementList(statements)
 
-            If (baseConstructorArguments IsNot Nothing) Then
+            If baseConstructorArguments IsNot Nothing Then
                 Dim baseCall = DirectCast(Me.ExpressionStatement(Me.InvocationExpression(Me.MemberAccessExpression(Me.BaseExpression(), SyntaxFactory.IdentifierName("New")), baseConstructorArguments)), StatementSyntax)
                 stats = stats.Insert(0, baseCall)
             End If
@@ -1574,7 +1574,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Private Overloads Function WithNoTargets(attrs As AttributeListSyntax) As AttributeListSyntax
-            If (attrs.Attributes.Any(Function(a) a.Target IsNot Nothing)) Then
+            If attrs.Attributes.Any(Function(a) a.Target IsNot Nothing) Then
                 Return attrs.WithAttributes(SyntaxFactory.SeparatedList(attrs.Attributes.Select(AddressOf WithAssemblyTarget)))
             Else
                 Return attrs
@@ -2534,7 +2534,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim isDefault As Boolean
             GetAccessibilityAndModifiers(tokens, acc, currentMods, isDefault)
 
-            If (currentMods <> modifiers) Then
+            If currentMods <> modifiers Then
                 Dim newTokens = GetModifierList(acc, modifiers And GetAllowedModifiers(declaration.Kind), GetDeclarationKind(declaration), isDefault)
                 Return WithModifierTokens(declaration, Merge(tokens, newTokens))
             Else
@@ -2795,7 +2795,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 _list = _list.Add(SyntaxFactory.Token(SyntaxKind.DefaultKeyword))
             End If
 
-            Select Case (accessibility)
+            Select Case accessibility
                 Case Accessibility.Internal
                     _list = _list.Add(SyntaxFactory.Token(SyntaxKind.FriendKeyword))
                 Case Accessibility.Public
@@ -2875,7 +2875,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
                 _list = _list.Add(SyntaxFactory.Token(SyntaxKind.PartialKeyword))
             End If
 
-            If (kind = DeclarationKind.Field AndAlso _list.Count = 0) Then
+            If kind = DeclarationKind.Field AndAlso _list.Count = 0 Then
                 _list = _list.Add(SyntaxFactory.Token(SyntaxKind.DimKeyword))
             End If
 
@@ -3965,14 +3965,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Dim count = GetDeclarationCount(declaration)
 
             If index >= 0 AndAlso index < count Then
-                If (index > 0) Then
+                If index > 0 Then
                     ' make a single declaration with only the sub-declarations before the sub-declaration being replaced
                     newNodes.Add(Me.WithSubDeclarationsRemoved(declaration, index, count - index).WithTrailingTrivia(SyntaxFactory.ElasticSpace))
                 End If
 
                 newNodes.Add(newDeclaration)
 
-                If (index < count - 1) Then
+                If index < count - 1 Then
                     ' make a single declaration with only the sub-declarations after the sub-declaration being replaced
                     newNodes.Add(Me.WithSubDeclarationsRemoved(declaration, 0, index + 1).WithLeadingTrivia(SyntaxFactory.ElasticSpace))
                 End If

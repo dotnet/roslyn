@@ -224,19 +224,19 @@ class X {
             var global = compilation.GlobalNamespace;
 
             var classX = global.ChildType("X");
-            var classI = (NamedTypeSymbol)(global.ChildType("O").ChildSymbol("I"));
-            var f1Type = ((FieldSymbol)(classX.ChildSymbol("f1"))).Type;
-            var f2Type = ((FieldSymbol)(classX.ChildSymbol("f2"))).Type;
-            var f3Type = ((FieldSymbol)(classX.ChildSymbol("f3"))).Type;
-            var f4Type = ((FieldSymbol)(classX.ChildSymbol("f4"))).Type;
-            var f5Type = ((FieldSymbol)(classX.ChildSymbol("f5"))).Type;
-            var f6Type = ((FieldSymbol)(classX.ChildSymbol("f6"))).Type;
-            var f7Type = ((FieldSymbol)(classX.ChildSymbol("f7"))).Type;
-            var f8Type = ((FieldSymbol)(classX.ChildSymbol("f8"))).Type;
-            var f9Type = ((FieldSymbol)(classX.ChildSymbol("f9"))).Type;
-            var f10Type = ((FieldSymbol)(classX.ChildSymbol("f10"))).Type;
-            var g1Type = ((FieldSymbol)(classI.ChildSymbol("g1"))).Type;
-            var g2Type = ((FieldSymbol)(classI.ChildSymbol("g2"))).Type;
+            var classI = (NamedTypeSymbol)global.ChildType("O").ChildSymbol("I");
+            var f1Type = ((FieldSymbol)classX.ChildSymbol("f1")).Type;
+            var f2Type = ((FieldSymbol)classX.ChildSymbol("f2")).Type;
+            var f3Type = ((FieldSymbol)classX.ChildSymbol("f3")).Type;
+            var f4Type = ((FieldSymbol)classX.ChildSymbol("f4")).Type;
+            var f5Type = ((FieldSymbol)classX.ChildSymbol("f5")).Type;
+            var f6Type = ((FieldSymbol)classX.ChildSymbol("f6")).Type;
+            var f7Type = ((FieldSymbol)classX.ChildSymbol("f7")).Type;
+            var f8Type = ((FieldSymbol)classX.ChildSymbol("f8")).Type;
+            var f9Type = ((FieldSymbol)classX.ChildSymbol("f9")).Type;
+            var f10Type = ((FieldSymbol)classX.ChildSymbol("f10")).Type;
+            var g1Type = ((FieldSymbol)classI.ChildSymbol("g1")).Type;
+            var g2Type = ((FieldSymbol)classI.ChildSymbol("g2")).Type;
             string s = f7Type.ToTestDisplayString();
 
             Assert.False(f1Type.Equals(f2Type));

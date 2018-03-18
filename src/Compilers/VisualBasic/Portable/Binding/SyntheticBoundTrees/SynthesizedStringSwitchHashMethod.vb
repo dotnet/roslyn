@@ -34,7 +34,7 @@ again:
                 i = i + 1
 
 start:
-                If (i < text.Length) Then
+                If i < text.Length Then
                     GoTo again
                 End If
 

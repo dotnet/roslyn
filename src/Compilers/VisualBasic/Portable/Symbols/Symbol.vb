@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim container As Symbol = Me.ContainingSymbol
 
-                If (container IsNot Nothing) Then
+                If container IsNot Nothing Then
                     Return container.ContainingModule
                 Else
                     Return Nothing
@@ -556,7 +556,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property CanBeReferencedByNameIgnoringIllegalCharacters As Boolean
             Get
                 If Me.Kind = SymbolKind.Method Then
-                    Select Case (DirectCast(Me, MethodSymbol)).MethodKind
+                    Select Case DirectCast(Me, MethodSymbol).MethodKind
                         Case MethodKind.Ordinary, MethodKind.DeclareMethod, MethodKind.ReducedExtension, MethodKind.DelegateInvoke, MethodKind.UserDefinedOperator, MethodKind.Conversion
                             Return True
                         Case Else
@@ -724,7 +724,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '      The code attempts to check for these conditions before 
             '      resorting to .Equals
 
-            If (right Is Nothing) Then
+            If right Is Nothing Then
                 Return left Is Nothing
             End If
 
@@ -742,7 +742,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             '      The code attempts to check for these conditions before 
             '      resorting to .Equals
 
-            If (right Is Nothing) Then
+            If right Is Nothing Then
                 Return left IsNot Nothing
             End If
 

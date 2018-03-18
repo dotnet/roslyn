@@ -82,13 +82,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.Iterator
                 newDocument = document.WithSyntaxRoot(root.ReplaceNode(node, newOperator));
             }
 
-            var oldAccessor = (node?.Parent?.Parent as PropertyDeclarationSyntax);
+            var oldAccessor = node?.Parent?.Parent as PropertyDeclarationSyntax;
             if (oldAccessor != null)
             {
                 newDocument = document.WithSyntaxRoot(root.ReplaceNode(oldAccessor, oldAccessor.WithType(newReturnType)));
             }
 
-            var oldIndexer = (node?.Parent?.Parent as IndexerDeclarationSyntax);
+            var oldIndexer = node?.Parent?.Parent as IndexerDeclarationSyntax;
             if (oldIndexer != null)
             {
                 newDocument = document.WithSyntaxRoot(root.ReplaceNode(oldIndexer, oldIndexer.WithType(newReturnType)));

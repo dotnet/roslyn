@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     EmitSequencePointStatement(DirectCast(statement, BoundSequencePointWithSpan))
 
                 Case BoundKind.ExpressionStatement
-                    EmitExpression((DirectCast(statement, BoundExpressionStatement)).Expression, False)
+                    EmitExpression(DirectCast(statement, BoundExpressionStatement).Expression, False)
 
                 Case BoundKind.NoOpStatement
                     EmitNoOpStatement(DirectCast(statement, BoundNoOpStatement))
@@ -120,7 +120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ' IL requires catches and finally block to be distinct try
             ' blocks so if the source contained both a catch and
             ' a finally, nested scopes are emitted.
-            Dim emitNestedScopes As Boolean = (Not emitCatchesOnly AndAlso (statement.CatchBlocks.Length > 0) AndAlso (statement.FinallyBlockOpt IsNot Nothing))
+            Dim emitNestedScopes As Boolean = Not emitCatchesOnly AndAlso (statement.CatchBlocks.Length > 0) AndAlso (statement.FinallyBlockOpt IsNot Nothing)
             _builder.OpenLocalScope(ScopeType.TryCatchFinally)
             _builder.OpenLocalScope(ScopeType.Try)
 
@@ -560,7 +560,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         Private Function CodeForJump(expression As BoundBinaryOperator, sense As Boolean, <Out()> ByRef revOpCode As ILOpCode) As ILOpCode
             Dim opIdx As Integer
-            Dim opKind = (expression.OperatorKind And BinaryOperatorKind.OpMask)
+            Dim opKind = expression.OperatorKind And BinaryOperatorKind.OpMask
             Dim operandType = expression.Left.Type
 
             Debug.Assert(operandType IsNot Nothing OrElse (expression.Left.IsNothingLiteral() AndAlso (opKind = BinaryOperatorKind.Is OrElse opKind = BinaryOperatorKind.IsNot)))
@@ -707,7 +707,7 @@ BinaryOperatorKindLogicalAnd:
                                 EmitCondBranch(binOp.Left, lazyFallThrough, Not sense)
                                 EmitCondBranch(binOp.Right, lazyDest, sense)
 
-                                If (lazyFallThrough IsNot Nothing) Then
+                                If lazyFallThrough IsNot Nothing Then
                                     _builder.MarkLabel(lazyFallThrough)
                                 End If
                             Else
@@ -755,7 +755,7 @@ BinaryOperatorKindLessThan:
 
                 Case BoundKind.UnaryOperator
                     Dim unOp = DirectCast(condition, BoundUnaryOperator)
-                    If (unOp.OperatorKind = UnaryOperatorKind.Not) Then
+                    If unOp.OperatorKind = UnaryOperatorKind.Not Then
                         Debug.Assert(unOp.Type.IsBooleanType())
                         sense = Not sense
                         condition = unOp.Operand

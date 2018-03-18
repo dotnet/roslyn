@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Debug.Assert(Not allowGenericArguments OrElse allowEmptyGenericArguments OrElse allowNonEmptyGenericArguments,
                          "Generic argument parsing inconsistency!!!")
 
-            allowedEmptyGenericArguments = (allowNonEmptyGenericArguments = False)
+            allowedEmptyGenericArguments = allowNonEmptyGenericArguments = False
 
             Return result
         End Function
@@ -1304,7 +1304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim statement As StatementSyntax = Nothing
 
             ' Current token set to token after the last specifier
-            Select Case (CurrentToken.Kind)
+            Select Case CurrentToken.Kind
 
                 Case SyntaxKind.PropertyKeyword
                     statement = ParsePropertyDefinition(attributes, modifiers)
@@ -1579,7 +1579,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim typeKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             GetNextToken()
 
-            Select Case (typeKeyword.Kind)
+            Select Case typeKeyword.Kind
 
                 Case SyntaxKind.ModuleKeyword
                     kind = SyntaxKind.ModuleStatement
@@ -1978,7 +1978,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim err As ERRID = ERRID.ERR_None
                 Dim t As SyntaxToken = CurrentToken
 
-                Select Case (t.Kind)
+                Select Case t.Kind
                     ' Access category
                     Case SyntaxKind.PublicKeyword,
                          SyntaxKind.PrivateKeyword,
@@ -2061,7 +2061,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Dim keyword = DirectCast(t, KeywordSyntax)
 
-                If (err <> ERRID.ERR_None) Then
+                If err <> ERRID.ERR_None Then
                     ' Mark the current token with the error and ignore.
                     keyword = ReportSyntaxError(keyword, err)
                 End If
@@ -2800,7 +2800,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Return True
             End If
 
-            Select Case (Token.Kind)
+            Select Case Token.Kind
 
                 Case SyntaxKind.GlobalKeyword,
                     SyntaxKind.IdentifierToken
@@ -2844,7 +2844,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             If SyntaxFacts.IsPredefinedTypeKeyword(Start.Kind) Then
                 typeName = SyntaxFactory.PredefinedType(DirectCast(Start, KeywordSyntax))
             Else
-                Select Case (Start.Kind)
+                Select Case Start.Kind
 
                     Case SyntaxKind.VariantKeyword
                         name = SyntaxFactory.IdentifierName(_scanner.MakeIdentifier(DirectCast(Start, KeywordSyntax)))
@@ -4266,7 +4266,7 @@ checkNullable:
 
             GetNextToken()
 
-            Select Case (CurrentToken.Kind)
+            Select Case CurrentToken.Kind
 
                 Case SyntaxKind.SubKeyword
                     delegateKind = SyntaxKind.DelegateSubStatement
@@ -4618,7 +4618,7 @@ checkNullable:
                 Dim specifier As ParameterSpecifiers
                 Dim keyword As KeywordSyntax
 
-                Select Case (CurrentToken.Kind)
+                Select Case CurrentToken.Kind
 
                     Case SyntaxKind.ByValKeyword
                         keyword = DirectCast(CurrentToken, KeywordSyntax)
@@ -4932,7 +4932,7 @@ checkNullable:
             Me._pool.Free(typeNames)
 
             Dim result As InheritsOrImplementsStatementSyntax = Nothing
-            Select Case (keyword.Kind)
+            Select Case keyword.Kind
                 Case SyntaxKind.InheritsKeyword
                     result = SyntaxFactory.InheritsStatement(keyword, separatedTypeNames)
 
@@ -4971,7 +4971,7 @@ checkNullable:
 
             If TryTokenAsContextualKeyword(CurrentToken, optionType) Then
 
-                Select Case (optionType.Kind)
+                Select Case optionType.Kind
 
                     Case SyntaxKind.CompareKeyword
 
@@ -5645,7 +5645,7 @@ checkNullable:
         ' bool .Parser::StartsValidConditionalCompilationExpr( [ _In_ Token* T ] )
 
         Private Shared Function StartsValidConditionalCompilationExpr(t As SyntaxToken) As Boolean
-            Select Case (t.Kind)
+            Select Case t.Kind
                 ' Identifiers - note that only simple identifiers are allowed.
                 ' This check is done in ParseTerm.
 
@@ -5705,7 +5705,7 @@ checkNullable:
         ' bool .Parser::IsValidOperatorForConditionalCompilationExpr( [ _In_ Token* T ] )
 
         Private Shared Function IsValidOperatorForConditionalCompilationExpr(t As SyntaxToken) As Boolean
-            Select Case (t.Kind)
+            Select Case t.Kind
 
                 Case SyntaxKind.NotKeyword,
                     SyntaxKind.AndKeyword,
@@ -6144,7 +6144,7 @@ checkNullable:
         Friend Function ConsumeUnexpectedTokens(Of TNode As VisualBasicSyntaxNode)(node As TNode) As TNode
             If Me.CurrentToken.Kind = SyntaxKind.EndOfFileToken Then Return node
             Dim b As SyntaxListBuilder(Of SyntaxToken) = SyntaxListBuilder(Of SyntaxToken).Create()
-            While (Me.CurrentToken.Kind <> SyntaxKind.EndOfFileToken)
+            While Me.CurrentToken.Kind <> SyntaxKind.EndOfFileToken
                 b.Add(Me.CurrentToken)
                 GetNextToken()
             End While

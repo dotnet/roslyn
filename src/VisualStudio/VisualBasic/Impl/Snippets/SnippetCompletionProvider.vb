@@ -53,7 +53,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)()
             Dim isPossibleTupleContext = syntaxFacts.IsPossibleTupleContext(syntaxTree, position, cancellationToken)
 
-            If (IsInNonUserCode(syntaxTree, position, cancellationToken)) Then
+            If IsInNonUserCode(syntaxTree, position, cancellationToken) Then
                 Return
             End If
 

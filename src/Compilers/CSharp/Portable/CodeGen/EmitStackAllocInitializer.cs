@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                         return ArrayInitializerStyle.Block;
                     }
 
-                    int thresholdCnt = Math.Max(3, (initCount / 3));
+                    int thresholdCnt = Math.Max(3, initCount / 3);
 
                     if (constCount >= thresholdCnt)
                     {

@@ -125,11 +125,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return Not node.IsMissing AndAlso
-                (TypeOf (node) Is ExpressionSyntax AndAlso (allowNamedArgumentName OrElse Not SyntaxFacts.IsNamedArgumentName(node)) OrElse
-                 TypeOf (node) Is AttributeSyntax OrElse
-                 TypeOf (node) Is QueryClauseSyntax OrElse
-                 TypeOf (node) Is ExpressionRangeVariableSyntax OrElse
-                 TypeOf (node) Is OrderingSyntax)
+                (TypeOf node Is ExpressionSyntax AndAlso (allowNamedArgumentName OrElse Not SyntaxFacts.IsNamedArgumentName(node)) OrElse
+                 TypeOf node Is AttributeSyntax OrElse
+                 TypeOf node Is QueryClauseSyntax OrElse
+                 TypeOf node Is ExpressionRangeVariableSyntax OrElse
+                 TypeOf node Is OrderingSyntax)
         End Function
 
         Protected Overrides Function GetOperationCore(node As SyntaxNode, cancellationToken As CancellationToken) As IOperation
@@ -566,7 +566,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim fullEnd As Integer = Root.EndPosition
 
             ' Is position at the actual end of file (not just end of Root.FullSpan)?
-            Dim atEOF As Boolean = (position = fullEnd AndAlso position = SyntaxTree.GetRoot().FullSpan.End)
+            Dim atEOF As Boolean = position = fullEnd AndAlso position = SyntaxTree.GetRoot().FullSpan.End
 
             If (fullStart <= position AndAlso position < fullEnd) OrElse
                 atEOF OrElse
@@ -610,7 +610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim fullEnd As Integer = Root.EndPosition
 
             ' Is position at the actual end of file (not just end of Root.FullSpan)?
-            Dim atEOF As Boolean = (position = fullEnd AndAlso position = SyntaxTree.GetRoot().FullSpan.End)
+            Dim atEOF As Boolean = position = fullEnd AndAlso position = SyntaxTree.GetRoot().FullSpan.End
 
             If (fullStart <= position AndAlso position < fullEnd) OrElse atEOF Then
                 Dim token As SyntaxToken
@@ -630,7 +630,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 End If
 
-                If (position < token.SpanStart) Then
+                If position < token.SpanStart Then
                     ' Before the start of this token, go to previous token.
                     token = token.GetPreviousToken(includeSkipped:=False, includeDirectives:=False, includeDocumentationComments:=False)
                 End If
@@ -974,7 +974,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If highestExpr IsNot Nothing Then
                 If highestExpr.Type IsNot Nothing AndAlso highestExpr.Type.TypeKind <> TypeKind.Error Then
                     convertedType = highestExpr.Type
-                    If (type Is Nothing OrElse Not type.IsSameTypeIgnoringAll(convertedType)) Then
+                    If type Is Nothing OrElse Not type.IsSameTypeIgnoringAll(convertedType) Then
                         ' If the upper expression is of a different type, we want to return
                         ' a conversion. Hopefully we have a conversion node. 
                         ' TODO: Understand cases where we don't have a conversion node better.
@@ -999,7 +999,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim parentSyntax As SyntaxNode = boundNodes.LowestBoundNodeOfSyntacticParent.Syntax
                 If parentSyntax IsNot Nothing AndAlso
                    parentSyntax Is boundNodes.LowestBoundNode.Syntax.Parent AndAlso
-                   ((parentSyntax.Kind = SyntaxKind.ObjectCreationExpression AndAlso (DirectCast(parentSyntax, ObjectCreationExpressionSyntax).Type Is boundNodes.LowestBoundNode.Syntax))) Then
+                   (parentSyntax.Kind = SyntaxKind.ObjectCreationExpression AndAlso (DirectCast(parentSyntax, ObjectCreationExpressionSyntax).Type Is boundNodes.LowestBoundNode.Syntax)) Then
                     type = DirectCast(boundNodes.LowestBoundNodeOfSyntacticParent, BoundBadExpression).Type
                 End If
             End If

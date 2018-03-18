@@ -560,7 +560,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleReservedElementName, name, reserved)
                 Return False
 
-            ElseIf (Not uniqueFieldNames.Add(name)) Then
+            ElseIf Not uniqueFieldNames.Add(name) Then
                 Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_TupleDuplicateElementName)
                 Return False
 
@@ -752,7 +752,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim operand = BindRValue(node.Expression, diagnostics, isOperandOfConditionalBranch:=False)
             Dim operandType = operand.Type
 
-            Dim operatorIsIsNot = (node.Kind = SyntaxKind.TypeOfIsNotExpression)
+            Dim operatorIsIsNot = node.Kind = SyntaxKind.TypeOfIsNotExpression
 
             Dim targetSymbol As Symbol = BindTypeOrAliasSyntax(node.Type, diagnostics)
             Dim targetType = DirectCast(If(TryCast(targetSymbol, TypeSymbol), DirectCast(targetSymbol, AliasSymbol).Target), TypeSymbol)
@@ -1085,7 +1085,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim ret = DirectCast(functionBlock.Statements(0), ReturnStatementSyntax)
             Dim exprDiagnostics = DiagnosticBag.GetInstance()
-            Dim result As BoundExpression = (New DefaultInstancePropertyBinder(Me)).BindValue(ret.Expression, exprDiagnostics)
+            Dim result As BoundExpression = New DefaultInstancePropertyBinder(Me).BindValue(ret.Expression, exprDiagnostics)
 
             If result.HasErrors OrElse exprDiagnostics.HasAnyErrors() Then
                 exprDiagnostics.Free()
@@ -2031,7 +2031,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim constVal As ConstantValue
 
-                If (boundFirstArg.IsNothingLiteral) Then
+                If boundFirstArg.IsNothingLiteral Then
                     constVal = boundSecondArg.ConstantValueOpt
 
                     If Not boundSecondArg.IsNothingLiteral Then
@@ -2777,7 +2777,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If leftTypeSymbol.IsArrayType() Then
                         ' No instance constructors found. Can't call constructor on an array type.
-                        If (left.HasErrors) Then
+                        If left.HasErrors Then
                             Return BadExpression(node, left, ErrorTypeSymbol.UnknownResultType)
                         End If
 
@@ -2800,7 +2800,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         If accessibleConstructors.IsEmpty Then
 
                             ' No instance constructors found
-                            If (left.HasErrors) Then
+                            If left.HasErrors Then
                                 Return BadExpression(node, left, ErrorTypeSymbol.UnknownResultType)
                             End If
 

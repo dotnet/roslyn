@@ -768,7 +768,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                         Debug.Assert((reachability == Reachability.Reachable) || (reachability == Reachability.NotReachable));
 
                         // All handler blocks should have same reachability.
-                        Debug.Assert(_handlers.All(h => (h.LeaderBlock.Reachability == reachability)));
+                        Debug.Assert(_handlers.All(h => h.LeaderBlock.Reachability == reachability));
 
                         if (reachability != Reachability.Reachable)
                         {

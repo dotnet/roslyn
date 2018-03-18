@@ -746,7 +746,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             // =================
             // Get Binding Node
             var node = tree.GetRoot().FindToken(start).Parent;
-            while ((node != null && node.ToString() != bindText))
+            while (node != null && node.ToString() != bindText)
             {
                 node = node.Parent;
             }
@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             Assert.NotNull(node); // If this trips, then node  wasn't found
             Assert.IsAssignableFrom(typeof(TNode), node);
             Assert.Equal(bindText, node.ToString());
-            return ((TNode)node);
+            return (TNode)node;
         }
 #endregion
 

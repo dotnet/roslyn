@@ -157,7 +157,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End If
 
             If (comparisons And SymbolComparisonResults.PropertyAccessorMismatch) <> 0 Then
-                If ((prop1.IsReadOnly <> prop2.IsReadOnly) OrElse (prop1.IsWriteOnly <> prop2.IsWriteOnly)) Then
+                If (prop1.IsReadOnly <> prop2.IsReadOnly) OrElse (prop1.IsWriteOnly <> prop2.IsWriteOnly) Then
                     results = results Or SymbolComparisonResults.PropertyAccessorMismatch
                     If (stopIfAny And SymbolComparisonResults.PropertyAccessorMismatch) <> 0 Then
                         GoTo Done

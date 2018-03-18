@@ -682,7 +682,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         ' The error is either because we have an "Out" param and Out is inappropriate here,
                         ' or we used an "In" param and In is inappropriate here. This flag says which:
-                        Dim inappropriateOut As Boolean = (typeParam.Variance = VarianceKind.Out)
+                        Dim inappropriateOut As Boolean = typeParam.Variance = VarianceKind.Out
 
                         ' OKAY, so now we need to report an error. Simple enough, but we've tried to give helpful
                         ' context-specific error messages to the user, and so the code has to work through a lot
@@ -1158,7 +1158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ' Make a note of extension methods
                     If Not haveExtensionMethods Then
-                        haveExtensionMethods = (sym.Kind = SymbolKind.Method AndAlso DirectCast(sym, MethodSymbol).IsExtensionMethod)
+                        haveExtensionMethods = sym.Kind = SymbolKind.Method AndAlso DirectCast(sym, MethodSymbol).IsExtensionMethod
                     End If
 
                     cancellationToken.ThrowIfCancellationRequested()
@@ -1244,7 +1244,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return CType((_flags And SourceTypeFlags.AccessibilityMask), Accessibility)
+                Return CType(_flags And SourceTypeFlags.AccessibilityMask, Accessibility)
             End Get
         End Property
 
@@ -1487,8 +1487,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             For Each child In container.GetTypeMembers(childName, childArity)
                 Dim sourceType = TryCast(child, SourceNamedTypeSymbol)
                 If sourceType IsNot Nothing Then
-                    If (sourceType.ContainingModule Is sourceModule AndAlso
-                        sourceType.DeclarationKind = childDeclKind) Then
+                    If sourceType.ContainingModule Is sourceModule AndAlso
+                        sourceType.DeclarationKind = childDeclKind Then
                         Return sourceType
                     End If
                 End If
@@ -2292,7 +2292,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     ' Report an error for any property with this name not marked as default.
                     For Each member In members
-                        If (member.Kind = SymbolKind.Property) Then
+                        If member.Kind = SymbolKind.Property Then
                             Dim propertySymbol = DirectCast(member, SourcePropertySymbol)
 
                             If Not propertySymbol.IsDefault Then
@@ -2416,7 +2416,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End Select
 
                     '  initialize symbol flags
-                    If (GetExplicitSymbolFlags(symbol, shadowsExplicitly, overloadsExplicitly, overridesExplicitly)) Then
+                    If GetExplicitSymbolFlags(symbol, shadowsExplicitly, overloadsExplicitly, overridesExplicitly) Then
                         If shadowsExplicitly Then
                             '  if the method/property shadows explicitly the rest of the methods may be skipped
                             explicitlyShadows = True
@@ -2434,7 +2434,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     For Each symbol In member.Value
                         If (symbol.Kind = SymbolKind.Method AndAlso checkMethods) OrElse (symbol.IsPropertyAndNotWithEvents AndAlso checkProperties) Then
                             '  initialize symbol flags
-                            If (GetExplicitSymbolFlags(symbol, shadowsExplicitly, overloadsExplicitly, overridesExplicitly)) Then
+                            If GetExplicitSymbolFlags(symbol, shadowsExplicitly, overloadsExplicitly, overridesExplicitly) Then
                                 If explicitlyShadows Then
                                     If Not shadowsExplicitly Then
                                         Debug.Assert(symbol.Locations.Length > 0)
@@ -2457,7 +2457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Select Case symbol.Kind
                 Case SymbolKind.Method
                     Dim sourceMethodSymbol As SourceMethodSymbol = TryCast(symbol, SourceMethodSymbol)
-                    If (sourceMethodSymbol Is Nothing) Then
+                    If sourceMethodSymbol Is Nothing Then
                         Return False
                     End If
 
@@ -2468,7 +2468,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Case SymbolKind.Property
                     Dim sourcePropertySymbol As SourcePropertySymbol = TryCast(symbol, SourcePropertySymbol)
-                    If (sourcePropertySymbol Is Nothing) Then
+                    If sourcePropertySymbol Is Nothing Then
                         Return False
                     End If
                     shadowsExplicitly = sourcePropertySymbol.ShadowsExplicitly
@@ -3007,7 +3007,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If members.Members.TryGetValue(sym.Name, definedSymbols) Then
                 Debug.Assert(definedSymbols.Count > 0)
                 Dim other = definedSymbols(0)
-                If (sym <> other) Then
+                If sym <> other Then
                     Return CheckIfMemberNameIsDuplicate(sym, other, members, diagBag, includeKind:=False)
                 End If
             End If
@@ -3304,7 +3304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Shared Function GetInitializersInSourceTree(tree As SyntaxTree, initializers As ImmutableArray(Of ImmutableArray(Of FieldOrPropertyInitializer))) As ImmutableArray(Of FieldOrPropertyInitializer)
             Dim builder = ArrayBuilder(Of FieldOrPropertyInitializer).GetInstance()
             For Each siblingInitializers As ImmutableArray(Of FieldOrPropertyInitializer) In initializers
-                If (siblingInitializers.First().Syntax.SyntaxTree Is tree) Then
+                If siblingInitializers.First().Syntax.SyntaxTree Is tree Then
                     builder.AddRange(siblingInitializers)
                 End If
             Next
@@ -3487,7 +3487,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim lookup = MemberAndInitializerLookup
 
                 Dim structEnumerator As Dictionary(Of String, ImmutableArray(Of Symbol)).Enumerator = lookup.Members.GetEnumerator
-                Dim canDeclareOperators As Boolean = (myTypeKind <> TypeKind.Module AndAlso myTypeKind <> TypeKind.Interface)
+                Dim canDeclareOperators As Boolean = myTypeKind <> TypeKind.Module AndAlso myTypeKind <> TypeKind.Interface
 
                 While structEnumerator.MoveNext()
                     Dim memberList As ImmutableArray(Of Symbol) = structEnumerator.Current.Value
@@ -3813,7 +3813,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         Private Sub ReportOverloadsErrors(comparisonResults As SymbolComparisonResults, firstMember As Symbol, secondMember As Symbol, location As Location, diagnostics As DiagnosticBag)
-            If (Me.Locations.Length > 1 AndAlso Not Me.IsPartial) Then
+            If Me.Locations.Length > 1 AndAlso Not Me.IsPartial Then
                 ' if there was an error with the enclosing class, suppress these diagnostics
             ElseIf comparisonResults = 0 Then
                 diagnostics.Add(ErrorFactory.ErrorInfo(ERRID.ERR_DuplicateProcDef1, firstMember), location)
@@ -3881,16 +3881,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim isInterface As Boolean = Me.IsInterfaceType()
             Dim diag As DiagnosticInfo
 
-            If (directInterface1 = interface1 AndAlso directInterface2 = interface2) Then
+            If directInterface1 = interface1 AndAlso directInterface2 = interface2 Then
                 diag = ErrorFactory.ErrorInfo(If(isInterface, ERRID.ERR_InterfaceUnifiesWithInterface2, ERRID.ERR_InterfacePossiblyImplTwice2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface1))
-            ElseIf (directInterface1 <> interface1 AndAlso directInterface2 = interface2) Then
+            ElseIf directInterface1 <> interface1 AndAlso directInterface2 = interface2 Then
                 diag = ErrorFactory.ErrorInfo(If(isInterface, ERRID.ERR_InterfaceUnifiesWithBase3, ERRID.ERR_ClassInheritsInterfaceUnifiesWithBase3),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface1),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(directInterface1))
-            ElseIf (directInterface1 = interface1 AndAlso directInterface2 <> interface2) Then
+            ElseIf directInterface1 = interface1 AndAlso directInterface2 <> interface2 Then
                 diag = ErrorFactory.ErrorInfo(If(isInterface, ERRID.ERR_BaseUnifiesWithInterfaces3, ERRID.ERR_ClassInheritsBaseUnifiesWithInterfaces3),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(directInterface2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface2),
@@ -3960,16 +3960,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim diag As DiagnosticInfo
 
-            If (directInterface1 = interface1 AndAlso directInterface2 = interface2) Then
+            If directInterface1 = interface1 AndAlso directInterface2 = interface2 Then
                 diag = ErrorFactory.ErrorInfo(If(IsInterface, ERRID.ERR_InterfaceInheritedTwiceWithDifferentTupleNames2, ERRID.ERR_InterfaceImplementedTwiceWithDifferentTupleNames2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface1))
-            ElseIf (directInterface1 <> interface1 AndAlso directInterface2 = interface2) Then
+            ElseIf directInterface1 <> interface1 AndAlso directInterface2 = interface2 Then
                 diag = ErrorFactory.ErrorInfo(If(IsInterface, ERRID.ERR_InterfaceInheritedTwiceWithDifferentTupleNames3, ERRID.ERR_InterfaceImplementedTwiceWithDifferentTupleNames3),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface1),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(directInterface1))
-            ElseIf (directInterface1 = interface1 AndAlso directInterface2 <> interface2) Then
+            ElseIf directInterface1 = interface1 AndAlso directInterface2 <> interface2 Then
                 diag = ErrorFactory.ErrorInfo(If(IsInterface, ERRID.ERR_InterfaceInheritedTwiceWithDifferentTupleNamesReverse3, ERRID.ERR_InterfaceImplementedTwiceWithDifferentTupleNamesReverse3),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(interface2),
                                               CustomSymbolDisplayFormatter.ShortNameWithTypeArgsAndContainingTypes(directInterface2),
@@ -4016,7 +4016,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend ReadOnly Property AnyMemberHasAttributes As Boolean
             Get
-                If (Not Me._lazyAnyMemberHasAttributes.HasValue()) Then
+                If Not Me._lazyAnyMemberHasAttributes.HasValue() Then
                     Me._lazyAnyMemberHasAttributes = Me._declaration.AnyMemberHasAttributes.ToThreeState()
                 End If
 

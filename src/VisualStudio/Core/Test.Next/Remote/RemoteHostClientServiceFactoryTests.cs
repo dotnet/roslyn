@@ -152,7 +152,7 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var service = CreateRemoteHostClientService();
             service.Enable();
 
-            var client = (InProcRemoteHostClient)(await service.TryGetRemoteHostClientAsync(CancellationToken.None));
+            var client = (InProcRemoteHostClient)await service.TryGetRemoteHostClientAsync(CancellationToken.None);
 
             // register local service
             TestService testService = null;

@@ -728,7 +728,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 }
 
                 Debug.Assert(newModifiers == null || newModifiers.Count == oldModifiers.Length);
-                modifiersHaveChanged = (newModifiers != null);
+                modifiersHaveChanged = newModifiers != null;
                 return modifiersHaveChanged ? newModifiers.ToImmutableAndFree() : oldModifiers;
             }
 

@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var descriptor = WellKnownMembers.GetDescriptor(member);
                 var diagnostic = new CSDiagnostic(
-                    new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, (customBuilder ? (object)builderType : descriptor.DeclaringTypeMetadataName), descriptor.Name),
+                    new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, customBuilder ? (object)builderType : descriptor.DeclaringTypeMetadataName, descriptor.Name),
                     F.Syntax.Location);
                 F.Diagnostics.Add(diagnostic);
                 return false;

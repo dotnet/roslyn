@@ -471,7 +471,7 @@ Public MustInherit Class WriteUtils
             End If
 
             candidate = candidate.ParentStructure
-        Loop While (candidate IsNot Nothing)
+        Loop While candidate IsNot Nothing
 
         Return Nothing ' no ancestor
     End Function

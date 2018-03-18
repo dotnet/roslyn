@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #End If
 
             If _lazySpecialTypeMembers Is Nothing OrElse _lazySpecialTypeMembers(member) Is ErrorTypeSymbol.UnknownResultType Then
-                If (_lazySpecialTypeMembers Is Nothing) Then
+                If _lazySpecialTypeMembers Is Nothing Then
                     Dim specialTypeMembers = New Symbol(SpecialMember.Count - 1) {}
 
                     For i As Integer = 0 To specialTypeMembers.Length - 1

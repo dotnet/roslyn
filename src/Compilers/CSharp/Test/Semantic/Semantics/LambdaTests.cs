@@ -1637,7 +1637,7 @@ namespace RoslynAsyncDelegate
 
             Assert.Equal("void System.EventHandler.Invoke(System.Object sender, System.EventArgs e)", model.GetTypeInfo(node1).ConvertedType.GetMembers("Invoke").Single().ToTestDisplayString());
 
-            var lambdaParameters = ((MethodSymbol)(model.GetSymbolInfo(node1)).Symbol).Parameters;
+            var lambdaParameters = ((MethodSymbol)model.GetSymbolInfo(node1).Symbol).Parameters;
 
             Assert.Equal("System.Object <p0>", lambdaParameters[0].ToTestDisplayString());
             Assert.Equal("System.EventArgs <p1>", lambdaParameters[1].ToTestDisplayString());

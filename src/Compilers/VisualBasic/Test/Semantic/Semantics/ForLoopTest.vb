@@ -632,12 +632,12 @@ End Module]]>,
                 End If
                 Dim conv = model.ClassifyConversion(SemanticInfo.Item2, SemanticInfo.Item1.ConvertedType)
 
-                If (conv.Kind = ConversionKind.Identity) Then
+                If conv.Kind = ConversionKind.Identity Then
                     Assert.True(conv.Exists)
                     Assert.True(conv.IsIdentity)
                 End If
 
-                If (SemanticInfo.Item1.Type IsNot Nothing AndAlso SemanticInfo.Item1.Type.ToDisplayString() <> "?" AndAlso SemanticInfo.Item1.Type.ToDisplayString() <> "Void" AndAlso SemanticInfo.Item1.ConvertedType.ToDisplayString() <> "?" AndAlso SemanticInfo.Item1.ConvertedType.ToDisplayString() <> "Void") Then
+                If SemanticInfo.Item1.Type IsNot Nothing AndAlso SemanticInfo.Item1.Type.ToDisplayString() <> "?" AndAlso SemanticInfo.Item1.Type.ToDisplayString() <> "Void" AndAlso SemanticInfo.Item1.ConvertedType.ToDisplayString() <> "?" AndAlso SemanticInfo.Item1.ConvertedType.ToDisplayString() <> "Void" Then
                     Assert.Equal(conv.Kind, SemanticInfo.Item1.ImplicitConversion.Kind)
                 End If
                 convs.Add(conv)

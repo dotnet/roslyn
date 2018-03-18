@@ -378,7 +378,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim boundArguments As ImmutableArray(Of BoundExpression)
             Dim namedArguments As ImmutableArray(Of BoundExpression)
 
-            If (argumentListOpt Is Nothing) Then
+            If argumentListOpt Is Nothing Then
                 boundArguments = s_noArguments
                 namedArguments = s_noArguments
             Else

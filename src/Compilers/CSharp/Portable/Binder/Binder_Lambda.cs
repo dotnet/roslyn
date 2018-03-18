@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hasSignature = true;
                     var simple = (SimpleLambdaExpressionSyntax)syntax;
                     namesBuilder.Add(simple.Parameter.Identifier.ValueText);
-                    isAsync = (simple.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword);
+                    isAsync = simple.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword;
                     break;
                 case SyntaxKind.ParenthesizedLambdaExpression:
                     // (T x, U y) => ...
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var paren = (ParenthesizedLambdaExpressionSyntax)syntax;
                     parameterSyntaxList = paren.ParameterList.Parameters;
                     CheckParenthesizedLambdaParameters(parameterSyntaxList.Value, diagnostics);
-                    isAsync = (paren.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword);
+                    isAsync = paren.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword;
                     break;
                 case SyntaxKind.AnonymousMethodExpression:
                     // delegate (int x) { }
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         parameterSyntaxList = anon.ParameterList.Parameters;
                     }
-                    isAsync = (anon.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword);
+                    isAsync = anon.AsyncKeyword.Kind() == SyntaxKind.AsyncKeyword;
                     break;
             }
 

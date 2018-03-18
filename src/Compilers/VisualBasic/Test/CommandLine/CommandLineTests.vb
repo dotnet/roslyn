@@ -7202,7 +7202,7 @@ C:\*.vb(100) : error BC30451: 'Goo' is not declared. It may be inaccessible due 
         Private Shared Function OccurrenceCount(source As String, word As String) As Integer
             Dim n = 0
             Dim index = source.IndexOf(word, StringComparison.Ordinal)
-            While (index >= 0)
+            While index >= 0
                 n += 1
                 index = source.IndexOf(word, index + word.Length, StringComparison.Ordinal)
             End While

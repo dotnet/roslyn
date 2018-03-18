@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             if (service.ExclusiveProviders?[0] is ICustomCommitCompletionProvider customCommitCompletionProvider)
             {
                 var completionRules = GetCompletionHelper(document);
-                var textView = (WorkspaceFixture.GetWorkspace()).Documents.Single().GetTextView();
+                var textView = WorkspaceFixture.GetWorkspace().Documents.Single().GetTextView();
                 VerifyCustomCommitWorker(service, customCommitCompletionProvider, firstItem, completionRules, textView, textBuffer, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
             else
@@ -353,8 +353,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var newDoc = document.WithText(newText);
             document.Project.Solution.Workspace.TryApplyChanges(newDoc.Project.Solution);
 
-            var textBuffer = (WorkspaceFixture.GetWorkspace()).Documents.Single().TextBuffer;
-            var textView = (WorkspaceFixture.GetWorkspace()).Documents.Single().GetTextView();
+            var textBuffer = WorkspaceFixture.GetWorkspace().Documents.Single().TextBuffer;
+            var textView = WorkspaceFixture.GetWorkspace().Documents.Single().GetTextView();
 
             string actualCodeAfterCommit = textBuffer.CurrentSnapshot.AsText().ToString();
             var caretPosition = commit.NewPosition != null ? commit.NewPosition.Value : textView.Caret.Position.BufferPosition.Position;

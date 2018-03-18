@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal("&H01", FormatPrimitiveUsingHexadecimalNumbers(CSByte(1)))
             Assert.Equal("&H7F", FormatPrimitiveUsingHexadecimalNumbers(CSByte(&H7F)))
             Assert.Equal("&HFFFFFFFF", FormatPrimitiveUsingHexadecimalNumbers(CSByte(-1)))
-            Assert.Equal("&HFFFFFFFE", FormatPrimitiveUsingHexadecimalNumbers(CSByte((-2))))
+            Assert.Equal("&HFFFFFFFE", FormatPrimitiveUsingHexadecimalNumbers(CSByte(-2)))
             Assert.Equal("&H0000", FormatPrimitiveUsingHexadecimalNumbers(CUShort(0)))
             Assert.Equal("&H0001", FormatPrimitiveUsingHexadecimalNumbers(CUShort(1)))
             Assert.Equal("&H007F", FormatPrimitiveUsingHexadecimalNumbers(CUShort(&H7F)))
@@ -54,7 +54,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal("&H0001", FormatPrimitiveUsingHexadecimalNumbers(CShort(1)))
             Assert.Equal("&H007F", FormatPrimitiveUsingHexadecimalNumbers(CShort(&H7F)))
             Assert.Equal("&HFFFFFFFF", FormatPrimitiveUsingHexadecimalNumbers(CShort(-1)))
-            Assert.Equal("&HFFFFFFFE", FormatPrimitiveUsingHexadecimalNumbers(CShort((-2))))
+            Assert.Equal("&HFFFFFFFE", FormatPrimitiveUsingHexadecimalNumbers(CShort(-2)))
             Assert.Equal("&H00000000", FormatPrimitiveUsingHexadecimalNumbers(CUInt(0)))
             Assert.Equal("&H00000001", FormatPrimitiveUsingHexadecimalNumbers(CUInt(1)))
             Assert.Equal("&H0000007F", FormatPrimitiveUsingHexadecimalNumbers(CUInt(&H7F)))
@@ -63,7 +63,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal("&H00000001", FormatPrimitiveUsingHexadecimalNumbers(CInt(1)))
             Assert.Equal("&H0000007F", FormatPrimitiveUsingHexadecimalNumbers(CInt(&H7F)))
             Assert.Equal("&HFFFFFFFF", FormatPrimitiveUsingHexadecimalNumbers(CInt(-1)))
-            Assert.Equal("&HFFFFFFFE", FormatPrimitiveUsingHexadecimalNumbers(CInt((-2))))
+            Assert.Equal("&HFFFFFFFE", FormatPrimitiveUsingHexadecimalNumbers(CInt(-2)))
             Assert.Equal("&H0000000000000000", FormatPrimitiveUsingHexadecimalNumbers(CULng(0)))
             Assert.Equal("&H0000000000000001", FormatPrimitiveUsingHexadecimalNumbers(CULng(1)))
             Assert.Equal("&H000000000000007F", FormatPrimitiveUsingHexadecimalNumbers(CULng(&H7F)))
@@ -72,7 +72,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal("&H0000000000000001", FormatPrimitiveUsingHexadecimalNumbers(CLng(1)))
             Assert.Equal("&H000000000000007F", FormatPrimitiveUsingHexadecimalNumbers(CLng(&H7F)))
             Assert.Equal("&HFFFFFFFFFFFFFFFF", FormatPrimitiveUsingHexadecimalNumbers(CLng(-1)))
-            Assert.Equal("&HFFFFFFFFFFFFFFFE", FormatPrimitiveUsingHexadecimalNumbers(CLng((-2))))
+            Assert.Equal("&HFFFFFFFFFFFFFFFE", FormatPrimitiveUsingHexadecimalNumbers(CLng(-2)))
         End Sub
 
         <Fact>

@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool leftDefault = left.IsLiteralDefault();
             bool rightDefault = right.IsLiteralDefault();
-            if ((operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken))
+            if (operatorToken.Kind() == SyntaxKind.EqualsEqualsToken || operatorToken.Kind() == SyntaxKind.ExclamationEqualsToken)
             {
                 if (leftDefault && rightDefault)
                 {
