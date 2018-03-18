@@ -61,9 +61,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         internal TestDiagnosticAnalyzerService(
-            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource = null,
+            AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource,
+            PrimaryWorkspace primaryWorkspace,
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = null)
-           : base(SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(), null, hostDiagnosticUpdateSource, new MockDiagnosticUpdateSourceRegistrationService())
+           : base(SpecializedCollections.EmptyEnumerable<HostDiagnosticAnalyzerPackage>(), null, hostDiagnosticUpdateSource, primaryWorkspace, new MockDiagnosticUpdateSourceRegistrationService())
         {
             _onAnalyzerException = onAnalyzerException;
         }

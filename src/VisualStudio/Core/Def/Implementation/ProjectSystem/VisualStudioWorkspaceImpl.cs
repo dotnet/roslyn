@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 MefV1HostServices.Create(exportProvider),
                 backgroundWork: WorkspaceBackgroundWork.ParseAndCompile)
         {
-            PrimaryWorkspace.Register(this);
+            exportProvider.GetExportedValue<PrimaryWorkspace>().Register(this);
         }
 
         /// <summary>

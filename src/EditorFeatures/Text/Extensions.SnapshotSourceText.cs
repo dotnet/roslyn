@@ -24,6 +24,8 @@ namespace Microsoft.CodeAnalysis.Text
         {
             private static readonly Func<int, int, string> s_textLog = (v1, v2) => string.Format("FullRange : from {0} to {1}", v1, v2);
 
+            private readonly Workspace _workspace;
+
             /// <summary>
             /// The <see cref="ITextImage"/> backing the SourceText instance
             /// </summary>
@@ -32,24 +34,26 @@ namespace Microsoft.CodeAnalysis.Text
             private readonly Encoding _encodingOpt;
             private readonly TextBufferContainer _containerOpt;
 
-            private SnapshotSourceText(ITextSnapshot editorSnapshot) :
-                this(editorSnapshot, TextBufferContainer.From(editorSnapshot.TextBuffer))
+            private SnapshotSourceText(Workspace workspace, ITextSnapshot editorSnapshot) :
+                this(workspace, editorSnapshot, TextBufferContainer.From(workspace, editorSnapshot.TextBuffer))
             {
             }
 
-            private SnapshotSourceText(ITextSnapshot editorSnapshot, TextBufferContainer container)
+            private SnapshotSourceText(Workspace workspace, ITextSnapshot editorSnapshot, TextBufferContainer container)
             {
                 Contract.ThrowIfNull(editorSnapshot);
 
+                _workspace = workspace;
                 this.TextImage = RecordReverseMapAndGetImage(editorSnapshot);
                 _encodingOpt = editorSnapshot.TextBuffer.GetEncodingOrUTF8();
                 _containerOpt = container;
             }
 
-            public SnapshotSourceText(ITextImage textImage, Encoding encodingOpt, TextBufferContainer containerOpt)
+            public SnapshotSourceText(Workspace workspace, ITextImage textImage, Encoding encodingOpt, TextBufferContainer containerOpt)
             {
                 Contract.ThrowIfNull(textImage);
 
+                _workspace = workspace;
                 this.TextImage = textImage;
                 _encodingOpt = encodingOpt;
                 _containerOpt = containerOpt;
@@ -66,20 +70,29 @@ namespace Microsoft.CodeAnalysis.Text
             /// </summary>
             private static readonly ConditionalWeakTable<ITextImage, WeakReference<ITextSnapshot>> s_textImageToEditorSnapshotMap = new ConditionalWeakTable<ITextImage, WeakReference<ITextSnapshot>>();
 
-            public static SourceText From(ITextSnapshot editorSnapshot)
+            internal Workspace Workspace => _workspace;
+
+            public static SourceText From(Workspace workspace, ITextSnapshot editorSnapshot)
             {
                 if (editorSnapshot == null)
                 {
                     throw new ArgumentNullException(nameof(editorSnapshot));
                 }
 
-                return s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(s));
+                if (!s_textSnapshotMap.TryGetValue(editorSnapshot, out var snapshot))
+                {
+                    // Avoid capturing `workspace` on the fast path
+                    var tempWorkspace = workspace;
+                    snapshot = s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(tempWorkspace, s));
+                }
+
+                return snapshot;
             }
 
             /// <summary>
             /// This only exist to break circular dependency on creating buffer. nobody except extension itself should use it
             /// </summary>
-            internal static SourceText From(ITextSnapshot editorSnapshot, TextBufferContainer container)
+            internal static SourceText From(Workspace workspace, ITextSnapshot editorSnapshot, TextBufferContainer container)
             {
                 if (editorSnapshot == null)
                 {
@@ -87,7 +100,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
 
                 Contract.ThrowIfFalse(editorSnapshot.TextBuffer == container.GetTextBuffer());
-                return s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(s, container));
+                return s_textSnapshotMap.GetValue(editorSnapshot, s => new SnapshotSourceText(workspace, s, container));
             }
 
             public override Encoding Encoding
@@ -98,18 +111,11 @@ namespace Microsoft.CodeAnalysis.Text
             public ITextSnapshot TryFindEditorSnapshot()
                 => TryFindEditorSnapshot(this.TextImage);
 
-            protected static ITextBufferCloneService TextBufferFactory
+            protected ITextBufferCloneService TextBufferFactory
             {
                 get
                 {
-                    // simplest way to get text factory
-                    var ws = PrimaryWorkspace.Workspace;
-                    if (ws != null)
-                    {
-                        return ws.Services.GetService<ITextBufferCloneService>();
-                    }
-
-                    return null;
+                    return _workspace?.Services.GetService<ITextBufferCloneService>();
                 }
             }
 
@@ -230,6 +236,7 @@ namespace Microsoft.CodeAnalysis.Text
                 }
 
                 return new ChangedSourceText(
+                    workspace: _workspace,
                     baseText: this,
                     baseSnapshot: ((ITextSnapshot2)baseSnapshot).TextImage,
                     currentSnapshot: ((ITextSnapshot2)buffer.CurrentSnapshot).TextImage);
@@ -275,8 +282,8 @@ namespace Microsoft.CodeAnalysis.Text
             /// </summary>
             internal sealed class ClosedSnapshotSourceText : SnapshotSourceText
             {
-                public ClosedSnapshotSourceText(ITextImage textImage, Encoding encodingOpt)
-                    : base(textImage, encodingOpt, containerOpt: null)
+                public ClosedSnapshotSourceText(Workspace workspace, ITextImage textImage, Encoding encodingOpt)
+                    : base(workspace, textImage, encodingOpt, containerOpt: null)
                 {
                 }
             }
@@ -289,8 +296,8 @@ namespace Microsoft.CodeAnalysis.Text
                 private readonly SnapshotSourceText _baseText;
                 private readonly ITextImage _baseSnapshot;
 
-                public ChangedSourceText(SnapshotSourceText baseText, ITextImage baseSnapshot, ITextImage currentSnapshot)
-                    : base(currentSnapshot, baseText.Encoding, containerOpt: null)
+                public ChangedSourceText(Workspace workspace, SnapshotSourceText baseText, ITextImage baseSnapshot, ITextImage currentSnapshot)
+                    : base(workspace, currentSnapshot, baseText.Encoding, containerOpt: null)
                 {
                     _baseText = baseText;
                     _baseSnapshot = baseSnapshot;

@@ -21,86 +21,108 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
         [Fact, WorkItem(1038018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018"), WorkItem(1041792, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041792")]
         public void TestCreateTextFallsBackToSystemDefaultEncoding()
         {
-            TestCreateTextInferredEncoding(
-                _nonUTF8StringBytes,
-                defaultEncoding: null,
-                expectedEncoding: Encoding.Default);
+            using (var workspace = new TestWorkspace())
+            {
+                TestCreateTextInferredEncoding(
+                    workspace,
+                    _nonUTF8StringBytes,
+                    defaultEncoding: null,
+                    expectedEncoding: Encoding.Default);
+            }
         }
 
         [Fact, WorkItem(1038018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018")]
         public void TestCreateTextFallsBackToUTF8Encoding()
         {
-            TestCreateTextInferredEncoding(
-                new ASCIIEncoding().GetBytes("Test"),
-                defaultEncoding: null,
-                expectedEncoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true));
+            using (var workspace = new TestWorkspace())
+            {
+                TestCreateTextInferredEncoding(
+                    workspace,
+                    new ASCIIEncoding().GetBytes("Test"),
+                    defaultEncoding: null,
+                    expectedEncoding: new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true));
+            }
         }
 
         [Fact, WorkItem(1038018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018")]
         public void TestCreateTextFallsBackToProvidedDefaultEncoding()
         {
-            TestCreateTextInferredEncoding(
-                new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true).GetBytes("Test"),
-                defaultEncoding: Encoding.GetEncoding(1254),
-                expectedEncoding: Encoding.GetEncoding(1254));
+            using (var workspace = new TestWorkspace())
+            {
+                TestCreateTextInferredEncoding(
+                    workspace,
+                    new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true).GetBytes("Test"),
+                    defaultEncoding: Encoding.GetEncoding(1254),
+                    expectedEncoding: Encoding.GetEncoding(1254));
+            }
         }
 
         [Fact, WorkItem(1038018, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1038018")]
         public void TestCreateTextUsesByteOrderMarkIfPresent()
         {
-            TestCreateTextInferredEncoding(
-                Encoding.UTF8.GetPreamble().Concat(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true).GetBytes("Test")).ToArray(),
-                defaultEncoding: Encoding.GetEncoding(1254),
-                expectedEncoding: Encoding.UTF8);
+            using (var workspace = new TestWorkspace())
+            {
+                TestCreateTextInferredEncoding(
+                    workspace,
+                    Encoding.UTF8.GetPreamble().Concat(new UTF8Encoding(encoderShouldEmitUTF8Identifier: false, throwOnInvalidBytes: true).GetBytes("Test")).ToArray(),
+                    defaultEncoding: Encoding.GetEncoding(1254),
+                    expectedEncoding: Encoding.UTF8);
+            }
         }
 
         [Fact]
         public async Task TestCreateFromTemporaryStorage()
         {
-            var textFactory = CreateMockTextFactoryService();
-            var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
-
-            var text = Text.SourceText.From("Hello, World!");
-
-            // Create a temporary storage location
-            using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
+            using (var workspace = new TestWorkspace())
             {
-                // Write text into it
-                await temporaryStorage.WriteTextAsync(text);
+                var textFactory = CreateMockTextFactoryService(workspace);
+                var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
 
-                // Read text back from it
-                var text2 = await temporaryStorage.ReadTextAsync();
+                var text = Text.SourceText.From("Hello, World!");
 
-                Assert.NotSame(text, text2);
-                Assert.Equal(text.ToString(), text2.ToString());
-                Assert.Equal(text2.Encoding, null);
+                // Create a temporary storage location
+                using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
+                {
+                    // Write text into it
+                    await temporaryStorage.WriteTextAsync(text);
+
+                    // Read text back from it
+                    var text2 = await temporaryStorage.ReadTextAsync();
+
+                    Assert.NotSame(text, text2);
+                    Assert.Equal(text.ToString(), text2.ToString());
+                    Assert.Equal(text2.Encoding, null);
+                }
             }
         }
 
         [Fact]
         public async Task TestCreateFromTemporaryStorageWithEncoding()
         {
-            var textFactory = CreateMockTextFactoryService();
-            var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
-
-            var text = Text.SourceText.From("Hello, World!", Encoding.ASCII);
-
-            // Create a temporary storage location
-            using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
+            using (var workspace = new TestWorkspace())
             {
-                // Write text into it
-                await temporaryStorage.WriteTextAsync(text);
+                var textFactory = CreateMockTextFactoryService(workspace);
+                var temporaryStorageService = new TemporaryStorageServiceFactory.TemporaryStorageService(textFactory);
 
-                // Read text back from it
-                var text2 = await temporaryStorage.ReadTextAsync();
+                var text = Text.SourceText.From("Hello, World!", Encoding.ASCII);
 
-                Assert.NotSame(text, text2);
-                Assert.Equal(text.ToString(), text2.ToString());
-                Assert.Equal(text2.Encoding, Encoding.ASCII);
+                // Create a temporary storage location
+                using (var temporaryStorage = temporaryStorageService.CreateTemporaryTextStorage(System.Threading.CancellationToken.None))
+                {
+                    // Write text into it
+                    await temporaryStorage.WriteTextAsync(text);
+
+                    // Read text back from it
+                    var text2 = await temporaryStorage.ReadTextAsync();
+
+                    Assert.NotSame(text, text2);
+                    Assert.Equal(text.ToString(), text2.ToString());
+                    Assert.Equal(text2.Encoding, Encoding.ASCII);
+                }
             }
         }
 
-        private EditorTextFactoryService CreateMockTextFactoryService()
+        private EditorTextFactoryService CreateMockTextFactoryService(Workspace workspace)
         {
             var mockTextBufferFactoryService = new Mock<ITextBufferFactoryService>();
             mockTextBufferFactoryService
@@ -121,12 +143,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
                     return mockTextBuffer.Object;
                 });
 
-            return new EditorTextFactoryService(mockTextBufferFactoryService.Object, new Mock<IContentTypeRegistryService>().Object);
+            return new EditorTextFactoryService(workspace, mockTextBufferFactoryService.Object, new Mock<IContentTypeRegistryService>().Object);
         }
 
-        private void TestCreateTextInferredEncoding(byte[] bytes, Encoding defaultEncoding, Encoding expectedEncoding)
+        private void TestCreateTextInferredEncoding(Workspace workspace, byte[] bytes, Encoding defaultEncoding, Encoding expectedEncoding)
         {
-            var factory = CreateMockTextFactoryService();
+            var factory = CreateMockTextFactoryService(workspace);
             using (var stream = new MemoryStream(bytes))
             {
                 var text = factory.CreateText(stream, defaultEncoding);

@@ -81,6 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests
                 typeof(CodeAnalysis.Execution.DesktopReferenceSerializationServiceFactory),
                 typeof(CodeAnalysis.Execution.SerializerServiceFactory),
                 typeof(CodeAnalysis.Shared.TestHooks.AsynchronousOperationListenerProvider),
+                typeof(PrimaryWorkspace),
                 typeof(TestExportProvider)
             };
 

@@ -13,17 +13,18 @@ using Microsoft.VisualStudio.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 {
-    [ExportWorkspaceService(typeof(ITextFactoryService), ServiceLayer.Editor), Shared]
     internal class EditorTextFactoryService : ITextFactoryService
     {
+        private readonly Workspace _workspace;
         private readonly ITextBufferFactoryService _textBufferFactory;
         private readonly IContentType _unknownContentType;
 
-        [ImportingConstructor]
         public EditorTextFactoryService(
-                ITextBufferFactoryService textBufferFactoryService,
-                IContentTypeRegistryService contentTypeRegistryService)
+            Workspace workspace,
+            ITextBufferFactoryService textBufferFactoryService,
+            IContentTypeRegistryService contentTypeRegistryService)
         {
+            _workspace = workspace;
             _textBufferFactory = textBufferFactoryService;
             _unknownContentType = contentTypeRegistryService.UnknownContentType;
         }
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             var buffer = CreateTextBuffer(reader, cancellationToken);
 
             // use the given encoding as it is.
-            return buffer.CurrentSnapshot.AsRoslynText(encoding);
+            return buffer.CurrentSnapshot.AsRoslynText(_workspace, encoding);
         }
 
         private ITextBuffer CreateTextBuffer(TextReader reader, CancellationToken cancellationToken = default)
@@ -84,7 +85,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
             using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: 1024, leaveOpen: true))
             {
                 var buffer = CreateTextBuffer(reader, cancellationToken);
-                return buffer.CurrentSnapshot.AsRoslynText(reader.CurrentEncoding ?? Encoding.UTF8);
+                return buffer.CurrentSnapshot.AsRoslynText(_workspace, reader.CurrentEncoding ?? Encoding.UTF8);
+            }
+        }
+
+        [ExportWorkspaceServiceFactory(typeof(ITextFactoryService), ServiceLayer.Editor), Shared]
+        private sealed class Factory : IWorkspaceServiceFactory
+        {
+            private readonly ITextBufferFactoryService _textBufferFactoryService;
+            private readonly IContentTypeRegistryService _contentTypeRegistryService;
+
+            [ImportingConstructor]
+            public Factory(
+                ITextBufferFactoryService textBufferFactoryService,
+                IContentTypeRegistryService contentTypeRegistryService)
+            {
+                _textBufferFactoryService = textBufferFactoryService;
+                _contentTypeRegistryService = contentTypeRegistryService;
+            }
+
+            public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
+            {
+                return new EditorTextFactoryService(
+                    workspaceServices.Workspace,
+                    _textBufferFactoryService,
+                    _contentTypeRegistryService);
             }
         }
     }

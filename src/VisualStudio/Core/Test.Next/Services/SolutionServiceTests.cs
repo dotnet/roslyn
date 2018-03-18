@@ -329,8 +329,10 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             await ((ISolutionController)service).UpdatePrimaryWorkspaceAsync(solutionChecksum, CancellationToken.None);
             var first = await service.GetSolutionAsync(solutionChecksum, CancellationToken.None);
 
+            Assert.IsAssignableFrom<RemoteWorkspace>(first.Workspace);
+            var primaryWorkspace = first.Workspace;
             Assert.Equal(solutionChecksum, await first.State.GetChecksumAsync(CancellationToken.None));
-            Assert.True(object.ReferenceEquals(PrimaryWorkspace.Workspace.PrimaryBranchId, first.BranchId));
+            Assert.True(object.ReferenceEquals(primaryWorkspace.PrimaryBranchId, first.BranchId));
 
             // get new solution
             var newSolution = newSolutionGetter(solution);
@@ -341,14 +343,14 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var second = await service.GetSolutionAsync(newSolutionChecksum, CancellationToken.None);
 
             Assert.Equal(newSolutionChecksum, await second.State.GetChecksumAsync(CancellationToken.None));
-            Assert.False(object.ReferenceEquals(PrimaryWorkspace.Workspace.PrimaryBranchId, second.BranchId));
+            Assert.False(object.ReferenceEquals(primaryWorkspace.PrimaryBranchId, second.BranchId));
 
             // do same once updating primary workspace
             await ((ISolutionController)service).UpdatePrimaryWorkspaceAsync(newSolutionChecksum, CancellationToken.None);
             var third = await service.GetSolutionAsync(newSolutionChecksum, CancellationToken.None);
 
             Assert.Equal(newSolutionChecksum, await third.State.GetChecksumAsync(CancellationToken.None));
-            Assert.True(object.ReferenceEquals(PrimaryWorkspace.Workspace.PrimaryBranchId, third.BranchId));
+            Assert.True(object.ReferenceEquals(primaryWorkspace.PrimaryBranchId, third.BranchId));
         }
 
         private static async Task<SolutionService> GetSolutionServiceAsync(Solution solution, Dictionary<Checksum, object> map = null)

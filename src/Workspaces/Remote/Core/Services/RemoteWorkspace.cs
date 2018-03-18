@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
@@ -21,7 +23,9 @@ namespace Microsoft.CodeAnalysis.Remote
         public RemoteWorkspace()
             : base(RoslynServices.HostServices, workspaceKind: WorkspaceKind.RemoteWorkspace)
         {
-            PrimaryWorkspace.Register(this);
+            var exportProvider = (IMefHostExportProvider)Services.HostServices;
+            var primaryWorkspace = exportProvider.GetExports<PrimaryWorkspace>().Single().Value;
+            primaryWorkspace.Register(this);
 
             Options = Options.WithChangedOption(CacheOptions.RecoverableTreeLengthThreshold, 0);
 
