@@ -244,11 +244,11 @@ namespace Microsoft.CodeAnalysis.AddParameter
             {
                 var builder = ArrayBuilder<CodeAction>.GetInstance(2);
 
-                var nonCascadingActions = ImmutableArray.CreateRange<CodeAction>(codeFixData.Select(data =>
+                var nonCascadingActions = ImmutableArray.CreateRange<CodeFixData, CodeAction>(codeFixData, data =>
                 {
                     var title = GetCodeFixTitle(FeaturesResources.Add_to_0, data.Method, includeParameters: true);
                     return new MyCodeAction(title: title, data.CreateChangedSolutionNonCascading);
-                }));
+                });
 
                 var cascading = codeFixData.Where(data => data.CreateChangedSolutionCascading != null);
                 var cascadingActions = ImmutableArray.CreateRange<CodeAction>(cascading.Select(data =>
