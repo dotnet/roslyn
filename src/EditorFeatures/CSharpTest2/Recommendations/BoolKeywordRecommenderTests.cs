@@ -72,10 +72,40 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterOuterRef()
+        {
+            await VerifyKeywordAsync(
+@"class C {
+    ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterOuterRefReadonly()
+        {
+            await VerifyKeywordAsync(
+@"class C {
+    ref readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestAfterInnerConst()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"const $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterInnerRef()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterInnerRefReadonly()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref readonly $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
