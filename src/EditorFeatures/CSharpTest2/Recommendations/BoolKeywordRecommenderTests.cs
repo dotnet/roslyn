@@ -109,6 +109,48 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterConstLocalDeclaration()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"const $$ int local;"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefLocalDeclaration()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref $$ int local;"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefReadonlyLocalDeclaration()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref readonly $$ int local;"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefLocalFunction()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref $$ int Function();"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefReadonlyLocalFunction()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref readonly $$ int Function();"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterRefExpression()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref int x = ref $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestInEmptyStatement()
         {
             await VerifyKeywordAsync(AddInsideMethod(
