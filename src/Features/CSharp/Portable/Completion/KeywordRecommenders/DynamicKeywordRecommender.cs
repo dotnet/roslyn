@@ -55,8 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 context.IsIsOrAsTypeContext ||
                 syntaxTree.IsDefaultExpressionContext(position, context.LeftToken, cancellationToken) ||
                 syntaxTree.IsAfterKeyword(position, SyntaxKind.ConstKeyword, cancellationToken) ||
-                syntaxTree.IsAfterKeyword(position, SyntaxKind.RefKeyword, cancellationToken) ||
-                syntaxTree.IsAfterKeyword(position, SyntaxKind.ReadOnlyKeyword, cancellationToken) ||
+                IsAfterRefTypeContext(position, context) ||
                 context.IsLocalVariableDeclarationContext ||
                 context.IsParameterTypeContext ||
                 context.IsPossibleLambdaOrAnonymousMethodParameterTypeContext ||
@@ -67,6 +66,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     validTypeDeclarations: SyntaxKindSet.ClassInterfaceStructTypeDeclarations,
                     canBePartial: false,
                     cancellationToken: cancellationToken);
+        }
+
+        private static bool IsAfterRefTypeContext(int position, CSharpSyntaxContext context)
+        {
+            var previousToken = context.LeftToken.GetPreviousTokenIfTouchingWord(position);
+
+            return previousToken.IsKind(SyntaxKind.RefKeyword, SyntaxKind.ReadOnlyKeyword) &&
+                   previousToken.Parent.IsKind(SyntaxKind.RefType);
         }
     }
 }
