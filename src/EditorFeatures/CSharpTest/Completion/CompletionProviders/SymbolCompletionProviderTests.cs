@@ -2049,6 +2049,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
         public async Task AfterRefExpression_TypeAndVariable()
         {
             var markup = @"
@@ -2066,6 +2067,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
         public async Task AfterRefInStatementContext_TypeOnly()
         {
             var markup = @"
@@ -2083,6 +2085,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
         public async Task AfterRefReadonlyInStatementContext_TypeOnly()
         {
             var markup = @"
@@ -2168,6 +2171,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
         public async Task AfterRefInMemberContext_TypeOnly()
         {
             var markup = @"
@@ -2183,6 +2187,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
         public async Task AfterRefReadonlyInMemberContext_TypeOnly()
         {
             var markup = @"

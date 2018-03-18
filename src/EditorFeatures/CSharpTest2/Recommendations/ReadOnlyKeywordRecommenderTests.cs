@@ -545,6 +545,7 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [WorkItem(25569, "https://github.com/dotnet/roslyn/issues/25569")]
         public async Task TestRefReadonlyInStatementContext()
         {
             await VerifyKeywordAsync(@"
