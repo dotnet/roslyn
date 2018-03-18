@@ -1514,6 +1514,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         {
             // cases:
             //  const var
+            //  ref var
+            //  ref readonly var
             //  out var
             //  for (var
             //  foreach (var
@@ -1526,6 +1528,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if (token.IsKind(SyntaxKind.ConstKeyword) &&
                 token.Parent.IsKind(SyntaxKind.LocalDeclarationStatement))
+            {
+                return true;
+            }
+
+            if (token.IsKind(SyntaxKind.RefKeyword, SyntaxKind.ReadOnlyKeyword) &&
+                token.Parent.IsKind(SyntaxKind.RefType) &&
+                token.Parent.IsParentKind(SyntaxKind.VariableDeclaration) &&
+                token.Parent.Parent.IsParentKind(SyntaxKind.LocalDeclarationStatement))
             {
                 return true;
             }

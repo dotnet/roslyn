@@ -268,5 +268,35 @@ $$"));
         {
             await VerifyKeywordAsync(AddInsideMethod("var b = o is $$ "));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterOuterRef()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    ref $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestNotAfterOuterRefReadonly()
+        {
+            await VerifyAbsenceAsync(
+@"class C {
+    ref readonly $$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterInnerRef()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref $$"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
+        public async Task TestAfterInnerRefReadonly()
+        {
+            await VerifyKeywordAsync(AddInsideMethod(
+@"ref readonly $$"));
+        }
     }
 }
