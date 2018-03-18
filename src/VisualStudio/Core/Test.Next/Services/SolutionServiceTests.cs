@@ -364,8 +364,8 @@ namespace Roslyn.VisualStudio.Next.UnitTests.Remote
             var sessionId = 0;
             var storage = new AssetStorage();
             var source = new TestAssetSource(storage, map);
-            var remoteWorkspace = SolutionService.PrimaryWorkspace;
-            var service = new SolutionService(new AssetService(sessionId, storage, remoteWorkspace));
+            var remoteWorkspace = new RemoteWorkspace();
+            var service = new SolutionService(new AssetService(sessionId, storage, remoteWorkspace), remoteWorkspace);
 
             return service;
         }
