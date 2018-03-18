@@ -24,21 +24,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
                 parenthesizedExpression As ParenthesizedExpressionSyntax, semanticModel As SemanticModel,
                 ByRef precedenceKind As PrecedenceKind, ByRef clarifiesPrecedence As Boolean) As Boolean
             Dim result = parenthesizedExpression.CanRemoveParentheses(semanticModel)
-            If result Then
-                Dim parentBinary = TryCast(parenthesizedExpression.Parent, BinaryExpressionSyntax)
-                If parentBinary IsNot Nothing Then
-                    precedenceKind = GetPrecedenceKind(parentBinary)
-                    clarifiesPrecedence = parentBinary.GetOperatorPrecedence() <> parenthesizedExpression.Expression.GetOperatorPrecedence()
-                    Return True
-                End If
+            If Not result Then
+                precedenceKind = Nothing
+                clarifiesPrecedence = False
+                Return False
+            End If
 
-                precedenceKind = PrecedenceKind.Other
+            Dim innerExpression = parenthesizedExpression.Expression
+            Dim innerExpressionPrecedence = innerExpression.GetOperatorPrecedence()
+            Dim innerExpressionIsSimple = innerExpressionPrecedence = OperatorPrecedence.PrecedenceNone
+
+            Dim parentBinary = TryCast(parenthesizedExpression.Parent, BinaryExpressionSyntax)
+            Dim parentAssignment = TryCast(parenthesizedExpression.Parent, AssignmentStatementSyntax)
+
+            If parentBinary IsNot Nothing Then
+                precedenceKind = GetPrecedenceKind(parentBinary)
+                clarifiesPrecedence = Not innerExpressionIsSimple AndAlso
+                                      parentBinary.GetOperatorPrecedence() <> innerExpressionPrecedence
+                Return True
+            ElseIf parentAssignment IsNot Nothing Then
+                ' if we have:  a = (b.length)  this can be removed, and precedence is not clarified. however:
+                ' if we have:  a *= (b + c)    this can be removed, but the parens were clarifying precedence
+                precedenceKind = PrecedenceKind.Assignment
+                clarifiesPrecedence = Not innerExpressionIsSimple
                 Return True
             End If
 
-            precedenceKind = Nothing
+            precedenceKind = PrecedenceKind.Other
             clarifiesPrecedence = False
-            Return False
+            Return True
         End Function
 
         Public Shared Function GetPrecedenceKind(binaryLike As SyntaxNode) As PrecedenceKind

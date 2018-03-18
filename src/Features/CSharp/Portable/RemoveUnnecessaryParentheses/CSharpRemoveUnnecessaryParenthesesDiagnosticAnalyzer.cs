@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal class CSharpRemoveUnnecessaryParenthesesDiagnosticAnalyzer 
+    internal class CSharpRemoveUnnecessaryParenthesesDiagnosticAnalyzer
         : AbstractRemoveUnnecessaryParenthesesDiagnosticAnalyzer<SyntaxKind, ParenthesizedExpressionSyntax>
     {
         protected override SyntaxKind GetSyntaxNodeKind()
@@ -23,36 +23,79 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses
         }
 
         public static bool CanRemoveParenthesesHelper(
-            ParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel, 
+            ParenthesizedExpressionSyntax parenthesizedExpression, SemanticModel semanticModel,
             out PrecedenceKind precedenceKind, out bool clarifiesPrecedence)
         {
             var result = parenthesizedExpression.CanRemoveParentheses(semanticModel);
-            if (result)
+            if (!result)
             {
-                switch (parenthesizedExpression.Parent)
-                {
-                    case ConditionalExpressionSyntax _:
-                        break;
-
-                    case BinaryExpressionSyntax _:
-                    case IsPatternExpressionSyntax _:
-                        var parentExpression = (ExpressionSyntax)parenthesizedExpression.Parent;
-                        precedenceKind = GetPrecedenceKind(parentExpression);
-
-                        clarifiesPrecedence = parentExpression.GetOperatorPrecedence() != parenthesizedExpression.Expression.GetOperatorPrecedence();
-                        return true;
-
-                    default:
-                        precedenceKind = PrecedenceKind.Other;
-                        clarifiesPrecedence = false;
-                        return true;
-                }
-
+                precedenceKind = default;
+                clarifiesPrecedence = false;
+                return false;
             }
 
-            precedenceKind = default;
-            clarifiesPrecedence = false;
-            return false;
+            var innerExpression = parenthesizedExpression.Expression;
+            var innerExpressionPrecedence = innerExpression.GetOperatorPrecedence();
+            var innerExpressionIsSimple = innerExpressionPrecedence == OperatorPrecedence.Primary ||
+                                          innerExpressionPrecedence == OperatorPrecedence.None;
+
+            ExpressionSyntax parentExpression;
+
+            switch (parenthesizedExpression.Parent)
+            {
+            case ConditionalExpressionSyntax _:
+                // If our parent is a conditional, then only remove parens if the inner
+                // expression is a primary. i.e. it's ok to remove any of the following:
+                //
+                //      (a()) ? (b.length) : (c[0])
+                //
+                // But we shouldn't remove parens for anything more complex like:
+                //
+                //      ++a ? b + c : d << e
+                //
+                precedenceKind = PrecedenceKind.Other;
+                clarifiesPrecedence = false;
+                return innerExpressionIsSimple;
+
+            case AssignmentExpressionSyntax assignmentExpression:
+                parentExpression = assignmentExpression;
+                break;
+
+            case BinaryExpressionSyntax binaryExpression:
+                parentExpression = binaryExpression;
+                break;
+
+            case IsPatternExpressionSyntax isPatternExpression:
+                // on the left side of an 'x is pat' expression
+                parentExpression = isPatternExpression;
+                break;
+
+            case ConstantPatternSyntax constantPattern when constantPattern.Parent is IsPatternExpressionSyntax isPatternExpression:
+                // on the right side of an 'x is const_pattern' expression
+                parentExpression = isPatternExpression;
+                break;
+
+            default:
+                precedenceKind = PrecedenceKind.Other;
+                clarifiesPrecedence = false;
+                return true;
+            }
+
+            // We're parented by something binary-like. 
+            precedenceKind = GetPrecedenceKind(parentExpression);
+
+            // Precedence is clarified any time we have expression with different precedence
+            // (and the inner expressoin is not a primary expression).  in other words, this
+            // is helps clarify precedence:
+            //
+            //      a + (b * c)
+            //
+            // However, this does not:
+            //
+            //      a + (b.Length)
+            clarifiesPrecedence = !innerExpressionIsSimple &&
+                                  parentExpression.GetOperatorPrecedence() != innerExpressionPrecedence;
+            return true;
         }
 
         public static PrecedenceKind GetPrecedenceKind(ExpressionSyntax parentExpression)

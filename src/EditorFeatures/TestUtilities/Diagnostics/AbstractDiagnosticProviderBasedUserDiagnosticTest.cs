@@ -145,6 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 
         private static IEnumerable<PerLanguageOption<CodeStyleOption<ParenthesesPreference>>> GetAllExceptOtherParenthesesOptions()
         {
+            yield return CodeStyleOptions.AssignmentOperationParentheses;
             yield return CodeStyleOptions.ArithmeticOperationParentheses;
             yield return CodeStyleOptions.ShiftOperationParentheses;
             yield return CodeStyleOptions.RelationalOperationParentheses;

@@ -481,12 +481,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.AddRequiredParentheses
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddRequiredParentheses)]
         public async Task TestForAssignmentAndEquality2()
         {
-            await TestMissingAsync(
+            await TestAsync(
 @"class C
 {
     void M(bool x, bool y, bool z)
     {
         x = y $$== z;
+    }
+}",
+@"class C
+{
+    void M(bool x, bool y, bool z)
+    {
+        x = (y == z);
     }
 }", RequireAllParenthesesForClarity);
         }

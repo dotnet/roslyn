@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
             var parenthesizedExpression = (TParenthesizedExpressionSyntax)context.Node;
 
             if (!CanRemoveParentheses(parenthesizedExpression, context.SemanticModel,
-                    out var precedenceKind, out bool clarifiesPrecedence))
+                    out var precedenceKind, out var clarifiesPrecedence))
             {
                 return;
             }

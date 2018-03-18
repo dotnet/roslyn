@@ -18,10 +18,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.RemoveUnnecessaryP
             Return (New VisualBasicRemoveUnnecessaryParenthesesDiagnosticAnalyzer(), New VisualBasicRemoveUnnecessaryParenthesesCodeFixProvider())
         End Function
 
-        Private Shadows Async Function TestAsync(initial As String, expected As String, requireAllParenthesesForClarity As Boolean) As Task
+        Private Shadows Async Function TestAsync(initial As String, expected As String, offeredWhenRequireAllParenthesesForClarityIsEnabled As Boolean) As Task
             Await TestInRegularAndScriptAsync(initial, expected, options:=RemoveAllUnnecessaryParentheses)
 
-            If (requireAllParenthesesForClarity) Then
+            If (offeredWhenRequireAllParenthesesForClarityIsEnabled) Then
                 Await TestInRegularAndScriptAsync(initial, expected, options:=MyBase.RequireAllParenthesesForClarity)
             Else
                 Await TestMissingAsync(initial, parameters:=New TestParameters(options:=MyBase.RequireAllParenthesesForClarity))
@@ -100,7 +100,7 @@ end class",
     sub M()
         dim x = 1 + 2 + 3
     end sub
-end class", requireAllParenthesesForClarity:=True)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -115,7 +115,7 @@ end class",
     sub M()
         dim x = 1 + 2 + 3
     end sub
-end class", requireAllParenthesesForClarity:=True)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -130,7 +130,7 @@ end class",
     sub M()
         dim x = a orelse b orelse c
     end sub
-end class", requireAllParenthesesForClarity:=True)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -145,7 +145,7 @@ end class",
     sub M()
         dim x = a orelse b orelse c
     end sub
-end class", requireAllParenthesesForClarity:=True)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -160,7 +160,7 @@ end class",
     sub M()
         dim x = 1
     end sub
-end class", requireAllParenthesesForClarity:=True)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -175,7 +175,7 @@ end class",
     function M() as integer
         return 1 + 2
     end function
-end class", requireAllParenthesesForClarity:=True)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -192,7 +192,7 @@ end class",
     sub M()
         dim i = 1 + 2
     end sub
-end class", requireAllParenthesesForClarity:=True)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -207,7 +207,7 @@ end class", New TestParameters(options:=RequireAllParenthesesForClarity))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
-        Public Async Function TestAssignment_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity() As Task
+        Public Async Function TestAssignment_TestAvailableWithAlwaysRemove_And_TestNotAvailableWhenRequiredForClarity() As Task
             Await TestAsync(
 "class C
 
@@ -220,7 +220,58 @@ end class",
     sub M()
         i = 1 + 2
     end sub
-end class", requireAllParenthesesForClarity:=True)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        Public Async Function TestPrimaryAssignment_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity() As Task
+            Await TestAsync(
+"class C
+
+    sub M()
+        i = $$(x.Length)
+    end sub
+end class",
+"class C
+
+    sub M()
+        i = x.Length
+    end sub
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        Public Async Function TestCompoundAssignment_TestAvailableWithAlwaysRemove_And_TestNotAvailableWhenRequiredForClarity() As Task
+            Await TestAsync(
+"class C
+
+    sub M()
+        i *= $$(1 + 2)
+    end sub
+end class",
+"class C
+
+    sub M()
+        i *= 1 + 2
+    end sub
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
+        Public Async Function TestCompoundPrimaryAssignment_TestAvailableWithAlwaysRemove_And_TestAvailableWhenRequiredForClarity() As Task
+            Await TestAsync(
+"class C
+
+    sub M()
+        i *= $$(x.Length)
+    end sub
+end class",
+"class C
+
+    sub M()
+        i *= x.Length
+    end sub
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -235,7 +286,7 @@ end class",
     sub M()
         dim i = ( 1 + 2 )
     end sub
-end class", requireAllParenthesesForClarity:=True)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -250,7 +301,7 @@ end class",
     sub M()
         dim i = function () 1
     end sub
-end class", requireAllParenthesesForClarity:=True)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -265,7 +316,7 @@ end class",
     sub M()
         dim i as integer() = { 1 }
     end sub
-end class", requireAllParenthesesForClarity:=True)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -284,7 +335,7 @@ end class",
                 where c.Age > 21
                 select c
     end sub
-end class", requireAllParenthesesForClarity:=True)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -299,7 +350,7 @@ end class",
     sub M()
         dim i = directcast( 1, string)
     end sub
-end class", requireAllParenthesesForClarity:=True)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -314,7 +365,7 @@ end class",
     sub M()
         dim i = directcast(1, string)
     end sub
-end class", requireAllParenthesesForClarity:=True)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -349,7 +400,7 @@ end class",
     sub M()
         dim s = $""{ true }""
     end sub
-end class", requireAllParenthesesForClarity:=True)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=True)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -364,7 +415,7 @@ end class",
     sub M()
         dim q = a * b + c
     end sub
-end class", requireAllParenthesesForClarity:=False)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
@@ -379,7 +430,7 @@ end class",
     sub M()
         dim q = c + a * b
     end sub
-end class", requireAllParenthesesForClarity:=False)
+end class", offeredWhenRequireAllParenthesesForClarityIsEnabled:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)>
