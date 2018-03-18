@@ -3417,8 +3417,8 @@ expectedIL: @"{
   .maxstack  1
   .locals init (T V_0, //t
                 int V_1, //i
-                int V_2,
-                T V_3,
+                T V_2,
+                int V_3,
                 int V_4)
   // sequence point: {
   IL_0000:  nop
@@ -3426,18 +3426,18 @@ expectedIL: @"{
   IL_0001:  ldc.i4.1
   IL_0002:  stloc.s    V_4
   IL_0004:  ldc.i4.1
-  IL_0005:  stloc.2
-  IL_0006:  ldloc.2
+  IL_0005:  stloc.3
+  IL_0006:  ldloc.3
   IL_0007:  box        ""int""
   IL_000c:  isinst     ""T""
   IL_0011:  brfalse.s  IL_0033
-  IL_0013:  ldloc.2
+  IL_0013:  ldloc.3
   IL_0014:  box        ""int""
   IL_0019:  isinst     ""T""
   IL_001e:  unbox.any  ""T""
-  IL_0023:  stloc.3
+  IL_0023:  stloc.2
   IL_0024:  br.s       IL_0026
-  IL_0026:  ldloc.3
+  IL_0026:  ldloc.2
   IL_0027:  stloc.0
   IL_0028:  br.s       IL_002a
   // sequence point: Console.Write(1);
@@ -3446,7 +3446,7 @@ expectedIL: @"{
   IL_0030:  nop
   // sequence point: break;
   IL_0031:  br.s       IL_0040
-  IL_0033:  ldloc.2
+  IL_0033:  ldloc.3
   IL_0034:  stloc.1
   IL_0035:  br.s       IL_0037
   // sequence point: Console.Write(2);
@@ -3457,15 +3457,16 @@ expectedIL: @"{
   IL_003e:  br.s       IL_0040
   // sequence point: }
   IL_0040:  ret
-}");
+}
+");
             verifier.VerifyIL(qualifiedMethodName: "Program.M2<T>", sequencePoints: "Program.M2", source: source,
 expectedIL: @"{
   // Code size       63 (0x3f)
   .maxstack  1
   .locals init (T V_0, //t
                 string V_1, //s
-                string V_2,
-                T V_3,
+                T V_2,
+                string V_3,
                 string V_4)
   // sequence point: {
   IL_0000:  nop
@@ -3473,16 +3474,16 @@ expectedIL: @"{
   IL_0001:  ldstr      ""M2""
   IL_0006:  stloc.s    V_4
   IL_0008:  ldstr      ""M2""
-  IL_000d:  stloc.2
-  IL_000e:  ldloc.2
+  IL_000d:  stloc.3
+  IL_000e:  ldloc.3
   IL_000f:  isinst     ""T""
   IL_0014:  brfalse.s  IL_0031
-  IL_0016:  ldloc.2
+  IL_0016:  ldloc.3
   IL_0017:  isinst     ""T""
   IL_001c:  unbox.any  ""T""
-  IL_0021:  stloc.3
+  IL_0021:  stloc.2
   IL_0022:  br.s       IL_0024
-  IL_0024:  ldloc.3
+  IL_0024:  ldloc.2
   IL_0025:  stloc.0
   IL_0026:  br.s       IL_0028
   // sequence point: Console.Write(3);
@@ -3491,7 +3492,7 @@ expectedIL: @"{
   IL_002e:  nop
   // sequence point: break;
   IL_002f:  br.s       IL_003e
-  IL_0031:  ldloc.2
+  IL_0031:  ldloc.3
   IL_0032:  stloc.1
   IL_0033:  br.s       IL_0035
   // sequence point: Console.Write(4);

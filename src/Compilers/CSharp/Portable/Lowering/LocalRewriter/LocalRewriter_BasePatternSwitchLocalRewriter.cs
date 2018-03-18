@@ -142,47 +142,114 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
 
-                // Call LowerDecisionDagNode with each node and its following node in the generation order.
-                // However, some nodes can be emitted more efficiently as a switch dispatch (possibly out
-                // of order).
-                var loweredNodes = PooledHashSet<BoundDecisionDag>.GetInstance();
-                BoundDecisionDag previous = null;
+                // Code for the when clause goes in a separate code section for the switch section.
                 foreach (BoundDecisionDag node in sortedNodes)
                 {
                     if (node is BoundWhenClause w)
                     {
-                        // Code for the when clause goes in a separate code section for the switch section.
                         LowerWhenClause(w);
-                        continue;
                     }
-
-                    // BoundDecision nodes do not get any code generated for them.
-                    if (node is BoundDecision || loweredNodes.Contains(node))
-                    {
-                        continue;
-                    }
-
-                    if (previous != null && !loweredNodes.Contains(previous))
-                    {
-                        // Lower the node "previous".
-                        if (!GenerateSwitchDispatch(previous, loweredNodes))
-                        {
-                            LowerDecisionDagNode(previous, node);
-                        }
-
-                        loweredNodes.Add(previous);
-                    }
-
-                    previous = node;
                 }
 
-                // Lower the final node
-                if (previous != null && !loweredNodes.Contains(previous))
+                ImmutableArray<BoundDecisionDag> nodesToLower = sortedNodes.WhereAsArray(n => n.Kind != BoundKind.WhenClause && n.Kind != BoundKind.Decision);
+                var loweredNodes = PooledHashSet<BoundDecisionDag>.GetInstance();
+                for (int i = 0, length = nodesToLower.Length; i < length; i++)
                 {
-                    LowerDecisionDagNode(previous, null);
+                    BoundDecisionDag node = nodesToLower[i];
+                    if (loweredNodes.Contains(node))
+                    {
+                        continue;
+                    }
+
+                    if (this._dagNodeLabels.TryGetValue(node, out LabelSymbol label))
+                    {
+                        _loweredDecisionDag.Add(_factory.Label(label));
+                    }
+
+                    // If we can generate an IL switch instruction, do so
+                    if (GenerateSwitchDispatch(node, loweredNodes))
+                    {
+                        continue;
+                    }
+
+                    // If we can generate a type test and cast more efficiently as an `is` followed by a null check, do so
+                    if (GenerateTypeTestAndCast(node, loweredNodes, nodesToLower, i))
+                    {
+                        continue;
+                    }
+
+                    // We pass the node that will follow so we can permit a test to fall through if appropriate
+                    BoundDecisionDag nextNode = ((i + 1) < length) ? nodesToLower[i + 1] : null;
+                    if (nextNode != null && loweredNodes.Contains(nextNode))
+                    {
+                        nextNode = null;
+                    }
+
+                    LowerDecisionDagNode(node, nextNode);
                 }
 
                 loweredNodes.Free();
+            }
+
+            /// <summary>
+            /// If we have a type decision followed by a cast to that type, and the types are reference types,
+            /// then we can replace the pair of them by a conversion using `as` and a null check.
+            /// </summary>
+            /// <returns>true if we generated code for the decision</returns>
+            private bool GenerateTypeTestAndCast(
+                BoundDecisionDag node,
+                HashSet<BoundDecisionDag> loweredNodes,
+                ImmutableArray<BoundDecisionDag> nodesToLower,
+                int indexOfNode)
+            {
+                Debug.Assert(node == nodesToLower[indexOfNode]);
+                if (node is BoundDecisionPoint decisionPoint &&
+                    decisionPoint.WhenTrue is BoundEvaluationPoint evaluationPoint &&
+                    // Even if there are other entries to the evaluation point, we need not use it here
+                    // !this._dagNodeLabels.ContainsKey(evaluationPoint) &&
+                    TryLowerTypeTestAndCast(decisionPoint.Decision, evaluationPoint.Evaluation, out BoundExpression sideEffect, out BoundExpression test)
+                    )
+                {
+                    var whenTrue = evaluationPoint.Next;
+                    var whenFalse = decisionPoint.WhenFalse;
+                    if (!this._dagNodeLabels.ContainsKey(evaluationPoint))
+                    {
+                        loweredNodes.Add(evaluationPoint);
+                    }
+
+                    var nextNode =
+                        (indexOfNode + 2 < nodesToLower.Length) &&
+                        nodesToLower[indexOfNode + 1] == evaluationPoint &&
+                        !loweredNodes.Contains(nodesToLower[indexOfNode + 2]) ? nodesToLower[indexOfNode + 2] : null;
+
+                    _loweredDecisionDag.Add(_factory.ExpressionStatement(sideEffect));
+                    GenerateTest(test, whenTrue, whenFalse, nextNode);
+                    return true;
+                }
+
+                return false;
+            }
+
+            private void GenerateTest(BoundExpression test, BoundDecisionDag whenTrue, BoundDecisionDag whenFalse, BoundDecisionDag nextNode)
+            {
+                // Because we have already "optimized" away tests for a constant switch expression, the decision should be nontrivial.
+                Debug.Assert(test != null);
+
+                if (nextNode == whenFalse)
+                {
+                    _loweredDecisionDag.Add(_factory.ConditionalGoto(test, GetDagNodeLabel(whenTrue), jumpIfTrue: true));
+                    // fall through to false decision
+                }
+                else if (nextNode == whenTrue)
+                {
+                    _loweredDecisionDag.Add(_factory.ConditionalGoto(test, GetDagNodeLabel(whenFalse), jumpIfTrue: false));
+                    // fall through to true decision
+                }
+                else
+                {
+                    _loweredDecisionDag.Add(_factory.ConditionalGoto(test, GetDagNodeLabel(whenTrue), jumpIfTrue: true));
+                    _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(whenFalse)));
+                }
             }
 
             /// <summary>
@@ -358,11 +425,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private void LowerDecisionDagNode(BoundDecisionDag node, BoundDecisionDag nextNode)
             {
-                if (this._dagNodeLabels.TryGetValue(node, out LabelSymbol label))
-                {
-                    _loweredDecisionDag.Add(_factory.Label(label));
-                }
-
                 switch (node)
                 {
                     case BoundEvaluationPoint evaluationPoint:
@@ -383,25 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             // PROTOTYPE(patterns2): should translate a chain of constant value tests into a switch instruction as before
                             BoundExpression test = base.LowerDecision(decisionPoint.Decision);
-
-                            // Because we have already "optimized" away tests for a constant switch expression, the decision should be nontrivial.
-                            Debug.Assert(test != null);
-
-                            if (nextNode == decisionPoint.WhenFalse)
-                            {
-                                _loweredDecisionDag.Add(_factory.ConditionalGoto(test, GetDagNodeLabel(decisionPoint.WhenTrue), jumpIfTrue: true));
-                                // fall through to false decision
-                            }
-                            else if (nextNode == decisionPoint.WhenTrue)
-                            {
-                                _loweredDecisionDag.Add(_factory.ConditionalGoto(test, GetDagNodeLabel(decisionPoint.WhenFalse), jumpIfTrue: false));
-                                // fall through to true decision
-                            }
-                            else
-                            {
-                                _loweredDecisionDag.Add(_factory.ConditionalGoto(test, GetDagNodeLabel(decisionPoint.WhenTrue), jumpIfTrue: true));
-                                _loweredDecisionDag.Add(_factory.Goto(GetDagNodeLabel(decisionPoint.WhenFalse)));
-                            }
+                            GenerateTest(test, decisionPoint.WhenTrue, decisionPoint.WhenFalse, nextNode);
                         }
 
                         break;

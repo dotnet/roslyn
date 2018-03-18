@@ -2442,44 +2442,44 @@ class C
                 int V_1, //i
                 int V_2, //j
                 object V_3, //o
-                object V_4,
-                int V_5,
-                byte V_6,
+                int V_4,
+                byte V_5,
+                object V_6,
                 object V_7)
   IL_0000:  nop
   IL_0001:  call       ""object C.F()""
   IL_0006:  stloc.s    V_7
   IL_0008:  ldloc.s    V_7
-  IL_000a:  stloc.s    V_4
-  IL_000c:  ldloc.s    V_4
+  IL_000a:  stloc.s    V_6
+  IL_000c:  ldloc.s    V_6
   IL_000e:  isinst     ""int""
   IL_0013:  brfalse.s  IL_0025
-  IL_0015:  ldloc.s    V_4
+  IL_0015:  ldloc.s    V_6
   IL_0017:  unbox.any  ""int""
-  IL_001c:  stloc.s    V_5
+  IL_001c:  stloc.s    V_4
   IL_001e:  ldc.i4.1
-  IL_001f:  ldloc.s    V_5
+  IL_001f:  ldloc.s    V_4
   IL_0021:  beq.s      IL_0046
   IL_0023:  br.s       IL_0068
-  IL_0025:  ldloc.s    V_4
+  IL_0025:  ldloc.s    V_6
   IL_0027:  isinst     ""byte""
   IL_002c:  brfalse.s  IL_0040
-  IL_002e:  ldloc.s    V_4
+  IL_002e:  ldloc.s    V_6
   IL_0030:  unbox.any  ""byte""
-  IL_0035:  stloc.s    V_6
+  IL_0035:  stloc.s    V_5
   IL_0037:  br.s       IL_0053
   IL_0039:  ldc.i4.1
-  IL_003a:  ldloc.s    V_6
+  IL_003a:  ldloc.s    V_5
   IL_003c:  beq.s      IL_007d
   IL_003e:  br.s       IL_0098
-  IL_0040:  ldloc.s    V_4
+  IL_0040:  ldloc.s    V_6
   IL_0042:  brtrue.s   IL_0098
   IL_0044:  br.s       IL_00a6
   IL_0046:  ldstr      ""int 1""
   IL_004b:  call       ""void System.Console.WriteLine(string)""
   IL_0050:  nop
   IL_0051:  br.s       IL_00a6
-  IL_0053:  ldloc.s    V_6
+  IL_0053:  ldloc.s    V_5
   IL_0055:  stloc.0
   IL_0056:  call       ""bool C.P()""
   IL_005b:  brtrue.s   IL_005f
@@ -2488,7 +2488,7 @@ class C
   IL_0060:  call       ""void System.Console.WriteLine(int)""
   IL_0065:  nop
   IL_0066:  br.s       IL_00a6
-  IL_0068:  ldloc.s    V_5
+  IL_0068:  ldloc.s    V_4
   IL_006a:  stloc.1
   IL_006b:  call       ""bool C.P()""
   IL_0070:  brtrue.s   IL_0074
@@ -2501,14 +2501,14 @@ class C
   IL_0082:  call       ""void System.Console.WriteLine(string)""
   IL_0087:  nop
   IL_0088:  br.s       IL_00a6
-  IL_008a:  ldloc.s    V_5
+  IL_008a:  ldloc.s    V_4
   IL_008c:  stloc.2
   IL_008d:  br.s       IL_008f
   IL_008f:  ldloc.2
   IL_0090:  call       ""void System.Console.WriteLine(int)""
   IL_0095:  nop
   IL_0096:  br.s       IL_00a6
-  IL_0098:  ldloc.s    V_4
+  IL_0098:  ldloc.s    V_6
   IL_009a:  stloc.3
   IL_009b:  br.s       IL_009d
   IL_009d:  ldloc.3
@@ -2534,47 +2534,47 @@ class C
                 int V_1, //i
                 int V_2, //j
                 object V_3, //o
-                [object] V_4,
-                [int] V_5,
-                [unchanged] V_6,
+                [int] V_4,
+                [unchanged] V_5,
+                [object] V_6,
                 object V_7,
-                object V_8,
-                int V_9,
-                byte V_10)
+                int V_8,
+                byte V_9,
+                object V_10)
   IL_0000:  nop
   IL_0001:  call       ""object C.F()""
   IL_0006:  stloc.s    V_7
   IL_0008:  ldloc.s    V_7
-  IL_000a:  stloc.s    V_8
-  IL_000c:  ldloc.s    V_8
+  IL_000a:  stloc.s    V_10
+  IL_000c:  ldloc.s    V_10
   IL_000e:  isinst     ""int""
   IL_0013:  brfalse.s  IL_0025
-  IL_0015:  ldloc.s    V_8
+  IL_0015:  ldloc.s    V_10
   IL_0017:  unbox.any  ""int""
-  IL_001c:  stloc.s    V_9
+  IL_001c:  stloc.s    V_8
   IL_001e:  ldc.i4.1
-  IL_001f:  ldloc.s    V_9
+  IL_001f:  ldloc.s    V_8
   IL_0021:  beq.s      IL_0046
   IL_0023:  br.s       IL_0068
-  IL_0025:  ldloc.s    V_8
+  IL_0025:  ldloc.s    V_10
   IL_0027:  isinst     ""byte""
   IL_002c:  brfalse.s  IL_0040
-  IL_002e:  ldloc.s    V_8
+  IL_002e:  ldloc.s    V_10
   IL_0030:  unbox.any  ""byte""
-  IL_0035:  stloc.s    V_10
+  IL_0035:  stloc.s    V_9
   IL_0037:  br.s       IL_0053
   IL_0039:  ldc.i4.1
-  IL_003a:  ldloc.s    V_10
+  IL_003a:  ldloc.s    V_9
   IL_003c:  beq.s      IL_007d
   IL_003e:  br.s       IL_0098
-  IL_0040:  ldloc.s    V_8
+  IL_0040:  ldloc.s    V_10
   IL_0042:  brtrue.s   IL_0098
   IL_0044:  br.s       IL_00a6
   IL_0046:  ldstr      ""int 1""
   IL_004b:  call       ""void System.Console.WriteLine(string)""
   IL_0050:  nop
   IL_0051:  br.s       IL_00a6
-  IL_0053:  ldloc.s    V_10
+  IL_0053:  ldloc.s    V_9
   IL_0055:  stloc.0
   IL_0056:  call       ""bool C.P()""
   IL_005b:  brtrue.s   IL_005f
@@ -2583,7 +2583,7 @@ class C
   IL_0060:  call       ""void System.Console.WriteLine(int)""
   IL_0065:  nop
   IL_0066:  br.s       IL_00a6
-  IL_0068:  ldloc.s    V_9
+  IL_0068:  ldloc.s    V_8
   IL_006a:  stloc.1
   IL_006b:  call       ""bool C.P()""
   IL_0070:  brtrue.s   IL_0074
@@ -2596,14 +2596,14 @@ class C
   IL_0082:  call       ""void System.Console.WriteLine(string)""
   IL_0087:  nop
   IL_0088:  br.s       IL_00a6
-  IL_008a:  ldloc.s    V_9
+  IL_008a:  ldloc.s    V_8
   IL_008c:  stloc.2
   IL_008d:  br.s       IL_008f
   IL_008f:  ldloc.2
   IL_0090:  call       ""void System.Console.WriteLine(int)""
   IL_0095:  nop
   IL_0096:  br.s       IL_00a6
-  IL_0098:  ldloc.s    V_8
+  IL_0098:  ldloc.s    V_10
   IL_009a:  stloc.3
   IL_009b:  br.s       IL_009d
   IL_009d:  ldloc.3

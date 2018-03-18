@@ -255,6 +255,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                         throw ExceptionUtilities.UnexpectedValue(decision);
                 }
             }
+
+            /// <summary>
+            /// Lower a decision followed by an evaluation into a side-effect followed by a test. This permits us to optimize
+            /// a type test followed by a cast into an `as` expression followed by a null check. Returns true if the optimization
+            /// applies and the results are placed into <paramref name="sideEffect"/> and <paramref name="test"/>. The caller
+            /// should place the side-effect before the test in the generated code.
+            /// </summary>
+            /// <param name="evaluation"></param>
+            /// <param name="decision"></param>
+            /// <param name="sideEffect"></param>
+            /// <param name="test"></param>
+            /// <returns>true if the optimization is applied</returns>
+            protected bool TryLowerTypeTestAndCast(
+                BoundDagDecision decision,
+                BoundDagEvaluation evaluation,
+                out BoundExpression sideEffect,
+                out BoundExpression test)
+            {
+                if (decision is BoundTypeDecision typeDecision &&
+                    evaluation is BoundDagTypeEvaluation typeEvaluation &&
+                    typeDecision.Type.IsReferenceType &&
+                    typeDecision.Input.Type.IsReferenceType &&
+                    typeEvaluation.Type == typeDecision.Type &&
+                    typeEvaluation.Input == typeDecision.Input
+                    )
+                {
+                    BoundExpression input = _tempAllocator.GetTemp(decision.Input);
+                    BoundExpression output = _tempAllocator.GetTemp(new BoundDagTemp(evaluation.Syntax, typeEvaluation.Type, evaluation, 0));
+                    sideEffect = _factory.AssignmentExpression(output, _factory.As(input, typeEvaluation.Type));
+                    test = _factory.ObjectNotEqual(output, _factory.Null(output.Type));
+                    return true;
+                }
+
+                sideEffect = test = null;
+                return false;
+            }
         }
 
         private class IsPatternExpressionLocalRewriter : PatternLocalRewriter
@@ -348,18 +384,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // We follow the "good" path in the decision dag. We depend on it being nicely linear in structure.
+                // If we add "or" patterns that assumption breaks down.
                 while (dag.Kind != BoundKind.Decision && dag.Kind != BoundKind.WhenClause)
                 {
                     switch (dag)
                     {
                         case BoundEvaluationPoint e:
-                            LowerOneDecision(e.Evaluation);
-                            dag = e.Next;
+                            {
+                                LowerOneDecision(e.Evaluation);
+                                dag = e.Next;
+                            }
                             break;
                         case BoundDecisionPoint d:
-                            LowerOneDecision(d.Decision);
-                            Debug.Assert(d.WhenFalse is BoundDecision x && x.Label == failureLabel);
-                            dag = d.WhenTrue;
+                            {
+                                Debug.Assert(d.WhenFalse is BoundDecision x && x.Label == failureLabel);
+                                if (d.WhenTrue is BoundEvaluationPoint e && TryLowerTypeTestAndCast(d.Decision, e.Evaluation, out BoundExpression sideEffect, out BoundExpression test))
+                                {
+                                    _sideEffectBuilder.Add(sideEffect);
+                                    AddConjunct(test);
+                                    dag = e.Next;
+                                }
+                                else
+                                {
+                                    LowerOneDecision(d.Decision);
+                                    dag = d.WhenTrue;
+                                }
+                            }
                             break;
                     }
                 }
@@ -421,6 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
         }
+
 
         private BoundExpression MakeEqual(BoundExpression loweredLiteral, BoundExpression input)
         {
