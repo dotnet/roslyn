@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return semanticModel.GetSymbolInfo(orderByClauseSyntax.Orderings[0], cancellationToken);
                     }
 
-                    return new SymbolInfo();
+                    return default;
                 case QueryClauseSyntax queryClauseSyntax:
                     var queryInfo = semanticModel.GetQueryClauseInfo(queryClauseSyntax, cancellationToken);
                     var hasCastInfo = queryInfo.CastInfo.Symbol != null;
