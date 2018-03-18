@@ -2053,7 +2053,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task VariableNotAfterRefLocalDeclaration()
+        public async Task TypeAfterRefInStatementContext()
         {
             var markup = @"
 using System;
@@ -2065,11 +2065,12 @@ class C
     }
 }
 ";
+            await VerifyItemExistsAsync(markup, "String");
             await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task VariableNotAfterRefReadonlyLocalDeclaration()
+        public async Task TypeAfterRefReadonlyInStatementContext()
         {
             var markup = @"
 using System;
@@ -2081,6 +2082,7 @@ class C
     }
 }
 ";
+            await VerifyItemExistsAsync(markup, "String");
             await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
@@ -2091,13 +2093,14 @@ class C
 using System;
 class C
 {
-    void M()
+    void M(String parameter)
     {
-        ref $$
+        ref $$ int local;
     }
 }
 ";
             await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -2107,17 +2110,52 @@ class C
 using System;
 class C
 {
-    void M()
+    void M(String parameter)
     {
-        ref readonly $$
+        ref readonly $$ int local;
     }
 }
 ";
             await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TypeAfterOuterRef()
+        public async Task TypeAfterRefLocalFunction()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        ref $$ int Function();
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeAfterRefReadonlyLocalFunction()
+        {
+            var markup = @"
+using System;
+class C
+{
+    void M(String parameter)
+    {
+        ref readonly $$ int Function();
+    }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+            await VerifyItemIsAbsentAsync(markup, "parameter");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeAfterRefInMemberContext()
         {
             var markup = @"
 using System;
@@ -2130,7 +2168,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TypeAfterOuterRefReadonly()
+        public async Task TypeAfterRefReadonlyInMemberContext()
         {
             var markup = @"
 using System;
