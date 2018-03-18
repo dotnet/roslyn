@@ -889,5 +889,48 @@ public class C
   IL_0009:  ret
 }");
         }
+
+        [Fact, WorkItem(19150, "https://github.com/dotnet/roslyn/issues/19150")]
+        public void RedundantHasValue()
+        {
+            var source =
+@"using System;
+public class C
+{
+    public static void M(int? x)
+    {
+        switch (x)
+        {
+            case int i:
+                Console.Write(i);
+                break;
+            case null:
+                Console.Write(""null"");
+                break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M",
+@"{
+  // Code size       35 (0x23)
+  .maxstack  1
+  .locals init (int? V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloca.s   V_0
+  IL_0004:  call       ""bool int?.HasValue.get""
+  IL_0009:  brfalse.s  IL_0018
+  IL_000b:  ldloca.s   V_0
+  IL_000d:  call       ""int int?.GetValueOrDefault()""
+  IL_0012:  call       ""void System.Console.Write(int)""
+  IL_0017:  ret
+  IL_0018:  ldstr      ""null""
+  IL_001d:  call       ""void System.Console.Write(string)""
+  IL_0022:  ret
+}");
+        }
     }
 }
