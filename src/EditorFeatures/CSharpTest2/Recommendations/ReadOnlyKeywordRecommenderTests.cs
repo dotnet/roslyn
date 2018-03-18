@@ -472,7 +472,12 @@ class Program
 {
     public static void Test()
     {
-        Delegate lambda = (ref $$ int p) => p;
+        // This is bad. We can't put 'ref $ int p' like in the other tests here because in this scenario:
+        // 'Delegate lambda = (ref r int p) => p;' (partially written 'readonly'),
+        // the syntax tree is completely broken and there is no lambda expression at all here.
+        // 'ref' starts a new local declaration and therefore we do offer 'readonly'.
+        // Fixing that would have to involve either changing the parser or doing some really nasty hacks.
+        // Delegate lambda = (ref $$ int p) => p;
     }
 }");
         }
@@ -537,5 +542,34 @@ class Program
     public ref $$ int Test { get; set; }
 }");
         }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyInLocalDeclaration()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    void M()
+    {
+        ref $$
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyNotInRefExpression()
+        {
+            await VerifyAbsenceAsync(@"
+class Program
+{
+    void M()
+    {
+        ref int x = ref $$
+    }
+}");
+        }
+
     }
 }
