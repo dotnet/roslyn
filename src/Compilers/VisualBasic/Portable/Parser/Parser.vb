@@ -14,7 +14,8 @@ Imports InternalSyntaxFactory = Microsoft.CodeAnalysis.VisualBasic.Syntax.Intern
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Partial Friend Class Parser
+
+    Friend Class Parser
         Implements ISyntaxFactoryContext, IDisposable
 
         Private Enum PossibleFirstStatementKind
@@ -26,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private _allowLeadingMultilineTrivia As Boolean = True
         Private _hadImplicitLineContinuation As Boolean = False
         Private _hadLineContinuationComment As Boolean = False
-        Private _possibleFirstStatementOnLine As PossibleFirstStatementKind = PossibleFirstStatementKind.Yes
+        Private _possibleFirstStatementOnLine As PossibleFirstStatementKind = PossibFleFirstStatementKind.Yes
         Private _recursionDepth As Integer
         Private _evaluatingConditionCompilationExpression As Boolean
         Private ReadOnly _scanner As Scanner
@@ -51,8 +52,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             MyClass.New(New Scanner(text, options))
             Debug.Assert(text IsNot Nothing)
             Debug.Assert(options IsNot Nothing)
-            _disposeScanner = True
-            _cancellationToken = cancellationToken
+            Me._disposeScanner = True
+            Me._cancellationToken = cancellationToken
         End Sub
 
         Friend Sub New(scanner As Scanner)
@@ -63,7 +64,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         Friend Sub Dispose() Implements IDisposable.Dispose
-            If _disposeScanner Then _scanner.Dispose()
+            If _disposeScanner Then
+                Me._scanner.Dispose()
+            End If
         End Sub
 
         Friend ReadOnly Property IsScript As Boolean
@@ -436,7 +439,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ' HRESULT .Parser::ParseDecls( [ _In_ Scanner* InputStream ] [ ErrorTable* Errors ] [ SourceFile* InputFile ] [  ParseTree::FileBlockStatement** Result ] [ _Inout_ NorlsAllocator* ConditionalCompilationSymbolsStorage ] [ BCSYM_Container* ProjectLevelCondCompScope ] [ _Out_opt_ BCSYM_Container** ConditionalCompilationConstants ] [ _In_ LineMarkerTable* LineMarkerTableForConditionals ] )
         Friend Function ParseCompilationUnit() As CompilationUnitSyntax
             Return ParseWithStackGuard(Of CompilationUnitSyntax)(
-                AddressOf ParseCompilationUnitCore,
+                AddressOf Me.ParseCompilationUnitCore,
                 Function() SyntaxFactory.CompilationUnit(
                     New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(),
                     New CoreInternalSyntax.SyntaxList(Of VisualBasicSyntaxNode)(),
@@ -532,7 +535,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         Friend Function ParseExecutableStatement() As StatementSyntax
             Return ParseWithStackGuard(Of StatementSyntax)(
-                AddressOf ParseExecutableStatementCore,
+                AddressOf Me.ParseExecutableStatementCore,
                 Function() InternalSyntaxFactory.EmptyStatement())
         End Function
 
@@ -683,7 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     Dim kind As SyntaxKind = Nothing
                     If TryTokenAsKeyword(nextToken, kind) AndAlso (kind = SyntaxKind.AssemblyKeyword OrElse
-                            kind = SyntaxKind.ModuleKeyword) Then
+                       kind = SyntaxKind.ModuleKeyword) Then
                         ' Attribute statements can appear only at file level before any
                         ' declarations or option statements.
 
@@ -699,35 +702,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ParseSpecifierDeclaration(attributes)
 
                 Case SyntaxKind.PrivateKeyword,
-                        SyntaxKind.ProtectedKeyword,
-                        SyntaxKind.PublicKeyword,
-                        SyntaxKind.FriendKeyword,
-                        SyntaxKind.MustInheritKeyword,
-                        SyntaxKind.NotOverridableKeyword,
-                        SyntaxKind.OverridableKeyword,
-                        SyntaxKind.MustOverrideKeyword,
-                        SyntaxKind.NotInheritableKeyword,
-                        SyntaxKind.PartialKeyword,
-                        SyntaxKind.StaticKeyword,
-                        SyntaxKind.SharedKeyword,
-                        SyntaxKind.ShadowsKeyword,
-                        SyntaxKind.WithEventsKeyword,
-                        SyntaxKind.OverloadsKeyword,
-                        SyntaxKind.OverridesKeyword,
-                        SyntaxKind.ConstKeyword,
-                        SyntaxKind.DimKeyword,
-                        SyntaxKind.ReadOnlyKeyword,
-                        SyntaxKind.WriteOnlyKeyword,
-                        SyntaxKind.WideningKeyword,
-                        SyntaxKind.NarrowingKeyword,
-                        SyntaxKind.DefaultKeyword
+                   SyntaxKind.ProtectedKeyword,
+                   SyntaxKind.PublicKeyword,
+                   SyntaxKind.FriendKeyword,
+                   SyntaxKind.MustInheritKeyword,
+                   SyntaxKind.NotOverridableKeyword,
+                   SyntaxKind.OverridableKeyword,
+                   SyntaxKind.MustOverrideKeyword,
+                   SyntaxKind.NotInheritableKeyword,
+                   SyntaxKind.PartialKeyword,
+                   SyntaxKind.StaticKeyword,
+                   SyntaxKind.SharedKeyword,
+                   SyntaxKind.ShadowsKeyword,
+                   SyntaxKind.WithEventsKeyword,
+                   SyntaxKind.OverloadsKeyword,
+                   SyntaxKind.OverridesKeyword,
+                   SyntaxKind.ConstKeyword,
+                   SyntaxKind.DimKeyword,
+                   SyntaxKind.ReadOnlyKeyword,
+                   SyntaxKind.WriteOnlyKeyword,
+                   SyntaxKind.WideningKeyword,
+                   SyntaxKind.NarrowingKeyword,
+                   SyntaxKind.DefaultKeyword
                     Return ParseSpecifierDeclaration()
 
                 Case SyntaxKind.EnumKeyword
                     Return ParseEnumStatement()
 
                 Case SyntaxKind.InheritsKeyword,
-                        SyntaxKind.ImplementsKeyword
+                    SyntaxKind.ImplementsKeyword
                     Return ParseInheritsImplementsStatement(Nothing, Nothing)
 
                 Case SyntaxKind.ImportsKeyword
@@ -858,7 +861,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ParsePossibleDeclarationStatement() As StatementSyntax
             Dim possibleDeclarationStart = PeekToken(1).Kind
             If SyntaxFacts.CanStartSpecifierDeclaration(possibleDeclarationStart) OrElse
-                   SyntaxFacts.IsSpecifier(possibleDeclarationStart) Then
+               SyntaxFacts.IsSpecifier(possibleDeclarationStart) Then
 
                 Dim idf = CurrentToken
                 GetNextToken()
@@ -3523,7 +3526,7 @@ checkNullable:
             Debug.Assert(CurrentToken.Kind = SyntaxKind.HandlesKeyword, "Handles list parsing lost.")
 
             Dim handlesKeyword = DirectCast(CurrentToken, KeywordSyntax)
-            Dim handlesClauseItems = _pool.AllocateSeparated(Of HandlesClauseItemSyntax)()
+            Dim handlesClauseItems As SeparatedSyntaxListBuilder(Of HandlesClauseItemSyntax) = Me._pool.AllocateSeparated(Of HandlesClauseItemSyntax)()
             Dim comma As PunctuationSyntax
 
             GetNextToken() ' get off the handles / comma token
@@ -4311,7 +4314,7 @@ checkNullable:
             ' Consume Of keyword
             TryGetTokenAndEatNewLine(SyntaxKind.OfKeyword, ofKeyword, createIfMissing:=True)
 
-            Dim typeParameters = _pool.AllocateSeparated(Of TypeParameterSyntax)()
+            Dim typeParameters = Me._pool.AllocateSeparated(Of TypeParameterSyntax)()
             Dim asKeyword As KeywordSyntax
 
             Do
@@ -4364,7 +4367,7 @@ checkNullable:
                     Dim openBrace As PunctuationSyntax = Nothing
 
                     If TryGetTokenAndEatNewLine(SyntaxKind.OpenBraceToken, openBrace) Then
-                        Dim constraints = _pool.AllocateSeparated(Of ConstraintSyntax)()
+                        Dim constraints = Me._pool.AllocateSeparated(Of ConstraintSyntax)()
 
                         Do
                             Dim constraint = ParseConstraintSyntax()
@@ -4577,7 +4580,7 @@ checkNullable:
         ' ParameterSpecifierList* .Parser::ParseParameterSpecifiers( [ _Inout_ bool& ErrorInConstruct ] )
 
         Private Function ParseParameterSpecifiers(ByRef specifiers As ParameterSpecifiers) As CoreInternalSyntax.SyntaxList(Of KeywordSyntax)
-            Dim keywords = _pool.Allocate(Of KeywordSyntax)()
+            Dim keywords = Me._pool.Allocate(Of KeywordSyntax)()
 
             specifiers = 0
 
@@ -4872,7 +4875,7 @@ checkNullable:
                 "ParseInheritsImplementsStatement called on the wrong token.")
 
             Dim keyword As KeywordSyntax = ReportModifiersOnStatementError(Attributes, Specifiers, DirectCast(CurrentToken, KeywordSyntax))
-            Dim typeNames = _pool.AllocateSeparated(Of TypeSyntax)()
+            Dim typeNames = Me._pool.AllocateSeparated(Of TypeSyntax)()
 
             GetNextToken()
 

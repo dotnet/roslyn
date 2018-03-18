@@ -1617,7 +1617,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim openParen As PunctuationSyntax = Nothing
             TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen)
 
-            Dim argumentsBuilder = _pool.AllocateSeparated(Of ArgumentSyntax)()
+            Dim argumentsBuilder As SeparatedSyntaxListBuilder(Of ArgumentSyntax) = _pool.AllocateSeparated(Of ArgumentSyntax)()
             Dim comma As PunctuationSyntax = Nothing
 
             ' Parse the first required argument followed by a comma
