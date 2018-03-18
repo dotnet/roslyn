@@ -419,7 +419,7 @@ $$");
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestRefReadonlyAsParameterModifierInMethods()
+        public async Task TestRefReadonlyNotAsParameterModifierInMethods()
         {
             await VerifyAbsenceAsync(@"
 class Program
@@ -430,7 +430,7 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestRefReadonlyAsParameterModifierInSecondParameter()
+        public async Task TestRefReadonlyNotAsParameterModifierInSecondParameter()
         {
             await VerifyAbsenceAsync(@"
 class Program
@@ -441,7 +441,7 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestRefReadonlyAsParameterModifierInDelegates()
+        public async Task TestRefReadonlyNotAsParameterModifierInDelegates()
         {
             await VerifyAbsenceAsync(@"
 public delegate int Delegate(ref $$ int p);");
@@ -449,7 +449,7 @@ public delegate int Delegate(ref $$ int p);");
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestRefReadonlyAsParameterModifierInLocalFunctions()
+        public async Task TestRefReadonlyNotAsParameterModifierInLocalFunctions()
         {
             await VerifyAbsenceAsync(@"
 class Program
@@ -463,17 +463,17 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestRefReadonlyAsParameterModifierInLambdaExpressions()
+        public async Task TestRefReadonlyNotAsParameterModifierInLambdaExpressions()
         {
             await VerifyAbsenceAsync(@"
-public delegate int Delegate(ref readonly int p);
+public delegate int Delegate(ref int p);
 
 class Program
 {
     public static void Test()
     {
         // This is bad. We can't put 'ref $ int p' like in the other tests here because in this scenario:
-        // 'Delegate lambda = (ref r int p) => p;' (partially written 'readonly'),
+        // 'Delegate lambda = (ref r int p) => p;' (partially written 'readonly' keyword),
         // the syntax tree is completely broken and there is no lambda expression at all here.
         // 'ref' starts a new local declaration and therefore we do offer 'readonly'.
         // Fixing that would have to involve either changing the parser or doing some really nasty hacks.
@@ -484,10 +484,10 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestRefReadonlyAsParameterModifierInAnonymousMethods()
+        public async Task TestRefReadonlyNotAsParameterModifierInAnonymousMethods()
         {
             await VerifyAbsenceAsync(@"
-public delegate int Delegate(ref readonly int p);
+public delegate int Delegate(ref int p);
 
 class Program
 {
@@ -545,7 +545,7 @@ class Program
 
         [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TestRefReadonlyInLocalDeclaration()
+        public async Task TestRefReadonlyInStatementContext()
         {
             await VerifyKeywordAsync(@"
 class Program
@@ -553,6 +553,34 @@ class Program
     void M()
     {
         ref $$
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyInLocalDeclaration()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    void M()
+    {
+        ref $$ int local;
+    }
+}");
+        }
+
+        [Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.ReadOnlyReferences)]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TestRefReadonlyInLocalFunction()
+        {
+            await VerifyKeywordAsync(@"
+class Program
+{
+    void M()
+    {
+        ref $$ int Function();
     }
 }");
         }
@@ -570,6 +598,5 @@ class Program
     }
 }");
         }
-
     }
 }
