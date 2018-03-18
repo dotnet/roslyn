@@ -5312,4 +5312,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_InvalidStackAllocArray" xml:space="preserve">
     <value>"Invalid rank specifier: expected ']'</value>
   </data>
+  <data name="IDS_FeatureIndexingMovableFixedBuffers" xml:space="preserve">
+    <value>indexing movable fixed buffers</value>
+  </data>
 </root>

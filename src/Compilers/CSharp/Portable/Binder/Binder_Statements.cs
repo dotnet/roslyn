@@ -1155,6 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     typeArgumentsSyntax: default,
                     typeArguments: default,
                     invoked: true,
+                    indexed: false,
                     bindingDiagnostics);
 
                 if (boundAccess.Kind != BoundKind.MethodGroup)
