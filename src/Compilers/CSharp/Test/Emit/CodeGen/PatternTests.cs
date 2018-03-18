@@ -932,5 +932,46 @@ public class C
   IL_0022:  ret
 }");
         }
+
+        [Fact, WorkItem(19153, "https://github.com/dotnet/roslyn/issues/19153")]
+        public void RedundantBox()
+        {
+            var source = @"using System;
+public class C
+{
+    public static void M<T, U>(U x) where T : U
+    {
+        // when T is not known to be a reference type, there is an unboxing conversion from
+        // a type parameter U to T, provided T depends on U.
+        switch (x)
+        {
+            case T i:
+                Console.Write(i);
+                break;
+        }
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.M<T, U>(U)",
+@"{
+  // Code size       37 (0x25)
+  .maxstack  1
+  .locals init (U V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  box        ""U""
+  IL_0008:  isinst     ""T""
+  IL_000d:  brfalse.s  IL_0024
+  IL_000f:  ldloc.0
+  IL_0010:  box        ""U""
+  IL_0015:  unbox.any  ""T""
+  IL_001a:  box        ""T""
+  IL_001f:  call       ""void System.Console.Write(object)""
+  IL_0024:  ret
+}");
+        }
     }
 }
