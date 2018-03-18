@@ -552,4 +552,7 @@
   <data name="Show_name_suggestions" xml:space="preserve">
     <value>Show name s_uggestions</value>
   </data>
+  <data name="Assignment_operations" xml:space="preserve">
+    <value>Assignment operations:   =   +=   -=   *=   /=   %=   &amp;=   ^=   |=   &lt;&lt;=   &gt;&gt;=</value>
+  </data>
 </root>

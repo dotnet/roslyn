@@ -11,6 +11,7 @@ namespace Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses
         Bitwise,
         Logical,
         Coalesce,
+        Assignment,
         Other
     }
 }

@@ -783,6 +783,51 @@ class List<T>
 //]
 ";
 
+        private readonly string s_assignmentParenthesesIgnore = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Keep_all_parentheses_in_colon}
+        x |= (y << z);
+//]
+    }}
+}}
+";
+
+        private readonly string s_assignmentParenthesesRequireForPrecedenceClarity = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        x |= (y << z);
+
+        // {ServicesVSResources.Over_colon}
+        x |= y << z;
+//]
+    }}
+}}
+";
+
+        private readonly string s_assignmentParenthesesRemoveIfUnnecessary = $@"
+class C
+{{
+    void M()
+    {{
+//[
+        // {ServicesVSResources.Prefer_colon}
+        x |= y << z;
+
+        // {ServicesVSResources.Over_colon}
+        x |= (y << z);
+//]
+    }}
+}}
+";
+
         private readonly string s_arithmeticParenthesesIgnore = $@"
 class C
 {{
@@ -1206,6 +1251,13 @@ class C
 
         private void AddParenthesesOptions(OptionSet optionSet)
         {
+            AddParenthesesOption(
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.AssignmentOperationParentheses,
+                CSharpVSResources.Assignment_operations,
+                new[] { s_assignmentParenthesesIgnore, s_assignmentParenthesesRequireForPrecedenceClarity, s_assignmentParenthesesRemoveIfUnnecessary },
+                allowRequireForClarity: true,
+                recommended: true);
+
             AddParenthesesOption(
                 LanguageNames.CSharp, optionSet, CodeStyleOptions.ArithmeticOperationParentheses,
                 CSharpVSResources.Arithmetic_operations,

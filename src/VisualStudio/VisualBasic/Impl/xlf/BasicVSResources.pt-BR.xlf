@@ -292,6 +292,11 @@
         <target state="new">Shift operations:   &lt;&lt;   &gt;&gt;</target>
         <note />
       </trans-unit>
+      <trans-unit id="Assignment_operations">
+        <source>Assignment operations:   =   +=   -=   *=   /=   \=   ^=   &lt;&lt;=   &gt;&gt;=   &amp;=</source>
+        <target state="new">Assignment operations:   =   +=   -=   *=   /=   \=   ^=   &lt;&lt;=   &gt;&gt;=   &amp;=</target>
+        <note />
+      </trans-unit>
     </body>
   </file>
 </xliff>

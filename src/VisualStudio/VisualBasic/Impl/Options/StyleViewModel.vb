@@ -309,6 +309,45 @@ Class Customer
     End Sub
 End Class"
 
+        Private Shared ReadOnly s_assignmentParenthesesIgnore As String = $"
+class C
+    sub M()
+//[
+        ' {ServicesVSResources.Keep_all_parentheses_in_colon}
+        x *= (y + z)
+//]
+    end sub
+end class
+"
+
+        Private Shared ReadOnly s_assignmentParenthesesRequireForPrecedenceClarity As String = $"
+class C
+    sub M()
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        x *= (y + z)
+
+        ' {ServicesVSResources.Over_colon}
+        x *= y + z
+//]
+    end sub
+end class
+"
+
+        Private Shared ReadOnly s_assignmentParenthesesRemoveIfUnnecessary As String = $"
+class C
+    sub M()
+//[
+        ' {ServicesVSResources.Prefer_colon}
+        x *= y + z
+
+        ' {ServicesVSResources.Over_colon}
+        x *= (y + z)
+//]
+    end sub
+end class
+"
+
         Private Shared ReadOnly s_arithmeticParenthesesIgnore As String = $"
 class C
     sub M()
@@ -545,6 +584,13 @@ end class
         End Sub
 
         Private Sub AddParenthesesOptions(optionSet As OptionSet)
+            AddParenthesesOption(
+                LanguageNames.VisualBasic, optionSet, CodeStyleOptions.AssignmentOperationParentheses,
+                BasicVSResources.Assignment_operations,
+                {s_assignmentParenthesesIgnore, s_assignmentParenthesesRequireForPrecedenceClarity, s_assignmentParenthesesRemoveIfUnnecessary},
+                allowRequireForClarity:=True,
+                recommended:=True)
+
             AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.ArithmeticOperationParentheses,
                 BasicVSResources.Arithmetic_operations,

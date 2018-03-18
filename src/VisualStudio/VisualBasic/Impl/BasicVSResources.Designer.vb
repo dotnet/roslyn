@@ -101,6 +101,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Assignment operations:   =   +=   -=   *=   /=   \=   ^=   &lt;&lt;=   &gt;&gt;=   &amp;=.
+        '''</summary>
+        Friend Shared ReadOnly Property Assignment_operations() As String
+            Get
+                Return ResourceManager.GetString("Assignment_operations", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Automatic _insertion of Interface and MustOverride members.
         '''</summary>
         Friend Shared ReadOnly Property Automatic_insertion_of_Interface_and_MustOverride_members() As String

@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
             If result Then
                 Dim parentBinary = TryCast(parenthesizedExpression.Parent, BinaryExpressionSyntax)
                 If parentBinary IsNot Nothing Then
-                    precedenceKind = GetPrecedenceKind(parentBinary, semanticModel)
+                    precedenceKind = GetPrecedenceKind(parentBinary)
                     clarifiesPrecedence = parentBinary.GetOperatorPrecedence() <> parenthesizedExpression.Expression.GetOperatorPrecedence()
                     Return True
                 End If
@@ -41,8 +41,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.RemoveUnnecessaryParentheses
             Return False
         End Function
 
-        Public Shared Function GetPrecedenceKind(parentBinary As BinaryExpressionSyntax, semanticModel As SemanticModel) As PrecedenceKind
-            Dim precedence = parentBinary.GetOperatorPrecedence()
+        Public Shared Function GetPrecedenceKind(binaryLike As SyntaxNode) As PrecedenceKind
+            Dim binary = TryCast(binaryLike, BinaryExpressionSyntax)
+            If binary Is Nothing Then
+                Debug.Assert(TypeOf binaryLike Is AssignmentStatementSyntax)
+                Return PrecedenceKind.Assignment
+            End If
+
+            Dim precedence = binary.GetOperatorPrecedence()
             Select Case precedence
                 Case OperatorPrecedence.PrecedenceXor,
                      OperatorPrecedence.PrecedenceOr,
