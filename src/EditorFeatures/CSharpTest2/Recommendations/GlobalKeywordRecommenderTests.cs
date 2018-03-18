@@ -48,7 +48,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterOuterConst()
+        public async Task TestAfterConstInMemberContext()
         {
             await VerifyKeywordAsync(
 @"class C {
@@ -56,7 +56,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterOuterRef()
+        public async Task TestAfterRefInMemberContext()
         {
             await VerifyKeywordAsync(
 @"class C {
@@ -64,7 +64,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterOuterRefReadonly()
+        public async Task TestAfterRefReadonlyInMemberContext()
         {
             await VerifyKeywordAsync(
 @"class C {
@@ -72,21 +72,21 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterInnerConst()
+        public async Task TestAfterConstInStatementContext()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"const $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterInnerRef()
+        public async Task TestAfterRefInStatementContext()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"ref $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterInnerRefReadonly()
+        public async Task TestAfterRefReadonlyInStatementContext()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"ref readonly $$"));

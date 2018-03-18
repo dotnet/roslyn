@@ -270,7 +270,7 @@ $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterOuterRef()
+        public async Task TestNotAfterRefInMemberContext()
         {
             await VerifyAbsenceAsync(
 @"class C {
@@ -278,7 +278,7 @@ $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterOuterRefReadonly()
+        public async Task TestNotAfterRefReadonlyInMemberContext()
         {
             await VerifyAbsenceAsync(
 @"class C {
@@ -286,14 +286,14 @@ $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterInnerRef()
+        public async Task TestAfterRefInStatementContext()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"ref $$"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestAfterInnerRefReadonly()
+        public async Task TestAfterRefReadonlyInStatementContext()
         {
             await VerifyKeywordAsync(AddInsideMethod(
 @"ref readonly $$"));
