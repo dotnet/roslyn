@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Function ParseXmlDeclaration() As XmlDeclarationSyntax
             Debug.Assert(CurrentToken.Kind = SyntaxKind.LessThanQuestionToken AndAlso
                               PeekNextToken(ScannerState.Element).Kind = SyntaxKind.XmlNameToken AndAlso
-                              DirectCast(PeekNextToken(ScannerState.Element), XmlNameTokenSyntax).PossibleKeywordKind = SyntaxKind.XmlKeyword, NameOf(ParseXmlDeclaration) & " called on the wrong token.")
+                              DirectCast(PeekNextToken(ScannerState.Element), XmlNameTokenSyntax).PossibleKeywordKind = SyntaxKind.XmlKeyword, "ParseXmlDecl called on the wrong token.")
 
             Dim beginPrologue = DirectCast(CurrentToken, PunctuationSyntax)
             GetNextToken(ScannerState.Element)
@@ -404,6 +404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         builder.Add(publicLiteral)
                         Dim systemLiteral = ParseXmlString(ScannerState.DocType)
                         builder.Add(systemLiteral)
+
                 End Select
             End If
 
@@ -952,7 +953,8 @@ LessThanSlashTokenCase:
                                  SyntaxKind.LessThanPercentEqualsToken,
                                  SyntaxKind.EqualsToken,
                                  SyntaxKind.SingleQuoteToken,
-                                 SyntaxKind.DoubleQuoteToken), "ParseXmlAttribute called on wrong token.")
+                                 SyntaxKind.DoubleQuoteToken),
+                             "ParseXmlAttribute called on wrong token.")
 
             Dim Result As XmlNodeSyntax = Nothing
 
@@ -1286,7 +1288,7 @@ lFailed:
                 ' [cref="object.tostring"] produces an error. We fix this in Roslyn
                 result = SyntaxFactory.IdentifierName(
                             Me._scanner.MakeIdentifier(
-                                DirectCast(CurrentToken, KeywordSyntax)))
+                                DirectCast(Me.CurrentToken, KeywordSyntax)))
                 GetNextToken()
 
             ElseIf CurrentToken.Kind = SyntaxKind.OperatorKeyword Then
@@ -1424,7 +1426,7 @@ lFailed:
 
 lFailed:
             restorePoint.Restore()
-            ResetCurrentToken(ScannerState.Element)
+            Me.ResetCurrentToken(ScannerState.Element)
             Return False
         End Function
 
@@ -2023,7 +2025,6 @@ TryResync:
             Return result
         End Function
 
-
     End Class
 
     Friend Class XmlWhitespaceChecker
@@ -2229,6 +2230,8 @@ TryResync:
             Else
                 Return node
             End If
+
+            Return node
         End Function
 
         Public Overrides Function VisitXmlBracketedName(node As XmlBracketedNameSyntax) As VisualBasicSyntaxNode

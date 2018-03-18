@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private _allowLeadingMultilineTrivia As Boolean = True
         Private _hadImplicitLineContinuation As Boolean = False
         Private _hadLineContinuationComment As Boolean = False
-        Private _possibleFirstStatementOnLine As PossibleFirstStatementKind = PossibFleFirstStatementKind.Yes
+        Private _possibleFirstStatementOnLine As PossibleFirstStatementKind = PossibleFirstStatementKind.Yes
         Private _recursionDepth As Integer
         Private _evaluatingConditionCompilationExpression As Boolean
         Private ReadOnly _scanner As Scanner
@@ -686,7 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     Dim kind As SyntaxKind = Nothing
                     If TryTokenAsKeyword(nextToken, kind) AndAlso (kind = SyntaxKind.AssemblyKeyword OrElse
-                       kind = SyntaxKind.ModuleKeyword) Then
+                        kind = SyntaxKind.ModuleKeyword) Then
                         ' Attribute statements can appear only at file level before any
                         ' declarations or option statements.
 
@@ -702,28 +702,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ParseSpecifierDeclaration(attributes)
 
                 Case SyntaxKind.PrivateKeyword,
-                   SyntaxKind.ProtectedKeyword,
-                   SyntaxKind.PublicKeyword,
-                   SyntaxKind.FriendKeyword,
-                   SyntaxKind.MustInheritKeyword,
-                   SyntaxKind.NotOverridableKeyword,
-                   SyntaxKind.OverridableKeyword,
-                   SyntaxKind.MustOverrideKeyword,
-                   SyntaxKind.NotInheritableKeyword,
-                   SyntaxKind.PartialKeyword,
-                   SyntaxKind.StaticKeyword,
-                   SyntaxKind.SharedKeyword,
-                   SyntaxKind.ShadowsKeyword,
-                   SyntaxKind.WithEventsKeyword,
-                   SyntaxKind.OverloadsKeyword,
-                   SyntaxKind.OverridesKeyword,
-                   SyntaxKind.ConstKeyword,
-                   SyntaxKind.DimKeyword,
-                   SyntaxKind.ReadOnlyKeyword,
-                   SyntaxKind.WriteOnlyKeyword,
-                   SyntaxKind.WideningKeyword,
-                   SyntaxKind.NarrowingKeyword,
-                   SyntaxKind.DefaultKeyword
+                    SyntaxKind.ProtectedKeyword,
+                    SyntaxKind.PublicKeyword,
+                    SyntaxKind.FriendKeyword,
+                    SyntaxKind.MustInheritKeyword,
+                    SyntaxKind.NotOverridableKeyword,
+                    SyntaxKind.OverridableKeyword,
+                    SyntaxKind.MustOverrideKeyword,
+                    SyntaxKind.NotInheritableKeyword,
+                    SyntaxKind.PartialKeyword,
+                    SyntaxKind.StaticKeyword,
+                    SyntaxKind.SharedKeyword,
+                    SyntaxKind.ShadowsKeyword,
+                    SyntaxKind.WithEventsKeyword,
+                    SyntaxKind.OverloadsKeyword,
+                    SyntaxKind.OverridesKeyword,
+                    SyntaxKind.ConstKeyword,
+                    SyntaxKind.DimKeyword,
+                    SyntaxKind.ReadOnlyKeyword,
+                    SyntaxKind.WriteOnlyKeyword,
+                    SyntaxKind.WideningKeyword,
+                    SyntaxKind.NarrowingKeyword,
+                    SyntaxKind.DefaultKeyword
                     Return ParseSpecifierDeclaration()
 
                 Case SyntaxKind.EnumKeyword
@@ -773,7 +773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ParseEmptyStatement()
 
                 Case SyntaxKind.ColonToken,
-                        SyntaxKind.StatementTerminatorToken
+                    SyntaxKind.StatementTerminatorToken
                     Debug.Assert(False, "Unexpected terminator: " & CurrentToken.Kind.ToString())
                     Return ParseStatementInMethodBodyInternal()
 
@@ -4719,7 +4719,7 @@ checkNullable:
             Debug.Assert(CurrentToken.Kind = SyntaxKind.ImportsKeyword, "called on wrong token")
 
             Dim importsKeyword As KeywordSyntax = ReportModifiersOnStatementError(Attributes, Specifiers, DirectCast(CurrentToken, KeywordSyntax))
-            Dim importsClauses = _pool.AllocateSeparated(Of ImportsClauseSyntax)()
+            Dim importsClauses = Me._pool.AllocateSeparated(Of ImportsClauseSyntax)()
 
             GetNextToken()
 

@@ -658,7 +658,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         Private Function MissingAggregationRangeVariables() As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax)
-            Dim rangeVariables = _pool.AllocateSeparated(Of AggregationRangeVariableSyntax)()
+            Dim rangeVariables = Me._pool.AllocateSeparated(Of AggregationRangeVariableSyntax)()
             rangeVariables.Add(InternalSyntaxFactory.AggregationRangeVariable(Nothing, SyntaxFactory.FunctionAggregation(InternalSyntaxFactory.MissingIdentifier(), Nothing, Nothing, Nothing)))
             Dim result As CodeAnalysis.Syntax.InternalSyntax.SeparatedSyntaxList(Of AggregationRangeVariableSyntax) = _pool.ToListAndFree(rangeVariables)
             Return result
