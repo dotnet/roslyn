@@ -152,13 +152,16 @@ Imports System
 Class Customer
     Private Age As Integer
 
-    Sub New()
+    Sub M1()
 //[
         ' {ServicesVSResources.Prefer_colon}
         Dim c = New Customer() With {{
             .Age = 21
         }}
-
+//]
+    End Sub
+    Sub M2()
+//[
         ' {ServicesVSResources.Over_colon}
         Dim c = New Customer()
         c.Age = 21
@@ -171,7 +174,7 @@ End Class"
 Class Customer
     Private Age As Integer
 
-    Sub New()
+    Sub M1()
 //[
         ' {ServicesVSResources.Prefer_colon}
         Dim list = New List(Of Integer) From {{
@@ -179,7 +182,10 @@ Class Customer
             2,
             3
         }}
-
+//]
+    End Sub
+    Sub M2()
+//[
         ' {ServicesVSResources.Over_colon}
         Dim list = New List(Of Integer)()
         list.Add(1)
@@ -191,13 +197,16 @@ End Class"
 
         Private Shared ReadOnly s_preferExplicitTupleName As String = $"
 Class Customer
-    Public Sub New()
+    Sub M1()
 //[
         ' {ServicesVSResources.Prefer_colon}
         Dim customer As (name As String, age As Integer)
         Dim name = customer.name
         Dim age = customer.age
-
+//]
+    End Sub
+    Sub M2()
+//[
         ' {ServicesVSResources.Over_colon}
         Dim customer As (name As String, age As Integer)
         Dim name = customer.Item1
@@ -209,11 +218,14 @@ end class
 
         Private Shared ReadOnly s_preferInferredTupleName As String = $"
 Class Customer
-    Public Sub New(name as String, age As Integer)
+    Sub M1(name as String, age As Integer)
 //[
         ' {ServicesVSResources.Prefer_colon}
         Dim tuple = (name, age)
-
+//]
+    End Sub
+    Sub M2(name as String, age As Integer)
+//[
         ' {ServicesVSResources.Over_colon}
         Dim tuple = (name:=name, age:=age)
 //]
@@ -223,11 +235,14 @@ end class
 
         Private Shared ReadOnly s_preferInferredAnonymousTypeMemberName As String = $"
 Class Customer
-    Public Sub New(name as String, age As Integer)
+    Sub M1(name as String, age As Integer)
 //[
         ' {ServicesVSResources.Prefer_colon}
         Dim anon = New With {{ name, age }}
-
+//]
+    End Sub
+    Sub M2(name as String, age As Integer)
+//[
         ' {ServicesVSResources.Over_colon}
         Dim anon = New With {{ .name = name, .age = age }}
 //]
@@ -241,11 +256,14 @@ Imports System
 Class Customer
     Private Age As Integer
 
-    Sub New()
+    Sub M1()
 //[
         ' {ServicesVSResources.Prefer_colon}
         Dim v = If(x, y)
-
+//]
+    End Sub
+    Sub M2()
+//[
         ' {ServicesVSResources.Over_colon}
         Dim v = If(x Is Nothing, y, x)    ' {ServicesVSResources.or}
         Dim v = If(x IsNot Nothing, x, y)
@@ -259,11 +277,14 @@ Imports System
 Class Customer
     Private Age As Integer
 
-    Sub New()
+    Sub M1()
 //[
         ' {ServicesVSResources.Prefer_colon}
         Dim v = o?.ToString()
-
+//]
+    End Sub
+    Sub M2()
+//[
         ' {ServicesVSResources.Over_colon}
         Dim v = If(o Is Nothing, Nothing, o.ToString())    ' {ServicesVSResources.or}
         Dim v = If(o IsNot Nothing, o.ToString(), Nothing)
@@ -274,11 +295,14 @@ End Class"
         Private Shared ReadOnly s_preferAutoProperties As String = $"
 Imports System
 
-Class Customer
+Class Customer1
 //[
     ' {ServicesVSResources.Prefer_colon}
     Public ReadOnly Property Age As Integer
-
+//]
+End Class
+Class Customer2
+//[
     ' {ServicesVSResources.Over_colon}
     Private _age As Integer
 
@@ -295,13 +319,16 @@ End Class
 Imports System
 
 Class Customer
-    Sub New(value as object)
+    Sub M1(value as object)
 //[
         ' {ServicesVSResources.Prefer_colon}
         If value Is Nothing
             Return
         End If
-
+//]
+    End Sub
+    Sub M2(value as object)
+//[
         ' {ServicesVSResources.Over_colon}
         If Object.ReferenceEquals(value, Nothing)
             Return
