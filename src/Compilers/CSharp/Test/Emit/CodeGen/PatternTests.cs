@@ -863,5 +863,31 @@ public class C
   IL_004c:  ret
 }");
         }
+
+        [Fact, WorkItem(15437, "https://github.com/dotnet/roslyn/issues/15437")]
+        public void IsTypeDiscard()
+        {
+            var source =
+@"public class C
+{
+    public bool IsString(object o)
+    {
+        return o is string _;
+    }
+}";
+            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            compilation.VerifyDiagnostics();
+            var compVerifier = CompileAndVerify(compilation);
+            compVerifier.VerifyIL("C.IsString",
+@"{
+  // Code size       10 (0xa)
+  .maxstack  2
+  IL_0000:  ldarg.1
+  IL_0001:  isinst     ""string""
+  IL_0006:  ldnull
+  IL_0007:  cgt.un
+  IL_0009:  ret
+}");
+        }
     }
 }
