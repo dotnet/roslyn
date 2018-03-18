@@ -466,12 +466,16 @@ class Customer
         private static readonly string s_preferSimpleDefaultExpression = $@"
 using System.Threading;
 
-class Customer
+class Customer1
 {{
 //[
     // {ServicesVSResources.Prefer_colon}
     void DoWork(CancellationToken cancellationToken = default) {{ }}
-
+//]
+}}
+class Customer2
+{{
+//[
     // {ServicesVSResources.Over_colon}
     void DoWork(CancellationToken cancellationToken = default(CancellationToken)) {{ }}
 //]
@@ -610,12 +614,16 @@ class Customer
         private static readonly string s_preferAutoProperties = $@"
 using System;
 
-class Customer
+class Customer1
 {{
 //[
     // {ServicesVSResources.Prefer_colon}
     public int Age {{ get; }}
-
+//]
+}}
+class Customer2
+{{
+//[
     // {ServicesVSResources.Over_colon}
     private int age;
 
