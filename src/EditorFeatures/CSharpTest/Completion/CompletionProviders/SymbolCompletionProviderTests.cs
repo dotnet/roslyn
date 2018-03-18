@@ -1892,7 +1892,7 @@ class C<T, R>
 
         [WorkItem(540212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540212")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task AfterRefInLambda()
+        public async Task TypeAfterRefInLambda()
         {
             var markup = @"
 using System;
@@ -1909,7 +1909,7 @@ class C
 
         [WorkItem(540212, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540212")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task AfterOutInLambda()
+        public async Task TypeAfterOutInLambda()
         {
             var markup = @"
 using System;
@@ -1926,7 +1926,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(24326, "https://github.com/dotnet/roslyn/issues/24326")]
-        public async Task AfterInInLambda()
+        public async Task TypeAfterInInLambda()
         {
             var markup = @"
 using System;
@@ -1942,7 +1942,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task AfterRefInMethodDeclaration()
+        public async Task TypeAfterRefInMethodDeclaration()
         {
             var markup = @"
 using System;
@@ -1957,7 +1957,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task AfterOutInMethodDeclaration()
+        public async Task TypeAfterOutInMethodDeclaration()
         {
             var markup = @"
 using System;
@@ -1973,7 +1973,7 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         [WorkItem(24326, "https://github.com/dotnet/roslyn/issues/24326")]
-        public async Task AfterInInMethodDeclaration()
+        public async Task TypeAfterInInMethodDeclaration()
         {
             var markup = @"
 using System;
@@ -2053,7 +2053,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task VariableNotAfterRefDeclaration()
+        public async Task VariableNotAfterRefLocalDeclaration()
         {
             var markup = @"
 using System;
@@ -2069,7 +2069,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task VariableNotAfterRefReadonlyDeclaration()
+        public async Task VariableNotAfterRefReadonlyLocalDeclaration()
         {
             var markup = @"
 using System;
@@ -2085,7 +2085,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TypeAfterRefDeclaration()
+        public async Task TypeAfterRefLocalDeclaration()
         {
             var markup = @"
 using System;
@@ -2101,7 +2101,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task TypeAfterRefReadonlyDeclaration()
+        public async Task TypeAfterRefReadonlyLocalDeclaration()
         {
             var markup = @"
 using System;
@@ -2111,6 +2111,32 @@ class C
     {
         ref readonly $$
     }
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeAfterOuterRef()
+        {
+            var markup = @"
+using System;
+class C
+{
+    ref $$
+}
+";
+            await VerifyItemExistsAsync(markup, "String");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TypeAfterOuterRefReadonly()
+        {
+            var markup = @"
+using System;
+class C
+{
+    ref readonly $$
 }
 ";
             await VerifyItemExistsAsync(markup, "String");
