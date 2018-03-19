@@ -1252,43 +1252,43 @@ namespace Microsoft.CodeAnalysis.CSharp
             var rightResult = VisitRvalueWithResult(rightOperand);
             IntersectWith(ref this.State, ref leftState);
 
-            bool? resultIsNullable = getIsNullable(leftOperand, leftResult) == false ? false : getIsNullable(rightOperand, rightResult);
-            TypeSymbolWithAnnotations resultType;
+            TypeSymbol resultType;
             switch (node.OperatorResultKind)
             {
                 case BoundNullCoalescingOperatorResultKind.NoCommonType:
-                    resultType = TypeSymbolWithAnnotations.Create(node.Type);
+                    resultType = node.Type;
                     break;
                 case BoundNullCoalescingOperatorResultKind.LeftType:
-                    resultType = TypeSymbolWithAnnotations.Create(getLeftResultType(leftResult.Type.TypeSymbol, rightResult.Type?.TypeSymbol), resultIsNullable);
+                    resultType = getLeftResultType(leftResult.Type.TypeSymbol, rightResult.Type?.TypeSymbol);
                     break;
                 case BoundNullCoalescingOperatorResultKind.LeftUnwrappedType:
-                    resultType = TypeSymbolWithAnnotations.Create(getLeftResultType(leftResult.Type.TypeSymbol.StrippedType(), rightResult.Type?.TypeSymbol), resultIsNullable);
+                    resultType = getLeftResultType(leftResult.Type.TypeSymbol.StrippedType(), rightResult.Type?.TypeSymbol);
                     break;
                 case BoundNullCoalescingOperatorResultKind.RightType:
-                    resultType = TypeSymbolWithAnnotations.Create(getRightResultType(leftResult.Type.TypeSymbol, rightResult.Type.TypeSymbol));
+                    resultType = getRightResultType(leftResult.Type.TypeSymbol, rightResult.Type.TypeSymbol);
                     break;
                 case BoundNullCoalescingOperatorResultKind.LeftUnwrappedRightType:
-                    resultType = TypeSymbolWithAnnotations.Create(getRightResultType(leftResult.Type.TypeSymbol.StrippedType(), rightResult.Type.TypeSymbol));
+                    resultType = getRightResultType(leftResult.Type.TypeSymbol.StrippedType(), rightResult.Type.TypeSymbol);
                     break;
                 case BoundNullCoalescingOperatorResultKind.RightDynamicType:
-                    resultType = TypeSymbolWithAnnotations.Create(rightResult.Type.TypeSymbol, resultIsNullable);
+                    resultType = rightResult.Type.TypeSymbol;
                     break;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.OperatorResultKind);
             }
 
-            _result = resultType;
+            bool? resultIsNullable = getIsNullable(leftOperand, leftResult) == false ? false : getIsNullable(rightOperand, rightResult);
+            _result = TypeSymbolWithAnnotations.Create(resultType, resultIsNullable);
             return null;
 
             bool? getIsNullable(BoundExpression e, Result r) => (r.Type is null) ? e.IsNullable() : r.Type.IsNullable;
             TypeSymbol getLeftResultType(TypeSymbol leftType, TypeSymbol rightType)
             {
-                // If there was an identity conversion between the two operands (in short, if
-                // there is no conversion on the right operand), then check nullable conversions
+                // If there was an identity conversion between the two operands (in short, if there
+                // is no implicit conversion on the right operand), then check nullable conversions
                 // in both directions since it's possible the right operand is the better result type.
                 if ((object)rightType != null &&
-                    node.RightOperand.Kind != BoundKind.Conversion &&
+                    (node.RightOperand as BoundConversion)?.ExplicitCastInCode != false &&
                     GenerateConversionForConditionalOperator(node.LeftOperand, leftType, rightType, reportMismatch: false).Exists)
                 {
                     return rightType;
