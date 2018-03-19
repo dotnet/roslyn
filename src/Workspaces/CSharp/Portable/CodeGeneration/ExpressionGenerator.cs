@@ -97,8 +97,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 : (ExpressionSyntax)CSharpSyntaxGenerator.Instance.DefaultExpression(type);
         }
 
-        private static bool FalsePredicate<T>() => false;
-
         private static ExpressionSyntax GenerateBooleanLiteralExpression(bool val)
         {
             return SyntaxFactory.LiteralExpression(val
