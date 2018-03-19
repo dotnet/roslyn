@@ -293,8 +293,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Assignment_operators">
-        <source>Assignment operators:   =   +=   -=   *=   /=   \=   ^=   &lt;&lt;=   &gt;&gt;=   &amp;=</source>
-        <target state="new">Assignment operators:   =   +=   -=   *=   /=   \=   ^=   &lt;&lt;=   &gt;&gt;=   &amp;=</target>
+        <source>Assignment operators:   =   ^=   *=   /=   \=   +=   -=   &amp;=   &lt;&lt;=   &gt;&gt;=</source>
+        <target state="new">Assignment operators:   =   ^=   *=   /=   \=   +=   -=   &amp;=   &lt;&lt;=   &gt;&gt;=</target>
         <note />
       </trans-unit>
     </body>

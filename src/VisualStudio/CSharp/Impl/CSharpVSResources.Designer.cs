@@ -88,7 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Assignment operators:   =   +=   -=   *=   /=   %=   &amp;=   ^=   |=   &lt;&lt;=   &gt;&gt;=.
+        ///   Looks up a localized string similar to Assignment operators:   =   *=   /=   %=   +=   -=   &lt;&lt;=   &gt;&gt;=   &amp;=   |=   ^=.
         /// </summary>
         internal static string Assignment_operators {
             get {

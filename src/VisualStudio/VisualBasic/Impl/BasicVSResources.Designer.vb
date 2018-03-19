@@ -101,7 +101,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Assignment operators:   =   +=   -=   *=   /=   \=   ^=   &lt;&lt;=   &gt;&gt;=   &amp;=.
+        '''  Looks up a localized string similar to Assignment operators:   =   ^=   *=   /=   \=   +=   -=   &amp;=   &lt;&lt;=   &gt;&gt;=.
         '''</summary>
         Friend Shared ReadOnly Property Assignment_operators() As String
             Get

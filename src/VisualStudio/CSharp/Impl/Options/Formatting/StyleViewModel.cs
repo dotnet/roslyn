@@ -1341,9 +1341,9 @@ class C
         private void AddParenthesesOptions(OptionSet optionSet)
         {
             AddParenthesesOption(
-                LanguageNames.CSharp, optionSet, CodeStyleOptions.AssignmentOperationParentheses,
-                CSharpVSResources.Assignment_operators,
-                new[] { s_assignmentParenthesesIgnore, s_assignmentParenthesesRequireForPrecedenceClarity, s_assignmentParenthesesRemoveIfUnnecessary },
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.CastOperationParentheses,
+                CSharpVSResources.Cast_operator,
+                new[] { s_castParenthesesIgnore, s_castParenthesesRequireForPrecedenceClarity, s_castParenthesesRemoveIfUnnecessary },
                 allowRequireForClarity: true,
                 recommended: true);
 
@@ -1397,9 +1397,9 @@ class C
                 recommended: false);
 
             AddParenthesesOption(
-                LanguageNames.CSharp, optionSet, CodeStyleOptions.CastOperationParentheses,
-                CSharpVSResources.Cast_operator,
-                new[] { s_castParenthesesIgnore, s_castParenthesesRequireForPrecedenceClarity, s_castParenthesesRemoveIfUnnecessary },
+                LanguageNames.CSharp, optionSet, CodeStyleOptions.AssignmentOperationParentheses,
+                CSharpVSResources.Assignment_operators,
+                new[] { s_assignmentParenthesesIgnore, s_assignmentParenthesesRequireForPrecedenceClarity, s_assignmentParenthesesRemoveIfUnnecessary },
                 allowRequireForClarity: true,
                 recommended: true);
 

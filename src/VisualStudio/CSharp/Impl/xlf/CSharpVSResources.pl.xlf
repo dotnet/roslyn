@@ -728,8 +728,8 @@
         <note />
       </trans-unit>
       <trans-unit id="Assignment_operators">
-        <source>Assignment operators:   =   +=   -=   *=   /=   %=   &amp;=   ^=   |=   &lt;&lt;=   &gt;&gt;=</source>
-        <target state="new">Assignment operators:   =   +=   -=   *=   /=   %=   &amp;=   ^=   |=   &lt;&lt;=   &gt;&gt;=</target>
+        <source>Assignment operators:   =   *=   /=   %=   +=   -=   &lt;&lt;=   &gt;&gt;=   &amp;=   |=   ^=</source>
+        <target state="new">Assignment operators:   =   *=   /=   %=   +=   -=   &lt;&lt;=   &gt;&gt;=   &amp;=   |=   ^=</target>
         <note />
       </trans-unit>
       <trans-unit id="Cast_operator">

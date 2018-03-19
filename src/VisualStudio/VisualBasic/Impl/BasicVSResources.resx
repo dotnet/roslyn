@@ -292,6 +292,6 @@
     <value>Shift operators:   &lt;&lt;   &gt;&gt;</value>
   </data>
   <data name="Assignment_operators" xml:space="preserve">
-    <value>Assignment operators:   =   +=   -=   *=   /=   \=   ^=   &lt;&lt;=   &gt;&gt;=   &amp;=</value>
+    <value>Assignment operators:   =   ^=   *=   /=   \=   +=   -=   &amp;=   &lt;&lt;=   &gt;&gt;=</value>
   </data>
 </root>

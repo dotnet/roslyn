@@ -553,7 +553,7 @@
     <value>Show name s_uggestions</value>
   </data>
   <data name="Assignment_operators" xml:space="preserve">
-    <value>Assignment operators:   =   +=   -=   *=   /=   %=   &amp;=   ^=   |=   &lt;&lt;=   &gt;&gt;=</value>
+    <value>Assignment operators:   =   *=   /=   %=   +=   -=   &lt;&lt;=   &gt;&gt;=   &amp;=   |=   ^=</value>
   </data>
   <data name="Cast_operator" xml:space="preserve">
     <value>Cast operator:  (type)expression</value>

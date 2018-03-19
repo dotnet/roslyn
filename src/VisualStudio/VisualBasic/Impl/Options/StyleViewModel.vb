@@ -608,13 +608,6 @@ end class
 
         Private Sub AddParenthesesOptions(optionSet As OptionSet)
             AddParenthesesOption(
-                LanguageNames.VisualBasic, optionSet, CodeStyleOptions.AssignmentOperationParentheses,
-                BasicVSResources.Assignment_operators,
-                {s_assignmentParenthesesIgnore, s_assignmentParenthesesRequireForPrecedenceClarity, s_assignmentParenthesesRemoveIfUnnecessary},
-                allowRequireForClarity:=True,
-                recommended:=True)
-
-            AddParenthesesOption(
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.ArithmeticOperationParentheses,
                 BasicVSResources.Arithmetic_operators,
                 {s_arithmeticParenthesesIgnore, s_arithmeticParenthesesRequireForPrecedenceClarity, s_arithmeticParenthesesRemoveIfUnnecessary},
@@ -639,6 +632,13 @@ end class
                 LanguageNames.VisualBasic, optionSet, CodeStyleOptions.LogicalOperationParentheses,
                 BasicVSResources.Logical_operators,
                 {s_logicalParenthesesIgnore, s_logicalParenthesesRequireForPrecedenceClarity, s_logicalParenthesesRemoveIfUnnecessary},
+                allowRequireForClarity:=True,
+                recommended:=True)
+
+            AddParenthesesOption(
+                LanguageNames.VisualBasic, optionSet, CodeStyleOptions.AssignmentOperationParentheses,
+                BasicVSResources.Assignment_operators,
+                {s_assignmentParenthesesIgnore, s_assignmentParenthesesRequireForPrecedenceClarity, s_assignmentParenthesesRemoveIfUnnecessary},
                 allowRequireForClarity:=True,
                 recommended:=True)
 
