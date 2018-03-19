@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
         {
             return
                 context.IsGlobalStatementContext ||
-                IsRefReadOnlyContext(position, context) ||
+                IsRefReadOnlyContext(context) ||
                 context.SyntaxTree.IsGlobalMemberDeclarationContext(context.Position, SyntaxKindSet.AllGlobalMemberModifiers, cancellationToken) ||
                 context.IsMemberDeclarationContext(
                     validModifiers: s_validMemberModifiers,
@@ -38,12 +38,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                     cancellationToken: cancellationToken);
         }
 
-        private bool IsRefReadOnlyContext(int position, CSharpSyntaxContext context)
-        {
-            var previousToken = context.LeftToken.GetPreviousTokenIfTouchingWord(position);
-
-            return previousToken.IsKind(SyntaxKind.RefKeyword) &&
-                previousToken.Parent.IsKind(SyntaxKind.RefType);
-        }
+        private static bool IsRefReadOnlyContext(CSharpSyntaxContext context)
+            => context.TargetToken.IsKind(SyntaxKind.RefKeyword) &&
+               context.TargetToken.Parent.IsKind(SyntaxKind.RefType);
     }
 }
