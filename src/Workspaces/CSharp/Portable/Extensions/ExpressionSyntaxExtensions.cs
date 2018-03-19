@@ -43,25 +43,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return expression;
         }
 
-        public static ExpressionSyntax Parenthesize(this ExpressionSyntax expression, bool includeElasticTrivia = true)
+        public static ExpressionSyntax Parenthesize(
+            this ExpressionSyntax expression, bool includeElasticTrivia = true, bool addSimplifierAnnotation = true)
         {
-            if (includeElasticTrivia)
-            {
-                return SyntaxFactory.ParenthesizedExpression(expression.WithoutTrivia())
-                                    .WithTriviaFrom(expression)
-                                    .WithAdditionalAnnotations(Simplifier.Annotation);
-            }
-            else
-            {
-                return SyntaxFactory.ParenthesizedExpression
-                (
+            var result = ParenthesizeWorker(expression, includeElasticTrivia);
+            return addSimplifierAnnotation
+                ? result.WithAdditionalAnnotations(Simplifier.Annotation)
+                : result;
+        }
+
+        private static ExpressionSyntax ParenthesizeWorker(
+            this ExpressionSyntax expression, bool includeElasticTrivia)
+        {
+            var withoutTrivia = expression.WithoutTrivia();
+            var parenthesized = includeElasticTrivia
+                ? SyntaxFactory.ParenthesizedExpression(withoutTrivia)
+                : SyntaxFactory.ParenthesizedExpression(
                     SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.OpenParenToken, SyntaxTriviaList.Empty),
-                    expression.WithoutTrivia(),
-                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty)
-                )
-                .WithTriviaFrom(expression)
-                .WithAdditionalAnnotations(Simplifier.Annotation);
-            }
+                    withoutTrivia,
+                    SyntaxFactory.Token(SyntaxTriviaList.Empty, SyntaxKind.CloseParenToken, SyntaxTriviaList.Empty));
+
+            return parenthesized.WithTriviaFrom(expression);
         }
 
         public static CastExpressionSyntax Cast(
@@ -2590,139 +2592,146 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             switch (expression.Kind())
             {
-                case SyntaxKind.SimpleMemberAccessExpression:
-                case SyntaxKind.ConditionalAccessExpression:
-                case SyntaxKind.InvocationExpression:
-                case SyntaxKind.ElementAccessExpression:
-                case SyntaxKind.PostIncrementExpression:
-                case SyntaxKind.PostDecrementExpression:
-                case SyntaxKind.ObjectCreationExpression:
-                case SyntaxKind.TypeOfExpression:
-                case SyntaxKind.DefaultExpression:
-                case SyntaxKind.CheckedExpression:
-                case SyntaxKind.UncheckedExpression:
-                case SyntaxKind.AnonymousMethodExpression:
-                    // From C# spec, 7.3.1:
-                    // Primary: x.y  x?.y  x?[y]  f(x)  a[x]  x++  x--  new  typeof  default  checked  unchecked  delegate
+            case SyntaxKind.SimpleMemberAccessExpression:
+            case SyntaxKind.ConditionalAccessExpression:
+            case SyntaxKind.InvocationExpression:
+            case SyntaxKind.ElementAccessExpression:
+            case SyntaxKind.PostIncrementExpression:
+            case SyntaxKind.PostDecrementExpression:
+            case SyntaxKind.ObjectCreationExpression:
+            case SyntaxKind.TypeOfExpression:
+            case SyntaxKind.DefaultExpression:
+            case SyntaxKind.CheckedExpression:
+            case SyntaxKind.UncheckedExpression:
+            case SyntaxKind.AnonymousMethodExpression:
+            // unsafe code
+            case SyntaxKind.SizeOfExpression:
+            case SyntaxKind.PointerMemberAccessExpression:
+                // From C# spec, 7.3.1:
+                // Primary: x.y  x?.y  x?[y]  f(x)  a[x]  x++  x--  new  typeof  default  checked  unchecked  delegate
 
-                    return OperatorPrecedence.Primary;
+                return OperatorPrecedence.Primary;
 
-                case SyntaxKind.UnaryPlusExpression:
-                case SyntaxKind.UnaryMinusExpression:
-                case SyntaxKind.LogicalNotExpression:
-                case SyntaxKind.BitwiseNotExpression:
-                case SyntaxKind.PreIncrementExpression:
-                case SyntaxKind.PreDecrementExpression:
-                case SyntaxKind.CastExpression:
-                case SyntaxKind.AwaitExpression:
-                    // From C# spec, 7.3.1:
-                    // Unary: +  -  !  ~  ++x  --x  (T)x  await Task
+            case SyntaxKind.UnaryPlusExpression:
+            case SyntaxKind.UnaryMinusExpression:
+            case SyntaxKind.LogicalNotExpression:
+            case SyntaxKind.BitwiseNotExpression:
+            case SyntaxKind.PreIncrementExpression:
+            case SyntaxKind.PreDecrementExpression:
+            case SyntaxKind.CastExpression:
+            case SyntaxKind.AwaitExpression:
+            // unsafe code.
+            case SyntaxKind.PointerIndirectionExpression:
+            case SyntaxKind.AddressOfExpression:
 
-                    return OperatorPrecedence.Unary;
+                // From C# spec, 7.3.1:
+                // Unary: +  -  !  ~  ++x  --x  (T)x  await Task
 
-                case SyntaxKind.MultiplyExpression:
-                case SyntaxKind.DivideExpression:
-                case SyntaxKind.ModuloExpression:
-                    // From C# spec, 7.3.1:
-                    // Multiplicative: *  /  %
+                return OperatorPrecedence.Unary;
 
-                    return OperatorPrecedence.Multiplicative;
+            case SyntaxKind.MultiplyExpression:
+            case SyntaxKind.DivideExpression:
+            case SyntaxKind.ModuloExpression:
+                // From C# spec, 7.3.1:
+                // Multiplicative: *  /  %
 
-                case SyntaxKind.AddExpression:
-                case SyntaxKind.SubtractExpression:
-                    // From C# spec, 7.3.1:
-                    // Additive: +  -
+                return OperatorPrecedence.Multiplicative;
 
-                    return OperatorPrecedence.Additive;
+            case SyntaxKind.AddExpression:
+            case SyntaxKind.SubtractExpression:
+                // From C# spec, 7.3.1:
+                // Additive: +  -
 
-                case SyntaxKind.LeftShiftExpression:
-                case SyntaxKind.RightShiftExpression:
-                    // From C# spec, 7.3.1:
-                    // Shift: <<  >>
+                return OperatorPrecedence.Additive;
 
-                    return OperatorPrecedence.Shift;
+            case SyntaxKind.LeftShiftExpression:
+            case SyntaxKind.RightShiftExpression:
+                // From C# spec, 7.3.1:
+                // Shift: <<  >>
 
-                case SyntaxKind.LessThanExpression:
-                case SyntaxKind.GreaterThanExpression:
-                case SyntaxKind.LessThanOrEqualExpression:
-                case SyntaxKind.GreaterThanOrEqualExpression:
-                case SyntaxKind.IsExpression:
-                case SyntaxKind.AsExpression:
-                case SyntaxKind.IsPatternExpression:
-                    // From C# spec, 7.3.1:
-                    // Relational and type testing: <  >  <=  >=  is  as
+                return OperatorPrecedence.Shift;
 
-                    return OperatorPrecedence.RelationalAndTypeTesting;
+            case SyntaxKind.LessThanExpression:
+            case SyntaxKind.GreaterThanExpression:
+            case SyntaxKind.LessThanOrEqualExpression:
+            case SyntaxKind.GreaterThanOrEqualExpression:
+            case SyntaxKind.IsExpression:
+            case SyntaxKind.AsExpression:
+            case SyntaxKind.IsPatternExpression:
+                // From C# spec, 7.3.1:
+                // Relational and type testing: <  >  <=  >=  is  as
 
-                case SyntaxKind.EqualsExpression:
-                case SyntaxKind.NotEqualsExpression:
-                    // From C# spec, 7.3.1:
-                    // Equality: ==  !=
+                return OperatorPrecedence.RelationalAndTypeTesting;
 
-                    return OperatorPrecedence.Equality;
+            case SyntaxKind.EqualsExpression:
+            case SyntaxKind.NotEqualsExpression:
+                // From C# spec, 7.3.1:
+                // Equality: ==  !=
 
-                case SyntaxKind.BitwiseAndExpression:
-                    // From C# spec, 7.3.1:
-                    // Logical AND: &
+                return OperatorPrecedence.Equality;
 
-                    return OperatorPrecedence.LogicalAnd;
+            case SyntaxKind.BitwiseAndExpression:
+                // From C# spec, 7.3.1:
+                // Logical AND: &
 
-                case SyntaxKind.ExclusiveOrExpression:
-                    // From C# spec, 7.3.1:
-                    // Logical XOR: ^
+                return OperatorPrecedence.LogicalAnd;
 
-                    return OperatorPrecedence.LogicalXor;
+            case SyntaxKind.ExclusiveOrExpression:
+                // From C# spec, 7.3.1:
+                // Logical XOR: ^
 
-                case SyntaxKind.BitwiseOrExpression:
-                    // From C# spec, 7.3.1:
-                    // Logical OR: |
+                return OperatorPrecedence.LogicalXor;
 
-                    return OperatorPrecedence.LogicalOr;
+            case SyntaxKind.BitwiseOrExpression:
+                // From C# spec, 7.3.1:
+                // Logical OR: |
 
-                case SyntaxKind.LogicalAndExpression:
-                    // From C# spec, 7.3.1:
-                    // Conditional AND: &&
+                return OperatorPrecedence.LogicalOr;
 
-                    return OperatorPrecedence.ConditionalAnd;
+            case SyntaxKind.LogicalAndExpression:
+                // From C# spec, 7.3.1:
+                // Conditional AND: &&
 
-                case SyntaxKind.LogicalOrExpression:
-                    // From C# spec, 7.3.1:
-                    // Conditional AND: ||
+                return OperatorPrecedence.ConditionalAnd;
 
-                    return OperatorPrecedence.ConditionalOr;
+            case SyntaxKind.LogicalOrExpression:
+                // From C# spec, 7.3.1:
+                // Conditional AND: ||
 
-                case SyntaxKind.CoalesceExpression:
-                    // From C# spec, 7.3.1:
-                    // Null coalescing: ??
+                return OperatorPrecedence.ConditionalOr;
 
-                    return OperatorPrecedence.NullCoalescing;
+            case SyntaxKind.CoalesceExpression:
+                // From C# spec, 7.3.1:
+                // Null coalescing: ??
 
-                case SyntaxKind.ConditionalExpression:
-                    // From C# spec, 7.3.1:
-                    // Conditional: ?:
+                return OperatorPrecedence.NullCoalescing;
 
-                    return OperatorPrecedence.Conditional;
+            case SyntaxKind.ConditionalExpression:
+                // From C# spec, 7.3.1:
+                // Conditional: ?:
 
-                case SyntaxKind.SimpleAssignmentExpression:
-                case SyntaxKind.MultiplyAssignmentExpression:
-                case SyntaxKind.DivideAssignmentExpression:
-                case SyntaxKind.ModuloAssignmentExpression:
-                case SyntaxKind.AddAssignmentExpression:
-                case SyntaxKind.SubtractAssignmentExpression:
-                case SyntaxKind.LeftShiftAssignmentExpression:
-                case SyntaxKind.RightShiftAssignmentExpression:
-                case SyntaxKind.AndAssignmentExpression:
-                case SyntaxKind.ExclusiveOrAssignmentExpression:
-                case SyntaxKind.OrAssignmentExpression:
-                case SyntaxKind.SimpleLambdaExpression:
-                case SyntaxKind.ParenthesizedLambdaExpression:
-                    // From C# spec, 7.3.1:
-                    // Conditional: ?:
+                return OperatorPrecedence.Conditional;
 
-                    return OperatorPrecedence.AssignmentAndLambdaExpression;
+            case SyntaxKind.SimpleAssignmentExpression:
+            case SyntaxKind.MultiplyAssignmentExpression:
+            case SyntaxKind.DivideAssignmentExpression:
+            case SyntaxKind.ModuloAssignmentExpression:
+            case SyntaxKind.AddAssignmentExpression:
+            case SyntaxKind.SubtractAssignmentExpression:
+            case SyntaxKind.LeftShiftAssignmentExpression:
+            case SyntaxKind.RightShiftAssignmentExpression:
+            case SyntaxKind.AndAssignmentExpression:
+            case SyntaxKind.ExclusiveOrAssignmentExpression:
+            case SyntaxKind.OrAssignmentExpression:
+            case SyntaxKind.SimpleLambdaExpression:
+            case SyntaxKind.ParenthesizedLambdaExpression:
+                // From C# spec, 7.3.1:
+                // Conditional: ?:
 
-                default:
-                    return OperatorPrecedence.None;
+                return OperatorPrecedence.AssignmentAndLambdaExpression;
+
+            default:
+                return OperatorPrecedence.None;
             }
         }
     }

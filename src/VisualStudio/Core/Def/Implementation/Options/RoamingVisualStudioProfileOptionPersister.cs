@@ -128,6 +128,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             {
                 return DeserializeCodeStyleOption<ExpressionBodyPreference>(ref value);
             }
+            else if (optionKey.Option.Type == typeof(CodeStyleOption<ParenthesesPreference>))
+            {
+                return DeserializeCodeStyleOption<ParenthesesPreference>(ref value);
+            }
             else if (optionKey.Option.Type == typeof(NamingStylePreferences))
             {
                 // We store these as strings, so deserialize

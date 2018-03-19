@@ -200,5 +200,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             UpdatePreview(text);
         }
+
+        protected void AddParenthesesOption(
+            string language, OptionSet optionSet,
+            PerLanguageOption<CodeStyleOption<ParenthesesPreference>> languageOption,
+            string title, string[] examples, bool allowRequireForClarity, bool recommended)
+        {
+            var preferences = new List<ParenthesesPreference>();
+            var codeStylePreferences = new List<CodeStylePreference>();
+
+            preferences.Add(ParenthesesPreference.Ignore);
+            codeStylePreferences.Add(new CodeStylePreference(ServicesVSResources.Ignore, isChecked: false));
+
+            if (allowRequireForClarity)
+            {
+                preferences.Add(ParenthesesPreference.RequireForPrecedenceClarity);
+                codeStylePreferences.Add(new CodeStylePreference(ServicesVSResources.Require_for_clarity, isChecked: false));
+            }
+
+            preferences.Add(ParenthesesPreference.RemoveIfUnnecessary);
+            codeStylePreferences.Add(new CodeStylePreference(recommended
+                ? ServicesVSResources.Remove_if_unnecessary
+                : ServicesVSResources.Remove_if_unnecessary_not_recommended,
+                isChecked: false));
+
+            CodeStyleItems.Add(new EnumCodeStyleOptionViewModel<ParenthesesPreference>(
+                languageOption, language, title, preferences.ToArray(),
+                examples, this, optionSet, ServicesVSResources.Parentheses_preferences_colon,
+                codeStylePreferences));
+        }
     }
 }

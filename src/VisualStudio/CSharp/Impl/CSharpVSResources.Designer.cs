@@ -79,6 +79,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Arithmetic operators:   *   /   %   +   -.
+        /// </summary>
+        internal static string Arithmetic_operators {
+            get {
+                return ResourceManager.GetString("Arithmetic_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Assignment operators:   =   +=   -=   *=   /=   %=   &amp;=   ^=   |=   &lt;&lt;=   &gt;&gt;=.
+        /// </summary>
+        internal static string Assignment_operators {
+            get {
+                return ResourceManager.GetString("Assignment_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Automatically format _block on }.
         /// </summary>
         internal static string Automatically_format_block_on_close_brace {
@@ -120,6 +138,33 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Automatically_format_when_typing {
             get {
                 return ResourceManager.GetString("Automatically_format_when_typing", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Bitwise operators:   &amp;   |   ^.
+        /// </summary>
+        internal static string Bitwise_operators {
+            get {
+                return ResourceManager.GetString("Bitwise_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cast operator:  (type)expression.
+        /// </summary>
+        internal static string Cast_operator {
+            get {
+                return ResourceManager.GetString("Cast_operator", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Coalesce operator:   ??.
+        /// </summary>
+        internal static string Coalesce_operator {
+            get {
+                return ResourceManager.GetString("Coalesce_operator", resourceCulture);
             }
         }
         
@@ -192,6 +237,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Enter_outlining_mode_when_files_open {
             get {
                 return ResourceManager.GetString("Enter_outlining_mode_when_files_open", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Equality operators:   ==   !=.
+        /// </summary>
+        internal static string Equality_operators {
+            get {
+                return ResourceManager.GetString("Equality_operators", resourceCulture);
             }
         }
         
@@ -606,6 +660,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Leave_statements_and_member_declarations_on_the_same_line {
             get {
                 return ResourceManager.GetString("Leave_statements_and_member_declarations_on_the_same_line", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Logical operators:   &amp;&amp;   ||.
+        /// </summary>
+        internal static string Logical_operators {
+            get {
+                return ResourceManager.GetString("Logical_operators", resourceCulture);
             }
         }
         
@@ -1033,6 +1096,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Relational operators:   &lt;   &lt;=   &gt;   &gt;=   is   as.
+        /// </summary>
+        internal static string Relational_operators {
+            get {
+                return ResourceManager.GetString("Relational_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Remove spaces before and after binary operators.
         /// </summary>
         internal static string Remove_spaces_before_and_after_binary_operators {
@@ -1119,6 +1191,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Set_spacing_for_operators {
             get {
                 return ResourceManager.GetString("Set_spacing_for_operators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Shift operators:   &lt;&lt;   &gt;&gt;.
+        /// </summary>
+        internal static string Shift_operators {
+            get {
+                return ResourceManager.GetString("Shift_operators", resourceCulture);
             }
         }
         

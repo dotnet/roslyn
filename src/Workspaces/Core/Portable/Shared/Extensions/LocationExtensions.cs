@@ -15,6 +15,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
         public static SyntaxNode FindNode(this Location location, bool getInnermostNodeForTie, CancellationToken cancellationToken)
             => location.SourceTree.GetRoot(cancellationToken).FindNode(location.SourceSpan, getInnermostNodeForTie: getInnermostNodeForTie);
 
+        public static SyntaxNode FindNode(this Location location, bool findInsideTrivia, bool getInnermostNodeForTie, CancellationToken cancellationToken)
+            => location.SourceTree.GetRoot(cancellationToken).FindNode(location.SourceSpan, findInsideTrivia, getInnermostNodeForTie);
+
         public static bool IsVisibleSourceLocation(this Location loc)
         {
             if (!loc.IsInSource)
