@@ -28,6 +28,14 @@ namespace Analyzer.Utilities.Extensions
             return node.GetLocation().CreateDiagnostic(rule, args);
         }
 
+        public static Diagnostic CreateDiagnostic(
+            this IOperation operation,
+            DiagnosticDescriptor rule,
+            params object[] args)
+        {
+            return operation.Syntax.CreateDiagnostic(rule, args);
+        }
+
         public static IEnumerable<Diagnostic> CreateDiagnostics(
             this IEnumerable<SyntaxToken> tokens,
             DiagnosticDescriptor rule,
