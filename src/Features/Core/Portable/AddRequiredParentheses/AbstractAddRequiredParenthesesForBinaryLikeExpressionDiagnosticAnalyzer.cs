@@ -11,10 +11,6 @@ namespace Microsoft.CodeAnalysis.AddRequiredParentheses
         : AbstractAddRequiredParenthesesDiagnosticAnalyzer<TLanguageKindEnum>
         where TLanguageKindEnum : struct
     {
-        protected AbstractAddRequiredParenthesesForBinaryLikeExpressionDiagnosticAnalyzer()
-        {
-        }
-
         protected abstract int GetPrecedence(SyntaxNode binaryLike);
         protected abstract PrecedenceKind GetPrecedenceKind(SyntaxNode binaryLike);
         protected abstract SyntaxNode GetParentExpressionOrAssignment(SyntaxNode binaryLike);
