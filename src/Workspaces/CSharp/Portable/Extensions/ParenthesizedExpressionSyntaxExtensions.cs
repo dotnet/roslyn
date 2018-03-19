@@ -383,7 +383,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             //      (x)(&y) // unsafe code
             //      (x)(*y) // unsafe code
             //
-            // Note: we can reomve the parens if the (x) part is unambiguously a type.
+            // Note: we can remove the parens if the (x) part is unambiguously a type.
             // i.e. if it something like:
             //
             //      (int)(...)
