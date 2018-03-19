@@ -1061,6 +1061,24 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestMultidimensionalArray2()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[,] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i, i]);
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
         public async Task TestJaggedArray1()
         {
             await TestInRegularAndScript1Async(
@@ -1224,6 +1242,24 @@ class C
             {
                 Console.WriteLine(v);
             }
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertForToForEach)]
+        public async Task TestJaggedArray6()
+        {
+            await TestMissingInRegularAndScriptAsync(
+@"using System;
+
+class C
+{
+    void Test(string[][] array)
+    {
+        [||]for (int i = 0; i < array.Length; i++)
+        {
+            Console.WriteLine(array[i][i]);
         }
     }
 }");
