@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             AssertReferencesInitialized();
 
-            var ownerModule = this;
-            var ownerAssembly = ownerModule.ContainingAssembly;
-            var dependentAssembly = dependentType.ContainingAssembly;
+            NonMissingModuleSymbol ownerModule = this;
+            AssemblySymbol ownerAssembly = ownerModule.ContainingAssembly;
+            AssemblySymbol dependentAssembly = dependentType.ContainingAssembly;
             if (ownerAssembly == dependentAssembly)
             {
                 return false;
@@ -84,15 +84,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // TODO (tomat): we should report an error/warning for all unified references, not just the first one.
 
-            foreach (var unifiedAssembly in GetUnifiedAssemblies())
+            foreach (UnifiedAssembly<AssemblySymbol> unifiedAssembly in GetUnifiedAssemblies())
             {
                 if (!ReferenceEquals(unifiedAssembly.TargetAssembly, dependentAssembly))
                 {
                     continue;
                 }
 
-                var referenceId = unifiedAssembly.OriginalReference;
-                var definitionId = dependentAssembly.Identity;
+                AssemblyIdentity referenceId = unifiedAssembly.OriginalReference;
+                AssemblyIdentity definitionId = dependentAssembly.Identity;
                 var involvedAssemblies = ImmutableArray.Create<Symbol>(ownerAssembly, dependentAssembly);
 
                 DiagnosticInfo info;

@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 }";
             Action<ModuleSymbol> validator = module =>
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
                 // Ordinary method.
-                var method = type.GetMember<MethodSymbol>("M1");
+                MethodSymbol method = type.GetMember<MethodSymbol>("M1");
                 Assert.False(method.IsExtensionMethod);
-                var parameter = method.Parameters[0];
+                ParameterSymbol parameter = method.Parameters[0];
                 Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Object);
 
                 // Extension method.
@@ -107,13 +107,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
     internal static C F = null;
     internal static S G = null;
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, appendDefaultHeader: false);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, appendDefaultHeader: false);
 
-            var refType = compilation.Assembly.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            NamedTypeSymbol refType = compilation.Assembly.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
             var type = (NamedTypeSymbol)refType.GetMember<FieldSymbol>("F").Type;
 
             // Static method no args.
-            var method = type.GetMember<MethodSymbol>("M1");
+            MethodSymbol method = type.GetMember<MethodSymbol>("M1");
             Assert.Equal(0, method.Parameters.Length);
             Assert.True(method.IsStatic);
             Assert.False(method.IsExtensionMethod);
@@ -195,7 +195,7 @@ static class S
     public static void P(this object x, object y) { }
     public static void T(this object o) { }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (12,11): error CS1503: Argument 1: cannot convert from 'object' to 'System.Action'
                 Diagnostic(ErrorCode.ERR_BadArgType, "c.F").WithArguments("1", "object", "System.Action").WithLocation(12, 11),
@@ -216,13 +216,13 @@ static class S
         s.Goo();
     }
 }";
-            var compilation = CreateCompilation(source);
-            var syntaxTree = compilation.SyntaxTrees.Single();
+            CSharpCompilation compilation = CreateCompilation(source);
+            SyntaxTree syntaxTree = compilation.SyntaxTrees.Single();
             var gooSymbol = (MethodSymbol)compilation.GetSemanticModel(syntaxTree).GetSymbolInfo(
                 syntaxTree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single()).Symbol;
             Assert.True(gooSymbol.IsExtensionMethod);
             Assert.Equal(MethodKind.ReducedExtension, gooSymbol.MethodKind);
-            var gooOriginal = gooSymbol.ReducedFrom;
+            MethodSymbol gooOriginal = gooSymbol.ReducedFrom;
             Assert.True(gooOriginal.IsExtensionMethod);
             Assert.Equal(MethodKind.Ordinary, gooOriginal.MethodKind);
         }
@@ -249,7 +249,7 @@ static class S
     private static void F(this object o) { }
     private static void P(this object o) { }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (8,11): error CS1955: Non-invocable member 'C.F' cannot be used like a method.
                 //         c.F();
@@ -422,7 +422,7 @@ static class Program
     static void Goo(this string x) { }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (9,18): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         bool x = s.Goo is Action;
@@ -450,7 +450,7 @@ namespace N
     static void Goo(this int x) { }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (4,17): error CS0116: A namespace does not directly contain members such as fields or methods
                 Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "Goo"),
@@ -666,7 +666,7 @@ namespace N4
         public static void M6(this N1.N2.C c, int x, int y) { }
     }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (10,17): error CS1501: No overload for method 'M1' takes 3 arguments
                 //                 this.M1(1, 2, 3); // MethodResolutionKind.NoCorrespondingParameter
@@ -743,7 +743,7 @@ namespace N4
         }
     }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (22,17): error CS0121: The call is ambiguous between the following methods or properties: 'N1.N2.S.E(object, double, N1.A)' and 'N1.N2.S.E(object, double, N1.B)'
                 Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("N1.N2.S.E(object, double, N1.A)", "N1.N2.S.E(object, double, N1.B)").WithLocation(22, 19),
@@ -770,7 +770,7 @@ class C
         ((this.E))(null, null);
     }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (13, 9): error CS0122: 'S.E(object, object, object)' is inaccessible due to its protection level
                 Diagnostic(ErrorCode.ERR_BadAccess, "((this.E))(null, null)").WithArguments("S.E(object, object, object)").WithLocation(13, 9));
@@ -832,7 +832,7 @@ static class S
     public static void F(this object o, int x, int y) { }
     public static void P(this object o, double d) { }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (9, 9): error CS1593: Delegate 'System.Action<int>' does not take 2 arguments
                 Diagnostic(ErrorCode.ERR_BadDelArgCount, "F").WithArguments("System.Action<int>", "2").WithLocation(9, 14),
@@ -868,7 +868,7 @@ static class B
     internal static void F(this object x, object y) { }
     internal static void G(this object x, object y) { }
 }";
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
             compilation.VerifyIL("N.C.M",
 @"{
   // Code size       71 (0x47)
@@ -934,7 +934,7 @@ static class S2
     internal static void F3(this object x, int y) { }
     internal static void F4(this object x, object y) { }
 }";
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
             compilation.VerifyIL("N.C.M",
 @"
 {
@@ -1084,7 +1084,7 @@ static class S2
 {
     internal static B F(this object o, DB b) { return null; }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (11,12): error CS0121: The call is ambiguous between the following methods or properties: 'C.G(DA)' and 'C.G(DB)'
                 Diagnostic(ErrorCode.ERR_AmbigCall, "G").WithArguments("C.G(DA)", "C.G(DB)").WithLocation(11, 12),
@@ -1130,7 +1130,7 @@ static class S
     internal static object E(this object o) { return null; }
     private static object F(this object o) { return null; }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (5,9): error CS1656: Cannot assign to 'E' because it is a 'method group'
                 Diagnostic(ErrorCode.ERR_AssgReadonlyLocalCause, "o.E").WithArguments("E", "method group").WithLocation(5, 9),
@@ -1178,7 +1178,7 @@ static class S
 {
     static void F(this object o) { }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,11): error CS0122: 'S.F(object)' is inaccessible due to its protection level
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(6, 11),
@@ -1223,7 +1223,7 @@ static class S2
 {
     internal static void G(this object o) { }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (9,9): error CS0122: 'S.F(object)' is inaccessible due to its protection level
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("S.F(object)").WithLocation(9, 9),
@@ -1311,7 +1311,7 @@ namespace N3
         static void H(this A a) { }
     }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (15,15): error CS0122: 'A.F()' is inaccessible due to its protection level
                 //             a.F();
@@ -1382,7 +1382,7 @@ class B
         M(a.E(), A.F(), a.G());
     }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (15,13): error CS0122: 'S.E(object)' is inaccessible due to its protection level
                 Diagnostic(ErrorCode.ERR_BadAccess, "E").WithArguments("S.E(object)").WithLocation(15, 13),
@@ -1409,7 +1409,7 @@ static class S
 {
     internal static void E(this object o) { }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (5,18): error CS0428: Cannot convert method group 'E' to non-delegate type 'object'. Did you intend to invoke the method?
                 Diagnostic(ErrorCode.ERR_MethGrpToNonDel, "E").WithArguments("E", "object").WithLocation(5, 18));
@@ -1444,7 +1444,7 @@ static class S2
     static void F(this object o) { }
     static void G(this object o) { }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (11,15): error CS0122: 'N.A.F()' is inaccessible due to its protection level
                 Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("N.A.F()").WithLocation(11, 15),
@@ -1486,7 +1486,7 @@ class C
     void F() { }
     static void G() { }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (10,13): error CS0837: The first operand of an 'is' or 'as' operator may not be a lambda expression, anonymous method, or method group.
                 //         if (F is D)
@@ -1534,7 +1534,7 @@ class C
     void F() { }
     static void G() { }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -1553,7 +1553,7 @@ static class S
 {
     public static void E(this C c) { }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "E").WithArguments("E").WithLocation(5, 9));
         }
@@ -1576,7 +1576,7 @@ static class S
 {
     public static void E(this C c) { }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_NoSuchMember, "E").WithArguments("C", "E").WithLocation(8, 14));
         }
@@ -1647,7 +1647,7 @@ namespace N.S
         }
     }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArgumentsAnyOrder("A.E(string, int)", "B.E(string, int)").WithLocation(10, 11),
                 Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArgumentsAnyOrder("B.E(string, int)", "A.E(string, int)").WithLocation(17, 11),
@@ -1683,7 +1683,7 @@ static class E
 {
     public static void F(this object o, int i) { }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (7,13): error CS0121: The call is ambiguous between the following methods or properties: 'N.C.M2(System.Action)' and 'N.C.M2(System.Action<int>)'
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M2").WithArgumentsAnyOrder("N.C.M2(System.Action)", "N.C.M2(System.Action<int>)").WithLocation(7, 13));
@@ -1786,7 +1786,7 @@ static class S
     internal static object get_P(this C c) { return null; }
     static void set_P(this C c, object o) { }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,14): error CS0571: 'C.P.set': cannot explicitly call operator or accessor
                 Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "set_P").WithArguments("C.P.set").WithLocation(6, 14),
@@ -1819,7 +1819,7 @@ static class S
     internal static object get_P(this C c) { return null; }
     static object get_Q(this C c) { return null; }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (9,16): error CS0571: 'C.Q.get': cannot explicitly call operator or accessor
                 Diagnostic(ErrorCode.ERR_CantCallSpecialMethod, "get_Q").WithArguments("C.Q.get").WithLocation(9, 16));
@@ -1852,7 +1852,7 @@ class C
         b.G();
     }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (14,15): error CS0119: 'S.E(object)' is a 'method', which is not valid in the given context
                 Diagnostic(ErrorCode.ERR_BadSKunknown, "E").WithArguments("S.E(object)", "method").WithLocation(14, 15),
@@ -1912,7 +1912,7 @@ static class S
     {
     }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,14): error CS0718: 'S': static types cannot be used as type arguments
                 //         this.E<S>();
@@ -1967,7 +1967,7 @@ static class Extensions
     internal static void D(this double d) { }
     internal static void O(this object o) { }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (10,9): error CS1929: 'A' does not contain a definition for 'B' and the best extension method overload 'Extensions.B(B)' requires a receiver of type 'B'
                 //         a.B();
@@ -2005,7 +2005,7 @@ static class S
     internal static void E3(this long l, params object[] args) { }
     internal static void E4(this object o) { }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,9): error CS1929: 'int' does not contain a definition for 'E2' and the best extension method overload 'S.E2(double)' requires a receiver of type 'double'
                 //         2.E2();
@@ -2096,7 +2096,7 @@ class D
         C.M(o);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput:
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput:
 @"N3.S.E
 N1.S.E
 N1.N2.S.E");
@@ -2148,7 +2148,7 @@ namespace N4
         }
     }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (37,13): error CS0121: The call is ambiguous between the following methods or properties: 'N1.S.E(object)' and 'N2.S.E(object)'
                 Diagnostic(ErrorCode.ERR_AmbigCall, "E").WithArguments("N1.S.E(object)", "N2.S.E(object)").WithLocation(37, 15));
@@ -2165,7 +2165,7 @@ internal static class C
     private static void Main(string[] args) { }
 }
 ";
-            var compilation = CreateEmptyCompilation(source, new[] { MscorlibRef });
+            CSharpCompilation compilation = CreateEmptyCompilation(source, new[] { MscorlibRef });
             compilation.VerifyDiagnostics(
                 // (4,29): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(4, 29));
@@ -2218,7 +2218,7 @@ class C
   IL_0024:  call       ""string System.Linq.Enumerable.Aggregate<string>(System.Collections.Generic.IEnumerable<string>, System.Func<string, string, string>)""
   IL_0029:  ret       
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "orange, apple");
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "orange, apple");
             compilation.VerifyIL("C.F", code);
             compilation.VerifyIL("C.G", code);
         }
@@ -2256,7 +2256,7 @@ static class C
         a();
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput:
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput:
 @"F: System.Int32
 F: S
 G: System.Int32
@@ -2336,7 +2336,7 @@ static class E
         Console.WriteLine(""{0}"", o.GetType());
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput:
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput:
 @"System.Object
 System.Object
 System.Int32
@@ -2382,7 +2382,7 @@ B");
 @"using System.Linq;
 (new string[0]).Take(1)";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp6));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(test, options: TestOptions.Script.WithLanguageVersion(LanguageVersion.CSharp6));
 
             var compilation = CSharpCompilation.Create(
                 assemblyName: GetUniqueName(),
@@ -2390,11 +2390,11 @@ B");
                 syntaxTrees: new[] { tree },
                 references: new[] { MscorlibRef, LinqAssemblyRef });
 
-            var expr = ((ExpressionStatementSyntax)((GlobalStatementSyntax)tree.GetCompilationUnitRoot().Members[0]).Statement).Expression;
-            var model = compilation.GetSemanticModel(tree);
-            var info = model.GetSymbolInfo(expr);
+            ExpressionSyntax expr = ((ExpressionStatementSyntax)((GlobalStatementSyntax)tree.GetCompilationUnitRoot().Members[0]).Statement).Expression;
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            SymbolInfo info = model.GetSymbolInfo(expr);
             Assert.NotNull(info.Symbol);
-            var symbol = info.Symbol;
+            ISymbol symbol = info.Symbol;
             Utils.CheckSymbol((Symbol)symbol, "IEnumerable<string> IEnumerable<string>.Take<string>(int count)");
         }
 
@@ -2410,10 +2410,10 @@ B");
 }";
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
                 // mscorlib.dll
-                var mscorlib = type.GetMember<FieldSymbol>("F").Type.ContainingAssembly;
+                AssemblySymbol mscorlib = type.GetMember<FieldSymbol>("F").Type.ContainingAssembly;
                 Assert.Equal(RuntimeCorLibName.Name, mscorlib.Name);
                 // We assume every PE assembly may contain extension methods.
                 Assert.True(mscorlib.MightContainExtensionMethods);
@@ -2422,12 +2422,12 @@ B");
                 if (isFromSource)
                 {
                     // System.Core.dll
-                    var systemCore = type.GetMember<FieldSymbol>("G").Type.ContainingAssembly;
+                    AssemblySymbol systemCore = type.GetMember<FieldSymbol>("G").Type.ContainingAssembly;
                     Assert.True(systemCore.MightContainExtensionMethods);
                 }
 
                 // Local assembly.
-                var assembly = type.ContainingAssembly;
+                AssemblySymbol assembly = type.ContainingAssembly;
                 Assert.True(assembly.MightContainExtensionMethods);
             };
 
@@ -2454,7 +2454,7 @@ B");
             AssemblySymbol sourceAssembly = null;
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var assembly = module.ContainingAssembly;
+                AssemblySymbol assembly = module.ContainingAssembly;
                 var mightContainExtensionMethods = assembly.MightContainExtensionMethods;
                 // Every PE assembly is assumed to be capable of having an extension method.
                 // The source assembly doesn't know (so reports "true") until all methods have been inspected.
@@ -2481,16 +2481,16 @@ static class S
     internal static void M2<T>(this IEnumerable<T> t) { }
     internal static void M3<T, U>(this U u, IEnumerable<T> t) { }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
             Action<ModuleSymbol> validator = module =>
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
-                var intType = compilation.GetSpecialType(SpecialType.System_Int32);
-                var stringType = compilation.GetSpecialType(SpecialType.System_String);
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
+                NamedTypeSymbol intType = compilation.GetSpecialType(SpecialType.System_Int32);
+                NamedTypeSymbol stringType = compilation.GetSpecialType(SpecialType.System_String);
                 var arrayType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, stringType, ImmutableArray.Create<CustomModifier>(), 1);
 
                 // Non-generic method.
-                var method = type.GetMember<MethodSymbol>("M1");
+                MethodSymbol method = type.GetMember<MethodSymbol>("M1");
                 CheckExtensionMethod(method,
                     ImmutableArray.Create<TypeSymbol>(),
                     "void object.M1()",
@@ -2529,7 +2529,7 @@ static class S
             string reducedAndConstructedFromDescription)
         {
             // Create instance form from constructed method.
-            var extensionMethod = ReducedExtensionMethodSymbol.Create(method.ConstructIfGeneric(typeArgs));
+            MethodSymbol extensionMethod = ReducedExtensionMethodSymbol.Create(method.ConstructIfGeneric(typeArgs));
             Utils.CheckReducedExtensionMethod(extensionMethod, reducedMethodDescription, reducedFromDescription, constructedFromDescription, reducedAndConstructedFromDescription);
 
             // Construct method from unconstructed instance form.
@@ -2543,7 +2543,7 @@ static class S
         [Fact]
         public void ExtensionMethod_ValidateExtensionAttribute()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 internal static class C
 {
@@ -2554,11 +2554,11 @@ internal static class C
 
             CompileAndVerify(comp, symbolValidator: module =>
             {
-                var method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<PEMethodSymbol>("M1");
+                PEMethodSymbol method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<PEMethodSymbol>("M1");
                 Assert.True(method.IsExtensionMethod);
                 Assert.Equal(method.Parameters.Single().Type.SpecialType, SpecialType.System_Object);
 
-                var attr = ((PEModuleSymbol)module).GetCustomAttributesForToken(method.Handle).Single();
+                CSharpAttributeData attr = ((PEModuleSymbol)module).GetCustomAttributesForToken(method.Handle).Single();
                 Assert.Equal("System.Runtime.CompilerServices.ExtensionAttribute", attr.AttributeClass.ToTestDisplayString());
             });
         }
@@ -2606,7 +2606,7 @@ static class C
         System.Console.WriteLine(""{0}"", t.ToString());
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput:
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput:
 @"str
 str
 2
@@ -2653,9 +2653,9 @@ S");
 ";
             CompileAndVerify(source, validator: module =>
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Extensions");
-                var nonGenericExtension = type.GetMember<MethodSymbol>("NonGeneric");
-                var genericExtension = type.GetMember<MethodSymbol>("Generic");
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Extensions");
+                MethodSymbol nonGenericExtension = type.GetMember<MethodSymbol>("NonGeneric");
+                MethodSymbol genericExtension = type.GetMember<MethodSymbol>("Generic");
 
                 Assert.True(nonGenericExtension.IsExtensionMethod);
                 Assert.Throws<ArgumentNullException>(() => nonGenericExtension.ReduceExtensionMethod(receiverType: null));
@@ -2682,16 +2682,16 @@ class Program
         int i2 = numbers.Cast<T1>();
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(code);
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(code);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var node = tree.GetCompilationUnitRoot().FindToken(code.IndexOf("GetHashCode", StringComparison.Ordinal)).Parent;
-            var symbolInfo = model.GetSymbolInfo((SimpleNameSyntax)node);
+            SyntaxNode node = tree.GetCompilationUnitRoot().FindToken(code.IndexOf("GetHashCode", StringComparison.Ordinal)).Parent;
+            SymbolInfo symbolInfo = model.GetSymbolInfo((SimpleNameSyntax)node);
             var methodSymbol = (MethodSymbol)symbolInfo.Symbol;
             Assert.False(methodSymbol.IsFromCompilation(compilation));
 
-            var parameter = methodSymbol.ThisParameter;
+            ParameterSymbol parameter = methodSymbol.ThisParameter;
             Assert.Equal(parameter.Ordinal, -1);
             Assert.Equal(parameter.ContainingSymbol, methodSymbol);
 
@@ -2753,20 +2753,20 @@ class Program
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics();
 
-            var extensionMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
+            MethodSymbol extensionMethod = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<MethodSymbol>("M");
             Assert.True(extensionMethod.IsExtensionMethod);
 
-            var reduced = extensionMethod.ReduceExtensionMethod();
+            MethodSymbol reduced = extensionMethod.ReduceExtensionMethod();
             Assert.True(reduced.IsExtensionMethod);
 
             Assert.Null(reduced.ReduceExtensionMethod());
 
-            var int32Type = compilation.GetSpecialType(SpecialType.System_Int32);
+            NamedTypeSymbol int32Type = compilation.GetSpecialType(SpecialType.System_Int32);
 
-            var reducedWithReceiver = extensionMethod.ReduceExtensionMethod(int32Type);
+            MethodSymbol reducedWithReceiver = extensionMethod.ReduceExtensionMethod(int32Type);
             Assert.True(reduced.IsExtensionMethod);
             Assert.Equal(reduced, reducedWithReceiver);
 
@@ -2835,14 +2835,14 @@ static class Extensions
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
-            var globalNamespace = compilation.GlobalNamespace;
-            var type = globalNamespace.GetMember<NamedTypeSymbol>("C");
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var memberAccess = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            NamespaceSymbol globalNamespace = compilation.GlobalNamespace;
+            NamedTypeSymbol type = globalNamespace.GetMember<NamedTypeSymbol>("C");
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            MemberAccessExpressionSyntax memberAccess = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
 
-            var lookupResult = model.LookupSymbols(
+            ImmutableArray<ISymbol> lookupResult = model.LookupSymbols(
                 memberAccess.SpanStart,
                 container: null,
                 name: "Test",
@@ -2858,7 +2858,7 @@ static class Extensions
             Utils.CheckSymbols(lookupResult,
                 "void C.Test(float f)"); // Extension methods not found.
 
-            var memberGroup = model.GetMemberGroup(memberAccess);
+            ImmutableArray<ISymbol> memberGroup = model.GetMemberGroup(memberAccess);
             Utils.CheckSymbols(memberGroup,
                 "void C.Test(float f)");
 
@@ -2893,17 +2893,17 @@ static class Extensions
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
-            var globalNamespace = compilation.GlobalNamespace;
-            var type = globalNamespace.GetMember<NamedTypeSymbol>("C");
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            var memberAccess = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            NamespaceSymbol globalNamespace = compilation.GlobalNamespace;
+            NamedTypeSymbol type = globalNamespace.GetMember<NamedTypeSymbol>("C");
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            MemberAccessExpressionSyntax memberAccess = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
 
             var call = (ExpressionSyntax)memberAccess.Parent;
             Assert.Equal(SyntaxKind.InvocationExpression, call.Kind());
 
-            var info = model.GetSymbolInfo(call);
+            SymbolInfo info = model.GetSymbolInfo(call);
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
             // Definitely want the extension method here for quick fix.
@@ -2990,7 +2990,7 @@ static class Program
         symbolName.TryGetWithoutAttributeSuffix(out nameWithoutAttributeSuffix);
     }
 }";
-            var libCompilation = CreateCompilationWithMscorlib40AndSystemCore(lib, assemblyName: Guid.NewGuid().ToString());
+            CSharpCompilation libCompilation = CreateCompilationWithMscorlib40AndSystemCore(lib, assemblyName: Guid.NewGuid().ToString());
             var libReference = new CSharpCompilationReference(libCompilation);
 
             CompileAndVerify(consumer, references: new[] { libReference });
@@ -3023,22 +3023,22 @@ class Test
 }
 ";
 
-            var comp = CreateCompilation(src1);
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateCompilation(src1);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             var nodes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToList();
             Assert.Equal(2, nodes.Count);
 
-            var firstInvocation = nodes[0];
-            var firstInvocationExpression = firstInvocation.Expression;
-            var firstInvocationSymbol = model.GetSymbolInfo(firstInvocation).Symbol;
-            var firstInvocationExpressionSymbol = model.GetSymbolInfo(firstInvocationExpression).Symbol;
+            InvocationExpressionSyntax firstInvocation = nodes[0];
+            ExpressionSyntax firstInvocationExpression = firstInvocation.Expression;
+            ISymbol firstInvocationSymbol = model.GetSymbolInfo(firstInvocation).Symbol;
+            ISymbol firstInvocationExpressionSymbol = model.GetSymbolInfo(firstInvocationExpression).Symbol;
 
-            var secondInvocation = nodes[1];
-            var secondInvocationExpression = secondInvocation.Expression;
-            var secondInvocationSymbol = model.GetSymbolInfo(secondInvocation).Symbol;
-            var secondInvocationExpressionSymbol = model.GetSymbolInfo(secondInvocationExpression).Symbol;
+            InvocationExpressionSyntax secondInvocation = nodes[1];
+            ExpressionSyntax secondInvocationExpression = secondInvocation.Expression;
+            ISymbol secondInvocationSymbol = model.GetSymbolInfo(secondInvocation).Symbol;
+            ISymbol secondInvocationExpressionSymbol = model.GetSymbolInfo(secondInvocationExpression).Symbol;
 
             Assert.Equal("obj.InstanceMethod", firstInvocationExpression.ToString());
             Assert.Equal(SyntaxKind.SimpleMemberAccessExpression, firstInvocationExpression.Kind());
@@ -3127,7 +3127,7 @@ class Test
     ret
   }
 }";
-            var reference1 = CompileIL(source1, prependDefaultHeader: false);
+            MetadataReference reference1 = CompileIL(source1, prependDefaultHeader: false);
             var source2 =
 @"class C : A
 {
@@ -3141,7 +3141,7 @@ class Test
         o.MD(); // D.MD()
     }
 }";
-            var compilation = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation = CreateCompilation(source2, new[] { reference1 });
             compilation.VerifyDiagnostics(
                 // (9,11): error CS1061: 'object' does not contain a definition for 'MI' and no extension method 'MI' accepting a first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "MI").WithArguments("object", "MI").WithLocation(9, 11));
@@ -3158,7 +3158,7 @@ Public Module M
     Public Sub F(o As Object)
     End Sub
 End Module";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, references: new[] { MscorlibRef, SystemCoreRef, MsvbRef });
+            MetadataReference reference1 = BasicCompilationUtils.CompileToMetadata(source1, references: new[] { MscorlibRef, SystemCoreRef, MsvbRef });
             var source2 =
 @"class C
 {
@@ -3167,7 +3167,7 @@ End Module";
         o.F();
     }
 }";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics();
         }
 
@@ -3183,10 +3183,10 @@ End Module";
         public static void F(this object o) { }
     }
 }";
-            var compilation1 = CreateCompilationWithMscorlib40AndSystemCore(source1, assemblyName: "A");
+            CSharpCompilation compilation1 = CreateCompilationWithMscorlib40AndSystemCore(source1, assemblyName: "A");
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1);
-            var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
+            CompilationVerifier compilationVerifier = CompileAndVerify(compilation1);
+            PortableExecutableReference reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""C"")]
 namespace NB
@@ -3196,10 +3196,10 @@ namespace NB
         public static void F(this object o) { }
     }
 }";
-            var compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, assemblyName: "B");
+            CSharpCompilation compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, assemblyName: "B");
             compilation2.VerifyDiagnostics();
             compilationVerifier = CompileAndVerify(compilation2);
-            var reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
+            PortableExecutableReference reference2 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source3 =
 @"using NB;
 namespace NA.NC
@@ -3212,7 +3212,7 @@ namespace NA.NC
         }
     }
 }";
-            var compilation3 = CreateCompilation(source3, assemblyName: "C", references: new[] { reference1, reference2 });
+            CSharpCompilation compilation3 = CreateCompilation(source3, assemblyName: "C", references: new[] { reference1, reference2 });
             compilation3.VerifyDiagnostics();
         }
 
@@ -3249,7 +3249,7 @@ namespace NA
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -3286,7 +3286,7 @@ namespace NB
         public static void F(this object o) { }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (16,13): error CS0121: The call is ambiguous between the following methods or properties: 'NA.A.F(object)' and 'NA.B.F(object)'
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("NA.A.F(object)", "NA.B.F(object)").WithLocation(16, 26),
@@ -3311,7 +3311,7 @@ namespace CSharpApp
         }
     }
 }";
-            var compilation = CreateCompilation(source, references: new[] { FSharpTestLibraryRef });
+            CSharpCompilation compilation = CreateCompilation(source, references: new[] { FSharpTestLibraryRef });
             compilation.VerifyDiagnostics();
         }
 
@@ -3335,7 +3335,7 @@ internal static class Test
     }
 }
 ";
-            var compilation = CreateEmptyCompilation(source, new[] { MscorlibRef_v20 }, TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateEmptyCompilation(source, new[] { MscorlibRef_v20 }, TestOptions.ReleaseDll);
             CompileAndVerify(compilation);
         }
 
@@ -3394,7 +3394,7 @@ namespace N
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (10,9): error CS0103: The name 'Goo' does not exist in the current context
                 //         Goo(1);
@@ -3462,7 +3462,7 @@ namespace N
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (9,11): error CS0121: The call is ambiguous between the following methods or properties: 'S.Goo(int)' and 'R.Goo(int)'
                 //         1.Goo();
@@ -3549,7 +3549,7 @@ namespace N
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (13,15): error CS0121: The call is ambiguous between the following methods or properties: 'S.Goo(int)' and 'R.Goo(int)'
                 //             1.Goo();
@@ -3583,7 +3583,7 @@ namespace N
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (10,15): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Goo(int)' and 'R.Goo(int)'
                 //             1.Goo();
@@ -3618,7 +3618,7 @@ namespace N
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (9,15): error CS1061: 'int' does not contain a definition for 'Goo' and no extension method 'Goo' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //             1.Goo();
@@ -3660,16 +3660,16 @@ namespace ConsoleApplication22
         }
     }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
-            var syntaxTree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(syntaxTree);
+            SyntaxTree syntaxTree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(syntaxTree);
 
             var member = (MemberAccessExpressionSyntax)syntaxTree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
             Assert.Equal("other.GetEnumerableDisposable1<T, TEnumerator>", member.ToString());
 
-            var type = model.GetTypeInfo(member.Expression).Type;
+            ITypeSymbol type = model.GetTypeInfo(member.Expression).Type;
             Assert.Equal("System.Collections.Generic.IEnumerable<T>", type.ToTestDisplayString());
 
             var symbols = model.LookupSymbols(member.Expression.EndPosition, type, includeReducedExtensionMethods: true).Select(s => s.Name).ToArray();
@@ -3688,15 +3688,15 @@ class C
 }
 var o = new object();
 o.F();";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics();
         }
 
         [Fact]
         public void InteractiveExtensionMethods()
         {
-            var parseOptions = TestOptions.Script;
-            var references = new[] { MscorlibRef, SystemCoreRef };
+            CSharpParseOptions parseOptions = TestOptions.Script;
+            MetadataReference[] references = new[] { MscorlibRef, SystemCoreRef };
             var source0 =
 @"static object F(this object o) { return 0; }
 var o = new object();
@@ -3748,18 +3748,18 @@ public class BaseClass<TMember>
     public TMember Member { get; set; }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var instance = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Instance").First();
+            IdentifierNameSyntax instance = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Instance").First();
             Assert.Equal("Instance.SetMember", instance.Parent.ToString());
-            var baseClass = model.GetTypeInfo(instance).Type;
+            ITypeSymbol baseClass = model.GetTypeInfo(instance).Type;
             Assert.Equal("BaseClass<System.Int32>", baseClass.ToTestDisplayString());
 
-            var setMember = model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true).Single();
+            ISymbol setMember = model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true).Single();
             Assert.Equal("BaseClass<System.Int32> BaseClass<System.Int32>.SetMember<BaseClass<System.Int32>, TMember>(TMember NewValue)", setMember.ToTestDisplayString());
             Assert.Contains(setMember, model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true));
         }
@@ -3791,19 +3791,19 @@ public class BaseClass<TMember>
     public TMember Member { get; set; }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (7,18): error CS0311: The type 'BaseClass<int>' cannot be used as type parameter 'BC' in the generic type or method 'Extensions.SetMember<BC, TMember>(BC, TMember)'. There is no implicit reference conversion from 'BaseClass<int>' to 'BaseClass<long>'.
                 //         Instance.SetMember(32);
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "SetMember").WithArguments("Extensions.SetMember<BC, TMember>(BC, TMember)", "BaseClass<long>", "BC", "BaseClass<int>").WithLocation(7, 18)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var instance = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Instance").First();
+            IdentifierNameSyntax instance = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Instance").First();
             Assert.Equal("Instance.SetMember", instance.Parent.ToString());
-            var baseClass = model.GetTypeInfo(instance).Type;
+            ITypeSymbol baseClass = model.GetTypeInfo(instance).Type;
             Assert.Equal("BaseClass<System.Int32>", baseClass.ToTestDisplayString());
 
             Assert.Empty(model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true));
@@ -3840,18 +3840,18 @@ public class BaseClass<TMember> : I1<TMember>
     public TMember Member { get; set; }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var instance = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Instance").First();
+            IdentifierNameSyntax instance = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Instance").First();
             Assert.Equal("Instance.SetMember", instance.Parent.ToString());
-            var baseClass = model.GetTypeInfo(instance).Type;
+            ITypeSymbol baseClass = model.GetTypeInfo(instance).Type;
             Assert.Equal("BaseClass<System.Int32>", baseClass.ToTestDisplayString());
 
-            var setMember = model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true).Single();
+            ISymbol setMember = model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true).Single();
             Assert.Equal("BaseClass<System.Int32> BaseClass<System.Int32>.SetMember<BaseClass<System.Int32>, TMember>(TMember NewValue)", setMember.ToTestDisplayString());
             Assert.Contains(setMember, model.LookupSymbols(instance.Position, baseClass, includeReducedExtensionMethods: true));
         }
@@ -3886,19 +3886,19 @@ public class BaseClass<TMember> : I1<TMember>
     public TMember Member { get; set; }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (7,18): error CS0311: The type 'BaseClass<int>' cannot be used as type parameter 'BC' in the generic type or method 'Extensions.SetMember<BC, TMember>(BC, TMember)'. There is no implicit reference conversion from 'BaseClass<int>' to 'I1<long>'.
                 //         Instance.SetMember(32);
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "SetMember").WithArguments("Extensions.SetMember<BC, TMember>(BC, TMember)", "I1<long>", "BC", "BaseClass<int>").WithLocation(7, 18)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var instance = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Instance").First();
+            IdentifierNameSyntax instance = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == "Instance").First();
             Assert.Equal("Instance.SetMember", instance.Parent.ToString());
-            var baseClass = model.GetTypeInfo(instance).Type;
+            ITypeSymbol baseClass = model.GetTypeInfo(instance).Type;
             Assert.Equal("BaseClass<System.Int32>", baseClass.ToTestDisplayString());
 
             Assert.Empty(model.LookupSymbols(instance.Position, baseClass, "SetMember", includeReducedExtensionMethods: true));
@@ -3917,11 +3917,11 @@ public static class C
 
             void Validator(ModuleSymbol module)
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-                var method = type.GetMember<MethodSymbol>("M1");
+                MethodSymbol method = type.GetMember<MethodSymbol>("M1");
                 Assert.True(method.IsExtensionMethod);
-                var parameter = method.Parameters[0];
+                ParameterSymbol parameter = method.Parameters[0];
                 Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Int32);
                 Assert.Equal(RefKind.In, parameter.RefKind);
 
@@ -3947,11 +3947,11 @@ public static class C
 
             void Validator(ModuleSymbol module)
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-                var method = type.GetMember<MethodSymbol>("M1");
+                MethodSymbol method = type.GetMember<MethodSymbol>("M1");
                 Assert.True(method.IsExtensionMethod);
-                var parameter = method.Parameters[0];
+                ParameterSymbol parameter = method.Parameters[0];
                 Assert.Equal(parameter.Type.SpecialType, SpecialType.System_Int32);
                 Assert.Equal(RefKind.Ref, parameter.RefKind);
 

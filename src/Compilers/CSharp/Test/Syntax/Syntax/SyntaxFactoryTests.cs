@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void SyntaxTree()
         {
-            var text = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit(), encoding: null).GetText();
+            SourceText text = SyntaxFactory.SyntaxTree(SyntaxFactory.CompilationUnit(), encoding: null).GetText();
             Assert.Null(text.Encoding);
             Assert.Equal(SourceHashAlgorithm.Sha1, text.ChecksumAlgorithm);
         }
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void SyntaxTreeFromNode()
         {
-            var text = SyntaxFactory.CompilationUnit().SyntaxTree.GetText();
+            SourceText text = SyntaxFactory.CompilationUnit().SyntaxTree.GetText();
             Assert.Null(text.Encoding);
             Assert.Equal(SourceHashAlgorithm.Sha1, text.ChecksumAlgorithm);
         }
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestConstructNamespaceWithNameOnly()
         {
-            var n = SyntaxFactory.NamespaceDeclaration(name: SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("goo")));
+            NamespaceDeclarationSyntax n = SyntaxFactory.NamespaceDeclaration(name: SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("goo")));
             Assert.NotNull(n);
             Assert.Equal(0, n.Errors().Length);
             Assert.Equal(0, n.Externs.Count);
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestConstructClassWithKindAndNameOnly()
         {
-            var c = SyntaxFactory.ClassDeclaration(identifier: SyntaxFactory.Identifier("goo"));
+            ClassDeclarationSyntax c = SyntaxFactory.ClassDeclaration(identifier: SyntaxFactory.Identifier("goo"));
             Assert.NotNull(c);
             Assert.Equal(0, c.AttributeLists.Count);
             Assert.Equal(0, c.Modifiers.Count);
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             Func<string, SyntaxToken> makeStringLiteral = value =>
                 SyntaxFactory.ParseToken(string.Format("\"{0}\"", value)).WithLeadingTrivia(SyntaxFactory.ElasticMarker).WithTrailingTrivia(SyntaxFactory.ElasticMarker);
-            var t = SyntaxFactory.PragmaChecksumDirectiveTrivia(makeStringLiteral("file"), makeStringLiteral("guid"), makeStringLiteral("bytes"), true);
+            PragmaChecksumDirectiveTriviaSyntax t = SyntaxFactory.PragmaChecksumDirectiveTrivia(makeStringLiteral("file"), makeStringLiteral("guid"), makeStringLiteral("bytes"), true);
             Assert.Equal(SyntaxKind.PragmaChecksumDirectiveTrivia, t.Kind());
             Assert.Equal("#pragmachecksum\"file\"\"guid\"\"bytes\"", t.ToString());
             Assert.Equal("#pragma checksum \"file\" \"guid\" \"bytes\"\r\n", t.NormalizeWhitespace().ToFullString());
@@ -172,10 +172,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 if (!SyntaxFacts.IsAnyToken(kind)) continue;
 
                 var defaultText = SyntaxFacts.GetText(kind);
-                var actualRed = SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker), kind, defaultText, defaultText, SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker));
-                var actualGreen = actualRed.Node;
+                SyntaxToken actualRed = SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker), kind, defaultText, defaultText, SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker));
+                GreenNode actualGreen = actualRed.Node;
 
-                var expectedGreen = InternalSyntax.SyntaxFactory.Token(InternalSyntax.SyntaxFactory.ElasticZeroSpace, kind, InternalSyntax.SyntaxFactory.ElasticZeroSpace);
+                InternalSyntax.SyntaxToken expectedGreen = InternalSyntax.SyntaxFactory.Token(InternalSyntax.SyntaxFactory.ElasticZeroSpace, kind, InternalSyntax.SyntaxFactory.ElasticZeroSpace);
 
                 Assert.Same(expectedGreen, actualGreen); // Don't create a new token if we don't have to.
             }
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 var text = ToXmlEntities(defaultText);
                 var valueText = defaultText;
 
-                var token = SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker), kind, text, valueText, SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker));
+                SyntaxToken token = SyntaxFactory.Token(SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker), kind, text, valueText, SyntaxTriviaList.Create(SyntaxFactory.ElasticMarker));
 
                 Assert.Equal(kind, token.Kind());
                 Assert.Equal(text, token.Text);
@@ -212,43 +212,43 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestSeparatedListFactory_DefaultSeparators()
         {
-            var null1 = SyntaxFactory.SeparatedList((ParameterSyntax[])null);
+            SeparatedSyntaxList<ParameterSyntax> null1 = SyntaxFactory.SeparatedList((ParameterSyntax[])null);
 
             Assert.Equal(0, null1.Count);
             Assert.Equal(0, null1.SeparatorCount);
             Assert.Equal("", null1.ToString());
 
-            var null2 = SyntaxFactory.SeparatedList((System.Collections.Generic.IEnumerable<VariableDeclaratorSyntax>)null);
+            SeparatedSyntaxList<VariableDeclaratorSyntax> null2 = SyntaxFactory.SeparatedList((System.Collections.Generic.IEnumerable<VariableDeclaratorSyntax>)null);
 
             Assert.Equal(0, null2.Count);
             Assert.Equal(0, null2.SeparatorCount);
             Assert.Equal("", null2.ToString());
 
-            var empty1 = SyntaxFactory.SeparatedList(new TypeArgumentListSyntax[] { });
+            SeparatedSyntaxList<TypeArgumentListSyntax> empty1 = SyntaxFactory.SeparatedList(new TypeArgumentListSyntax[] { });
 
             Assert.Equal(0, empty1.Count);
             Assert.Equal(0, empty1.SeparatorCount);
             Assert.Equal("", empty1.ToString());
 
-            var empty2 = SyntaxFactory.SeparatedList(System.Linq.Enumerable.Empty<TypeParameterSyntax>());
+            SeparatedSyntaxList<TypeParameterSyntax> empty2 = SyntaxFactory.SeparatedList(System.Linq.Enumerable.Empty<TypeParameterSyntax>());
 
             Assert.Equal(0, empty2.Count);
             Assert.Equal(0, empty2.SeparatorCount);
             Assert.Equal("", empty2.ToString());
 
-            var singleton1 = SyntaxFactory.SeparatedList(new[] { SyntaxFactory.IdentifierName("a") });
+            SeparatedSyntaxList<IdentifierNameSyntax> singleton1 = SyntaxFactory.SeparatedList(new[] { SyntaxFactory.IdentifierName("a") });
 
             Assert.Equal(1, singleton1.Count);
             Assert.Equal(0, singleton1.SeparatorCount);
             Assert.Equal("a", singleton1.ToString());
 
-            var singleton2 = SyntaxFactory.SeparatedList((System.Collections.Generic.IEnumerable<ExpressionSyntax>)new[] { SyntaxFactory.IdentifierName("x") });
+            SeparatedSyntaxList<ExpressionSyntax> singleton2 = SyntaxFactory.SeparatedList((System.Collections.Generic.IEnumerable<ExpressionSyntax>)new[] { SyntaxFactory.IdentifierName("x") });
 
             Assert.Equal(1, singleton2.Count);
             Assert.Equal(0, singleton2.SeparatorCount);
             Assert.Equal("x", singleton2.ToString());
 
-            var list1 = SyntaxFactory.SeparatedList(new[] { SyntaxFactory.IdentifierName("a"), SyntaxFactory.IdentifierName("b"), SyntaxFactory.IdentifierName("c") });
+            SeparatedSyntaxList<IdentifierNameSyntax> list1 = SyntaxFactory.SeparatedList(new[] { SyntaxFactory.IdentifierName("a"), SyntaxFactory.IdentifierName("b"), SyntaxFactory.IdentifierName("c") });
 
             Assert.Equal(3, list1.Count);
             Assert.Equal(2, list1.SeparatorCount);
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             builder.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("y")));
             builder.Add(SyntaxFactory.Argument(SyntaxFactory.IdentifierName("z")));
 
-            var list2 = SyntaxFactory.SeparatedList<ArgumentSyntax>(builder);
+            SeparatedSyntaxList<ArgumentSyntax> list2 = SyntaxFactory.SeparatedList<ArgumentSyntax>(builder);
 
             Assert.Equal(3, list2.Count);
             Assert.Equal(2, list2.SeparatorCount);
@@ -341,13 +341,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestLiteralToStringDifferentCulture()
         {
-            var culture = CultureInfo.CurrentCulture;
+            CultureInfo culture = CultureInfo.CurrentCulture;
             CultureInfo.CurrentCulture = new CultureInfo("de-DE", useUserOverride: false);
 
             // If we are using the current culture to format the string then
             // decimal values should render as , instead of .
             TestLiteralDefaultStringValues();
-            var literal = SyntaxFactory.Literal(3.14);
+            SyntaxToken literal = SyntaxFactory.Literal(3.14);
             Assert.Equal("3.14", literal.ValueText);
 
             CultureInfo.CurrentCulture = culture;
@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestEscapeLineSeparator()
         {
-            var literal = SyntaxFactory.Literal("\u2028");
+            SyntaxToken literal = SyntaxFactory.Literal("\u2028");
             Assert.Equal("\"\\u2028\"", literal.Text);
         }
 
@@ -365,13 +365,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestEscapeSurrogate()
         {
-            var literal = SyntaxFactory.Literal('\uDBFF');
+            SyntaxToken literal = SyntaxFactory.Literal('\uDBFF');
             Assert.Equal("'\\udbff'", literal.Text);
         }
 
         private static void CheckLiteralToString(dynamic value, string expected)
         {
-            var literal = SyntaxFactory.Literal(value);
+            dynamic literal = SyntaxFactory.Literal(value);
             Assert.Equal(expected, literal.ToString());
         }
 
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tokens = SyntaxFactory.ParseTokens("1l").ToList();
             Assert.Equal(2, tokens.Count); // { "1l", "EOF" }
 
-            var literal = tokens.First();
+            SyntaxToken literal = tokens.First();
             Assert.Equal("1l", literal.Text);
             Assert.Equal(Location.None, literal.GetLocation());
 
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var tokens = SyntaxFactory.ParseTokens("1L").ToList();
             Assert.Equal(2, tokens.Count); // { "1L", "EOF" }
 
-            var literal = tokens.First();
+            SyntaxToken literal = tokens.First();
             Assert.Equal("1L", literal.Text);
             Assert.Equal(Location.None, literal.GetLocation());
 
@@ -461,7 +461,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
         public void TestSpacingOnNullableIntType()
         {
-            var syntaxNode =
+            CompilationUnitSyntax syntaxNode =
                 SyntaxFactory.CompilationUnit()
                 .WithMembers(
                     SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
         public void TestSpacingOnNullableDatetimeType()
         {
-            var syntaxNode =
+            CompilationUnitSyntax syntaxNode =
                 SyntaxFactory.CompilationUnit()
                 .WithMembers(
                     SyntaxFactory.SingletonList<MemberDeclarationSyntax>(
@@ -508,12 +508,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
         public void TestSpacingOnTernary()
         {
-            var syntaxNode = SyntaxFactory.ParseExpression("x is int? y: z").NormalizeWhitespace();
+            ExpressionSyntax syntaxNode = SyntaxFactory.ParseExpression("x is int? y: z").NormalizeWhitespace();
 
             // space between int and ?
             Assert.Equal("x is int ? y : z", syntaxNode.ToFullString());
 
-            var syntaxNode2 = SyntaxFactory.ParseExpression("x is DateTime? y: z").NormalizeWhitespace();
+            ExpressionSyntax syntaxNode2 = SyntaxFactory.ParseExpression("x is DateTime? y: z").NormalizeWhitespace();
 
             // space between DateTime and ?
             Assert.Equal("x is DateTime ? y : z", syntaxNode2.ToFullString());
@@ -523,13 +523,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(21231, "https://github.com/dotnet/roslyn/issues/21231")]
         public void TestSpacingOnCoalescing()
         {
-            var syntaxNode = SyntaxFactory.ParseExpression("x is int??y").NormalizeWhitespace();
+            ExpressionSyntax syntaxNode = SyntaxFactory.ParseExpression("x is int??y").NormalizeWhitespace();
             Assert.Equal("x is int ?? y", syntaxNode.ToFullString());
 
-            var syntaxNode2 = SyntaxFactory.ParseExpression("x is DateTime??y").NormalizeWhitespace();
+            ExpressionSyntax syntaxNode2 = SyntaxFactory.ParseExpression("x is DateTime??y").NormalizeWhitespace();
             Assert.Equal("x is DateTime ?? y", syntaxNode2.ToFullString());
 
-            var syntaxNode3 = SyntaxFactory.ParseExpression("x is object??y").NormalizeWhitespace();
+            ExpressionSyntax syntaxNode3 = SyntaxFactory.ParseExpression("x is object??y").NormalizeWhitespace();
             Assert.Equal("x is object ?? y", syntaxNode3.ToFullString());
         }
     }

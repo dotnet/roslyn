@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis
 
         protected override string GetText(IFormatProvider formatProvider)
         {
-            var culture = formatProvider as CultureInfo ?? CultureInfo.CurrentUICulture;
+            CultureInfo culture = formatProvider as CultureInfo ?? CultureInfo.CurrentUICulture;
             var resourceString = _resourceManager.GetString(_nameOfLocalizableResource, culture);
             return resourceString != null ?
                 (_formatArguments.Length > 0 ? string.Format(resourceString, _formatArguments) : resourceString) :

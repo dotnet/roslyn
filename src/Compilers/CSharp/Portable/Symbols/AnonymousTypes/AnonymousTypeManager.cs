@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(type.IsAnonymousType);
             var anonymous = (AnonymousTypePublicSymbol)type;
-            var fields = anonymous.TypeDescriptor.Fields;
+            ImmutableArray<AnonymousTypeField> fields = anonymous.TypeDescriptor.Fields;
             TypeSymbol[] types = new TypeSymbol[fields.Length];
             for (int i = 0; i < fields.Length; i++)
             {

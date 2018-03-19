@@ -42,8 +42,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var operandType = rewrittenOperand.Type;
-            var targetType = rewrittenTargetType.Type;
+            TypeSymbol operandType = rewrittenOperand.Type;
+            TypeSymbol targetType = rewrittenTargetType.Type;
 
             Debug.Assert((object)operandType != null || rewrittenOperand.ConstantValue.IsNull);
             Debug.Assert((object)targetType != null);

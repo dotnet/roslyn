@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestEmptyString()
         {
             var text = string.Empty;
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestName()
         {
             var text = "goo";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.IdentifierName, expr.Kind());
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestParenthesizedExpression()
         {
             var text = "(goo)";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ParenthesizedExpression, expr.Kind());
@@ -65,10 +65,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void TestLiteralExpression(SyntaxKind kind)
         {
             var text = SyntaxFacts.GetText(kind);
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
-            var opKind = SyntaxFacts.GetLiteralExpression(kind);
+            SyntaxKind opKind = SyntaxFacts.GetLiteralExpression(kind);
             Assert.Equal(opKind, expr.Kind());
             Assert.Equal(0, expr.Errors().Length);
             var us = (LiteralExpressionSyntax)expr;
@@ -88,10 +88,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void TestInstanceExpression(SyntaxKind kind)
         {
             var text = SyntaxFacts.GetText(kind);
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
-            var opKind = SyntaxFacts.GetInstanceExpression(kind);
+            SyntaxKind opKind = SyntaxFacts.GetInstanceExpression(kind);
             Assert.Equal(opKind, expr.Kind());
             Assert.Equal(0, expr.Errors().Length);
             SyntaxToken token;
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestStringLiteralExpression()
         {
             var text = "\"stuff\"";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.StringLiteralExpression, expr.Kind());
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestVerbatimLiteralExpression()
         {
             var text = "@\"\"\"stuff\"\"\"";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.StringLiteralExpression, expr.Kind());
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCharacterLiteralExpression()
         {
             var text = "'c'";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.CharacterLiteralExpression, expr.Kind());
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralExpression()
         {
             var text = "0";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.NumericLiteralExpression, expr.Kind());
@@ -178,10 +178,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void TestPrefixUnary(SyntaxKind kind)
         {
             var text = SyntaxFacts.GetText(kind) + "a";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
-            var opKind = SyntaxFacts.GetPrefixUnaryExpression(kind);
+            SyntaxKind opKind = SyntaxFacts.GetPrefixUnaryExpression(kind);
             Assert.Equal(opKind, expr.Kind());
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
@@ -209,10 +209,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void TestPostfixUnary(SyntaxKind kind)
         {
             var text = "a" + SyntaxFacts.GetText(kind);
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
-            var opKind = SyntaxFacts.GetPostfixUnaryExpression(kind);
+            SyntaxKind opKind = SyntaxFacts.GetPostfixUnaryExpression(kind);
             Assert.Equal(opKind, expr.Kind());
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
@@ -234,10 +234,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void TestBinary(SyntaxKind kind)
         {
             var text = "(a) " + SyntaxFacts.GetText(kind) + " b";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
-            var opKind = SyntaxFacts.GetBinaryExpression(kind);
+            SyntaxKind opKind = SyntaxFacts.GetBinaryExpression(kind);
             Assert.Equal(opKind, expr.Kind());
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
@@ -279,10 +279,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void TestAssignment(SyntaxKind kind)
         {
             var text = "(a) " + SyntaxFacts.GetText(kind) + " b";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
-            var opKind = SyntaxFacts.GetAssignmentExpression(kind);
+            SyntaxKind opKind = SyntaxFacts.GetAssignmentExpression(kind);
             Assert.Equal(opKind, expr.Kind());
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void TestMemberAccess(SyntaxKind kind)
         {
             var text = "(a)" + SyntaxFacts.GetText(kind) + " b";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(text, expr.ToString());
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestConditionalAccessNotVersion5()
         {
             var text = "a.b?.c.d?[1]?.e()?.f";
-            var expr = this.ParseExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            ExpressionSyntax expr = this.ParseExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
 
             Assert.NotNull(expr);
             Assert.Equal(text, expr.ToString());
@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestConditionalAccess()
         {
             var text = "a.b?.c.d?[1]?.e()?.f";
-            var expr = this.ParseExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+            ExpressionSyntax expr = this.ParseExpression(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
 
             Assert.NotNull(expr);
             Assert.Equal(text, expr.ToString());
@@ -362,7 +362,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var e = (ConditionalAccessExpressionSyntax)expr;
             Assert.Equal("a.b", e.Expression.ToString());
-            var cons = e.WhenNotNull;
+            ExpressionSyntax cons = e.WhenNotNull;
             Assert.Equal(".c.d?[1]?.e()?.f", cons.ToString());
             Assert.Equal(cons.Kind(), SyntaxKind.ConditionalAccessExpression);
 
@@ -403,10 +403,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void TestSingleParamFunctionalOperator(SyntaxKind kind)
         {
             var text = SyntaxFacts.GetText(kind) + "(a)";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
-            var opKind = SyntaxFacts.GetPrimaryFunction(kind);
+            SyntaxKind opKind = SyntaxFacts.GetPrimaryFunction(kind);
             Assert.Equal(opKind, expr.Kind());
             Assert.Equal(text, expr.ToString());
             Assert.Equal(0, expr.Errors().Length);
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefValue()
         {
             var text = SyntaxFacts.GetText(SyntaxKind.RefValueKeyword) + "(a, b)";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.RefValueExpression, expr.Kind());
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestConditional()
         {
             var text = "a ? b : c";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ConditionalExpression, expr.Kind());
@@ -509,7 +509,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             // ensure that ?: has lower precedence than assignment.
             var text = "a ? b=c : d=e";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
             Assert.Equal(SyntaxKind.ConditionalExpression, expr.Kind());
             Assert.False(expr.HasErrors);
         }
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCast()
         {
             var text = "(a) b";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.CastExpression, expr.Kind());
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCall()
         {
             var text = "a(b)";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.InvocationExpression, expr.Kind());
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCallWithRef()
         {
             var text = "a(ref b)";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.InvocationExpression, expr.Kind());
@@ -585,7 +585,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCallWithOut()
         {
             var text = "a(out b)";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.InvocationExpression, expr.Kind());
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCallWithNamedArgument()
         {
             var text = "a(B: b)";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.InvocationExpression, expr.Kind());
@@ -635,7 +635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestIndex()
         {
             var text = "a[b]";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ElementAccessExpression, expr.Kind());
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestIndexWithRef()
         {
             var text = "a[ref b]";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ElementAccessExpression, expr.Kind());
@@ -681,7 +681,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestIndexWithOut()
         {
             var text = "a[out b]";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ElementAccessExpression, expr.Kind());
@@ -706,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestIndexWithNamedArgument()
         {
             var text = "a[B: b]";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ElementAccessExpression, expr.Kind());
@@ -727,7 +727,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNew()
         {
             var text = "new a()";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind());
@@ -749,7 +749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNewWithArgument()
         {
             var text = "new a(b)";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind());
@@ -772,7 +772,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNewWithNamedArgument()
         {
             var text = "new a(B: b)";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind());
@@ -795,7 +795,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNewWithEmptyInitializer()
         {
             var text = "new a() { }";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind());
@@ -823,7 +823,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNewWithNoArgumentsAndEmptyInitializer()
         {
             var text = "new a { }";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind());
@@ -846,7 +846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNewWithNoArgumentsAndInitializer()
         {
             var text = "new a { b }";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind());
@@ -870,7 +870,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNewWithNoArgumentsAndInitializers()
         {
             var text = "new a { b, c, d }";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind());
@@ -896,7 +896,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNewWithNoArgumentsAndAssignmentInitializer()
         {
             var text = "new a { B = b }";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind());
@@ -920,7 +920,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNewWithNoArgumentsAndNestedAssignmentInitializer()
         {
             var text = "new a { B = { X = x } }";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind());
@@ -948,7 +948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNewArray()
         {
             var text = "new a[1]";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ArrayCreationExpression, expr.Kind());
@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNewArrayWithInitializer()
         {
             var text = "new a[] {b}";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ArrayCreationExpression, expr.Kind());
@@ -986,7 +986,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNewArrayWithInitializers()
         {
             var text = "new a[] {b, c, d}";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ArrayCreationExpression, expr.Kind());
@@ -1010,7 +1010,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNewMultiDimensionalArrayWithInitializer()
         {
             var text = "new a[][,][,,] {b}";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ArrayCreationExpression, expr.Kind());
@@ -1032,7 +1032,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestImplicitArrayCreation()
         {
             var text = "new [] {b}";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ImplicitArrayCreationExpression, expr.Kind());
@@ -1052,7 +1052,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestAnonymousObjectCreation()
         {
             var text = "new {a, b}";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.AnonymousObjectCreationExpression, expr.Kind());
@@ -1073,7 +1073,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestAnonymousMethod()
         {
             var text = "delegate (int a) { }";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.AnonymousMethodExpression, expr.Kind());
@@ -1104,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestAnonymousMethodWithNoArguments()
         {
             var text = "delegate () { }";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.AnonymousMethodExpression, expr.Kind());
@@ -1134,7 +1134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestAnonymousMethodWithNoArgumentList()
         {
             var text = "delegate { }";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.AnonymousMethodExpression, expr.Kind());
@@ -1159,7 +1159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSimpleLambda()
         {
             var text = "a => b";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.SimpleLambdaExpression, expr.Kind());
@@ -1177,7 +1177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSimpleLambdaWithRefReturn()
         {
             var text = "a => ref b";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.SimpleLambdaExpression, expr.Kind());
@@ -1195,7 +1195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSimpleLambdaWithBlock()
         {
             var text = "a => { }";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.SimpleLambdaExpression, expr.Kind());
@@ -1215,7 +1215,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLambdaWithNoParameters()
         {
             var text = "() => b";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, expr.Kind());
@@ -1235,7 +1235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLambdaWithNoParametersAndRefReturn()
         {
             var text = "() => ref b";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, expr.Kind());
@@ -1255,7 +1255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLambdaWithNoParametersAndBlock()
         {
             var text = "() => { }";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, expr.Kind());
@@ -1277,7 +1277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLambdaWithOneParameter()
         {
             var text = "(a) => b";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, expr.Kind());
@@ -1301,7 +1301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLambdaWithTwoParameters()
         {
             var text = "(a, a2) => b";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, expr.Kind());
@@ -1328,7 +1328,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLambdaWithOneTypedParameter()
         {
             var text = "(T a) => b";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, expr.Kind());
@@ -1353,7 +1353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLambdaWithOneRefParameter()
         {
             var text = "(ref T a) => b";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, expr.Kind());
@@ -1380,7 +1380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestTupleWithTwoArguments()
         {
             var text = "(a, a2)";
-            var expr = this.ParseExpression(text, options: TestOptions.Regular);
+            ExpressionSyntax expr = this.ParseExpression(text, options: TestOptions.Regular);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.TupleExpression, expr.Kind());
@@ -1400,7 +1400,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestTupleWithTwoNamedArguments()
         {
             var text = "(arg1: (a, a2), arg2: a2)";
-            var expr = this.ParseExpression(text, options: TestOptions.Regular);
+            ExpressionSyntax expr = this.ParseExpression(text, options: TestOptions.Regular);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.TupleExpression, expr.Kind());
@@ -1421,7 +1421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFromSelect()
         {
             var text = "from a in A select b";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.QueryExpression, expr.Kind());
@@ -1454,7 +1454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFromWithType()
         {
             var text = "from T a in A select b";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.QueryExpression, expr.Kind());
@@ -1487,7 +1487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFromSelectIntoSelect()
         {
             var text = "from a in A select b into c select d";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.QueryExpression, expr.Kind());
@@ -1538,7 +1538,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFromWhereSelect()
         {
             var text = "from a in A where b select c";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.QueryExpression, expr.Kind());
@@ -1578,7 +1578,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFromFromSelect()
         {
             var text = "from a in A from b in B select c";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.QueryExpression, expr.Kind());
@@ -1621,7 +1621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFromLetSelect()
         {
             var text = "from a in A let b = B select c";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.QueryExpression, expr.Kind());
@@ -1666,7 +1666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFromOrderBySelect()
         {
             var text = "from a in A orderby b select c";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.QueryExpression, expr.Kind());
@@ -1711,7 +1711,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFromOrderBy2Select()
         {
             var text = "from a in A orderby b, b2 select c";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.QueryExpression, expr.Kind());
@@ -1760,7 +1760,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFromOrderByAscendingSelect()
         {
             var text = "from a in A orderby b ascending select c";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.QueryExpression, expr.Kind());
@@ -1808,7 +1808,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFromOrderByDescendingSelect()
         {
             var text = "from a in A orderby b descending select c";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.QueryExpression, expr.Kind());
@@ -1856,7 +1856,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFromGroupBy()
         {
             var text = "from a in A group b by c";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.QueryExpression, expr.Kind());
@@ -1866,7 +1866,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var qs = (QueryExpressionSyntax)expr;
             Assert.Equal(0, qs.Body.Clauses.Count);
 
-            var fs = qs.FromClause;
+            FromClauseSyntax fs = qs.FromClause;
             Assert.NotNull(fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
@@ -1895,7 +1895,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFromGroupByIntoSelect()
         {
             var text = "from a in A group b by c into d select e";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.QueryExpression, expr.Kind());
@@ -1905,7 +1905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var qs = (QueryExpressionSyntax)expr;
             Assert.Equal(0, qs.Body.Clauses.Count);
 
-            var fs = qs.FromClause;
+            FromClauseSyntax fs = qs.FromClause;
             Assert.NotNull(fs.FromKeyword);
             Assert.False(fs.FromKeyword.IsMissing);
             Assert.Null(fs.Type);
@@ -1948,7 +1948,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFromJoinSelect()
         {
             var text = "from a in A join b in B on a equals b select c";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.QueryExpression, expr.Kind());
@@ -2004,7 +2004,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFromJoinWithTypesSelect()
         {
             var text = "from Ta a in A join Tb b in B on a equals b select c";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.QueryExpression, expr.Kind());
@@ -2059,7 +2059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFromJoinIntoSelect()
         {
             var text = "from a in A join b in B on a equals b into c select d";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.QueryExpression, expr.Kind());
@@ -2116,7 +2116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFromGroupBy1()
         {
             var text = "from it in goo group x by y";
-            var expr = SyntaxFactory.ParseExpression(text);
+            ExpressionSyntax expr = SyntaxFactory.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.QueryExpression, expr.Kind());
@@ -2138,7 +2138,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void UnterminatedRankSpecifier()
         {
             var text = "new int[";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ArrayCreationExpression, expr.Kind());
@@ -2152,7 +2152,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void UnterminatedTypeArgumentList()
         {
             var text = "new C<";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ObjectCreationExpression, expr.Kind());
@@ -2167,7 +2167,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             //'on' is a keyword here
             var text = "from elem in aRay select new Result { A = on = true }";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.QueryExpression, expr.Kind());
@@ -2179,7 +2179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void IndexingExpressionInParens()
         {
             var text = "(aRay[i,j])";
-            var expr = this.ParseExpression(text);
+            ExpressionSyntax expr = this.ParseExpression(text);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ParenthesizedExpression, expr.Kind());
@@ -2263,7 +2263,7 @@ namespace WB.Core.SharedKernels.DataCollection.Generated
    }
 }
 ";
-            var root = SyntaxFactory.ParseSyntaxTree(text).GetRoot();
+            SyntaxNode root = SyntaxFactory.ParseSyntaxTree(text).GetRoot();
 
             Assert.NotNull(root);
             Assert.Equal(SyntaxKind.CompilationUnit, root.Kind());
@@ -2971,7 +2971,7 @@ class C
     }
 }
 ";
-            var tree = UsingTree(text);
+            SyntaxTree tree = UsingTree(text);
             tree.GetDiagnostics().Verify();
             N(SyntaxKind.CompilationUnit);
             {
@@ -3061,7 +3061,7 @@ class C
     }
 }
 ";
-            var tree = UsingTree(text);
+            SyntaxTree tree = UsingTree(text);
             tree.GetDiagnostics().Verify();
             N(SyntaxKind.CompilationUnit);
             {
@@ -3152,7 +3152,7 @@ class C
     }
 }
 ";
-            var tree = UsingTree(text);
+            SyntaxTree tree = UsingTree(text);
             tree.GetDiagnostics().Verify();
             N(SyntaxKind.CompilationUnit);
             {
@@ -3239,7 +3239,7 @@ class C
     }
 }
 ";
-            var tree = UsingTree(text);
+            SyntaxTree tree = UsingTree(text);
             tree.GetDiagnostics().Verify();
             N(SyntaxKind.CompilationUnit);
             {
@@ -3334,7 +3334,7 @@ class C
     }
 }
 ";
-            var tree = UsingTree(text);
+            SyntaxTree tree = UsingTree(text);
             tree.GetDiagnostics().Verify(
                 // (7,30): error CS1525: Invalid expression term '>'
                 //         var j = e is a < i >>> 2;
@@ -3440,7 +3440,7 @@ class C
     }
 }
 ";
-            var tree = UsingTree(text);
+            SyntaxTree tree = UsingTree(text);
             tree.GetDiagnostics().Verify(
                 // (7,30): error CS1525: Invalid expression term '<<'
                 //         var j = e is a < i > << 2;
@@ -3537,7 +3537,7 @@ class C
         public void TestTargetTypedDefaultWithCSharp7_1()
         {
             var text = "default";
-            var expr = this.ParseExpression(text, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
+            ExpressionSyntax expr = this.ParseExpression(text, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7_1));
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.DefaultLiteralExpression, expr.Kind());

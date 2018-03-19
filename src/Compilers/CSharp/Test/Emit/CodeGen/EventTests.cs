@@ -29,7 +29,7 @@ class C
     }
 }
 ";
-            var compVerifier = CompileAndVerify(text,
+            CompilationVerifier compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateEvent(module, isFromSource: false, isStatic: false, isFieldLike: false),
                 expectedSignatures: new[]
                 {
@@ -63,7 +63,7 @@ class C
     }
 }
 ";
-            var compVerifier = CompileAndVerify(text,
+            CompilationVerifier compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateEvent(module, isFromSource: false, isStatic: true, isFieldLike: false),
                 expectedSignatures: new[]
                 {
@@ -93,7 +93,7 @@ class C
     public event System.Action E;
 }
 ";
-            var compVerifier = CompileAndVerify(text,
+            CompilationVerifier compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateEvent(module, isFromSource: false, isStatic: false, isFieldLike: true),
                 expectedSignatures: new[]
                 {
@@ -156,7 +156,7 @@ class C
     public static event System.Action E;
 }
 ";
-            var compVerifier = CompileAndVerify(text,
+            CompilationVerifier compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateEvent(module, isFromSource: false, isStatic: true, isFieldLike: true),
                 expectedSignatures: new[]
                 {
@@ -200,21 +200,21 @@ class C
         // NOTE: assumes there's an event E in a type C.
         private static void ValidateEvent(ModuleSymbol module, bool isFromSource, bool isStatic, bool isFieldLike)
         {
-            var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var @event = @class.GetMember<EventSymbol>("E");
+            NamedTypeSymbol @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            EventSymbol @event = @class.GetMember<EventSymbol>("E");
 
             Assert.Equal(SymbolKind.Event, @event.Kind);
             Assert.Equal(Accessibility.Public, @event.DeclaredAccessibility);
             Assert.Equal(isStatic, @event.IsStatic);
             Assert.False(@event.MustCallMethodsDirectly);
 
-            var addMethod = @event.AddMethod;
+            MethodSymbol addMethod = @event.AddMethod;
             Assert.Equal(MethodKind.EventAdd, addMethod.MethodKind);
             Assert.Equal("void C.E.add", addMethod.ToTestDisplayString());
             Assert.True((addMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
             addMethod.CheckAccessorShape(@event);
 
-            var removeMethod = @event.RemoveMethod;
+            MethodSymbol removeMethod = @event.RemoveMethod;
             Assert.Equal(MethodKind.EventRemove, removeMethod.MethodKind);
             Assert.Equal("void C.E.remove", removeMethod.ToTestDisplayString());
             Assert.True((removeMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
@@ -224,7 +224,7 @@ class C
             if (isFieldLike && isFromSource)
             {
                 Assert.True(@event.HasAssociatedField);
-                var associatedField = @event.AssociatedField;
+                FieldSymbol associatedField = @event.AssociatedField;
                 Assert.Equal(SymbolKind.Field, associatedField.Kind);
                 Assert.Equal(Accessibility.Private, associatedField.DeclaredAccessibility);
                 Assert.Equal(isStatic, associatedField.IsStatic);
@@ -427,7 +427,7 @@ interface C
     event System.Action E;
 }
 ";
-            var compVerifier = CompileAndVerify(text,
+            CompilationVerifier compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateEvent(module, isFromSource: false, isStatic: false, isFieldLike: true),
                 expectedSignatures: new[]
                 {
@@ -612,8 +612,8 @@ class D : C
 }
 ";
 
-            var ilAssemblyReference = TestReferences.SymbolsTests.Events;
-            var compilation = CreateCompilation(csharpSource, new MetadataReference[] { ilAssemblyReference }, TestOptions.ReleaseExe);
+            PortableExecutableReference ilAssemblyReference = TestReferences.SymbolsTests.Events;
+            CSharpCompilation compilation = CreateCompilation(csharpSource, new MetadataReference[] { ilAssemblyReference }, TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 VirtualEventWithRaise Raise
 D Raise
@@ -638,8 +638,8 @@ D Raise
 }
 ";
 
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
-            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            CSharpCompilation compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            PortableExecutableReference reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"
 
@@ -656,7 +656,7 @@ class C
     }
 }
 ";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (7,21): warning CS0067: The event 'C.e' is never used
                 //     public event E1 e;
@@ -699,21 +699,21 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
 
-            var verifier = CompileAndVerify(compilation,
+            CompilationVerifier verifier = CompileAndVerify(compilation,
                                             expectedOutput: "TrueFalseTrue",
                                             symbolValidator: module =>
                                                                 {
-                                                                    var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                                                                    var @event = @class.GetMember<EventSymbol>("e");
+                                                                    NamedTypeSymbol @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                                                                    EventSymbol @event = @class.GetMember<EventSymbol>("e");
 
-                                                                    var addMethod = @event.AddMethod;
+                                                                    MethodSymbol addMethod = @event.AddMethod;
                                                                     Assert.False((addMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
 
-                                                                    var removeMethod = @event.RemoveMethod;
+                                                                    MethodSymbol removeMethod = @event.RemoveMethod;
                                                                     Assert.False((removeMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
                                                                 }).VerifyDiagnostics();
 
@@ -771,21 +771,21 @@ struct C
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Interlocked__CompareExchange_T);
 
-            var verifier = CompileAndVerify(compilation,
+            CompilationVerifier verifier = CompileAndVerify(compilation,
                                             expectedOutput: "TrueFalseTrue",
                                             symbolValidator: module =>
                                             {
-                                                var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                                                var @event = @class.GetMember<EventSymbol>("e");
+                                                NamedTypeSymbol @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                                                EventSymbol @event = @class.GetMember<EventSymbol>("e");
 
-                                                var addMethod = @event.AddMethod;
+                                                MethodSymbol addMethod = @event.AddMethod;
                                                 Assert.True((addMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
 
-                                                var removeMethod = @event.RemoveMethod;
+                                                MethodSymbol removeMethod = @event.RemoveMethod;
                                                 Assert.True((removeMethod.ImplementationAttributes & System.Reflection.MethodImplAttributes.Synchronized) == 0);
                                             }).VerifyDiagnostics();
 
@@ -834,8 +834,8 @@ class C
         remove => x = 0;
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
-            var verifier = CompileAndVerify(compilation);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            CompilationVerifier verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("C.E.add", @"
 {
   // Code size        8 (0x8)

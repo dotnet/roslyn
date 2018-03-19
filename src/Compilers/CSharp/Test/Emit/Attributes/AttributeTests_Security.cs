@@ -31,13 +31,13 @@ public struct EventDescriptor
 }";
             Func<bool, Action<ModuleSymbol>> attributeValidator = isFromSource => (ModuleSymbol module) =>
             {
-                var assembly = module.ContainingAssembly;
+                AssemblySymbol assembly = module.ContainingAssembly;
                 var type = (Cci.ITypeDefinition)module.GlobalNamespace.GetMember("EventDescriptor");
 
                 if (isFromSource)
                 {
                     var sourceAssembly = (SourceAssemblySymbol)assembly;
-                    var compilation = sourceAssembly.DeclaringCompilation;
+                    CSharpCompilation compilation = sourceAssembly.DeclaringCompilation;
 
                     Assert.True(type.HasDeclarativeSecurity);
                     IEnumerable<Cci.SecurityAttribute> typeSecurityAttributes = type.SecurityAttributes;
@@ -51,7 +51,7 @@ public struct EventDescriptor
                     Assert.Equal(1, typeSecurityAttributes.Count());
 
                     // Verify [System.Security.Permissions.HostProtection(MayLeakOnAbort = true)]
-                    var securityAttribute = typeSecurityAttributes.First();
+                    Cci.SecurityAttribute securityAttribute = typeSecurityAttributes.First();
                     Assert.Equal(DeclarativeSecurityAction.LinkDemand, securityAttribute.Action);
                     var typeAttribute = (CSharpAttributeData)securityAttribute.Attribute;
                     Assert.Equal(hostProtectionAttr, typeAttribute.AttributeClass);
@@ -178,7 +178,7 @@ namespace N
         public int x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source);
             compilation.VerifyDiagnostics(
                 // (9,6): error CS7036: There is no argument given that corresponds to the required formal parameter 'action' of 'System.Security.Permissions.PrincipalPermissionAttribute.PrincipalPermissionAttribute(System.Security.Permissions.SecurityAction)'
                 //     [PrincipalPermission()]                         // Invalid attribute constructor
@@ -222,7 +222,7 @@ namespace N
         public int x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source);
             compilation.VerifyDiagnostics(
                 // (12,26): error CS7049: Security attribute 'MySecurityAttribute' has an invalid SecurityAction value '(SecurityAction)0'
                 //     [MySecurityAttribute((SecurityAction)0)]        // Invalid attribute argument
@@ -631,7 +631,7 @@ namespace System
     }
 }
 ";
-            var comp = CreateEmptyCompilation(source);
+            CSharpCompilation comp = CreateEmptyCompilation(source);
             comp.EmitToArray(options: new EmitOptions(runtimeMetadataVersion: "v4.0.31019"), expectedWarnings: new DiagnosticDescription[0]);
         }
 
@@ -661,7 +661,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll, assemblyName: "Test");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll, assemblyName: "Test");
             CompileAndVerify(compilation, symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
@@ -714,7 +714,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
@@ -754,7 +754,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
@@ -807,7 +807,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
@@ -859,7 +859,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
@@ -919,7 +919,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
@@ -985,7 +985,7 @@ namespace N2
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
@@ -1047,7 +1047,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
             CompileAndVerify(compilation, symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
@@ -1110,7 +1110,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseDll);
 
             compilation.VerifyDiagnostics(
                 // (4,31): warning CS0618: 'System.Security.Permissions.SecurityAction.RequestOptional' is obsolete: 'Assembly level declarative security is obsolete and is no longer enforced by the CLR by default. See http://go.microsoft.com/fwlink/?LinkID=155570 for more information.'
@@ -1213,7 +1213,7 @@ namespace N
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.UnsafeReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.UnsafeReleaseDll);
             CompileAndVerify(compilation, verify: Verification.Passes,symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
@@ -1293,7 +1293,7 @@ namespace N
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.UnsafeReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, options: TestOptions.UnsafeReleaseDll);
             CompileAndVerify(compilation, verify: Verification.Passes, symbolValidator: module =>
             {
                 ValidateDeclSecurity(module, new DeclSecurityEntry
@@ -1387,8 +1387,8 @@ namespace N
         [Fact]
         public void PermissionSetAttribute_Fixup()
         {
-            var tempDir = Temp.CreateDirectory();
-            var tempFile = tempDir.CreateFile("pset.xml");
+            TempDirectory tempDir = Temp.CreateDirectory();
+            TempFile tempFile = tempDir.CreateFile("pset.xml");
 
             string text = @"
 <PermissionSet class=""System.Security.PermissionSet"" version=""1"">
@@ -1411,7 +1411,7 @@ public class MyClass
         typeof(MyClass).GetCustomAttributes(false);
     }
 }";
-            var syntaxTree = Parse(source);
+            SyntaxTree syntaxTree = Parse(source);
             var resolver = new XmlFileResolver(tempDir.Path);
             var compilation = CSharpCompilation.Create(
                 GetUniqueName(),
@@ -1479,7 +1479,7 @@ public class MyClass
         [Fact]
         public void CS7057ERR_PermissionSetAttributeFileReadError()
         {
-            var tempDir = Temp.CreateDirectory();
+            TempDirectory tempDir = Temp.CreateDirectory();
             string filePath = Path.Combine(tempDir.Path, "pset_01.xml");
 
             string source = @"
@@ -1493,11 +1493,11 @@ public class MyClass
         typeof(MyClass).GetCustomAttributes(false);
     }
 }";
-            var syntaxTree = Parse(source);
+            SyntaxTree syntaxTree = Parse(source);
             CSharpCompilation comp;
 
             // create file with no file sharing allowed and verify ERR_PermissionSetAttributeFileReadError during emit
-            using (var fileStream = File.Open(filePath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.None))
+            using (FileStream fileStream = File.Open(filePath, FileMode.OpenOrCreate, FileAccess.Read, FileShare.None))
             {
                 comp = CSharpCompilation.Create(
                     GetUniqueName(),
@@ -1512,7 +1512,7 @@ public class MyClass
 
                 using (var output = new MemoryStream())
                 {
-                    var emitResult = comp.Emit(output);
+                    EmitResult emitResult = comp.Emit(output);
 
                     Assert.False(emitResult.Success);
                     emitResult.Diagnostics.VerifyErrorCodes(
@@ -1525,7 +1525,7 @@ public class MyClass
 
             using (var output = new MemoryStream())
             {
-                var emitResult = comp.Emit(output);
+                EmitResult emitResult = comp.Emit(output);
                 Assert.True(emitResult.Success);
             }
         }

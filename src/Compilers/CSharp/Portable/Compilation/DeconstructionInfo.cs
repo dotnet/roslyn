@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var underlyingConversions = _conversion.UnderlyingConversions;
+                ImmutableArray<Conversion> underlyingConversions = _conversion.UnderlyingConversions;
 
                 return underlyingConversions.IsDefault
                     ? ImmutableArray<DeconstructionInfo>.Empty

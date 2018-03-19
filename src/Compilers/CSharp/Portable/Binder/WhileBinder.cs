@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var node = (WhileStatementSyntax)_syntax;
 
-            var condition = originalBinder.BindBooleanExpression(node.Condition, diagnostics);
-            var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
+            BoundExpression condition = originalBinder.BindBooleanExpression(node.Condition, diagnostics);
+            BoundStatement body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
             Debug.Assert(this.Locals == this.GetDeclaredLocalsForScope(node));
             return new BoundWhileStatement(node, this.Locals, condition, body, this.BreakLabel, this.ContinueLabel);
         }
@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var node = (DoStatementSyntax)_syntax;
 
-            var condition = originalBinder.BindBooleanExpression(node.Condition, diagnostics);
-            var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
+            BoundExpression condition = originalBinder.BindBooleanExpression(node.Condition, diagnostics);
+            BoundStatement body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
             Debug.Assert(this.Locals == this.GetDeclaredLocalsForScope(node));
             return new BoundDoStatement(node, this.Locals, condition, body, this.BreakLabel, this.ContinueLabel);
         }

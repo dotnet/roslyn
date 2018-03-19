@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             if (compilations != null)
             {
-                foreach (var c in compilations)
+                foreach (CSharpCompilation c in compilations)
                 {
                     refs.Add(new CSharpCompilationReference(c));
                 }

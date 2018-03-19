@@ -792,7 +792,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "System.ValueTuple`2[System.Int32,System.Int32]");
         }
@@ -831,7 +831,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
       Initializer: 
         null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -850,7 +850,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
                 //         (a) => a;
@@ -949,7 +949,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "M M 43");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "M M 43");
             comp.VerifyDiagnostics(
                 );
         }
@@ -1003,7 +1003,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
       Initializer: 
         null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -1277,7 +1277,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, assemblyName: "comp", options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, assemblyName: "comp", options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             comp.VerifyEmitDiagnostics();
             CompileAndVerify(comp, expectedOutput: "1 2");
@@ -1327,7 +1327,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 1) (Syntax: '1')
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 2) (Syntax: '2')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -1482,7 +1482,7 @@ class C
 
             var source = template.Replace("VARIABLES", variables).Replace("TUPLE", tuple);
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,113): error CS1501: No overload for method 'Deconstruct' takes 22 arguments
                 //         (x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22) = CreateLongRef(1, 2, 3, 4, 5, 6, 7, CreateLongRef(8, 9, 10, 11, 12, 13, 14, Tuple.Create(15, 16, 17, 18, 19, 20, 21, 22)));
@@ -1599,13 +1599,13 @@ class C1
     }
 }
 ";
-            var libMissingComp = CreateCompilation(new string[] { libMissingSource }, assemblyName: "libMissingComp").VerifyDiagnostics();
-            var libMissingRef = libMissingComp.EmitToImageReference();
+            CSharpCompilation libMissingComp = CreateCompilation(new string[] { libMissingSource }, assemblyName: "libMissingComp").VerifyDiagnostics();
+            MetadataReference libMissingRef = libMissingComp.EmitToImageReference();
 
-            var libComp = CreateCompilation(new string[] { libSource }, references: new[] { libMissingRef }, parseOptions: TestOptions.Regular).VerifyDiagnostics();
-            var libRef = libComp.EmitToImageReference();
+            CSharpCompilation libComp = CreateCompilation(new string[] { libSource }, references: new[] { libMissingRef }, parseOptions: TestOptions.Regular).VerifyDiagnostics();
+            MetadataReference libRef = libComp.EmitToImageReference();
 
-            var comp = CreateCompilation(new string[] { source }, references: new[] { libRef });
+            CSharpCompilation comp = CreateCompilation(new string[] { source }, references: new[] { libRef });
             comp.VerifyDiagnostics(
                 // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'libMissingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         (x, y) = new C();
@@ -1684,7 +1684,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "(1, hello) (1, hello) (1, hello)");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "(1, hello) (1, hello) (1, hello)");
             comp.VerifyDiagnostics();
         }
 
@@ -1728,7 +1728,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
       Initializer: 
         null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -1755,7 +1755,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "((1, hello), 3)");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "((1, hello), 3)");
             comp.VerifyDiagnostics();
         }
 
@@ -1805,7 +1805,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
               null
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 3) (Syntax: '3')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -1830,13 +1830,13 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "(1, 1, 1, 1, 1, 1, 1, 1, 9)");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "(1, 1, 1, 1, 1, 1, 1, 1, 9)");
             comp.VerifyDiagnostics();
 
-            var tree = comp.Compilation.SyntaxTrees.First();
-            var model = comp.Compilation.GetSemanticModel(tree, ignoreAccessibility: false);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var y = nodes.OfType<VariableDeclaratorSyntax>().Skip(1).First();
+            SyntaxTree tree = comp.Compilation.SyntaxTrees.First();
+            SemanticModel model = comp.Compilation.GetSemanticModel(tree, ignoreAccessibility: false);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            VariableDeclaratorSyntax y = nodes.OfType<VariableDeclaratorSyntax>().Skip(1).First();
 
             Assert.Equal("y = (x, x, x, x, x, x, x, x, x) = new C()", y.ToFullString());
 
@@ -1889,7 +1889,7 @@ IVariableDeclaratorOperation (Symbol: (System.Int64, System.Int64, System.Int64,
             Initializer: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -1913,7 +1913,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(source);
             comp.VerifyDiagnostics(
                 // (7,17): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         var y = (x, x) = new C();
@@ -1940,7 +1940,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "(1, 1) 1 1");
         }
@@ -1987,7 +1987,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
           Initializer: 
             null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -2219,7 +2219,7 @@ class C
 }
 " + commonSource;
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular6);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
                 // (6,13): error CS8059: Feature 'tuples' is not available in C# 6. Please use language version 7.0 or greater.
                 //         var (x1, x2) = Pair.Create(1, 2);
@@ -3157,7 +3157,7 @@ class C
 ";
             // The correct expectation is for the code to compile and execute
             //var comp = CompileAndVerify(source, expectedOutput: "42 43 44");
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,9): error CS8134: Deconstruction must contain at least two variables.
                 //         (var(x, y)) = 43; // parsed as invocation
@@ -3246,7 +3246,7 @@ class C
     static ref int M(int a, int b) { return ref i; }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "42");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "42");
             comp.VerifyDiagnostics();
         }
 
@@ -3560,7 +3560,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,17): error CS0136: A local or parameter named 'x1' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             int x1 = 1;
@@ -3582,7 +3582,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,40): error CS0103: The name 'x1' does not exist in the current context
                 //         foreach ((int x1, int x2) in M(x1))
@@ -3605,7 +3605,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,30): error CS0103: The name 'x1' does not exist in the current context
                 //         System.Console.Write(x1);
@@ -3712,7 +3712,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,36): error CS0103: The name 'x1' does not exist in the current context
                 //         foreach (var (x1, x2) in M(x1)) { }
@@ -3746,7 +3746,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3767,19 +3767,19 @@ class C
             Action<ModuleSymbol> validator = module =>
             {
                 var sourceModule = (SourceModuleSymbol)module;
-                var compilation = sourceModule.DeclaringCompilation;
-                var tree = compilation.SyntaxTrees.First();
-                var model = compilation.GetSemanticModel(tree);
-                var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+                CSharpCompilation compilation = sourceModule.DeclaringCompilation;
+                SyntaxTree tree = compilation.SyntaxTrees.First();
+                SemanticModel model = compilation.GetSemanticModel(tree);
+                System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-                var literal1 = nodes.OfType<TupleExpressionSyntax>().First();
+                TupleExpressionSyntax literal1 = nodes.OfType<TupleExpressionSyntax>().First();
                 Assert.Equal("(int, int)", model.GetTypeInfo(literal1).Type.ToDisplayString());
 
-                var literal2 = nodes.OfType<TupleExpressionSyntax>().Skip(1).First();
+                TupleExpressionSyntax literal2 = nodes.OfType<TupleExpressionSyntax>().Skip(1).First();
                 Assert.Equal("(int, int)", model.GetTypeInfo(literal2).Type.ToDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, sourceSymbolValidator: validator);
+            CompilationVerifier verifier = CompileAndVerify(source, sourceSymbolValidator: validator);
             verifier.VerifyDiagnostics();
         }
 
@@ -3796,7 +3796,7 @@ class C
     static T M<T>(out T x) { x = default(T); return x; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,31): error CS0841: Cannot use local variable 'x2' before it is declared
                 //         var (x1, x2) = (M(out x2), M(out x1));
@@ -3821,7 +3821,7 @@ class C1
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(source);
             comp.VerifyDiagnostics(
                 // (4,32): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //     static void Test(int arg1, (byte, byte) arg2)
@@ -3849,7 +3849,7 @@ class C1
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // this is no longer considered a declaration statement,
                 // but rather is an assignment expression. So no error.
@@ -3870,7 +3870,7 @@ class C1
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -3888,7 +3888,7 @@ class C
     void Deconstruct(out int x1, out int x2) { x1 = 1; x2 = 2; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,27): warning CS0612: 'C.Deconstruct(out int, out int)' is obsolete
                 //        (int y1, int y2) = new C();
@@ -3910,7 +3910,7 @@ class C
     void Deconstruct(out int x1, out int x2) { x1 = 1; x2 = 2; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,27): error CS0619: 'C.Deconstruct(out int, out int)' is obsolete: 'Deprecated'
                 //        (int y1, int y2) = new C();
@@ -3943,16 +3943,16 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            foreach (var node in nodes)
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            foreach (SyntaxNode node in nodes)
             {
-                var si = model.GetSymbolInfo(node);
-                var symbol = si.Symbol;
+                SymbolInfo si = model.GetSymbolInfo(node);
+                ISymbol symbol = si.Symbol;
                 if ((object)symbol != null)
                 {
                     if (node is DeclarationExpressionSyntax)
@@ -4038,7 +4038,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,9): error CS0106: The modifier 'const' is not valid for this item
                 //         const var (x, y) = (1, 2);
@@ -4092,7 +4092,7 @@ unsafe class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source,
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 options: TestOptions.UnsafeDebugDll);
 
@@ -4158,7 +4158,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,28): error CS8185: A declaration is not allowed in this context.
                 //         string s = nameof((int x1, var x2) = (1, 2)).ToString();
@@ -4180,18 +4180,18 @@ class Program
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x2").WithArguments("x2").WithLocation(7, 30)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var designations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            SingleVariableDesignationSyntax[] designations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
             Assert.Equal(2, designations.Count());
-            var refs = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>();
+            System.Collections.Generic.IEnumerable<IdentifierNameSyntax> refs = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>();
 
-            var x1 = model.GetDeclaredSymbol(designations[0]);
+            ISymbol x1 = model.GetDeclaredSymbol(designations[0]);
             Assert.Equal("x1", x1.Name);
             Assert.Equal("System.Int32", ((LocalSymbol)x1).Type.ToTestDisplayString());
             Assert.Same(x1, model.GetSymbolInfo(refs.Where(r => r.Identifier.ValueText == "x1").Single()).Symbol);
 
-            var x2 = model.GetDeclaredSymbol(designations[1]);
+            ISymbol x2 = model.GetDeclaredSymbol(designations[1]);
             Assert.Equal("x2", x2.Name);
             Assert.Equal("System.Int32", ((LocalSymbol)x2).Type.ToTestDisplayString());
             Assert.Same(x2, model.GetSymbolInfo(refs.Where(r => r.Identifier.ValueText == "x2").Single()).Symbol);
@@ -4210,7 +4210,7 @@ class C
 }
 ";
 
-            var comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,10): error CS8185: A declaration is not allowed in this context.
                 //         (var (a,b), var c, int d);
@@ -4241,43 +4241,43 @@ class C
 }
 ";
 
-            var comp2 = CreateCompilation(source2);
+            CSharpCompilation comp2 = CreateCompilation(source2);
 
             StandAlone_01_VerifySemanticModel(comp2, LocalDeclarationKind.DeconstructionVariable);
         }
 
         private static void StandAlone_01_VerifySemanticModel(CSharpCompilation comp, LocalDeclarationKind localDeclarationKind)
         {
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var designations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            SingleVariableDesignationSyntax[] designations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
             Assert.Equal(4, designations.Count());
 
-            var a = model.GetDeclaredSymbol(designations[0]);
+            ISymbol a = model.GetDeclaredSymbol(designations[0]);
             Assert.Equal("var a", a.ToTestDisplayString());
             Assert.Equal(localDeclarationKind, ((LocalSymbol)a).DeclarationKind);
 
-            var b = model.GetDeclaredSymbol(designations[1]);
+            ISymbol b = model.GetDeclaredSymbol(designations[1]);
             Assert.Equal("var b", b.ToTestDisplayString());
             Assert.Equal(localDeclarationKind, ((LocalSymbol)b).DeclarationKind);
 
-            var c = model.GetDeclaredSymbol(designations[2]);
+            ISymbol c = model.GetDeclaredSymbol(designations[2]);
             Assert.Equal("var c", c.ToTestDisplayString());
             Assert.Equal(localDeclarationKind, ((LocalSymbol)c).DeclarationKind);
 
-            var d = model.GetDeclaredSymbol(designations[3]);
+            ISymbol d = model.GetDeclaredSymbol(designations[3]);
             Assert.Equal("System.Int32 d", d.ToTestDisplayString());
             Assert.Equal(localDeclarationKind, ((LocalSymbol)d).DeclarationKind);
 
-            var declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
+            DeclarationExpressionSyntax[] declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
             Assert.Equal(3, declarations.Count());
 
             Assert.Equal("var (a,b)", declarations[0].ToString());
-            var typeInfo = model.GetTypeInfo(declarations[0]);
+            TypeInfo typeInfo = model.GetTypeInfo(declarations[0]);
             Assert.Equal("(var a, var b)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
-            var symbolInfo = model.GetSymbolInfo(declarations[0]);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(declarations[0]);
             Assert.Null(symbolInfo.Symbol);
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
@@ -4323,7 +4323,7 @@ class C
             Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Null(model.GetAliasInfo(declarations[2].Type));
 
-            var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            TupleExpressionSyntax tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             typeInfo = model.GetTypeInfo(tuple);
             Assert.Equal("((var a, var b), var c, System.Int32 d)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
@@ -4341,7 +4341,7 @@ class C
 (var (a,b), var c, int d);
 ";
 
-            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
+            CSharpCompilation comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,7): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // (var (a,b), var c, int d);
@@ -4372,43 +4372,43 @@ class C
 (var (a,b), var c, int d) = D;
 ";
 
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
+            CSharpCompilation comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_02_VerifySemanticModel(comp2);
         }
 
         private static void StandAlone_02_VerifySemanticModel(CSharpCompilation comp)
         {
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var designations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            SingleVariableDesignationSyntax[] designations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
             Assert.Equal(4, designations.Count());
 
-            var a = model.GetDeclaredSymbol(designations[0]);
+            ISymbol a = model.GetDeclaredSymbol(designations[0]);
             Assert.Equal("var Script.a", a.ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, a.Kind);
 
-            var b = model.GetDeclaredSymbol(designations[1]);
+            ISymbol b = model.GetDeclaredSymbol(designations[1]);
             Assert.Equal("var Script.b", b.ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, b.Kind);
 
-            var c = model.GetDeclaredSymbol(designations[2]);
+            ISymbol c = model.GetDeclaredSymbol(designations[2]);
             Assert.Equal("var Script.c", c.ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, c.Kind);
 
-            var d = model.GetDeclaredSymbol(designations[3]);
+            ISymbol d = model.GetDeclaredSymbol(designations[3]);
             Assert.Equal("System.Int32 Script.d", d.ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, d.Kind);
 
-            var declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
+            DeclarationExpressionSyntax[] declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
             Assert.Equal(3, declarations.Count());
 
             Assert.Equal("var (a,b)", declarations[0].ToString());
-            var typeInfo = model.GetTypeInfo(declarations[0]);
+            TypeInfo typeInfo = model.GetTypeInfo(declarations[0]);
             Assert.Equal("(var a, var b)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
-            var symbolInfo = model.GetSymbolInfo(declarations[0]);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(declarations[0]);
             Assert.Null(symbolInfo.Symbol);
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
@@ -4454,7 +4454,7 @@ class C
             Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Null(model.GetAliasInfo(declarations[2].Type));
 
-            var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            TupleExpressionSyntax tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             typeInfo = model.GetTypeInfo(tuple);
             Assert.Equal("((var a, var b), var c, System.Int32 d)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
@@ -4478,7 +4478,7 @@ class C
 }
 ";
 
-            var comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,10): error CS8185: A declaration is not allowed in this context.
                 //         (var (_, _), var _, int _);
@@ -4506,17 +4506,17 @@ class C
 }
 ";
 
-            var comp2 = CreateCompilation(source2);
+            CSharpCompilation comp2 = CreateCompilation(source2);
 
             StandAlone_03_VerifySemanticModel(comp2);
         }
 
         private static void StandAlone_03_VerifySemanticModel(CSharpCompilation comp)
         {
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
             int count = 0;
-            foreach (var designation in tree.GetCompilationUnitRoot().DescendantNodes().OfType<DiscardDesignationSyntax>())
+            foreach (DiscardDesignationSyntax designation in tree.GetCompilationUnitRoot().DescendantNodes().OfType<DiscardDesignationSyntax>())
             {
                 Assert.Null(model.GetDeclaredSymbol(designation));
                 count++;
@@ -4524,15 +4524,15 @@ class C
 
             Assert.Equal(4, count);
 
-            var declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
+            DeclarationExpressionSyntax[] declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
             Assert.Equal(3, declarations.Count());
 
             Assert.Equal("var (_, _)", declarations[0].ToString());
-            var typeInfo = model.GetTypeInfo(declarations[0]);
+            TypeInfo typeInfo = model.GetTypeInfo(declarations[0]);
             Assert.Equal("(var, var)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
-            var symbolInfo = model.GetSymbolInfo(declarations[0]);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(declarations[0]);
             Assert.Null(symbolInfo.Symbol);
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
@@ -4584,7 +4584,7 @@ class C
             Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Null(model.GetAliasInfo(declarations[2].Type));
 
-            var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            TupleExpressionSyntax tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             typeInfo = model.GetTypeInfo(tuple);
             Assert.Equal("((var, var), var, System.Int32)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
@@ -4602,7 +4602,7 @@ class C
 (var (_, _), var _, int _);
 ";
 
-            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
+            CSharpCompilation comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,2): error CS8185: A declaration is not allowed in this context.
                 // (var (_, _), var _, int _);
@@ -4624,7 +4624,7 @@ class C
 (var (_, _), var _, int _) = D;
 ";
 
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
+            CSharpCompilation comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_03_VerifySemanticModel(comp2);
         }
@@ -4644,7 +4644,7 @@ class C
 }
 ";
 
-            var comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation(source1);
 
             StandAlone_05_VerifySemanticModel(comp1);
 
@@ -4660,25 +4660,25 @@ class C
 }
 ";
 
-            var comp2 = CreateCompilation(source2);
+            CSharpCompilation comp2 = CreateCompilation(source2);
 
             StandAlone_05_VerifySemanticModel(comp2);
         }
 
         private static void StandAlone_05_VerifySemanticModel(CSharpCompilation comp)
         {
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
+            DeclarationExpressionSyntax[] declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
             Assert.Equal(2, declarations.Count());
 
             Assert.Equal("var (a,b)", declarations[0].ToString());
-            var typeInfo = model.GetTypeInfo(declarations[0]);
+            TypeInfo typeInfo = model.GetTypeInfo(declarations[0]);
             Assert.Equal("(System.Int32 a, System.Int32 b)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
-            var symbolInfo = model.GetSymbolInfo(declarations[0]);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(declarations[0]);
             Assert.Null(symbolInfo.Symbol);
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
@@ -4723,13 +4723,13 @@ class C
 }
 ";
 
-            var comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation(source1);
 
-            var tree = comp1.SyntaxTrees.Single();
-            var model = comp1.GetSemanticModel(tree);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = comp1.SyntaxTrees.Single();
+            SemanticModel model = comp1.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> nodes = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var aa = nodes.OfType<DeclarationExpressionSyntax>().ElementAt(0);
+            DeclarationExpressionSyntax aa = nodes.OfType<DeclarationExpressionSyntax>().ElementAt(0);
             Assert.Equal("var (a, a)", aa.ToString());
             var aaType = (TypeSymbol)model.GetTypeInfo(aa).Type;
             Assert.True(aaType.TupleElementNames.IsDefault);
@@ -4744,7 +4744,7 @@ using var = System.Int32;
 (var (a,b), var c);
 ";
 
-            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
+            CSharpCompilation comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
 
             StandAlone_06_VerifySemanticModel(comp1);
 
@@ -4754,25 +4754,25 @@ using var = System.Int32;
 (var (a,b), var c) = D;
 ";
 
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
+            CSharpCompilation comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_06_VerifySemanticModel(comp2);
         }
 
         private static void StandAlone_06_VerifySemanticModel(CSharpCompilation comp)
         {
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
+            DeclarationExpressionSyntax[] declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
             Assert.Equal(2, declarations.Count());
 
             Assert.Equal("var (a,b)", declarations[0].ToString());
-            var typeInfo = model.GetTypeInfo(declarations[0]);
+            TypeInfo typeInfo = model.GetTypeInfo(declarations[0]);
             Assert.Equal("(System.Int32 a, System.Int32 b)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
-            var symbolInfo = model.GetSymbolInfo(declarations[0]);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(declarations[0]);
             Assert.Null(symbolInfo.Symbol);
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
@@ -4816,7 +4816,7 @@ class C
 }
 ";
 
-            var comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation(source1);
 
             StandAlone_07_VerifySemanticModel(comp1);
 
@@ -4832,25 +4832,25 @@ class C
 }
 ";
 
-            var comp2 = CreateCompilation(source2);
+            CSharpCompilation comp2 = CreateCompilation(source2);
 
             StandAlone_07_VerifySemanticModel(comp2);
         }
 
         private static void StandAlone_07_VerifySemanticModel(CSharpCompilation comp)
         {
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
+            DeclarationExpressionSyntax[] declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
             Assert.Equal(2, declarations.Count());
 
             Assert.Equal("var (_, _)", declarations[0].ToString());
-            var typeInfo = model.GetTypeInfo(declarations[0]);
+            TypeInfo typeInfo = model.GetTypeInfo(declarations[0]);
             Assert.Equal("(System.Int32, System.Int32)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
-            var symbolInfo = model.GetSymbolInfo(declarations[0]);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(declarations[0]);
             Assert.Null(symbolInfo.Symbol);
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
@@ -4891,7 +4891,7 @@ using var = System.Int32;
 (var (_, _), var _);
 ";
 
-            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
+            CSharpCompilation comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
 
             StandAlone_07_VerifySemanticModel(comp1);
 
@@ -4901,7 +4901,7 @@ using var = System.Int32;
 (var (_, _), var _) = D;
 ";
 
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
+            CSharpCompilation comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_07_VerifySemanticModel(comp2);
         }
@@ -4921,7 +4921,7 @@ class C
 }
 ";
 
-            var comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation(source1);
 
             StandAlone_09_VerifySemanticModel(comp1);
 
@@ -4937,20 +4937,20 @@ class C
 }
 ";
 
-            var comp2 = CreateCompilation(source2);
+            CSharpCompilation comp2 = CreateCompilation(source2);
 
             StandAlone_09_VerifySemanticModel(comp2);
         }
 
         private static void StandAlone_09_VerifySemanticModel(CSharpCompilation comp)
         {
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var declaration = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
+            DeclarationExpressionSyntax declaration = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
 
             Assert.Equal("al c", declaration.ToString());
-            var typeInfo = model.GetTypeInfo(declaration);
+            TypeInfo typeInfo = model.GetTypeInfo(declaration);
             Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declaration).IsIdentity);
@@ -4959,7 +4959,7 @@ class C
             Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declaration.Type).IsIdentity);
-            var symbolInfo = model.GetSymbolInfo(declaration.Type);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(declaration.Type);
             Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Equal("al=System.Int32", model.GetAliasInfo(declaration.Type).ToTestDisplayString());
         }
@@ -4973,7 +4973,7 @@ using al = System.Int32;
 (al (a,b), al c);
 ";
 
-            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
+            CSharpCompilation comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
 
             StandAlone_10_VerifySemanticModel(comp1);
 
@@ -4983,20 +4983,20 @@ using al = System.Int32;
 (al (a,b), al c) = D;
 ";
 
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
+            CSharpCompilation comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_10_VerifySemanticModel(comp2);
         }
 
         private static void StandAlone_10_VerifySemanticModel(CSharpCompilation comp)
         {
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var declaration = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
+            DeclarationExpressionSyntax declaration = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
 
             Assert.Equal("al c", declaration.ToString());
-            var typeInfo = model.GetTypeInfo(declaration);
+            TypeInfo typeInfo = model.GetTypeInfo(declaration);
             Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declaration).IsIdentity);
@@ -5005,7 +5005,7 @@ using al = System.Int32;
             Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declaration.Type).IsIdentity);
-            var symbolInfo = model.GetSymbolInfo(declaration.Type);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(declaration.Type);
             Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Equal("al=System.Int32", model.GetAliasInfo(declaration.Type).ToTestDisplayString());
         }
@@ -5025,7 +5025,7 @@ class C
 }
 ";
 
-            var comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation(source1);
 
             StandAlone_11_VerifySemanticModel(comp1);
 
@@ -5041,24 +5041,24 @@ class C
 }
 ";
 
-            var comp2 = CreateCompilation(source2);
+            CSharpCompilation comp2 = CreateCompilation(source2);
 
             StandAlone_11_VerifySemanticModel(comp2);
         }
 
         private static void StandAlone_11_VerifySemanticModel(CSharpCompilation comp)
         {
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var declaration = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
+            DeclarationExpressionSyntax declaration = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Single();
 
             Assert.Equal("al _", declaration.ToString());
-            var typeInfo = model.GetTypeInfo(declaration);
+            TypeInfo typeInfo = model.GetTypeInfo(declaration);
             Assert.Equal("System.Int32", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declaration).IsIdentity);
-            var symbolInfo = model.GetSymbolInfo(declaration);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(declaration);
             Assert.Null(symbolInfo.Symbol);
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
@@ -5080,7 +5080,7 @@ using al = System.Int32;
 (al (_, _), al _);
 ";
 
-            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
+            CSharpCompilation comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
 
             StandAlone_11_VerifySemanticModel(comp1);
 
@@ -5090,7 +5090,7 @@ using al = System.Int32;
 (al (_, _), al _) = D;
 ";
 
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
+            CSharpCompilation comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_11_VerifySemanticModel(comp2);
         }
@@ -5109,7 +5109,7 @@ class C
 }
 ";
 
-            var comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (7,19): error CS1002: ; expected
                 //         var (c, d)
@@ -5134,7 +5134,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "d").WithArguments("d").WithLocation(7, 17)
                 );
 
-            var tree = comp1.SyntaxTrees.First();
+            SyntaxTree tree = comp1.SyntaxTrees.First();
             Assert.False(tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().Any());
         }
 
@@ -5151,7 +5151,7 @@ class C
 }
 ";
 
-            var comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,11): error CS8185: A declaration is not allowed in this context.
                 //         ((var (a,b), var c), int d);
@@ -5182,43 +5182,43 @@ class C
 }
 ";
 
-            var comp2 = CreateCompilation(source2);
+            CSharpCompilation comp2 = CreateCompilation(source2);
 
             StandAlone_14_VerifySemanticModel(comp2, LocalDeclarationKind.DeconstructionVariable);
         }
 
         private static void StandAlone_14_VerifySemanticModel(CSharpCompilation comp, LocalDeclarationKind localDeclarationKind)
         {
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var designations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            SingleVariableDesignationSyntax[] designations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
             Assert.Equal(4, designations.Count());
 
-            var a = model.GetDeclaredSymbol(designations[0]);
+            ISymbol a = model.GetDeclaredSymbol(designations[0]);
             Assert.Equal("var a", a.ToTestDisplayString());
             Assert.Equal(localDeclarationKind, ((LocalSymbol)a).DeclarationKind);
 
-            var b = model.GetDeclaredSymbol(designations[1]);
+            ISymbol b = model.GetDeclaredSymbol(designations[1]);
             Assert.Equal("var b", b.ToTestDisplayString());
             Assert.Equal(localDeclarationKind, ((LocalSymbol)b).DeclarationKind);
 
-            var c = model.GetDeclaredSymbol(designations[2]);
+            ISymbol c = model.GetDeclaredSymbol(designations[2]);
             Assert.Equal("var c", c.ToTestDisplayString());
             Assert.Equal(localDeclarationKind, ((LocalSymbol)c).DeclarationKind);
 
-            var d = model.GetDeclaredSymbol(designations[3]);
+            ISymbol d = model.GetDeclaredSymbol(designations[3]);
             Assert.Equal("System.Int32 d", d.ToTestDisplayString());
             Assert.Equal(localDeclarationKind, ((LocalSymbol)d).DeclarationKind);
 
-            var declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
+            DeclarationExpressionSyntax[] declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
             Assert.Equal(3, declarations.Count());
 
             Assert.Equal("var (a,b)", declarations[0].ToString());
-            var typeInfo = model.GetTypeInfo(declarations[0]);
+            TypeInfo typeInfo = model.GetTypeInfo(declarations[0]);
             Assert.Equal("(var a, var b)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
-            var symbolInfo = model.GetSymbolInfo(declarations[0]);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(declarations[0]);
             Assert.Null(symbolInfo.Symbol);
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
@@ -5264,7 +5264,7 @@ class C
             Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Null(model.GetAliasInfo(declarations[2].Type));
 
-            var tuples = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ToArray();
+            TupleExpressionSyntax[] tuples = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ToArray();
             Assert.Equal(2, tuples.Length);
 
             Assert.Equal("((var (a,b), var c), int d)", tuples[0].ToString());
@@ -5296,7 +5296,7 @@ class C
 ((var (a,b), var c), int d);
 ";
 
-            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
+            CSharpCompilation comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,8): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // ((var (a,b), var c), int d);
@@ -5327,43 +5327,43 @@ class C
 ((var (a,b), var c), int d) = D;
 ";
 
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
+            CSharpCompilation comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_15_VerifySemanticModel(comp2);
         }
 
         private static void StandAlone_15_VerifySemanticModel(CSharpCompilation comp)
         {
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var designations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            SingleVariableDesignationSyntax[] designations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
             Assert.Equal(4, designations.Count());
 
-            var a = model.GetDeclaredSymbol(designations[0]);
+            ISymbol a = model.GetDeclaredSymbol(designations[0]);
             Assert.Equal("var Script.a", a.ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, a.Kind);
 
-            var b = model.GetDeclaredSymbol(designations[1]);
+            ISymbol b = model.GetDeclaredSymbol(designations[1]);
             Assert.Equal("var Script.b", b.ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, b.Kind);
 
-            var c = model.GetDeclaredSymbol(designations[2]);
+            ISymbol c = model.GetDeclaredSymbol(designations[2]);
             Assert.Equal("var Script.c", c.ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, c.Kind);
 
-            var d = model.GetDeclaredSymbol(designations[3]);
+            ISymbol d = model.GetDeclaredSymbol(designations[3]);
             Assert.Equal("System.Int32 Script.d", d.ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, d.Kind);
 
-            var declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
+            DeclarationExpressionSyntax[] declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
             Assert.Equal(3, declarations.Count());
 
             Assert.Equal("var (a,b)", declarations[0].ToString());
-            var typeInfo = model.GetTypeInfo(declarations[0]);
+            TypeInfo typeInfo = model.GetTypeInfo(declarations[0]);
             Assert.Equal("(var a, var b)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
-            var symbolInfo = model.GetSymbolInfo(declarations[0]);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(declarations[0]);
             Assert.Null(symbolInfo.Symbol);
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
@@ -5409,7 +5409,7 @@ class C
             Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Null(model.GetAliasInfo(declarations[2].Type));
 
-            var tuples = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ToArray();
+            TupleExpressionSyntax[] tuples = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ToArray();
             Assert.Equal(2, tuples.Length);
 
             Assert.Equal("((var (a,b), var c), int d)", tuples[0].ToString());
@@ -5446,7 +5446,7 @@ class C
 }
 ";
 
-            var comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,11): error CS8185: A declaration is not allowed in this context.
                 //         ((var (_, _), var _), int _);
@@ -5474,17 +5474,17 @@ class C
 }
 ";
 
-            var comp2 = CreateCompilation(source2);
+            CSharpCompilation comp2 = CreateCompilation(source2);
 
             StandAlone_16_VerifySemanticModel(comp2);
         }
 
         private static void StandAlone_16_VerifySemanticModel(CSharpCompilation comp)
         {
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
             int count = 0;
-            foreach (var designation in tree.GetCompilationUnitRoot().DescendantNodes().OfType<DiscardDesignationSyntax>())
+            foreach (DiscardDesignationSyntax designation in tree.GetCompilationUnitRoot().DescendantNodes().OfType<DiscardDesignationSyntax>())
             {
                 Assert.Null(model.GetDeclaredSymbol(designation));
                 count++;
@@ -5492,15 +5492,15 @@ class C
 
             Assert.Equal(4, count);
 
-            var declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
+            DeclarationExpressionSyntax[] declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
             Assert.Equal(3, declarations.Count());
 
             Assert.Equal("var (_, _)", declarations[0].ToString());
-            var typeInfo = model.GetTypeInfo(declarations[0]);
+            TypeInfo typeInfo = model.GetTypeInfo(declarations[0]);
             Assert.Equal("(var, var)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
-            var symbolInfo = model.GetSymbolInfo(declarations[0]);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(declarations[0]);
             Assert.Null(symbolInfo.Symbol);
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
@@ -5552,7 +5552,7 @@ class C
             Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Null(model.GetAliasInfo(declarations[2].Type));
 
-            var tuples = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ToArray();
+            TupleExpressionSyntax[] tuples = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ToArray();
             Assert.Equal(2, tuples.Length);
 
             Assert.Equal("((var (_, _), var _), int _)", tuples[0].ToString());
@@ -5583,7 +5583,7 @@ class C
 ((var (_, _), var _), int _);
 ";
 
-            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
+            CSharpCompilation comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,3): error CS8185: A declaration is not allowed in this context.
                 // ((var (_, _), var _), int _);
@@ -5605,7 +5605,7 @@ class C
 ((var (_, _), var _), int _) = D;
 ";
 
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
+            CSharpCompilation comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_16_VerifySemanticModel(comp2);
         }
@@ -5623,7 +5623,7 @@ class C
 }
 ";
 
-            var comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,10): error CS8185: A declaration is not allowed in this context.
                 //         (var ((a,b), c), int d);
@@ -5651,43 +5651,43 @@ class C
 }
 ";
 
-            var comp2 = CreateCompilation(source2);
+            CSharpCompilation comp2 = CreateCompilation(source2);
 
             StandAlone_18_VerifySemanticModel(comp2, LocalDeclarationKind.DeconstructionVariable);
         }
 
         private static void StandAlone_18_VerifySemanticModel(CSharpCompilation comp, LocalDeclarationKind localDeclarationKind)
         {
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var designations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            SingleVariableDesignationSyntax[] designations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
             Assert.Equal(4, designations.Count());
 
-            var a = model.GetDeclaredSymbol(designations[0]);
+            ISymbol a = model.GetDeclaredSymbol(designations[0]);
             Assert.Equal("var a", a.ToTestDisplayString());
             Assert.Equal(localDeclarationKind, ((LocalSymbol)a).DeclarationKind);
 
-            var b = model.GetDeclaredSymbol(designations[1]);
+            ISymbol b = model.GetDeclaredSymbol(designations[1]);
             Assert.Equal("var b", b.ToTestDisplayString());
             Assert.Equal(localDeclarationKind, ((LocalSymbol)b).DeclarationKind);
 
-            var c = model.GetDeclaredSymbol(designations[2]);
+            ISymbol c = model.GetDeclaredSymbol(designations[2]);
             Assert.Equal("var c", c.ToTestDisplayString());
             Assert.Equal(localDeclarationKind, ((LocalSymbol)c).DeclarationKind);
 
-            var d = model.GetDeclaredSymbol(designations[3]);
+            ISymbol d = model.GetDeclaredSymbol(designations[3]);
             Assert.Equal("System.Int32 d", d.ToTestDisplayString());
             Assert.Equal(localDeclarationKind, ((LocalSymbol)d).DeclarationKind);
 
-            var declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
+            DeclarationExpressionSyntax[] declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
             Assert.Equal(2, declarations.Count());
 
             Assert.Equal("var ((a,b), c)", declarations[0].ToString());
-            var typeInfo = model.GetTypeInfo(declarations[0]);
+            TypeInfo typeInfo = model.GetTypeInfo(declarations[0]);
             Assert.Equal("((var a, var b), var c)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
-            var symbolInfo = model.GetSymbolInfo(declarations[0]);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(declarations[0]);
             Assert.Null(symbolInfo.Symbol);
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
@@ -5715,7 +5715,7 @@ class C
             Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Null(model.GetAliasInfo(declarations[1].Type));
 
-            var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            TupleExpressionSyntax tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             typeInfo = model.GetTypeInfo(tuple);
             Assert.Equal("(((var a, var b), var c), System.Int32 d)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
@@ -5733,7 +5733,7 @@ class C
 (var ((a,b), c), int d);
 ";
 
-            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
+            CSharpCompilation comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,8): error CS7019: Type of 'a' cannot be inferred since its initializer directly or indirectly refers to the definition.
                 // (var ((a,b), c), int d);
@@ -5761,43 +5761,43 @@ class C
 (var ((a,b), c), int d) = D;
 ";
 
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
+            CSharpCompilation comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_19_VerifySemanticModel(comp2);
         }
 
         private static void StandAlone_19_VerifySemanticModel(CSharpCompilation comp)
         {
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var designations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            SingleVariableDesignationSyntax[] designations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<SingleVariableDesignationSyntax>().ToArray();
             Assert.Equal(4, designations.Count());
 
-            var a = model.GetDeclaredSymbol(designations[0]);
+            ISymbol a = model.GetDeclaredSymbol(designations[0]);
             Assert.Equal("var Script.a", a.ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, a.Kind);
 
-            var b = model.GetDeclaredSymbol(designations[1]);
+            ISymbol b = model.GetDeclaredSymbol(designations[1]);
             Assert.Equal("var Script.b", b.ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, b.Kind);
 
-            var c = model.GetDeclaredSymbol(designations[2]);
+            ISymbol c = model.GetDeclaredSymbol(designations[2]);
             Assert.Equal("var Script.c", c.ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, c.Kind);
 
-            var d = model.GetDeclaredSymbol(designations[3]);
+            ISymbol d = model.GetDeclaredSymbol(designations[3]);
             Assert.Equal("System.Int32 Script.d", d.ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, d.Kind);
 
-            var declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
+            DeclarationExpressionSyntax[] declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
             Assert.Equal(2, declarations.Count());
 
             Assert.Equal("var ((a,b), c)", declarations[0].ToString());
-            var typeInfo = model.GetTypeInfo(declarations[0]);
+            TypeInfo typeInfo = model.GetTypeInfo(declarations[0]);
             Assert.Equal("((var a, var b), var c)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
-            var symbolInfo = model.GetSymbolInfo(declarations[0]);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(declarations[0]);
             Assert.Null(symbolInfo.Symbol);
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
@@ -5825,7 +5825,7 @@ class C
             Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Null(model.GetAliasInfo(declarations[1].Type));
 
-            var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            TupleExpressionSyntax tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             typeInfo = model.GetTypeInfo(tuple);
             Assert.Equal("(((var a, var b), var c), System.Int32 d)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
@@ -5849,7 +5849,7 @@ class C
 }
 ";
 
-            var comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation(source1);
             comp1.VerifyDiagnostics(
                 // (6,10): error CS8185: A declaration is not allowed in this context.
                 //         (var ((_, _), _), int _);
@@ -5874,17 +5874,17 @@ class C
 }
 ";
 
-            var comp2 = CreateCompilation(source2);
+            CSharpCompilation comp2 = CreateCompilation(source2);
 
             StandAlone_20_VerifySemanticModel(comp2);
         }
 
         private static void StandAlone_20_VerifySemanticModel(CSharpCompilation comp)
         {
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
             int count = 0;
-            foreach (var designation in tree.GetCompilationUnitRoot().DescendantNodes().OfType<DiscardDesignationSyntax>())
+            foreach (DiscardDesignationSyntax designation in tree.GetCompilationUnitRoot().DescendantNodes().OfType<DiscardDesignationSyntax>())
             {
                 Assert.Null(model.GetDeclaredSymbol(designation));
                 count++;
@@ -5892,15 +5892,15 @@ class C
 
             Assert.Equal(4, count);
 
-            var declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
+            DeclarationExpressionSyntax[] declarations = tree.GetCompilationUnitRoot().DescendantNodes().OfType<DeclarationExpressionSyntax>().ToArray();
             Assert.Equal(2, declarations.Count());
 
             Assert.Equal("var ((_, _), _)", declarations[0].ToString());
-            var typeInfo = model.GetTypeInfo(declarations[0]);
+            TypeInfo typeInfo = model.GetTypeInfo(declarations[0]);
             Assert.Equal("((var, var), var)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
             Assert.True(model.GetConversion(declarations[0]).IsIdentity);
-            var symbolInfo = model.GetSymbolInfo(declarations[0]);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(declarations[0]);
             Assert.Null(symbolInfo.Symbol);
             Assert.Empty(symbolInfo.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
@@ -5931,7 +5931,7 @@ class C
             Assert.Equal("System.Int32", symbolInfo.Symbol.ToTestDisplayString());
             Assert.Null(model.GetAliasInfo(declarations[1].Type));
 
-            var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            TupleExpressionSyntax tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             typeInfo = model.GetTypeInfo(tuple);
             Assert.Equal("(((var, var), var), System.Int32)", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(typeInfo.Type, typeInfo.ConvertedType);
@@ -5949,7 +5949,7 @@ class C
 (var ((_, _), _), int _);
 ";
 
-            var comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
+            CSharpCompilation comp1 = CreateCompilation(source1, parseOptions: TestOptions.Script);
             comp1.VerifyDiagnostics(
                 // (2,2): error CS8185: A declaration is not allowed in this context.
                 // (var ((_, _), _), int _);
@@ -5968,7 +5968,7 @@ class C
 (var ((_, _), _), int _) = D;
 ";
 
-            var comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
+            CSharpCompilation comp2 = CreateCompilation(source2, parseOptions: TestOptions.Script);
 
             StandAlone_20_VerifySemanticModel(comp2);
         }
@@ -5983,21 +5983,21 @@ class C
         (_, _) = (1, Main());
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,22): error CS8210: A tuple may not contain a value of type 'void'.
                 //         (_, _) = (1, Main());
                 Diagnostic(ErrorCode.ERR_VoidInTuple, "Main()").WithLocation(5, 22)
                 );
-            var main = comp.GetMember<MethodSymbol>("C.Main");
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var mainCall = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "Main()").Single();
-            var type = model.GetTypeInfo(mainCall);
+            MethodSymbol main = comp.GetMember<MethodSymbol>("C.Main");
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
+            ExpressionSyntax mainCall = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "Main()").Single();
+            TypeInfo type = model.GetTypeInfo(mainCall);
             Assert.Equal(SpecialType.System_Void, type.Type.SpecialType);
             Assert.Equal(SpecialType.System_Void, type.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, model.GetConversion(mainCall).Kind);
-            var symbols = model.GetSymbolInfo(mainCall);
+            SymbolInfo symbols = model.GetSymbolInfo(mainCall);
             Assert.Equal(symbols.Symbol, main);
             Assert.Empty(symbols.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbols.CandidateReason);
@@ -6023,7 +6023,7 @@ class C
         (int x, void y) = (1, Main());
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,17): error CS1547: Keyword 'void' cannot be used in this context
                 //         (int x, void y) = (1, Main());
@@ -6035,15 +6035,15 @@ class C
                 //         (int x, void y) = (1, Main());
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "void y").WithArguments("void", "void").WithLocation(5, 17)
                 );
-            var main = comp.GetMember<MethodSymbol>("C.Main");
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var mainCall = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "Main()").Single();
-            var type = model.GetTypeInfo(mainCall);
+            MethodSymbol main = comp.GetMember<MethodSymbol>("C.Main");
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
+            ExpressionSyntax mainCall = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "Main()").Single();
+            TypeInfo type = model.GetTypeInfo(mainCall);
             Assert.Equal(SpecialType.System_Void, type.Type.SpecialType);
             Assert.Equal(SpecialType.System_Void, type.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, model.GetConversion(mainCall).Kind);
-            var symbols = model.GetSymbolInfo(mainCall);
+            SymbolInfo symbols = model.GetSymbolInfo(mainCall);
             Assert.Equal(symbols.Symbol, main);
             Assert.Empty(symbols.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbols.CandidateReason);
@@ -6069,21 +6069,21 @@ class C
         var (x, y) = (1, Main());
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,26): error CS8210: A tuple may not contain a value of type 'void'.
                 //         var (x, y) = (1, Main());
                 Diagnostic(ErrorCode.ERR_VoidInTuple, "Main()").WithLocation(5, 26)
                 );
-            var main = comp.GetMember<MethodSymbol>("C.Main");
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var mainCall = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "Main()").Single();
-            var type = model.GetTypeInfo(mainCall);
+            MethodSymbol main = comp.GetMember<MethodSymbol>("C.Main");
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
+            ExpressionSyntax mainCall = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "Main()").Single();
+            TypeInfo type = model.GetTypeInfo(mainCall);
             Assert.Equal(SpecialType.System_Void, type.Type.SpecialType);
             Assert.Equal(SpecialType.System_Void, type.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, model.GetConversion(mainCall).Kind);
-            var symbols = model.GetSymbolInfo(mainCall);
+            SymbolInfo symbols = model.GetSymbolInfo(mainCall);
             Assert.Equal(symbols.Symbol, main);
             Assert.Empty(symbols.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbols.CandidateReason);
@@ -6109,7 +6109,7 @@ class C
         (int x, void y) = (1, 2);
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,17): error CS1547: Keyword 'void' cannot be used in this context
                 //         (int x, void y) = (1, 2);
@@ -6121,14 +6121,14 @@ class C
                 //         (int x, void y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "void y").WithArguments("void", "void").WithLocation(5, 17)
                 );
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var two = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "2").Single();
-            var type = model.GetTypeInfo(two);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
+            ExpressionSyntax two = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "2").Single();
+            TypeInfo type = model.GetTypeInfo(two);
             Assert.Equal(SpecialType.System_Int32, type.Type.SpecialType);
             Assert.Equal(SpecialType.System_Int32, type.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, model.GetConversion(two).Kind);
-            var symbols = model.GetSymbolInfo(two);
+            SymbolInfo symbols = model.GetSymbolInfo(two);
             Assert.Null(symbols.Symbol);
             Assert.Empty(symbols.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbols.CandidateReason);
@@ -6154,21 +6154,21 @@ class C
         (int x, int y) = (1, Main());
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,30): error CS8210: A tuple may not contain a value of type 'void'.
                 //         (int x, int y) = (1, Main());
                 Diagnostic(ErrorCode.ERR_VoidInTuple, "Main()").WithLocation(5, 30)
                 );
-            var main = comp.GetMember<MethodSymbol>("C.Main");
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var mainCall = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "Main()").Single();
-            var type = model.GetTypeInfo(mainCall);
+            MethodSymbol main = comp.GetMember<MethodSymbol>("C.Main");
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
+            ExpressionSyntax mainCall = tree.GetRoot().DescendantNodes().OfType<ExpressionSyntax>().Where(n => n.ToString() == "Main()").Single();
+            TypeInfo type = model.GetTypeInfo(mainCall);
             Assert.Equal(SpecialType.System_Void, type.Type.SpecialType);
             Assert.Equal(SpecialType.System_Void, type.ConvertedType.SpecialType);
             Assert.Equal(ConversionKind.Identity, model.GetConversion(mainCall).Kind);
-            var symbols = model.GetSymbolInfo(mainCall);
+            SymbolInfo symbols = model.GetSymbolInfo(mainCall);
             Assert.Equal(symbols.Symbol, main);
             Assert.Empty(symbols.CandidateSymbols);
             Assert.Equal(CandidateReason.None, symbols.CandidateReason);
@@ -6213,7 +6213,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -6247,7 +6247,7 @@ IDeconstructionAssignmentOperation (OperationKind.DeconstructionAssignment, Type
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
           ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 0) (Syntax: '0')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -6273,7 +6273,7 @@ class C
             string expectedOperationTree = @"
 IOperation:  (OperationKind.None, Type: null) (Syntax: 'var _')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<DeclarationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

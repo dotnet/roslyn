@@ -60,7 +60,7 @@ namespace Microsoft.Cci
                     break;
             }
 
-            var dynamicAnalysisDataWriterOpt = emitTestCoverageData ?
+            DynamicAnalysisDataWriter dynamicAnalysisDataWriterOpt = emitTestCoverageData ?
                 new DynamicAnalysisDataWriter(context.Module.DebugDocumentCount, context.Module.HintNumberOfMethodDefinitions) :
                 null;
 
@@ -422,7 +422,7 @@ namespace Microsoft.Cci
         {
             _parameterListIndex.Add(methodDef, _parameterDefs.NextRowId);
 
-            foreach (var paramDef in this.GetParametersToEmit(methodDef))
+            foreach (IParameterDefinition paramDef in this.GetParametersToEmit(methodDef))
             {
                 _parameterDefs.Add(paramDef);
             }

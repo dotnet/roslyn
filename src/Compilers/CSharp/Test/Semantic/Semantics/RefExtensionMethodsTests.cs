@@ -158,7 +158,7 @@ public static class Extensions
         [Fact]
         public void RefExtensionMethodsReceiverTypes_ValueTypes_Allowed()
         {
-            var reference = CreateCompilationWithMscorlib40AndSystemCore(@"
+            CSharpCompilation reference = CreateCompilationWithMscorlib40AndSystemCore(@"
 public static class Extensions
 {
     public static void PrintValue(ref this int p)
@@ -214,7 +214,7 @@ public static class Program
     }
 }";
 
-            var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
+            CSharpCompilation reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8337: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
                 //     public static void PrintValue(ref this string p)
                 Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
@@ -258,7 +258,7 @@ public static class Program
     }
 }";
 
-            var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
+            CSharpCompilation reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8337: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
                 //     public static void PrintValue(ref this System.IComparable p)
                 Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
@@ -302,7 +302,7 @@ public static class Program
     }
 }";
 
-            var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
+            CSharpCompilation reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8337: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
                 //     public static void PrintValue<T>(ref this T p)
                 Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
@@ -328,7 +328,7 @@ public static class Program2
         [Fact]
         public void RefExtensionMethodsReceiverTypes_StructConstrainedGenericTypes_Allowed()
         {
-            var reference = CreateCompilationWithMscorlib40AndSystemCore(@"
+            CSharpCompilation reference = CreateCompilationWithMscorlib40AndSystemCore(@"
 public static class Extensions
 {
     public static void PrintValue<T>(ref this T p) where T : struct
@@ -384,7 +384,7 @@ public static class Program
     }
 }";
 
-            var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
+            CSharpCompilation reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8337: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
                 //     public static void PrintValue<T>(ref this T p) where T : class
                 Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
@@ -428,7 +428,7 @@ public static class Program
     }
 }";
 
-            var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
+            CSharpCompilation reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8337: The first parameter of the reference extension method 'PrintValue' must be a value type or a generic type constrained to struct.
                 //     public static void PrintValue<T>(ref this T p) where T : System.IComparable
                 Diagnostic(ErrorCode.ERR_RefExtensionMustBeValueTypeOrConstrainedToOne, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
@@ -454,7 +454,7 @@ public static class Program2
         [Fact]
         public void RefExtensionMethodsReceiverTypes_ValueTypes_Allowed_IL()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
 {
   .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
@@ -488,7 +488,7 @@ public static class Program
         [Fact]
         public void RefExtensionMethodsReceiverTypes_ReferenceTypes_NotAllowed_IL()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
 {
   .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
@@ -524,7 +524,7 @@ public static class Program
         [Fact]
         public void RefExtensionMethodsReceiverTypes_InterfaceTypes_NotAllowed_IL()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
 {
   .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
@@ -560,7 +560,7 @@ public static class Program
         [Fact]
         public void RefExtensionMethodsReceiverTypes_UnconstrainedGenericTypes_NotAllowed_IL()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
 {
   .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
@@ -596,7 +596,7 @@ public static class Program
         [Fact]
         public void RefExtensionMethodsReceiverTypes_StructConstrainedGenericTypes_Allowed_IL()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
 {
   .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
@@ -631,7 +631,7 @@ public static class Program
         [Fact]
         public void RefExtensionMethodsReceiverTypes_ClassConstrainedGenericTypes_NotAllowed_IL()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
 {
   .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
@@ -667,7 +667,7 @@ public static class Program
         [Fact]
         public void RefExtensionMethodsReceiverTypes_InterfaceConstrainedGenericTypes_NotAllowed_IL()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
 {
   .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
@@ -703,7 +703,7 @@ public static class Program
         [Fact]
         public void InExtensionMethodsReceiverTypes_ValueTypes_Allowed()
         {
-            var reference = CreateCompilationWithMscorlib40AndSystemCore(@"
+            CSharpCompilation reference = CreateCompilationWithMscorlib40AndSystemCore(@"
 public static class Extensions
 {
     public static void PrintValue(in this int p)
@@ -759,7 +759,7 @@ public static class Program
     }
 }";
 
-            var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
+            CSharpCompilation reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
                 //     public static void PrintValue(in this string p)
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
@@ -803,7 +803,7 @@ public static class Program
     }
 }";
 
-            var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
+            CSharpCompilation reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
                 //     public static void PrintValue(in this System.IComparable p)
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
@@ -847,7 +847,7 @@ public static class Program
     }
 }";
 
-            var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
+            CSharpCompilation reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
                 //     public static void PrintValue<T>(in this T p)
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
@@ -891,7 +891,7 @@ public static class Program
     }
 }";
 
-            var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
+            CSharpCompilation reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
                 //     public static void PrintValue<T>(in this T p) where T : struct
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
@@ -935,7 +935,7 @@ public static class Program
     }
 }";
 
-            var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
+            CSharpCompilation reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
                 //     public static void PrintValue<T>(in this T p) where T : class
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
@@ -979,7 +979,7 @@ public static class Program
     }
 }";
 
-            var reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
+            CSharpCompilation reference = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics(
                 // (4,24): error CS8338: The first parameter of the readonly reference extension method 'PrintValue' must be a value type.
                 //     public static void PrintValue<T>(in this T p) where T : System.IComparable
                 Diagnostic(ErrorCode.ERR_InExtensionMustBeValueType, "PrintValue").WithArguments("PrintValue").WithLocation(4, 24),
@@ -1005,7 +1005,7 @@ public static class Program2
         [Fact]
         public void InExtensionMethodsReceiverTypes_ValueTypes_Allowed_IL()
         {
-            var reference = CompileIL(ExtraRefReadOnlyIL + @"
+            MetadataReference reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
 {
   .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
@@ -1042,7 +1042,7 @@ public static class Program
         [Fact]
         public void InExtensionMethodsReceiverTypes_ReferenceTypes_NotAllowed_IL()
         {
-            var reference = CompileIL(ExtraRefReadOnlyIL + @"
+            MetadataReference reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
 {
   .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
@@ -1081,7 +1081,7 @@ public static class Program
         [Fact]
         public void InExtensionMethodsReceiverTypes_InterfaceTypes_NotAllowed_IL()
         {
-            var reference = CompileIL(ExtraRefReadOnlyIL + @"
+            MetadataReference reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
 {
   .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
@@ -1120,7 +1120,7 @@ public static class Program
         [Fact]
         public void InExtensionMethodsReceiverTypes_UnconstrainedGenericTypes_NotAllowed_IL()
         {
-            var reference = CompileIL(ExtraRefReadOnlyIL + @"
+            MetadataReference reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
 {
   .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
@@ -1159,7 +1159,7 @@ public static class Program
         [Fact]
         public void InExtensionMethodsReceiverTypes_StructConstrainedGenericTypes_NotAllowed_IL()
         {
-            var reference = CompileIL(ExtraRefReadOnlyIL + @"
+            MetadataReference reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
 {
   .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
@@ -1198,7 +1198,7 @@ public static class Program
         [Fact]
         public void InExtensionMethodsReceiverTypes_ClassConstrainedGenericTypes_NotAllowed_IL()
         {
-            var reference = CompileIL(ExtraRefReadOnlyIL + @"
+            MetadataReference reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
 {
   .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
@@ -1237,7 +1237,7 @@ public static class Program
         [Fact]
         public void InExtensionMethodsReceiverTypes_InterfaceConstrainedGenericTypes_NotAllowed_IL()
         {
-            var reference = CompileIL(ExtraRefReadOnlyIL + @"
+            MetadataReference reference = CompileIL(ExtraRefReadOnlyIL + @"
 .class public abstract auto ansi sealed beforefieldinit Extensions extends [mscorlib]System.Object
 {
   .custom instance void [mscorlib]System.Runtime.CompilerServices.ExtensionAttribute::.ctor() = ( 01 00 00 00 )
@@ -1321,8 +1321,8 @@ public class Test
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(code, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "10");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(code, options: TestOptions.ReleaseExe);
+            CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: "10");
 
             verifier.VerifyIL("Test.Main", @"
 {
@@ -1377,8 +1377,8 @@ public class Test
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(code, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "0");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(code, options: TestOptions.ReleaseExe);
+            CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: "0");
 
             verifier.VerifyIL("Test.Main", @"
 {
@@ -1936,12 +1936,12 @@ public static class Ext
     public static void Method(ref this int p) { }
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics();
-            var tree = comp.SyntaxTrees.Single();
-            var parameter = tree.FindNodeOrTokenByKind(SyntaxKind.Parameter);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics();
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SyntaxNodeOrToken parameter = tree.FindNodeOrTokenByKind(SyntaxKind.Parameter);
             Assert.True(parameter.IsNode);
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
             var symbol = (ParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
             Assert.Equal(RefKind.Ref, symbol.RefKind);
         }
@@ -1955,12 +1955,12 @@ public static class Ext
     public static void Method(in this int p) { }
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics();
-            var tree = comp.SyntaxTrees.Single();
-            var parameter = tree.FindNodeOrTokenByKind(SyntaxKind.Parameter);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics();
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SyntaxNodeOrToken parameter = tree.FindNodeOrTokenByKind(SyntaxKind.Parameter);
             Assert.True(parameter.IsNode);
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
             var symbol = (ParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
             Assert.Equal(RefKind.In, symbol.RefKind);
         }
@@ -1974,12 +1974,12 @@ public static class Ext
     public static void Method(this ref int p) { }
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics();
-            var tree = comp.SyntaxTrees.Single();
-            var parameter = tree.FindNodeOrTokenByKind(SyntaxKind.Parameter);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics();
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SyntaxNodeOrToken parameter = tree.FindNodeOrTokenByKind(SyntaxKind.Parameter);
             Assert.True(parameter.IsNode);
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
             var symbol = (ParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
             Assert.Equal(RefKind.Ref, symbol.RefKind);
         }
@@ -1993,12 +1993,12 @@ public static class Ext
     public static void Method(this in int p) { }
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics();
-            var tree = comp.SyntaxTrees.Single();
-            var parameter = tree.FindNodeOrTokenByKind(SyntaxKind.Parameter);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(code).VerifyDiagnostics();
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SyntaxNodeOrToken parameter = tree.FindNodeOrTokenByKind(SyntaxKind.Parameter);
             Assert.True(parameter.IsNode);
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
             var symbol = (ParameterSymbol)model.GetDeclaredSymbolForNode(parameter.AsNode());
             Assert.Equal(RefKind.In, symbol.RefKind);
         }
@@ -2102,7 +2102,7 @@ public static class Program
         [Fact]
         public void UsingRefExtensionMethodsBeforeVersion7_2ProducesDiagnostics_RefSyntax_DifferentCompilation()
         {
-            var reference = CreateCompilationWithMscorlib40AndSystemCore(@"
+            CSharpCompilation reference = CreateCompilationWithMscorlib40AndSystemCore(@"
 public static class Ext
 {
     public static void Print(ref this int p)
@@ -2179,7 +2179,7 @@ public static class Program
         [Fact]
         public void UsingRefExtensionMethodsBeforeVersion7_2ProducesDiagnostics_InSyntax_DifferentCompilation()
         {
-            var reference = CreateCompilationWithMscorlib40AndSystemCore(@"
+            CSharpCompilation reference = CreateCompilationWithMscorlib40AndSystemCore(@"
 public static class Ext
 {
     public static void Print(in this int p)

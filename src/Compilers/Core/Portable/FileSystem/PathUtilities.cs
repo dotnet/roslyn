@@ -471,10 +471,10 @@ namespace Roslyn.Utilities
         /// </summary>
         public static bool ContainsPathComponent(string path, string component, bool ignoreCase)
         {
-            var comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+            StringComparison comparison = ignoreCase ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
             if (path?.IndexOf(component, comparison) >= 0)
             {
-                var comparer = ignoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+                StringComparer comparer = ignoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
 
                 int count = 0;
                 var currentPath = path;
@@ -659,7 +659,7 @@ namespace Roslyn.Utilities
 
             // find the first key in the path map that matches a prefix of the normalized path.
             // Note that we expect the client to use consistent capitalization; we use ordinal (case-sensitive) comparisons.
-            foreach (var kv in pathMap)
+            foreach (KeyValuePair<string, string> kv in pathMap)
             {
                 var oldPrefix = kv.Key;
                 if (!(oldPrefix?.Length > 0)) continue;

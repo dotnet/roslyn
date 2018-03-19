@@ -257,11 +257,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
                 code = "unsafe " + code;
             }
 
-            var oldTree = SyntaxFactory.ParseSyntaxTree(code, options: options);
+            SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(code, options: options);
 
             // Make the change to the node
-            var newTree = oldTree.WithReplaceFirst(oldName, newName);
-            var nameTree = topLevel ? GetGlobalMethodDeclarationSyntaxChange(newTree) : GetExpressionSyntaxChange(newTree);
+            SyntaxTree newTree = oldTree.WithReplaceFirst(oldName, newName);
+            ExpressionSyntax nameTree = topLevel ? GetGlobalMethodDeclarationSyntaxChange(newTree) : GetExpressionSyntaxChange(newTree);
             expressionValidator(nameTree);
         }
 
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
         {
             TypeDeclarationSyntax classType = newTree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             MethodDeclarationSyntax method = classType.Members[0] as MethodDeclarationSyntax;
-            var nameTree = method.ReturnType;
+            TypeSyntax nameTree = method.ReturnType;
             return nameTree;
         }
 

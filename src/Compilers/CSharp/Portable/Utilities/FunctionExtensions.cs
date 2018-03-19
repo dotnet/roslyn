@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (stack.Count > 0)
             {
                 T current = stack.Pop();
-                foreach (var newItem in relation(current))
+                foreach (T newItem in relation(current))
                 {
                     if (closure.Add(newItem))
                     {

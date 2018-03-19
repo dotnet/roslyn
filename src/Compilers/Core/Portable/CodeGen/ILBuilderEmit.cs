@@ -75,10 +75,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             // get helpers
-            var initializeArray = module.GetInitArrayHelper();
+            Cci.IMethodReference initializeArray = module.GetInitArrayHelper();
 
             // map a field to the block (that makes it addressable via a token)
-            var field = module.GetFieldForData(data, syntaxNode, diagnostics);
+            Cci.IFieldReference field = module.GetFieldForData(data, syntaxNode, diagnostics);
 
             // emit call to the helper
             EmitOpCode(ILOpCode.Dup);       //array
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
             else
             {
-                var field = module.GetFieldForData(data, syntaxNode, diagnostics);
+                Cci.IFieldReference field = module.GetFieldForData(data, syntaxNode, diagnostics);
 
                 EmitOpCode(ILOpCode.Dup);
                 EmitOpCode(ILOpCode.Ldsflda);
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         internal void EmitArrayBlockFieldRef(ImmutableArray<byte> data, ITypeSymbol elementType, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             // map a field to the block (that makes it addressable)
-            var field = module.GetFieldForData(data, syntaxNode, diagnostics);
+            Cci.IFieldReference field = module.GetFieldForData(data, syntaxNode, diagnostics);
 
             EmitOpCode(ILOpCode.Ldsflda);       
             EmitToken(field, syntaxNode, diagnostics);
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             EndBlock();
 
-            var block = this.GetCurrentBlock();
+            BasicBlock block = this.GetCurrentBlock();
 
             //1.7.5 Backward branch constraints
             //It shall be possible, with a single forward-pass through the CIL instruction stream for any method, to infer the
@@ -202,7 +202,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 Debug.Assert(labelInfo.stack == _emitState.CurStack, "branches to same label with different stacks");
             }
 
-            var block = this.GetCurrentBlock();
+            BasicBlock block = this.GetCurrentBlock();
 
             // If this is a special block at the end of an exception handler,
             // the branch should be to the block itself.
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                 _emitState.AdjustStack(-1);
             }
 
-            var block = this.GetCurrentBlock();
+            BasicBlock block = this.GetCurrentBlock();
             block.SetBranchCode(ILOpCode.Ret);
 
             _emitState.InstructionAdded();
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitThrow(bool isRethrow)
         {
-            var block = this.GetCurrentBlock();
+            BasicBlock block = this.GetCurrentBlock();
             if (isRethrow)
             {
                 block.SetBranchCode(ILOpCode.Rethrow);
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private void EmitEndFinally()
         {
-            var block = this.GetCurrentBlock();
+            BasicBlock block = this.GetCurrentBlock();
             block.SetBranchCode(ILOpCode.Endfinally);
             this.EndBlock();
         }
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         private BasicBlock FinishFilterCondition()
         {
-            var block = this.GetCurrentBlock();
+            BasicBlock block = this.GetCurrentBlock();
             block.SetBranchCode(ILOpCode.Endfilter);
             this.EndBlock();
 
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
-            var ctor = module.ArrayMethods.GetArrayConstructor(arrayType);
+            ArrayMethod ctor = module.ArrayMethods.GetArrayConstructor(arrayType);
 
             // idx1, idx2 --> array
             this.EmitOpCode(ILOpCode.Newobj, 1 - (int)arrayType.Rank);
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
-            var load = module.ArrayMethods.GetArrayGet(arrayType);
+            ArrayMethod load = module.ArrayMethods.GetArrayGet(arrayType);
 
             // this, idx1, idx2 --> value
             this.EmitOpCode(ILOpCode.Call, -(int)arrayType.Rank);
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
-            var address = module.ArrayMethods.GetArrayAddress(arrayType);
+            ArrayMethod address = module.ArrayMethods.GetArrayAddress(arrayType);
 
             // this, idx1, idx2 --> &value
             this.EmitOpCode(ILOpCode.Call, -(int)arrayType.Rank);
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             Debug.Assert(!arrayType.IsSZArray, "should be used only with multidimensional arrays");
 
-            var store = module.ArrayMethods.GetArraySet(arrayType);
+            ArrayMethod store = module.ArrayMethods.GetArraySet(arrayType);
 
             // this, idx1, idx2, value --> void
             this.EmitOpCode(ILOpCode.Call, -(2 + (int)arrayType.Rank));

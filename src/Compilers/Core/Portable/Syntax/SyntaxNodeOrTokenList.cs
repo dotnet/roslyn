@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         if (unchecked((uint)index < (uint)_node.SlotCount))
                         {
-                            var green = _node.Green.GetSlot(index);
+                            GreenNode green = _node.Green.GetSlot(index);
                             if (green.IsToken)
                             {
                                 return new SyntaxToken(this.Parent, green, _node.GetChildPosition(index), this.index + index);
@@ -210,7 +210,7 @@ namespace Microsoft.CodeAnalysis
         public int IndexOf(SyntaxNodeOrToken nodeOrToken)
         {
             var i = 0;
-            foreach (var child in this)
+            foreach (SyntaxNodeOrToken child in this)
             {
                 if (child == nodeOrToken)
                 {
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis
                 return default(SyntaxNodeOrTokenList);
             }
 
-            var newGreen = creator.CreateList(items.Select(n => n.UnderlyingNode));
+            GreenNode newGreen = creator.CreateList(items.Select(n => n.UnderlyingNode));
             if (newGreen.IsToken)
             {
                 newGreen = creator.CreateList(new[] { newGreen }, alwaysCreateListNode: true);
@@ -334,7 +334,7 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            var node = this[index];
+            SyntaxNodeOrToken node = this[index];
             var nodes = this.ToList();
             nodes.RemoveAt(index);
             return CreateList(node.UnderlyingNode, nodes);

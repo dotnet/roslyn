@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
         {
             int hash = 0;
 
-            foreach (var arg in constructorArguments)
+            foreach (TypedConstant arg in constructorArguments)
             {
                 hash = Hash.Combine(arg.GetHashCode(), hash);
             }
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
         {
             int hash = 0;
 
-            foreach (var arg in namedArguments)
+            foreach (KeyValuePair<string, TypedConstant> arg in namedArguments)
             {
                 if (arg.Key != null)
                 {

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
             string source;
             MarkupTestFile.GetPositionAndSpan(markup, out source, out position, out expectedSpan);
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: compilationOptions, parseOptions: parseOptions);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: compilationOptions, parseOptions: parseOptions);
             compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
 
             var pdb = PdbValidation.GetPdbXml(compilation, qualifiedMethodName: methodName);
@@ -32,11 +32,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
         {
             // calculate row and column from span
             var text = SourceText.From(source);
-            var startLine = text.Lines.GetLineFromPosition(span.Start);
+            TextLine startLine = text.Lines.GetLineFromPosition(span.Start);
             var startRow = startLine.LineNumber + 1;
             var startColumn = span.Start - startLine.Start + 1;
 
-            var endLine = text.Lines.GetLineFromPosition(span.End);
+            TextLine endLine = text.Lines.GetLineFromPosition(span.End);
             var endRow = endLine.LineNumber + 1;
             var endColumn = span.End - endLine.Start + 1;
 

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 
         private CompilationVerifier CompileAndVerify(string source, string expectedOutput, IEnumerable<MetadataReference> references = null, CSharpCompilationOptions options = null, Verification verify = Verification.Passes)
         {
-            var compilation = CreateCompilation(source, references: references, options: options);
+            CSharpCompilation compilation = CreateCompilation(source, references: references, options: options);
             return base.CompileAndVerify(compilation, expectedOutput: expectedOutput, verify: verify);
         }
 
@@ -49,7 +49,7 @@ class Test
         F(123).Wait();
     }
 }";
-            var c = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation c = CreateCompilationWithMscorlib45(source);
 
             CompilationOptions options;
 
@@ -58,7 +58,7 @@ class Test
 
             CompileAndVerify(c.WithOptions(options), symbolValidator: module =>
             {
-                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetMember<NamedTypeSymbol>("<F>d__0");
+                NamedTypeSymbol stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetMember<NamedTypeSymbol>("<F>d__0");
                 Assert.Equal(TypeKind.Struct, stateMachine.TypeKind);
             }, expectedOutput: "123");
 
@@ -67,7 +67,7 @@ class Test
 
             CompileAndVerify(c.WithOptions(options), symbolValidator: module =>
             {
-                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetMember<NamedTypeSymbol>("<F>d__0");
+                NamedTypeSymbol stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetMember<NamedTypeSymbol>("<F>d__0");
                 Assert.Equal(TypeKind.Struct, stateMachine.TypeKind);
             }, expectedOutput: "123");
 
@@ -76,7 +76,7 @@ class Test
 
             CompileAndVerify(c.WithOptions(options), symbolValidator: module =>
             {
-                var stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetMember<NamedTypeSymbol>("<F>d__0");
+                NamedTypeSymbol stateMachine = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test").GetMember<NamedTypeSymbol>("<F>d__0");
                 Assert.Equal(TypeKind.Class, stateMachine.TypeKind);
             }, expectedOutput: "123");
         }
@@ -1984,7 +1984,7 @@ class Test
             var expected = @"
 42
 ";
-            var c = CompileAndVerify(source, expectedOutput: expected);
+            CompilationVerifier c = CompileAndVerify(source, expectedOutput: expected);
 
             c.VerifyIL("Test.F", @"
 {
@@ -2132,7 +2132,7 @@ class Test
             var expected = @"
 42
 ";
-            var c = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe, expectedOutput: expected);
+            CompilationVerifier c = CompileAndVerify(source, options: TestOptions.ReleaseDebugExe, expectedOutput: expected);
 
             c.VerifyIL("Test.F", @"
 {
@@ -2284,7 +2284,7 @@ class Test
             var expected = @"
 42
 ";
-            var c = CompileAndVerify(source, expectedOutput: expected, options: TestOptions.DebugExe);
+            CompilationVerifier c = CompileAndVerify(source, expectedOutput: expected, options: TestOptions.DebugExe);
 
             c.VerifyIL("Test.F", @"
 {
@@ -2443,7 +2443,7 @@ class Test
             var expected = @"
 42
 ";
-            var c = CompileAndVerify(source, expectedOutput: expected);
+            CompilationVerifier c = CompileAndVerify(source, expectedOutput: expected);
 
             c.VerifyIL("Test.F", @"
 {
@@ -3117,7 +3117,7 @@ class C
 }
 ";
 
-            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            CSharpCompilation comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
 
             // CONSIDER: It would be nice if we didn't squiggle the whole method body, but this is a corner case.
             comp.VerifyEmitDiagnostics(
@@ -3147,7 +3147,7 @@ class C
 {
     async Task M() {}
 }";
-            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            CSharpCompilation comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
                 // (4,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async Task M() {}
@@ -3178,7 +3178,7 @@ class C
 {
     async Task<int> F() => 3;
 }";
-            var comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
+            CSharpCompilation comp = CSharpTestBase.CreateEmptyCompilation(source, new[] { MscorlibRef }, TestOptions.ReleaseDll); // NOTE: 4.0, not 4.5, so it's missing the async helpers.
             comp.VerifyEmitDiagnostics(
                 // (4,21): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
                 //     async Task<int> F() => 3;
@@ -3257,7 +3257,7 @@ class ValueTaskMethodBuilder<T>
 }
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var v = CompileAndVerify(source, null, options: TestOptions.ReleaseDll);
+            CompilationVerifier v = CompileAndVerify(source, null, options: TestOptions.ReleaseDll);
             v.VerifyIL("C.g",
 @"{
   // Code size       45 (0x2d)
@@ -3355,7 +3355,7 @@ class Program { static void Main() { } }
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
                 // (17,27): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async T_NIT<int> f1() => await Task.FromResult(1);
@@ -3425,7 +3425,7 @@ class Program {
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
                 // (9,17): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async T f() => await Task.Delay(1);
@@ -3451,7 +3451,7 @@ class Program {
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
                 // (5,15): error CS1503: Argument 1: cannot convert from 'string' to 'System.Type'
                 // [AsyncMethodBuilder("hello")] class T { }
@@ -3479,7 +3479,7 @@ class Program {
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
                 // (5,22): error CS0246: The type or namespace name 'Nonexistent' could not be found (are you missing a using directive or an assembly reference?)
                 // [AsyncMethodBuilder(typeof(Nonexistent))] class T { }
@@ -3504,7 +3504,7 @@ class Program {
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
                 // (9,17): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async T f() => await Task.Delay(1);
@@ -3517,8 +3517,8 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         {
             // Builder
             var libB = @"public class B { }";
-            var cB = CreateCompilationWithMscorlib45(libB);
-            var rB = cB.EmitToImageReference();
+            CSharpCompilation cB = CreateCompilationWithMscorlib45(libB);
+            MetadataReference rB = cB.EmitToImageReference();
                 
             // Tasklike
             var libT = @"
@@ -3528,8 +3528,8 @@ using System.Runtime.CompilerServices;
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var cT = CreateCompilationWithMscorlib45(libT, references: new[] { rB });
-            var rT = cT.EmitToImageReference();
+            CSharpCompilation cT = CreateCompilationWithMscorlib45(libT, references: new[] { rB });
+            MetadataReference rT = cT.EmitToImageReference();
 
             // Consumer, fails to reference builder
             var source = @"
@@ -3540,7 +3540,7 @@ class Program {
     async T f() => await Task.Delay(1);
 }
 ";
-            var c = CreateCompilationWithMscorlib45(source, references: new[] { rT });
+            CSharpCompilation c = CreateCompilationWithMscorlib45(source, references: new[] { rT });
             c.VerifyEmitDiagnostics(
                 // (6,17): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async T f() => await Task.Delay(1);
@@ -3592,7 +3592,7 @@ class Program {{
 namespace System.Runtime.CompilerServices {{ class AsyncMethodBuilderAttribute : System.Attribute {{ public AsyncMethodBuilderAttribute(System.Type t) {{ }} }} }}
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
                 // (8,19): error CS0656: Missing compiler required member 'B1.Create'
                 //     async T1 f1() => await Task.Delay(1);
@@ -3643,7 +3643,7 @@ class Program {{
 namespace System.Runtime.CompilerServices {{ class AsyncMethodBuilderAttribute : System.Attribute {{ public AsyncMethodBuilderAttribute(System.Type t) {{ }} }} }}
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
                 );
         }
@@ -3677,7 +3677,7 @@ class Program {{
 namespace System.Runtime.CompilerServices {{ class AsyncMethodBuilderAttribute : System.Attribute {{ public AsyncMethodBuilderAttribute(System.Type t) {{ }} }} }}
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
                 // (66,19): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async T2 f2() => await Task.Delay(2);
@@ -3724,7 +3724,7 @@ class MyTaskBuilder
 }
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var v = CompileAndVerify(source, null, options: TestOptions.ReleaseDll);
+            CompilationVerifier v = CompileAndVerify(source, null, options: TestOptions.ReleaseDll);
             v.VerifyIL("C.Main", @"
 {
   // Code size      109 (0x6d)
@@ -3802,7 +3802,7 @@ class ValueTaskMethodBuilder2
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyEmitDiagnostics(
                 // (7,26): error CS0656: Missing compiler required member 'ValueTaskMethodBuilder0.SetException'
                 //     async ValueTask0 f() { await Task.Delay(0); }
@@ -3840,7 +3840,7 @@ class Mismatch2MethodBuilder<T>
 }
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyEmitDiagnostics(
                 // (5,30): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async Mismatch1<int> f() { await (Task)null; return 1; }
@@ -3885,7 +3885,7 @@ class MyTaskBuilder
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
-            var comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
+            CSharpCompilation comp1 = CreateCompilation(source1, options: TestOptions.DebugExe);
             comp1.VerifyEmitDiagnostics(
                 // (8,22): error CS0311: The type 'C.<f>d__1' cannot be used as type parameter 'TSM' in the generic type or method 'MyTaskBuilder.Start<TSM>(ref TSM)'. There is no implicit reference conversion from 'C.<f>d__1' to 'I'.
                 //     async MyTask f() { await (Task)null; }
@@ -3919,7 +3919,7 @@ class MyTaskBuilder
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
-            var comp2 = CreateCompilation(source2, options: TestOptions.DebugExe);
+            CSharpCompilation comp2 = CreateCompilation(source2, options: TestOptions.DebugExe);
             comp2.VerifyEmitDiagnostics();
         }
 
@@ -4046,7 +4046,7 @@ class Test
         return array[1].Mutate(await G());
     }
 }";
-            var v = CompileAndVerify(source, null, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, null, options: TestOptions.DebugDll);
 
             v.VerifyIL("Test.<F>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -4187,7 +4187,7 @@ class Program
             var expectedOutput = @"True
 1";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }
 
@@ -4224,7 +4224,7 @@ namespace ConsoleApp
             var expectedOutput = @"Before 12
 After 12";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(comp, expectedOutput: expectedOutput);
 
@@ -4261,7 +4261,7 @@ class Program
     }
     public static void Main() {}
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(comp);
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
         }
@@ -4302,7 +4302,7 @@ namespace CompilerCrashRepro2
         }
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "0");
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe), expectedOutput: "0");
         }
@@ -4312,7 +4312,7 @@ namespace CompilerCrashRepro2
         {
             var source =
 @"System.Console.WriteLine(await System.Threading.Tasks.Task.FromResult(1));";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -4321,7 +4321,7 @@ namespace CompilerCrashRepro2
         {
             var source =
 @"await System.Threading.Tasks.Task.FromResult(4);";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -4331,14 +4331,14 @@ namespace CompilerCrashRepro2
             var source =
 @"int x = await System.Threading.Tasks.Task.Run(() => 2);
 System.Console.WriteLine(x);";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
         [Fact]
         public void AwaitInInteractiveExpression()
         {
-            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
+            MetadataReference[] references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
             var source0 =
 @"static async System.Threading.Tasks.Task<int> F()
 {
@@ -4354,7 +4354,7 @@ System.Console.WriteLine(x);";
         [Fact]
         public void AwaitInInteractiveGlobalStatement()
         {
-            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
+            MetadataReference[] references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
             var source0 =
 @"await System.Threading.Tasks.Task.FromResult(5);";
             var s0 = CSharpCompilation.CreateScriptCompilation("s0.dll", SyntaxFactory.ParseSyntaxTree(source0, options: TestOptions.Script), references);
@@ -4375,7 +4375,7 @@ System.Console.WriteLine(x);";
     await System.Threading.Tasks.Task.FromResult(1);
 int y = x +
     await System.Threading.Tasks.Task.FromResult(2);";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (2,5): error CS8100: The 'await' operator cannot be used in a static script variable initializer.
                 //     await System.Threading.Tasks.Task.FromResult(1);
@@ -4409,7 +4409,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(comp);
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
         }
@@ -4447,7 +4447,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp).
                 VerifyIL("Program.M(int)",
                 @"
@@ -4505,7 +4505,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(comp);
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
         }
@@ -4546,7 +4546,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             CompileAndVerify(comp);
             CompileAndVerify(comp.WithOptions(TestOptions.ReleaseExe));
         }
@@ -4596,7 +4596,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
 
             var expectedOutput = @"Pre
 show
@@ -4649,7 +4649,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
 
             var expectedOutput = @"Pre
 show
@@ -4707,7 +4707,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
 
             var expectedOutput = @"Pre
 show
@@ -4788,7 +4788,7 @@ class C
 {
     async Task GetNumber(Task task) { await task; }
 }";
-            var compilation = CreateEmptyCompilation(new[] { Parse(source) });
+            CSharpCompilation compilation = CreateEmptyCompilation(new[] { Parse(source) });
 
             compilation.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -4840,7 +4840,7 @@ namespace System.Runtime.CompilerServices
 {
     public class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(Type type) { } }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyEmitDiagnostics(
                 // (8,53): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     public async MyAwesomeType<string> CustomTask() { await Task.Delay(1000); return string.Empty; }
@@ -4886,7 +4886,7 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyEmitDiagnostics(
                 // (8,37): error CS8204: For type 'AsyncValueTaskMethodBuilder' to be used as an AsyncMethodBuilder for type 'G<T>.ValueTask', its Task property should return type 'G<T>.ValueTask' instead of type 'G<int>.ValueTask'.
                 //     public async ValueTask Method() { await Task.Delay(5); return; }
@@ -4920,7 +4920,7 @@ class MyTaskBuilder
 }
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugDll);
             compilation.VerifyEmitDiagnostics(
                 // (7,29): error CS8204: For type 'MyTaskBuilder' to be used as an AsyncMethodBuilder for type 'MyTask', its Task property should return type 'MyTask' instead of type 'int'.
                 //     static async MyTask M() { await Task.Delay(5); throw null; }
@@ -4955,7 +4955,7 @@ public class C {
     }
 }";
             var expectedOutput = @"01";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -5007,7 +5007,7 @@ public class C {
     }
 }";
             var expectedOutput = @"1=1 2=2 3 X";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -5050,7 +5050,7 @@ public class C {
 ";
             var expectedOutput = @"success";
 
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
             compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
@@ -5089,7 +5089,7 @@ public class C {
 ";
             var expectedOutput = @"42";
 
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugExe);
             base.CompileAndVerify(compilation, expectedOutput: expectedOutput);
 
             compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
@@ -5121,7 +5121,7 @@ namespace Test
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp).
                 VerifyIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
                 @"
@@ -5289,7 +5289,7 @@ namespace Test
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp).
                 VerifyIL("Test.Program.<M>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
                 @"

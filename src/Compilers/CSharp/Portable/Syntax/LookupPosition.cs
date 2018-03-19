@@ -101,20 +101,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return false;
             }
 
-            var startToken = attributesSyntaxList[0].OpenBracketToken;
-            var endToken = attributesSyntaxList[count - 1].CloseBracketToken;
+            SyntaxToken startToken = attributesSyntaxList[0].OpenBracketToken;
+            SyntaxToken endToken = attributesSyntaxList[count - 1].CloseBracketToken;
             return IsBetweenTokens(position, startToken, endToken);
         }
 
         internal static bool IsInTypeParameterList(int position, TypeDeclarationSyntax typeDecl)
         {
-            var typeParameterListOpt = typeDecl.TypeParameterList;
+            TypeParameterListSyntax typeParameterListOpt = typeDecl.TypeParameterList;
             return typeParameterListOpt != null && IsBeforeToken(position, typeParameterListOpt, typeParameterListOpt.GreaterThanToken);
         }
 
         internal static bool IsInParameterList(int position, BaseMethodDeclarationSyntax methodDecl)
         {
-            var parameterList = methodDecl.ParameterList;
+            ParameterListSyntax parameterList = methodDecl.ParameterList;
             return IsBeforeToken(position, parameterList, parameterList.CloseParenToken);
         }
 
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             Debug.Assert(methodDecl != null);
 
-            var body = methodDecl.Body;
+            BlockSyntax body = methodDecl.Body;
             if (body == null)
             {
                 return IsBeforeToken(position, methodDecl, methodDecl.SemicolonToken);
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             Debug.Assert(accessorDecl != null);
 
-            var body = accessorDecl.Body;
+            BlockSyntax body = accessorDecl.Body;
             SyntaxToken lastToken = body == null ? accessorDecl.SemicolonToken : body.CloseBraceToken;
             return IsBeforeToken(position, accessorDecl, lastToken);
         }
@@ -166,7 +166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             Debug.Assert(constructorDecl != null);
 
-            var initializerOpt = constructorDecl.Initializer;
+            ConstructorInitializerSyntax initializerOpt = constructorDecl.Initializer;
             var hasBody = constructorDecl.Body != null || constructorDecl.ExpressionBody != null;
 
             if (!hasBody)
@@ -206,11 +206,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return false;
             }
 
-            var explicitInterfaceSpecifier = methodDecl.ExplicitInterfaceSpecifier;
-            var firstNameToken = explicitInterfaceSpecifier == null ? methodDecl.Identifier : explicitInterfaceSpecifier.GetFirstToken();
+            ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier = methodDecl.ExplicitInterfaceSpecifier;
+            SyntaxToken firstNameToken = explicitInterfaceSpecifier == null ? methodDecl.Identifier : explicitInterfaceSpecifier.GetFirstToken();
 
-            var typeParams = methodDecl.TypeParameterList;
-            var firstPostNameToken = typeParams == null ? methodDecl.ParameterList.OpenParenToken : typeParams.LessThanToken;
+            TypeParameterListSyntax typeParams = methodDecl.TypeParameterList;
+            SyntaxToken firstPostNameToken = typeParams == null ? methodDecl.ParameterList.OpenParenToken : typeParams.LessThanToken;
 
             // Scope does not include method name.
             return !IsBetweenTokens(position, firstNameToken, firstPostNameToken);
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             var bodyStatement = body as StatementSyntax;
-            var firstExcluded = bodyStatement != null ?
+            SyntaxToken firstExcluded = bodyStatement != null ?
                 GetFirstExcludedToken(bodyStatement) :
                 (SyntaxToken)SyntaxNavigator.Instance.GetNextToken(body, predicate: null, stepInto: null);
 

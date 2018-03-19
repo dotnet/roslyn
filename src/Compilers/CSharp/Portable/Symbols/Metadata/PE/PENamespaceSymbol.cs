@@ -59,11 +59,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             EnsureAllMembersLoaded();
 
-            var memberTypes = GetMemberTypesPrivate();
+            ImmutableArray<NamedTypeSymbol> memberTypes = GetMemberTypesPrivate();
             var builder = ArrayBuilder<Symbol>.GetInstance(memberTypes.Length + lazyNamespaces.Count);
 
             builder.AddRange(memberTypes);
-            foreach (var pair in lazyNamespaces)
+            foreach (KeyValuePair<string, PENestedNamespaceSymbol> pair in lazyNamespaces)
             {
                 builder.Add(pair.Value);
             }
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             //assume that EnsureAllMembersLoaded() has initialize lazyTypes
             if (_lazyFlattenedTypes.IsDefault)
             {
-                var flattened = lazyTypes.Flatten();
+                ImmutableArray<PENamedTypeSymbol> flattened = lazyTypes.Flatten();
                 ImmutableInterlocked.InterlockedExchange(ref _lazyFlattenedTypes, flattened);
             }
 
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             int length = this.Name.Length;
 
-            var parent = ContainingNamespace;
+            NamespaceSymbol parent = ContainingNamespace;
             while (parent?.IsGlobalNamespace == false)
             {
                 // add name of the parent + "."
@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 var namespaces = new Dictionary<string, PENestedNamespaceSymbol>(StringOrdinalComparer.Instance);
 
-                foreach (var child in childNamespaces)
+                foreach (KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>> child in childNamespaces)
                 {
                     var c = new PENestedNamespaceSymbol(child.Key, this, child.Value);
                     namespaces.Add(c.Name, c);
@@ -239,15 +239,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (this.lazyTypes == null)
             {
-                var moduleSymbol = ContainingPEModule;
+                PEModuleSymbol moduleSymbol = ContainingPEModule;
 
                 var children = ArrayBuilder<PENamedTypeSymbol>.GetInstance();
                 var skipCheckForPiaType = !moduleSymbol.Module.ContainsNoPiaLocalTypes();
                 Dictionary<string, TypeDefinitionHandle> noPiaLocalTypes = null;
 
-                foreach (var g in typeGroups)
+                foreach (IGrouping<string, TypeDefinitionHandle> g in typeGroups)
                 {
-                    foreach (var t in g)
+                    foreach (TypeDefinitionHandle t in g)
                     {
                         if (skipCheckForPiaType || !moduleSymbol.Module.IsNoPiaLocalType(t))
                         {
@@ -280,7 +280,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     Interlocked.CompareExchange(ref _lazyNoPiaLocalTypes, noPiaLocalTypes, null);
                 }
 
-                var original = Interlocked.CompareExchange(ref this.lazyTypes, typesDict, null);
+                Dictionary<string, ImmutableArray<PENamedTypeSymbol>> original = Interlocked.CompareExchange(ref this.lazyTypes, typesDict, null);
 
                 // Build cache of TypeDef Tokens
                 // Potentially this can be done in the background.

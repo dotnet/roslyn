@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (method.IsVoidReturningAsync())
             {
-                var builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder);
+                NamedTypeSymbol builderType = F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder);
                 Debug.Assert((object)builderType != null);
                 MethodSymbol createBuilderMethod;
                 bool customBuilder = false;
@@ -201,7 +201,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (method.IsGenericTaskReturningAsync(F.Compilation))
             {
                 var returnType = (NamedTypeSymbol)method.ReturnType;
-                var resultType = returnType.TypeArgumentsNoUseSiteDiagnostics.Single();
+                TypeSymbol resultType = returnType.TypeArgumentsNoUseSiteDiagnostics.Single();
                 if (resultType.IsDynamic())
                 {
                     resultType = F.SpecialType(SpecialType.System_Object);
@@ -352,8 +352,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (customBuilder)
             {
-                var descriptor = WellKnownMembers.GetDescriptor(member);
-                var sym = CSharpCompilation.GetRuntimeMember(
+                RuntimeMembers.MemberDescriptor descriptor = WellKnownMembers.GetDescriptor(member);
+                Symbol sym = CSharpCompilation.GetRuntimeMember(
                     builderType.OriginalDefinition,
                     ref descriptor,
                     F.Compilation.WellKnownMemberSignatureComparer,
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             if ((object)symbol == null)
             {
-                var descriptor = WellKnownMembers.GetDescriptor(member);
+                RuntimeMembers.MemberDescriptor descriptor = WellKnownMembers.GetDescriptor(member);
                 var diagnostic = new CSDiagnostic(
                     new CSDiagnosticInfo(ErrorCode.ERR_MissingPredefinedMember, (customBuilder ? (object)builderType : descriptor.DeclaringTypeMetadataName), descriptor.Name),
                     F.Syntax.Location);
@@ -391,8 +391,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The Create method's return type is expected to be builderType.
             // The WellKnownMembers routines aren't able to enforce that, which is why this method exists.
             const string methodName = "Create";
-            var members = builderType.GetMembers(methodName);
-            foreach (var member in members)
+            System.Collections.Immutable.ImmutableArray<Symbol> members = builderType.GetMembers(methodName);
+            foreach (Symbol member in members)
             {
                 if (member.Kind != SymbolKind.Method)
                 {
@@ -418,8 +418,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol returnType)
         {
             const string propertyName = "Task";
-            var members = builderType.GetMembers(propertyName);
-            foreach (var member in members)
+            System.Collections.Immutable.ImmutableArray<Symbol> members = builderType.GetMembers(propertyName);
+            foreach (Symbol member in members)
             {
                 if (member.Kind != SymbolKind.Property)
                 {

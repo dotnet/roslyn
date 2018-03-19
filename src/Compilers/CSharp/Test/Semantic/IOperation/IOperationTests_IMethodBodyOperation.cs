@@ -19,14 +19,14 @@ abstract class C
     public abstract void M();
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            BaseMethodDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
             Assert.Null(model.GetOperation(node1));
         }
 
@@ -40,12 +40,12 @@ class C
     { throw null; }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            BaseMethodDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -69,12 +69,12 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            BaseMethodDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -101,7 +101,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -111,8 +111,8 @@ class C
     => throw null;").WithLocation(4, 5)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            BaseMethodDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -139,7 +139,7 @@ abstract class C
     public static C operator ! (C x);
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,30): error CS0501: 'C.operator !(C)' must declare a body because it is not marked abstract, extern, or partial
@@ -147,10 +147,10 @@ abstract class C
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "!").WithArguments("C.operator !(C)").WithLocation(4, 30)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            BaseMethodDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
             Assert.Null(model.GetOperation(node1));
         }
 
@@ -164,12 +164,12 @@ class C
     { throw null; }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            BaseMethodDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -193,12 +193,12 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            BaseMethodDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -228,7 +228,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -238,8 +238,8 @@ class C
     => throw null;").WithLocation(4, 5)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            BaseMethodDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -269,7 +269,7 @@ abstract class C
     public static implicit operator int(C x);
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,37): error CS0501: 'C.implicit operator int(C)' must declare a body because it is not marked abstract, extern, or partial
@@ -277,10 +277,10 @@ abstract class C
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "int").WithArguments("C.implicit operator int(C)").WithLocation(4, 37)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            BaseMethodDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
             Assert.Null(model.GetOperation(node1));
         }
 
@@ -294,12 +294,12 @@ class C
     { throw null; }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            BaseMethodDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -323,12 +323,12 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            BaseMethodDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -358,7 +358,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -368,8 +368,8 @@ class C
     => throw null;").WithLocation(4, 5)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            BaseMethodDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -399,7 +399,7 @@ abstract class C
     ~C();
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,6): error CS0501: 'C.~C()' must declare a body because it is not marked abstract, extern, or partial
@@ -407,10 +407,10 @@ abstract class C
                 Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "C").WithArguments("C.~C()").WithLocation(4, 6)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            BaseMethodDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
             Assert.Null(model.GetOperation(node1));
         }
 
@@ -424,12 +424,12 @@ class C
     { throw null; }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            BaseMethodDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -453,12 +453,12 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            BaseMethodDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -485,7 +485,7 @@ class C
     => throw null;
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -495,8 +495,8 @@ class C
     => throw null;").WithLocation(4, 5)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            BaseMethodDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<BaseMethodDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -523,14 +523,14 @@ abstract class C
     abstract protected int P { get; }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var node1 = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
+            AccessorDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
             Assert.Null(model.GetOperation(node1));
         }
 
@@ -547,12 +547,12 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            AccessorDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -579,12 +579,12 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().First();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            AccessorDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().First();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -615,7 +615,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (6,9): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -625,8 +625,8 @@ class C
         => throw null;").WithLocation(6, 9)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node1 = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().First();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            AccessorDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().First();
 
             compilation.VerifyOperationTree(node1, expectedOperationTree:
 @"
@@ -653,7 +653,7 @@ abstract class C
     int P { get; } => throw null;
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,5): error CS8057: Block bodies and expression bodies cannot both be provided.
@@ -661,10 +661,10 @@ abstract class C
                 Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, "int P { get; } => throw null;").WithLocation(4, 5)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var node1 = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
+            AccessorDeclarationSyntax node1 = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
             Assert.Null(model.GetOperation(node1));
         }
     }

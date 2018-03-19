@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static string EscapeIdentifier(string identifier)
         {
-            var kind = SyntaxFacts.GetKeywordKind(identifier);
+            SyntaxKind kind = SyntaxFacts.GetKeywordKind(identifier);
             return kind == SyntaxKind.None
                 ? identifier
                 : $"@{identifier}";
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.TypeQualificationStyle == SymbolDisplayTypeQualificationStyle.NameAndContainingTypesAndNamespaces)
             {
-                var containingNamespace = symbol.ContainingNamespace;
+                INamespaceSymbol containingNamespace = symbol.ContainingNamespace;
                 if (ShouldVisitNamespace(containingNamespace))
                 {
                     containingNamespace.Accept(this.NotFirstVisitor);

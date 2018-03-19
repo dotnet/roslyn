@@ -307,7 +307,7 @@ public class Test
         [Fact]
         public void TestSpan()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -360,7 +360,7 @@ class Test
         [Fact]
         public void TestSpanSideeffectingLoopBody()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -424,7 +424,7 @@ class Test
         [Fact]
         public void TestReadOnlySpan()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -476,7 +476,7 @@ class Test
         [Fact]
         public void TestReadOnlySpanString()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -525,7 +525,7 @@ class Test
         [Fact]
         public void TestReadOnlySpan2()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -574,7 +574,7 @@ class Test
         [Fact]
         public void TestSpanNoIndexer()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -623,7 +623,7 @@ class Test
         [Fact]
         public void TestSpanValIndexer()
         {
-            var comp = CreateEmptyCompilation(@"
+            CSharpCompilation comp = CreateEmptyCompilation(@"
 using System;
 
 class Test
@@ -719,7 +719,7 @@ namespace System
         [Fact]
         public void TestSpanConvert()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -773,7 +773,7 @@ class Test
         [Fact]
         public void TestSpanDeconstruct()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -845,7 +845,7 @@ class Test
         [Fact]
         public void TestSpanConvertDebug()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class Test
@@ -1391,7 +1391,7 @@ public class Test
 b
 c
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: expectedOutput);
         }

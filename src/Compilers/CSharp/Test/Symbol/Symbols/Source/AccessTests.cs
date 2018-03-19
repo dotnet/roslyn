@@ -20,12 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 @"
 namespace A {}
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var global = comp.GlobalNamespace;
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            NamespaceSymbol global = comp.GlobalNamespace;
             var a = global.GetMembers("A").Single() as NamespaceSymbol;
             Assert.Equal(Accessibility.Public, a.DeclaredAccessibility);
-            var errs = comp.GetSemanticModel(tree).GetDeclarationDiagnostics();
+            System.Collections.Immutable.ImmutableArray<Diagnostic> errs = comp.GetSemanticModel(tree).GetDeclarationDiagnostics();
             Assert.Equal(0, errs.Count());
         }
 
@@ -37,11 +37,11 @@ namespace A {}
 @"
 public namespace A {}
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var global = comp.GlobalNamespace;
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            NamespaceSymbol global = comp.GlobalNamespace;
             var a = global.GetMembers("A").Single() as NamespaceSymbol;
-            var errs = tree.GetDiagnostics();
+            System.Collections.Generic.IEnumerable<Diagnostic> errs = tree.GetDiagnostics();
             Assert.Equal(1, errs.Count());
         }
 
@@ -58,11 +58,11 @@ namespace X {
     internal class B {}
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var global = comp.GlobalNamespace;
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            NamespaceSymbol global = comp.GlobalNamespace;
             var a = global.GetMembers("A").Single() as NamespaceSymbol;
-            var errs = comp.GetSemanticModel(tree).GetDeclarationDiagnostics();
+            System.Collections.Immutable.ImmutableArray<Diagnostic> errs = comp.GetSemanticModel(tree).GetDeclarationDiagnostics();
             Assert.Equal(0, errs.Count());
         }
 
@@ -81,11 +81,11 @@ namespace X {
     protected internal class C {}
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var global = comp.GlobalNamespace;
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            NamespaceSymbol global = comp.GlobalNamespace;
             var a = global.GetMembers("A").Single() as NamespaceSymbol;
-            var errs = comp.GetSemanticModel(tree).GetDeclarationDiagnostics();
+            System.Collections.Immutable.ImmutableArray<Diagnostic> errs = comp.GetSemanticModel(tree).GetDeclarationDiagnostics();
             Assert.Equal(6, errs.Count());
         }
 
@@ -110,8 +110,8 @@ class C1
     public void M1(C1 c) { }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             Assert.False(comp.GetDeclarationDiagnostics().Any());
         }
 
@@ -132,8 +132,8 @@ public class E
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             Assert.Equal(1, comp.GetDeclarationDiagnostics().Count());
         }
 
@@ -155,8 +155,8 @@ class D : B
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
         }
     }

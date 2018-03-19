@@ -39,7 +39,7 @@ namespace Microsoft.DiaSymReader
                 useAlternativeLoadPath: (options & SymUnmanagedWriterCreationOptions.UseAlternativeLoadPath) != 0,
                 useComRegistry: (options & SymUnmanagedWriterCreationOptions.UseComRegistry) != 0,
                 moduleName: out var implModuleName,
-                loadException: out var loadException);
+                loadException: out Exception loadException);
 
             if (symWriter == null)
             {

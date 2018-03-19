@@ -216,11 +216,11 @@ namespace Microsoft.CodeAnalysis
 
             // Avoid resolving previously resolved missing references. If we call to the resolver again we would create new assembly symbols for them,
             // which would not match the previously created ones. As a result we would get duplicate PE types and conversion errors.
-            var previousScriptCompilation = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
+            Compilation previousScriptCompilation = compilation.ScriptCompilationInfo?.PreviousScriptCompilation;
             if (previousScriptCompilation != null)
             {
                 previouslyResolvedAssembliesOpt = PooledDictionary<AssemblyIdentity, PortableExecutableReference>.GetInstance();
-                foreach (var entry in previousScriptCompilation.GetBoundReferenceManager().GetImplicitlyResolvedAssemblyReferences())
+                foreach (KeyValuePair<AssemblyIdentity, PortableExecutableReference> entry in previousScriptCompilation.GetBoundReferenceManager().GetImplicitlyResolvedAssemblyReferences())
                 {
                     previouslyResolvedAssembliesOpt.Add(entry.Key, entry.Value);
                 }
@@ -243,11 +243,11 @@ namespace Microsoft.CodeAnalysis
             {
                 while (referenceBindingsToProcess.Count > 0)
                 {
-                    var referenceAndBindings = referenceBindingsToProcess.Pop();
-                    var requestingReference = referenceAndBindings.Item1;
-                    var bindings = referenceAndBindings.Item2;
+                    (MetadataReference, ArraySegment<AssemblyReferenceBinding>) referenceAndBindings = referenceBindingsToProcess.Pop();
+                    MetadataReference requestingReference = referenceAndBindings.Item1;
+                    ArraySegment<AssemblyReferenceBinding> bindings = referenceAndBindings.Item2;
 
-                    foreach (var binding in bindings)
+                    foreach (AssemblyReferenceBinding binding in bindings)
                     {
                         // only attempt to resolve unbound references (regardless of version difference of the bound ones)
                         if (binding.IsBound)
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis
                             }
                         }
 
-                        var data = ResolveMissingAssembly(binding.ReferenceIdentity, resolvedReference, importOptions, resolutionDiagnostics);
+                        AssemblyData data = ResolveMissingAssembly(binding.ReferenceIdentity, resolvedReference, importOptions, resolutionDiagnostics);
                         if (data == null)
                         {
                             continue;
@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis
                         // -1 for assembly being built:
                         int index = explicitAssemblyCount - 1 + metadataReferencesBuilder.Count;
 
-                        var existingReference = TryAddAssembly(data.Identity, resolvedReference, index, resolutionDiagnostics, Location.None, assemblyReferencesBySimpleName, supersedeLowerVersions);
+                        MetadataReference existingReference = TryAddAssembly(data.Identity, resolvedReference, index, resolutionDiagnostics, Location.None, assemblyReferencesBySimpleName, supersedeLowerVersions);
                         if (existingReference != null)
                         {
                             MergeReferenceProperties(existingReference, resolvedReference, resolutionDiagnostics, ref lazyAliasMap);
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis
                         metadataReferencesBuilder.Add(resolvedReference);
                         implicitAssemblies.Add(data);
 
-                        var referenceBinding = data.BindAssemblyReferences(explicitAssemblies, IdentityComparer);
+                        AssemblyReferenceBinding[] referenceBinding = data.BindAssemblyReferences(explicitAssemblies, IdentityComparer);
                         referenceBindings.Add(referenceBinding);
                         referenceBindingsToProcess.Push((resolvedReference, new ArraySegment<AssemblyReferenceBinding>(referenceBinding)));
                     }
@@ -318,11 +318,11 @@ namespace Microsoft.CodeAnalysis
 
                 for (int bindingsIndex = 0; bindingsIndex < referenceBindings.Count; bindingsIndex++)
                 {
-                    var referenceBinding = referenceBindings[bindingsIndex];
+                    AssemblyReferenceBinding[] referenceBinding = referenceBindings[bindingsIndex];
 
                     for (int i = 0; i < referenceBinding.Length; i++)
                     {
-                        var binding = referenceBinding[i];
+                        AssemblyReferenceBinding binding = referenceBinding[i];
 
                         // We don't rebind references bound to a non-matching version of a reference that was explicitly
                         // specified, even if we have a better version now.
@@ -367,14 +367,14 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(result.Count == 0);
 
             // maps module index to explicitReferences index
-            var explicitModuleToReferenceMap = CalculateModuleToReferenceMap(explicitModules, explicitReferenceMap);
+            ImmutableArray<int> explicitModuleToReferenceMap = CalculateModuleToReferenceMap(explicitModules, explicitReferenceMap);
 
             // add module bindings of assembly being built:
-            var bindingsOfAssemblyBeingBuilt = referenceBindings[0];
+            AssemblyReferenceBinding[] bindingsOfAssemblyBeingBuilt = referenceBindings[0];
             int bindingIndex = totalReferencedAssemblyCount;
             for (int moduleIndex = 0; moduleIndex < explicitModules.Length; moduleIndex++)
             {
-                var moduleReference = explicitReferences[explicitModuleToReferenceMap[moduleIndex]];
+                MetadataReference moduleReference = explicitReferences[explicitModuleToReferenceMap[moduleIndex]];
                 var moduleBindingsCount = explicitModules[moduleIndex].ReferencedAssemblies.Length;
 
                 result.Add(
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis
             // the first binding is for the assembly being built, all its references are bound or added above
             for (int referenceIndex = 0; referenceIndex < explicitReferenceMap.Length; referenceIndex++)
             {
-                var explicitReferenceMapping = explicitReferenceMap[referenceIndex];
+                ResolvedReference explicitReferenceMapping = explicitReferenceMap[referenceIndex];
                 if (explicitReferenceMapping.IsSkipped || explicitReferenceMapping.Kind == MetadataImageKind.Module)
                 {
                     continue;
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis
 
             for (int i = 0; i < resolvedReferences.Length; i++)
             {
-                var resolvedReference = resolvedReferences[i];
+                ResolvedReference resolvedReference = resolvedReferences[i];
                 if (!resolvedReference.IsSkipped && resolvedReference.Kind == MetadataImageKind.Module)
                 {
                     result[resolvedReference.Index] = i;
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis
 
         private static void UpdateBindingsOfAssemblyBeingBuilt(ArrayBuilder<AssemblyReferenceBinding[]> referenceBindings, int explicitAssemblyCount, ArrayBuilder<AssemblyData> implicitAssemblies)
         {
-            var referenceBindingsOfAssemblyBeingBuilt = referenceBindings[0];
+            AssemblyReferenceBinding[] referenceBindingsOfAssemblyBeingBuilt = referenceBindings[0];
 
             // add implicitly resolved assemblies to the bindings of the assembly being built:
             var bindingsOfAssemblyBeingBuilt = ArrayBuilder<AssemblyReferenceBinding>.GetInstance(referenceBindingsOfAssemblyBeingBuilt.Length + implicitAssemblies.Count);
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis
             MetadataImportOptions importOptions,
             DiagnosticBag diagnostics)
         {
-            var metadata = GetMetadata(peReference, MessageProvider, Location.None, diagnostics);
+            Metadata metadata = GetMetadata(peReference, MessageProvider, Location.None, diagnostics);
             Debug.Assert(metadata != null || diagnostics.HasAnyErrors());
 
             if (metadata == null)
@@ -485,7 +485,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            var assembly = assemblyMetadata.GetAssembly();
+            PEAssembly assembly = assemblyMetadata.GetAssembly();
 
             // Allow reference and definition identities to differ in version, but not other properties:
             if (IdentityComparer.Compare(referenceIdentity, assembly.Identity) == AssemblyIdentityComparer.ComparisonResult.NotEquivalent)
@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis
                         // Now process references of the candidate.
 
                         // how we bound the candidate references for this compilation:
-                        var candidateReferenceBinding = boundInputs[candidateIndex].ReferenceBinding;
+                        AssemblyReferenceBinding[] candidateReferenceBinding = boundInputs[candidateIndex].ReferenceBinding;
 
                         // the AssemblySymbols the candidate symbol refers to:
                         TAssemblySymbol[] candidateReferencedSymbols = GetActualBoundReferencesUsedBy(candidate.AssemblySymbol);
@@ -887,7 +887,7 @@ namespace Microsoft.CodeAnalysis
 
             for (int i = 1; i < assemblies.Length; i++)
             {
-                var assembly = assemblies[i];
+                AssemblyData assembly = assemblies[i];
 
                 // The logic about deciding what assembly is a candidate for being a Cor library here and in
                 // Microsoft.CodeAnalysis.VisualBasic.CommandLineCompiler.ResolveMetadataReferencesFromArguments

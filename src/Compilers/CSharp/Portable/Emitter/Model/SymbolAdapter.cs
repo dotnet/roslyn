@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (synthesized != null)
             {
-                foreach (var attribute in synthesized)
+                foreach (SynthesizedAttributeData attribute in synthesized)
                 {
                     // only synthesize attributes that are emitted:
                     Debug.Assert(attribute.ShouldEmitAttribute(this, isReturnType, emittingAssemblyAttributesInNetModule));

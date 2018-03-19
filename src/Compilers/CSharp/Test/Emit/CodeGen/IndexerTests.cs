@@ -24,7 +24,7 @@ class C
     public int this[int x] { get { return x; } set { } }
 }
 ";
-            var compVerifier = CompileAndVerify(text,
+            CodeAnalysis.Test.Utilities.CompilationVerifier compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
                 expectedSignatures: new[]
                 {
@@ -43,7 +43,7 @@ class C
     public int this[int x, int y] { get { return x; } }
 }
 ";
-            var compVerifier = CompileAndVerify(text,
+            CodeAnalysis.Test.Utilities.CompilationVerifier compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x, System.Int32 y].get", null),
                 expectedSignatures: new[]
                 {
@@ -61,7 +61,7 @@ class C
     public int this[int x, int y, int z] { set { } }
 }
 ";
-            var compVerifier = CompileAndVerify(text,
+            CodeAnalysis.Test.Utilities.CompilationVerifier compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, null, "void C.this[System.Int32 x, System.Int32 y, System.Int32 z].set"),
                 expectedSignatures: new[]
                 {
@@ -79,7 +79,7 @@ class C<T>
     public T this[T x] { get { return x; } set { } }
 }
 ";
-            var compVerifier = CompileAndVerify(text,
+            CodeAnalysis.Test.Utilities.CompilationVerifier compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "T C<T>.this[T x].get", "void C<T>.this[T x].set"),
                 expectedSignatures: new[]
                 {
@@ -98,7 +98,7 @@ class C
     public int this[int x = 1, int y = 2] { get { return x; } set { } }
 }
 ";
-            var compVerifier = CompileAndVerify(text,
+            CodeAnalysis.Test.Utilities.CompilationVerifier compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[[System.Int32 x = 1], [System.Int32 y = 2]].get", "void C.this[[System.Int32 x = 1], [System.Int32 y = 2]].set"),
                 expectedSignatures: new[]
                 {
@@ -117,7 +117,7 @@ class C
     public int this[params int[] x] { get { return 0; } set { } }
 }
 ";
-            var compVerifier = CompileAndVerify(text,
+            CodeAnalysis.Test.Utilities.CompilationVerifier compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[params System.Int32[] x].get", "void C.this[params System.Int32[] x].set"),
                 expectedSignatures: new[]
                 {
@@ -145,25 +145,25 @@ class C : I
             {
                 // Can't use ValidateIndexer because explicit implementations aren't indexers in metadata.
 
-                var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var indexer = @class.GetMembers().Where(member => member.Kind == SymbolKind.Property).Cast<PropertySymbol>().Single();
+                NamedTypeSymbol @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                PropertySymbol indexer = @class.GetMembers().Where(member => member.Kind == SymbolKind.Property).Cast<PropertySymbol>().Single();
 
                 Assert.False(indexer.IsIndexer);
                 Assert.True(indexer.MustCallMethodsDirectly); //since has parameters, but isn't an indexer
                 Assert.Equal(Accessibility.Private, indexer.DeclaredAccessibility);
                 Assert.False(indexer.IsStatic);
 
-                var getMethod = indexer.GetMethod;
+                MethodSymbol getMethod = indexer.GetMethod;
                 Assert.Equal(MethodKind.ExplicitInterfaceImplementation, getMethod.MethodKind); //since CallMethodsDirectly
                 Assert.Equal("System.Int32 C.I.get_Item(System.Int32 x)", getMethod.ToTestDisplayString());
                 getMethod.CheckAccessorModifiers(indexer);
 
-                var setMethod = indexer.SetMethod;
+                MethodSymbol setMethod = indexer.SetMethod;
                 Assert.Equal(MethodKind.ExplicitInterfaceImplementation, setMethod.MethodKind); //since CallMethodsDirectly
                 Assert.Equal("void C.I.set_Item(System.Int32 x, System.Int32 value)", setMethod.ToTestDisplayString());
                 setMethod.CheckAccessorModifiers(indexer);
             };
-            var compVerifier = CompileAndVerify(text, symbolValidator: validator, expectedSignatures: new[]
+            CodeAnalysis.Test.Utilities.CompilationVerifier compVerifier = CompileAndVerify(text, symbolValidator: validator, expectedSignatures: new[]
             {
                 Signature("C", "I.Item", ".property readwrite System.Int32 I.Item(System.Int32 x)"),
                 Signature("C", "I.get_Item", ".method private hidebysig newslot specialname virtual final instance System.Int32 I.get_Item(System.Int32 x) cil managed"),
@@ -185,7 +185,7 @@ class C : I
     public int this[int x] { get { return 0; } set { } }
 }
 ";
-            var compVerifier = CompileAndVerify(text,
+            CodeAnalysis.Test.Utilities.CompilationVerifier compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
                 expectedSignatures: new[]
                 {
@@ -209,7 +209,7 @@ class C : B
     public override sealed int this[int x] { get { return 0; } set { } }
 }
 ";
-            var compVerifier = CompileAndVerify(text,
+            CodeAnalysis.Test.Utilities.CompilationVerifier compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
                 expectedSignatures: new[]
                 {
@@ -233,7 +233,7 @@ class C : B
     public new virtual int this[int x] { get { return 0; } set { } }
 }
 ";
-            var compVerifier = CompileAndVerify(text,
+            CodeAnalysis.Test.Utilities.CompilationVerifier compVerifier = CompileAndVerify(text,
                 symbolValidator: module => ValidateIndexer(module, "System.Int32 C.this[System.Int32 x].get", "void C.this[System.Int32 x].set"),
                 expectedSignatures: new[]
                 {
@@ -246,8 +246,8 @@ class C : B
         // NOTE: assumes there's a single indexer (type = int) in a type C.
         private static void ValidateIndexer(ModuleSymbol module, string getterDisplayString, string setterDisplayString)
         {
-            var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var indexer = @class.Indexers.Single();
+            NamedTypeSymbol @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            PropertySymbol indexer = @class.Indexers.Single();
 
             Assert.Equal(SymbolKind.Property, indexer.Kind);
             Assert.True(indexer.IsIndexer);
@@ -255,7 +255,7 @@ class C : B
             Assert.Equal(Accessibility.Public, indexer.DeclaredAccessibility);
             Assert.False(indexer.IsStatic);
 
-            var getMethod = indexer.GetMethod;
+            MethodSymbol getMethod = indexer.GetMethod;
             if (getterDisplayString == null)
             {
                 Assert.Null(getMethod);
@@ -267,7 +267,7 @@ class C : B
                 getMethod.CheckAccessorShape(indexer);
             }
 
-            var setMethod = indexer.SetMethod;
+            MethodSymbol setMethod = indexer.SetMethod;
             if (setterDisplayString == null)
             {
                 Assert.Null(setMethod);
@@ -415,7 +415,7 @@ class Test
     }
 }
 ";
-            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            CodeAnalysis.Test.Utilities.CompilationVerifier compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
             compVerifier.VerifyIL("Test.Main", @"
 {
@@ -563,7 +563,7 @@ class Test
     }
 }
 ";
-            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            CodeAnalysis.Test.Utilities.CompilationVerifier compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
             compVerifier.VerifyIL("Test.Main", @"
 {
@@ -667,7 +667,7 @@ class Test
     }
 }
 ";
-            var compVerifier = CompileAndVerify(text, expectedOutput: @"
+            CodeAnalysis.Test.Utilities.CompilationVerifier compVerifier = CompileAndVerify(text, expectedOutput: @"
 1,2,10,20,10,20,-29,
 1,2,10,20,10,20,-29,
 1,2,10,20,10,20,-29,
@@ -711,7 +711,7 @@ class Test
     }
 }
 ";
-            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            CodeAnalysis.Test.Utilities.CompilationVerifier compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
             compVerifier.VerifyIL("Test.Main", @"
 {
@@ -936,7 +936,7 @@ class Test
     }
 }
 ";
-            var compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
+            CodeAnalysis.Test.Utilities.CompilationVerifier compVerifier = CompileAndVerify(text, options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
 
             compVerifier.VerifyIL("Test.Main", @"
 {
@@ -1102,7 +1102,7 @@ class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text, expectedOutput: @"2");
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(text, expectedOutput: @"2");
 
             verifier.VerifyIL("Test.Main", @"
 {

@@ -125,10 +125,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol synthesizedLocal)
         {
-            var previous = base.CreateBlockPrologue(original, out synthesizedLocal);
+            BoundStatement previous = base.CreateBlockPrologue(original, out synthesizedLocal);
             if (original.Syntax.Kind() == SyntaxKind.Block && !original.WasCompilerGenerated)
             {
-                var oBspan = ((BlockSyntax)original.Syntax).OpenBraceToken.Span;
+                TextSpan oBspan = ((BlockSyntax)original.Syntax).OpenBraceToken.Span;
                 return new BoundSequencePointWithSpan(original.Syntax, previous, oBspan);
             }
             else if (previous != null)
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement CreateBlockEpilogue(BoundBlock original)
         {
-            var previous = base.CreateBlockEpilogue(original);
+            BoundStatement previous = base.CreateBlockEpilogue(original);
 
             if (original.Syntax.Kind() == SyntaxKind.Block && !original.WasCompilerGenerated)
             {
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SyntaxNode parent = original.Syntax.Parent;
                 if (parent == null || !(parent.IsAnonymousFunction() || parent is BaseMethodDeclarationSyntax))
                 {
-                    var cBspan = ((BlockSyntax)original.Syntax).CloseBraceToken.Span;
+                    TextSpan cBspan = ((BlockSyntax)original.Syntax).CloseBraceToken.Span;
                     return new BoundSequencePointWithSpan(original.Syntax, previous, cBspan);
                 }
             }

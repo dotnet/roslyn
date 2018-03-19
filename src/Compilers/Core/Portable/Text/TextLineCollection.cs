@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         public virtual LinePosition GetLinePosition(int position)
         {
-            var line = GetLineFromPosition(position);
+            TextLine line = GetLineFromPosition(position);
             return new LinePosition(line.LineNumber, position - line.Start);
         }
 

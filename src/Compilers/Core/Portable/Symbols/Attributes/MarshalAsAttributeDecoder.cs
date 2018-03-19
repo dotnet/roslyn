@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis
             bool hasErrors = false;
 
             int position = 1;
-            foreach (var namedArg in arguments.Attribute.NamedArguments)
+            foreach (System.Collections.Generic.KeyValuePair<string, TypedConstant> namedArg in arguments.Attribute.NamedArguments)
             {
                 switch (namedArg.Key)
                 {
@@ -174,7 +174,7 @@ namespace Microsoft.CodeAnalysis
             int position = 1;
             bool hasErrors = false;
 
-            foreach (var namedArg in arguments.Attribute.NamedArguments)
+            foreach (System.Collections.Generic.KeyValuePair<string, TypedConstant> namedArg in arguments.Attribute.NamedArguments)
             {
                 switch (namedArg.Key)
                 {
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis
             bool hasErrors = false;
 
             int position = 1;
-            foreach (var namedArg in arguments.Attribute.NamedArguments)
+            foreach (System.Collections.Generic.KeyValuePair<string, TypedConstant> namedArg in arguments.Attribute.NamedArguments)
             {
                 switch (namedArg.Key)
                 {
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis
 
             if (!hasErrors)
             {
-                var data = arguments.GetOrCreateData<TWellKnownAttributeData>().GetOrCreateData();
+                MarshalPseudoCustomAttributeData data = arguments.GetOrCreateData<TWellKnownAttributeData>().GetOrCreateData();
                 if (isFixed)
                 {
                     data.SetMarshalAsFixedArray(elementType, elementCount);
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis
             bool hasErrors = false;
 
             int position = 1;
-            foreach (var namedArg in arguments.Attribute.NamedArguments)
+            foreach (System.Collections.Generic.KeyValuePair<string, TypedConstant> namedArg in arguments.Attribute.NamedArguments)
             {
                 switch (namedArg.Key)
                 {
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis
             int position = 1;
             bool hasErrors = false;
 
-            foreach (var namedArg in arguments.Attribute.NamedArguments)
+            foreach (System.Collections.Generic.KeyValuePair<string, TypedConstant> namedArg in arguments.Attribute.NamedArguments)
             {
                 switch (namedArg.Key)
                 {

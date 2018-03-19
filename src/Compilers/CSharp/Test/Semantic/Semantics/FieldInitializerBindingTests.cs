@@ -238,14 +238,14 @@ class C
 
         private static void CompileAndCheckInitializers(string source, IEnumerable<ExpectedInitializer> expectedInstanceInitializers, IEnumerable<ExpectedInitializer> expectedStaticInitializers)
         {
-            var compilation = CreateCompilation(source);
-            var syntaxTree = compilation.SyntaxTrees.First();
+            CSharpCompilation compilation = CreateCompilation(source);
+            SyntaxTree syntaxTree = compilation.SyntaxTrees.First();
             var typeSymbol = (SourceNamedTypeSymbol)compilation.GlobalNamespace.GetMembers("C").Single();
 
-            var boundInstanceInitializers = BindInitializersWithoutDiagnostics(typeSymbol, typeSymbol.InstanceInitializers);
+            ImmutableArray<BoundInitializer> boundInstanceInitializers = BindInitializersWithoutDiagnostics(typeSymbol, typeSymbol.InstanceInitializers);
             CheckBoundInitializers(expectedInstanceInitializers, syntaxTree, boundInstanceInitializers, isStatic: false);
 
-            var boundStaticInitializers = BindInitializersWithoutDiagnostics(typeSymbol, typeSymbol.StaticInitializers);
+            ImmutableArray<BoundInitializer> boundStaticInitializers = BindInitializersWithoutDiagnostics(typeSymbol, typeSymbol.StaticInitializers);
             CheckBoundInitializers(expectedStaticInitializers, syntaxTree, boundStaticInitializers, isStatic: true);
         }
 
@@ -264,14 +264,14 @@ class C
                 Assert.Equal(numInitializers, boundInitializers.Length);
 
                 int i = 0;
-                foreach (var expectedInitializer in expectedInitializers)
+                foreach (ExpectedInitializer expectedInitializer in expectedInitializers)
                 {
-                    var boundInit = boundInitializers[i++];
+                    BoundInitializer boundInit = boundInitializers[i++];
                     Assert.Equal(BoundKind.FieldEqualsValue, boundInit.Kind);
 
                     var boundFieldInit = (BoundFieldEqualsValue)boundInit;
 
-                    var initValueSyntax = boundFieldInit.Value.Syntax;
+                    SyntaxNode initValueSyntax = boundFieldInit.Value.Syntax;
                     Assert.Same(initValueSyntax.Parent, boundInit.Syntax);
                     Assert.Equal(expectedInitializer.InitialValue, initValueSyntax.ToFullString());
 

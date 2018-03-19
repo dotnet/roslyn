@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis
             : this(comparer)
         {
             // TODO: if comparers are same (often they are), then just need to clone the tree.
-            foreach (var kv in other)
+            foreach (KeyValuePair<K, V> kv in other)
             {
                 this.Add(kv.Key, kv.Value);
             }
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis
             Debug.Assert(unbalanced != currentNode);
 
             // ====== update balances on the path from unbalanced downwards
-            var n = unbalanced;
+            AvlNode n = unbalanced;
             do
             {
                 Debug.Assert(n.HashCode != hashCode);
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis
 
         private static AvlNode LeftSimple(AvlNode unbalanced)
         {
-            var right = unbalanced.Right;
+            AvlNode right = unbalanced.Right;
             unbalanced.Right = right.Left;
             right.Left = unbalanced;
 
@@ -370,7 +370,7 @@ namespace Microsoft.CodeAnalysis
 
         private static AvlNode RightSimple(AvlNode unbalanced)
         {
-            var left = unbalanced.Left;
+            AvlNode left = unbalanced.Left;
             unbalanced.Left = left.Right;
             left.Right = unbalanced;
 
@@ -381,8 +381,8 @@ namespace Microsoft.CodeAnalysis
 
         private static AvlNode LeftComplex(AvlNode unbalanced)
         {
-            var right = unbalanced.Right;
-            var rightLeft = right.Left;
+            AvlNode right = unbalanced.Right;
+            AvlNode rightLeft = right.Left;
             right.Left = rightLeft.Right;
             rightLeft.Right = right;
             unbalanced.Right = rightLeft.Left;
@@ -407,8 +407,8 @@ namespace Microsoft.CodeAnalysis
 
         private static AvlNode RightComplex(AvlNode unbalanced)
         {
-            var left = unbalanced.Left;
-            var leftRight = left.Right;
+            AvlNode left = unbalanced.Left;
+            AvlNode leftRight = left.Right;
             left.Right = leftRight.Left;
             leftRight.Left = left;
             unbalanced.Left = leftRight.Right;
@@ -505,7 +505,7 @@ namespace Microsoft.CodeAnalysis
                 public Enumerator(SmallDictionary<K, V> dict)
                     : this()
                 {
-                    var root = dict._root;
+                    AvlNode root = dict._root;
                     if (root != null)
                     {
                         // left == right only if both are nulls
@@ -537,7 +537,7 @@ namespace Microsoft.CodeAnalysis
                         return false;
                     }
 
-                    var curr = _stack.Pop();
+                    AvlNode curr = _stack.Pop();
                     _current = curr;
                     _next = curr.Next;
 
@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis
                 public Enumerator(SmallDictionary<K, V> dict)
                     : this()
                 {
-                    var root = dict._root;
+                    AvlNode root = dict._root;
                     if (root == null)
                     {
                         return;
@@ -654,7 +654,7 @@ namespace Microsoft.CodeAnalysis
                         return false;
                     }
 
-                    var curr = _stack.Pop();
+                    AvlNode curr = _stack.Pop();
                     _current = curr;
                     _next = curr.Next;
 
@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis
             public Enumerator(SmallDictionary<K, V> dict)
                 : this()
             {
-                var root = dict._root;
+                AvlNode root = dict._root;
                 if (root == null)
                 {
                     return;
@@ -760,7 +760,7 @@ namespace Microsoft.CodeAnalysis
                     return false;
                 }
 
-                var curr = _stack.Pop();
+                AvlNode curr = _stack.Pop();
                 _current = curr;
                 _next = curr.Next;
 
@@ -826,7 +826,7 @@ namespace Microsoft.CodeAnalysis
         {
             // height is less than 1.5 * depth(leftmost node)
             var h = 0;
-            var cur = _root;
+            AvlNode cur = _root;
             while (cur != null)
             {
                 h++;

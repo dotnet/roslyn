@@ -30,7 +30,7 @@ namespace Microsoft.Cci
             Visit(module.GetSourceModuleAttributes());
             Visit(module.GetTopLevelTypes(Context));
 
-            foreach (var exportedType in module.GetExportedTypes(Context.Diagnostics))
+            foreach (ExportedType exportedType in module.GetExportedTypes(Context.Diagnostics))
             {
                 VisitExportedType(exportedType.Type);
             }
@@ -44,7 +44,7 @@ namespace Microsoft.Cci
         {
             // Do not visit the reference to aliased type, it does not get into the type ref table based only on its membership of the exported types collection.
             // but DO visit the reference to assembly (if any) that defines the aliased type. That assembly might not already be in the assembly reference list.
-            var definingUnit = MetadataWriter.GetDefiningUnitReference(exportedType, Context);
+            IUnitReference definingUnit = MetadataWriter.GetDefiningUnitReference(exportedType, Context);
             var definingAssembly = definingUnit as IAssemblyReference;
             if (definingAssembly != null)
             {
@@ -101,7 +101,7 @@ namespace Microsoft.Cci
         {
             if (method.HasBody() && !metadataWriter.MetadataOnly)
             {
-                var body = method.GetBody(Context);
+                IMethodBody body = method.GetBody(Context);
 
                 if (body != null)
                 {
@@ -136,7 +136,7 @@ namespace Microsoft.Cci
             // We include these references regardless of the format for debugging information 
             // to avoid dependency of metadata on the chosen debug format.
 
-            foreach (var import in imports)
+            foreach (UsedNamespaceOrType import in imports)
             {
                 if (import.TargetAssemblyOpt != null)
                 {

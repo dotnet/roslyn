@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             // one.  If there is no next or previous comma there's nothing
             // in the list that needs to be fixed up.
 
-            var node = nodesAndSeparators[nodeIndex].AsNode();
+            SyntaxNode node = nodesAndSeparators[nodeIndex].AsNode();
 
             nextTokenIsSeparator =
                 nodeIndex + 1 < nodesAndSeparators.Count &&

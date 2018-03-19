@@ -30,7 +30,7 @@ namespace Roslyn.Utilities.UnitTests.InternalUtilities
             });
 
             var destArray = new byte[4];
-            var destCopy = destArray.AsImmutable();
+            System.Collections.Immutable.ImmutableArray<byte> destCopy = destArray.AsImmutable();
             // Note: Buffer is in undefined state after receiving an exception
             Assert.Equal(sourceArray.Length, stream.TryReadAll(destArray, 0, sourceArray.Length));
             Assert.Equal(sourceArray, destArray);
@@ -75,7 +75,7 @@ namespace Roslyn.Utilities.UnitTests.InternalUtilities
             });
 
             var destArray = new byte[4];
-            var destCopy = destArray.AsImmutable();
+            System.Collections.Immutable.ImmutableArray<byte> destCopy = destArray.AsImmutable();
             // Note: Buffer is in undefined state after receiving an exception
             Assert.Throws<IOException>(() => stream.TryReadAll(destArray, 0, sourceArray.Length));
             Assert.NotEqual(destArray, destCopy);

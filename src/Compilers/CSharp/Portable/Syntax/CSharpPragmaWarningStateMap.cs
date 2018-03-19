@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         // Add all active #pragma warn directives under trivia into the list, in source code order.
         private static void GetAllPragmaWarningDirectives(SyntaxTree syntaxTree, ArrayBuilder<PragmaWarningDirectiveTriviaSyntax> directiveList)
         {
-            foreach (var d in syntaxTree.GetRoot().GetDirectives())
+            foreach (DirectiveTriviaSyntax d in syntaxTree.GetRoot().GetDirectives())
             {
                 if (d.Kind() == SyntaxKind.PragmaWarningDirectiveTrivia)
                 {
@@ -52,17 +52,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             entries[index] = current;
 
             // Captures the general reporting option, accumulated of all #pragma up to the current directive.
-            var accumulatedGeneralWarningState = ReportDiagnostic.Default;
+            ReportDiagnostic accumulatedGeneralWarningState = ReportDiagnostic.Default;
 
             // Captures the mapping of a warning number to the reporting option, accumulated of all #pragma up to the current directive.
             var accumulatedSpecificWarningState = ImmutableDictionary.Create<string, ReportDiagnostic>();
 
             while (index < directiveList.Length)
             {
-                var currentDirective = directiveList[index];
+                PragmaWarningDirectiveTriviaSyntax currentDirective = directiveList[index];
 
                 // Compute the directive state (either Disable or Restore)
-                var directiveState = currentDirective.DisableOrRestoreKeyword.Kind() == SyntaxKind.DisableKeyword ? ReportDiagnostic.Suppress : ReportDiagnostic.Default;
+                ReportDiagnostic directiveState = currentDirective.DisableOrRestoreKeyword.Kind() == SyntaxKind.DisableKeyword ? ReportDiagnostic.Suppress : ReportDiagnostic.Default;
 
                 // Check if this directive applies for all (e.g., #pragma warning disable)
                 if (currentDirective.ErrorCodes.Count == 0)
@@ -76,14 +76,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     // Compute warning numbers from the current directive's codes
                     for (int x = 0; x < currentDirective.ErrorCodes.Count; x++)
                     {
-                        var currentErrorCode = currentDirective.ErrorCodes[x];
+                        ExpressionSyntax currentErrorCode = currentDirective.ErrorCodes[x];
                         if (currentErrorCode.IsMissing || currentErrorCode.ContainsDiagnostics)
                             continue;
 
                         var errorId = string.Empty;
                         if (currentErrorCode.Kind() == SyntaxKind.NumericLiteralExpression)
                         {
-                            var token = ((LiteralExpressionSyntax)currentErrorCode).Token;
+                            SyntaxToken token = ((LiteralExpressionSyntax)currentErrorCode).Token;
                             errorId = MessageProvider.Instance.GetIdForErrorCode((int)token.Value);
                         }
                         else if (currentErrorCode.Kind() == SyntaxKind.IdentifierName)

@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal static StructuredTriviaSyntax Create(SyntaxTrivia trivia)
         {
-            var node = trivia.UnderlyingNode;
-            var parent = trivia.Token.Parent;
+            GreenNode node = trivia.UnderlyingNode;
+            SyntaxNode parent = trivia.Token.Parent;
             var position = trivia.Position;
             var red = (StructuredTriviaSyntax)node.CreateRed(parent, position);
             red._parent = trivia;

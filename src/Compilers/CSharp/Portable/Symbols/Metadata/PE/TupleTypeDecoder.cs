@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var decoder = new TupleTypeDecoder(elementNames);
             try
             {
-                var decoded = decoder.DecodeType(metadataType);
+                TypeSymbol decoded = decoder.DecodeType(metadataType);
                 // If not all of the names have been used, the metadata is bad
                 if (!hasTupleElementNamesAttribute ||
                     decoder._namesIndex == 0)
@@ -169,8 +169,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private NamedTypeSymbol DecodeNamedType(NamedTypeSymbol type)
         {
             // First decode the type arguments
-            var typeArgs = type.TypeArgumentsNoUseSiteDiagnostics;
-            var decodedArgs = DecodeTypeArguments(typeArgs);
+            ImmutableArray<TypeSymbol> typeArgs = type.TypeArgumentsNoUseSiteDiagnostics;
+            ImmutableArray<TypeSymbol> decodedArgs = DecodeTypeArguments(typeArgs);
 
             NamedTypeSymbol decodedType = type;
 
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var typeArgsChanged = typeArgs != decodedArgs;
             if (typeArgsChanged || containerChanged)
             {
-                var newTypeArgs = type.HasTypeArgumentsCustomModifiers
+                ImmutableArray<TypeWithModifiers> newTypeArgs = type.HasTypeArgumentsCustomModifiers
                     ? decodedArgs.SelectAsArray((t, i, m) => new TypeWithModifiers(t, m.GetTypeArgumentCustomModifiers(i)), type)
                     : decodedArgs.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers);
 
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             int tupleCardinality;
             if (decodedType.IsTupleCompatible(out tupleCardinality))
             {
-                var elementNames = EatElementNamesIfAvailable(tupleCardinality);
+                ImmutableArray<string> elementNames = EatElementNamesIfAvailable(tupleCardinality);
 
                 Debug.Assert(elementNames.IsDefault || elementNames.Length == tupleCardinality);
 
@@ -235,8 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             // Visit the type arguments in reverse
             for (int i = typeArgs.Length - 1; i >= 0; i--)
             {
-                var typeArg = typeArgs[i];
-                var decoded = DecodeType(typeArg);
+                TypeSymbol typeArg = typeArgs[i];
+                TypeSymbol decoded = DecodeType(typeArg);
                 anyDecoded |= !ReferenceEquals(decoded, typeArg);
                 decodedArgs.Add(decoded);
             }
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ArrayTypeSymbol DecodeArrayType(ArrayTypeSymbol type)
         {
-            var decodedElementType = DecodeType(type.ElementType);
+            TypeSymbol decodedElementType = DecodeType(type.ElementType);
             return ReferenceEquals(decodedElementType, type.ElementType)
                 ? type
                 : type.WithElementType(decodedElementType);

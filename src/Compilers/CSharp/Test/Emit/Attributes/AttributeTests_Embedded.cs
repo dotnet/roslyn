@@ -43,7 +43,7 @@ class Program
         [Fact]
         public void ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Internal()
         {
-            var reference = CreateCompilation(@"
+            CSharpCompilation reference = CreateCompilation(@"
 [assembly:System.Runtime.CompilerServices.InternalsVisibleToAttribute(""Source"")]
 namespace Microsoft.CodeAnalysis
 {
@@ -83,7 +83,7 @@ class Program
         [Fact]
         public void ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Module()
         {
-            var module = CreateCompilation(@"
+            CSharpCompilation module = CreateCompilation(@"
 namespace Microsoft.CodeAnalysis
 {
     internal class EmbeddedAttribute : System.Attribute { }
@@ -99,7 +99,7 @@ namespace TestReference
     internal class TestType3 { }
 }", options: TestOptions.ReleaseModule);
 
-            var reference = ModuleMetadata.CreateFromImage(module.EmitToArray()).GetReference();
+            PortableExecutableReference reference = ModuleMetadata.CreateFromImage(module.EmitToArray()).GetReference();
 
             var code = @"
 class Program
@@ -124,7 +124,7 @@ class Program
         [Fact]
         public void ReferencingEmbeddedAttributesFromADifferentAssemblyFails_Public()
         {
-            var reference = CreateCompilation(@"
+            CSharpCompilation reference = CreateCompilation(@"
 namespace Microsoft.CodeAnalysis
 {
     internal class EmbeddedAttribute : System.Attribute { }
@@ -213,13 +213,13 @@ class Test
         [Fact]
         public void EmbeddedAttributeInReferencedModuleShouldTriggerAnErrorIfCompilerNeedsToGenerateOne()
         {
-            var module = CreateCompilation(options: TestOptions.ReleaseModule, assemblyName: "testModule", source: @"
+            CSharpCompilation module = CreateCompilation(options: TestOptions.ReleaseModule, assemblyName: "testModule", source: @"
 namespace Microsoft.CodeAnalysis
 {
     public class EmbeddedAttribute : System.Attribute { }
 }");
 
-            var moduleRef = ModuleMetadata.CreateFromImage(module.EmitToArray()).GetReference();
+            PortableExecutableReference moduleRef = ModuleMetadata.CreateFromImage(module.EmitToArray()).GetReference();
 
             var code = @"
 class Test
@@ -238,7 +238,7 @@ class Test
         [Fact]
         public void EmbeddedAttributeForwardedToAnotherAssemblyShouldTriggerAnError()
         {
-            var reference = CreateCompilation(@"
+            CompilationReference reference = CreateCompilation(@"
 namespace Microsoft.CodeAnalysis
 {
     public class EmbeddedAttribute : System.Attribute { }
@@ -262,7 +262,7 @@ class Test
         [Fact]
         public void CompilerShouldIgnorePublicEmbeddedAttributesInReferencedAssemblies()
         {
-            var reference = CreateCompilation(assemblyName: "testRef", source: @"
+            CompilationReference reference = CreateCompilation(assemblyName: "testRef", source: @"
 namespace Microsoft.CodeAnalysis
 {
     public class EmbeddedAttribute : System.Attribute { }
@@ -286,10 +286,10 @@ class Test
             {
                 var attributeName = AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName;
 
-                var referenceAttribute = module.GetReferencedAssemblySymbols().Single(assembly => assembly.Name == "testRef").GetTypeByMetadataName(attributeName);
+                Symbols.NamedTypeSymbol referenceAttribute = module.GetReferencedAssemblySymbols().Single(assembly => assembly.Name == "testRef").GetTypeByMetadataName(attributeName);
                 Assert.NotNull(referenceAttribute);
 
-                var generatedAttribute = module.ContainingAssembly.GetTypeByMetadataName(attributeName);
+                Symbols.NamedTypeSymbol generatedAttribute = module.ContainingAssembly.GetTypeByMetadataName(attributeName);
                 Assert.NotNull(generatedAttribute);
 
                 Assert.False(referenceAttribute.Equals(generatedAttribute));
@@ -413,7 +413,7 @@ public class Test
         [Fact]
         public void EmbeddedTypesInAnAssemblyAreNotExposedExternally()
         {
-            var compilation1 = CreateCompilation(@"
+            CSharpCompilation compilation1 = CreateCompilation(@"
 namespace Microsoft.CodeAnalysis
 {
     public class EmbeddedAttribute : System.Attribute { }
@@ -426,7 +426,7 @@ public class TestReference2 { }
             Assert.NotNull(compilation1.GetTypeByMetadataName("TestReference1"));
             Assert.NotNull(compilation1.GetTypeByMetadataName("TestReference2"));
 
-            var compilation2 = CreateCompilation("", references: new[] { compilation1.EmitToImageReference() });
+            CSharpCompilation compilation2 = CreateCompilation("", references: new[] { compilation1.EmitToImageReference() });
 
             Assert.Null(compilation2.GetTypeByMetadataName("TestReference1"));
             Assert.NotNull(compilation2.GetTypeByMetadataName("TestReference2"));

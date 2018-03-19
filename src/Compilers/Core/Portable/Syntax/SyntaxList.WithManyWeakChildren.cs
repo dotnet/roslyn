@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Syntax
                 var childOffsets = new int[count];
 
                 int childPosition = position;
-                var greenChildren = green.children;
+                ArrayElement<GreenNode>[] greenChildren = green.children;
                 for (int i = 0; i < childOffsets.Length; ++i)
                 {
                     childOffsets[i] = childPosition;

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode node;
             TextSpan? part;
             GetBreakpointSpan(declaratorSyntax, out node, out part);
-            var result = BoundSequencePoint.Create(declaratorSyntax, part, rewrittenStatement);
+            BoundStatement result = BoundSequencePoint.Create(declaratorSyntax, part, rewrittenStatement);
             result.WasCompilerGenerated = rewrittenStatement.WasCompilerGenerated;
             return result;
         }
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int end = declarationSyntax.Initializer.Span.End;
             TextSpan part = TextSpan.FromBounds(start, end);
 
-            var result = BoundSequencePoint.Create(declarationSyntax, part, rewrittenStatement);
+            BoundStatement result = BoundSequencePoint.Create(declarationSyntax, part, rewrittenStatement);
             result.WasCompilerGenerated = rewrittenStatement.WasCompilerGenerated;
             return result;
         }
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.EventFieldDeclaration:
                     case SyntaxKind.FieldDeclaration:
-                        var modifiers = ((BaseFieldDeclarationSyntax)declarationSyntax.Parent).Modifiers;
+                        SyntaxTokenList modifiers = ((BaseFieldDeclarationSyntax)declarationSyntax.Parent).Modifiers;
                         GetFirstLocalOrFieldBreakpointSpan(modifiers, declaratorSyntax, out node, out part);
                         break;
 
@@ -187,11 +187,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // The local has to be associated with a syntax that is tracked by EnC source mapping.
             // At most one ConditionalBranchDiscriminator variable shall be associated with any given EnC tracked syntax node.
-            var local = factory.SynthesizedLocal(condition.Type, synthesizedVariableSyntax, kind: SynthesizedLocalKind.ConditionalBranchDiscriminator);
+            LocalSymbol local = factory.SynthesizedLocal(condition.Type, synthesizedVariableSyntax, kind: SynthesizedLocalKind.ConditionalBranchDiscriminator);
 
             // Add hidden sequence point unless the condition is a constant expression.
             // Constant expression must stay a const to not invalidate results of control flow analysis.
-            var valueExpression = (condition.ConstantValue == null) ?
+            BoundExpression valueExpression = (condition.ConstantValue == null) ?
                 new BoundSequencePointExpression(syntax: null, expression: factory.Local(local), type: condition.Type) :
                 condition;
 

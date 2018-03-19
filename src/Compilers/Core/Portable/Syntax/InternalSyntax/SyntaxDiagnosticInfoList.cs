@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
         internal bool Any(Func<DiagnosticInfo, bool> predicate)
         {
-            var enumerator = GetEnumerator();
+            Enumerator enumerator = GetEnumerator();
             while (enumerator.MoveNext())
             {
                 if (predicate(enumerator.Current))
@@ -69,8 +69,8 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 while (_count > 0)
                 {
                     var diagIndex = _stack[_count - 1].DiagnosticIndex;
-                    var node = _stack[_count - 1].Node;
-                    var diags = node.GetDiagnostics();
+                    GreenNode node = _stack[_count - 1].Node;
+                    DiagnosticInfo[] diags = node.GetDiagnostics();
                     if (diagIndex < diags.Length - 1)
                     {
                         diagIndex++;
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                     if (slotIndex < node.SlotCount - 1)
                     {
                         slotIndex++;
-                        var child = node.GetSlot(slotIndex);
+                        GreenNode child = node.GetSlot(slotIndex);
                         if (child == null || !child.ContainsDiagnostics)
                         {
                             goto tryAgain;
@@ -116,14 +116,14 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
 
             private void PushToken(GreenNode token)
             {
-                var trailing = token.GetTrailingTriviaCore();
+                GreenNode trailing = token.GetTrailingTriviaCore();
                 if (trailing != null)
                 {
                     this.Push(trailing);
                 }
 
                 this.Push(token);
-                var leading = token.GetLeadingTriviaCore();
+                GreenNode leading = token.GetLeadingTriviaCore();
                 if (leading != null)
                 {
                     this.Push(leading);

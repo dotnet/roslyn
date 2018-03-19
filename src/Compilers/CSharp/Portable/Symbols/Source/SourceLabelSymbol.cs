@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private string MakeLabelName()
         {
-            var node = _identifierNodeOrToken.AsNode();
+            SyntaxNode node = _identifierNodeOrToken.AsNode();
             if (node != null)
             {
                 if (node.Kind() == SyntaxKind.DefaultSwitchLabel)
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return node.ToString();
             }
 
-            var tk = _identifierNodeOrToken.AsToken();
+            SyntaxToken tk = _identifierNodeOrToken.AsToken();
             if (tk.Kind() != SyntaxKind.None)
             {
                 return tk.ValueText;

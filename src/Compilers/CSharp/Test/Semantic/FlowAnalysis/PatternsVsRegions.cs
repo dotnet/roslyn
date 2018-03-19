@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void RegionInIsPattern01()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(
 @"class Program
 {
     public static void Main(string[] args)
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void RegionInIsPattern02()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(
 @"class Program
 {
     public static void Main(string[] args)
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void RegionInIsPattern03()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(
 @"class Program
 {
     public static void Main(string[] args)
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void RegionInIsPattern04()
         {
-            var dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(
+            DataFlowAnalysis dataFlowAnalysisResults = CompileAndAnalyzeDataFlowExpression(
 @"class Program
 {
     public static void Main(string[] args)

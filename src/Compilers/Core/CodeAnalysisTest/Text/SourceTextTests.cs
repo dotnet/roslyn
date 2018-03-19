@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         public void ChecksumAndBOM()
         {
             const string source = "Hello, World!";
-            var checksumAlgorithm = SourceHashAlgorithm.Sha1;
+            SourceHashAlgorithm checksumAlgorithm = SourceHashAlgorithm.Sha1;
             var encodingNoBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
             var encodingBOM = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
 
@@ -166,14 +166,14 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         {
             var span = new TextSpan(0, 1);
             var change = new TextChange(span, text.ToString(span));
-            var changed = text.WithChanges(change);
+            SourceText changed = text.WithChanges(change);
             Assert.NotEqual(text, changed);
             return changed;
         }
 
         private static void VerifyChecksum(SourceText text, ImmutableArray<byte> expectedChecksum)
         {
-            var actualChecksum = text.GetChecksum();
+            ImmutableArray<byte> actualChecksum = text.GetChecksum();
             Assert.Equal<byte>(expectedChecksum, actualChecksum);
         }
 
@@ -186,8 +186,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
             Assert.False(f.ContentEquals(SourceText.From(HelloWorld + "o", s_utf8)));
             Assert.True(SourceText.From(HelloWorld, s_utf8).ContentEquals(SourceText.From(HelloWorld, s_utf8)));
 
-            var e1 = EncodedStringText.Create(new MemoryStream(s_unicode.GetBytes(HelloWorld)), s_unicode);
-            var e2 = EncodedStringText.Create(new MemoryStream(s_utf8.GetBytes(HelloWorld)), s_utf8);
+            SourceText e1 = EncodedStringText.Create(new MemoryStream(s_unicode.GetBytes(HelloWorld)), s_unicode);
+            SourceText e2 = EncodedStringText.Create(new MemoryStream(s_utf8.GetBytes(HelloWorld)), s_utf8);
 
             Assert.True(e1.ContentEquals(e1));
             Assert.True(f.ContentEquals(e1));

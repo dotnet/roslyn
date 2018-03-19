@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         protected void CheckAccessibility(DiagnosticBag diagnostics)
         {
-            var info = ModifierUtils.CheckAccessibility(Modifiers);
+            CSDiagnosticInfo info = ModifierUtils.CheckAccessibility(Modifiers);
             if (info != null)
             {
                 diagnostics.Add(new CSDiagnostic(info, this.ErrorLocation));
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
-            var attribute = arguments.Attribute;
+            CSharpAttributeData attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal sealed override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
         {
-            var value = this.GetLazyConstantValue(earlyDecodingWellKnownAttributes);
+            ConstantValue value = this.GetLazyConstantValue(earlyDecodingWellKnownAttributes);
             if (value != Microsoft.CodeAnalysis.ConstantValue.Unset)
             {
                 return value;
@@ -237,12 +237,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             this.OrderAllDependencies(order, earlyDecodingWellKnownAttributes);
 
             // Evaluate fields in order.
-            foreach (var info in order)
+            foreach (ConstantEvaluationHelpers.FieldInfo info in order)
             {
                 // Bind the field value regardless of whether the field represents
                 // the start of a cycle. In the cycle case, there will be unevaluated
                 // dependencies and the result will be ConstantValue.Bad plus cycle error.
-                var field = info.Field;
+                SourceFieldSymbolWithSyntaxReference field = info.Field;
                 field.BindConstantValueIfNecessary(earlyDecodingWellKnownAttributes, startsCycle: info.StartsCycle);
             }
 
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal ImmutableHashSet<SourceFieldSymbolWithSyntaxReference> GetConstantValueDependencies(bool earlyDecodingWellKnownAttributes)
         {
-            var value = this.GetLazyConstantValue(earlyDecodingWellKnownAttributes);
+            ConstantValue value = this.GetLazyConstantValue(earlyDecodingWellKnownAttributes);
             if (value != Microsoft.CodeAnalysis.ConstantValue.Unset)
             {
                 // Constant value already determined. No need to
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_CircConstValue, _location, this);
             }
 
-            var value = MakeConstantValue(builder, earlyDecodingWellKnownAttributes, diagnostics);
+            ConstantValue value = MakeConstantValue(builder, earlyDecodingWellKnownAttributes, diagnostics);
             this.SetLazyConstantValue(
                 value,
                 earlyDecodingWellKnownAttributes,

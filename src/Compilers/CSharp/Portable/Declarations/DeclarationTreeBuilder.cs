@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasGlobalMembers = false;
 
             var childrenBuilder = ArrayBuilder<SingleNamespaceOrTypeDeclaration>.GetInstance();
-            foreach (var member in members)
+            foreach (MemberDeclarationSyntax member in members)
             {
                 SingleNamespaceOrTypeDeclaration namespaceOrType = Visit(member);
                 if (namespaceOrType != null)
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //The implicit class is not static and has no extensions
                 SingleTypeDeclaration.TypeDeclarationFlags declFlags = SingleTypeDeclaration.TypeDeclarationFlags.None;
                 var memberNames = GetNonTypeMemberNames(internalMembers, ref declFlags);
-                var container = _syntaxTree.GetReference(node);
+                SyntaxReference container = _syntaxTree.GetReference(node);
 
                 childrenBuilder.Add(CreateImplicitClass(memberNames, container, declFlags));
             }
@@ -103,13 +103,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(_syntaxTree.Options.Kind != SourceCodeKind.Regular);
 
-            var members = compilationUnit.Members;
+            SyntaxList<MemberDeclarationSyntax> members = compilationUnit.Members;
             var rootChildren = ArrayBuilder<SingleNamespaceOrTypeDeclaration>.GetInstance();
             var scriptChildren = ArrayBuilder<SingleTypeDeclaration>.GetInstance();
 
-            foreach (var member in members)
+            foreach (MemberDeclarationSyntax member in members)
             {
-                var decl = Visit(member);
+                SingleNamespaceOrTypeDeclaration decl = Visit(member);
                 if (decl != null)
                 {
                     // Although namespaces are not allowed in script code process them 
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var directives = ArrayBuilder<ReferenceDirective>.GetInstance(directiveNodes.Count);
-            foreach (var directiveNode in directiveNodes)
+            foreach (ReferenceDirectiveTriviaSyntax directiveNode in directiveNodes)
             {
                 directives.Add(new ReferenceDirective(directiveNode.File.ValueText, new SourceLocation(directiveNode)));
             }
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(parent.Kind() == SyntaxKind.CompilationUnit && _syntaxTree.Options.Kind != SourceCodeKind.Regular);
 
             // script type is represented by the parent node:
-            var parentReference = _syntaxTree.GetReference(parent);
+            SyntaxReference parentReference = _syntaxTree.GetReference(parent);
             var fullName = _scriptClassName.Split('.');
 
             // Note: The symbol representing the merged declarations uses parentReference to enumerate non-type members.
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateScriptRootDeclaration(compilationUnit);
             }
 
-            var children = VisitNamespaceChildren(compilationUnit, compilationUnit.Members, ((Syntax.InternalSyntax.CompilationUnitSyntax)(compilationUnit.Green)).Members);
+            ImmutableArray<SingleNamespaceOrTypeDeclaration> children = VisitNamespaceChildren(compilationUnit, compilationUnit.Members, ((Syntax.InternalSyntax.CompilationUnitSyntax)(compilationUnit.Green)).Members);
 
             return new RootSingleNamespaceDeclaration(
                 hasUsings: compilationUnit.Usings.Any(),
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SingleNamespaceOrTypeDeclaration VisitNamespaceDeclaration(NamespaceDeclarationSyntax node)
         {
-            var children = VisitNamespaceChildren(node, node.Members, node.Green.Members);
+            ImmutableArray<SingleNamespaceOrTypeDeclaration> children = VisitNamespaceChildren(node, node.Members, node.Green.Members);
 
             bool hasUsings = node.Usings.Any();
             bool hasExterns = node.Externs.Any();
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     children: children,
                     diagnostics: ImmutableArray<Diagnostic>.Empty);
 
-                var nsDeclaration = new[] { ns };
+                SingleNamespaceDeclaration[] nsDeclaration = new[] { ns };
                 children = nsDeclaration.AsImmutableOrNull<SingleNamespaceOrTypeDeclaration>();
                 currentNode = name = dotted.Left;
                 hasUsings = false;
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var children = ArrayBuilder<SingleTypeDeclaration>.GetInstance();
-            foreach (var member in node.Members)
+            foreach (MemberDeclarationSyntax member in node.Members)
             {
                 var typeDecl = Visit(member) as SingleTypeDeclaration;
                 if (typeDecl != null)
@@ -375,7 +375,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SingleNamespaceOrTypeDeclaration VisitDelegateDeclaration(DelegateDeclarationSyntax node)
         {
-            var declFlags = node.AttributeLists.Any()
+            SingleTypeDeclaration.TypeDeclarationFlags declFlags = node.AttributeLists.Any()
                 ? SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes 
                 : SingleTypeDeclaration.TypeDeclarationFlags.None;
 
@@ -404,7 +404,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override SingleNamespaceOrTypeDeclaration VisitEnumDeclaration(EnumDeclarationSyntax node)
         {
-            var members = node.Members;
+            SeparatedSyntaxList<EnumMemberDeclarationSyntax> members = node.Members;
 
             SingleTypeDeclaration.TypeDeclarationFlags declFlags = node.AttributeLists.Any() ?
                 SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes :
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             int i = 0;
             bool anyMemberHasAttributes = false;
-            foreach (var member in members)
+            foreach (EnumMemberDeclarationSyntax member in members)
             {
                 memberNames[i++] = member.Identifier.ValueText;
                 if (!anyMemberHasAttributes && member.AttributeLists.Any())
@@ -471,7 +471,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var set = PooledHashSet<string>.GetInstance();
 
-            foreach (var member in members)
+            foreach (Syntax.InternalSyntax.MemberDeclarationSyntax member in members)
             {
                 AddNonTypeMemberNames(member, set, ref anyNonTypeMembers);
 
@@ -527,15 +527,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var methodDecl = (Syntax.InternalSyntax.MethodDeclarationSyntax)member;
 
-                var paramList = methodDecl.parameterList;
+                Syntax.InternalSyntax.ParameterListSyntax paramList = methodDecl.parameterList;
                 if (paramList != null)
                 {
-                    var parameters = paramList.Parameters;
+                    CoreInternalSyntax.SeparatedSyntaxList<Syntax.InternalSyntax.ParameterSyntax> parameters = paramList.Parameters;
 
                     if (parameters.Count != 0)
                     {
-                        var firstParameter = parameters[0];
-                        foreach (var modifier in firstParameter.Modifiers)
+                        Syntax.InternalSyntax.ParameterSyntax firstParameter = parameters[0];
+                        foreach (Syntax.InternalSyntax.SyntaxToken modifier in firstParameter.Modifiers)
                         {
                             if (modifier.Kind == SyntaxKind.ThisKeyword)
                             {
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!hasAttributes && baseProp.AccessorList != null)
                     {
-                        foreach (var accessor in baseProp.AccessorList.Accessors)
+                        foreach (Syntax.InternalSyntax.AccessorDeclarationSyntax accessor in baseProp.AccessorList.Accessors)
                         {
                             hasAttributes |= accessor.AttributeLists.Any();
                         }

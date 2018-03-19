@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new ArgumentNullException(nameof(fullyQualifiedMetadataName));
             }
 
-            return this.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: false, isWellKnownType: false, conflicts: out var _);
+            return this.GetTypeByMetadataName(fullyQualifiedMetadataName, includeReferences: false, isWellKnownType: false, conflicts: out (AssemblySymbol, AssemblySymbol) _);
         }
 
         /// <summary>
@@ -632,7 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Type[] genericArguments = typeInfo.GenericTypeArguments;
                 int typeArgumentIndex = 0;
 
-                var currentTypeInfo = typeInfo.IsGenericType ? typeInfo.GetGenericTypeDefinition().GetTypeInfo() : typeInfo;
+                System.Reflection.TypeInfo currentTypeInfo = typeInfo.IsGenericType ? typeInfo.GetGenericTypeDefinition().GetTypeInfo() : typeInfo;
                 var nestedTypes = ArrayBuilder<System.Reflection.TypeInfo>.GetInstance();
                 while (true)
                 {
@@ -685,7 +685,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     typeInfo.Name,
                     forcedArity: typeInfo.GenericTypeArguments.Length);
 
-                NamedTypeSymbol symbol = GetTopLevelTypeByMetadataName(ref mdName, assemblyId, includeReferences, isWellKnownType: false, conflicts: out var _);
+                NamedTypeSymbol symbol = GetTopLevelTypeByMetadataName(ref mdName, assemblyId, includeReferences, isWellKnownType: false, conflicts: out (AssemblySymbol, AssemblySymbol) _);
 
                 if ((object)symbol == null || symbol.IsErrorType())
                 {
@@ -715,7 +715,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeArgumentSymbols = new TypeWithModifiers[symbol.TypeArgumentsNoUseSiteDiagnostics.Length];
             for (int i = 0; i < typeArgumentSymbols.Length; i++)
             {
-                var argSymbol = GetTypeByReflectionType(typeArguments[currentTypeArgument++], includeReferences);
+                TypeSymbol argSymbol = GetTypeByReflectionType(typeArguments[currentTypeArgument++], includeReferences);
                 if ((object)argSymbol == null)
                 {
                     return null;
@@ -768,7 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Lookup in references
-            foreach (var assembly in assemblies)
+            foreach (AssemblySymbol assembly in assemblies)
             {
                 Debug.Assert(!(this is SourceAssemblySymbol && assembly.IsMissing)); // Non-source assemblies can have missing references
 
@@ -850,7 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static NamedTypeSymbol GetTopLevelTypeByMetadataName(AssemblySymbol assembly, ref MetadataTypeName metadataName, AssemblyIdentity assemblyOpt)
         {
-            var result = assembly.LookupTopLevelMetadataType(ref metadataName, digThroughForwardedTypes: false);
+            NamedTypeSymbol result = assembly.LookupTopLevelMetadataType(ref metadataName, digThroughForwardedTypes: false);
             if (!IsAcceptableMatchForGetTypeByMetadataName(result))
             {
                 return null;
@@ -1051,8 +1051,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var myKeys = GetInternalsVisibleToPublicKeys(assembly.Identity.Name);
-            foreach (var key in myKeys)
+            IEnumerable<ImmutableArray<byte>> myKeys = GetInternalsVisibleToPublicKeys(assembly.Identity.Name);
+            foreach (ImmutableArray<byte> key in myKeys)
             {
                 IVTConclusion conclusion = assembly.PerformIVTCheck(key, this.Identity);
                 Debug.Assert(conclusion != IVTConclusion.NoRelationshipClaimed);

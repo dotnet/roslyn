@@ -33,7 +33,7 @@ class C
         public void TrivialSourceFileOnlyCsc()
         {
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
-            var touchedDir = Temp.CreateDirectory();
+            TempDirectory touchedDir = Temp.CreateDirectory();
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
             var cmd = new MockCSharpCompiler(null, _baseDirectory, new[] { "/nologo", hello,
@@ -61,7 +61,7 @@ class C
         public void AppConfigCsc()
         {
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
-            var touchedDir = Temp.CreateDirectory();
+            TempDirectory touchedDir = Temp.CreateDirectory();
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
             var appConfigPath = Temp.CreateFile().WriteAllText(
 @"<?xml version=""1.0"" encoding=""utf-8"" ?>
@@ -108,7 +108,7 @@ class C
         {
             var hello = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
             var snkPath = Temp.CreateFile("TestKeyPair_", ".snk").WriteAllBytes(TestResources.General.snKey).Path;
-            var touchedDir = Temp.CreateDirectory();
+            TempDirectory touchedDir = Temp.CreateDirectory();
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
             var outWriter = new StringWriter(CultureInfo.InvariantCulture);
@@ -146,8 +146,8 @@ class C
 /// A subtype of <see cref=""object""/>.
 /// </summary>
 public class C { }").Path;
-            var xml = Temp.CreateFile();
-            var touchedDir = Temp.CreateDirectory();
+            TempFile xml = Temp.CreateFile();
+            TempDirectory touchedDir = Temp.CreateDirectory();
             var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
             var cmd = new MockCSharpCompiler(null, _baseDirectory, new[]
@@ -209,7 +209,7 @@ public class C { }").Path;
             expectedReads = cmd.Arguments.MetadataReferences
                 .Select(r => r.Reference).ToList();
 
-            foreach (var file in cmd.Arguments.SourceFiles)
+            foreach (CommandLineSourceFile file in cmd.Arguments.SourceFiles)
             {
                 expectedReads.Add(file.Path);
             }
@@ -228,7 +228,7 @@ public class C { }").Path;
             var touchedReadPath = touchedFilesBase + ".read";
             var touchedWritesPath = touchedFilesBase + ".write";
 
-            var expected = expectedReads.Select(s => s.ToUpperInvariant()).OrderBy(s => s);
+            IOrderedEnumerable<string> expected = expectedReads.Select(s => s.ToUpperInvariant()).OrderBy(s => s);
             Assert.Equal(string.Join("\r\n", expected),
                          File.ReadAllText(touchedReadPath).Trim());
 

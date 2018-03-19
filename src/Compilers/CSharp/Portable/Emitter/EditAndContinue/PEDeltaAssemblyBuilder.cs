@@ -33,12 +33,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Func<ISymbol, bool> isAddedSymbol)
             : base(sourceAssembly, emitOptions, outputKind, serializationProperties, manifestResources, additionalTypes: ImmutableArray<NamedTypeSymbol>.Empty)
         {
-            var initialBaseline = previousGeneration.InitialBaseline;
+            EmitBaseline initialBaseline = previousGeneration.InitialBaseline;
             var context = new EmitContext(this, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
             // Hydrate symbols from initial metadata. Once we do so it is important to reuse these symbols across all generations,
             // in order for the symbol matcher to be able to use reference equality once it maps symbols to initial metadata.
-            var metadataSymbols = GetOrCreateMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation);
+            EmitBaseline.MetadataSymbols metadataSymbols = GetOrCreateMetadataSymbols(initialBaseline, sourceAssembly.DeclaringCompilation);
             var metadataDecoder = (MetadataDecoder)metadataSymbols.MetadataDecoder;
             var metadataAssembly = (PEAssemblySymbol)metadataDecoder.ModuleSymbol.ContainingAssembly;
 
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             CSharpSymbolMatcher matchToPrevious = null;
             if (previousGeneration.Ordinal > 0)
             {
-                var previousAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
+                SourceAssemblySymbol previousAssembly = ((CSharpCompilation)previousGeneration.Compilation).SourceAssembly;
                 var previousContext = new EmitContext((PEModuleBuilder)previousGeneration.PEModuleBuilder, null, new DiagnosticBag(), metadataOnly: false, includePrivateMembers: true);
 
                 matchToPrevious = new CSharpSymbolMatcher(
@@ -97,16 +97,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return initialBaseline.LazyMetadataSymbols;
             }
 
-            var originalMetadata = initialBaseline.OriginalMetadata;
+            ModuleMetadata originalMetadata = initialBaseline.OriginalMetadata;
 
             // The purpose of this compilation is to provide PE symbols for original metadata.
             // We need to transfer the references from the current source compilation but don't need its syntax trees.
-            var metadataCompilation = compilation.RemoveAllSyntaxTrees();
+            CSharpCompilation metadataCompilation = compilation.RemoveAllSyntaxTrees();
 
             ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> assemblyReferenceIdentityMap;
-            var metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All, out assemblyReferenceIdentityMap);
+            PEAssemblySymbol metadataAssembly = metadataCompilation.GetBoundReferenceManager().CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata.Create(originalMetadata), MetadataImportOptions.All, out assemblyReferenceIdentityMap);
             var metadataDecoder = new MetadataDecoder(metadataAssembly.PrimaryModule);
-            var metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder);
+            IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> metadataAnonymousTypes = GetAnonymousTypeMapFromMetadata(originalMetadata.MetadataReader, metadataDecoder);
             var metadataSymbols = new EmitBaseline.MetadataSymbols(metadataAnonymousTypes, metadataDecoder, assemblyReferenceIdentityMap);
 
             return InterlockedOperations.Initialize(ref initialBaseline.LazyMetadataSymbols, metadataSymbols);
@@ -116,9 +116,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         internal static IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> GetAnonymousTypeMapFromMetadata(MetadataReader reader, MetadataDecoder metadataDecoder)
         {
             var result = new Dictionary<AnonymousTypeKey, AnonymousTypeValue>();
-            foreach (var handle in reader.TypeDefinitions)
+            foreach (TypeDefinitionHandle handle in reader.TypeDefinitions)
             {
-                var def = reader.GetTypeDefinition(handle);
+                TypeDefinition def = reader.GetTypeDefinition(handle);
                 if (!def.Namespace.IsNil)
                 {
                     continue;
@@ -152,9 +152,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             TypeDefinition def,
             ArrayBuilder<AnonymousTypeKeyField> builder)
         {
-            foreach (var typeParameterHandle in def.GetGenericParameters())
+            foreach (GenericParameterHandle typeParameterHandle in def.GetGenericParameters())
             {
-                var typeParameter = reader.GetGenericParameter(typeParameterHandle);
+                GenericParameter typeParameter = reader.GetGenericParameter(typeParameterHandle);
                 string fieldName;
                 if (!GeneratedNames.TryParseAnonymousTypeParameterName(reader.GetString(typeParameter.Name), out fieldName))
                 {
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> GetAnonymousTypeMap()
         {
-            var anonymousTypes = this.Compilation.AnonymousTypeManager.GetAnonymousTypeMap();
+            IReadOnlyDictionary<AnonymousTypeKey, AnonymousTypeValue> anonymousTypes = this.Compilation.AnonymousTypeManager.GetAnonymousTypeMap();
             // Should contain all entries in previous generation.
             Debug.Assert(_previousGeneration.AnonymousTypeMap.All(p => anonymousTypes.ContainsKey(p.Key)));
             return anonymousTypes;
@@ -227,10 +227,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         public void OnCreatedIndices(DiagnosticBag diagnostics)
         {
-            var embeddedTypesManager = this.EmbeddedTypesManagerOpt;
+            NoPia.EmbeddedTypesManager embeddedTypesManager = this.EmbeddedTypesManagerOpt;
             if (embeddedTypesManager != null)
             {
-                foreach (var embeddedType in embeddedTypesManager.EmbeddedTypesMap.Keys)
+                foreach (NamedTypeSymbol embeddedType in embeddedTypesManager.EmbeddedTypesMap.Keys)
                 {
                     diagnostics.Add(new CSDiagnosticInfo(ErrorCode.ERR_EncNoPIAReference, embeddedType), Location.None);
                 }

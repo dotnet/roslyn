@@ -111,9 +111,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(ReferenceEquals(_constructedFrom, this));
 
             // We're creating a new unconstructed Method from another; alpha-rename type parameters.
-            var newMap = _inputMap.WithAlphaRename(this.OriginalDefinition, this, out typeParameters);
+            TypeMap newMap = _inputMap.WithAlphaRename(this.OriginalDefinition, this, out typeParameters);
 
-            var prevMap = Interlocked.CompareExchange(ref _lazyMap, newMap, null);
+            TypeMap prevMap = Interlocked.CompareExchange(ref _lazyMap, newMap, null);
             if (prevMap != null)
             {
                 // There is a race with another thread who has already set the map
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var method = OriginalDefinition.ReducedFrom;
+                MethodSymbol method = OriginalDefinition.ReducedFrom;
                 return ((object)method == null) ? null : method.Construct(this.TypeArguments);
             }
         }
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var reduced = this.CallsiteReducedFromMethod;
+                MethodSymbol reduced = this.CallsiteReducedFromMethod;
                 if ((object)reduced == null)
                 {
                     return this.ContainingType;
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
         {
             // This will throw if API shouldn't be supported or there is a problem with the argument.
-            var notUsed = OriginalDefinition.GetTypeInferredDuringReduction(reducedFromTypeParameter);
+            TypeSymbol notUsed = OriginalDefinition.GetTypeInferredDuringReduction(reducedFromTypeParameter);
 
             Debug.Assert((object)notUsed == null && (object)OriginalDefinition.ReducedFrom != null);
             return this.TypeArguments[reducedFromTypeParameter.Ordinal];
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var returnType = _lazyReturnType;
+                TypeSymbol returnType = _lazyReturnType;
                 if (returnType != null)
                 {
                     return returnType;
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<ParameterSymbol> SubstituteParameters()
         {
-            var unsubstitutedParameters = OriginalDefinition.Parameters;
+            ImmutableArray<ParameterSymbol> unsubstitutedParameters = OriginalDefinition.Parameters;
             int count = unsubstitutedParameters.Length;
 
             if (count == 0)
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var substituted = ArrayBuilder<ParameterSymbol>.GetInstance(count);
                 TypeMap map = Map;
-                foreach (var p in unsubstitutedParameters)
+                foreach (ParameterSymbol p in unsubstitutedParameters)
                 {
                     substituted.Add(new SubstitutedParameterSymbol(this, map, p));
                 }
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //  In short - we are not interested in the type arguments of unconstructed methods.
             if ((object)ConstructedFrom != (object)this)
             {
-                foreach (var arg in this.TypeArguments)
+                foreach (TypeSymbol arg in this.TypeArguments)
                 {
                     code = Hash.Combine(arg, code);
                 }

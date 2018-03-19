@@ -46,28 +46,28 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var usingStatement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().Single();
+            UsingStatementSyntax usingStatement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().Single();
 
-            var declaredSymbol = model.GetDeclaredSymbol(usingStatement.Declaration.Variables.Single());
+            ISymbol declaredSymbol = model.GetDeclaredSymbol(usingStatement.Declaration.Variables.Single());
             Assert.NotNull(declaredSymbol);
             Assert.Equal(SymbolKind.Local, declaredSymbol.Kind);
             var declaredLocal = (LocalSymbol)declaredSymbol;
             Assert.Equal("i", declaredLocal.Name);
             Assert.Equal(SpecialType.System_IDisposable, declaredLocal.Type.SpecialType);
 
-            var memberAccessExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            MemberAccessExpressionSyntax memberAccessExpression = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
 
-            var info = model.GetSymbolInfo(memberAccessExpression.Expression);
+            SymbolInfo info = model.GetSymbolInfo(memberAccessExpression.Expression);
             Assert.NotNull(info);
             Assert.Equal(declaredLocal, info.Symbol);
 
-            var lookupSymbol = model.LookupSymbols(memberAccessExpression.SpanStart, name: declaredLocal.Name).Single();
+            ISymbol lookupSymbol = model.LookupSymbols(memberAccessExpression.SpanStart, name: declaredLocal.Name).Single();
             Assert.Equal(declaredLocal, lookupSymbol);
         }
 
@@ -190,7 +190,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
     // (10,13): error CS1656: Cannot assign to 'i' because it is a 'using variable'
     //             i = null;
@@ -221,19 +221,19 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var usingStatement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().Single();
+            UsingStatementSyntax usingStatement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().Single();
 
-            var declaredSymbol = model.GetDeclaredSymbol(usingStatement.Declaration.Variables.Single());
+            ISymbol declaredSymbol = model.GetDeclaredSymbol(usingStatement.Declaration.Variables.Single());
 
             Assert.Equal("System.IO.StreamWriter a", declaredSymbol.ToTestDisplayString());
 
-            var typeInfo = model.GetSymbolInfo(usingStatement.Declaration.Type);
+            SymbolInfo typeInfo = model.GetSymbolInfo(usingStatement.Declaration.Type);
             Assert.Equal(((LocalSymbol)declaredSymbol).Type, typeInfo.Symbol);
         }
 
@@ -254,21 +254,21 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (8,16): error CS0819: Implicitly-typed variables cannot have multiple declarators
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableMultipleDeclarator, @"var a = new StreamWriter(""""), b = new StreamReader("""")"));
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var usingStatement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().Single();
+            UsingStatementSyntax usingStatement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().Single();
 
-            var firstDeclaredSymbol = model.GetDeclaredSymbol(usingStatement.Declaration.Variables.First());
+            ISymbol firstDeclaredSymbol = model.GetDeclaredSymbol(usingStatement.Declaration.Variables.First());
 
             Assert.Equal("System.IO.StreamWriter a", firstDeclaredSymbol.ToTestDisplayString());
 
-            var typeInfo = model.GetSymbolInfo(usingStatement.Declaration.Type);
+            SymbolInfo typeInfo = model.GetSymbolInfo(usingStatement.Declaration.Type);
             // lowest/last bound node with associated syntax is being picked up. Fine for now.
             Assert.Equal(((LocalSymbol)model.GetDeclaredSymbol(usingStatement.Declaration.Variables.Last())).Type, typeInfo.Symbol);
         }
@@ -360,7 +360,7 @@ class Program
 }
 " + _managedClass;
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             VerifyDeclaredSymbolForUsingStatements(compilation);
         }
 
@@ -380,7 +380,7 @@ class Program
     }
 }
 " + _managedStruct;
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             VerifyDeclaredSymbolForUsingStatements(compilation);
         }
 
@@ -402,8 +402,8 @@ class Program
 }
 " + _managedStruct;
 
-            var compilation = CreateCompilation(source);
-            var symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "mnObj1", "mnObj2");
+            CSharpCompilation compilation = CreateCompilation(source);
+            IEnumerable symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "mnObj1", "mnObj2");
             foreach (var x in symbols)
             {
                 VerifySymbolInfoForUsingStatements(compilation, ((LocalSymbol)x).Type);
@@ -430,9 +430,9 @@ class Program
 }
 " + _managedClass;
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 2, "mnObj3", "mnObj4");
+            IEnumerable symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 2, "mnObj3", "mnObj4");
             foreach (var x in symbols)
             {
                 var localSymbol = (LocalSymbol)x;
@@ -459,9 +459,9 @@ class MyManagedTypeDerived : MyManagedType
 { }
 " + _managedClass;
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "mnObj");
+            IEnumerable symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "mnObj");
             foreach (var x in symbols)
             {
                 var localSymbol = (LocalSymbol)x;
@@ -487,9 +487,9 @@ class Program
 }
 " + _managedClass;
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
 
-            var symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "mnObj");
+            IEnumerable symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "mnObj");
             foreach (var x in symbols)
             {
                 var localSymbol = (LocalSymbol)x;
@@ -516,9 +516,9 @@ class Program
 }
 " + _managedStruct;
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
 
-            var symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "mnObj");
+            IEnumerable symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "mnObj");
             foreach (var x in symbols)
             {
                 var localSymbol = (LocalSymbol)x;
@@ -544,9 +544,9 @@ class Test<T>
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
 
-            var symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "u");
+            IEnumerable symbols = VerifyDeclaredSymbolForUsingStatements(compilation, 1, "u");
             foreach (var x in symbols)
             {
                 var localSymbol = (LocalSymbol)x;
@@ -688,22 +688,22 @@ class C
 
         private UsingStatementSyntax GetUsingStatements(CSharpCompilation compilation, int index = 1)
         {
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
             var usingStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().ToList();
             return usingStatements[index - 1];
         }
 
         private IEnumerable VerifyDeclaredSymbolForUsingStatements(CSharpCompilation compilation, int index = 1, params string[] variables)
         {
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var usingStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().ToList();
             var i = 0;
-            foreach (var x in usingStatements[index - 1].Declaration.Variables)
+            foreach (VariableDeclaratorSyntax x in usingStatements[index - 1].Declaration.Variables)
             {
-                var symbol = model.GetDeclaredSymbol(x);
+                ISymbol symbol = model.GetDeclaredSymbol(x);
                 Assert.Equal(SymbolKind.Local, symbol.Kind);
                 Assert.Equal(variables[i++].ToString(), symbol.ToDisplayString());
                 yield return symbol;
@@ -712,12 +712,12 @@ class C
 
         private SymbolInfo VerifySymbolInfoForUsingStatements(CSharpCompilation compilation, Symbol symbol, int index = 1)
         {
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var usingStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().ToList();
 
-            var type = model.GetSymbolInfo(usingStatements[index - 1].Declaration.Type);
+            SymbolInfo type = model.GetSymbolInfo(usingStatements[index - 1].Declaration.Type);
 
             Assert.Equal(symbol, type.Symbol);
 
@@ -726,11 +726,11 @@ class C
 
         private ISymbol VerifyLookUpSymbolForUsingStatements(CSharpCompilation compilation, Symbol symbol, int index = 1)
         {
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
             var usingStatements = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().ToList();
 
-            var actualSymbol = model.LookupSymbols(usingStatements[index - 1].SpanStart, name: symbol.Name).Single();
+            ISymbol actualSymbol = model.LookupSymbols(usingStatements[index - 1].SpanStart, name: symbol.Name).Single();
             Assert.Equal(SymbolKind.Local, actualSymbol.Kind);
             Assert.Equal(symbol, actualSymbol);
             return actualSymbol;

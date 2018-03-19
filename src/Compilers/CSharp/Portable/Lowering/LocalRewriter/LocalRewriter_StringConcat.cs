@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             loweredRight = ConvertConcatExprToStringIfPossible(syntax, loweredRight);
 
             // try fold two args without flattening.
-            var folded = TryFoldTwoConcatOperands(syntax, loweredLeft, loweredRight);
+            BoundExpression folded = TryFoldTwoConcatOperands(syntax, loweredLeft, loweredRight);
             if (folded != null)
             {
                 return folded;
@@ -90,15 +90,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case 2:
-                    var left = leftFlattened[0];
-                    var right = leftFlattened[1];
+                    BoundExpression left = leftFlattened[0];
+                    BoundExpression right = leftFlattened[1];
                     result = RewriteStringConcatenationTwoExprs(syntax, left, right);
                     break;
 
                 case 3:
-                    var first = leftFlattened[0];
-                    var second = leftFlattened[1];
-                    var third = leftFlattened[2];
+                    BoundExpression first = leftFlattened[0];
+                    BoundExpression second = leftFlattened[1];
+                    BoundExpression third = leftFlattened[2];
                     result = RewriteStringConcatenationThreeExprs(syntax, first, second, third);
                     break;
 
@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.Call:
                     var boundCall = (BoundCall)lowered;
 
-                    var method = boundCall.Method;
+                    MethodSymbol method = boundCall.Method;
                     if (method.IsStatic && method.ContainingType.SpecialType == SpecialType.System_String)
                     {
                         if ((object)method == (object)_compilation.GetSpecialTypeMember(SpecialMember.System_String__ConcatStringString) ||
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             var args = boundCall.Arguments[0] as BoundArrayCreation;
                             if (args != null)
                             {
-                                var initializer = args.InitializerOpt;
+                                BoundArrayInitialization initializer = args.InitializerOpt;
                                 if (initializer != null)
                                 {
                                     flattened.AddRange(initializer.Initializers);
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // To be safe, check that the constant value is actually a string before
                         // attempting to access its value as a string.
 
-                        var rightConstant = boundCoalesce.RightOperand.ConstantValue;
+                        ConstantValue rightConstant = boundCoalesce.RightOperand.ConstantValue;
                         if (rightConstant != null && rightConstant.IsString && rightConstant.StringValue.Length == 0)
                         {
                             flattened.Add(boundCoalesce.LeftOperand);
@@ -187,8 +187,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundExpression TryFoldTwoConcatOperands(SyntaxNode syntax, BoundExpression loweredLeft, BoundExpression loweredRight)
         {
             // both left and right are constants
-            var leftConst = loweredLeft.ConstantValue;
-            var rightConst = loweredRight.ConstantValue;
+            ConstantValue leftConst = loweredLeft.ConstantValue;
+            ConstantValue rightConst = loweredRight.ConstantValue;
 
             if (leftConst != null && rightConst != null)
             {
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _factory.Coalesce(loweredOperand, _factory.Literal(""));
             }
 
-            var method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatObject);
+            MethodSymbol method = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_String__ConcatObject);
             Debug.Assert((object)method != null);
 
             return (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredOperand);
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SpecialMember.System_String__ConcatStringString :
                 SpecialMember.System_String__ConcatObjectObject;
 
-            var method = UnsafeGetSpecialTypeMethod(syntax, member);
+            MethodSymbol method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
             return (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredLeft, loweredRight);
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SpecialMember.System_String__ConcatStringStringString :
                 SpecialMember.System_String__ConcatObjectObjectObject;
 
-            var method = UnsafeGetSpecialTypeMethod(syntax, member);
+            MethodSymbol method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
             return BoundCall.Synthesized(syntax, null, method, ImmutableArray.Create(loweredFirst, loweredSecond, loweredThird));
@@ -301,7 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isObject = false;
             TypeSymbol elementType = null;
 
-            foreach (var arg in loweredArgs)
+            foreach (BoundExpression arg in loweredArgs)
             {
                 elementType = arg.Type;
                 if (elementType.SpecialType != SpecialType.System_String)
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!isObject && loweredArgs.Length == 4)
             {
                 SpecialMember member = SpecialMember.System_String__ConcatStringStringStringString;
-                var method = UnsafeGetSpecialTypeMethod(syntax, member);
+                MethodSymbol method = UnsafeGetSpecialTypeMethod(syntax, member);
                 Debug.Assert((object)method != null);
 
                 return (BoundExpression)BoundCall.Synthesized(syntax, null, method, loweredArgs);
@@ -327,10 +327,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     SpecialMember.System_String__ConcatObjectArray :
                     SpecialMember.System_String__ConcatStringArray;
 
-                var method = UnsafeGetSpecialTypeMethod(syntax, member);
+                MethodSymbol method = UnsafeGetSpecialTypeMethod(syntax, member);
                 Debug.Assert((object)method != null);
 
-                var array = _factory.ArrayOrEmpty(elementType, loweredArgs);
+                BoundExpression array = _factory.ArrayOrEmpty(elementType, loweredArgs);
 
                 return (BoundExpression)BoundCall.Synthesized(syntax, null, method, array);
             }
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SpecialMember.System_String__ConcatStringString :
                 SpecialMember.System_String__ConcatObjectObject;
 
-            var method = UnsafeGetSpecialTypeMethod(syntax, member);
+            MethodSymbol method = UnsafeGetSpecialTypeMethod(syntax, member);
             Debug.Assert((object)method != null);
 
             return new BoundBinaryOperator(syntax, operatorKind, loweredLeft, loweredRight, default(ConstantValue), method, default(LookupResultKind), type);
@@ -383,11 +383,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // If so, we can synthesize a ToString call to avoid boxing.
                         if (ConcatExprCanBeOptimizedWithToString(operand.Type))
                         {
-                            var toString = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_Object__ToString);
+                            MethodSymbol toString = UnsafeGetSpecialTypeMethod(syntax, SpecialMember.System_Object__ToString);
 
                             var type = (NamedTypeSymbol)operand.Type;
-                            var toStringMembers = type.GetMembers(toString.Name);
-                            foreach (var member in toStringMembers)
+                            ImmutableArray<Symbol> toStringMembers = type.GetMembers(toString.Name);
+                            foreach (Symbol member in toStringMembers)
                             {
                                 var toStringMethod = member as MethodSymbol;
                                 if (toStringMethod.GetLeastOverriddenMethod(type) == (object)toString)

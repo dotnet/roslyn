@@ -29,7 +29,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source: source, expectedOutput: "AB");
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(source: source, expectedOutput: "AB");
         }
 
         [Fact]
@@ -78,7 +78,7 @@ class P
 ";
 
             string expectedOutput = @"tttttttfft";
-            var verifier = CompileAndVerify(source: source, expectedOutput: expectedOutput);
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(source: source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -141,7 +141,7 @@ struct Conv
 ";
 
             string expectedOutput = @"tttttttttt";
-            var verifier = CompileAndVerify(source: source, expectedOutput: expectedOutput);
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(source: source, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(529279, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529279")]
@@ -646,7 +646,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithWarningLevel(0));
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithWarningLevel(0));
 
             // Roslyn and native compiler both produce ABAABAABAABABBBBBBBBABACCCCDADACCCCBBDDDDDDDD 
             // for straight conversions. 
@@ -712,7 +712,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (15,13): error CS0030: Cannot convert type 'double' to 'int?'
                 //         i = (int?)double.MaxValue;
@@ -739,17 +739,17 @@ class C
                 //         i = (int?)float.PositiveInfinity;
                 Diagnostic(ErrorCode.ERR_NoExplicitConv, "(int?)float.PositiveInfinity").WithArguments("float", "int?").WithLocation(25, 13));
 
-            var syntaxTree = compilation.SyntaxTrees.First();
-            var target = syntaxTree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().ToList()[2];
-            var operand = target.Expression;
+            SyntaxTree syntaxTree = compilation.SyntaxTrees.First();
+            CastExpressionSyntax target = syntaxTree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().ToList()[2];
+            ExpressionSyntax operand = target.Expression;
             Assert.Equal("double.NaN", operand.ToFullString());
 
             // Note: there is a valid conversion here at the type level.  It's the process of evaluating the conversion, which for
             // constants happens at compile time, that triggers the error.
             HashSet<DiagnosticInfo> unused = null;
             var bag = DiagnosticBag.GetInstance();
-            var nullableIntType = compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(compilation.GetSpecialType(SpecialType.System_Int32));
-            var conversion = compilation.Conversions.ClassifyConversionFromExpression(
+            NamedTypeSymbol nullableIntType = compilation.GetSpecialType(SpecialType.System_Nullable_T).Construct(compilation.GetSpecialType(SpecialType.System_Int32));
+            Conversion conversion = compilation.Conversions.ClassifyConversionFromExpression(
                 compilation.GetBinder(target).BindExpression(operand, bag),
                 nullableIntType,
                 ref unused);

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
         private void TestCaseSensitive(params string[] strings)
         {
-            var idcol = new IdentifierCollection(strings).AsCaseSensitiveCollection();
+            ICollection<string> idcol = new IdentifierCollection(strings).AsCaseSensitiveCollection();
 
             Assert.Equal(strings.Length, idcol.Count);
             Assert.Equal(true, Enumerable.SequenceEqual(strings.OrderBy(x => x), idcol.OrderBy(x => x)));
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
 
         private void TestCaseInsensitive(params string[] strings)
         {
-            var idcol = new IdentifierCollection(strings).AsCaseInsensitiveCollection();
+            ICollection<string> idcol = new IdentifierCollection(strings).AsCaseInsensitiveCollection();
 
             Assert.Equal(strings.Length, idcol.Count);
             Assert.Equal(true, Enumerable.SequenceEqual(strings.OrderBy(x => x), idcol.OrderBy(x => x)));

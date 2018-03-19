@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         public class DefaultMemberAttribute : Attribute { }
     }
 }";
-            var c = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            CSharpCompilation c = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll);
 
             c.VerifyDiagnostics();
         }
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
     public class Object { }
 }";
-            var compilation = CreateEmptyCompilation(source);
+            CSharpCompilation compilation = CreateEmptyCompilation(source);
             compilation.VerifyEmitDiagnostics(
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion),
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound).WithArguments("System.Void")
@@ -235,8 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public struct Int32 { }
     public struct Decimal { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
-            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            CSharpCompilation compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            PortableExecutableReference reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"class C
 {
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
         return (int)d;
     }
 }";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
             // Should report "CS0656: Missing compiler required member 'System.Decimal.op_Explicit_ToInt32'".
             // Instead, we report no errors and assert during emit.
 
@@ -269,8 +269,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public struct Int32 { }
     public struct Decimal { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
-            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            CSharpCompilation compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            PortableExecutableReference reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"    
 public class C1
@@ -286,7 +286,7 @@ public class C1
     }
 }
 ";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
     // (7,25): error CS0518: Predefined type 'System.TypedReference' is not defined or imported
     //         var refresult = __makeref(result);
@@ -306,8 +306,8 @@ public class C1
     public struct Int32 { }
     public struct Decimal { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
-            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            CSharpCompilation compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            PortableExecutableReference reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"    
 public class C1
@@ -323,7 +323,7 @@ public class C1
     }
 }
 ";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
     // (9,25): error CS0518: Predefined type 'System.TypedReference' is not defined or imported
     //         var refresult = __makeref(result);
@@ -344,8 +344,8 @@ public class C1
     public struct Decimal { }
     public struct TypedReference { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
-            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            CSharpCompilation compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            PortableExecutableReference reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"    
 public class C1
@@ -362,7 +362,7 @@ public class C1
     }
 }
 ";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
     // (10,15): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'object'
     //         rrr = refresult;
@@ -395,8 +395,8 @@ public class C1
     // Make the type ref struct. Should work just fine.
     public ref struct TypedReference { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
-            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            CSharpCompilation compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            PortableExecutableReference reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"    
 public class C1
@@ -413,7 +413,7 @@ public class C1
     }
 }
 ";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
     // (10,15): error CS0029: Cannot implicitly convert type 'System.TypedReference' to 'object'
     //         rrr = refresult;
@@ -457,8 +457,8 @@ namespace System.Collections
         bool MoveNext();
     }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
-            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            CSharpCompilation compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            PortableExecutableReference reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
             var source2 =
 @"class C
 {
@@ -470,7 +470,7 @@ namespace System.Collections
         }
     }
 }";
-            var compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateEmptyCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics();
             compilation2.Emit(new System.IO.MemoryStream()).Diagnostics.Verify(
                 // (5,9): error CS0656: Missing compiler required member 'System.String.get_Length'
@@ -592,7 +592,7 @@ namespace System.Collections
         }
     }
 }";
-            var comp = CreateEmptyCompilation(
+            CSharpCompilation comp = CreateEmptyCompilation(
                     text,
                     options: TestOptions.ReleaseDll)
                 .VerifyDiagnostics();
@@ -730,7 +730,7 @@ namespace System
         }
     }
 ";
-            var comp = CreateEmptyCompilation(
+            CSharpCompilation comp = CreateEmptyCompilation(
                     text,
                     options: TestOptions.ReleaseDll)
                 .VerifyDiagnostics();
@@ -855,7 +855,7 @@ namespace System
         }
     }
 }";
-            var comp = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
+            CSharpCompilation comp = CreateEmptyCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
             //IMPORTANT: we should NOT load fields of clr-confusing structs off the field value.
             //           the field should be loaded off the reference like in 

@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </summary>
         public static void VerifyErrorCodes(CSharpCompilation comp, params ErrorDescription[] expectedErrors)
         {
-            var actualErrors = comp.GetDiagnostics();
+            System.Collections.Immutable.ImmutableArray<Diagnostic> actualErrors = comp.GetDiagnostics();
             DiagnosticsUtils.VerifyErrorCodes(actualErrors, expectedErrors);
         }
 
@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Obsolete("Use VerifyDiagnostics", true)]
         public static void TestDiagnostics(string source, params string[] diagStrings)
         {
-            var comp = CSharpTestBase.CreateCompilation(source);
-            var diagnostics = comp.GetDiagnostics();
+            CSharpCompilation comp = CSharpTestBase.CreateCompilation(source);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = comp.GetDiagnostics();
             CompilingTestBase.TestDiagnostics(diagnostics, diagStrings);
         }
 
@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Obsolete("Use VerifyDiagnostics", true)]
         public static void TestDiagnosticsExact(string source, params string[] diagStrings)
         {
-            var comp = CSharpTestBase.CreateCompilation(source);
-            var diagnostics = comp.GetDiagnostics();
+            CSharpCompilation comp = CSharpTestBase.CreateCompilation(source);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = comp.GetDiagnostics();
             Assert.Equal(diagStrings.Length, diagnostics.Length);
             CompilingTestBase.TestDiagnostics(diagnostics, diagStrings);
         }
@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </summary>
         internal protected static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(string[] srcs, params ErrorDescription[] expectedErrorDesp)
         {
-            var comp = CSharpTestBase.CreateCompilation(srcs);
-            var actualErrors = comp.GetDiagnostics();
+            CSharpCompilation comp = CSharpTestBase.CreateCompilation(srcs);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> actualErrors = comp.GetDiagnostics();
             VerifyErrorCodes(actualErrors, expectedErrorDesp);
             return comp;
         }
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </summary>
         internal protected static CSharpCompilation VerifyErrorsAndGetCompilationWithMscorlib(List<string> srcs, IEnumerable<MetadataReference> refs, params ErrorDescription[] expectedErrorDesp)
         {
-            var synTrees = (from text in srcs
+            SyntaxTree[] synTrees = (from text in srcs
                             select SyntaxFactory.ParseSyntaxTree(text)).ToArray();
 
             return VerifyErrorsAndGetCompilationWithMscorlib(synTrees, refs, expectedErrorDesp);
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         internal protected static CSharpCompilation VerifyErrorsAndGetCompilation(IEnumerable<SyntaxTree> synTrees, IEnumerable<MetadataReference> refs = null, params ErrorDescription[] expectedErrorDesp)
         {
             var comp = CSharpCompilation.Create(assemblyName: "DiagnosticsTest", options: TestOptions.ReleaseDll, syntaxTrees: synTrees, references: refs);
-            var actualErrors = comp.GetDiagnostics();
+            System.Collections.Immutable.ImmutableArray<Diagnostic> actualErrors = comp.GetDiagnostics();
 
             VerifyErrorCodes(actualErrors, expectedErrorDesp);
 
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             int idx = 0;
             // actual >= expected
-            foreach (var experr in expectedSortedDesp)
+            foreach (ErrorDescription experr in expectedSortedDesp)
             {
                 while (idx < actualSortedDesp.Count && actualSortedDesp[idx].Code < experr.Code)
                 {
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     idx = actualSortedDesp.Count - 1;
                 }
 
-                var acterr = actualSortedDesp[idx];
+                ErrorDescription acterr = actualSortedDesp[idx];
 
                 Assert.Equal(experr.Code, acterr.Code);
                 if (experr.Line > 0 && experr.Column > 0)
@@ -216,9 +216,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                                orderby e.Code
                                group e by e.Code).ToList();
 
-            foreach (var expectedGroup in expectedCodes)
+            foreach (IGrouping<int, ErrorDescription> expectedGroup in expectedCodes)
             {
-                var actualGroup = actualCodes.SingleOrDefault(x => x.Key == expectedGroup.Key);
+                IGrouping<int, Diagnostic> actualGroup = actualCodes.SingleOrDefault(x => x.Key == expectedGroup.Key);
                 var actualGroupCount = actualGroup != null ? actualGroup.Count() : 0;
                 // Same error code *should* be same error type: error/warning
                 // In other words, 0 <= # of expected occurrences <= # of actual occurrences

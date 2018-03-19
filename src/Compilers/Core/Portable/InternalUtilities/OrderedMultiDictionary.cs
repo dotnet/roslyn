@@ -50,7 +50,7 @@ namespace Roslyn.Utilities
 
         public IEnumerator<KeyValuePair<K, SetWithInsertionOrder<V>>> GetEnumerator()
         {
-            foreach (var key in _keys)
+            foreach (K key in _keys)
             {
                 yield return new KeyValuePair<K, SetWithInsertionOrder<V>>(
                     key, _dictionary[key]);

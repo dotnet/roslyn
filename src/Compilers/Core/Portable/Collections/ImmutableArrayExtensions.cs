@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis
             int n = array.Length;
             for (int i = 0; i < n; i++)
             {
-                var a = array[i];
+                T a = array[i];
                 if (predicate(a))
                 {
                     none = false;
@@ -338,8 +338,8 @@ namespace Microsoft.CodeAnalysis
             }
             else if (count1 == 1 && count2 == 1)
             {
-                var item1 = array1[0];
-                var item2 = array2[0];
+                T item1 = array1[0];
+                T item2 = array2[0];
 
                 return comparer.Equals(item1, item2);
             }
@@ -374,7 +374,7 @@ namespace Microsoft.CodeAnalysis
 
             var set = new HashSet<T>(comparer);
             var builder = ArrayBuilder<T>.GetInstance();
-            foreach (var a in array)
+            foreach (T a in array)
             {
                 if (set.Add(a))
                 {
@@ -382,14 +382,14 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            var result = (builder.Count == array.Length) ? array : builder.ToImmutable();
+            ImmutableArray<T> result = (builder.Count == array.Length) ? array : builder.ToImmutable();
             builder.Free();
             return result;
         }
 
         internal static bool HasAnyErrors<T>(this ImmutableArray<T> diagnostics) where T : Diagnostic
         {
-            foreach (var diagnostic in diagnostics)
+            foreach (T diagnostic in diagnostics)
             {
                 if (diagnostic.Severity == DiagnosticSeverity.Error)
                 {
@@ -408,7 +408,7 @@ namespace Microsoft.CodeAnalysis
             {
                 T[] copy = array.ToArray();
                 int last = copy.Length - 1;
-                var temp = copy[0];
+                T temp = copy[0];
                 copy[0] = copy[last];
                 copy[last] = temp;
                 return copy.AsImmutable();
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis
 
             var builder = ArrayBuilder<TValue>.GetInstance();
 
-            foreach (var kvp in dictionary)
+            foreach (KeyValuePair<TKey, ImmutableArray<TValue>> kvp in dictionary)
             {
                 builder.AddRange(kvp.Value);
             }
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis
 
                 default:
                     var set = new HashSet<T>(comparer);
-                    foreach (var i in array)
+                    foreach (T i in array)
                     {
                         if (!set.Add(i))
                         {
@@ -518,9 +518,9 @@ namespace Microsoft.CodeAnalysis
             var accumulator = new Dictionary<K, ArrayBuilder<T>>(items.Length, comparer);
             for (int i = 0; i < items.Length; i++)
             {
-                var item = items[i];
-                var key = keySelector(item);
-                if (!accumulator.TryGetValue(key, out var bucket))
+                T item = items[i];
+                K key = keySelector(item);
+                if (!accumulator.TryGetValue(key, out ArrayBuilder<T> bucket))
                 {
                     bucket = ArrayBuilder<T>.GetInstance();
                     accumulator.Add(key, bucket);
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis
             var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count, comparer);
 
             // freeze
-            foreach (var pair in accumulator)
+            foreach (KeyValuePair<K, ArrayBuilder<T>> pair in accumulator)
             {
                 dictionary.Add(pair.Key, pair.Value.ToImmutableAndFree());
             }

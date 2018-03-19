@@ -36,15 +36,15 @@ using System.Runtime.InteropServices;
 
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var metadataReader = assembly.GetMetadataReader();
+                System.Reflection.Metadata.MetadataReader metadataReader = assembly.GetMetadataReader();
 
                 Assert.Equal(9, metadataReader.GetTableRowCount(TableIndex.ClassLayout));
 
-                foreach (var typeHandle in metadataReader.TypeDefinitions)
+                foreach (System.Reflection.Metadata.TypeDefinitionHandle typeHandle in metadataReader.TypeDefinitions)
                 {
-                    var type = metadataReader.GetTypeDefinition(typeHandle);
+                    System.Reflection.Metadata.TypeDefinition type = metadataReader.GetTypeDefinition(typeHandle);
 
-                    var layout = type.GetLayout();
+                    System.Reflection.Metadata.TypeLayout layout = type.GetLayout();
                     if (!layout.IsDefault)
                     {
                         Assert.Equal(TypeAttributes.SequentialLayout, type.Attributes & typeDefMask);
@@ -153,13 +153,13 @@ class Structs
 ";
             Action<PEAssembly> validator = (assembly) =>
             {
-                var metadataReader = assembly.GetMetadataReader();
+                System.Reflection.Metadata.MetadataReader metadataReader = assembly.GetMetadataReader();
 
-                foreach (var typeHandle in metadataReader.TypeDefinitions)
+                foreach (System.Reflection.Metadata.TypeDefinitionHandle typeHandle in metadataReader.TypeDefinitions)
                 {
-                    var type = metadataReader.GetTypeDefinition(typeHandle);
+                    System.Reflection.Metadata.TypeDefinition type = metadataReader.GetTypeDefinition(typeHandle);
 
-                    var layout = type.GetLayout();
+                    System.Reflection.Metadata.TypeLayout layout = type.GetLayout();
                     if (layout.IsDefault)
                     {
                         continue;
@@ -355,12 +355,12 @@ public class A
 ";
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var reader = assembly.GetMetadataReader();
+                System.Reflection.Metadata.MetadataReader reader = assembly.GetMetadataReader();
                 Assert.Equal(2, reader.GetTableRowCount(TableIndex.FieldLayout));
 
-                foreach (var fieldHandle in reader.FieldDefinitions)
+                foreach (System.Reflection.Metadata.FieldDefinitionHandle fieldHandle in reader.FieldDefinitions)
                 {
-                    var field = reader.GetFieldDefinition(fieldHandle);
+                    System.Reflection.Metadata.FieldDefinition field = reader.GetFieldDefinition(fieldHandle);
                     string name = reader.GetString(field.Name);
 
                     int expectedOffset;
@@ -403,12 +403,12 @@ public struct A
 ";
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var reader = assembly.GetMetadataReader();
+                System.Reflection.Metadata.MetadataReader reader = assembly.GetMetadataReader();
                 Assert.Equal(2, reader.GetTableRowCount(TableIndex.FieldLayout));
 
-                foreach (var fieldHandle in reader.FieldDefinitions)
+                foreach (System.Reflection.Metadata.FieldDefinitionHandle fieldHandle in reader.FieldDefinitions)
                 {
-                    var field = reader.GetFieldDefinition(fieldHandle);
+                    System.Reflection.Metadata.FieldDefinition field = reader.GetFieldDefinition(fieldHandle);
                     string name = reader.GetString(field.Name);
 
                     int expectedOffset;
@@ -596,11 +596,11 @@ partial struct C
             // the image is missing a record in ClassLayout table
             using (var module = ModuleMetadata.CreateFromImage(TestResources.MetadataTests.Invalid.ClassLayout))
             {
-                var reader = module.Module.GetMetadataReader();
+                System.Reflection.Metadata.MetadataReader reader = module.Module.GetMetadataReader();
 
-                foreach (var typeHandle in reader.TypeDefinitions)
+                foreach (System.Reflection.Metadata.TypeDefinitionHandle typeHandle in reader.TypeDefinitions)
                 {
-                    var type = reader.GetTypeDefinition(typeHandle);
+                    System.Reflection.Metadata.TypeDefinition type = reader.GetTypeDefinition(typeHandle);
                     var name = reader.GetString(type.Name);
 
                     bool badLayout = false;
@@ -666,13 +666,13 @@ partial struct C
         {
             CompileAndVerify(source, assemblyValidator: (assembly) =>
             {
-                var reader = assembly.GetMetadataReader();
-                var type = reader.TypeDefinitions
+                System.Reflection.Metadata.MetadataReader reader = assembly.GetMetadataReader();
+                System.Reflection.Metadata.TypeDefinition type = reader.TypeDefinitions
                     .Select(handle => reader.GetTypeDefinition(handle))
                     .Where(typeDef => reader.GetString(typeDef.Name) == "S")
                     .Single();
 
-                var layout = type.GetLayout();
+                System.Reflection.Metadata.TypeLayout layout = type.GetLayout();
                 if (!hasInstanceFields)
                 {
                     const TypeAttributes typeDefMask = TypeAttributes.StringFormatMask | TypeAttributes.LayoutMask;

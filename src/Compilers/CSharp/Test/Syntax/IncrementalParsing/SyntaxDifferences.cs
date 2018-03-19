@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             nodes.Add(newNode);
 
-            foreach (var child in newNode.ChildNodesAndTokens())
+            foreach (SyntaxNodeOrToken child in newNode.ChildNodesAndTokens())
             {
                 GetRebuiltNodes(child, hashSet, nodes);
             }
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void GatherNodes(SyntaxNodeOrToken node, HashSet<GreenNode> hashSet)
         {
             hashSet.Add(node.UnderlyingNode);
-            foreach (var child in node.ChildNodesAndTokens())
+            foreach (SyntaxNodeOrToken child in node.ChildNodesAndTokens())
             {
                 GatherNodes(child, hashSet);
             }

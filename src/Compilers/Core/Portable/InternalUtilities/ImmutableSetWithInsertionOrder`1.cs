@@ -44,7 +44,7 @@ namespace Roslyn.Utilities
 
         public ImmutableSetWithInsertionOrder<T> Remove(T value)
         {
-            var modifiedMap = _map.Remove(value);
+            ImmutableDictionary<T, uint> modifiedMap = _map.Remove(value);
             if (modifiedMap == _map)
             {
                 // no reason to cause allocations if value is missing

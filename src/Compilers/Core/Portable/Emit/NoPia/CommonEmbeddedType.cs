@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 // The constructors might be missing (for example, in metadata case) and doing lookup
                 // will ensure that we report appropriate errors.
 
-                foreach (var attrData in GetCustomAttributesToEmit(moduleBuilder))
+                foreach (TAttributeData attrData in GetCustomAttributesToEmit(moduleBuilder))
                 {
                     if (IsTargetAttribute(attrData, AttributeDescription.GuidAttribute))
                     {
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                     var builder = ArrayBuilder<Cci.IEventDefinition>.GetInstance();
 
-                    foreach (var e in GetEventsToEmit())
+                    foreach (TEventSymbol e in GetEventsToEmit())
                     {
                         TEmbeddedEvent embedded;
 
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                     var builder = ArrayBuilder<Cci.IFieldDefinition>.GetInstance();
 
-                    foreach (var f in GetFieldsToEmit())
+                    foreach (TFieldSymbol f in GetFieldsToEmit())
                     {
                         TEmbeddedField embedded;
 
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 get
                 {
-                    var layout = GetTypeLayoutIfStruct();
+                    TypeLayout? layout = GetTypeLayoutIfStruct();
                     return layout?.Kind ?? System.Runtime.InteropServices.LayoutKind.Auto;
                 }
             }
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 get
                 {
-                    var layout = GetTypeLayoutIfStruct();
+                    TypeLayout? layout = GetTypeLayoutIfStruct();
                     return (ushort)(layout?.Alignment ?? 0);
                 }
             }
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
             {
                 get
                 {
-                    var layout = GetTypeLayoutIfStruct();
+                    TypeLayout? layout = GetTypeLayoutIfStruct();
                     return (uint)(layout?.Size ?? 0);
                 }
             }
@@ -434,7 +434,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                     int gapIndex = 1;
                     int gapSize = 0;
 
-                    foreach (var method in GetMethodsToEmit())
+                    foreach (TMethodSymbol method in GetMethodsToEmit())
                     {
                         if ((object)method != null)
                         {
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                     var builder = ArrayBuilder<Cci.IPropertyDefinition>.GetInstance();
 
-                    foreach (var p in GetPropertiesToEmit())
+                    foreach (TPropertySymbol p in GetPropertiesToEmit())
                     {
                         TEmbeddedProperty embedded;
 
@@ -519,7 +519,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
                 if (_lazyAttributes.IsDefault)
                 {
                     var diagnostics = DiagnosticBag.GetInstance();
-                    var attributes = GetAttributes((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
+                    ImmutableArray<TAttributeData> attributes = GetAttributes((TPEModuleBuilder)context.Module, (TSyntaxNode)context.SyntaxNodeOpt, diagnostics);
 
                     if (ImmutableInterlocked.InterlockedInitialize(ref _lazyAttributes, attributes))
                     {

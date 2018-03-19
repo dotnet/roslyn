@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private SyntaxTree Parse(string text, params string[] defines)
         {
-            var options = this.GetOptions(defines);
+            CSharpParseOptions options = this.GetOptions(defines);
             var itext = SourceText.From(text);
             return SyntaxFactory.ParseSyntaxTree(itext, options);
         }
@@ -38,12 +38,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestChangeClassNameWithNonMatchingMethod()
         {
             var text = "class goo { void m() { } }";
-            var oldTree = this.Parse(text);
-            var newTree = oldTree.WithReplaceFirst("goo", "bar");
+            SyntaxTree oldTree = this.Parse(text);
+            SyntaxTree newTree = oldTree.WithReplaceFirst("goo", "bar");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
-            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            ImmutableArray<SyntaxNodeOrToken> diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
@@ -54,12 +54,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestChangeClassNameToNotMatchConstructor()
         {
             var text = "class goo { goo() { } }";
-            var oldTree = this.Parse(text);
-            var newTree = oldTree.WithReplaceFirst("goo", "bar");
+            SyntaxTree oldTree = this.Parse(text);
+            SyntaxTree newTree = oldTree.WithReplaceFirst("goo", "bar");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
-            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            ImmutableArray<SyntaxNodeOrToken> diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.InRange(diffs.Length, 0, kinds.Length);
 
             int diffI = 0;
-            foreach (var kind in kinds)
+            foreach (SyntaxKind kind in kinds)
             {
                 if (diffI < diffs.Length && diffs[diffI].IsKind(kind))
                 {
@@ -90,12 +90,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestChangeClassNameToMatchConstructor()
         {
             var text = "class goo { bar() { } }";
-            var oldTree = this.Parse(text);
-            var newTree = oldTree.WithReplaceFirst("goo", "bar");
+            SyntaxTree oldTree = this.Parse(text);
+            SyntaxTree newTree = oldTree.WithReplaceFirst("goo", "bar");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
-            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            ImmutableArray<SyntaxNodeOrToken> diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
@@ -107,12 +107,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestChangeClassNameToNotMatchDestructor()
         {
             var text = "class goo { ~goo() { } }";
-            var oldTree = this.Parse(text);
-            var newTree = oldTree.WithReplaceFirst("goo", "bar");
+            SyntaxTree oldTree = this.Parse(text);
+            SyntaxTree newTree = oldTree.WithReplaceFirst("goo", "bar");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
-            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            ImmutableArray<SyntaxNodeOrToken> diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
@@ -123,12 +123,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestChangeClassNameToMatchDestructor()
         {
             var text = "class goo { ~bar() { } }";
-            var oldTree = this.Parse(text);
-            var newTree = oldTree.WithReplaceFirst("goo", "bar");
+            SyntaxTree oldTree = this.Parse(text);
+            SyntaxTree newTree = oldTree.WithReplaceFirst("goo", "bar");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
-            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            ImmutableArray<SyntaxNodeOrToken> diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
@@ -138,15 +138,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestChangeFromClassToInterface()
         {
-            var interfaceKeyword = SyntaxFactory.ParseToken("interface"); // prime the memoizer
+            SyntaxToken interfaceKeyword = SyntaxFactory.ParseToken("interface"); // prime the memoizer
 
             var text = "class goo { public void m() { } }";
-            var oldTree = this.Parse(text);
-            var newTree = oldTree.WithReplaceFirst("class", "interface");
+            SyntaxTree oldTree = this.Parse(text);
+            SyntaxTree newTree = oldTree.WithReplaceFirst("class", "interface");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
-            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            ImmutableArray<SyntaxNodeOrToken> diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.InterfaceDeclaration,
@@ -156,15 +156,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestChangeFromClassToStruct()
         {
-            var interfaceKeyword = SyntaxFactory.ParseToken("struct"); // prime the memoizer
+            SyntaxToken interfaceKeyword = SyntaxFactory.ParseToken("struct"); // prime the memoizer
 
             var text = "class goo { public void m() { } }";
-            var oldTree = this.Parse(text);
-            var newTree = oldTree.WithReplaceFirst("class", "struct");
+            SyntaxTree oldTree = this.Parse(text);
+            SyntaxTree newTree = oldTree.WithReplaceFirst("class", "struct");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
-            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            ImmutableArray<SyntaxNodeOrToken> diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.StructDeclaration,
@@ -175,12 +175,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestChangeMethodName()
         {
             var text = "class c { void goo(a x, b y) { } }";
-            var oldTree = this.Parse(text);
-            var newTree = oldTree.WithReplaceFirst("goo", "bar");
+            SyntaxTree oldTree = this.Parse(text);
+            SyntaxTree newTree = oldTree.WithReplaceFirst("goo", "bar");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
-            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            ImmutableArray<SyntaxNodeOrToken> diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
@@ -197,12 +197,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 class goo { void M() { } }
 #endif
 ";
-            var oldTree = this.Parse(text, "GOO", "BAR");
-            var newTree = oldTree.WithReplaceFirst("GOO", "BAR");
+            SyntaxTree oldTree = this.Parse(text, "GOO", "BAR");
+            SyntaxTree newTree = oldTree.WithReplaceFirst("GOO", "BAR");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
-            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            ImmutableArray<SyntaxNodeOrToken> diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
@@ -219,12 +219,12 @@ class goo { void M() { } }
 class goo { void M() { } }
 #endif
 ";
-            var oldTree = this.Parse(text);
-            var newTree = oldTree.WithReplaceFirst("GOO", "BAR");
+            SyntaxTree oldTree = this.Parse(text);
+            SyntaxTree newTree = oldTree.WithReplaceFirst("GOO", "BAR");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
-            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            ImmutableArray<SyntaxNodeOrToken> diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
@@ -243,12 +243,12 @@ class C { void M() { } }
 class C { void N() { } }
 #endif
 ";
-            var oldTree = this.Parse(text);
-            var newTree = oldTree.WithReplaceFirst("GOO", "BAR");
+            SyntaxTree oldTree = this.Parse(text);
+            SyntaxTree newTree = oldTree.WithReplaceFirst("GOO", "BAR");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
-            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            ImmutableArray<SyntaxNodeOrToken> diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
@@ -268,12 +268,12 @@ class C { void N() { } }
             var text = @"
 class C { void M() { } }
 ";
-            var oldTree = this.Parse(text);
-            var newTree = oldTree.WithInsertAt(0, "#line 100\r\n");
+            SyntaxTree oldTree = this.Parse(text);
+            SyntaxTree newTree = oldTree.WithInsertAt(0, "#line 100\r\n");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
-            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            ImmutableArray<SyntaxNodeOrToken> diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
@@ -287,12 +287,12 @@ class C { void M() { } }
 #line 10
 class C { void M() { } }
 ";
-            var oldTree = this.Parse(text);
-            var newTree = oldTree.WithRemoveFirst("#line 10");
+            SyntaxTree oldTree = this.Parse(text);
+            SyntaxTree newTree = oldTree.WithRemoveFirst("#line 10");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
 
-            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            ImmutableArray<SyntaxNodeOrToken> diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,
@@ -311,27 +311,27 @@ class B { void b() { } }
 class C { void c() { } }
 #endif
 ";
-            var oldTree = this.Parse(text);
+            SyntaxTree oldTree = this.Parse(text);
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
-            var oldDirectives = oldTree.GetCompilationUnitRoot().GetDirectives();
+            System.Collections.Generic.IList<DirectiveTriviaSyntax> oldDirectives = oldTree.GetCompilationUnitRoot().GetDirectives();
             Assert.Equal(4, oldDirectives.Count);
             Assert.Equal(SyntaxKind.IfDirectiveTrivia, oldDirectives[0].Kind());
             Assert.Equal(SyntaxKind.RegionDirectiveTrivia, oldDirectives[1].Kind());
             Assert.Equal(SyntaxKind.EndRegionDirectiveTrivia, oldDirectives[2].Kind());
             Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, oldDirectives[3].Kind());
 
-            var newTree = oldTree.WithRemoveFirst("#endregion");
-            var errors = newTree.GetCompilationUnitRoot().Errors();
+            SyntaxTree newTree = oldTree.WithRemoveFirst("#endregion");
+            ImmutableArray<DiagnosticInfo> errors = newTree.GetCompilationUnitRoot().Errors();
             Assert.Equal(2, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_EndRegionDirectiveExpected, errors[0].Code);
             Assert.Equal((int)ErrorCode.ERR_EndRegionDirectiveExpected, errors[1].Code);
-            var newDirectives = newTree.GetCompilationUnitRoot().GetDirectives();
+            System.Collections.Generic.IList<DirectiveTriviaSyntax> newDirectives = newTree.GetCompilationUnitRoot().GetDirectives();
             Assert.Equal(3, newDirectives.Count);
             Assert.Equal(SyntaxKind.IfDirectiveTrivia, newDirectives[0].Kind());
             Assert.Equal(SyntaxKind.RegionDirectiveTrivia, newDirectives[1].Kind());
             Assert.Equal(SyntaxKind.BadDirectiveTrivia, newDirectives[2].Kind());
 
-            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            ImmutableArray<SyntaxNodeOrToken> diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,  // class declaration on edge before change
@@ -354,28 +354,28 @@ class B { void b() { } }
 class C { void c() { } }
 #endif
 ";
-            var oldTree = this.Parse(text);
-            var errors = oldTree.GetCompilationUnitRoot().Errors();
+            SyntaxTree oldTree = this.Parse(text);
+            ImmutableArray<DiagnosticInfo> errors = oldTree.GetCompilationUnitRoot().Errors();
             Assert.Equal(2, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_EndRegionDirectiveExpected, errors[0].Code);
             Assert.Equal((int)ErrorCode.ERR_EndRegionDirectiveExpected, errors[1].Code);
-            var oldDirectives = oldTree.GetCompilationUnitRoot().GetDirectives();
+            System.Collections.Generic.IList<DirectiveTriviaSyntax> oldDirectives = oldTree.GetCompilationUnitRoot().GetDirectives();
             Assert.Equal(3, oldDirectives.Count);
             Assert.Equal(SyntaxKind.IfDirectiveTrivia, oldDirectives[0].Kind());
             Assert.Equal(SyntaxKind.RegionDirectiveTrivia, oldDirectives[1].Kind());
             Assert.Equal(SyntaxKind.BadDirectiveTrivia, oldDirectives[2].Kind());
 
-            var newTree = oldTree.WithInsertBefore("class C", "#endregion\r\n");
+            SyntaxTree newTree = oldTree.WithInsertBefore("class C", "#endregion\r\n");
             errors = newTree.GetCompilationUnitRoot().Errors();
             Assert.Equal(0, errors.Length);
-            var newDirectives = newTree.GetCompilationUnitRoot().GetDirectives();
+            System.Collections.Generic.IList<DirectiveTriviaSyntax> newDirectives = newTree.GetCompilationUnitRoot().GetDirectives();
             Assert.Equal(4, newDirectives.Count);
             Assert.Equal(SyntaxKind.IfDirectiveTrivia, newDirectives[0].Kind());
             Assert.Equal(SyntaxKind.RegionDirectiveTrivia, newDirectives[1].Kind());
             Assert.Equal(SyntaxKind.EndRegionDirectiveTrivia, newDirectives[2].Kind());
             Assert.Equal(SyntaxKind.EndIfDirectiveTrivia, newDirectives[3].Kind());
 
-            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            ImmutableArray<SyntaxNodeOrToken> diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.ClassDeclaration,  // class declaration on edge before change
@@ -392,10 +392,10 @@ class C { void c() { } }
         {
             var text = @";a * b";
 
-            var oldTree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script);
-            var newTree = oldTree.WithInsertAt(0, "{ ");
+            SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script);
+            SyntaxTree newTree = oldTree.WithInsertAt(0, "{ ");
 
-            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            ImmutableArray<SyntaxNodeOrToken> diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.GlobalStatement,
@@ -416,10 +416,10 @@ class C { void c() { } }
         {
             var text = @"{; a * b; }";
 
-            var oldTree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script);
-            var newTree = oldTree.WithRemoveAt(0, 1);
+            SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script);
+            SyntaxTree newTree = oldTree.WithRemoveAt(0, 1);
 
-            var diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
+            ImmutableArray<SyntaxNodeOrToken> diffs = SyntaxDifferences.GetRebuiltNodes(oldTree, newTree);
             TestDiffsInOrder(diffs,
                             SyntaxKind.CompilationUnit,
                             SyntaxKind.GlobalStatement,
@@ -496,8 +496,8 @@ class C { void c() { } }
         {
             // prove that this incremental change can occur without exception!
             var text = "/";
-            var startTree = SyntaxFactory.ParseSyntaxTree(text);
-            var newTree = startTree.WithInsertAt(1, "/");
+            SyntaxTree startTree = SyntaxFactory.ParseSyntaxTree(text);
+            SyntaxTree newTree = startTree.WithInsertAt(1, "/");
             var fullText = newTree.GetCompilationUnitRoot().ToFullString();
             Assert.Equal("//", fullText);
         }
@@ -545,11 +545,11 @@ class C { void c() { } }
         public void Bug896262()
         {
             var text = SourceText.From(@"partial class C{}");
-            var startTree = SyntaxFactory.ParseSyntaxTree(text);
+            SyntaxTree startTree = SyntaxFactory.ParseSyntaxTree(text);
             var finalString = startTree.GetCompilationUnitRoot().ToFullString();
 
-            var newText = text.WithChanges(new TextChange(new TextSpan(0, 8), ""));
-            var newTree = startTree.WithChangedText(newText);
+            SourceText newText = text.WithChanges(new TextChange(new TextSpan(0, 8), ""));
+            SyntaxTree newTree = startTree.WithChangedText(newText);
             var finalText = newTree.GetCompilationUnitRoot().ToFullString();
             Assert.Equal(newText.ToString(), finalText);
         }
@@ -559,11 +559,11 @@ class C { void c() { } }
         public void RemovePartialFromClassWithCorrectSpan()
         {
             var text = SourceText.From(@"partial class C{}");
-            var startTree = SyntaxFactory.ParseSyntaxTree(text);
+            SyntaxTree startTree = SyntaxFactory.ParseSyntaxTree(text);
             var finalString = startTree.GetCompilationUnitRoot().ToFullString();
 
-            var newText = text.WithChanges(new TextChange(new TextSpan(0, 8), ""));
-            var newTree = startTree.WithChangedText(newText);
+            SourceText newText = text.WithChanges(new TextChange(new TextSpan(0, 8), ""));
+            SyntaxTree newTree = startTree.WithChangedText(newText);
             var output = newTree.GetCompilationUnitRoot().ToFullString();
             Assert.Equal(newText.ToString(), output);
         }
@@ -1027,8 +1027,8 @@ class A
 string s = @
 }
 ";
-            var oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
-            var newTree = oldTree.WithInsertAt(oldText.IndexOf('@'), ";");
+            SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
+            SyntaxTree newTree = oldTree.WithInsertAt(oldText.IndexOf('@'), ";");
         }
 
         [WorkItem(536717, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536717")]
@@ -1159,7 +1159,7 @@ string s = @
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
 
-            var oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
+            SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
 
             // This function will update "class" to "/*class*/" in oldText
             CommentOutText(oldText, locationOfChange, widthOfChange, out incrementalTree, out parsedTree);
@@ -1547,7 +1547,7 @@ namespace N");
             SyntaxTree incrementalTree;
             SyntaxTree parsedTree;
 
-            var oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
+            SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
 
             // This function will add the '/' character to the end of oldText
             CharByCharIncrementalParse(oldText, '/', out incrementalTree, out parsedTree);
@@ -2310,15 +2310,15 @@ class Program
 }";
 
             var text = SourceText.From(str);
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text);
 
-            var text2 = text.WithChanges(
+            SourceText text2 = text.WithChanges(
                 new TextChange(new TextSpan(str.IndexOf(" abc", StringComparison.Ordinal), 0), "//"),
                 new TextChange(new TextSpan(str.IndexOf(" 123", StringComparison.Ordinal), 0), "//"),
                 new TextChange(new TextSpan(str.IndexOf(" def", StringComparison.Ordinal), 0), "//"));
 
-            var parsedTree = SyntaxFactory.ParseSyntaxTree(text2);
-            var reparsedTree = tree.WithChangedText(text2);
+            SyntaxTree parsedTree = SyntaxFactory.ParseSyntaxTree(text2);
+            SyntaxTree reparsedTree = tree.WithChangedText(text2);
 
             CompareTreeEquivalence(parsedTree.GetCompilationUnitRoot(), reparsedTree.GetCompilationUnitRoot());
         }
@@ -2331,13 +2331,13 @@ class Program
 		this.I = i;
 	};
 }");
-            var startTree = SyntaxFactory.ParseSyntaxTree(oldText);
+            SyntaxTree startTree = SyntaxFactory.ParseSyntaxTree(oldText);
 
             // first make certain this text round trips
             Assert.Equal(oldText.ToString(), startTree.GetCompilationUnitRoot().ToFullString());
-            var newText = oldText.WithChanges(new TextChange(new TextSpan(0, 0), "{"));
-            var reparsedTree = startTree.WithChangedText(newText);
-            var parsedTree = SyntaxFactory.ParseSyntaxTree(newText);
+            SourceText newText = oldText.WithChanges(new TextChange(new TextSpan(0, 0), "{"));
+            SyntaxTree reparsedTree = startTree.WithChangedText(newText);
+            SyntaxTree parsedTree = SyntaxFactory.ParseSyntaxTree(newText);
             CompareIncToFullParseErrors(reparsedTree, parsedTree);
         }
 
@@ -2347,11 +2347,11 @@ class Program
         {
             SourceText oldText = SourceText.From(@"System.Console.WriteLine(true)
 ");
-            var startTree = SyntaxFactory.ParseSyntaxTree(oldText, options: TestOptions.Script);
+            SyntaxTree startTree = SyntaxFactory.ParseSyntaxTree(oldText, options: TestOptions.Script);
 
             startTree.GetDiagnostics().Verify();
 
-            var newText = oldText.WithChanges(new TextChange(new TextSpan(0, 0), @"System.Console.WriteLine(false)
+            SourceText newText = oldText.WithChanges(new TextChange(new TextSpan(0, 0), @"System.Console.WriteLine(false)
 "));
 
             AssertEx.AreEqual(@"System.Console.WriteLine(false)
@@ -2359,8 +2359,8 @@ System.Console.WriteLine(true)
 ",
 newText.ToString());
 
-            var reparsedTree = startTree.WithChangedText(newText);
-            var parsedTree = SyntaxFactory.ParseSyntaxTree(newText, options: TestOptions.Script);
+            SyntaxTree reparsedTree = startTree.WithChangedText(newText);
+            SyntaxTree parsedTree = SyntaxFactory.ParseSyntaxTree(newText, options: TestOptions.Script);
 
             parsedTree.GetDiagnostics().Verify(
                 // (1,32): error CS1002: ; expected
@@ -2376,11 +2376,11 @@ newText.ToString());
         {
             SourceText oldText = SourceText.From(@"System.Console.WriteLine(true)
 ");
-            var startTree = SyntaxFactory.ParseSyntaxTree(oldText, options: TestOptions.Script);
+            SyntaxTree startTree = SyntaxFactory.ParseSyntaxTree(oldText, options: TestOptions.Script);
 
             startTree.GetDiagnostics().Verify();
 
-            var newText = oldText.WithInsertAt(
+            SourceText newText = oldText.WithInsertAt(
                 oldText.Length, 
                 @"System.Console.WriteLine(false)
 ");
@@ -2389,9 +2389,9 @@ newText.ToString());
 System.Console.WriteLine(false)
 ", newText.ToString());
 
-            var reparsedTree = startTree.WithChangedText(newText);
+            SyntaxTree reparsedTree = startTree.WithChangedText(newText);
 
-            var parsedTree = SyntaxFactory.ParseSyntaxTree(newText, options: TestOptions.Script);
+            SyntaxTree parsedTree = SyntaxFactory.ParseSyntaxTree(newText, options: TestOptions.Script);
             parsedTree.GetDiagnostics().Verify(
                 // (1,31): error CS1002: ; expected
                 // System.Console.WriteLine(true)
@@ -2406,19 +2406,19 @@ System.Console.WriteLine(false)
         {
             SourceText oldText = SourceText.From(@"System.Console.WriteLine(true)
 ");
-            var startTree = SyntaxFactory.ParseSyntaxTree(oldText, options: TestOptions.Script);
+            SyntaxTree startTree = SyntaxFactory.ParseSyntaxTree(oldText, options: TestOptions.Script);
 
             startTree.GetDiagnostics().Verify();
 
-            var newText = oldText.WithChanges(new TextChange(new TextSpan(0, 0), @"if (false)
+            SourceText newText = oldText.WithChanges(new TextChange(new TextSpan(0, 0), @"if (false)
 "));
 
             AssertEx.Equal(@"if (false)
 System.Console.WriteLine(true)
 ", newText.ToString());
 
-            var reparsedTree = startTree.WithChangedText(newText);
-            var parsedTree = SyntaxFactory.ParseSyntaxTree(newText, options: TestOptions.Script);
+            SyntaxTree reparsedTree = startTree.WithChangedText(newText);
+            SyntaxTree parsedTree = SyntaxFactory.ParseSyntaxTree(newText, options: TestOptions.Script);
 
             parsedTree.GetDiagnostics().Verify(
                 // (2,31): error CS1002: ; expected
@@ -2439,9 +2439,9 @@ System.Console.WriteLine(true)
     {
         int hash = key + value;
 #if DEBUG";
-            var originalTree = this.Parse(text);
-            var changedTree = originalTree.WithInsertAt(text.Length, "\r\n        hash++;");
-            var parsedTree = this.Parse(changedTree.GetCompilationUnitRoot().ToFullString());
+            SyntaxTree originalTree = this.Parse(text);
+            SyntaxTree changedTree = originalTree.WithInsertAt(text.Length, "\r\n        hash++;");
+            SyntaxTree parsedTree = this.Parse(changedTree.GetCompilationUnitRoot().ToFullString());
 
             Assert.Equal(
                 parsedTree.GetCompilationUnitRoot().EndOfFileToken.FullSpan,
@@ -2461,17 +2461,17 @@ class Program
 
             var text2 = @"        Console.WriteLine(""\'\0\a\b\";
 
-            var comp = CSharpTestBase.CreateCompilation(SyntaxFactory.ParseSyntaxTree(String.Empty));
+            CSharpCompilation comp = CSharpTestBase.CreateCompilation(SyntaxFactory.ParseSyntaxTree(String.Empty));
 
-            var oldTree = comp.SyntaxTrees.First();
-            var oldIText = oldTree.GetText();
+            SyntaxTree oldTree = comp.SyntaxTrees.First();
+            SourceText oldIText = oldTree.GetText();
             var span = new TextSpan(oldIText.Length, 0);
             var change = new TextChange(span, text1);
 
-            var newIText = oldIText.WithChanges(change);
-            var newTree = oldTree.WithChangedText(newIText);
+            SourceText newIText = oldIText.WithChanges(change);
+            SyntaxTree newTree = oldTree.WithChangedText(newIText);
 
-            var fullTree = SyntaxFactory.ParseSyntaxTree(newIText.ToString(), options: newTree.Options);
+            SyntaxTree fullTree = SyntaxFactory.ParseSyntaxTree(newIText.ToString(), options: newTree.Options);
             var fullText = fullTree.GetCompilationUnitRoot().ToFullString();
             var incText = newTree.GetCompilationUnitRoot().ToFullString();
             Assert.Equal(fullText.Length, incText.Length);
@@ -2541,8 +2541,8 @@ public class QueryExpressionTest
 }
 ";
 
-            var currTree = SyntaxFactory.ParseSyntaxTree(text);
-            var currIText = currTree.GetText();
+            SyntaxTree currTree = SyntaxFactory.ParseSyntaxTree(text);
+            SourceText currIText = currTree.GetText();
 
             var items = text.Split('\n');
             int currLen = 0;
@@ -2555,7 +2555,7 @@ public class QueryExpressionTest
                 currIText = currIText.WithChanges(change);
                 currTree = currTree.WithChangedText(currIText);
 
-                var fullTree = SyntaxFactory.ParseSyntaxTree(currIText.ToString());
+                SyntaxTree fullTree = SyntaxFactory.ParseSyntaxTree(currIText.ToString());
 
                 int incCount = currTree.GetCompilationUnitRoot().ChildNodesAndTokens().Count;
                 int fullCount = fullTree.GetCompilationUnitRoot().ChildNodesAndTokens().Count;
@@ -2581,8 +2581,8 @@ class equals
 }
 ";
 
-            var currTree = SyntaxFactory.ParseSyntaxTree(text);
-            var currIText = currTree.GetText();
+            SyntaxTree currTree = SyntaxFactory.ParseSyntaxTree(text);
+            SourceText currIText = currTree.GetText();
 
             // Insert "// " before the "x" in "select x"; the next statement becomes part of the query.
             var span = new TextSpan(text.LastIndexOf('x'), 0);
@@ -2591,7 +2591,7 @@ class equals
             currIText = currIText.WithChanges(change);
             currTree = currTree.WithChangedText(currIText);
 
-            var fullTree = SyntaxFactory.ParseSyntaxTree(currIText.ToString());
+            SyntaxTree fullTree = SyntaxFactory.ParseSyntaxTree(currIText.ToString());
 
             WalkTreeAndVerify(currTree.GetCompilationUnitRoot(), fullTree.GetCompilationUnitRoot());
         }
@@ -2609,8 +2609,8 @@ class D { }
 
             // Check reuse after a trivial change in an unannotated tree.
             {
-                var oldTree = SyntaxFactory.ParseSyntaxTree(text);
-                var newTree = oldTree.WithInsertAt(text.Length, " ");
+                SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(text);
+                SyntaxTree newTree = oldTree.WithInsertAt(text.Length, " ");
 
                 // Class declaration is reused.
                 Assert.Same(extractGreenClassC(oldTree), extractGreenClassC(newTree));
@@ -2618,19 +2618,19 @@ class D { }
 
             // Check reuse after a trivial change in an annotated tree.
             {
-                var tempTree = SyntaxFactory.ParseSyntaxTree(text);
-                var tempRoot = tempTree.GetRoot();
-                var tempToken = tempRoot.DescendantTokens().First(t => t.Kind() == SyntaxKind.IdentifierToken);
-                var oldRoot = tempRoot.ReplaceToken(tempToken, tempToken.WithAdditionalAnnotations(new SyntaxAnnotation()));
+                SyntaxTree tempTree = SyntaxFactory.ParseSyntaxTree(text);
+                SyntaxNode tempRoot = tempTree.GetRoot();
+                SyntaxToken tempToken = tempRoot.DescendantTokens().First(t => t.Kind() == SyntaxKind.IdentifierToken);
+                SyntaxNode oldRoot = tempRoot.ReplaceToken(tempToken, tempToken.WithAdditionalAnnotations(new SyntaxAnnotation()));
                 Assert.True(oldRoot.ContainsAnnotations, "Should contain annotations.");
                 Assert.Equal(text, oldRoot.ToFullString());
 
-                var oldTree = SyntaxFactory.SyntaxTree(oldRoot, options: tempTree.Options, path: tempTree.FilePath);
-                var newTree = oldTree.WithInsertAt(text.Length, " ");
+                SyntaxTree oldTree = SyntaxFactory.SyntaxTree(oldRoot, options: tempTree.Options, path: tempTree.FilePath);
+                SyntaxTree newTree = oldTree.WithInsertAt(text.Length, " ");
 
 
-                var oldClassC = extractGreenClassC(oldTree);
-                var newClassC = extractGreenClassC(newTree);
+                GreenNode oldClassC = extractGreenClassC(oldTree);
+                GreenNode newClassC = extractGreenClassC(newTree);
 
                 Assert.True(oldClassC.ContainsAnnotations, "Should contain annotations");
                 Assert.False(newClassC.ContainsAnnotations, "Annotations should have been removed.");
@@ -2641,8 +2641,8 @@ class D { }
                 Assert.Equal(oldClassC.ToFullString(), newClassC.ToFullString());
 
 
-                var oldToken = ((Syntax.InternalSyntax.ClassDeclarationSyntax)oldClassC).Identifier;
-                var newToken = ((Syntax.InternalSyntax.ClassDeclarationSyntax)newClassC).Identifier;
+                Syntax.InternalSyntax.SyntaxToken oldToken = ((Syntax.InternalSyntax.ClassDeclarationSyntax)oldClassC).Identifier;
+                Syntax.InternalSyntax.SyntaxToken newToken = ((Syntax.InternalSyntax.ClassDeclarationSyntax)newClassC).Identifier;
 
                 Assert.True(oldToken.ContainsAnnotations, "Should contain annotations");
                 Assert.False(newToken.ContainsAnnotations, "Annotations should have been removed.");
@@ -2665,13 +2665,13 @@ class D { }
             };
 
             var oldText = SourceText.From(items[0]);
-            var oldTree = SyntaxFactory.ParseSyntaxTree(oldText); // f is a simple lambda parameter
+            SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(oldText); // f is a simple lambda parameter
 
             var change = new TextChange(new TextSpan(0, 0), items[1]); // Prepend
-            var newText = oldText.WithChanges(change); // f is a method decl parameter
+            SourceText newText = oldText.WithChanges(change); // f is a method decl parameter
 
-            var incrTree = oldTree.WithChangedText(newText);
-            var fullTree = SyntaxFactory.ParseSyntaxTree(newText);
+            SyntaxTree incrTree = oldTree.WithChangedText(newText);
+            SyntaxTree fullTree = SyntaxFactory.ParseSyntaxTree(newText);
 
             Assert.Equal(
                 fullTree.GetDiagnostics().Select(d => d.ToString()),
@@ -2684,11 +2684,11 @@ class D { }
         [Fact]
         public void TestRescanInterpolatedString()
         {
-            var interfaceKeyword = SyntaxFactory.ParseToken("interface"); // prime the memoizer
+            SyntaxToken interfaceKeyword = SyntaxFactory.ParseToken("interface"); // prime the memoizer
 
             var text = @"class goo { public void m() { string s = $""{1} world"" ; } }";
-            var oldTree = this.Parse6(text);
-            var newTree = oldTree.WithReplaceFirst(@"world"" ", @"world""  ");
+            SyntaxTree oldTree = this.Parse6(text);
+            SyntaxTree newTree = oldTree.WithReplaceFirst(@"world"" ", @"world""  ");
             Assert.Equal(0, oldTree.GetCompilationUnitRoot().Errors().Length);
             Assert.Equal(0, newTree.GetCompilationUnitRoot().Errors().Length);
         }
@@ -2749,8 +2749,8 @@ class G: Program
     }
 }
 ");
-            var oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
-            var newTree = oldTree.WithChangedText(newText);
+            SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
+            SyntaxTree newTree = oldTree.WithChangedText(newText);
             WalkTreeAndVerify(newTree.GetCompilationUnitRoot(), SyntaxFactory.ParseSyntaxTree(newText).GetCompilationUnitRoot());
         }
 
@@ -2759,14 +2759,14 @@ class G: Program
         #region Helper functions
         private void WalkTreeAndVerify(SyntaxNodeOrToken incNode, SyntaxNodeOrToken fullNode)
         {
-            var incChildren = incNode.ChildNodesAndTokens();
-            var fullChildren = fullNode.ChildNodesAndTokens();
+            ChildSyntaxList incChildren = incNode.ChildNodesAndTokens();
+            ChildSyntaxList fullChildren = fullNode.ChildNodesAndTokens();
             Assert.Equal(incChildren.Count, fullChildren.Count);
 
             for (int i = 0; i < incChildren.Count; i++)
             {
-                var incChild = incChildren[i];
-                var fullChild = fullChildren[i];
+                SyntaxNodeOrToken incChild = incChildren[i];
+                SyntaxNodeOrToken fullChild = fullChildren[i];
 
                 WalkTreeAndVerify(incChild, fullChild);
             }
@@ -2774,28 +2774,28 @@ class G: Program
 
         private static void CommentOutText(SourceText oldText, int locationOfChange, int widthOfChange, out SyntaxTree incrementalTree, out SyntaxTree parsedTree)
         {
-            var newText = oldText.WithChanges(
+            SourceText newText = oldText.WithChanges(
                 new TextChange[] {
                     new TextChange(new TextSpan(locationOfChange, 0), "/*"),
                     new TextChange(new TextSpan(locationOfChange + widthOfChange, 0), "*/")
                 });
-            var tree = SyntaxFactory.ParseSyntaxTree(oldText);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(oldText);
             incrementalTree = tree.WithChangedText(newText);
             parsedTree = SyntaxFactory.ParseSyntaxTree(newText);
         }
 
         private static void RemoveText(SourceText oldText, int locationOfChange, int widthOfChange, out SyntaxTree incrementalTree, out SyntaxTree parsedTree)
         {
-            var newText = oldText.WithChanges(new TextChange(new TextSpan(locationOfChange, widthOfChange), ""));
-            var tree = SyntaxFactory.ParseSyntaxTree(oldText);
+            SourceText newText = oldText.WithChanges(new TextChange(new TextSpan(locationOfChange, widthOfChange), ""));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(oldText);
             incrementalTree = tree.WithChangedText(newText);
             parsedTree = SyntaxFactory.ParseSyntaxTree(newText);
         }
 
         private void CompareIncToFullParseErrors(SyntaxTree incrementalTree, SyntaxTree parsedTree)
         {
-            var pd = parsedTree.GetDiagnostics();
-            var id = incrementalTree.GetDiagnostics();
+            System.Collections.Generic.IEnumerable<Diagnostic> pd = parsedTree.GetDiagnostics();
+            System.Collections.Generic.IEnumerable<Diagnostic> id = incrementalTree.GetDiagnostics();
             Assert.Equal(pd.Count(), id.Count());
             for (int i = 0; i < id.Count(); i++)
             {
@@ -2808,18 +2808,18 @@ class G: Program
 
         private static void CharByCharIncrementalParse(SourceText oldText, char newChar, out SyntaxTree incrementalTree, out SyntaxTree parsedTree)
         {
-            var startTree = SyntaxFactory.ParseSyntaxTree(oldText);
+            SyntaxTree startTree = SyntaxFactory.ParseSyntaxTree(oldText);
 
             // first make certain this text round trips
             Assert.Equal(oldText.ToString(), startTree.GetCompilationUnitRoot().ToFullString());
-            var newText = oldText.WithChanges(new TextChange(new TextSpan(oldText.Length, 0), newChar.ToString()));
+            SourceText newText = oldText.WithChanges(new TextChange(new TextSpan(oldText.Length, 0), newChar.ToString()));
             incrementalTree = startTree.WithChangedText(newText);
             parsedTree = SyntaxFactory.ParseSyntaxTree(newText);
         }
 
         private static void TokenByTokenBottomUp(SourceText oldText, string token, out SyntaxTree incrementalTree, out SyntaxTree parsedTree)
         {
-            var startTree = SyntaxFactory.ParseSyntaxTree(oldText);
+            SyntaxTree startTree = SyntaxFactory.ParseSyntaxTree(oldText);
             SourceText newText = SourceText.From(token + oldText.ToString());
             incrementalTree = startTree.WithInsertAt(0, token);
             parsedTree = SyntaxFactory.ParseSyntaxTree(newText);

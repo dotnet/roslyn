@@ -151,8 +151,8 @@ namespace Roslyn.Utilities
                 return;
             }
 
-            var type = value.GetType();
-            var typeInfo = type.GetTypeInfo();
+            Type type = value.GetType();
+            System.Reflection.TypeInfo typeInfo = type.GetTypeInfo();
             Debug.Assert(!typeInfo.IsEnum, "Enums should not be written with WriteObject.  Write them out as integers instead.");
 
             // Perf: Note that JIT optimizes each expression value.GetType() == typeof(T) to a single register comparison.
@@ -343,7 +343,7 @@ namespace Roslyn.Utilities
 
             public void Dispose()
             {
-                var pool = GetDictionaryPool(_valueEquality);
+                ObjectPool<Dictionary<object, int>> pool = GetDictionaryPool(_valueEquality);
 
                 // If the map grew too big, don't return it to the pool.
                 // When testing with the Roslyn solution, this dropped only 2.5% of requests.
@@ -484,9 +484,9 @@ namespace Roslyn.Utilities
                     break;
             }
 
-            var elementType = array.GetType().GetElementType();
+            Type elementType = array.GetType().GetElementType();
 
-            if (s_typeMap.TryGetValue(elementType, out var elementKind))
+            if (s_typeMap.TryGetValue(elementType, out EncodingKind elementKind))
             {
                 this.WritePrimitiveType(elementType, elementKind);
                 this.WritePrimitiveTypeArrayElements(elementType, elementKind, array);
@@ -505,7 +505,7 @@ namespace Roslyn.Utilities
                     // If we're recursing too deep, move the work to another thread to do so we
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
-                    var task = Task.Factory.StartNew(
+                    Task task = Task.Factory.StartNew(
                         a => WriteArrayValues((Array)a), 
                         array,
                         _cancellationToken,
@@ -755,7 +755,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                var writable = instanceAsWritableOpt;
+                IObjectWritable writable = instanceAsWritableOpt;
                 if (writable == null)
                 {
                     writable = instance as IObjectWritable;
@@ -773,7 +773,7 @@ namespace Roslyn.Utilities
                     // If we're recursing too deep, move the work to another thread to do so we
                     // don't blow the stack.  'LongRunning' ensures that we get a dedicated thread
                     // to do this work.  That way we don't end up blocking the threadpool.
-                    var task = Task.Factory.StartNew(
+                    Task task = Task.Factory.StartNew(
                         obj => WriteObjectWorker((IObjectWritable)obj),
                         writable,
                         _cancellationToken,
@@ -854,7 +854,7 @@ namespace Roslyn.Utilities
 
             var temp = new Type[(int)EncodingKind.Last];
 
-            foreach (var kvp in s_typeMap)
+            foreach (KeyValuePair<Type, EncodingKind> kvp in s_typeMap)
             {
                 temp[(int)kvp.Value] = kvp.Key;
             }

@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 while (true)
                 {
-                    var token = lexer.Lex(InternalSyntax.LexerMode.XmlCrefQuote | InternalSyntax.LexerMode.XmlDocCommentStyleSingleLine | InternalSyntax.LexerMode.XmlDocCommentLocationInterior);
+                    InternalSyntax.SyntaxToken token = lexer.Lex(InternalSyntax.LexerMode.XmlCrefQuote | InternalSyntax.LexerMode.XmlDocCommentStyleSingleLine | InternalSyntax.LexerMode.XmlDocCommentLocationInterior);
 
                     if (token.Kind == SyntaxKind.SingleQuoteToken)
                     {

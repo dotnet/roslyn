@@ -25,31 +25,31 @@ class A {
     public int F(int x, int y) {}
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
 
-            var a = global.GetMember<NamedTypeSymbol>("A");
+            NamedTypeSymbol a = global.GetMember<NamedTypeSymbol>("A");
             Assert.False(a.HasComplete(CompletionPart.StartBaseType));
             Assert.False(a.HasComplete(CompletionPart.Members));
 
-            var x = a.GetMember<FieldSymbol>("x");
+            FieldSymbol x = a.GetMember<FieldSymbol>("x");
             Assert.True(a.HasComplete(CompletionPart.Members)); // getting one member completes the whole set
             Assert.False(a.HasComplete(CompletionPart.StartBaseType));
             Assert.False(x.HasComplete(CompletionPart.Type));
 
-            var xType = x.Type;
+            TypeSymbol xType = x.Type;
             Assert.True(x.HasComplete(CompletionPart.Type));
             Assert.False(a.HasComplete(CompletionPart.StartBaseType));
 
-            var y = a.GetMember<FieldSymbol>("y");
+            FieldSymbol y = a.GetMember<FieldSymbol>("y");
             Assert.False(a.HasComplete(CompletionPart.StartBaseType));
             Assert.False(y.HasComplete(CompletionPart.Type));
 
-            var yType = y.Type;
+            TypeSymbol yType = y.Type;
             Assert.True(y.HasComplete(CompletionPart.Type));
             Assert.False(a.HasComplete(CompletionPart.StartBaseType)); // needed to look in A's base for y's type
 
-            var f = a.GetMember<MethodSymbol>("F");
+            MethodSymbol f = a.GetMember<MethodSymbol>("F");
             Assert.False(f.HasComplete(CompletionPart.StartMethodChecks));
             Assert.Equal(false, f.ReturnsVoid);
             Assert.True(f.HasComplete(CompletionPart.StartMethodChecks));
@@ -65,19 +65,19 @@ class A {
     object P { get; set; }
     object this[object o] { get { return null; } set { } }
 }";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
 
-            var a = global.GetMember<NamedTypeSymbol>("A");
+            NamedTypeSymbol a = global.GetMember<NamedTypeSymbol>("A");
             Assert.False(a.HasComplete(CompletionPart.StartBaseType));
             Assert.False(a.HasComplete(CompletionPart.Members));
 
-            var p = a.GetMember<PropertySymbol>("P");
+            PropertySymbol p = a.GetMember<PropertySymbol>("P");
             Assert.True(a.HasComplete(CompletionPart.Members)); // getting one member completes the whole set
             Assert.False(a.HasComplete(CompletionPart.StartBaseType));
 
-            var pType = p.Type;
-            var pParameters = p.Parameters;
+            TypeSymbol pType = p.Type;
+            System.Collections.Immutable.ImmutableArray<ParameterSymbol> pParameters = p.Parameters;
             Assert.False(p.HasComplete(CompletionPart.Type));
             Assert.False(p.HasComplete(CompletionPart.Parameters));
 

@@ -53,7 +53,7 @@ class C
 }
 
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -75,7 +75,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
 // (8,40): warning CS1720: Expression will always cause a System.NullReferenceException because the default value of 'Program.C' is null
 //         var o1 = (D)(delegate{ var s = default(C).ToString();});
@@ -1313,7 +1313,7 @@ class C
         [Fact]
         public void TestObjectCreationOfImportedTypeWithNoArguments()
         {
-            var block = ParseAndBindMethodBody(@"
+            BoundBlock block = ParseAndBindMethodBody(@"
 using System.Collections;
 
 class C
@@ -1341,7 +1341,7 @@ class C
         [Fact]
         public void TestObjectCreationOfImportedTypeWithSingleArgument()
         {
-            var block = ParseAndBindMethodBody(@"
+            BoundBlock block = ParseAndBindMethodBody(@"
 using System.Collections;
 
 class C
@@ -1369,7 +1369,7 @@ class C
         [Fact]
         public void TestObjectCreationOfImportedTypeWithSingleNamedArgument()
         {
-            var block = ParseAndBindMethodBody(@"
+            BoundBlock block = ParseAndBindMethodBody(@"
 using System.Collections;
 
 class C
@@ -1400,7 +1400,7 @@ class C
         [Fact]
         public void TestObjectCreationOfDeclaredTypeWithNoArguments()
         {
-            var block = ParseAndBindMethodBody(@"
+            BoundBlock block = ParseAndBindMethodBody(@"
 class T
 {
   public T() { }
@@ -1435,7 +1435,7 @@ class C
         [Fact]
         public void TestObjectCreationOfDeclaredTypeWithSingleIntArgument()
         {
-            var block = ParseAndBindMethodBody(@"
+            BoundBlock block = ParseAndBindMethodBody(@"
 class T
 {
   public T() { }
@@ -1470,7 +1470,7 @@ class C
         [Fact]
         public void TestObjectCreationOfDeclaredTypeWithSingleStringArgument()
         {
-            var block = ParseAndBindMethodBody(@"
+            BoundBlock block = ParseAndBindMethodBody(@"
 class T
 {
   public T() { }
@@ -1505,7 +1505,7 @@ class C
         [Fact]
         public void TestObjectCreationOfDeclaredTypeWithSingleNamedIntArgument()
         {
-            var block = ParseAndBindMethodBody(@"
+            BoundBlock block = ParseAndBindMethodBody(@"
 class T
 {
   public T() { }

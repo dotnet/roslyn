@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (options.CanConsiderLocals())
             {
-                foreach (var parameter in _parameters)
+                foreach (ParameterSymbol parameter in _parameters)
                 {
                     if (originalBinder.CanAddLookupSymbolInfo(parameter, options, result, null))
                     {

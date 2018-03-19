@@ -38,9 +38,9 @@ abstract class Base
     virtual internal void M8() { }
     abstract internal void M10();
 }";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol a = global.GetTypeMembers("A", 0).Single();
             var m1 = a.GetMembers("M1").Single() as MethodSymbol;
             Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
             Assert.True(m1.ReturnsVoid);
@@ -102,8 +102,8 @@ extern void M7();
 static void M12() { }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Script);
-            var script = comp.ScriptClass;
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, parseOptions: TestOptions.Script);
+            NamedTypeSymbol script = comp.ScriptClass;
             var m1 = script.GetMembers("M1").Single() as MethodSymbol;
             Assert.Equal(Accessibility.Private, m1.DeclaredAccessibility);
             var m2 = script.GetMembers("M2").Single() as MethodSymbol;
@@ -140,14 +140,14 @@ struct S<T> where T : struct
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var intType = comp.GetSpecialType(SpecialType.System_Int32);
+            NamedTypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
             var customModifiers = ImmutableArray.Create(CSharpCustomModifier.CreateOptional(intType));
 
-            var structType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
-            var typeParamType = structType.TypeParameters.Single();
+            NamedTypeSymbol structType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S");
+            TypeParameterSymbol typeParamType = structType.TypeParameters.Single();
 
             var pointerType = new PointerTypeSymbol(typeParamType, customModifiers); // NOTE: We're constructing this manually, since it's illegal.
             var arrayType = ArrayTypeSymbol.CreateCSharpArray(comp.Assembly, typeParamType, customModifiers); // This is legal, but we're already manually constructing types.

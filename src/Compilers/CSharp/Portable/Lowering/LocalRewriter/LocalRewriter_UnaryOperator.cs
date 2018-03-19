@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert((object)method == null);
 
                 // Logical operators on boxed Boolean constants:
-                var constant = UnboxConstant(loweredOperand);
+                ConstantValue constant = UnboxConstant(loweredOperand);
                 if (constant == ConstantValue.True || constant == ConstantValue.False)
                 {
                     switch (kind)
@@ -119,17 +119,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (kind == UnaryOperatorKind.EnumBitwiseComplement)
             {
-                var underlyingType = loweredOperand.Type.GetEnumUnderlyingType();
-                var upconvertSpecialType = Binder.GetEnumPromotedType(underlyingType.SpecialType);
-                var upconvertType = upconvertSpecialType == underlyingType.SpecialType ?
+                NamedTypeSymbol underlyingType = loweredOperand.Type.GetEnumUnderlyingType();
+                SpecialType upconvertSpecialType = Binder.GetEnumPromotedType(underlyingType.SpecialType);
+                NamedTypeSymbol upconvertType = upconvertSpecialType == underlyingType.SpecialType ?
                     underlyingType :
                     _compilation.GetSpecialType(upconvertSpecialType);
 
 
-                var newOperand = MakeConversionNode(loweredOperand, upconvertType, false);
+                BoundExpression newOperand = MakeConversionNode(loweredOperand, upconvertType, false);
                 UnaryOperatorKind newKind = kind.Operator().WithType(upconvertSpecialType);
 
-                var newNode = (oldNode != null) ?
+                BoundUnaryOperator newNode = (oldNode != null) ?
                     oldNode.Update(
                         newKind,
                         newOperand,
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (optimize)
             {
-                var result = LowerLiftedUnaryOperator(operatorKind, syntax, method, conditionalLeft.WhenNotNull, type);
+                BoundExpression result = LowerLiftedUnaryOperator(operatorKind, syntax, method, conditionalLeft.WhenNotNull, type);
 
                 return conditionalLeft.Update(
                     conditionalLeft.Receiver,
@@ -358,13 +358,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsIncrement(BoundIncrementOperator node)
         {
-            var op = node.OperatorKind.Operator();
+            UnaryOperatorKind op = node.OperatorKind.Operator();
             return op == UnaryOperatorKind.PostfixIncrement || op == UnaryOperatorKind.PrefixIncrement;
         }
 
         private static bool IsPrefix(BoundIncrementOperator node)
         {
-            var op = node.OperatorKind.Operator();
+            UnaryOperatorKind op = node.OperatorKind.Operator();
             return op == UnaryOperatorKind.PrefixIncrement || op == UnaryOperatorKind.PrefixDecrement;
         }
 
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // prefix:  (X)(T.Increment((T)operand)))
             // postfix: (X)(T.Increment((T)temp)))
-            var newValue = MakeIncrementOperator(node, rewrittenValueToIncrement: (isPrefix ? MakeRValue(transformedLHS) : boundTemp));
+            BoundExpression newValue = MakeIncrementOperator(node, rewrittenValueToIncrement: (isPrefix ? MakeRValue(transformedLHS) : boundTemp));
 
             // there are two strategies for completing the rewrite.
             // The reason is that indirect assignments read the target of the assignment before evaluating 
@@ -520,10 +520,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundTemp,
             BoundExpression newValue)
         {
-            var tempValue = isPrefix ? newValue : MakeRValue(operand);
-            var tempAssignment = MakeAssignmentOperator(syntax, boundTemp, tempValue, operandType, used: false, isChecked: isChecked, isCompoundAssignment: false);
+            BoundExpression tempValue = isPrefix ? newValue : MakeRValue(operand);
+            BoundExpression tempAssignment = MakeAssignmentOperator(syntax, boundTemp, tempValue, operandType, used: false, isChecked: isChecked, isCompoundAssignment: false);
 
-            var operandValue = isPrefix ? boundTemp : newValue;
+            BoundExpression operandValue = isPrefix ? boundTemp : newValue;
             var tempAssignedAndOperandValue = new BoundSequence(
                     syntax,
                     ImmutableArray<LocalSymbol>.Empty,

@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             Debug.Assert(type is PointerTypeSymbol || type is NamedTypeSymbol);
 
-            var elementType = type.TypeKind == TypeKind.Pointer
+            TypeSymbol elementType = type.TypeKind == TypeKind.Pointer
                 ? ((PointerTypeSymbol)type).PointedAtType
                 : ((NamedTypeSymbol)type).TypeArgumentsNoUseSiteDiagnostics[0];
 
-            var initExprs = inits.Initializers;
+            ImmutableArray<BoundExpression> initExprs = inits.Initializers;
 
-            var initializationStyle = ShouldEmitBlockInitializerForStackAlloc(elementType, initExprs);
+            ArrayInitializerStyle initializationStyle = ShouldEmitBlockInitializerForStackAlloc(elementType, initExprs);
             if (initializationStyle == ArrayInitializerStyle.Element)
             {
                 EmitElementStackAllocInitializers(elementType, initExprs, includeConstants: true);
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 return;
             }
 
-            foreach (var init in inits)
+            foreach (BoundExpression init in inits)
             {
                 Debug.Assert(!(init is BoundArrayInitialization), "Nested initializers are not allowed for stackalloc");
 

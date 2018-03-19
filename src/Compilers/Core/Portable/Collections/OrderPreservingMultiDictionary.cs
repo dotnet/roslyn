@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Collections
             if (_dictionary != null)
             {
                 // Allow our ValueSets to return their underlying ArrayBuilders to the pool.
-                foreach (var kvp in _dictionary)
+                foreach (KeyValuePair<K, ValueSet> kvp in _dictionary)
                 {
                     kvp.Value.Free();
                 }
@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public static OrderPreservingMultiDictionary<K, V> GetInstance()
         {
-            var instance = s_poolInstance.Allocate();
+            OrderPreservingMultiDictionary<K, V> instance = s_poolInstance.Allocate();
             Debug.Assert(instance.IsEmpty);
             return instance;
         }
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Collections
         /// </summary>
         public void Add(K k, V v)
         {
-            if (!this.IsEmpty && _dictionary.TryGetValue(k, out var valueSet))
+            if (!this.IsEmpty && _dictionary.TryGetValue(k, out ValueSet valueSet))
             {
                 Debug.Assert(valueSet.Count >= 1);
                 // Have to re-store the ValueSet in case we upgraded the existing ValueSet from 
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             get
             {
-                if (!this.IsEmpty && _dictionary.TryGetValue(k, out var valueSet))
+                if (!this.IsEmpty && _dictionary.TryGetValue(k, out ValueSet valueSet))
                 {
                     Debug.Assert(valueSet.Count >= 1);
                     return valueSet.Items;
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Collections
         public bool Contains(K key, V value)
         {
             return !this.IsEmpty &&
-                _dictionary.TryGetValue(key, out var valueSet) &&
+                _dictionary.TryGetValue(key, out ValueSet valueSet) &&
                 valueSet.Contains(value);
         }
 

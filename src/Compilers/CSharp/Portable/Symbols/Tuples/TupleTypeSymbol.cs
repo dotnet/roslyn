@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Emit.NoPia.EmbeddedTypesManager.IsValidEmbeddableType(underlyingType, syntax, diagnostics);
             }
 
-            var constructedType = Create(underlyingType, elementNames, errorPositions, locationOpt, elementLocations);
+            TupleTypeSymbol constructedType = Create(underlyingType, elementNames, errorPositions, locationOpt, elementLocations);
             if (shouldCheckConstraints && diagnostics != null)
             {
                 constructedType.CheckConstraints(compilation.Conversions, syntax, elementLocations, compilation, diagnostics);
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Ensure all Rest extensions are tuples
                 tupleCompatibleType = EnsureRestExtensionsAreTuples(tupleCompatibleType);
 
-                var extensionTupleElementTypes = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TupleElementTypes;
+                ImmutableArray<TypeSymbol> extensionTupleElementTypes = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TupleElementTypes;
                 var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(RestPosition - 1 + extensionTupleElementTypes.Length);
                 typesBuilder.AddRange(tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics, RestPosition - 1);
                 typesBuilder.AddRange(extensionTupleElementTypes);
@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 do
                 {
-                    var extensionTuple = Create(tupleCompatibleType);
+                    TupleTypeSymbol extensionTuple = Create(tupleCompatibleType);
                     tupleCompatibleType = nonTupleTypeChain.Pop();
 
                     tupleCompatibleType = ReplaceRestExtensionType(tupleCompatibleType, typeArgumentsBuilder, extensionTuple);
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var hasModifiers = tupleCompatibleType.HasTypeArgumentsCustomModifiers;
 
-            var arguments = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics;
+            ImmutableArray<TypeSymbol> arguments = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics;
             typeArgumentsBuilder.Clear();
 
             for (int i = 0; i < RestPosition - 1; i++)
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal static void ReportNamesMismatchesIfAny(TypeSymbol destination, BoundTupleLiteral literal, DiagnosticBag diagnostics)
         {
-            var sourceNames = literal.ArgumentNamesOpt;
+            ImmutableArray<string> sourceNames = literal.ArgumentNamesOpt;
             if (sourceNames.IsDefault)
             {
                 return;
@@ -733,7 +733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var builder = ArrayBuilder<FieldSymbol>.GetInstance(_elementTypes.Length, fillWithValue: null);
 
-            foreach (var member in GetMembers())
+            foreach (Symbol member in GetMembers())
             {
                 if (member.Kind != SymbolKind.Field)
                 {
@@ -820,13 +820,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 }
 
                                 var providedName = _elementNames.IsDefault ? null : _elementNames[tupleFieldIndex];
-                                var location = _elementLocations.IsDefault ? null : _elementLocations[tupleFieldIndex];
+                                Location location = _elementLocations.IsDefault ? null : _elementLocations[tupleFieldIndex];
                                 var defaultName = TupleMemberName(tupleFieldIndex + 1);
                                 // if provided name does not match the default one, 
                                 // then default element is declared implicitly
                                 var defaultImplicitlyDeclared = providedName != defaultName;
 
-                                var fieldSymbol = field.AsMember(currentUnderlying);
+                                FieldSymbol fieldSymbol = field.AsMember(currentUnderlying);
 
                                 // Add a field with default name. It should be present regardless.
                                 TupleElementFieldSymbol defaultTupleField;
@@ -915,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     break;
                 }
 
-                var oldUnderlying = currentUnderlying;
+                NamedTypeSymbol oldUnderlying = currentUnderlying;
                 currentUnderlying = oldUnderlying.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TupleUnderlyingType;
                 currentNestingLevel++;
 
@@ -944,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     int fieldChainLength = NumberOfValueTuples(i + 1, out fieldRemainder);
                     NamedTypeSymbol container = GetNestedTupleUnderlyingType(_underlyingType, fieldChainLength - 1).OriginalDefinition;
 
-                    var diagnosticInfo = container.IsErrorType() ?
+                    CSDiagnosticInfo diagnosticInfo = container.IsErrorType() ?
                                                           null :
                                                           new CSDiagnosticInfo(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly,
                                                                                TupleMemberName(fieldRemainder),
@@ -952,7 +952,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                                                                container.ContainingAssembly);
 
                     var providedName = _elementNames.IsDefault ? null : _elementNames[i];
-                    var location = _elementLocations.IsDefault ? null : _elementLocations[i];
+                    Location location = _elementLocations.IsDefault ? null : _elementLocations[i];
                     var defaultName = TupleMemberName(i + 1);
                     // if provided name does not match the default one, 
                     // then default element is declared implicitly
@@ -1014,14 +1014,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var map = new SmallDictionary<Symbol, Symbol>(ReferenceEqualityComparer.Instance);
 
-            var underlyingDefinition = _underlyingType.OriginalDefinition;
-            var members = GetMembers();
+            NamedTypeSymbol underlyingDefinition = _underlyingType.OriginalDefinition;
+            ImmutableArray<Symbol> members = GetMembers();
 
             // Go in reverse because we want members with default name, which precede the ones with
             // friendly names, to be in the map.  
             for (int i = members.Length - 1; i >= 0; i--)
             {
-                var member = members[i];
+                Symbol member = members[i];
                 switch (member.Kind)
                 {
                     case SymbolKind.Method:
@@ -1029,7 +1029,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SymbolKind.Field:
-                        var tupleUnderlyingField = ((FieldSymbol)member).TupleUnderlyingField;
+                        FieldSymbol tupleUnderlyingField = ((FieldSymbol)member).TupleUnderlyingField;
                         if ((object)tupleUnderlyingField != null)
                         {
                             map[tupleUnderlyingField.OriginalDefinition] = member;
@@ -1041,8 +1041,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         break;
 
                     case SymbolKind.Event:
-                        var underlyingEvent = ((EventSymbol)member).TupleUnderlyingEvent;
-                        var underlyingAssociatedField = underlyingEvent.AssociatedField;
+                        EventSymbol underlyingEvent = ((EventSymbol)member).TupleUnderlyingEvent;
+                        FieldSymbol underlyingAssociatedField = underlyingEvent.AssociatedField;
                         // The field is not part of the members list
                         if ((object)underlyingAssociatedField != null)
                         {
@@ -1337,7 +1337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 var set = PooledHashSet<string>.GetInstance();
-                foreach (var member in GetMembers())
+                foreach (Symbol member in GetMembers())
                 {
                     var name = member.Name;
                     if (set.Add(name))
@@ -1453,7 +1453,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers()
         {
-            var underlying = _underlyingType.GetEarlyAttributeDecodingMembers();
+            ImmutableArray<Symbol> underlying = _underlyingType.GetEarlyAttributeDecodingMembers();
             if (underlying.IsEmpty)
             {
                 return underlying;
@@ -1464,7 +1464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name)
         {
-            var underlying = _underlyingType.GetEarlyAttributeDecodingMembers(name);
+            ImmutableArray<Symbol> underlying = _underlyingType.GetEarlyAttributeDecodingMembers(name);
             if (underlying.IsEmpty)
             {
                 return underlying;

@@ -26,11 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             XElement elem = new XElement((n.Name.Length == 0 ? "Global" : n.Name));
 
-            var childrenTypes = n.GetTypeMembers().OrderBy((t) => t, new NameAndArityComparer());
+            IOrderedEnumerable<NamedTypeSymbol> childrenTypes = n.GetTypeMembers().OrderBy((t) => t, new NameAndArityComparer());
 
             elem.Add(from t in childrenTypes select LoadChildType(t));
 
-            var childrenNS = n.GetMembers().
+            IOrderedEnumerable<NamespaceSymbol> childrenNS = n.GetMembers().
                                 OfType<NamespaceSymbol>().
                                 OrderBy(child => child.Name, StringComparer.OrdinalIgnoreCase);
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 string typeParams = string.Empty;
 
-                foreach (var param in t.TypeParameters)
+                foreach (TypeParameterSymbol param in t.TypeParameters)
                 {
                     if (typeParams.Length > 0)
                     {
@@ -67,11 +67,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 elem.Add(new XAttribute("base", t.BaseType().ToTestDisplayString()));
             }
 
-            var fields = t.GetMembers().Where(m => m.Kind == SymbolKind.Field).OrderBy(f => f.Name).Cast<FieldSymbol>();
+            IEnumerable<FieldSymbol> fields = t.GetMembers().Where(m => m.Kind == SymbolKind.Field).OrderBy(f => f.Name).Cast<FieldSymbol>();
 
             elem.Add(from f in fields select LoadField(f));
 
-            var childrenTypes = t.GetTypeMembers().OrderBy(c => c, new NameAndArityComparer());
+            IOrderedEnumerable<NamedTypeSymbol> childrenTypes = t.GetTypeMembers().OrderBy(c => c, new NameAndArityComparer());
 
             elem.Add(from c in childrenTypes select LoadChildType(c));
 
@@ -94,13 +94,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </summary>
         internal static void ValidateDeclSecurity(ModuleSymbol module, params DeclSecurityEntry[] expectedEntries)
         {
-            var metadataReader = module.GetMetadata().MetadataReader;
+            MetadataReader metadataReader = module.GetMetadata().MetadataReader;
             var actualEntries = new List<DeclSecurityEntry>(expectedEntries.Length);
 
             int i = 0;
-            foreach (var actualHandle in metadataReader.DeclarativeSecurityAttributes)
+            foreach (DeclarativeSecurityAttributeHandle actualHandle in metadataReader.DeclarativeSecurityAttributes)
             {
-                var actual = metadataReader.GetDeclarativeSecurityAttribute(actualHandle);
+                DeclarativeSecurityAttribute actual = metadataReader.GetDeclarativeSecurityAttribute(actualHandle);
 
                 var actualPermissionSetBytes = metadataReader.GetBlobBytes(actual.PermissionSet);
                 var actualPermissionSet = new string(actualPermissionSetBytes.Select(b => (char)b).ToArray());
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(typeName);
             Assert.NotEmpty(typeName);
 
-            foreach (var typeDef in metadataReader.TypeDefinitions)
+            foreach (TypeDefinitionHandle typeDef in metadataReader.TypeDefinitions)
             {
                 string name = metadataReader.GetString(metadataReader.GetTypeDefinition(typeDef).Name);
 
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(methodName);
             Assert.NotEmpty(methodName);
 
-            foreach (var methodDef in metadataReader.MethodDefinitions)
+            foreach (MethodDefinitionHandle methodDef in metadataReader.MethodDefinitions)
             {
                 string name = metadataReader.GetString(metadataReader.GetMethodDefinition(methodDef).Name);
 

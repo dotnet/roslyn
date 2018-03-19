@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(!_isForSingleSymbol);
-            foreach (var s in symbol.GetMembers())
+            foreach (Symbol s in symbol.GetMembers())
             {
                 _cancellationToken.ThrowIfCancellationRequested();
                 s.Accept(this);
@@ -593,7 +593,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 maxDocumentationMode = currDocumentationMode > maxDocumentationMode ? currDocumentationMode : maxDocumentationMode;
 
                 ImmutableArray<DocumentationCommentTriviaSyntax> triviaList = SourceDocumentationCommentUtils.GetDocumentationCommentTriviaFromSyntaxNode((CSharpSyntaxNode)reference.GetSyntax(), _diagnostics);
-                foreach (var trivia in triviaList)
+                foreach (DocumentationCommentTriviaSyntax trivia in triviaList)
                 {
                     if (ContainsXmlParseDiagnostic(trivia))
                     {

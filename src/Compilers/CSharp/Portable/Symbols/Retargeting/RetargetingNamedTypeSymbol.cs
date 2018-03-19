@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             get
             {
-                var underlying = _underlyingType.EnumUnderlyingType;
+                NamedTypeSymbol underlying = _underlyingType.EnumUnderlyingType;
                 return (object)underlying == null ? null : this.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByTypeCode); // comes from field's signature.
             }
         }
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                     if ((object)acyclicBase == null)
                     {
                         // if base was not declared, get it from BaseType that should set it to some default
-                        var underlyingBase = _underlyingType.BaseTypeNoUseSiteDiagnostics;
+                        NamedTypeSymbol underlyingBase = _underlyingType.BaseTypeNoUseSiteDiagnostics;
                         if ((object)underlyingBase != null)
                         {
                             acyclicBase = this.RetargetingTranslator.Retarget(underlyingBase, RetargetOptions.RetargetPrimitiveTypesByName);
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             if (_lazyInterfaces.IsDefault)
             {
-                var declaredInterfaces = GetDeclaredInterfaces(basesBeingResolved);
+                ImmutableArray<NamedTypeSymbol> declaredInterfaces = GetDeclaredInterfaces(basesBeingResolved);
                 if (!IsInterface)
                 {
                     // only interfaces needs to check for inheritance cycles via interfaces.
@@ -329,8 +329,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             if (ReferenceEquals(_lazyDeclaredBaseType, ErrorTypeSymbol.UnknownResultType))
             {
-                var underlyingBase = _underlyingType.GetDeclaredBaseType(basesBeingResolved);
-                var declaredBase = (object)underlyingBase != null ? this.RetargetingTranslator.Retarget(underlyingBase, RetargetOptions.RetargetPrimitiveTypesByName) : null;
+                NamedTypeSymbol underlyingBase = _underlyingType.GetDeclaredBaseType(basesBeingResolved);
+                NamedTypeSymbol declaredBase = (object)underlyingBase != null ? this.RetargetingTranslator.Retarget(underlyingBase, RetargetOptions.RetargetPrimitiveTypesByName) : null;
                 Interlocked.CompareExchange(ref _lazyDeclaredBaseType, declaredBase, ErrorTypeSymbol.UnknownResultType);
             }
 
@@ -341,8 +341,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         {
             if (_lazyDeclaredInterfaces.IsDefault)
             {
-                var underlyingBaseInterfaces = _underlyingType.GetDeclaredInterfaces(basesBeingResolved);
-                var result = this.RetargetingTranslator.Retarget(underlyingBaseInterfaces);
+                ImmutableArray<NamedTypeSymbol> underlyingBaseInterfaces = _underlyingType.GetDeclaredInterfaces(basesBeingResolved);
+                ImmutableArray<NamedTypeSymbol> result = this.RetargetingTranslator.Retarget(underlyingBaseInterfaces);
                 ImmutableInterlocked.InterlockedCompareExchange(ref _lazyDeclaredInterfaces, result, default(ImmutableArray<NamedTypeSymbol>));
             }
 

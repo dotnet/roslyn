@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Syntax
         {
             if (items != null)
             {
-                foreach (var item in items)
+                foreach (SyntaxTrivia item in items)
                 {
                     this.Add(item);
                 }

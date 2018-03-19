@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal static SyntaxToken Normalize(SyntaxToken token, string indentWhitespace, string eolWhitespace, bool useElasticTrivia = false)
         {
             var normalizer = new SyntaxNormalizer(token.FullSpan, GetDeclarationDepth(token), indentWhitespace, eolWhitespace, useElasticTrivia);
-            var result = normalizer.VisitToken(token);
+            SyntaxToken result = normalizer.VisitToken(token);
             normalizer.Free();
             return result;
         }
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         internal static SyntaxTriviaList Normalize(SyntaxTriviaList trivia, string indentWhitespace, string eolWhitespace, bool useElasticTrivia = false)
         {
             var normalizer = new SyntaxNormalizer(trivia.FullSpan, GetDeclarationDepth(trivia.Token), indentWhitespace, eolWhitespace, useElasticTrivia);
-            var result = normalizer.RewriteTrivia(
+            SyntaxTriviaList result = normalizer.RewriteTrivia(
                 trivia,
                 GetDeclarationDepth((SyntaxToken)trivia.ElementAt(0).Token),
                 isTrailing: false,
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             try
             {
-                var tk = token;
+                SyntaxToken tk = token;
 
                 var depth = GetDeclarationDepth(token);
 
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     mustHaveSeparator: false,
                     lineBreaksAfter: 0));
 
-                var nextToken = this.GetNextRelevantToken(token);
+                SyntaxToken nextToken = this.GetNextRelevantToken(token);
 
                 _afterLineBreak = IsLineBreak(token);
                 _afterIndentation = false;
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private SyntaxToken GetNextRelevantToken(SyntaxToken token)
         {
             // get next token, skipping zero width tokens except for end-of-directive tokens
-            var nextToken = token.GetNextToken(
+            SyntaxToken nextToken = token.GetNextToken(
                 t => SyntaxToken.NonZeroWidth(t) || t.Kind() == SyntaxKind.EndOfDirectiveToken,
                 t => t.Kind() == SyntaxKind.SkippedTokensTrivia);
 
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return 0;
             }
 
-            var kind = nextToken.Kind();
+            SyntaxKind kind = nextToken.Kind();
             switch (kind)
             {
                 case SyntaxKind.EndOfFileToken:
@@ -518,7 +518,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             ArrayBuilder<SyntaxTrivia> currentTriviaList = ArrayBuilder<SyntaxTrivia>.GetInstance(triviaList.Count);
             try
             {
-                foreach (var trivia in triviaList)
+                foreach (SyntaxTrivia trivia in triviaList)
                 {
                     if (trivia.IsKind(SyntaxKind.WhitespaceTrivia) ||
                         trivia.IsKind(SyntaxKind.EndOfLineTrivia) ||
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
                     if (trivia.HasStructure)
                     {
-                        var tr = this.VisitStructuredTrivia(trivia);
+                        SyntaxTrivia tr = this.VisitStructuredTrivia(trivia);
                         currentTriviaList.Add(tr);
                     }
                     else if (trivia.IsKind(SyntaxKind.DocumentationCommentExteriorTrivia))
@@ -675,7 +675,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static bool NeedsLineBreakBefore(SyntaxTrivia trivia, bool isTrailingTrivia)
         {
-            var kind = trivia.Kind();
+            SyntaxKind kind = trivia.Kind();
             switch (kind)
             {
                 case SyntaxKind.DocumentationCommentExteriorTrivia:
@@ -687,7 +687,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         private static bool NeedsLineBreakAfter(SyntaxTrivia trivia, bool isTrailingTrivia)
         {
-            var kind = trivia.Kind();
+            SyntaxKind kind = trivia.Kind();
             switch (kind)
             {
                 case SyntaxKind.SingleLineCommentTrivia:
@@ -734,8 +734,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             if (trivia.HasStructure)
             {
-                var node = trivia.GetStructure();
-                var trailing = node.GetTrailingTrivia();
+                SyntaxNode node = trivia.GetStructure();
+                SyntaxTriviaList trailing = node.GetTrailingTrivia();
                 if (trailing.Count > 0)
                 {
                     return EndsInLineBreak(trailing.Last());
@@ -797,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             {
                 if (node.IsStructuredTrivia)
                 {
-                    var tr = ((StructuredTriviaSyntax)node).ParentTrivia;
+                    SyntaxTrivia tr = ((StructuredTriviaSyntax)node).ParentTrivia;
                     return GetDeclarationDepth(tr);
                 }
                 else if (node.Parent != null)

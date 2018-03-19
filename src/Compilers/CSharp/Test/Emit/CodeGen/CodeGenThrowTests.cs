@@ -23,7 +23,7 @@ class C
         throw new System.Exception(""TestThrowNewExpression"");
     }
 }";
-            var compilation = CompileAndVerifyException<Exception>(source, "TestThrowNewExpression");
+            CodeAnalysis.Test.Utilities.CompilationVerifier compilation = CompileAndVerifyException<Exception>(source, "TestThrowNewExpression");
 
             compilation.VerifyIL("C.Main", @"{
   // Code size       11 (0xb)
@@ -47,7 +47,7 @@ class C
         throw e;
     }
 }";
-            var compilation = CompileAndVerifyException<Exception>(source, "TestThrowLocalExpression");
+            CodeAnalysis.Test.Utilities.CompilationVerifier compilation = CompileAndVerifyException<Exception>(source, "TestThrowLocalExpression");
 
             compilation.VerifyIL("C.Main", @"{
   // Code size       11 (0xb)
@@ -70,7 +70,7 @@ class C
         throw null;
     }
 }";
-            var compilation = CompileAndVerifyException<NullReferenceException>(source);
+            CodeAnalysis.Test.Utilities.CompilationVerifier compilation = CompileAndVerifyException<NullReferenceException>(source);
 
             compilation.VerifyIL("C.Main", @"{
   // Code size        2 (0x2)
@@ -99,7 +99,7 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
+            CodeAnalysis.Test.Utilities.CompilationVerifier compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.Main", @"{
   // Code size       11 (0xb)
@@ -136,7 +136,7 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
+            CodeAnalysis.Test.Utilities.CompilationVerifier compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.Main", @"{
  // Code size        1 (0x1)
@@ -164,7 +164,7 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
+            CodeAnalysis.Test.Utilities.CompilationVerifier compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.Main", @"{
   // Code size       11 (0xb)
@@ -201,7 +201,7 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
+            CodeAnalysis.Test.Utilities.CompilationVerifier compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.Main", @"{
   // Code size        1 (0x1)
@@ -229,7 +229,7 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
+            CodeAnalysis.Test.Utilities.CompilationVerifier compilation = CompileAndVerify(source);
 
             compilation.VerifyIL("C.Main", @"{
   // Code size       11 (0xb)

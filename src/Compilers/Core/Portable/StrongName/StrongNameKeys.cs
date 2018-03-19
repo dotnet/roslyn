@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis
             RSAParameters? privateKey = null;
 
             // Check the key pair cache
-            var cachedKeyPair = s_lastSeenKeyPair;
+            Tuple<ImmutableArray<byte>, ImmutableArray<byte>, RSAParameters?> cachedKeyPair = s_lastSeenKeyPair;
             if (cachedKeyPair != null && keyFileContent == cachedKeyPair.Item1)
             {
                 keyPair = cachedKeyPair.Item1;
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis
 
             if (providerOpt == null)
             {
-                var diagnostic = GetError(keyFilePath, keyContainerName, new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.AssemblySigningNotSupported)), messageProvider);
+                Diagnostic diagnostic = GetError(keyFilePath, keyContainerName, new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.AssemblySigningNotSupported)), messageProvider);
                 return new StrongNameKeys(diagnostic);
             }
 

@@ -34,22 +34,22 @@ class C
             Assert.Null(position);
             Assert.NotNull(span);
 
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var compilation = CreateCompilationWithMscorlib45(new[] { tree }, new[] { SystemCoreRef });
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { tree }, new[] { SystemCoreRef });
             compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
-            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
+            SemanticModel model = compilation.GetSemanticModel(tree, ignoreAccessibility: false);
 
             var enclosingMethod = (IMethodSymbol)model.GetEnclosingSymbol(span.Value.Start);
-            var enclosingSyntax = enclosingMethod.DeclaringSyntaxReferences.Single().GetSyntax();
+            SyntaxNode enclosingSyntax = enclosingMethod.DeclaringSyntaxReferences.Single().GetSyntax();
             bool expected = enclosingMethod.MethodKind == MethodKind.LambdaMethod && enclosingSyntax.Span.Contains(span.Value);
 
-            var node = tree.GetRoot().FindNode(span.Value);
+            SyntaxNode node = tree.GetRoot().FindNode(span.Value);
             Assert.False(isLambdaBody && isReducedLambdaBody);
             Assert.Equal(expected, LambdaUtilities.IsLambdaBody(node, allowReducedLambdas: true));
             Assert.Equal(isLambdaBody || isReducedLambdaBody, expected);
             Assert.Equal(isLambdaBody, LambdaUtilities.IsLambdaBody(node));
 
-            var methodDef = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(d => d.Identifier.ValueText == "M").Single();
+            MethodDeclarationSyntax methodDef = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Where(d => d.Identifier.ValueText == "M").Single();
             Assert.Equal("C", model.GetEnclosingSymbol(methodDef.SpanStart).ToTestDisplayString());
             Assert.Equal("C", model.GetEnclosingSymbol(methodDef.ParameterList.CloseParenToken.SpanStart).ToTestDisplayString());
             Assert.Equal("void C.M()", model.GetEnclosingSymbol(methodDef.Body.SpanStart).ToTestDisplayString());

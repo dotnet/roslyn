@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis
             if (fullName.TypeArguments != null)
             {
                 ImmutableArray<bool> argumentRefersToNoPiaLocalType;
-                var typeArguments = ResolveTypeArguments(fullName.TypeArguments, out argumentRefersToNoPiaLocalType);
+                ImmutableArray<KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>> typeArguments = ResolveTypeArguments(fullName.TypeArguments, out argumentRefersToNoPiaLocalType);
                 container = SubstituteTypeParameters(container, typeArguments, argumentRefersToNoPiaLocalType);
 
                 foreach (bool flag in argumentRefersToNoPiaLocalType)
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis
             var typeArgumentsBuilder = ArrayBuilder<KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>>.GetInstance(count);
             var refersToNoPiaBuilder = ArrayBuilder<bool>.GetInstance(count);
 
-            foreach (var argument in arguments)
+            foreach (MetadataHelpers.AssemblyQualifiedTypeName argument in arguments)
             {
                 bool refersToNoPia;
                 typeArgumentsBuilder.Add(new KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>(GetTypeSymbol(argument, out refersToNoPia), ImmutableArray<ModifierInfo<TypeSymbol>>.Empty));

@@ -25,12 +25,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var actual = ArrayBuilder<CompilationEvent>.GetInstance();
             while (queue.Count > 0 || !queue.IsCompleted)
             {
-                var te = queue.DequeueAsync(CancellationToken.None);
+                System.Threading.Tasks.Task<CompilationEvent> te = queue.DequeueAsync(CancellationToken.None);
                 Assert.True(te.IsCompleted);
                 actual.Add(te.Result);
             }
             bool unexpected = false;
-            foreach (var a in actual)
+            foreach (CompilationEvent a in actual)
             {
                 var eventString = a.ToString();
                 if (!expected.Remove(eventString))
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             {
                 bool first = true;
                 Console.WriteLine("ACTUAL EVENTS:");
-                foreach (var e in actual)
+                foreach (CompilationEvent e in actual)
                 {
                     if (!first)
                     {

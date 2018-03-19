@@ -90,8 +90,8 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IFieldDefinition fieldDefinition)
         {
-            var constant = fieldDefinition.GetCompileTimeValue(Context);
-            var marshalling = fieldDefinition.MarshallingInformation;
+            MetadataConstant constant = fieldDefinition.GetCompileTimeValue(Context);
+            IMarshallingInformation marshalling = fieldDefinition.MarshallingInformation;
 
             Debug.Assert((constant != null) == fieldDefinition.IsCompileTimeConstant);
             Debug.Assert((marshalling != null || !fieldDefinition.MarshallingDescriptor.IsDefaultOrEmpty) == fieldDefinition.IsMarshalledExplicitly);
@@ -251,7 +251,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IMethodBody methodBody)
         {
-            foreach (var scope in methodBody.LocalScopes)
+            foreach (LocalScope scope in methodBody.LocalScopes)
             {
                 this.Visit(scope.Constants);
             }
@@ -391,7 +391,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(ExceptionHandlerRegion exceptionRegion)
         {
-            var exceptionType = exceptionRegion.ExceptionType;
+            ITypeReference exceptionType = exceptionRegion.ExceptionType;
             if (exceptionType != null)
             {
                 this.Visit(exceptionType);
@@ -408,7 +408,7 @@ namespace Microsoft.Cci
 
         public virtual void Visit(IParameterDefinition parameterDefinition)
         {
-            var marshalling = parameterDefinition.MarshallingInformation;
+            IMarshallingInformation marshalling = parameterDefinition.MarshallingInformation;
 
             Debug.Assert((marshalling != null || !parameterDefinition.MarshallingDescriptor.IsDefaultOrEmpty) == parameterDefinition.IsMarshalledExplicitly);
 
@@ -473,7 +473,7 @@ namespace Microsoft.Cci
 
         public void Visit(IEnumerable<ManagedResource> resources)
         {
-            foreach (var resource in resources)
+            foreach (ManagedResource resource in resources)
             {
                 this.Visit(resource);
             }
@@ -547,7 +547,7 @@ namespace Microsoft.Cci
 
         public void Visit(IEnumerable<TypeReferenceWithAttributes> typeRefsWithAttributes)
         {
-            foreach (var typeRefWithAttributes in typeRefsWithAttributes)
+            foreach (TypeReferenceWithAttributes typeRefWithAttributes in typeRefsWithAttributes)
             {
                 this.Visit(typeRefWithAttributes.TypeRef);
                 this.Visit(typeRefWithAttributes.Attributes);

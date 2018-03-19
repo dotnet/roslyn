@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             INamespaceOrTypeSymbol symbol,
             ArrayBuilder<SymbolDisplayPart> builder)
         {
-            var alias = GetAliasSymbol(symbol);
+            IAliasSymbol alias = GetAliasSymbol(symbol);
             if (alias != null)
             {
                 // We must verify that the alias actually binds back to the thing it's aliasing.
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // first
                 var aliasName = alias.Name;
 
-                var boundSymbols = semanticModelOpt.LookupNamespacesAndTypes(positionOpt, name: aliasName);
+                ImmutableArray<ISymbol> boundSymbols = semanticModelOpt.LookupNamespacesAndTypes(positionOpt, name: aliasName);
 
                 if (boundSymbols.Length == 1)
                 {
@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override bool ShouldRestrictMinimallyQualifyLookupToNamespacesAndTypes()
         {
-            var token = semanticModelOpt.SyntaxTree.GetRoot().FindToken(positionOpt);
-            var startNode = token.Parent;
+            SyntaxToken token = semanticModelOpt.SyntaxTree.GetRoot().FindToken(positionOpt);
+            SyntaxNode startNode = token.Parent;
 
             return SyntaxFacts.IsInNamespaceOrTypeContext(startNode as ExpressionSyntax) || token.IsKind(SyntaxKind.NewKeyword) || this.inNamespaceOrType;
         }
@@ -67,17 +67,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Check if the name of this namespace binds to the same namespace symbol.  If so,
             // then that's all we need to add.  Otherwise, we will add the minimally qualified
             // version of our parent, and then add ourselves to that.
-            var symbols = ShouldRestrictMinimallyQualifyLookupToNamespacesAndTypes()
+            ImmutableArray<ISymbol> symbols = ShouldRestrictMinimallyQualifyLookupToNamespacesAndTypes()
                 ? semanticModelOpt.LookupNamespacesAndTypes(positionOpt, name: symbol.Name)
                 : semanticModelOpt.LookupSymbols(positionOpt, name: symbol.Name);
-            var firstSymbol = symbols.OfType<ISymbol>().FirstOrDefault();
+            ISymbol firstSymbol = symbols.OfType<ISymbol>().FirstOrDefault();
             if (symbols.Length != 1 ||
                 firstSymbol == null ||
                 !firstSymbol.Equals(symbol))
             {
                 // Just the name alone didn't bind properly.  Add our minimally qualified parent (if
                 // we have one), a dot, and then our name.
-                var containingNamespace = symbol.ContainingNamespace == null
+                INamespaceSymbol containingNamespace = symbol.ContainingNamespace == null
                     ? null
                     : semanticModelOpt.Compilation.GetCompilationNamespace(symbol.ContainingNamespace);
                 if (containingNamespace != null)
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        var containingNamespace = symbol.ContainingNamespace == null
+                        INamespaceSymbol containingNamespace = symbol.ContainingNamespace == null
                             ? null
                             : semanticModelOpt.Compilation.GetCompilationNamespace(symbol.ContainingNamespace);
                         if (containingNamespace != null)
@@ -180,28 +180,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semanticModel = semanticModelOpt;
                 position = positionOpt;
             }
- 
-            var token = semanticModel.SyntaxTree.GetRoot().FindToken(position);
-            var startNode = token.Parent;
+
+            SyntaxToken token = semanticModel.SyntaxTree.GetRoot().FindToken(position);
+            SyntaxNode startNode = token.Parent;
 
             // NOTE(cyrusn): If we're currently in a block of usings, then we want to collect the
             // aliases that are higher up than this block.  Using aliases declared in a block of
             // usings are not usable from within that same block.
-            var usingDirective = GetAncestorOrThis<UsingDirectiveSyntax>(startNode);
+            UsingDirectiveSyntax usingDirective = GetAncestorOrThis<UsingDirectiveSyntax>(startNode);
             if (usingDirective != null)
             {
                 startNode = usingDirective.Parent.Parent;
             }
 
-            var usingAliases = GetAncestorsOrThis<NamespaceDeclarationSyntax>(startNode)
+            IEnumerable<IAliasSymbol> usingAliases = GetAncestorsOrThis<NamespaceDeclarationSyntax>(startNode)
                 .SelectMany(n => n.Usings)
                 .Concat(GetAncestorsOrThis<CompilationUnitSyntax>(startNode).SelectMany(c => c.Usings))
                 .Where(u => u.Alias != null)
                 .Select(u => semanticModel.GetDeclaredSymbol(u) as IAliasSymbol)
                 .Where(u => u != null);
 
-            var builder = ImmutableDictionary.CreateBuilder<INamespaceOrTypeSymbol, IAliasSymbol>();
-            foreach (var alias in usingAliases)
+            ImmutableDictionary<INamespaceOrTypeSymbol, IAliasSymbol>.Builder builder = ImmutableDictionary.CreateBuilder<INamespaceOrTypeSymbol, IAliasSymbol>();
+            foreach (IAliasSymbol alias in usingAliases)
             {
                 if (!builder.ContainsKey(alias.Target))
                 {
@@ -218,17 +218,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (this.IsMinimizing && !symbol.Locations.IsEmpty)
             {
-                var location = symbol.Locations.First();
+                Location location = symbol.Locations.First();
                 if (location.IsInSource && location.SourceTree == semanticModelOpt.SyntaxTree)
                 {
-                    var token = location.SourceTree.GetRoot().FindToken(positionOpt);
-                    var queryBody = GetQueryBody(token);
+                    SyntaxToken token = location.SourceTree.GetRoot().FindToken(positionOpt);
+                    QueryBodySyntax queryBody = GetQueryBody(token);
                     if (queryBody != null)
                     {
                         // To heuristically determining the type of the range variable in a from
                         // clause, we speculatively bind the name of the variable in the select
                         // or group clause of the query body.
-                        var identifierName = SyntaxFactory.IdentifierName(symbol.Name);
+                        IdentifierNameSyntax identifierName = SyntaxFactory.IdentifierName(symbol.Name);
                         type = semanticModelOpt.GetSpeculativeTypeInfo(
                             queryBody.SelectOrGroup.Span.End - 1, identifierName, SpeculativeBindingOption.BindAsExpression).Type;
                     }
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 string nameWithoutAttributeSuffix;
                 if (symbolName.TryGetWithoutAttributeSuffix(out nameWithoutAttributeSuffix))
                 {
-                    var token = SyntaxFactory.ParseToken(nameWithoutAttributeSuffix);
+                    SyntaxToken token = SyntaxFactory.ParseToken(nameWithoutAttributeSuffix);
                     if (token.IsKind(SyntaxKind.IdentifierToken))
                     {
                         symbolName = nameWithoutAttributeSuffix;
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var map = _lazyAliasMap;
+                IDictionary<INamespaceOrTypeSymbol, IAliasSymbol> map = _lazyAliasMap;
                 if (map != null)
                 {
                     return map;

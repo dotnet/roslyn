@@ -21,11 +21,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw new InvalidOperationException();
             }
 
-            var original = type.OriginalDefinition;
+            NamedTypeSymbol original = type.OriginalDefinition;
             int n = original.Arity;
             NamedTypeSymbol originalContainingType = original.ContainingType;
 
-            var constructedFrom = ((object)originalContainingType == null) ?
+            NamedTypeSymbol constructedFrom = ((object)originalContainingType == null) ?
                 original :
                 original.AsMember(originalContainingType.IsGenericType ? originalContainingType.AsUnboundGenericType() : originalContainingType);
             if (n == 0)
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return constructedFrom;
             }
 
-            var typeArguments = UnboundArgumentErrorTypeSymbol.CreateTypeArguments(
+            ImmutableArray<TypeWithModifiers> typeArguments = UnboundArgumentErrorTypeSymbol.CreateTypeArguments(
                 constructedFrom.TypeParameters,
                 n,
                 new CSDiagnosticInfo(ErrorCode.ERR_UnexpectedUnboundGenericName));

@@ -80,8 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             StringBuilder valueStringBuilder = null;
 
             // Iterate through all the constant members in the enum type
-            var members = constant.Type.GetMembers();
-            foreach (var member in members)
+            ImmutableArray<ISymbol> members = constant.Type.GetMembers();
+            foreach (ISymbol member in members)
             {
                 var field = member as IFieldSymbol;
 
@@ -154,8 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             StringBuilder valueStringBuilder = null;
 
             // Iterate through all the constant members in the enum type
-            var members = constant.Type.GetMembers();
-            foreach (var member in members)
+            ImmutableArray<ISymbol> members = constant.Type.GetMembers();
+            foreach (ISymbol member in members)
             {
                 var field = member as IFieldSymbol;
                 if ((object)field != null && field.HasConstantValue)

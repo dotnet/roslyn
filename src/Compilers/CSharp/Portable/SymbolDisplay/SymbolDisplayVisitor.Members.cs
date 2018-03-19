@@ -492,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeName)
             {
-                var kind = symbol.IsThis ? SymbolDisplayPartKind.Keyword : SymbolDisplayPartKind.ParameterName;
+                SymbolDisplayPartKind kind = symbol.IsThis ? SymbolDisplayPartKind.Keyword : SymbolDisplayPartKind.ParameterName;
                 builder.Add(CreatePart(kind, symbol, symbol.Name));
 
                 if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeDefaultValue) &&
@@ -620,7 +620,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!parameters.IsDefault)
             {
-                foreach (var param in parameters)
+                foreach (IParameterSymbol param in parameters)
                 {
                     if (!first)
                     {
@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeExplicitInterface) && !implementedMethods.IsEmpty)
             {
-                var implementedMethod = implementedMethods[0];
+                T implementedMethod = implementedMethods[0];
                 Debug.Assert(implementedMethod.ContainingType != null);
 
                 INamedTypeSymbol containingType = implementedMethod.ContainingType;

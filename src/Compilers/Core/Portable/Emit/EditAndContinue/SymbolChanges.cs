@@ -49,10 +49,10 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 Debug.Assert(synthesizedDef.Method != null);
 
-                var generator = synthesizedDef.Method;
+                IMethodSymbol generator = synthesizedDef.Method;
                 var synthesizedSymbol = (ISymbol)synthesizedDef;
 
-                var change = GetChange((IDefinition)generator);
+                SymbolChange change = GetChange((IDefinition)generator);
                 switch (change)
                 {
                     case SymbolChange.Updated:
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Emit
             }
 
             // Calculate change based on change to container.
-            var container = GetContainingSymbol(symbol);
+            ISymbol container = GetContainingSymbol(symbol);
             if (container == null)
             {
                 return SymbolChange.None;
@@ -188,14 +188,14 @@ namespace Microsoft.CodeAnalysis.Emit
         public IEnumerable<INamespaceTypeDefinition> GetTopLevelTypes(EmitContext context)
         {
             var module = (CommonPEModuleBuilder)context.Module;
-            foreach (var type in module.GetAnonymousTypes(context))
+            foreach (INamespaceTypeDefinition type in module.GetAnonymousTypes(context))
             {
                 yield return type;
             }
 
-            foreach (var symbol in _changes.Keys)
+            foreach (ISymbol symbol in _changes.Keys)
             {
-                var namespaceTypeDef = (symbol as ITypeDefinition)?.AsNamespaceTypeDefinition(context);
+                INamespaceTypeDefinition namespaceTypeDef = (symbol as ITypeDefinition)?.AsNamespaceTypeDefinition(context);
                 if (namespaceTypeDef != null)
                 {
                     yield return namespaceTypeDef;
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             var changes = new Dictionary<ISymbol, SymbolChange>();
 
-            foreach (var edit in edits)
+            foreach (SemanticEdit edit in edits)
             {
                 SymbolChange change;
 
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Emit
                         throw ExceptionUtilities.UnexpectedValue(edit.Kind);
                 }
 
-                var member = edit.NewSymbol;
+                ISymbol member = edit.NewSymbol;
 
                 // Partial methods are supplied as implementations but recorded
                 // internally as definitions since definitions are used in emit.
@@ -248,7 +248,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     Debug.Assert(method.PartialImplementationPart == null);
                     Debug.Assert((edit.OldSymbol == null) || (((IMethodSymbol)edit.OldSymbol).PartialImplementationPart == null));
 
-                    var definitionPart = method.PartialDefinitionPart;
+                    IMethodSymbol definitionPart = method.PartialDefinitionPart;
                     if (definitionPart != null)
                     {
                         member = definitionPart;
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     return;
                 }
 
-                var kind = symbol.Kind;
+                SymbolKind kind = symbol.Kind;
                 if (kind == SymbolKind.Property || kind == SymbolKind.Event)
                 {
                     changes.Add(symbol, SymbolChange.Updated);
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.Emit
             {
                 case SymbolKind.Field:
                     {
-                        var associated = ((IFieldSymbol)symbol).AssociatedSymbol;
+                        ISymbol associated = ((IFieldSymbol)symbol).AssociatedSymbol;
                         if (associated != null)
                         {
                             return associated;
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.Emit
                     break;
                 case SymbolKind.Method:
                     {
-                        var associated = ((IMethodSymbol)symbol).AssociatedSymbol;
+                        ISymbol associated = ((IMethodSymbol)symbol).AssociatedSymbol;
                         if (associated != null)
                         {
                             return associated;

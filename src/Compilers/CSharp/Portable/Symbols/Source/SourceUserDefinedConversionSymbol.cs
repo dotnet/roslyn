@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // Dev11 includes the explicit/implicit keyword, but we don't have a good way to include
             // Narrowing/Widening in VB and we want the languages to be consistent.
-            var location = syntax.Type.Location;
+            Location location = syntax.Type.Location;
             string name = syntax.ImplicitOrExplicitKeyword.IsKind(SyntaxKind.ImplicitKeyword)
                 ? WellKnownMemberNames.ImplicitConversionName
                 : WellKnownMemberNames.ExplicitConversionName;

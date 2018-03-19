@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         private static string GetLogFileFullName()
         {
-            var assembly = typeof(ExitingTraceListener).Assembly;
+            System.Reflection.Assembly assembly = typeof(ExitingTraceListener).Assembly;
             var name = $"{Path.GetFileName(assembly.Location)}.tracelog";
             var path = Path.GetDirectoryName(assembly.Location);
             return Path.Combine(path, name);

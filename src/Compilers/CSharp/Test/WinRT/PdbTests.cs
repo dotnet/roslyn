@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     using (var outputxml = new MemoryStream())
                     {
-                        var result = comp.Emit(output, outputPdb, null);
+                        EmitResult result = comp.Emit(output, outputPdb, null);
                         Assert.True(result.Success);
                         result = comp.Emit(output, outputPdb);
                         Assert.True(result.Success);
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 new[] { SyntaxFactory.ParseSyntaxTree("class C { static void Main() {} }") },
                 new[] { MscorlibRef });
 
-            var r = c.Emit(peStream, pdbStream);
+            EmitResult r = c.Emit(peStream, pdbStream);
             r.Diagnostics.Verify();
         }
 
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 new[] { SyntaxFactory.ParseSyntaxTree("class C { static void Main() {} }") },
                 new[] { MscorlibRef });
 
-            var r = c.Emit(peStream, pdbStream);
+            EmitResult r = c.Emit(peStream, pdbStream);
             r.Diagnostics.Verify();
 
             AssertEx.Equal(new byte[] { 0x12, (byte)'M', (byte)'i', (byte)'c', (byte)'r', (byte)'o' }, pdbStream.GetBuffer().Take(6).ToArray());
@@ -103,14 +103,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 new[] { SyntaxFactory.ParseSyntaxTree("class C { static void Main() {} }") },
                 new[] { MscorlibRef });
 
-            var r = c.Emit(peStream, pdbStream);
+            EmitResult r = c.Emit(peStream, pdbStream);
             r.Diagnostics.Verify();
         }
 
         [ClrOnlyFact(ClrOnlyReason.Pdb)]
         public void NegEmit()
         {
-            var ops = TestOptions.ReleaseDll;
+            CSharpCompilationOptions ops = TestOptions.ReleaseDll;
             var comp = CSharpCompilation.Create("Compilation", null, null, ops);
             using (MemoryStream output = new MemoryStream())
             {
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 {
                     using (MemoryStream outputxml = new MemoryStream())
                     {
-                        var result = comp.Emit(output, outputPdb, outputxml);
+                        EmitResult result = comp.Emit(output, outputPdb, outputxml);
                         Assert.True(result.Success);
                     }
                 }

@@ -301,7 +301,7 @@ class C
                 }, module.GetFieldNames("C.<M>d__3"));
             });
 
-            var vd = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompilationVerifier vd = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -502,7 +502,7 @@ class Test
             var expected = @"
 42
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: expected);
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: expected);
 
             verifier.VerifyIL("C.<F>d__1.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -633,7 +633,7 @@ class Test
             var expected = @"
 42
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: expected);
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: expected);
 
             verifier.VerifyIL("C.<F>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()", @"
 {
@@ -953,9 +953,9 @@ class Test
         Run();
     }
 }";
-            var reference = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef_v4_0_30319_17929 }).EmitToImageReference();
-            var comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
-            var testClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+            MetadataReference reference = CreateCompilationWithMscorlib45(source, references: new MetadataReference[] { SystemRef_v4_0_30319_17929 }).EmitToImageReference();
+            CSharpCompilation comp = CreateCompilationWithMscorlib45("", new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            NamedTypeSymbol testClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
             var stateMachineClass = (NamedTypeSymbol)testClass.GetMembers().Single(s => s.Name.StartsWith("<Run>", StringComparison.Ordinal));
             IEnumerable<IGrouping<TypeSymbol, FieldSymbol>> spillFieldsByType = stateMachineClass.GetMembers().Where(m => m.Kind == SymbolKind.Field && m.Name.StartsWith("<>7__wrap", StringComparison.Ordinal)).Cast<FieldSymbol>().GroupBy(x => x.Type);
 
@@ -984,7 +984,7 @@ class Test<U>
         foreach (var x in GetEnum<U>()) await F(5);
     }
 }";
-            var c = CompileAndVerify(source, expectedOutput: null, options: TestOptions.ReleaseDll);
+            CompilationVerifier c = CompileAndVerify(source, expectedOutput: null, options: TestOptions.ReleaseDll);
 
             var actual = GetFieldLoadsAndStores(c, "Test<U>.<M>d__2<S, T>.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext");
 
@@ -1142,7 +1142,7 @@ class Test
         foreach (var x in GetObjectEnum()) await F(2);
     }
 }";
-            var c = CompileAndVerify(source, expectedOutput: null, options: TestOptions.ReleaseDll);
+            CompilationVerifier c = CompileAndVerify(source, expectedOutput: null, options: TestOptions.ReleaseDll);
 
             var actual = GetFieldLoadsAndStores(c, "Test.<M>d__3.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext");
 
@@ -1293,7 +1293,7 @@ class C
         Console.Write(i);
     }
 }";
-            var verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"1", verify: Verification.Fails);
+            CompilationVerifier verifier = CompileAndVerify(text, options: TestOptions.UnsafeReleaseExe, expectedOutput: @"1", verify: Verification.Fails);
             verifier.VerifyIL("C.<F>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
 @"
 {
@@ -1550,7 +1550,7 @@ class Test
         }
     }
 }";
-            var verifier = CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: @"2");
+            CompilationVerifier verifier = CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: @"2");
 
 
             // NOTE: only one hoisted int local:  
@@ -1877,7 +1877,7 @@ class Test
         }
     }
 }";
-            var verifier = CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: @"2");
+            CompilationVerifier verifier = CompileAndVerify(text, options: TestOptions.ReleaseExe, expectedOutput: @"2");
 
 
             // NOTE: only one hoisted int local:  

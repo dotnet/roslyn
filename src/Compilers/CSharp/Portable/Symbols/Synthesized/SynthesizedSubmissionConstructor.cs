@@ -15,10 +15,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(containingType.TypeKind == TypeKind.Submission);
             Debug.Assert(diagnostics != null);
 
-            var compilation = containingType.DeclaringCompilation;
+            CSharpCompilation compilation = containingType.DeclaringCompilation;
 
-            var submissionArrayType = compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Object));
-            var useSiteError = submissionArrayType.GetUseSiteDiagnostic();
+            ArrayTypeSymbol submissionArrayType = compilation.CreateArrayTypeSymbol(compilation.GetSpecialType(SpecialType.System_Object));
+            DiagnosticInfo useSiteError = submissionArrayType.GetUseSiteDiagnostic();
             if (useSiteError != null)
             {
                 diagnostics.Add(useSiteError, NoLocation.Singleton);

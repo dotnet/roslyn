@@ -11,9 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Fact]
         public void Equality()
         {
-            var c = CreateCompilation("");
-            var obj = c.GetSpecialType(SpecialType.System_Object);
-            var int32 = c.GetSpecialType(SpecialType.System_Int32);
+            CSharpCompilation c = CreateCompilation("");
+            Symbols.NamedTypeSymbol obj = c.GetSpecialType(SpecialType.System_Object);
+            Symbols.NamedTypeSymbol int32 = c.GetSpecialType(SpecialType.System_Int32);
 
             EqualityTesting.AssertEqual(default(TypeInfo), default(TypeInfo));
             EqualityTesting.AssertEqual(new TypeInfo(obj, int32), new TypeInfo(obj, int32));
@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             EqualityTesting.AssertNotEqual(new TypeInfo(int32, obj), new TypeInfo(obj, obj));
             EqualityTesting.AssertEqual(new TypeInfo(int32, int32), new TypeInfo(int32, int32));
 
-            var intEnum1 = c.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(int32);
-            var intEnum2 = c.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(int32);
+            Symbols.NamedTypeSymbol intEnum1 = c.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(int32);
+            Symbols.NamedTypeSymbol intEnum2 = c.GetSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(int32);
             EqualityTesting.AssertEqual(new TypeInfo(intEnum1, int32), new TypeInfo(intEnum2, int32));
         }
     }

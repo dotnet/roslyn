@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static DiagnosticDescriptor GetDescriptor(int errorCode, CommonMessageProvider messageProvider)
         {
-            var defaultSeverity = messageProvider.GetSeverity(errorCode);
+            DiagnosticSeverity defaultSeverity = messageProvider.GetSeverity(errorCode);
             return GetOrCreateDescriptor(errorCode, defaultSeverity, messageProvider);
         }
 
@@ -80,12 +80,12 @@ namespace Microsoft.CodeAnalysis
         private static DiagnosticDescriptor CreateDescriptor(int errorCode, DiagnosticSeverity defaultSeverity, CommonMessageProvider messageProvider)
         {
             var id = messageProvider.GetIdForErrorCode(errorCode);
-            var title = messageProvider.GetTitle(errorCode);
-            var description = messageProvider.GetDescription(errorCode);
-            var messageFormat = messageProvider.GetMessageFormat(errorCode);
+            LocalizableString title = messageProvider.GetTitle(errorCode);
+            LocalizableString description = messageProvider.GetDescription(errorCode);
+            LocalizableString messageFormat = messageProvider.GetMessageFormat(errorCode);
             var helpLink = messageProvider.GetHelpLink(errorCode);
             var category = messageProvider.GetCategory(errorCode);
-            var customTags = GetCustomTags(defaultSeverity);
+            ImmutableArray<string> customTags = GetCustomTags(defaultSeverity);
             return new DiagnosticDescriptor(id, title, messageFormat, category, defaultSeverity,
                 isEnabledByDefault: true, description: description, helpLinkUri: helpLink, customTags: customTags);
         }
@@ -102,13 +102,13 @@ namespace Microsoft.CodeAnalysis
                     continue;
                 }
 
-                var type = arg.GetType();
+                Type type = arg.GetType();
                 if (type == typeof(string) || type == typeof(AssemblyIdentity))
                 {
                     continue;
                 }
 
-                var info = type.GetTypeInfo();
+                System.Reflection.TypeInfo info = type.GetTypeInfo();
                 if (info.IsPrimitive)
                 {
                     continue;

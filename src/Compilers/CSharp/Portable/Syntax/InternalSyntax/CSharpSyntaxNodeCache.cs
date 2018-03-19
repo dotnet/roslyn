@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private static GreenNode.NodeFlags GetNodeFlags(SyntaxFactoryContext context)
         {
-            var flags = SyntaxNodeCache.GetDefaultNodeFlags();
+            GreenNode.NodeFlags flags = SyntaxNodeCache.GetDefaultNodeFlags();
 
             if (context.IsInAsync)
             {

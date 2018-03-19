@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // fields for the captured variables of the method
-            var variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(F.Compilation, method, body, diagnostics);
+            Collections.OrderedSet<Symbol> variablesToHoist = IteratorAndAsyncCaptureWalker.Analyze(F.Compilation, method, body, diagnostics);
 
             CreateNonReusableLocalProxies(variablesToHoist, out this.nonReusableLocalProxies, out this.nextFreeHoistedLocalSlot);
 
@@ -116,20 +116,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var proxiesBuilder = new Dictionary<Symbol, CapturedSymbolReplacement>();
 
-            var typeMap = stateMachineType.TypeMap;
+            TypeMap typeMap = stateMachineType.TypeMap;
             bool isDebugBuild = F.Compilation.Options.OptimizationLevel == OptimizationLevel.Debug;
             bool mapToPreviousFields = isDebugBuild && slotAllocatorOpt != null;
 
             nextFreeHoistedLocalSlot = mapToPreviousFields ? slotAllocatorOpt.PreviousHoistedLocalSlotCount : 0;
 
-            foreach (var variable in variablesToHoist)
+            foreach (Symbol variable in variablesToHoist)
             {
                 Debug.Assert(variable.Kind == SymbolKind.Local || variable.Kind == SymbolKind.Parameter);
 
                 if (variable.Kind == SymbolKind.Local)
                 {
                     var local = (LocalSymbol)variable;
-                    var synthesizedKind = local.SynthesizedKind;
+                    SynthesizedLocalKind synthesizedKind = local.SynthesizedKind;
 
                     if (!synthesizedKind.MustSurviveStateMachineSuspension())
                     {
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (ShouldPreallocateNonReusableProxy(local))
                     {
                         // variable needs to be hoisted
-                        var fieldType = typeMap.SubstituteType(local.Type).Type;
+                        TypeSymbol fieldType = typeMap.SubstituteType(local.Type).Type;
 
                         LocalDebugId id;
                         int slotIndex = -1;
@@ -208,13 +208,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var parameter = (ParameterSymbol)variable;
                     if (parameter.IsThis)
                     {
-                        var containingType = method.ContainingType;
-                        var proxyField = F.StateMachineField(containingType, GeneratedNames.ThisProxyFieldName(), isPublic: true, isThis: true);
+                        NamedTypeSymbol containingType = method.ContainingType;
+                        StateMachineFieldSymbol proxyField = F.StateMachineField(containingType, GeneratedNames.ThisProxyFieldName(), isPublic: true, isThis: true);
                         proxiesBuilder.Add(parameter, new CapturedToStateMachineFieldReplacement(proxyField, isReusable: false));
 
                         if (PreserveInitialParameterValues)
                         {
-                            var initialThis = containingType.IsStructType() ?
+                            StateMachineFieldSymbol initialThis = containingType.IsStructType() ?
                                 F.StateMachineField(containingType, GeneratedNames.StateMachineThisParameterProxyName(), isPublic: true, isThis: true) : proxyField;
 
                             initialParameters.Add(parameter, new CapturedToStateMachineFieldReplacement(initialThis, isReusable: false));
@@ -224,12 +224,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // The field needs to be public iff it is initialized directly from the kickoff method 
                         // (i.e. not for IEnumerable which loads the values from parameter proxies).
-                        var proxyField = F.StateMachineField(typeMap.SubstituteType(parameter.Type).Type, parameter.Name, isPublic: !PreserveInitialParameterValues);
+                        StateMachineFieldSymbol proxyField = F.StateMachineField(typeMap.SubstituteType(parameter.Type).Type, parameter.Name, isPublic: !PreserveInitialParameterValues);
                         proxiesBuilder.Add(parameter, new CapturedToStateMachineFieldReplacement(proxyField, isReusable: false));
 
                         if (PreserveInitialParameterValues)
                         {
-                            var field = F.StateMachineField(typeMap.SubstituteType(parameter.Type).Type, GeneratedNames.StateMachineParameterProxyFieldName(parameter.Name), isPublic: true);
+                            StateMachineFieldSymbol field = F.StateMachineField(typeMap.SubstituteType(parameter.Type).Type, GeneratedNames.StateMachineParameterProxyFieldName(parameter.Name), isPublic: true);
                             initialParameters.Add(parameter, new CapturedToStateMachineFieldReplacement(field, isReusable: false));
                         }
                     }
@@ -241,8 +241,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool ShouldPreallocateNonReusableProxy(LocalSymbol local)
         {
-            var synthesizedKind = local.SynthesizedKind;
-            var optimizationLevel = F.Compilation.Options.OptimizationLevel;
+            SynthesizedLocalKind synthesizedKind = local.SynthesizedKind;
+            OptimizationLevel optimizationLevel = F.Compilation.Options.OptimizationLevel;
 
             // do not preallocate proxiy fields for user defined locals in release
             // otherwise we will be allocating fields for all locals even when fields can be reused
@@ -260,12 +260,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.CurrentMethod = method;
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
 
-            var frameType = method.IsGenericMethod ? stateMachineType.Construct(method.TypeArguments) : stateMachineType;
+            NamedTypeSymbol frameType = method.IsGenericMethod ? stateMachineType.Construct(method.TypeArguments) : stateMachineType;
             LocalSymbol stateMachineVariable = F.SynthesizedLocal(frameType, null);
             InitializeStateMachine(bodyBuilder, frameType, stateMachineVariable);
 
             // plus code to initialize all of the parameter proxies result.proxy
-            var proxies = PreserveInitialParameterValues ? initialParameters : nonReusableLocalProxies;
+            IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> proxies = PreserveInitialParameterValues ? initialParameters : nonReusableLocalProxies;
 
             // starting with the "this" proxy
             if (!method.IsStatic)
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            foreach (var parameter in method.Parameters)
+            foreach (ParameterSymbol parameter in method.Parameters)
             {
                 CapturedSymbolReplacement proxy;
                 if (proxies.TryGetValue(parameter, out proxy))
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var prop = new SynthesizedStateMachineProperty(getterToImplement, (StateMachineTypeSymbol)F.CurrentType);
             F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, prop);
 
-            var getter = prop.GetMethod;
+            MethodSymbol getter = prop.GetMethod;
             F.ModuleBuilderOpt.AddSynthesizedDefinition(F.CurrentType, getter);
 
             F.CurrentMethod = getter;

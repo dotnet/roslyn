@@ -97,13 +97,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var type = def as Cci.ITypeDefinition;
                 if (type != null)
                 {
-                    var namespaceType = type.AsNamespaceTypeDefinition(_sourceContext);
+                    Cci.INamespaceTypeDefinition namespaceType = type.AsNamespaceTypeDefinition(_sourceContext);
                     if (namespaceType != null)
                     {
                         return VisitNamespaceType(namespaceType);
                     }
 
-                    var nestedType = type.AsNestedTypeDefinition(_sourceContext);
+                    Cci.INestedTypeDefinition nestedType = type.AsNestedTypeDefinition(_sourceContext);
                     Debug.Assert(nestedType != null);
 
                     var otherContainer = (Cci.ITypeDefinition)this.VisitDef(nestedType.ContainingTypeDefinition);
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     return null;
                 }
 
-                var topLevelTypes = this.GetTopLevelTypesByName();
+                IReadOnlyDictionary<string, Cci.INamespaceTypeDefinition> topLevelTypes = this.GetTopLevelTypesByName();
                 Cci.INamespaceTypeDefinition otherDef;
                 topLevelTypes.TryGetValue(def.Name, out otherDef);
                 return otherDef;
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 if (_lazyTopLevelTypes == null)
                 {
                     var typesByName = new Dictionary<string, Cci.INamespaceTypeDefinition>(StringOrdinalComparer.Instance);
-                    foreach (var type in this.GetTopLevelTypes())
+                    foreach (Cci.INamespaceTypeDefinition type in this.GetTopLevelTypes())
                     {
                         // All generated top-level types are assumed to be in the global namespace.
                         if (string.IsNullOrEmpty(type.NamespaceName))
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             private static void GetTopLevelTypes(ArrayBuilder<Cci.INamespaceTypeDefinition> builder, NamespaceSymbol @namespace)
             {
-                foreach (var member in @namespace.GetMembers())
+                foreach (Symbol member in @namespace.GetMembers())
                 {
                     if (member.Kind == SymbolKind.Namespace)
                     {
@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     // For a newly added type, there is no match in the previous generation, so it could be null.
                     return null;
                 }
-                var otherModifiers = VisitCustomModifiers(symbol.CustomModifiers);
+                ImmutableArray<CustomModifier> otherModifiers = VisitCustomModifiers(symbol.CustomModifiers);
 
                 if (symbol.IsSZArray)
                 {
@@ -376,7 +376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 // match non-manifest module by name:
                 for (int i = 1; i < otherAssembly.Modules.Length; i++)
                 {
-                    var otherModule = otherAssembly.Modules[i];
+                    ModuleSymbol otherModule = otherAssembly.Modules[i];
 
                     // use case sensitive comparison -- modules whose names differ in casing are considered distinct:
                     if (StringComparer.Ordinal.Equals(otherModule.Name, module.Name))
@@ -405,7 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
 
                 // find a referenced assembly with the same source identity (modulo assembly version patterns):
-                foreach (var otherReferencedAssembly in _otherAssembly.Modules[0].ReferencedAssemblySymbols)
+                foreach (AssemblySymbol otherReferencedAssembly in _otherAssembly.Modules[0].ReferencedAssemblySymbols)
                 {
                     if (IdentityEqualIgnoringVersionWildcard(assembly, otherReferencedAssembly))
                     {
@@ -418,8 +418,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             private static bool IdentityEqualIgnoringVersionWildcard(AssemblySymbol left, AssemblySymbol right)
             {
-                var leftIdentity = left.Identity;
-                var rightIdentity = right.Identity;
+                AssemblyIdentity leftIdentity = left.Identity;
+                AssemblyIdentity rightIdentity = right.Identity;
 
                 return AssemblyIdentityComparer.SimpleNameComparer.Equals(leftIdentity.Name, rightIdentity.Name) &&
                        (left.AssemblyVersionPattern ?? leftIdentity.Version).Equals(right.AssemblyVersionPattern ?? rightIdentity.Version) &&
@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitNamespace(NamespaceSymbol @namespace)
             {
-                var otherContainer = this.Visit(@namespace.ContainingSymbol);
+                Symbol otherContainer = this.Visit(@namespace.ContainingSymbol);
                 Debug.Assert((object)otherContainer != null);
 
                 switch (otherContainer.Kind)
@@ -452,11 +452,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             public override Symbol VisitNamedType(NamedTypeSymbol sourceType)
             {
-                var originalDef = sourceType.OriginalDefinition;
+                NamedTypeSymbol originalDef = sourceType.OriginalDefinition;
                 if ((object)originalDef != (object)sourceType)
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    var typeArguments = sourceType.GetAllTypeArguments(ref useSiteDiagnostics);
+                    ImmutableArray<TypeWithModifiers> typeArguments = sourceType.GetAllTypeArguments(ref useSiteDiagnostics);
 
                     var otherDef = (NamedTypeSymbol)this.Visit(originalDef);
                     if ((object)otherDef == null)
@@ -464,10 +464,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         return null;
                     }
 
-                    var otherTypeParameters = otherDef.GetAllTypeParameters();
+                    ImmutableArray<TypeParameterSymbol> otherTypeParameters = otherDef.GetAllTypeParameters();
                     bool translationFailed = false;
 
-                    var otherTypeArguments = typeArguments.SelectAsArray((t, v) =>
+                    ImmutableArray<TypeWithModifiers> otherTypeArguments = typeArguments.SelectAsArray((t, v) =>
                                                                             {
                                                                                 var newType = (TypeSymbol)v.Visit(t.Type);
 
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 Debug.Assert(sourceType.IsDefinition);
 
-                var otherContainer = this.Visit(sourceType.ContainingSymbol);
+                Symbol otherContainer = this.Visit(sourceType.ContainingSymbol);
                 // Containing type will be missing from other assembly
                 // if the type was added in the (newer) source assembly.
                 if ((object)otherContainer == null)
@@ -553,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     // For a newly added type, there is no match in the previous generation, so it could be null.
                     return null;
                 }
-                var otherModifiers = VisitCustomModifiers(symbol.CustomModifiers);
+                ImmutableArray<CustomModifier> otherModifiers = VisitCustomModifiers(symbol.CustomModifiers);
                 return new PointerTypeSymbol(otherPointedAtType, otherModifiers);
             }
 
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 }
 
                 ImmutableArray<TypeParameterSymbol> otherTypeParameters;
-                var otherContainer = this.Visit(symbol.ContainingSymbol);
+                Symbol otherContainer = this.Visit(symbol.ContainingSymbol);
                 Debug.Assert((object)otherContainer != null);
 
                 switch (otherContainer.Kind)
@@ -609,7 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 Debug.Assert((object)type.ContainingSymbol == (object)_sourceAssembly.GlobalNamespace);
                 Debug.Assert(AnonymousTypeManager.IsAnonymousTypeTemplate(type));
 
-                var key = AnonymousTypeManager.GetAnonymousTypeKey(type);
+                AnonymousTypeKey key = AnonymousTypeManager.GetAnonymousTypeKey(type);
                 return _anonymousTypeMap.TryGetValue(key, out otherType);
             }
 
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 Debug.Assert(!string.IsNullOrEmpty(sourceMember.Name));
 
-                foreach (var otherMember in otherNamespace.GetMembers(sourceMember.Name))
+                foreach (Symbol otherMember in otherNamespace.GetMembers(sourceMember.Name))
                 {
                     if (sourceMember.Kind != otherMember.Kind)
                     {
@@ -654,12 +654,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 Debug.Assert(!string.IsNullOrEmpty(sourceMember.MetadataName));
 
-                var otherMembersByName = _otherTypeMembers.GetOrAdd(otherType, GetOtherTypeMembers);
+                IReadOnlyDictionary<string, ImmutableArray<Cci.ITypeDefinitionMember>> otherMembersByName = _otherTypeMembers.GetOrAdd(otherType, GetOtherTypeMembers);
 
                 ImmutableArray<Cci.ITypeDefinitionMember> otherMembers;
                 if (otherMembersByName.TryGetValue(sourceMember.MetadataName, out otherMembers))
                 {
-                    foreach (var otherMember in otherMembers)
+                    foreach (Cci.ITypeDefinitionMember otherMember in otherMembers)
                     {
                         T other = otherMember as T;
                         if (other != null && predicate(sourceMember, other))
@@ -714,7 +714,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 Debug.Assert(method.IsDefinition);
 
-                var typeParameters = method.TypeParameters;
+                ImmutableArray<TypeParameterSymbol> typeParameters = method.TypeParameters;
                 int n = typeParameters.Length;
                 if (n == 0)
                 {
@@ -841,7 +841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 public bool Equals(TypeSymbol source, TypeSymbol other)
                 {
                     var visitedSource = (TypeSymbol)_matcher.Visit(source);
-                    var visitedOther = (_deepTranslatorOpt != null) ? (TypeSymbol)_deepTranslatorOpt.Visit(other) : other;
+                    TypeSymbol visitedOther = (_deepTranslatorOpt != null) ? (TypeSymbol)_deepTranslatorOpt.Visit(other) : other;
 
                     return visitedSource?.Equals(visitedOther, TypeCompareKind.IgnoreDynamicAndTupleNames) == true;
                 }
@@ -873,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol VisitArrayType(ArrayTypeSymbol symbol)
             {
                 var translatedElementType = (TypeSymbol)this.Visit(symbol.ElementType);
-                var translatedModifiers = VisitCustomModifiers(symbol.CustomModifiers);
+                ImmutableArray<CustomModifier> translatedModifiers = VisitCustomModifiers(symbol.CustomModifiers);
 
                 if (symbol.IsSZArray)
                 {
@@ -896,11 +896,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     Debug.Assert(!type.IsTupleType);
                 }
 
-                var originalDef = type.OriginalDefinition;
+                NamedTypeSymbol originalDef = type.OriginalDefinition;
                 if ((object)originalDef != type)
                 {
                     HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                    var translatedTypeArguments = type.GetAllTypeArguments(ref useSiteDiagnostics).SelectAsArray((t, v) => new TypeWithModifiers((TypeSymbol)v.Visit(t.Type),
+                    ImmutableArray<TypeWithModifiers> translatedTypeArguments = type.GetAllTypeArguments(ref useSiteDiagnostics).SelectAsArray((t, v) => new TypeWithModifiers((TypeSymbol)v.Visit(t.Type),
                                                                                                                                                   v.VisitCustomModifiers(t.CustomModifiers)),
                                                                                                                  this);
 
@@ -922,7 +922,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             public override Symbol VisitPointerType(PointerTypeSymbol symbol)
             {
                 var translatedPointedAtType = (TypeSymbol)this.Visit(symbol.PointedAtType);
-                var translatedModifiers = VisitCustomModifiers(symbol.CustomModifiers);
+                ImmutableArray<CustomModifier> translatedModifiers = VisitCustomModifiers(symbol.CustomModifiers);
                 return new PointerTypeSymbol(translatedPointedAtType, translatedModifiers);
             }
 

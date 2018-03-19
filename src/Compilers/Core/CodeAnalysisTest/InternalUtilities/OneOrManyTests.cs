@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
                 Assert.Equal(actual[i], expected[i]);
             }
             i = 0;
-            foreach (var value in actual)
+            foreach (T value in actual)
             {
                 Assert.Equal(value, expected[i]);
                 i++;

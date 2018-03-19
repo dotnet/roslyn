@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             //confirm that we can read resources produced by RC.EXE. 
             var res = Resources.ResourceManager.GetObject("VerResourceBuiltByRC");
-            var list = CvtResFile.ReadResFile(new System.IO.MemoryStream((byte[])res));
+            List<RESOURCE> list = CvtResFile.ReadResFile(new System.IO.MemoryStream((byte[])res));
             Assert.Equal(3, list.Count);
         }
 
@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             //confirm that we can read resources produced by RC.EXE. 
             var res = Resources.ResourceManager.GetObject("nativeWithStringIDsAndTypesAndIntTypes");
-            var list = CvtResFile.ReadResFile(new System.IO.MemoryStream((byte[])res));
+            List<RESOURCE> list = CvtResFile.ReadResFile(new System.IO.MemoryStream((byte[])res));
 
             Assert.Equal(3, list.Count);
             Assert.Equal(16, list[0].pstringType.Ordinal);
@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void EnsureResourceSorting()
         {
             //confirm that we sort the resources in the order required by the serialization format.
-            var resources = Cci.NativeResourceWriter.SortResources(BuildResources()).ToArray();
+            Cci.IWin32Resource[] resources = Cci.NativeResourceWriter.SortResources(BuildResources()).ToArray();
 
-            var elem = resources[0];
+            Cci.IWin32Resource elem = resources[0];
             Assert.Equal("a", elem.TypeName);
             Assert.Equal("b", elem.Name);
             elem = resources[1];
@@ -130,9 +130,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             strm.Position = 0;
 
-            var resources = CvtResFile.ReadResFile(strm);
+            List<RESOURCE> resources = CvtResFile.ReadResFile(strm);
 
-            foreach (var r in resources)
+            foreach (RESOURCE r in resources)
             {
                 if (r.pstringType.Ordinal == 16)    //version
                 {
@@ -168,7 +168,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                     for (short i = 0; i < threeWords[2]; i++)
                     {
                         bool found = false;
-                        foreach (var rInner in resources)
+                        foreach (RESOURCE rInner in resources)
                         {
                             if ((rInner.pstringName.Ordinal == i + 1) &&    //ICON IDs start at 1
                                 (rInner.pstringType.Ordinal == 3))  //RT_ICON

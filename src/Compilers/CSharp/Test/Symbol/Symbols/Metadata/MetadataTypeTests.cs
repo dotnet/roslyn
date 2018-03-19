@@ -18,10 +18,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataNamespaceSymbol01()
         {
             var text = "public class A {}";
-            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
+            CSharpCompilation compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
 
-            var mscorlib = compilation.ExternalReferences[0];
-            var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
+            MetadataReference mscorlib = compilation.ExternalReferences[0];
+            AssemblySymbol mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
             Assert.Equal("mscorlib", mscorNS.Name);
             Assert.Equal(SymbolKind.Assembly, mscorNS.Kind);
             var ns1 = mscorNS.GlobalNamespace.GetMembers("System").Single() as NamespaceSymbol;
@@ -58,10 +58,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataTypeSymbolClass01()
         {
             var text = "public class A {}";
-            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
+            CSharpCompilation compilation = CreateEmptyCompilation(text, new[] { MscorlibRef });
 
-            var mscorlib = compilation.ExternalReferences[0];
-            var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
+            MetadataReference mscorlib = compilation.ExternalReferences[0];
+            AssemblySymbol mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
             Assert.Equal("mscorlib", mscorNS.Name);
             var ns1 = mscorNS.GlobalNamespace.GetMembers("Microsoft").Single() as NamespaceSymbol;
             var ns2 = ns1.GetMembers("Runtime").Single() as NamespaceSymbol;
@@ -108,10 +108,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataTypeSymbolGenClass02()
         {
             var text = "public class A {}";
-            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
+            CSharpCompilation compilation = CreateEmptyCompilation(text, new[] { MscorlibRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
-            var mscorlib = compilation.ExternalReferences[0];
-            var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
+            MetadataReference mscorlib = compilation.ExternalReferences[0];
+            AssemblySymbol mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
             Assert.Equal("mscorlib", mscorNS.Name);
             Assert.Equal(SymbolKind.Assembly, mscorNS.Kind);
             var ns1 = (mscorNS.GlobalNamespace.GetMembers("System").Single() as NamespaceSymbol).GetMembers("Collections").Single() as NamespaceSymbol;
@@ -158,10 +158,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataTypeSymbolGenInterface01()
         {
             var text = "public class A {}";
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
 
-            var mscorlib = compilation.ExternalReferences[0];
-            var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
+            MetadataReference mscorlib = compilation.ExternalReferences[0];
+            AssemblySymbol mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
             var ns1 = (mscorNS.GlobalNamespace.GetMembers("System").Single() as NamespaceSymbol).GetMembers("Collections").Single() as NamespaceSymbol;
             var ns2 = ns1.GetMembers("Generic").Single() as NamespaceSymbol;
 
@@ -206,12 +206,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataTypeSymbolStruct01()
         {
             var text = "public class A {}";
-            var compilation = CreateEmptyCompilation(text,
+            CSharpCompilation compilation = CreateEmptyCompilation(text,
                 new[] { MscorlibRef },
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
-            var mscorlib = compilation.ExternalReferences[0];
-            var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
+            MetadataReference mscorlib = compilation.ExternalReferences[0];
+            AssemblySymbol mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
             Assert.Equal("mscorlib", mscorNS.Name);
             var ns1 = mscorNS.GlobalNamespace.GetMembers("System").Single() as NamespaceSymbol;
             var ns2 = ns1.GetMembers("Runtime").Single() as NamespaceSymbol;
@@ -254,11 +254,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MetadataArrayTypeSymbol01()
         {
             var text = "public class A {}";
-            var compilation = CreateEmptyCompilation(text, new[] { MscorlibRef },
+            CSharpCompilation compilation = CreateEmptyCompilation(text, new[] { MscorlibRef },
                 options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
-            var mscorlib = compilation.ExternalReferences[0];
-            var mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
+            MetadataReference mscorlib = compilation.ExternalReferences[0];
+            AssemblySymbol mscorNS = compilation.GetReferencedAssemblySymbol(mscorlib);
             Assert.Equal("mscorlib", mscorNS.Name);
             var ns1 = mscorNS.GlobalNamespace.GetMembers("System").Single() as NamespaceSymbol;
             var ns2 = ns1.GetMembers("Diagnostics").Single() as NamespaceSymbol;
@@ -319,7 +319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact, WorkItem(531619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531619"), WorkItem(531619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531619")]
         public void InheritFromNetModuleMetadata01()
         {
-            var modRef = TestReferences.MetadataTests.NetModule01.ModuleCS00;
+            PortableExecutableReference modRef = TestReferences.MetadataTests.NetModule01.ModuleCS00;
 
             var text1 = @"
 class Test : StaticModClass
@@ -329,24 +329,24 @@ class Test : StaticModClass
     {
         r";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(String.Empty);
-            var comp = CreateCompilation(source: tree, references: new[] { modRef });
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(String.Empty);
+            CSharpCompilation comp = CreateCompilation(source: tree, references: new[] { modRef });
 
-            var currComp = comp;
+            CSharpCompilation currComp = comp;
 
-            var oldTree = comp.SyntaxTrees.First();
-            var oldIText = oldTree.GetText();
+            SyntaxTree oldTree = comp.SyntaxTrees.First();
+            SourceText oldIText = oldTree.GetText();
             var span = new TextSpan(oldIText.Length, 0);
             var change = new TextChange(span, text1);
 
-            var newIText = oldIText.WithChanges(change);
-            var newTree = oldTree.WithChangedText(newIText);
+            SourceText newIText = oldIText.WithChanges(change);
+            SyntaxTree newTree = oldTree.WithChangedText(newIText);
             currComp = currComp.ReplaceSyntaxTree(oldTree, newTree);
 
-            var model = currComp.GetSemanticModel(newTree);
-            var id = newTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(s => s.ToString() == "StaticModClass").First();
+            SemanticModel model = currComp.GetSemanticModel(newTree);
+            IdentifierNameSyntax id = newTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(s => s.ToString() == "StaticModClass").First();
             // NRE is thrown later but this one has to be called first
-            var symInfo = model.GetSymbolInfo(id);
+            SymbolInfo symInfo = model.GetSymbolInfo(id);
             Assert.NotNull(symInfo.Symbol);
 
             oldTree = newTree;
@@ -484,9 +484,9 @@ class Test : StaticModClass
 } // end of class C
 ";
 
-            var comp = CreateCompilationWithILAndMscorlib40("", ilSource);
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40("", ilSource);
 
-            var stateMachineClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<NamedTypeSymbol>().Single();
+            NamedTypeSymbol stateMachineClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<NamedTypeSymbol>().Single();
             Assert.Equal("<I<System.Int32>.F>d__0", stateMachineClass.Name); // The name has been reconstructed correctly.
             Assert.Equal("C.<I<System.Int32>.F>d__0", stateMachineClass.ToTestDisplayString()); // SymbolDisplay works.
             Assert.Equal(stateMachineClass, comp.GetTypeByMetadataName("C+<I<System.Int32>.F>d__0")); // GetTypeByMetadataName works.
@@ -550,10 +550,10 @@ class Test : StaticModClass
     .method public hidebysig specialname rtspecialname instance void .ctor() { ret }
   }
 }";
-            var comp = CreateCompilationWithILAndMscorlib40("", ilSource);
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40("", ilSource);
             comp.VerifyDiagnostics();
             var builder = ArrayBuilder<string>.GetInstance();
-            var module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;
+            ModuleSymbol module = comp.GetMember<NamedTypeSymbol>("A").ContainingModule;
             GetAllNamespaceNames(builder, module.GlobalNamespace);
             Assert.Equal(new[] { "<global namespace>", "", ".", "..N", ".N", "N", "N.M", "N.M." }, builder);
             builder.Free();
@@ -562,7 +562,7 @@ class Test : StaticModClass
         private static void GetAllNamespaceNames(ArrayBuilder<string> builder, NamespaceSymbol @namespace)
         {
             builder.Add(@namespace.ToTestDisplayString());
-            foreach (var member in @namespace.GetMembers())
+            foreach (Symbol member in @namespace.GetMembers())
             {
                 if (member.Kind != SymbolKind.Namespace)
                 {

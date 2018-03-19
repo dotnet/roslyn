@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static Location GetLocation(Symbol symbol)
         {
-            var locations = symbol.Locations;
+            ImmutableArray<Location> locations = symbol.Locations;
             return locations.Length != 0 ? locations[0] : symbol.ContainingSymbol.Locations[0];
         }
 
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!typeParameters.IsDefaultOrEmpty)
             {
                 tpNames = PooledHashSet<string>.GetInstance();
-                foreach (var tp in typeParameters)
+                foreach (TypeParameterSymbol tp in typeParameters)
                 {
                     var name = tp.Name;
                     if (string.IsNullOrEmpty(name))
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!parameters.IsDefaultOrEmpty)
             {
                 pNames = PooledHashSet<string>.GetInstance();
-                foreach (var p in parameters)
+                foreach (ParameterSymbol p in parameters)
                 {
                     var name = p.Name;
                     if (string.IsNullOrEmpty(name))

@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
         {
             using (new EnsureEnglishUICulture())
             {
-                var e = Assert.Throws<InvalidDataException>(() => EditAndContinueMethodDebugInformation.Create(ImmutableArray.Create(new byte[] { 0x01, 0x68, 0xff }), ImmutableArray<byte>.Empty));
+                InvalidDataException e = Assert.Throws<InvalidDataException>(() => EditAndContinueMethodDebugInformation.Create(ImmutableArray.Create(new byte[] { 0x01, 0x68, 0xff }), ImmutableArray<byte>.Empty));
                 Assert.Equal("Invalid data at offset 3: 01-68-FF*", e.Message);
 
                 e = Assert.Throws<InvalidDataException>(() => EditAndContinueMethodDebugInformation.Create(ImmutableArray.Create(new byte[] { 0x01, 0x68, 0xff, 0xff, 0xff, 0xff }), ImmutableArray<byte>.Empty));
@@ -196,8 +196,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 new LocalSlotDebugInfo(SynthesizedLocalKind.UserDefined, new LocalDebugId(-1, 10)),
                 new LocalSlotDebugInfo(SynthesizedLocalKind.TryAwaitPendingCaughtException, new LocalDebugId(-20000, 10)));
 
-            var closures = ImmutableArray<ClosureDebugInfo>.Empty;
-            var lambdas = ImmutableArray<LambdaDebugInfo>.Empty;
+            ImmutableArray<ClosureDebugInfo> closures = ImmutableArray<ClosureDebugInfo>.Empty;
+            ImmutableArray<LambdaDebugInfo> lambdas = ImmutableArray<LambdaDebugInfo>.Empty;
 
             var cmw = new BlobBuilder();
 
@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var bytes = cmw.ToImmutableArray();
             AssertEx.Equal(new byte[] { 0xFF, 0xC0, 0x00, 0x4E, 0x20, 0x81, 0xC0, 0x00, 0x4E, 0x1F, 0x0A, 0x9A, 0x00, 0x0A }, bytes);
 
-            var deserialized = EditAndContinueMethodDebugInformation.Create(bytes, default(ImmutableArray<byte>)).LocalSlots;
+            ImmutableArray<LocalSlotDebugInfo> deserialized = EditAndContinueMethodDebugInformation.Create(bytes, default(ImmutableArray<byte>)).LocalSlots;
 
             AssertEx.Equal(slots, deserialized);
         }
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
         [Fact]
         public void EditAndContinueLambdaAndClosureMap_NegativeSyntaxOffsets()
         {
-            var slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
+            ImmutableArray<LocalSlotDebugInfo> slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
 
             var closures = ImmutableArray.Create(
                 new ClosureDebugInfo(-100, new DebugId(0, 0)),
@@ -243,9 +243,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
         [Fact]
         public void EditAndContinueLambdaAndClosureMap_NoClosures()
         {
-            var slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
+            ImmutableArray<LocalSlotDebugInfo> slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
 
-            var closures = ImmutableArray<ClosureDebugInfo>.Empty;
+            ImmutableArray<ClosureDebugInfo> closures = ImmutableArray<ClosureDebugInfo>.Empty;
             var lambdas = ImmutableArray.Create(new LambdaDebugInfo(20, new DebugId(0, 0), LambdaDebugInfo.StaticClosureOrdinal));
 
             var cmw = new BlobBuilder();
@@ -267,9 +267,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
         {
             // should not happen in practice, but EditAndContinueMethodDebugInformation should handle it just fine
 
-            var slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
-            var closures = ImmutableArray<ClosureDebugInfo>.Empty;
-            var lambdas = ImmutableArray<LambdaDebugInfo>.Empty;
+            ImmutableArray<LocalSlotDebugInfo> slots = ImmutableArray<LocalSlotDebugInfo>.Empty;
+            ImmutableArray<ClosureDebugInfo> closures = ImmutableArray<ClosureDebugInfo>.Empty;
+            ImmutableArray<LambdaDebugInfo> lambdas = ImmutableArray<LambdaDebugInfo>.Empty;
 
             var cmw = new BlobBuilder();
 
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 0x96, 0x02, 0x14, 0x01
             }, cdi);
 
-            var deserialized = CustomDebugInfoReader.GetCustomDebugInfoRecords(cdi).ToArray();
+            CustomDebugInfoRecord[] deserialized = CustomDebugInfoReader.GetCustomDebugInfoRecords(cdi).ToArray();
             Assert.Equal(CustomDebugInfoKind.EditAndContinueLocalSlotMap, deserialized[0].Kind);
             Assert.Equal(4, deserialized[0].Version);
 
@@ -717,7 +717,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
                 0x01, 0x00, 0x00, 0x06
             };
 
-            var records = CustomDebugInfoReader.GetCustomDebugInfoRecords(bytes).ToArray();
+            CustomDebugInfoRecord[] records = CustomDebugInfoReader.GetCustomDebugInfoRecords(bytes).ToArray();
             Assert.Equal(1, records.Length);
 
             Assert.Equal(CustomDebugInfoKind.ForwardMethodInfo, records[0].Kind);

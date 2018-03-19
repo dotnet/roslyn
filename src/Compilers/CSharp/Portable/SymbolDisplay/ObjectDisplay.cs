@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             const char quote = '"';
 
             var pooledBuilder = PooledStringBuilder.GetInstance();
-            var builder = pooledBuilder.Builder;
+            StringBuilder builder = pooledBuilder.Builder;
 
             var useQuotes = options.IncludesOption(ObjectDisplayOptions.UseQuotes);
             var escapeNonPrintable = options.IncludesOption(ObjectDisplayOptions.EscapeNonPrintableCharacters);
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 char c = value[i];
                 if (escapeNonPrintable && CharUnicodeInfo.GetUnicodeCategory(c) == UnicodeCategory.Surrogate)
                 {
-                    var category = CharUnicodeInfo.GetUnicodeCategory(value, i);
+                    UnicodeCategory category = CharUnicodeInfo.GetUnicodeCategory(value, i);
                     if (category == UnicodeCategory.Surrogate)
                     {
                         // an unpaired surrogate
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             const char quote = '\'';
 
             var pooledBuilder = PooledStringBuilder.GetInstance();
-            var builder = pooledBuilder.Builder;
+            StringBuilder builder = pooledBuilder.Builder;
 
             if (options.IncludesOption(ObjectDisplayOptions.IncludeCodePoints))
             {
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static string FormatLiteral(uint value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
-            var sb = pooledBuilder.Builder;
+            StringBuilder sb = pooledBuilder.Builder;
 
             if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
@@ -444,7 +444,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static string FormatLiteral(long value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
-            var sb = pooledBuilder.Builder;
+            StringBuilder sb = pooledBuilder.Builder;
 
             if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {
@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static string FormatLiteral(ulong value, ObjectDisplayOptions options, CultureInfo cultureInfo = null)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
-            var sb = pooledBuilder.Builder;
+            StringBuilder sb = pooledBuilder.Builder;
 
             if (options.IncludesOption(ObjectDisplayOptions.UseHexadecimalNumbers))
             {

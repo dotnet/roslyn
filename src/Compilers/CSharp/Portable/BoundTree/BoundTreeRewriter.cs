@@ -31,10 +31,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<T> newList = null;
             for (int i = 0; i < list.Length; i++)
             {
-                var item = list[i];
+                T item = list[i];
                 System.Diagnostics.Debug.Assert(item != null);
 
-                var visited = this.Visit(item);
+                BoundNode visited = this.Visit(item);
                 if (item != visited)
                 {
                     if (newList == null)
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 binary = stack.Pop();
                 var right = (BoundExpression)this.Visit(binary.Right);
-                var type = this.VisitType(binary.Type);
+                TypeSymbol type = this.VisitType(binary.Type);
                 left = binary.Update(binary.OperatorKind, left, right, binary.ConstantValueOpt, binary.MethodOpt, binary.ResultKind, type);
             }
             while (stack.Count > 0);

@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression VisitPropertyAccess(BoundPropertyAccess node, bool isLeftOfAssignment)
         {
-            var rewrittenReceiverOpt = VisitExpression(node.ReceiverOpt);
+            BoundExpression rewrittenReceiverOpt = VisitExpression(node.ReceiverOpt);
             return MakePropertyAccess(node.Syntax, rewrittenReceiverOpt, node.PropertySymbol, node.ResultKind, node.Type, isLeftOfAssignment, node);
         }
 
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var getMethod = getMethodOpt ?? property.GetOwnOrInheritedGetMethod();
+                MethodSymbol getMethod = getMethodOpt ?? property.GetOwnOrInheritedGetMethod();
 
                 Debug.Assert((object)getMethod != null);
                 Debug.Assert(getMethod.ParameterCount == rewrittenArguments.Length);

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             if ((object)_lazySystemStringType == (object)ErrorTypeSymbol.UnknownResultType)
             {
-                var typeSymbol = ModuleBeingBuilt.Compilation.GetSpecialType(SpecialType.System_String);
+                NamedTypeSymbol typeSymbol = ModuleBeingBuilt.Compilation.GetSpecialType(SpecialType.System_String);
 
                 DiagnosticInfo info = typeSymbol.GetUseSiteDiagnostic();
 
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
         internal override CSharpAttributeData CreateSynthesizedAttribute(WellKnownMember constructor, CSharpAttributeData attrData, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            var ctor = GetWellKnownMethod(constructor, syntaxNodeOpt, diagnostics);
+            MethodSymbol ctor = GetWellKnownMethod(constructor, syntaxNodeOpt, diagnostics);
             if ((object)ctor == null)
             {
                 return null;
@@ -166,8 +166,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
         protected override void ReportNameCollisionBetweenEmbeddedTypes(EmbeddedType typeA, EmbeddedType typeB, DiagnosticBag diagnostics)
         {
-            var underlyingTypeA = typeA.UnderlyingNamedType;
-            var underlyingTypeB = typeB.UnderlyingNamedType;
+            NamedTypeSymbol underlyingTypeA = typeA.UnderlyingNamedType;
+            NamedTypeSymbol underlyingTypeB = typeB.UnderlyingNamedType;
             Error(diagnostics, ErrorCode.ERR_InteropTypesWithSameNameAndGuid, null,
                                 underlyingTypeA,
                                 underlyingTypeA.ContainingAssembly,
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
         protected override void ReportNameCollisionWithAlreadyDeclaredType(EmbeddedType type, DiagnosticBag diagnostics)
         {
-            var underlyingType = type.UnderlyingNamedType;
+            NamedTypeSymbol underlyingType = type.UnderlyingNamedType;
             Error(diagnostics, ErrorCode.ERR_LocalTypeNameClash, null,
                             underlyingType,
                             underlyingType.ContainingAssembly);
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             // Embed types referenced by this field declaration.
             EmbedReferences(embedded, syntaxNodeOpt, diagnostics);
 
-            var containerKind = field.ContainingType.TypeKind;
+            TypeKind containerKind = field.ContainingType.TypeKind;
 
             // Structures may contain only public instance fields. 
             if (containerKind == TypeKind.Interface || containerKind == TypeKind.Delegate ||
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         protected override CSharpAttributeData CreateCompilerGeneratedAttribute()
         {
             Debug.Assert(WellKnownMembers.IsSynthesizedAttributeOptional(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
-            var compilation = ModuleBeingBuilt.Compilation;
+            CSharpCompilation compilation = ModuleBeingBuilt.Compilation;
             return compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor);
         }
     }

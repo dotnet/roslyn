@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.SwitchSection:
-                    foreach (var boundSwitchLabel in ((BoundSwitchSection)node).SwitchLabels)
+                    foreach (BoundSwitchLabel boundSwitchLabel in ((BoundSwitchSection)node).SwitchLabels)
                     {
                         if (boundSwitchLabel.Label == label)
                         {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.Unreachable;
 
                 case BoundKind.PatternSwitchSection:
-                    foreach (var boundPatternSwitchLabel in ((BoundPatternSwitchSection)node).SwitchLabels)
+                    foreach (BoundPatternSwitchLabel boundPatternSwitchLabel in ((BoundPatternSwitchSection)node).SwitchLabels)
                     {
                         if (boundPatternSwitchLabel.Label == label)
                         {

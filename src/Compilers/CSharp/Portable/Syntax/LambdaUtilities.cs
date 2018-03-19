@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static SyntaxNode GetLambda(SyntaxNode lambdaBody)
         {
-            var lambda = lambdaBody.Parent;
+            SyntaxNode lambda = lambdaBody.Parent;
             if (lambda.Kind() == SyntaxKind.ArrowExpressionClause)
             {
                 // In case of expression bodied local functions there is a three level hierarchy: 
@@ -134,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static bool IsLambdaBody(SyntaxNode node, bool allowReducedLambdas = false)
         {
-            var parent = node?.Parent;
+            SyntaxNode parent = node?.Parent;
             if (parent == null)
             {
                 return false;
@@ -216,12 +216,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var selectorIdentifier = ((IdentifierNameSyntax)selectOrGroupExpression).Identifier;
+            SyntaxToken selectorIdentifier = ((IdentifierNameSyntax)selectOrGroupExpression).Identifier;
 
             SyntaxToken sourceIdentifier;
             QueryBodySyntax containingBody;
 
-            var containingQueryOrContinuation = selectOrGroupClause.Parent.Parent;
+            CSharpSyntaxNode containingQueryOrContinuation = selectOrGroupClause.Parent.Parent;
             if (containingQueryOrContinuation.IsKind(SyntaxKind.QueryExpression))
             {
                 var containingQuery = (QueryExpressionSyntax)containingQueryOrContinuation;
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            foreach (var clause in containingBody.Clauses)
+            foreach (QueryClauseSyntax clause in containingBody.Clauses)
             {
                 if (!clause.IsKind(SyntaxKind.WhereClause) && !clause.IsKind(SyntaxKind.OrderByClause))
                 {
@@ -355,8 +355,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool AreEquivalentIgnoringLambdaBodies(SyntaxNode oldNode, SyntaxNode newNode)
         {
             // all tokens that don't belong to a lambda body:
-            var oldTokens = oldNode.DescendantTokens(node => node == oldNode || !IsLambdaBodyStatementOrExpression(node));
-            var newTokens = newNode.DescendantTokens(node => node == newNode || !IsLambdaBodyStatementOrExpression(node));
+            System.Collections.Generic.IEnumerable<SyntaxToken> oldTokens = oldNode.DescendantTokens(node => node == oldNode || !IsLambdaBodyStatementOrExpression(node));
+            System.Collections.Generic.IEnumerable<SyntaxToken> newTokens = newNode.DescendantTokens(node => node == newNode || !IsLambdaBodyStatementOrExpression(node));
 
             return oldTokens.SequenceEqual(newTokens, SyntaxFactory.AreEquivalent);
         }

@@ -19,14 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         [Fact(), WorkItem(546670, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546670")]
         public void MissingIList()
         {
-            var c = CreateEmptyCompilation(@"
+            CSharpCompilation c = CreateEmptyCompilation(@"
 public class X 
 {
     public static int[] A;
 }
 ", new[] { MinCorlibRef });
 
-            var field = c.GlobalNamespace.GetMember<NamedTypeSymbol>("X").GetMember<FieldSymbol>("A");
+            FieldSymbol field = c.GlobalNamespace.GetMember<NamedTypeSymbol>("X").GetMember<FieldSymbol>("A");
             Assert.Equal(0, field.Type.Interfaces().Length);
             c.VerifyDiagnostics();
         }

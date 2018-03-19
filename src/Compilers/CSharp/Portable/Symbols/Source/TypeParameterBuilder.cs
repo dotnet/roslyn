@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static ImmutableArray<Location> ToLocations(IList<TypeParameterBuilder> builders)
         {
             var arrayBuilder = ArrayBuilder<Location>.GetInstance(builders.Count);
-            foreach (var builder in builders)
+            foreach (TypeParameterBuilder builder in builders)
             {
                 arrayBuilder.Add(builder._location);
             }
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static ImmutableArray<SyntaxReference> ToSyntaxRefs(IList<TypeParameterBuilder> builders)
         {
             var arrayBuilder = ArrayBuilder<SyntaxReference>.GetInstance(builders.Count);
-            foreach (var builder in builders)
+            foreach (TypeParameterBuilder builder in builders)
             {
                 arrayBuilder.Add(builder._syntaxRef);
             }

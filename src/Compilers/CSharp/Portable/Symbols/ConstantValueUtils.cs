@@ -28,18 +28,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool earlyDecodingWellKnownAttributes,
             DiagnosticBag diagnostics)
         {
-            var compilation = symbol.DeclaringCompilation;
-            var binderFactory = compilation.GetBinderFactory((SyntaxTree)symbol.Locations[0].SourceTree);
-            var binder = binderFactory.GetBinder(equalsValueNode);
+            CSharpCompilation compilation = symbol.DeclaringCompilation;
+            BinderFactory binderFactory = compilation.GetBinderFactory((SyntaxTree)symbol.Locations[0].SourceTree);
+            Binder binder = binderFactory.GetBinder(equalsValueNode);
             if (earlyDecodingWellKnownAttributes)
             {
                 binder = new EarlyWellKnownAttributeBinder(binder);
             }
             var inProgressBinder = new ConstantFieldsInProgressBinder(new ConstantFieldsInProgress(symbol, dependencies), binder);
             BoundFieldEqualsValue boundValue = BindFieldOrEnumInitializer(inProgressBinder, symbol, equalsValueNode, diagnostics);
-            var initValueNodeLocation = equalsValueNode.Value.Location;
+            Location initValueNodeLocation = equalsValueNode.Value.Location;
 
-            var value = GetAndValidateConstantValue(boundValue.Value, symbol, symbol.Type, initValueNodeLocation, diagnostics);
+            ConstantValue value = GetAndValidateConstantValue(boundValue.Value, symbol, symbol.Type, initValueNodeLocation, diagnostics);
             Debug.Assert(value != null);
 
             return value;
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Location initValueNodeLocation,
             DiagnosticBag diagnostics)
         {
-            var value = ConstantValue.Bad;
+            ConstantValue value = ConstantValue.Bad;
             if (!boundValue.HasAnyErrors)
             {
                 if (typeSymbol.TypeKind == TypeKind.TypeParameter)
@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     bool hasDynamicConversion = false;
-                    var unconvertedBoundValue = boundValue;
+                    BoundExpression unconvertedBoundValue = boundValue;
                     while (unconvertedBoundValue.Kind == BoundKind.Conversion)
                     {
                         var conversion = (BoundConversion)unconvertedBoundValue;
@@ -95,9 +95,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // If we have already computed the unconverted constant value, then this call is cheap
                     // because BoundConversions store their constant values (i.e. not recomputing anything).
-                    var constantValue = boundValue.ConstantValue;
+                    ConstantValue constantValue = boundValue.ConstantValue;
 
-                    var unconvertedConstantValue = unconvertedBoundValue.ConstantValue;
+                    ConstantValue unconvertedConstantValue = unconvertedBoundValue.ConstantValue;
                     if (unconvertedConstantValue != null &&
                         !unconvertedConstantValue.IsNull &&
                         typeSymbol.IsReferenceType &&

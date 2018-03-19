@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _container = container;
             _mergedDeclaration = mergedDeclaration;
 
-            foreach (var singleDeclaration in mergedDeclaration.Declarations)
+            foreach (SingleNamespaceDeclaration singleDeclaration in mergedDeclaration.Declarations)
             {
                 diagnostics.AddRange(singleDeclaration.Diagnostics);
             }
@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal IEnumerable<Imports> GetBoundImportsMerged()
         {
-            var compilation = this.DeclaringCompilation;
-            foreach (var declaration in _mergedDeclaration.Declarations)
+            CSharpCompilation compilation = this.DeclaringCompilation;
+            foreach (SingleNamespaceDeclaration declaration in _mergedDeclaration.Declarations)
             {
                 if (declaration.HasUsings || declaration.HasExternAliases)
                 {
@@ -134,11 +134,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<Symbol> GetMembersUnordered()
         {
-            var result = _lazyAllMembers;
+            ImmutableArray<Symbol> result = _lazyAllMembers;
 
             if (result.IsDefault)
             {
-                var members = StaticCast<Symbol>.From(this.GetNameToMembersMap().Flatten(null));  // don't sort.
+                ImmutableArray<Symbol> members = StaticCast<Symbol>.From(this.GetNameToMembersMap().Flatten(null));  // don't sort.
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyAllMembers, members);
                 result = _lazyAllMembers;
             }
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var allMembers = this.GetMembersUnordered();
+                ImmutableArray<Symbol> allMembers = this.GetMembersUnordered();
 
                 if (allMembers.Length >= 2)
                 {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (_lazyTypeMembersUnordered.IsDefault)
             {
-                var members = this.GetNameToTypeMembersMap().Flatten();
+                ImmutableArray<NamedTypeSymbol> members = this.GetNameToTypeMembersMap().Flatten();
                 ImmutableInterlocked.InterlockedInitialize(ref _lazyTypeMembersUnordered, members);
             }
 
@@ -261,14 +261,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var dictionary = new Dictionary<String, ImmutableArray<NamedTypeSymbol>>(StringOrdinalComparer.Instance);
 
                 Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>> map = this.GetNameToMembersMap();
-                foreach (var kvp in map)
+                foreach (KeyValuePair<string, ImmutableArray<NamespaceOrTypeSymbol>> kvp in map)
                 {
                     ImmutableArray<NamespaceOrTypeSymbol> members = kvp.Value;
 
                     bool hasType = false;
                     bool hasNamespace = false;
 
-                    foreach (var symbol in members)
+                    foreach (NamespaceOrTypeSymbol symbol in members)
                     {
                         if (symbol.Kind == SymbolKind.NamedType)
                         {
@@ -320,11 +320,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // NOTE: array of NamedTypeSymbol[] we downcast the array to ImmutableArray<NamedTypeSymbol>
 
             var builder = new NameToSymbolMapBuilder(_mergedDeclaration.Children.Length);
-            foreach (var declaration in _mergedDeclaration.Children)
+            foreach (MergedNamespaceOrTypeDeclaration declaration in _mergedDeclaration.Children)
             {
                 builder.Add(BuildSymbol(declaration, diagnostics));
             }
-            var result = builder.CreateMap();
+            Dictionary<string, ImmutableArray<NamespaceOrTypeSymbol>> result = builder.CreateMap();
 
             var memberOfArity = new Symbol[10];
             MergedNamespaceSymbol mergedAssemblyNamespace = null;
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var name in result.Keys)
             {
                 Array.Clear(memberOfArity, 0, memberOfArity.Length);
-                foreach (var symbol in result[name])
+                foreach (NamespaceOrTypeSymbol symbol in result[name])
                 {
                     var nts = symbol as NamedTypeSymbol;
                     var arity = ((object)nts != null) ? nts.Arity : 0;
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         Array.Resize(ref memberOfArity, arity + 1);
                     }
 
-                    var other = memberOfArity[arity];
+                    Symbol other = memberOfArity[arity];
 
                     if ((object)other == null && (object)mergedAssemblyNamespace != null)
                     {
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // It doesn't complain when source declares a type with the same name as 
                                 // a namespace in added module, but complains when source declares a namespace 
                                 // with the same name as a type in added module.
-                                var types = constituent.GetTypeMembers(symbol.Name, arity);
+                                ImmutableArray<NamedTypeSymbol> types = constituent.GetTypeMembers(symbol.Name, arity);
 
                                 if (types.Length > 0)
                                 {
@@ -435,9 +435,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (containingAssembly.KeepLookingForDeclaredSpecialTypes)
             {
                 // Register newly declared COR types
-                foreach (var array in _nameToMembersMap.Values)
+                foreach (ImmutableArray<NamespaceOrTypeSymbol> array in _nameToMembersMap.Values)
                 {
-                    foreach (var member in array)
+                    foreach (NamespaceOrTypeSymbol member in array)
                     {
                         var type = member as NamedTypeSymbol;
 
@@ -463,11 +463,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Check if any namespace declaration block intersects with the given tree/span.
-            foreach (var declaration in _mergedDeclaration.Declarations)
+            foreach (SingleNamespaceDeclaration declaration in _mergedDeclaration.Declarations)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                var declarationSyntaxRef = declaration.SyntaxReference;
+                SyntaxReference declarationSyntaxRef = declaration.SyntaxReference;
                 if (declarationSyntaxRef.SyntaxTree != tree)
                 {
                     continue;
@@ -478,7 +478,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return true;
                 }
 
-                var syntax = NamespaceDeclarationSyntaxReference.GetSyntax(declarationSyntaxRef, cancellationToken);
+                SyntaxNode syntax = NamespaceDeclarationSyntaxReference.GetSyntax(declarationSyntaxRef, cancellationToken);
                 if (syntax.FullSpan.IntersectsWith(definedWithinSpan.Value))
                 {
                     return true;
@@ -522,7 +522,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 var result = new Dictionary<String, ImmutableArray<NamespaceOrTypeSymbol>>(_dictionary.Count, StringOrdinalComparer.Instance);
 
-                foreach (var kvp in _dictionary)
+                foreach (KeyValuePair<string, object> kvp in _dictionary)
                 {
                     object value = kvp.Value;
                     ImmutableArray<NamespaceOrTypeSymbol> members;

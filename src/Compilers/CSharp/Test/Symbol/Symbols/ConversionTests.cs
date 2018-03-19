@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         [Fact]
         public void Test1()
         {
-            var mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib;
+            PortableExecutableReference mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib;
             var compilation = CSharpCompilation.Create("Test", references: new MetadataReference[] { mscorlibRef });
-            var sys = compilation.GlobalNamespace.ChildNamespace("System");
+            NamespaceSymbol sys = compilation.GlobalNamespace.ChildNamespace("System");
             Conversions c = new BuckStopsHereBinder(compilation).Conversions;
             var types = new TypeSymbol[]
             {
@@ -173,12 +173,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             {
                 for (int j = 0; j < types.Length; ++j)
                 {
-                    var kind = conversions[i, j];
-                    var result = c.ClassifyConversionFromType(types[j], types[i], ref useSiteDiagnostics);
+                    ConversionKind kind = conversions[i, j];
+                    Conversion result = c.ClassifyConversionFromType(types[j], types[i], ref useSiteDiagnostics);
                     //Assert.Equal doesn't allow a string explanation, so provide one this way.
                     if (kind != result.Kind)
                     {
-                        var result2 = c.ClassifyConversionFromType(types[j], types[i], ref useSiteDiagnostics); // set breakpoint here if this test is failing...
+                        Conversion result2 = c.ClassifyConversionFromType(types[j], types[i], ref useSiteDiagnostics); // set breakpoint here if this test is failing...
                         Assert.True(false, string.Format("Expected {0} but got {1} when converting {2} -> {3}", kind, result, types[j], types[i]));
                     }
                 }
@@ -219,24 +219,24 @@ class X {
     O<dynamic> f10;
 }
 ";
-            var mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib;
+            PortableExecutableReference mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib;
             var compilation = CSharpCompilation.Create("Test", new[] { Parse(code) }, new[] { mscorlibRef });
-            var global = compilation.GlobalNamespace;
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var classX = global.ChildType("X");
+            NamedTypeSymbol classX = global.ChildType("X");
             var classI = (NamedTypeSymbol)(global.ChildType("O").ChildSymbol("I"));
-            var f1Type = ((FieldSymbol)(classX.ChildSymbol("f1"))).Type;
-            var f2Type = ((FieldSymbol)(classX.ChildSymbol("f2"))).Type;
-            var f3Type = ((FieldSymbol)(classX.ChildSymbol("f3"))).Type;
-            var f4Type = ((FieldSymbol)(classX.ChildSymbol("f4"))).Type;
-            var f5Type = ((FieldSymbol)(classX.ChildSymbol("f5"))).Type;
-            var f6Type = ((FieldSymbol)(classX.ChildSymbol("f6"))).Type;
-            var f7Type = ((FieldSymbol)(classX.ChildSymbol("f7"))).Type;
-            var f8Type = ((FieldSymbol)(classX.ChildSymbol("f8"))).Type;
-            var f9Type = ((FieldSymbol)(classX.ChildSymbol("f9"))).Type;
-            var f10Type = ((FieldSymbol)(classX.ChildSymbol("f10"))).Type;
-            var g1Type = ((FieldSymbol)(classI.ChildSymbol("g1"))).Type;
-            var g2Type = ((FieldSymbol)(classI.ChildSymbol("g2"))).Type;
+            TypeSymbol f1Type = ((FieldSymbol)(classX.ChildSymbol("f1"))).Type;
+            TypeSymbol f2Type = ((FieldSymbol)(classX.ChildSymbol("f2"))).Type;
+            TypeSymbol f3Type = ((FieldSymbol)(classX.ChildSymbol("f3"))).Type;
+            TypeSymbol f4Type = ((FieldSymbol)(classX.ChildSymbol("f4"))).Type;
+            TypeSymbol f5Type = ((FieldSymbol)(classX.ChildSymbol("f5"))).Type;
+            TypeSymbol f6Type = ((FieldSymbol)(classX.ChildSymbol("f6"))).Type;
+            TypeSymbol f7Type = ((FieldSymbol)(classX.ChildSymbol("f7"))).Type;
+            TypeSymbol f8Type = ((FieldSymbol)(classX.ChildSymbol("f8"))).Type;
+            TypeSymbol f9Type = ((FieldSymbol)(classX.ChildSymbol("f9"))).Type;
+            TypeSymbol f10Type = ((FieldSymbol)(classX.ChildSymbol("f10"))).Type;
+            TypeSymbol g1Type = ((FieldSymbol)(classI.ChildSymbol("g1"))).Type;
+            TypeSymbol g2Type = ((FieldSymbol)(classI.ChildSymbol("g2"))).Type;
             string s = f7Type.ToTestDisplayString();
 
             Assert.False(f1Type.Equals(f2Type));
@@ -291,24 +291,24 @@ class C
 }
 ";
 
-            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
+            PortableExecutableReference ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
-            var compilation = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
+            CSharpCompilation compilation = CreateCompilation(text, new MetadataReference[] { ilAssemblyReference });
             compilation.VerifyDiagnostics(
                 // (4,11): warning CS0169: The field 'C.a' is never used
                 //     int[] a;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("C.a")
                 );
 
-            var classC = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var typeIntArray = classC.GetMember<FieldSymbol>("a").Type;
+            NamedTypeSymbol classC = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            TypeSymbol typeIntArray = classC.GetMember<FieldSymbol>("a").Type;
 
-            var interfaceI3 = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I3");
-            var typeIntArrayWithCustomModifiers = interfaceI3.GetMember<MethodSymbol>("M1").Parameters.Single().Type;
+            NamedTypeSymbol interfaceI3 = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I3");
+            TypeSymbol typeIntArrayWithCustomModifiers = interfaceI3.GetMember<MethodSymbol>("M1").Parameters.Single().Type;
 
             Assert.True(typeIntArrayWithCustomModifiers.HasCustomModifiers(flagNonDefaultArraySizesOrLowerBounds: false));
 
-            var conv = new BuckStopsHereBinder(compilation).Conversions;
+            Conversions conv = new BuckStopsHereBinder(compilation).Conversions;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
             // no custom modifiers to custom modifiers
@@ -341,8 +341,8 @@ public class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
-            var tuple = GetBindingNodeAndModel<ExpressionSyntax>(comp);
+            CSharpCompilation comp = CreateCompilation(source);
+            Tuple<ExpressionSyntax, SemanticModel> tuple = GetBindingNodeAndModel<ExpressionSyntax>(comp);
             Assert.Equal(ConversionKind.Identity, tuple.Item2.ClassifyConversion(tuple.Item1, comp.GetSpecialType(SpecialType.System_Boolean)).Kind);
         }
 
@@ -378,12 +378,12 @@ class Program
        // Perform conversion classification here.
     }
 }";
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var compilation = CSharpCompilation.Create("MyCompilation")
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source);
+            CSharpCompilation compilation = CSharpCompilation.Create("MyCompilation")
                 .AddReferences(MscorlibRef)
                 .AddSyntaxTrees(tree);
 
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             // Get VariableDeclaratorSyntax corresponding to variable 'ii' above.
             var variableDeclarator = (VariableDeclaratorSyntax)tree.GetCompilationUnitRoot()
@@ -442,8 +442,8 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source);
-            var diagnostics = compilation.GetDiagnostics();
+            CSharpCompilation compilation = CreateCompilation(source);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = compilation.GetDiagnostics();
             Assert.NotEmpty(diagnostics);
         }
 
@@ -462,8 +462,8 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source);
-            var diagnostics = compilation.GetDiagnostics();
+            CSharpCompilation compilation = CreateCompilation(source);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = compilation.GetDiagnostics();
             Assert.Empty(diagnostics);
         }
 
@@ -508,8 +508,8 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source);
-            var diagnostics = compilation.GetDiagnostics();
+            CSharpCompilation compilation = CreateCompilation(source);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = compilation.GetDiagnostics();
             Assert.NotEmpty(diagnostics);
         }
 
@@ -530,8 +530,8 @@ public class Driver
     }
 }
 ";
-            var compilation = CreateCompilation(source);
-            var diagnostics = compilation.GetDiagnostics();
+            CSharpCompilation compilation = CreateCompilation(source);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = compilation.GetDiagnostics();
             Assert.NotEmpty(diagnostics);
         }
 
@@ -1678,7 +1678,7 @@ namespace ExpressionTest
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"
 (c1, c2) => (Convert(c1) + c2)
 (c1, c2) => (Convert(c1) + c2)
@@ -1711,7 +1711,7 @@ class C<T>
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,21): error CS0457: Ambiguous user defined conversions 'C<int>.explicit operator C<int>(int)' and 'C<int>.implicit operator C<int>(int)' when converting from 'int' to 'C<int>'
                 //         C<int> x1 = (C<int>)1; // Expression to type
@@ -1720,24 +1720,24 @@ class C<T>
                 //         foreach (C<int> x2 in a) { } // Type to type
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "foreach").WithArguments("C<int>.explicit operator C<int>(int)", "C<int>.implicit operator C<int>(int)", "int", "C<int>"));
 
-            var destinationType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            var conversionSymbols = destinationType.GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Conversion);
+            NamedTypeSymbol destinationType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C").Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            IEnumerable<MethodSymbol> conversionSymbols = destinationType.GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Conversion);
             Assert.Equal(2, conversionSymbols.Count());
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var castSyntax = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().Single();
+            CastExpressionSyntax castSyntax = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().Single();
 
-            var castInfo = model.GetSymbolInfo(castSyntax);
+            SymbolInfo castInfo = model.GetSymbolInfo(castSyntax);
             Assert.Null(castInfo.Symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, castInfo.CandidateReason);
             AssertEx.SetEqual(castInfo.CandidateSymbols, conversionSymbols);
 
-            var forEachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
-            var memberModel = ((CSharpSemanticModel)model).GetMemberModel(forEachSyntax);
-            var boundForEach = memberModel.GetBoundNodes(forEachSyntax).OfType<BoundForEachStatement>().Single();
-            var elementConversion = boundForEach.ElementConversion;
+            ForEachStatementSyntax forEachSyntax = tree.GetRoot().DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            MemberSemanticModel memberModel = ((CSharpSemanticModel)model).GetMemberModel(forEachSyntax);
+            BoundForEachStatement boundForEach = memberModel.GetBoundNodes(forEachSyntax).OfType<BoundForEachStatement>().Single();
+            Conversion elementConversion = boundForEach.ElementConversion;
             Assert.Equal(LookupResultKind.OverloadResolutionFailure, elementConversion.ResultKind);
             AssertEx.SetEqual(elementConversion.OriginalUserDefinedConversions, conversionSymbols);
         }
@@ -1793,13 +1793,13 @@ public class Test
 }
 ";
 
-            var comp = CreateCompilation(source);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateCompilation(source);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var syntax = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().Single();
+            CastExpressionSyntax syntax = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().Single();
 
-            var symbol = model.GetSymbolInfo(syntax).Symbol;
+            ISymbol symbol = model.GetSymbolInfo(syntax).Symbol;
             Assert.Equal(SymbolKind.Method, symbol.Kind);
             var method = (MethodSymbol)symbol;
             Assert.Equal(MethodKind.Conversion, method.MethodKind);
@@ -1827,13 +1827,13 @@ public struct C
 }
 ";
 
-            var comp = CreateCompilation(source);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateCompilation(source);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var syntax = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().Single();
+            CastExpressionSyntax syntax = tree.GetRoot().DescendantNodes().OfType<CastExpressionSyntax>().Single();
 
-            var symbol = model.GetSymbolInfo(syntax).Symbol;
+            ISymbol symbol = model.GetSymbolInfo(syntax).Symbol;
             Assert.Equal(SymbolKind.Method, symbol.Kind);
             var method = (MethodSymbol)symbol;
             Assert.Equal(MethodKind.Conversion, method.MethodKind);
@@ -2027,11 +2027,11 @@ class C
         (1, (2, 3)).F();
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(
                 source,
                 references: new[] { ValueTupleRef, SystemRuntimeFacadeRef },
                 options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(comp, expectedOutput:
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(comp, expectedOutput:
 @"1
 c
 s
@@ -2062,7 +2062,7 @@ class C
         t.H();
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (14,9): error CS1929: 'int' does not contain a definition for 'F' and the best extension method overload 'E.F(long)' requires a receiver of type 'long'
                 //         i.F();
@@ -2097,7 +2097,7 @@ class C
         (((int, int)?)t).G();
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (13,9): error CS1929: 'int' does not contain a definition for 'F' and the best extension method overload 'E.F(int?)' requires a receiver of type 'int?'
                 //         i.F();
@@ -2138,7 +2138,7 @@ static class C
         (e, (E?)e).H();
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (15,9): error CS1929: 'int' does not contain a definition for 'F' and the best extension method overload 'C.F(E)' requires a receiver of type 'E'
                 //         0.F();
@@ -2192,7 +2192,7 @@ static class C
         10L.U64();
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (21,9): error CS1929: 'int' does not contain a definition for 'S08' and the best extension method overload 'C.S08(sbyte)' requires a receiver of type 'sbyte'
                 //         1.S08();
@@ -2258,7 +2258,7 @@ static class C
         10L.U64();
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (21,9): error CS1929: 'int' does not contain a definition for 'S08' and the best extension method overload 'C.S08(sbyte?)' requires a receiver of type 'sbyte?'
                 //         1.S08();
@@ -2327,7 +2327,7 @@ class C
         a.G();
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (24,9): error CS1929: 'A' does not contain a definition for 'F' and the best extension method overload 'E.F(B)' requires a receiver of type 'B'
                 //         a.F();
@@ -2377,7 +2377,7 @@ class C
         (s, s).H();
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (26,9): error CS1929: '(A, B)' does not contain a definition for 'F' and the best extension method overload 'E.F((B, B))' requires a receiver of type '(B, B)'
                 //         (a, b).F();

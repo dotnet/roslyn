@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundExpression VisitDynamicInvocation(BoundDynamicInvocation node, bool resultDiscarded)
         {
-            var loweredArguments = VisitList(node.Arguments);
+            ImmutableArray<BoundExpression> loweredArguments = VisitList(node.Arguments);
 
             bool hasImplicitReceiver;
             BoundExpression loweredReceiver;
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 default:
                     // delegate invocation
-                    var loweredExpression = VisitExpression(node.Expression);
+                    BoundExpression loweredExpression = VisitExpression(node.Expression);
                     return _dynamicFactory.MakeDynamicInvocation(loweredExpression, loweredArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt, resultDiscarded).ToExpression();
             }
 
@@ -95,14 +95,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // If we are calling a method on a NoPIA type, we need to embed all methods/properties
             // with the matching name of this dynamic invocation.
-            var module = this.EmitModule;
+            Emit.PEModuleBuilder module = this.EmitModule;
             if (module != null && receiver != null && (object)receiver.Type != null)
             {
-                var assembly = receiver.Type.ContainingAssembly;
+                AssemblySymbol assembly = receiver.Type.ContainingAssembly;
 
                 if ((object)assembly != null && assembly.IsLinked)
                 {
-                    foreach (var m in methods)
+                    foreach (MethodSymbol m in methods)
                     {
                         module.EmbeddedTypesManagerOpt.EmbedMethodIfNeedTo(m.OriginalDefinition, syntaxNode, _diagnostics);
                     }
@@ -114,14 +114,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // If we are calling a method on a NoPIA type, we need to embed all methods/properties
             // with the matching name of this dynamic invocation.
-            var module = this.EmitModule;
+            Emit.PEModuleBuilder module = this.EmitModule;
             if (module != null && receiver != null && (object)receiver.Type != null)
             {
-                var assembly = receiver.Type.ContainingAssembly;
+                AssemblySymbol assembly = receiver.Type.ContainingAssembly;
 
                 if ((object)assembly != null && assembly.IsLinked)
                 {
-                    foreach (var p in properties)
+                    foreach (PropertySymbol p in properties)
                     {
                         module.EmbeddedTypesManagerOpt.EmbedPropertyIfNeedTo(p.OriginalDefinition, syntaxNode, _diagnostics);
                     }
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Rewrite the arguments.
             // NOTE: We may need additional argument rewriting such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
             // NOTE: This is done later by MakeArguments, for now we just lower each argument.
-            var rewrittenArguments = VisitList(node.Arguments);
+            ImmutableArray<BoundExpression> rewrittenArguments = VisitList(node.Arguments);
 
             return MakeCall(
                 syntax: node.Syntax,
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // safe for reordering because reading a local can give a different result if reordered
             // with respect to a write elsewhere.
 
-            var current = expression;
+            BoundExpression current = expression;
             while (true)
             {
                 if (current.ConstantValue != null)
@@ -509,10 +509,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<RefKind> refKindsBuilder = null;
             for (int i = 0; i < parameters.Length; i++)
             {
-                var paramRefKind = parameters[i].RefKind;
+                RefKind paramRefKind = parameters[i].RefKind;
                 if (paramRefKind == RefKind.In)
                 {
-                    var argRefKind = argumentRefKindsOpt.IsDefault ? RefKind.None : argumentRefKindsOpt[i];
+                    RefKind argRefKind = argumentRefKindsOpt.IsDefault ? RefKind.None : argumentRefKindsOpt[i];
 
                     if (refKindsBuilder == null)
                     {
@@ -633,7 +633,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!ignoreComReceiver)
             {
-                var receiverNamedType = invokedAsExtensionMethod ?
+                NamedTypeSymbol receiverNamedType = invokedAsExtensionMethod ?
                                         ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol :
                                         methodOrIndexer.ContainingType;
 
@@ -648,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static ImmutableArray<RefKind> GetRefKindsOrNull(ArrayBuilder<RefKind> refKinds)
         {
-            foreach (var refKind in refKinds)
+            foreach (RefKind refKind in refKinds)
             {
                 if (refKind != RefKind.None)
                 {
@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     BoundAssignmentOperator assignment;
-                    var temp = _factory.StoreToTemp(argument, out assignment, refKind: argRefKind);
+                    BoundLocal temp = _factory.StoreToTemp(argument, out assignment, refKind: argRefKind);
                     storesToTemps.Add(assignment);
                     arguments[p] = temp;
                 }
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression argument = arguments[a];
 
                 int p = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a;
-                var parameter = parameters[p];
+                ParameterSymbol parameter = parameters[p];
 
                 Debug.Assert(!processedParameters.Contains(p));
 
@@ -871,8 +871,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var paramArrayType = parameters[paramsParam].Type;
-            var arrayArgs = paramArray.ToImmutableAndFree();
+            TypeSymbol paramArrayType = parameters[paramsParam].Type;
+            ImmutableArray<BoundExpression> arrayArgs = paramArray.ToImmutableAndFree();
 
             // If this is a zero-length array, rather than using "new T[0]", optimize with "Array.Empty<T>()" 
             // if it's available.  However, we also disable the optimization if we're in an expression lambda, the 
@@ -998,7 +998,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int a = 0; a < arguments.Length; ++a)
             {
-                var argument = arguments[a];
+                BoundExpression argument = arguments[a];
 
                 // if argument is a load, search for corresponding store. if store is found, extract
                 // the actual expression we were storing and add it as an argument - this one does
@@ -1020,7 +1020,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // store found?
                     if (correspondingStore != -1)
                     {
-                        var value = tempStores[correspondingStore].Right;
+                        BoundExpression value = tempStores[correspondingStore].Right;
 
                         // the matched store will not need to go into side-effects, only ones before it will
                         // remove the store to signal that we are not using its temp.
@@ -1295,7 +1295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case MethodKind.Constructor:
                         case MethodKind.StaticConstructor:
                             // See if the code is actually part of a field, field-like event or property initializer and return the name of the corresponding member.
-                            var memberDecl = syntax.Ancestors().OfType<MemberDeclarationSyntax>().FirstOrDefault();
+                            MemberDeclarationSyntax memberDecl = syntax.Ancestors().OfType<MemberDeclarationSyntax>().FirstOrDefault();
 
                             if (memberDecl != null)
                             {
@@ -1508,10 +1508,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                var argument = actualArguments[argIndex];
+                BoundExpression argument = actualArguments[argIndex];
                 if (argument.Kind == BoundKind.Local)
                 {
-                    var localRefKind = ((BoundLocal)argument).LocalSymbol.RefKind;
+                    RefKind localRefKind = ((BoundLocal)argument).LocalSymbol.RefKind;
                     if (localRefKind == RefKind.Ref)
                     {
                         // Already passing an address from the ref local.
@@ -1546,7 +1546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // GetMember operation:
             Debug.Assert(node.TypeArgumentsOpt.IsDefault);
-            var loweredReceiver = VisitExpression(node.Receiver);
+            BoundExpression loweredReceiver = VisitExpression(node.Receiver);
             return _dynamicFactory.MakeDynamicGetMember(loweredReceiver, node.Name, node.Indexed).ToExpression();
         }
     }

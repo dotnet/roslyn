@@ -106,8 +106,8 @@ class Test
                 {
                     try
                     {
-                        var comp = CreateCompilation(string.Format(text, i, j));
-                        var errors = comp.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error);
+                        CSharpCompilation comp = CreateCompilation(string.Format(text, i, j));
+                        System.Collections.Generic.IEnumerable<Diagnostic> errors = comp.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error);
                         if (!validAssignments[i].Contains(j))
                         {
                             Assert.Equal(ErrorCode.ERR_NoImplicitConvCast, (ErrorCode)errors.Single().Code);
@@ -219,8 +219,8 @@ class Test
                 {
                     try
                     {
-                        var comp = CreateCompilation(string.Format(text, i, j));
-                        var errors = comp.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error);
+                        CSharpCompilation comp = CreateCompilation(string.Format(text, i, j));
+                        System.Collections.Generic.IEnumerable<Diagnostic> errors = comp.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error);
                         if (!validAssignments[i].Contains(j))
                         {
                             var code = (ErrorCode)errors.Single().Code;

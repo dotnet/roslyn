@@ -36,10 +36,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int parm = 0; parm < parameters.Length; ++parm)
             {
-                var parameter = parameters[parm];
+                ParameterSymbol parameter = parameters[parm];
                 types.Add(parameter.Type);
 
-                var refKind = parameter.RefKind;
+                RefKind refKind = parameter.RefKind;
                 if (refs == null)
                 {
                     if (refKind != RefKind.None)

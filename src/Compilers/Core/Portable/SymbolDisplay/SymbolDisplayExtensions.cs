@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis
             var pool = PooledStringBuilder.GetInstance();
             try
             {
-                var actualBuilder = pool.Builder;
-                foreach (var part in parts)
+                System.Text.StringBuilder actualBuilder = pool.Builder;
+                foreach (SymbolDisplayPart part in parts)
                 {
                     actualBuilder.Append(part);
                 }

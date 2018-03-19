@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         [Fact]
         public void CacheHoldsCapacity()
         {
-            var clc = new OrderedTestDictionary<int, int>(3)
+            ConcurrentLruCache<int, int> clc = new OrderedTestDictionary<int, int>(3)
                 { {1, 1}, {2, 2}, {3, 3} }.MakeCache();
 
             var expected = new OrderedTestDictionary<int, int>(3)
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         [Fact]
         public void CacheOverwritesKey()
         {
-            var clc = new OrderedTestDictionary<int, int>(3)
+            ConcurrentLruCache<int, int> clc = new OrderedTestDictionary<int, int>(3)
                 { {1, 1}, {2, 2}, {3, 3} }.MakeCache();
             clc[3] = 0;
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         [Fact]
         public void CacheEvictsNoRead()
         {
-            var clc = new OrderedTestDictionary<int, int>(3)
+            ConcurrentLruCache<int, int> clc = new OrderedTestDictionary<int, int>(3)
                 { {1, 1}, {2, 2}, {3, 3} }.MakeCache();
             clc[4] = 4;
 
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         [Fact]
         public void CacheEvictsWithRead()
         {
-            var clc = new OrderedTestDictionary<int, int>(3)
+            ConcurrentLruCache<int, int> clc = new OrderedTestDictionary<int, int>(3)
                 { {1, 1}, {2, 2}, {3, 3} }.MakeCache();
             int oneVal = clc[1];
             clc[4] = 4;

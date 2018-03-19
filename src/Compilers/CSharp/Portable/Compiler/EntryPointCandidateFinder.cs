@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            foreach (var s in symbol.GetMembersUnordered())
+            foreach (Symbol s in symbol.GetMembersUnordered())
             {
                 s.Accept(this, arg);
             }
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             _cancellationToken.ThrowIfCancellationRequested();
 
-            foreach (var member in symbol.GetMembersUnordered())
+            foreach (Symbol member in symbol.GetMembersUnordered())
             {
                 switch (member.Kind)
                 {

@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private SyntaxToken LexToken(string text, CSharpParseOptions options = null)
         {
             SyntaxToken result = default(SyntaxToken);
-            foreach (var token in Lex(text, options))
+            foreach (SyntaxToken token in Lex(text, options))
             {
                 if (result.Kind() == SyntaxKind.None)
                 {
@@ -97,15 +97,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSingleLineComment()
         {
             var text = "// comment";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
             Assert.Equal(text.Length, token.FullWidth);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            var trivia = token.LeadingTrivia.ToArray();
+            SyntaxTrivia[] trivia = token.LeadingTrivia.ToArray();
             Assert.Equal(1, trivia.Length);
             Assert.NotNull(trivia[0]);
             Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[0].Kind());
@@ -116,15 +116,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSingleLineCommentWithUnicode()
         {
             var text = "// ҉ ҉̵̞̟̠̖̗̘̙̜̝̞̟̠͇̊̋̌̍̎̏̐̑̒̓̔̊̋̌̍̎̏̐̑̒̓̔̿̿̿… ͡҉҉ ̵̡̢̛̗̘̙̜̝̞̟̠͇̊̋̌̍̎̏̿̿̿̚ ҉ ҉҉̡̢̡̢̛̛̖̗̘̙̜̝̞̟̠̖̗̘̙̜̝̞̟̠̊̋̌̍̎̏̐̑̒̓̔̊̋̌… ̒̓̔̕̚ ̍̎̏̐̑̒̓̔̕̚̕̚ ̡̢̛̗̘̙̜̝̞̟̠̊̋̌̍̎̏̚ ̡̢̡̢̛̛̖̗̘̙̜̝̞̟̠̖̗̘̙̜̝̞̟̠̊̋̌̍̎̏̐̑̒̓̔̊̋̌̍̎… ̕̚̕̚ ̔̕̚̕̚҉ ҉̵̞̟̠̖̗̘̙̜̝̞̟̠͇̊̋̌̍̎̏̐̑̒̓̔̊̋̌̍̎̏̐̑̒̓̔̿̿̿… ͡҉҉ ̵̡̢̛̗̘̙̜̝̞̟̠͇̊̋̌̍̎̏̿̿̿̚ ҉ ";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
             Assert.Equal(text.Length, token.FullWidth);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            var trivia = token.LeadingTrivia.ToArray();
+            SyntaxTrivia[] trivia = token.LeadingTrivia.ToArray();
             Assert.Equal(1, trivia.Length);
             Assert.NotNull(trivia[0]);
             Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[0].Kind());
@@ -135,15 +135,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSingleLineXmlComment()
         {
             string text = "/// xml comment";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
             Assert.Equal(text.Length, token.FullWidth);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            var trivia = token.LeadingTrivia.ToArray();
+            SyntaxTrivia[] trivia = token.LeadingTrivia.ToArray();
             Assert.Equal(1, trivia.Length);
             Assert.NotNull(trivia[0]);
             Assert.Equal(SyntaxKind.SingleLineDocumentationCommentTrivia, trivia[0].Kind());
@@ -155,15 +155,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSingleLineDocCommentFollowedBySlash()
         {
             string text = "////test";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
             Assert.False(token.ContainsDiagnostics);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
 
-            var trivia = token.LeadingTrivia.Single();
+            SyntaxTrivia trivia = token.LeadingTrivia.Single();
             Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia.Kind());
             Assert.Equal(text, trivia.ToFullString());
             Assert.Equal(text, trivia.ToString());
@@ -176,14 +176,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestMultiLineCommentOnOneLine()
         {
             var text = "/* comment */";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            var trivia = token.GetLeadingTrivia().ToArray();
+            SyntaxTrivia[] trivia = token.GetLeadingTrivia().ToArray();
             Assert.Equal(1, trivia.Length);
             Assert.NotNull(trivia[0]);
             Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
@@ -198,14 +198,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
  comment 
  on many lines
 */";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            var trivia = token.GetLeadingTrivia().ToArray();
+            SyntaxTrivia[] trivia = token.GetLeadingTrivia().ToArray();
             Assert.Equal(1, trivia.Length);
             Assert.NotNull(trivia[0]);
             Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
@@ -220,14 +220,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
  xml comment 
  on many lines
 **/";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            var trivia = token.GetLeadingTrivia().ToArray();
+            SyntaxTrivia[] trivia = token.GetLeadingTrivia().ToArray();
             Assert.Equal(1, trivia.Length);
             Assert.NotNull(trivia[0]);
             Assert.Equal(SyntaxKind.MultiLineDocumentationCommentTrivia, trivia[0].Kind());
@@ -238,14 +238,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUnterminatedMultiLineComment()
         {
             var text = "/* comment";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
-            var trivia = token.GetLeadingTrivia().ToArray();
+            SyntaxTrivia[] trivia = token.GetLeadingTrivia().ToArray();
             Assert.Equal(1, trivia.Length);
             Assert.NotNull(trivia[0]);
             Assert.Equal(SyntaxKind.MultiLineCommentTrivia, trivia[0].Kind());
@@ -259,15 +259,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             Assert.Equal('\uFFFF', SlidingTextWindow.InvalidCharacter);
             var text = "// com\uFFFFment";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
             Assert.Equal(text.Length, token.FullWidth);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
-            var trivia = token.LeadingTrivia.ToArray();
+            SyntaxTrivia[] trivia = token.LeadingTrivia.ToArray();
             Assert.Equal(1, trivia.Length);
             Assert.NotNull(trivia[0]);
             Assert.Equal(SyntaxKind.SingleLineCommentTrivia, trivia[0].Kind());
@@ -278,12 +278,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSingleLetterIdentifier()
         {
             var text = "a";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.ValueText);
         }
@@ -293,12 +293,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestMultiLetterIdentifier()
         {
             var text = "abc";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.ValueText);
         }
@@ -308,12 +308,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestMixedAlphaNumericIdentifier()
         {
             var text = "a0b1c2";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.ValueText);
         }
@@ -323,12 +323,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestIdentifierWithUnicode()
         {
             var text = "Fō̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄̄o";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.ValueText);
         }
@@ -338,12 +338,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestIdentifierWithSpaceLookingCharacters()
         {
             var text = "my͏very͏long͏identifier"; // These are COMBINING GRAPHEME JOINERs, not actual spaces
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.ValueText);
         }
@@ -353,12 +353,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestVerbatimSingleLetterIdentifier()
         {
             var text = "@x";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal("x", token.ValueText);
         }
@@ -368,12 +368,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestVerbatimKeywordIdentifier()
         {
             var text = "@if";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal("if", token.ValueText);
         }
@@ -383,12 +383,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUnicodeEscapeIdentifier()
         {
             var text = "\\u1234";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.NotNull(token.ValueText);
             Assert.IsType(typeof(string), token.ValueText);
@@ -400,12 +400,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestVerbatimUnicodeEscapeIdentifier()
         {
             var text = "@\\u1234";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.NotNull(token.ValueText);
             Assert.IsType(typeof(string), token.ValueText);
@@ -417,12 +417,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLongUnicodeEscapeIdentifier()
         {
             var text = "\\U00001234";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.NotNull(token.ValueText);
             Assert.IsType(typeof(string), token.ValueText);
@@ -434,12 +434,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestVerbatimLongUnicodeEscapeIdentifier()
         {
             var text = "@\\U00001234";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.NotNull(token.ValueText);
             Assert.IsType(typeof(string), token.ValueText);
@@ -451,12 +451,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestMixedUnicodeEscapeIdentifier()
         {
             var text = "a\\u1234b";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.NotNull(token.ValueText);
             Assert.IsType(typeof(string), token.ValueText);
@@ -468,12 +468,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestMultiUnicodeEscapeIdentifier()
         {
             var text = "a\\u1234\\u5678b";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.NotNull(token.ValueText);
             Assert.IsType(typeof(string), token.ValueText);
@@ -485,12 +485,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestBadUnicodeEscapeIdentifier()
         {
             var text = "\\u123";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.ToFullString());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.NotNull(token.ValueText);
             Assert.IsType(typeof(string), token.ValueText);
@@ -501,18 +501,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Trait("Feature", "Identifiers")]
         public void TestAllVerbatimKeywordsAsIdentifiers()
         {
-            foreach (var keyword in SyntaxFacts.GetKeywordKinds())
+            foreach (SyntaxKind keyword in SyntaxFacts.GetKeywordKinds())
             {
                 if (SyntaxFacts.IsReservedKeyword(keyword))
                 {
                     var value = SyntaxFacts.GetText(keyword);
                     var text = "@" + value;
-                    var token = LexToken(text);
+                    SyntaxToken token = LexToken(text);
 
                     Assert.NotNull(token);
                     Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
                     Assert.Equal(text, token.Text);
-                    var errors = token.Errors();
+                    System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
                     Assert.Equal(0, errors.Length);
                     Assert.Equal(value, token.ValueText);
                 }
@@ -524,7 +524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNonLatinIdentifier()
         {
             var text = "\u00C6sh";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotEqual('\\', text[0]);
             Assert.Equal(System.Globalization.UnicodeCategory.UppercaseLetter, CharUnicodeInfo.GetUnicodeCategory(text[0]));
@@ -532,7 +532,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.NotNull(token.ValueText);
             Assert.IsType(typeof(string), token.ValueText);
@@ -543,17 +543,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Trait("Feature", "Keywords")]
         public void TestAllLanguageKeywords()
         {
-            foreach (var keyword in SyntaxFacts.GetKeywordKinds())
+            foreach (SyntaxKind keyword in SyntaxFacts.GetKeywordKinds())
             {
                 if (SyntaxFacts.IsReservedKeyword(keyword))
                 {
                     var text = SyntaxFacts.GetText(keyword);
-                    var token = LexToken(text);
+                    SyntaxToken token = LexToken(text);
 
                     Assert.NotNull(token);
                     Assert.True(SyntaxFacts.IsReservedKeyword(token.Kind()));
                     Assert.Equal(text, token.Text);
-                    var errors = token.Errors();
+                    System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
                     Assert.Equal(0, errors.Length);
                     Assert.Equal(text, token.ValueText);
                 }
@@ -627,11 +627,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void TestPunctuation(SyntaxKind kind)
         {
             var text = SyntaxFacts.GetText(kind);
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
             Assert.NotNull(token);
             Assert.Equal(kind, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.ValueText);
         }
@@ -641,12 +641,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestStringLiteral()
         {
             var text = "\"literal\"";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal("literal", token.ValueText);
         }
@@ -656,12 +656,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestStringLiteralWithUnicode()
         {
             var text = "\"҉ ҉̵̞̟̠̖̗̘̙̜̝̞̟̠͇̊̋̌̍̎̏̐̑̒̓̔̊̋̌̍̎̏̐̑̒̓̔̿̿̿… ͡҉҉ ̵̡̢̛̗̘̙̜̝̞̟̠͇̊̋̌̍̎̏̿̿̿̚ ҉ ҉҉̡̢̡̢̛̛̖̗̘̙̜̝̞̟̠̖̗̘̙̜̝̞̟̠̊̋̌̍̎̏̐̑̒̓̔̊̋̌… ̒̓̔̕̚ ̍̎̏̐̑̒̓̔̕̚̕̚ ̡̢̛̗̘̙̜̝̞̟̠̊̋̌̍̎̏̚ ̡̢̡̢̛̛̖̗̘̙̜̝̞̟̠̖̗̘̙̜̝̞̟̠̊̋̌̍̎̏̐̑̒̓̔̊̋̌̍̎… ̕̚̕̚ ̔̕̚̕̚҉ ҉̵̞̟̠̖̗̘̙̜̝̞̟̠͇̊̋̌̍̎̏̐̑̒̓̔̊̋̌̍̎̏̐̑̒̓̔̿̿̿… ͡҉҉ ̵̡̢̛̗̘̙̜̝̞̟̠͇̊̋̌̍̎̏̿̿̿̚ ҉\"";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal("҉ ҉̵̞̟̠̖̗̘̙̜̝̞̟̠͇̊̋̌̍̎̏̐̑̒̓̔̊̋̌̍̎̏̐̑̒̓̔̿̿̿… ͡҉҉ ̵̡̢̛̗̘̙̜̝̞̟̠͇̊̋̌̍̎̏̿̿̿̚ ҉ ҉҉̡̢̡̢̛̛̖̗̘̙̜̝̞̟̠̖̗̘̙̜̝̞̟̠̊̋̌̍̎̏̐̑̒̓̔̊̋̌… ̒̓̔̕̚ ̍̎̏̐̑̒̓̔̕̚̕̚ ̡̢̛̗̘̙̜̝̞̟̠̊̋̌̍̎̏̚ ̡̢̡̢̛̛̖̗̘̙̜̝̞̟̠̖̗̘̙̜̝̞̟̠̊̋̌̍̎̏̐̑̒̓̔̊̋̌̍̎… ̕̚̕̚ ̔̕̚̕̚҉ ҉̵̞̟̠̖̗̘̙̜̝̞̟̠͇̊̋̌̍̎̏̐̑̒̓̔̊̋̌̍̎̏̐̑̒̓̔̿̿̿… ͡҉҉ ̵̡̢̛̗̘̙̜̝̞̟̠͇̊̋̌̍̎̏̿̿̿̚ ҉", token.ValueText);
         }
@@ -671,12 +671,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestVerbatimStringLiteral()
         {
             var text = "@\"literal\"";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal("literal", token.ValueText);
         }
@@ -686,12 +686,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestMultiLineVerbatimStringLiteral()
         {
             var text = "@\"multi line\r\nliteral\"";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal("multi line\r\nliteral", token.ValueText);
         }
@@ -701,12 +701,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestStringLiteralWithNewLine()
         {
             var text = "\"literal\r\nwith new line\"";
-            var token = Lex(text).First();
+            SyntaxToken token = Lex(text).First();
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.NotEqual(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_NewlineInConst, errors[0].Code);
             Assert.Equal("literal", token.ValueText);
@@ -717,12 +717,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUnterminatedStringLiteral()
         {
             var text = "\"literal";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_NewlineInConst, errors[0].Code);
             Assert.Equal("literal", token.ValueText);
@@ -733,12 +733,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUnterminatedVerbatimStringLiteral()
         {
             var text = "@\"literal";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_UnterminatedStringLit, errors[0].Code);
             Assert.Equal("literal", token.ValueText);
@@ -750,12 +750,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = "\"\\u1234\"";
             var value = "\u1234";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -766,12 +766,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = "\"\\U00001234\"";
             var value = "\U00001234";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -782,12 +782,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var text = "\"\\u1234\\u1234\"";
             var value = "\u1234\u1234";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -798,12 +798,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "\u0012";
             var text = "\"\\u12\"";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.StringLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_IllegalEscape, errors[0].Code);
             Assert.Equal(value, token.ValueText);
@@ -815,12 +815,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "x";
             var text = "'" + value + "'";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -831,12 +831,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "\r";
             var text = "'\\r'";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -847,12 +847,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "\n";
             var text = "'\\n'";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -863,12 +863,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "\0";
             var text = "'\\0'";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -879,12 +879,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "\t";
             var text = "'\\t'";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -895,12 +895,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "\a";
             var text = "'\\a'";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -911,12 +911,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "\b";
             var text = "'\\b'";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -927,12 +927,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "\v";
             var text = "'\\v'";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -943,12 +943,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "\f";
             var text = "'\\f'";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -959,12 +959,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "q";
             var text = "'\\q'";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -975,12 +975,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "\\";
             var text = "'\\\\'";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -991,12 +991,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "'";
             var text = "'\\''";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -1007,12 +1007,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "\"";
             var text = "'\\\"'";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -1023,12 +1023,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "\u1234";
             var text = "'\\u1234'";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -1039,12 +1039,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "\U00001234";
             var text = "'\\U00001234'";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -1055,12 +1055,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "\u0012";
             var text = "'\\u12'";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_IllegalEscape, errors[0].Code);
             Assert.Equal(value, token.ValueText);
@@ -1071,12 +1071,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCharacterLiteralThatsTooSmall()
         {
             var text = "''";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_EmptyCharConst, errors[0].Code);
             Assert.Equal(SlidingTextWindow.InvalidCharacter, Char.Parse(token.ValueText));
@@ -1088,12 +1088,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "a";
             var text = "'ab'";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal(text, token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_TooManyCharsInConst, errors[0].Code);
             Assert.Equal(value, token.ValueText);
@@ -1105,12 +1105,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "a";
             var text = "'a\r'";
-            var token = Lex(text).First();
+            SyntaxToken token = Lex(text).First();
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal("'a", token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_NewlineInConst, errors[0].Code);
             Assert.Equal(value, token.ValueText);
@@ -1121,12 +1121,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCharacterLiteralThatsTooSmallWithNewline()
         {
             var text = "'\r'";
-            var token = Lex(text).First();
+            SyntaxToken token = Lex(text).First();
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal("'", token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(2, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_NewlineInConst, errors[0].Code);
             Assert.Equal((int)ErrorCode.ERR_EmptyCharConst, errors[1].Code);
@@ -1139,12 +1139,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = "a";
             var text = "'ab\r'";
-            var token = Lex(text).First();
+            SyntaxToken token = Lex(text).First();
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal("'ab", token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(2, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_NewlineInConst, errors[0].Code);
             Assert.Equal((int)ErrorCode.ERR_TooManyCharsInConst, errors[1].Code);
@@ -1159,12 +1159,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var value = "\uFFFF";
             var text = "'\uFFFF'";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.CharacterLiteralToken, token.Kind());
             Assert.Equal("'\uFFFF'", token.Text);
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(value, token.ValueText);
         }
@@ -1174,11 +1174,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUnicodeEscapeWithNoDigits()
         {
             var text = "\\";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.BadToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_UnexpectedCharacter, errors[0].Code);
             Assert.Equal(text, token.Text);
@@ -1189,11 +1189,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestVerbatimIdentifierWithNoCharacters()
         {
             var text = "@";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.BadToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
             Assert.Equal(text, token.Text);
@@ -1204,11 +1204,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestVerbatimIdentifierWithNoCharactersAndTrivia()
         {
             var text = "@  ";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.BadToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_ExpectedVerbatimLiteral, errors[0].Code);
             Assert.Equal(text, token.ToFullString());
@@ -1221,11 +1221,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123;
             var text = "123";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1237,11 +1237,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123.456;
             var text = "123.456";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1253,11 +1253,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123.45632434234234234234234234324234234234;
             var text = "123.45632434234234234234234234324234234234";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1269,11 +1269,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 12332434234234234234234234324234234234.456;
             var text = "12332434234234234234234234324234234234.456";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1285,11 +1285,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 12332434234234234234234234324234234234.45623423423423423423423423423423423423;
             var text = "12332434234234234234234234324234234234.45623423423423423423423423423423423423";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1300,11 +1300,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralWithDecimalAndExponent()
         {
             var text = "123.456e10";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
         }
@@ -1314,11 +1314,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralWithDecimalAndHugeExponent()
         {
             var text = "123.456e999";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_FloatOverflow, errors[0].Code);
             Assert.Equal(text, token.Text);
@@ -1329,11 +1329,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralWithDecimalAndHugeExponentAndFloatSpecifier()
         {
             var text = "123.456e999f";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_FloatOverflow, errors[0].Code);
             Assert.Equal(text, token.Text);
@@ -1344,11 +1344,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralWithDecimalAndHugeExponentAndDoubleSpecifier()
         {
             var text = "123.456e999d";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_FloatOverflow, errors[0].Code);
             Assert.Equal(text, token.Text);
@@ -1359,11 +1359,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralWithDecimalAndHugeExponentAndDecimalSpecifier()
         {
             var text = "123.456e999m";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_FloatOverflow, errors[0].Code);
             Assert.Equal(text, token.Text);
@@ -1374,11 +1374,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralWithHugeDecimalAndDecimalSpecifier()
         {
             var text = "10234230492340923423423423423423423434234.23402349234098230498234m";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_FloatOverflow, errors[0].Code);
             Assert.Equal(text, token.Text);
@@ -1389,11 +1389,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralWithExponentAndDecimalSpecifier01()
         {
             var text = "0.0E1000M";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             decimal d;
             if (decimal.TryParse("0E1", System.Globalization.NumberStyles.AllowExponent, null, out d))
             {
@@ -1412,11 +1412,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralWithExponentAndDecimalSpecifier02()
         {
             var text = "1.0E29M";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_FloatOverflow, errors[0].Code);
             Assert.Equal(text, token.Text);
@@ -1427,11 +1427,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralWithExponentAndDecimalSpecifier03()
         {
             var text = "0.1E29M";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
         }
@@ -1442,11 +1442,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralWithExponentAndDecimalSpecifier04()
         {
             var text = "0.1EM";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_InvalidReal, errors[0].Code);
             Assert.Equal(text, token.Text);
@@ -1457,11 +1457,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralWithDecimalAndUpperExponent()
         {
             var text = "123.456E10";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
         }
@@ -1472,11 +1472,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = .456;
             var text = ".456";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1488,11 +1488,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = .456e10;
             var text = ".456e10";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1504,11 +1504,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123f;
             var text = "123f";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1520,11 +1520,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123F;
             var text = "123F";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1536,11 +1536,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123.456f;
             var text = "123.456f";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1552,11 +1552,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123.456e10f;
             var text = "123.456e10f";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1568,11 +1568,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123d;
             var text = "123d";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1584,11 +1584,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123D;
             var text = "123D";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1600,11 +1600,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123.456d;
             var text = "123.456d";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1616,11 +1616,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123.456e10d;
             var text = "123.456e10D";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1632,11 +1632,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123m;
             var text = "123m";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1648,11 +1648,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123.456m;
             var text = "123.456m";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1664,11 +1664,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123.456e2m;
             var text = "123.456e2m";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1680,11 +1680,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123u;
             var text = "123u";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1696,11 +1696,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123U;
             var text = "123U";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1712,11 +1712,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123L;
             var text = "123l";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.ErrorsAndWarnings();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.ErrorsAndWarnings();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.WRN_LowercaseEllSuffix, errors[0].Code);
             Assert.Equal(text, token.Text);
@@ -1729,11 +1729,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123L;
             var text = "123L";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1745,11 +1745,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123ul;
             var text = "123ul";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1771,11 +1771,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123Ul;
             var text = "123Ul";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1797,11 +1797,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123uL;
             var text = "123uL";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1823,11 +1823,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 123UL;
             var text = "123UL";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1849,11 +1849,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x123ul;
             var text = "0x123ul";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1875,11 +1875,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x123Ul;
             var text = "0x123Ul";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1900,11 +1900,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x123uL;
             var text = "0x123uL";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1926,11 +1926,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x123UL;
             var text = "0x123UL";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1951,10 +1951,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericBinaryLiteralWithoutFeatureFlag()
         {
             var text = "0b1";
-            var token = LexToken(text, _options6);
+            SyntaxToken token = LexToken(text, _options6);
 
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_FeatureNotAvailableInVersion6, errors[0].Code);
             Assert.Equal(text, token.Text);
@@ -1966,11 +1966,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x123ul;
             var text = "0b100100011ul";
-            var token = LexToken(text, _binaryOptions);
+            SyntaxToken token = LexToken(text, _binaryOptions);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -1992,11 +1992,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x123Ul;
             var text = "0b100100011Ul";
-            var token = LexToken(text, _binaryOptions);
+            SyntaxToken token = LexToken(text, _binaryOptions);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2017,11 +2017,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x123uL;
             var text = "0b100100011uL";
-            var token = LexToken(text, _binaryOptions);
+            SyntaxToken token = LexToken(text, _binaryOptions);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2043,11 +2043,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x123UL;
             var text = "0b100100011UL";
-            var token = LexToken(text, _binaryOptions);
+            SyntaxToken token = LexToken(text, _binaryOptions);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2068,11 +2068,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralMaxInt32()
         {
             var text = Int32.MaxValue.ToString();
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(Int32.MaxValue, token.Value);
@@ -2083,11 +2083,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralMaxUInt32()
         {
             var text = UInt32.MaxValue.ToString() + "U";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(UInt32.MaxValue, token.Value);
@@ -2099,11 +2099,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = ((uint)Int32.MaxValue) + 1;
             var text = value.ToString();
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2115,11 +2115,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = ((long)UInt32.MaxValue) + 1;
             var text = value.ToString();
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2131,11 +2131,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = ((ulong)Int64.MaxValue) + 1;
             var text = value.ToString();
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2146,11 +2146,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralTooBigForUInt32OrUInt64()
         {
             var text = UInt64.MaxValue.ToString() + "0U";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_IntOverflow, errors[0].Code);
             Assert.Equal(text, token.Text);
@@ -2161,11 +2161,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralMaxInt64()
         {
             var text = Int64.MaxValue.ToString() + "L";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(Int64.MaxValue, token.Value);
@@ -2176,11 +2176,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralTooBigForInt64()
         {
             var text = (((ulong)Int64.MaxValue) + 1).ToString() + "L";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal((ulong)Int64.MaxValue + 1, token.Value);
@@ -2191,11 +2191,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralMaxUInt64()
         {
             var text = UInt64.MaxValue.ToString() + "UL";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(UInt64.MaxValue, token.Value);
@@ -2206,11 +2206,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericLiteralTooBigForUInt64()
         {
             var text = UInt64.MaxValue.ToString() + "0UL";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_IntOverflow, errors[0].Code);
             Assert.Equal(text, token.Text);
@@ -2222,11 +2222,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x123;
             var text = "0x123";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2238,11 +2238,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x123u;
             var text = "0x123u";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2254,11 +2254,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x123L;
             var text = "0x123L";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2270,11 +2270,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x12345678;
             var text = "0x12345678";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2286,11 +2286,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x7FFFFFFF;
             var text = "0x7FFFFFFF";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2302,11 +2302,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0xFFFFFFFF;
             var text = "0xFFFFFFFF";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2318,11 +2318,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0xFFFFFFFFu;
             var text = "0xFFFFFFFFu";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2334,11 +2334,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x7FFFFFFFFFFFFFFF;
             var text = "0x7FFFFFFFFFFFFFFF";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2350,11 +2350,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0xFFFFFFFFFFFFFFFF;
             var text = "0xFFFFFFFFFFFFFFFF";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2366,11 +2366,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x123;
             var text = "0b100100011";
-            var token = LexToken(text, _binaryOptions);
+            SyntaxToken token = LexToken(text, _binaryOptions);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2382,11 +2382,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x123u;
             var text = "0b100100011u";
-            var token = LexToken(text, _binaryOptions);
+            SyntaxToken token = LexToken(text, _binaryOptions);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2398,11 +2398,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x123L;
             var text = "0b100100011L";
-            var token = LexToken(text, _binaryOptions);
+            SyntaxToken token = LexToken(text, _binaryOptions);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2414,11 +2414,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0xAA;
             var text = "0b10101010";
-            var token = LexToken(text, _binaryOptions);
+            SyntaxToken token = LexToken(text, _binaryOptions);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2430,11 +2430,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x7FFFFFFF;
             var text = "0b1111111111111111111111111111111";
-            var token = LexToken(text, _binaryOptions);
+            SyntaxToken token = LexToken(text, _binaryOptions);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2446,11 +2446,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0xFFFFFFFF;
             var text = "0b11111111111111111111111111111111";
-            var token = LexToken(text, _binaryOptions);
+            SyntaxToken token = LexToken(text, _binaryOptions);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2462,11 +2462,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0xFFFFFFFFu;
             var text = "0b11111111111111111111111111111111u";
-            var token = LexToken(text, _binaryOptions);
+            SyntaxToken token = LexToken(text, _binaryOptions);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2478,11 +2478,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0x7FFFFFFFFFFFFFFF;
             var text = "0b111111111111111111111111111111111111111111111111111111111111111";
-            var token = LexToken(text, _binaryOptions);
+            SyntaxToken token = LexToken(text, _binaryOptions);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2494,11 +2494,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 0xFFFFFFFFFFFFFFFF;
             var text = "0b1111111111111111111111111111111111111111111111111111111111111111";
-            var token = LexToken(text, _binaryOptions);
+            SyntaxToken token = LexToken(text, _binaryOptions);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2509,11 +2509,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericOverflowBinaryLiteral()
         {
             var text = "0b10000000000000000000000000000000000000000000000000000000000000000";
-            var token = LexToken(text, _binaryOptions);
+            SyntaxToken token = LexToken(text, _binaryOptions);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_IntOverflow, errors[0].Code);
             Assert.Equal("error CS1021: Integral constant is too large", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
@@ -2525,11 +2525,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericEmptyBinaryLiteral()
         {
             var text = "0b";
-            var token = LexToken(text, _binaryOptions);
+            SyntaxToken token = LexToken(text, _binaryOptions);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_InvalidNumber, errors[0].Code);
             Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
@@ -2541,7 +2541,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericWithUnderscores()
         {
             var text = "1_000";
-            var token = LexToken(text, _underscoreOptions);
+            SyntaxToken token = LexToken(text, _underscoreOptions);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
@@ -2609,10 +2609,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericWithUnderscoresWithoutFeatureFlag()
         {
             var text = "1_000";
-            var token = LexToken(text, _options6);
+            SyntaxToken token = LexToken(text, _options6);
 
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_FeatureNotAvailableInVersion6, errors[0].Code);
             Assert.Equal(text, token.Text);
@@ -2623,7 +2623,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericWithLeadingUnderscores()
         {
             var text = "0x_A";
-            var token = LexToken(text, _options72);
+            SyntaxToken token = LexToken(text, _options72);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
@@ -2664,10 +2664,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericWithLeadingUnderscoresWithoutFeatureFlag()
         {
             var text = "0x_A";
-            var token = LexToken(text, _options7);
+            SyntaxToken token = LexToken(text, _options7);
 
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_FeatureNotAvailableInVersion7, errors[0].Code);
             Assert.Equal(text, token.Text);
@@ -2706,7 +2706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericWithBadUnderscores()
         {
             var text = "_1000";
-            var token = LexToken(text, _underscoreOptions);
+            SyntaxToken token = LexToken(text, _underscoreOptions);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
@@ -2717,7 +2717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_InvalidNumber, errors[0].Code);
             Assert.Equal("error CS1013: Invalid number", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
@@ -2867,11 +2867,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 3;
             var text = "3.";
-            var token = Lex(text).First();
+            SyntaxToken token = Lex(text).First();
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal("3", token.Text);
             Assert.Equal(value, token.Value);
@@ -2883,11 +2883,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = .3;
             var text = ".3";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2899,11 +2899,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 3e1;
             var text = "3e1";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2915,11 +2915,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var value = 3e-1;
             var text = "3e-1";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(value, token.Value);
@@ -2936,11 +2936,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDebuggerDollarIdentifiers()
         {
             string text = "$";
-            var token = DebuggerLexToken(text);
+            SyntaxToken token = DebuggerLexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
             Assert.Equal(text, token.Text);
             Assert.Equal(text, token.Value);
@@ -2969,7 +2969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestDebuggerObjectAddressIdentifiers()
         {
-            var token = Lex("@0x0").First();
+            SyntaxToken token = Lex("@0x0").First();
             Assert.Equal(SyntaxKind.BadToken, token.Kind());
             VerifyError(token, ErrorCode.ERR_ExpectedVerbatimLiteral);
             Assert.Equal("@", token.Text);
@@ -3038,11 +3038,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDebuggerAliasIdentifiers()
         {
             string text = "123#";
-            var token = DebuggerLexToken(text);
+            SyntaxToken token = DebuggerLexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_LegacyObjectIdSyntax, errors[0].Code);
             Assert.Equal("error CS2043: 'id#' syntax is no longer supported. Use '$id' instead.", errors[0].ToString(EnsureEnglishUICulture.PreferredOrNull));
@@ -3095,19 +3095,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestWhitespace()
         {
             string text = " \t\v\f\u00A0token\u00A0\f\v\t ";
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
 
             Assert.NotNull(token);
             Assert.Equal(SyntaxKind.IdentifierToken, token.Kind());
             Assert.Equal("token", token.Text);
             Assert.True(token.HasLeadingTrivia);
-            var leading = token.GetLeadingTrivia();
+            SyntaxTriviaList leading = token.GetLeadingTrivia();
             Assert.Equal(1, leading.Count);
             Assert.Equal(SyntaxKind.WhitespaceTrivia, leading[0].Kind());
             Assert.Equal(" \t\v\f\u00A0", leading[0].ToString());
 
             Assert.True(token.HasTrailingTrivia);
-            var trailing = token.GetTrailingTrivia();
+            SyntaxTriviaList trailing = token.GetTrailingTrivia();
             Assert.Equal(1, trailing.Count);
             Assert.Equal(SyntaxKind.WhitespaceTrivia, trailing[0].Kind());
             Assert.Equal("\u00A0\f\v\t ", trailing[0].ToString());
@@ -3238,7 +3238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void DecimalLiteralsOtherCulture()
         {
-            var oldCulture = CultureInfo.CurrentCulture;
+            CultureInfo oldCulture = CultureInfo.CurrentCulture;
             try
             {
                 CultureInfo.CurrentCulture = (CultureInfo)oldCulture.Clone();
@@ -3259,15 +3259,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private void AssertBadDecimalLiteral(string text)
         {
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
-            var error = token.Errors().Single();
+            DiagnosticInfo error = token.Errors().Single();
             Assert.Equal((int)ErrorCode.ERR_FloatOverflow, error.Code);
         }
 
         private void AssertGoodDecimalLiteral(string text, string expectedBits)
         {
-            var token = LexToken(text);
+            SyntaxToken token = LexToken(text);
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             Assert.Equal(0, token.Errors().Length);
             Assert.Equal(expectedBits, ToHexString((decimal)token.Value));
@@ -3275,13 +3275,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private static void VerifyNoErrors(SyntaxToken token)
         {
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(0, errors.Length);
         }
 
         private static void VerifyError(SyntaxToken token, ErrorCode expected)
         {
-            var errors = token.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = token.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)expected, errors[0].Code);
         }
@@ -3304,8 +3304,8 @@ class C
 ();
     }
 }";
-            var tree = CSharpSyntaxTree.ParseText(source);
-            var diagnostics = tree.GetDiagnostics();
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(source);
+            IEnumerable<Diagnostic> diagnostics = tree.GetDiagnostics();
             Assert.Empty(diagnostics);
 
             Assert.False(tree.GetRoot().DescendantTokens().Any(
@@ -3317,7 +3317,7 @@ class C
         public void TestLessThanConflictMarker1()
         {
             // Needs to be followed by a space.
-            var token = Lex("<<<<<<<").First();
+            SyntaxToken token = Lex("<<<<<<<").First();
             Assert.Equal(SyntaxKind.LessThanLessThanToken, token.Kind());
 
             // Has to be the start of a line.
@@ -3334,11 +3334,11 @@ class C
             token = Lex("<<<<<<< ").First();
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.True(token.HasLeadingTrivia);
-            var trivia = token.LeadingTrivia.Single();
+            SyntaxTrivia trivia = token.LeadingTrivia.Single();
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
 
             Assert.True(trivia.ContainsDiagnostics);
-            var errors = trivia.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = trivia.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, errors[0].Code);
         }
@@ -3346,7 +3346,7 @@ class C
         [Fact]
         public void TestLessThanConflictMarker2()
         {
-            var token = Lex("{\r\n<<<<<<<").Skip(1).First();
+            SyntaxToken token = Lex("{\r\n<<<<<<<").Skip(1).First();
             Assert.Equal(SyntaxKind.LessThanLessThanToken, token.Kind());
 
             token = Lex("{\r\n <<<<<<<").Skip(1).First();
@@ -3360,13 +3360,13 @@ class C
             token = Lex("{\r\n<<<<<<< ").Skip(1).First();
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.True(token.HasLeadingTrivia);
-            var trivia = token.LeadingTrivia.Single();
+            SyntaxTrivia trivia = token.LeadingTrivia.Single();
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.True(trivia.SpanStart == 3);
             Assert.True(trivia.Span.Length == 8);
 
             Assert.True(trivia.ContainsDiagnostics);
-            var errors = trivia.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = trivia.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, errors[0].Code);
         }
@@ -3377,7 +3377,7 @@ class C
             // Less-than's should never be merged as conflict markers, except if they follow
             // an ======= region
 
-            var token = Lex(">>>>>>>").First();
+            SyntaxToken token = Lex(">>>>>>>").First();
             Assert.Equal(SyntaxKind.GreaterThanToken, token.Kind());
 
             token = Lex(" >>>>>>>").First();
@@ -3400,7 +3400,7 @@ class C
             // Less-than's should never be merged as conflict markers, except if they follow
             // an ======= region
 
-            var token = Lex("{\r\n>>>>>>>").Skip(1).First();
+            SyntaxToken token = Lex("{\r\n>>>>>>>").Skip(1).First();
             Assert.Equal(SyntaxKind.GreaterThanToken, token.Kind());
 
             token = Lex("{\r\n >>>>>>>").Skip(1).First();
@@ -3421,7 +3421,7 @@ class C
         public void TestEqualsConflictMarker1()
         {
             // Has to be the start of a line.
-            var token = Lex(" =======").First();
+            SyntaxToken token = Lex(" =======").First();
             Assert.Equal(SyntaxKind.EqualsEqualsToken, token.Kind());
             Assert.True(token.HasLeadingTrivia);
             Assert.True(token.LeadingTrivia.Single().Kind() == SyntaxKind.WhitespaceTrivia);
@@ -3440,12 +3440,12 @@ class C
             token = Lex("======= trailing chars").First();
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.True(token.HasLeadingTrivia);
-            var trivia = token.LeadingTrivia.Single();
+            SyntaxTrivia trivia = token.LeadingTrivia.Single();
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal(trivia.Span.Length, 22);
 
             Assert.True(trivia.ContainsDiagnostics);
-            var errors = trivia.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = trivia.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, errors[0].Code);
 
@@ -3498,7 +3498,7 @@ class C
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.True(token.HasLeadingTrivia);
             Assert.Equal(token.LeadingTrivia.Count, 4);
-            var trivia1 = token.LeadingTrivia[0];
+            SyntaxTrivia trivia1 = token.LeadingTrivia[0];
             Assert.True(trivia1.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal(trivia1.Span.Length, 16);
 
@@ -3507,17 +3507,17 @@ class C
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_Merge_conflict_marker_encountered, errors[0].Code);
 
-            var trivia2 = token.LeadingTrivia[1];
+            SyntaxTrivia trivia2 = token.LeadingTrivia[1];
             Assert.True(trivia2.Kind() == SyntaxKind.EndOfLineTrivia);
             Assert.Equal(trivia2.Span.Start, 16);
             Assert.Equal(trivia2.Span.Length, 2);
 
-            var trivia3 = token.LeadingTrivia[2];
+            SyntaxTrivia trivia3 = token.LeadingTrivia[2];
             Assert.True(trivia3.Kind() == SyntaxKind.DisabledTextTrivia);
             Assert.Equal(trivia3.Span.Start, 18);
             Assert.Equal(trivia3.Span.Length, 15);
 
-            var trivia4 = token.LeadingTrivia[3];
+            SyntaxTrivia trivia4 = token.LeadingTrivia[3];
             Assert.True(trivia4.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal(trivia4.Span.Start, 33);
             Assert.Equal(trivia4.Span.Length, 24);
@@ -3561,7 +3561,7 @@ class C
         public void TestEqualsConflictMarker2()
         {
             // Has to be the start of a line.
-            var token = Lex("{\r\n =======").Skip(1).First();
+            SyntaxToken token = Lex("{\r\n =======").Skip(1).First();
             Assert.Equal(SyntaxKind.EqualsEqualsToken, token.Kind());
             Assert.True(token.HasLeadingTrivia);
             Assert.True(token.LeadingTrivia.Single().Kind() == SyntaxKind.WhitespaceTrivia);
@@ -3580,7 +3580,7 @@ class C
             token = Lex("{\r\n======= trailing chars").Skip(1).First();
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.True(token.HasLeadingTrivia);
-            var trivia = token.LeadingTrivia.Single();
+            SyntaxTrivia trivia = token.LeadingTrivia.Single();
             Assert.True(trivia.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal(trivia.Span.Length, 22);
 
@@ -3624,21 +3624,21 @@ class C
             Assert.Equal(SyntaxKind.EndOfFileToken, token.Kind());
             Assert.True(token.HasLeadingTrivia);
             Assert.Equal(token.LeadingTrivia.Count, 4);
-            var trivia1 = token.LeadingTrivia[0];
+            SyntaxTrivia trivia1 = token.LeadingTrivia[0];
             Assert.True(trivia1.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal(trivia1.Span.Length, 16);
 
-            var trivia2 = token.LeadingTrivia[1];
+            SyntaxTrivia trivia2 = token.LeadingTrivia[1];
             Assert.True(trivia2.Kind() == SyntaxKind.EndOfLineTrivia);
             Assert.Equal(trivia2.Span.Start, 19);
             Assert.Equal(trivia2.Span.Length, 2);
 
-            var trivia3 = token.LeadingTrivia[2];
+            SyntaxTrivia trivia3 = token.LeadingTrivia[2];
             Assert.True(trivia3.Kind() == SyntaxKind.DisabledTextTrivia);
             Assert.Equal(trivia3.Span.Start, 21);
             Assert.Equal(trivia3.Span.Length, 15);
 
-            var trivia4 = token.LeadingTrivia[3];
+            SyntaxTrivia trivia4 = token.LeadingTrivia[3];
             Assert.True(trivia4.Kind() == SyntaxKind.ConflictMarkerTrivia);
             Assert.Equal(trivia4.Span.Start, 36);
             Assert.Equal(trivia4.Span.Length, 24);

@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var compilation = this.DeclaringCompilation;
+            CSharpCompilation compilation = this.DeclaringCompilation;
 
             AddSynthesizedAttribute(ref attributes,
                 compilation.TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_CompilerGeneratedAttribute__ctor));
@@ -113,15 +113,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int ordinal = 0;
             var builder = ArrayBuilder<ParameterSymbol>.GetInstance();
-            var parameters = this.BaseMethodParameters;
-            foreach (var p in parameters)
+            ImmutableArray<ParameterSymbol> parameters = this.BaseMethodParameters;
+            foreach (ParameterSymbol p in parameters)
             {
                 builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(p.OriginalDefinition.Type).Type, ordinal++, p.RefKind, p.Name));
             }
-            var extraSynthed = ExtraSynthesizedRefParameters;
+            ImmutableArray<TypeSymbol> extraSynthed = ExtraSynthesizedRefParameters;
             if (!extraSynthed.IsDefaultOrEmpty)
             {
-                foreach (var extra in extraSynthed)
+                foreach (TypeSymbol extra in extraSynthed)
                 {
                     builder.Add(SynthesizedParameterSymbol.Create(this, this.TypeMap.SubstituteType(extra).Type, ordinal++, RefKind.Ref));
                 }

@@ -30,7 +30,7 @@ class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
             Assert.Equal("C", semanticInfo.Type.Name);
             Assert.Null(semanticInfo.Symbol);
@@ -54,7 +54,7 @@ class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
             Assert.Equal("C", semanticInfo.Type.Name);
             Assert.Equal("C..ctor(out dynamic x, ref dynamic y)", semanticInfo.Symbol.ToTestDisplayString());
@@ -75,7 +75,7 @@ class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
             Assert.Equal("C", semanticInfo.Type.Name);
             Assert.Equal("C..ctor(out dynamic x, dynamic y)", semanticInfo.Symbol.ToTestDisplayString());
@@ -99,7 +99,7 @@ class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
             Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
             Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
@@ -125,7 +125,7 @@ class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
             Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
             Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
@@ -156,7 +156,7 @@ class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
             Assert.Equal(CandidateReason.LateBound, semanticInfo.CandidateReason);
 
 
@@ -185,7 +185,7 @@ class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
             Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
             Assert.Equal("C C.Create(System.Int32 arg)", semanticInfo.Symbol.ToTestDisplayString());
@@ -208,7 +208,7 @@ class List : List<int>
         /*<bind>*/Add/*</bind>*/(x);
     }
 }";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(source);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(source);
 
             Assert.Null(semanticInfo.Type);
             Assert.Equal("void System.Collections.Generic.List<System.Int32>.Add(System.Int32 item)", semanticInfo.Symbol.ToTestDisplayString());
@@ -231,7 +231,7 @@ class List : List<int>
         /*<bind>*/Add/*</bind>*/(x);
     }
 }";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(source);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(source);
 
             Assert.Null(semanticInfo.Type);
 
@@ -257,7 +257,7 @@ class List : List<int>
         /*<bind>*/Add(x)/*</bind>*/;
     }
 }";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(source);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(source);
 
             Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
 
@@ -289,7 +289,7 @@ class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
             Assert.Equal(CandidateReason.None, semanticInfo.CandidateReason);
 
             Assert.Equal(SpecialType.System_Int32, semanticInfo.Type.SpecialType);
@@ -326,7 +326,7 @@ namespace Dynamic
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
             Assert.Null(semanticInfo.Type);
             Assert.Equal(ConversionKind.Identity, semanticInfo.ImplicitConversion.Kind);
@@ -363,7 +363,7 @@ class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
         }
 
         [Fact]
@@ -385,7 +385,7 @@ class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
             // TODO: what about object initializers?
         }
@@ -411,7 +411,7 @@ class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
             Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
             Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
@@ -446,7 +446,7 @@ class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
             Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
             Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
@@ -474,7 +474,7 @@ class C
     public int F { get; set; }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
             Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
             Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
@@ -511,7 +511,7 @@ class C
     }
 }
 ";
-                var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+                CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
                 Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
                 Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
@@ -538,7 +538,7 @@ class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
             Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
             Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
@@ -566,7 +566,7 @@ class C
     }
 }
 ";
-                var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+                CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
                 Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
                 Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
@@ -601,7 +601,7 @@ class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
             Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
             Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
@@ -630,7 +630,7 @@ class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
             Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
             Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
@@ -657,7 +657,7 @@ class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
             Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
             Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
@@ -685,7 +685,7 @@ class C
     }
 }
 ";
-                var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+                CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
                 Assert.True(((TypeSymbol)semanticInfo.Type).IsDynamic());
                 Assert.True(((TypeSymbol)semanticInfo.ConvertedType).IsDynamic());
@@ -716,7 +716,7 @@ class C
     }
 }
 ";
-                var semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
+                CompilationUtils.SemanticInfoSummary semanticInfo = GetSemanticInfoForTest<ExpressionSyntax>(sourceCode);
 
                 Assert.Equal("System.Void", semanticInfo.Type.ToTestDisplayString());
                 Assert.Equal("System.Void", semanticInfo.ConvertedType.ToTestDisplayString());

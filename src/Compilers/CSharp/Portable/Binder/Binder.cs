@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var result = CheckOverflow;
+                OverflowChecks result = CheckOverflow;
                 return result == OverflowChecks.Enabled || result == OverflowChecks.Implicit && Compilation.Options.CheckOverflow;
             }
         }
@@ -330,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var member = this.ContainingMemberOrLambda;
+                Symbol member = this.ContainingMemberOrLambda;
                 Debug.Assert((object)member == null || member.Kind != SymbolKind.ErrorType);
                 return (object)member == null
                     ? null
@@ -348,7 +348,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var containingMember = this.ContainingMemberOrLambda;
+                Symbol containingMember = this.ContainingMemberOrLambda;
                 switch (containingMember?.Kind)
                 {
                     case SymbolKind.Method:
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 leastOverriddenSymbol.GetAttributes();
             }
 
-            var diagnosticKind = ReportDiagnosticsIfObsoleteInternal(diagnostics, leastOverriddenSymbol, node, containingMember, location);
+            ObsoleteDiagnosticKind diagnosticKind = ReportDiagnosticsIfObsoleteInternal(diagnostics, leastOverriddenSymbol, node, containingMember, location);
 
             // CONSIDER: In place of hasBaseReceiver, dev11 also accepts cases where symbol.ContainingType is a "simple type" (e.g. int)
             // or a special by-ref type (e.g. ArgumentHandle).  These cases are probably more important for other checks performed by
@@ -572,7 +572,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(diagnostics != null);
 
-            var kind = ObsoleteAttributeHelpers.GetObsoleteDiagnosticKind(symbol, containingMember);
+            ObsoleteDiagnosticKind kind = ObsoleteAttributeHelpers.GetObsoleteDiagnosticKind(symbol, containingMember);
 
             DiagnosticInfo info = null;
             switch (kind)
@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal Binder[] GetAllBinders()
         {
             var binders = ArrayBuilder<Binder>.GetInstance();
-            for (var binder = this; binder != null; binder = binder.Next)
+            for (Binder binder = this; binder != null; binder = binder.Next)
             {
                 binders.Add(binder);
             }
@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundExpression WrapWithVariablesIfAny(CSharpSyntaxNode scopeDesignator, BoundExpression expression)
         {
-            var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
+            ImmutableArray<LocalSymbol> locals = this.GetDeclaredLocalsForScope(scopeDesignator);
             return (locals.IsEmpty)
                 ? expression
                 : new BoundSequence(scopeDesignator, locals, ImmutableArray<BoundExpression>.Empty, expression, expression.Type) { WasCompilerGenerated = true };
@@ -670,7 +670,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BoundStatement WrapWithVariablesIfAny(CSharpSyntaxNode scopeDesignator, BoundStatement statement)
         {
-            var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
+            ImmutableArray<LocalSymbol> locals = this.GetDeclaredLocalsForScope(scopeDesignator);
             if (locals.IsEmpty)
             {
                 return statement;
@@ -685,8 +685,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal BoundStatement WrapWithVariablesAndLocalFunctionsIfAny(CSharpSyntaxNode scopeDesignator, BoundStatement statement)
         {
-            var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
-            var localFunctions = this.GetDeclaredLocalFunctionsForScope(scopeDesignator);
+            ImmutableArray<LocalSymbol> locals = this.GetDeclaredLocalsForScope(scopeDesignator);
+            ImmutableArray<LocalFunctionSymbol> localFunctions = this.GetDeclaredLocalFunctionsForScope(scopeDesignator);
             if (locals.IsEmpty && localFunctions.IsEmpty)
             {
                 return statement;
@@ -707,13 +707,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (Binder scope = this; scope != null; scope = scope.Next)
                 {
-                    var(description, snippet, locals) = Print(scope);
+                    (string description, string snippet, string locals) = Print(scope);
                     var sub = new List<TreeDumperNode>();
                     if (!locals.IsEmpty())
                     {
                         sub.Add(new TreeDumperNode("locals", locals, null));
                     }
-                    var currentContainer = scope.ContainingMemberOrLambda;
+                    Symbol currentContainer = scope.ContainingMemberOrLambda;
                     if (currentContainer != null && currentContainer != scope.Next?.ContainingMemberOrLambda)
                     {
                         sub.Add(new TreeDumperNode("containing symbol", currentContainer.ToDisplayString(), null));

@@ -62,10 +62,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 // Try to parse the name as declaration ID generated from symbol's documentation comment Id.
                 var nameWithoutPrefix = RemovePrefix(_name, s_suppressionPrefix);
-                var docIdResults = DocumentationCommentId.GetSymbolsForDeclarationId(nameWithoutPrefix, _compilation);
+                ImmutableArray<ISymbol> docIdResults = DocumentationCommentId.GetSymbolsForDeclarationId(nameWithoutPrefix, _compilation);
                 if (docIdResults.Length > 0)
                 {
-                    foreach (var result in docIdResults)
+                    foreach (ISymbol result in docIdResults)
                     {
                         results.Add(result);
                     }
@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                         }
                     }
 
-                    var candidateMembers = containingSymbol.GetMembers(segment);
+                    ImmutableArray<ISymbol> candidateMembers = containingSymbol.GetMembers(segment);
                     if (candidateMembers.Length == 0)
                     {
                         return;
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                             returnType = ParseNamedType(null);
                         }
 
-                        foreach (var method in GetMatchingMethods(candidateMembers, arity, parameters, returnType))
+                        foreach (IMethodSymbol method in GetMatchingMethods(candidateMembers, arity, parameters, returnType))
                         {
                             results.Add(method);
                         }
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 while (true)
                 {
-                    var parameter = ParseParameter();
+                    ParameterInfo? parameter = ParseParameter();
                     if (parameter != null)
                     {
                         builder.Add(parameter.Value);
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private ParameterInfo? ParseParameter()
             {
-                var type = ParseType(null);
+                TypeInfo? type = ParseType(null);
                 if (type == null)
                 {
                     return null;
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (result.Value.IsBound)
                 {
-                    var typeSymbol = result.Value.Type;
+                    ITypeSymbol typeSymbol = result.Value.Type;
 
                     // Handle pointer and array specifiers for bound types
                     while (true)
@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 if (bindingContext != null)
                 {
-                    var typeParameter = GetNthTypeParameter(bindingContext.ContainingType, typeParameterIndex);
+                    ITypeParameterSymbol typeParameter = GetNthTypeParameter(bindingContext.ContainingType, typeParameterIndex);
                     if (typeParameter != null)
                     {
                         return TypeInfo.Create(typeParameter);
@@ -547,7 +547,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
 
                 // Walk up the symbol tree until we find a type parameter with a name that matches
-                for (var containingType = bindingContext.ContainingType; containingType != null; containingType = containingType.ContainingType)
+                for (INamedTypeSymbol containingType = bindingContext.ContainingType; containingType != null; containingType = containingType.ContainingType)
                 {
                     for (int i = 0; i < containingType.TypeParameters.Length; ++i)
                     {
@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 while (true)
                 {
                     var segment = ParseNextNameSegment();
-                    var candidateMembers = containingSymbol.GetMembers(segment);
+                    ImmutableArray<ISymbol> candidateMembers = containingSymbol.GetMembers(segment);
                     if (candidateMembers.Length == 0)
                     {
                         return TypeInfo.CreateUnbound(startIndex);
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 while (true)
                 {
-                    var type = ParseType(bindingContext);
+                    TypeInfo? type = ParseType(bindingContext);
                     if (type == null)
                     {
                         builder.Free();
@@ -713,7 +713,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private ISymbol GetFirstMatchingIndexer(ImmutableArray<ISymbol> candidateMembers, ParameterInfo[] parameters)
             {
-                foreach (var symbol in candidateMembers)
+                foreach (ISymbol symbol in candidateMembers)
                 {
                     var propertySymbol = symbol as IPropertySymbol;
                     if (propertySymbol != null && AllParametersMatch(propertySymbol.Parameters, parameters))
@@ -729,7 +729,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 var builder = new ArrayBuilder<IMethodSymbol>();
 
-                foreach (var symbol in candidateMembers)
+                foreach (ISymbol symbol in candidateMembers)
                 {
                     var methodSymbol = symbol as IMethodSymbol;
                     if (methodSymbol == null ||
@@ -751,7 +751,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     else
                     {
                         // If return type is specified, then it must match
-                        var boundReturnType = BindParameterOrReturnType(methodSymbol, returnType.Value);
+                        ITypeSymbol boundReturnType = BindParameterOrReturnType(methodSymbol, returnType.Value);
                         if (boundReturnType != null && methodSymbol.ReturnType.Equals(boundReturnType))
                         {
                             builder.Add(methodSymbol);
@@ -788,7 +788,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return false;
                 }
 
-                var parameterType = BindParameterOrReturnType(symbol.ContainingSymbol, parameterInfo.Type);
+                ITypeSymbol parameterType = BindParameterOrReturnType(symbol.ContainingSymbol, parameterInfo.Type);
 
                 return parameterType != null && symbol.Type.Equals(parameterType);
             }
@@ -802,7 +802,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 var currentIndex = _index;
                 _index = type.StartIndex;
-                var result = this.ParseType(bindingContext);
+                TypeInfo? result = this.ParseType(bindingContext);
                 _index = currentIndex;
 
                 return result?.Type;

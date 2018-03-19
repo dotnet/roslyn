@@ -65,8 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Once again, we'll end up with map entries for "1", "P", "P.M(1)", and "P.M(1);".  They will
                         // have the same structure as the original map entries, but will not be ReferenceEquals.
 
-                        var existing = map[key];
-                        var added = additionMap[key];
+                        ImmutableArray<BoundNode> existing = map[key];
+                        ImmutableArray<BoundNode> added = additionMap[key];
                         Debug.Assert(existing.Length == added.Length, "existing.Length == added.Length");
                         for (int i = 0; i < existing.Length; i++)
                         {

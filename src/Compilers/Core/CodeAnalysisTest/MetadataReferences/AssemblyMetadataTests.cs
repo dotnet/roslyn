@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void CreateFromFile()
         {
-            var dir = Temp.CreateDirectory();
+            CodeAnalysis.Test.Utilities.TempDirectory dir = Temp.CreateDirectory();
             var mm = dir.CreateFile("MultiModule.dll").WriteAllBytes(TestResources.SymbolsTests.MultiModule.MultiModuleDll).Path;
             dir.CreateFile("mod2.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod2);
             dir.CreateFile("mod3.netmodule").WriteAllBytes(TestResources.SymbolsTests.MultiModule.mod3);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(m2.IsImageOwner, "Module should own the image");
             Assert.True(m3.IsImageOwner, "Module should own the image");
 
-            var copy1 = a.Copy();
+            AssemblyMetadata copy1 = a.Copy();
             Assert.False(copy1.IsImageOwner, "Assembly should not own the image");
             Assert.False(copy1.GetModules()[0].IsImageOwner, "Module should not own the image");
             Assert.False(copy1.GetModules()[1].IsImageOwner, "Module should not own the image");
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(m2.Module, copy1.GetModules()[1].Module);
             Assert.Equal(m3.Module, copy1.GetModules()[2].Module);
 
-            var copy2 = copy1.Copy();
+            AssemblyMetadata copy2 = copy1.Copy();
             Assert.False(copy2.IsImageOwner, "Assembly should not own the image");
             Assert.False(copy2.GetModules()[0].IsImageOwner, "Module should not own the image");
             Assert.False(copy2.GetModules()[1].IsImageOwner, "Module should not own the image");
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void BadImageFormat()
         {
-            var invalidModuleName = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.Invalid.InvalidModuleName);
+            CodeAnalysis.Test.Utilities.TempFile invalidModuleName = Temp.CreateFile().WriteAllBytes(TestResources.MetadataTests.Invalid.InvalidModuleName);
             var metadata = AssemblyMetadata.CreateFromFile(invalidModuleName.Path);
             Assert.Throws<BadImageFormatException>(() => metadata.GetModules());
         }

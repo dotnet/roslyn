@@ -352,8 +352,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var typeMap1 = GetTypeMap(member1);
-            var typeMap2 = GetTypeMap(member2);
+            TypeMap typeMap1 = GetTypeMap(member1);
+            TypeMap typeMap2 = GetTypeMap(member2);
 
             if (_considerReturnType && !HaveSameReturnTypes(member1, typeMap1, member2, typeMap2,
                                                             _considerCustomModifiers, _ignoreDynamic, _ignoreTupleNames))
@@ -412,8 +412,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // can explicitly implement more than one interface method, in which case it doesn't really
                     // make sense to pretend that all of them are part of the signature.
 
-                    var explicitInterfaceImplementations1 = member1.GetExplicitInterfaceImplementations();
-                    var explicitInterfaceImplementations2 = member2.GetExplicitInterfaceImplementations();
+                    ImmutableArray<Symbol> explicitInterfaceImplementations1 = member1.GetExplicitInterfaceImplementations();
+                    ImmutableArray<Symbol> explicitInterfaceImplementations2 = member2.GetExplicitInterfaceImplementations();
 
                     if (!explicitInterfaceImplementations1.SetEquals(explicitInterfaceImplementations2, EqualityComparer<Symbol>.Default))
                     {
@@ -496,8 +496,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var returnType1 = SubstituteType(typeMap1, new TypeWithModifiers(unsubstitutedReturnType1, returnTypeCustomModifiers1));
-            var returnType2 = SubstituteType(typeMap2, new TypeWithModifiers(unsubstitutedReturnType2, returnTypeCustomModifiers2));
+            TypeWithModifiers returnType1 = SubstituteType(typeMap1, new TypeWithModifiers(unsubstitutedReturnType1, returnTypeCustomModifiers1));
+            TypeWithModifiers returnType2 = SubstituteType(typeMap2, new TypeWithModifiers(unsubstitutedReturnType2, returnTypeCustomModifiers2));
 
             // the runtime compares custom modifiers using (effectively) SequenceEqual
             return considerCustomModifiers ?
@@ -508,7 +508,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static TypeMap GetTypeMap(Symbol member)
         {
-            var typeParameters = member.GetMemberTypeParameters();
+            ImmutableArray<TypeParameterSymbol> typeParameters = member.GetMemberTypeParameters();
             return typeParameters.IsEmpty ?
                 null :
                 new TypeMap(
@@ -527,8 +527,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return true;
             }
 
-            var typeParameters1 = member1.GetMemberTypeParameters();
-            var typeParameters2 = member2.GetMemberTypeParameters();
+            ImmutableArray<TypeParameterSymbol> typeParameters1 = member1.GetMemberTypeParameters();
+            ImmutableArray<TypeParameterSymbol> typeParameters2 = member2.GetMemberTypeParameters();
             return HaveSameConstraints(typeParameters1, typeMap1, typeParameters2, typeMap2);
         }
 
@@ -565,8 +565,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // also that constraintTypes2 is a subset of constraintTypes1
             // (see SymbolPreparer::CheckImplicitImplConstraints).
 
-            var constraintTypes1 = typeParameter1.ConstraintTypesNoUseSiteDiagnostics;
-            var constraintTypes2 = typeParameter2.ConstraintTypesNoUseSiteDiagnostics;
+            ImmutableArray<TypeSymbol> constraintTypes1 = typeParameter1.ConstraintTypesNoUseSiteDiagnostics;
+            ImmutableArray<TypeSymbol> constraintTypes2 = typeParameter2.ConstraintTypesNoUseSiteDiagnostics;
 
             // The two sets of constraints may differ in size but still be considered
             // the same (duplicated constraints, ignored "object" constraints), but
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         private static bool AreConstraintTypesSubset(HashSet<TypeSymbol> constraintTypes1, HashSet<TypeSymbol> constraintTypes2, TypeParameterSymbol typeParameter2)
         {
-            foreach (var constraintType in constraintTypes1)
+            foreach (TypeSymbol constraintType in constraintTypes1)
             {
                 // Skip object type (spec. 13.4.3).
                 if (constraintType.SpecialType == SpecialType.System_Object)
@@ -622,7 +622,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static void SubstituteConstraintTypes(ImmutableArray<TypeSymbol> types, TypeMap typeMap, HashSet<TypeSymbol> result)
         {
-            foreach (var type in types)
+            foreach (TypeSymbol type in types)
             {
                 result.Add(typeMap.SubstituteType(type).Type);
             }
@@ -637,11 +637,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             for (int i = 0; i < numParams; i++)
             {
-                var param1 = params1[i];
-                var param2 = params2[i];
+                ParameterSymbol param1 = params1[i];
+                ParameterSymbol param2 = params2[i];
 
-                var type1 = SubstituteType(typeMap1, new TypeWithModifiers(param1.Type, param1.CustomModifiers));
-                var type2 = SubstituteType(typeMap2, new TypeWithModifiers(param2.Type, param2.CustomModifiers));
+                TypeWithModifiers type1 = SubstituteType(typeMap1, new TypeWithModifiers(param1.Type, param1.CustomModifiers));
+                TypeWithModifiers type2 = SubstituteType(typeMap2, new TypeWithModifiers(param2.Type, param2.CustomModifiers));
 
                 // the runtime compares custom modifiers using (effectively) SequenceEqual
                 if (considerCustomModifiers)
@@ -657,8 +657,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return false;
                 }
 
-                var refKind1 = param1.RefKind;
-                var refKind2 = param2.RefKind;
+                RefKind refKind1 = param1.RefKind;
+                RefKind refKind2 = param2.RefKind;
 
                 // Metadata signatures don't distinguish ref/out, but C# does - even when comparing metadata method signatures.
                 if (considerRefKindDifferences)

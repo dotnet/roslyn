@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns>A <see cref="DiagnosticInfo"/> with effective severity based on option or null if suppressed.</returns>
         public DiagnosticInfo FilterDiagnosticInfo(DiagnosticInfo diagnosticInfo, CompilationOptions options)
         {
-            var report = this.GetDiagnosticReport(diagnosticInfo, options);
+            ReportDiagnostic report = this.GetDiagnosticReport(diagnosticInfo, options);
             switch (report)
             {
                 case ReportDiagnostic.Error:

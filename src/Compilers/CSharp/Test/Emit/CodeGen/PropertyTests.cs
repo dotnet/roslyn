@@ -23,8 +23,8 @@ class C
         get => x;
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
-            var verifier = CompileAndVerify(compilation);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            CompilationVerifier verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("C.X.get", @"
 {
   // Code size        7 (0x7)

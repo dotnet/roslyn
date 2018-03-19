@@ -75,14 +75,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var diagnosticsBuilder = ArrayBuilder<TypeParameterDiagnosticInfo>.GetInstance();
             ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
-            var bounds = typeParameter.ResolveBounds(corLibrary, inProgress, constraintTypes, inherited, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
+            TypeParameterBounds bounds = typeParameter.ResolveBounds(corLibrary, inProgress, constraintTypes, inherited, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
 
             if (useSiteDiagnosticsBuilder != null)
             {
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder);
             }
 
-            foreach (var pair in diagnosticsBuilder)
+            foreach (TypeParameterDiagnosticInfo pair in diagnosticsBuilder)
             {
                 diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, pair.TypeParameter.Locations[0]));
             }
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // Resolve base types, determine the effective base class and
                 // interfaces, and filter out any constraint types that cause cycles.
-                foreach (var constraintType in constraintTypes)
+                foreach (TypeSymbol constraintType in constraintTypes)
                 {
                     NamedTypeSymbol constraintEffectiveBase;
                     TypeSymbol constraintDeducedBase;
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         case TypeKind.TypeParameter:
                             {
-                                var containingSymbol = typeParameter.ContainingSymbol;
+                                Symbol containingSymbol = typeParameter.ContainingSymbol;
                                 var constraintTypeParameter = (TypeParameterSymbol)constraintType;
                                 ConsList<TypeParameterSymbol> constraintsInProgress;
 
@@ -317,14 +317,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            foreach (var clause in constraintClauses)
+            foreach (TypeParameterConstraintClause clause in constraintClauses)
             {
                 if (clause == null)
                 {
                     continue;
                 }
 
-                foreach (var constraintType in clause.ConstraintTypes)
+                foreach (TypeSymbol constraintType in clause.ConstraintTypes)
                 {
                     if (!containingSymbol.IsNoMoreVisibleThan(constraintType, ref useSiteDiagnostics))
                     {
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
             binder = binder.WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
 
-            var result = binder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, constraintClauses, diagnostics);
+            ImmutableArray<TypeParameterConstraintClause> result = binder.BindTypeParameterConstraintClauses(containingSymbol, typeParameters, constraintClauses, diagnostics);
             containingSymbol.CheckConstraintTypesVisibility(location, result, diagnostics);
             return result;
         }
@@ -366,8 +366,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeParameterBounds bounds,
             ArrayBuilder<TypeParameterDiagnosticInfo> diagnosticsBuilder)
         {
-            var deducedBase = bounds.DeducedBaseType;
-            var constraintTypes = bounds.ConstraintTypes;
+            TypeSymbol deducedBase = bounds.DeducedBaseType;
+            ImmutableArray<TypeSymbol> constraintTypes = bounds.ConstraintTypes;
 
             if (IsValueType(typeParameter, constraintTypes) && IsReferenceType(typeParameter, constraintTypes))
             {
@@ -456,7 +456,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TupleTypeSymbol.GetUnderlyingTypeChain(type, underlyingTupleTypeChain);
 
             int offset = 0;
-            foreach (var underlyingTuple in underlyingTupleTypeChain)
+            foreach (NamedTypeSymbol underlyingTuple in underlyingTupleTypeChain)
             {
                 ArrayBuilder<TypeParameterDiagnosticInfo> useSiteDiagnosticsBuilder = null;
                 CheckTypeConstraints(underlyingTuple, conversions, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder);
@@ -466,13 +466,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder);
                 }
 
-                foreach (var pair in diagnosticsBuilder)
+                foreach (TypeParameterDiagnosticInfo pair in diagnosticsBuilder)
                 {
                     var ordinal = pair.TypeParameter.Ordinal;
 
                     // If this is the TRest type parameter, we report it on 
                     // the entire type syntax as it does not map to any tuple element.
-                    var location = ordinal == TupleTypeSymbol.RestIndex ? typeSyntax.Location : elementLocations[ordinal + offset];
+                    Location location = ordinal == TupleTypeSymbol.RestIndex ? typeSyntax.Location : elementLocations[ordinal + offset];
                     diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
                 }
 
@@ -510,7 +510,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder);
             }
 
-            foreach (var pair in diagnosticsBuilder)
+            foreach (TypeParameterDiagnosticInfo pair in diagnosticsBuilder)
             {
                 int ordinal = pair.TypeParameter.Ordinal;
                 var location = new SourceLocation(ordinal < typeArgumentsSyntax.Count ? typeArgumentsSyntax[ordinal] : typeSyntax);
@@ -555,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder);
             }
 
-            foreach (var pair in diagnosticsBuilder)
+            foreach (TypeParameterDiagnosticInfo pair in diagnosticsBuilder)
             {
                 diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
             }
@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // PERF: avoid instantiating all interfaces here
             //       Ex: if class implements just IEnumerable<> and IComparable<> it cannot have conflicting implementations
-            var array = type.OriginalDefinition.InterfacesNoUseSiteDiagnostics(basesBeingResolved);
+            ImmutableArray<NamedTypeSymbol> array = type.OriginalDefinition.InterfacesNoUseSiteDiagnostics(basesBeingResolved);
 
             switch (array.Length)
             {
@@ -601,7 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 default:
                     var set = PooledHashSet<object>.GetInstance();
-                    foreach (var i in array)
+                    foreach (NamedTypeSymbol i in array)
                     {
                         if (!set.Add(i.OriginalDefinition))
                         {
@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder);
             }
 
-            foreach (var pair in diagnosticsBuilder)
+            foreach (TypeParameterDiagnosticInfo pair in diagnosticsBuilder)
             {
                 var location = new SourceLocation(syntaxNode);
                 diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
@@ -674,7 +674,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnosticsBuilder.AddRange(useSiteDiagnosticsBuilder);
             }
 
-            foreach (var pair in diagnosticsBuilder)
+            foreach (TypeParameterDiagnosticInfo pair in diagnosticsBuilder)
             {
                 diagnostics.Add(new CSDiagnostic(pair.DiagnosticInfo, location));
             }
@@ -761,8 +761,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                var typeArgument = typeArguments[i];
-                var typeParameter = typeParameters[i];
+                TypeSymbol typeArgument = typeArguments[i];
+                TypeParameterSymbol typeParameter = typeParameters[i];
 
                 if (!CheckConstraints(containingSymbol, conversions, substitution, typeParameter, typeArgument, currentCompilation, diagnosticsBuilder, ref useSiteDiagnosticsBuilder,
                                       ignoreTypeConstraintsDependentOnTypeParametersOpt))
@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool hasError = false;
 
-            foreach (var constraintType in constraintTypes)
+            foreach (TypeSymbol constraintType in constraintTypes)
             {
                 if (SatisfiesConstraintType(conversions, typeArgument, constraintType, ref useSiteDiagnostics))
                 {
@@ -908,7 +908,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             bool hasErrors = false;
 
-            foreach (var info in useSiteDiagnostics)
+            foreach (DiagnosticInfo info in useSiteDiagnostics)
             {
                 if (info.Severity == DiagnosticSeverity.Error)
                 {
@@ -963,7 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // TypeBind::SatisfiesBound allows cases where one of the
                 // type parameter constraints satisfies the constraint.
-                foreach (var typeArgumentConstraint in typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+                foreach (TypeSymbol typeArgumentConstraint in typeParameter.ConstraintTypesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
                 {
                     if (SatisfiesConstraintType(conversions, typeArgumentConstraint, constraintType, ref useSiteDiagnostics))
                     {
@@ -993,7 +993,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static void AddInterfaces(ArrayBuilder<NamedTypeSymbol> builder, ImmutableArray<NamedTypeSymbol> interfaces)
         {
-            foreach (var @interface in interfaces)
+            foreach (NamedTypeSymbol @interface in interfaces)
             {
                 AddInterface(builder, @interface);
             }
@@ -1040,7 +1040,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private static bool HasPublicParameterlessConstructor(NamedTypeSymbol type)
         {
             Debug.Assert(type.TypeKind == TypeKind.Class);
-            foreach (var constructor in type.InstanceConstructors)
+            foreach (MethodSymbol constructor in type.InstanceConstructors)
             {
                 if (constructor.ParameterCount == 0)
                 {

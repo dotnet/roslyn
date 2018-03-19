@@ -77,11 +77,11 @@ class Hello
 
         private async Task<BuildRequest> CreateBuildRequest(string sourceText, TimeSpan? keepAlive = null)
         {
-            var directory = Temp.CreateDirectory();
-            var file = directory.CreateFile("temp.cs");
+            Test.Utilities.TempDirectory directory = Temp.CreateDirectory();
+            Test.Utilities.TempFile file = directory.CreateFile("temp.cs");
             await file.WriteAllTextAsync(sourceText).ConfigureAwait(false);
 
-            var builder = ImmutableArray.CreateBuilder<BuildRequest.Argument>();
+            ImmutableArray<BuildRequest.Argument>.Builder builder = ImmutableArray.CreateBuilder<BuildRequest.Argument>();
             if (keepAlive.HasValue)
             {
                 builder.Add(new BuildRequest.Argument(BuildProtocolConstants.ArgumentId.KeepAlive, argumentIndex: 0, value: keepAlive.Value.TotalSeconds.ToString()));
@@ -103,7 +103,7 @@ class Hello
         {
             using (var namedPipe = new NamedPipeClientStream(".", pipeName, PipeDirection.InOut))
             {
-                var buildRequest = await CreateBuildRequest(sourceText, keepAlive).ConfigureAwait(false);
+                BuildRequest buildRequest = await CreateBuildRequest(sourceText, keepAlive).ConfigureAwait(false);
                 namedPipe.Connect(Timeout.Infinite);
                 await buildRequest.WriteAsync(namedPipe, default(CancellationToken)).ConfigureAwait(false);
                 return await BuildResponse.ReadAsync(namedPipe, default(CancellationToken)).ConfigureAwait(false);
@@ -137,7 +137,7 @@ class Hello
 
             var task = Task.FromResult(clientConnection.Object);
 
-            var connectionData = await ServerDispatcher.HandleClientConnection(task).ConfigureAwait(true);
+            ConnectionData connectionData = await ServerDispatcher.HandleClientConnection(task).ConfigureAwait(true);
             Assert.Equal(CompletionReason.ClientException, connectionData.CompletionReason);
             Assert.Null(connectionData.KeepAlive);
         }
@@ -146,8 +146,8 @@ class Hello
         public async Task ClientConnectionThrowsConnecting()
         {
             var ex = new Exception();
-            var task = FromException<IClientConnection>(ex);
-            var connectionData = await ServerDispatcher.HandleClientConnection(task).ConfigureAwait(true);
+            Task<IClientConnection> task = FromException<IClientConnection>(ex);
+            ConnectionData connectionData = await ServerDispatcher.HandleClientConnection(task).ConfigureAwait(true);
             Assert.Equal(CompletionReason.CompilationNotStarted, connectionData.CompletionReason);
             Assert.Null(connectionData.KeepAlive);
         }
@@ -163,7 +163,7 @@ class Hello
 
             var listener = new TestableDiagnosticListener();
             var dispatcher = new ServerDispatcher(connectionHost.Object, listener);
-            var startTime = DateTime.Now;
+            DateTime startTime = DateTime.Now;
             dispatcher.ListenAndDispatchConnections(keepAlive);
 
             Assert.True(listener.HitKeepAliveTimeout);
@@ -175,8 +175,8 @@ class Hello
         [Fact]
         public void KeepAliveAfterSingleConnection()
         {
-            var connection = CreateClientConnection(CompletionReason.CompilationCompleted);
-            var host = CreateClientConnectionHost(
+            IClientConnection connection = CreateClientConnection(CompletionReason.CompilationCompleted);
+            IClientConnectionHost host = CreateClientConnectionHost(
                 Task.FromResult(connection),
                 new TaskCompletionSource<IClientConnection>().Task);
             var listener = new TestableDiagnosticListener();
@@ -199,12 +199,12 @@ class Hello
             var list = new List<Task<IClientConnection>>();
             for (var i = 0; i < count; i++)
             {
-                var connection = CreateClientConnection(CompletionReason.CompilationCompleted);
+                IClientConnection connection = CreateClientConnection(CompletionReason.CompilationCompleted);
                 list.Add(Task.FromResult(connection));
             }
 
             list.Add(new TaskCompletionSource<IClientConnection>().Task);
-            var host = CreateClientConnectionHost(list.ToArray());
+            IClientConnectionHost host = CreateClientConnectionHost(list.ToArray());
             var listener = new TestableDiagnosticListener();
             var keepAlive = TimeSpan.FromSeconds(1);
             var dispatcher = new ServerDispatcher(host, listener);
@@ -232,7 +232,7 @@ class Hello
                     if (list.Count < totalCount)
                     {
                         var source = new TaskCompletionSource<ConnectionData>();
-                        var client = CreateClientConnection(source.Task);
+                        IClientConnection client = CreateClientConnection(source.Task);
                         list.Add(source);
                         return Task.FromResult(client);
                     }
@@ -250,7 +250,7 @@ class Hello
             });
 
             await readySource.Task.ConfigureAwait(true);
-            foreach (var source in list)
+            foreach (TaskCompletionSource<ConnectionData> source in list)
             {
                 source.SetResult(new ConnectionData(CompletionReason.CompilationCompleted));
             }
@@ -371,7 +371,7 @@ class Hello
         [Fact]
         public async Task ShutdownRequestDirect()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
                 var serverProcessId = await ServerUtil.SendShutdown(serverData.PipeName);
                 Assert.Equal(Process.GetCurrentProcess().Id, serverProcessId);
@@ -390,7 +390,7 @@ class Hello
 
             using (var startedMre = new ManualResetEvent(initialState: false))
             using (var finishedMre = new ManualResetEvent(initialState: false))
-            using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
+            using (ServerData serverData = ServerUtil.CreateServer(compilerServerHost: host))
             {
                 // Create a compilation that is guaranteed to complete after the shutdown is seen. 
                 host.RunCompilation = (request, cancellationToken) =>
@@ -400,7 +400,7 @@ class Hello
                     return s_emptyBuildResponse;
                 };
 
-                var compileTask = ServerUtil.Send(serverData.PipeName, s_emptyCSharpBuildRequest);
+                Task<BuildResponse> compileTask = ServerUtil.Send(serverData.PipeName, s_emptyCSharpBuildRequest);
                 startedMre.WaitOne();
 
                 // The compilation is now in progress, send the shutdown.
@@ -408,7 +408,7 @@ class Hello
                 Assert.False(compileTask.IsCompleted);
                 finishedMre.Set();
 
-                var response = await compileTask;
+                BuildResponse response = await compileTask;
                 Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);
                 Assert.Equal(0, ((CompletedBuildResponse)response).ReturnCode);
 
@@ -427,7 +427,7 @@ class Hello
 
             using (var startedMre = new ManualResetEvent(initialState: false))
             using (var finishedMre = new ManualResetEvent(initialState: false))
-            using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
+            using (ServerData serverData = ServerUtil.CreateServer(compilerServerHost: host))
             {
                 // Create a compilation that is guaranteed to complete after the shutdown is seen. 
                 host.RunCompilation = (request, cancellationToken) =>
@@ -437,7 +437,7 @@ class Hello
                     return s_emptyBuildResponse;
                 };
 
-                var compileTask = ServerUtil.Send(serverData.PipeName, s_emptyCSharpBuildRequest);
+                Task<BuildResponse> compileTask = ServerUtil.Send(serverData.PipeName, s_emptyCSharpBuildRequest);
                 startedMre.WaitOne();
 
                 for (var i = 0; i < 10; i++)
@@ -450,7 +450,7 @@ class Hello
 
                 finishedMre.Set();
 
-                var response = await compileTask;
+                BuildResponse response = await compileTask;
                 Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);
                 Assert.Equal(0, ((CompletedBuildResponse)response).ReturnCode);
 
@@ -463,7 +463,7 @@ class Hello
         {
             var host = new TestableCompilerServerHost();
 
-            using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
+            using (ServerData serverData = ServerUtil.CreateServer(compilerServerHost: host))
             using (var mre = new ManualResetEvent(initialState: false))
             {
                 const int requestCount = 5;
@@ -483,7 +483,7 @@ class Hello
                 var list = new List<Task<BuildResponse>>();
                 for (var i = 0; i < requestCount; i++)
                 {
-                    var task = ServerUtil.Send(serverData.PipeName, s_emptyCSharpBuildRequest);
+                    Task<BuildResponse> task = ServerUtil.Send(serverData.PipeName, s_emptyCSharpBuildRequest);
                     list.Add(task);
                 }
 
@@ -491,11 +491,11 @@ class Hello
                 mre.WaitOne();
                 serverData.CancellationTokenSource.Cancel();
 
-                var stats = await serverData.Complete();
+                ServerStats stats = await serverData.Complete();
                 Assert.Equal(requestCount, stats.Connections);
                 Assert.Equal(requestCount, count);
 
-                foreach (var task in list)
+                foreach (Task<BuildResponse> task in list)
                 {
                     var threw = false;
                     try

@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void WaitForWorkers()
         {
-            var tasks = _compilerTasks;
+            ConcurrentStack<Task> tasks = _compilerTasks;
             if (tasks == null)
             {
                 return;
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitNamespaceMembersAsTasks(NamespaceSymbol symbol)
         {
-            foreach (var m in symbol.GetMembersUnordered())
+            foreach (Symbol m in symbol.GetMembersUnordered())
             {
                 _compilerTasks.Push(Task.Run(UICultureUtilities.WithCurrentUICulture(() =>
                 {
@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VisitNamespaceMembers(NamespaceSymbol symbol)
         {
-            foreach (var m in symbol.GetMembersUnordered())
+            foreach (Symbol m in symbol.GetMembersUnordered())
             {
                 Visit(m);
             }
@@ -254,7 +254,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // You may assume we could skip the members if this type is inaccessible,
             // but dev11 reports that they are inaccessible as well.
-            foreach (var m in symbol.GetMembersUnordered())
+            foreach (Symbol m in symbol.GetMembersUnordered())
             {
                 Visit(m);
             }
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                foreach (var pair in attribute.NamedArguments)
+                foreach (KeyValuePair<string, TypedConstant> pair in attribute.NamedArguments)
                 {
                     TypedConstant argument = pair.Value;
                     if (argument.Type.TypeKind == TypeKind.Array)
@@ -624,7 +624,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This catches things like param arrays and converted null literals.
                 if ((object)attribute.AttributeConstructor != null) // Happens in error scenarios.
                 {
-                    foreach (var type in attribute.AttributeConstructor.ParameterTypes)
+                    foreach (TypeSymbol type in attribute.AttributeConstructor.ParameterTypes)
                     {
                         if (type.TypeKind == TypeKind.Array)
                         {
@@ -854,7 +854,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 var name = member.Name;
-                var sameNameSymbols = seenByName[name];
+                MultiDictionary<string, Symbol>.ValueSet sameNameSymbols = seenByName[name];
                 if (sameNameSymbols.Count > 0)
                 {
                     CheckSymbolDistinctness(member, name, sameNameSymbols);

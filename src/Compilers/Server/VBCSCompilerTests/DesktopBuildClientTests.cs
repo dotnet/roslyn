@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             public static async Task<bool> TryConnectToNamedPipe(string pipeName, int timeoutMs, CancellationToken cancellationToken)
             {
-                using (var pipeStream = await BuildServerConnection.TryConnectToServerAsync(pipeName, timeoutMs, cancellationToken))
+                using (NamedPipeClientStream pipeStream = await BuildServerConnection.TryConnectToServerAsync(pipeName, timeoutMs, cancellationToken))
                 {
                     return pipeStream != null;
                 }
@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
             public override void Dispose()
             {
-                foreach (var serverData in _serverDataList)
+                foreach (ServerData serverData in _serverDataList)
                 {
                     serverData.CancellationTokenSource.Cancel();
                     serverData.ServerTask.Wait();
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     return false;
                 }
 
-                var serverData = ServerUtil.CreateServer(pipeName);
+                ServerData serverData = ServerUtil.CreateServer(pipeName);
                 _serverDataList.Add(serverData);
                 return true;
             }
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     Assert.True(holdsMutex);
                     var ranLocal = false;
                     // Note: Connecting to a server can take up to a second to time out
-                    var client = CreateClient(
+                    TestableDesktopBuildClient client = CreateClient(
                         compileFunc: delegate
                         {
                             ranLocal = true;
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                 // Try again with infinite timeout and cancel
                 var cts = new CancellationTokenSource();
-                var connection = TestableDesktopBuildClient.TryConnectToNamedPipe(pipeName, Timeout.Infinite, cts.Token);
+                Task<bool> connection = TestableDesktopBuildClient.TryConnectToNamedPipe(pipeName, Timeout.Infinite, cts.Token);
                 Assert.False(connection.IsCompleted);
                 cts.Cancel();
                 await Assert.ThrowsAnyAsync<OperationCanceledException>(
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             public void OnlyStartsOneServer()
             {
                 var ranLocal = false;
-                var client = CreateClient(
+                TestableDesktopBuildClient client = CreateClient(
                     compileFunc: delegate
                     {
                         ranLocal = true;
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 _allowServer = false;
                 var ranLocal = false;
-                var client = CreateClient(compileFunc: delegate
+                TestableDesktopBuildClient client = CreateClient(compileFunc: delegate
                 {
                     ranLocal = true;
                     return 0;

@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (CanConsiderTypeParameters(options))
             {
-                foreach (var kvp in TypeParameterMap)
+                foreach (System.Collections.Generic.KeyValuePair<string, MultiDictionary<string, TypeParameterSymbol>.ValueSet> kvp in TypeParameterMap)
                 {
                     foreach (TypeParameterSymbol typeParameter in kvp.Value)
                     {

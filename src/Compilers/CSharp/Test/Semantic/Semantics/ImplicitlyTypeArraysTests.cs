@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ImplicitlyTypedArrayLocal()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class M {}
 
 class C 
@@ -32,12 +32,12 @@ class C
 
             var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("F").Single();
             var diagnostics = new DiagnosticBag();
-            var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
+            BoundBlock block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
 
             var locDecl = (BoundLocalDeclaration)block.Statements.Single();
             var localA = (ArrayTypeSymbol)locDecl.DeclaredType.Display;
 
-            var typeM = compilation.GlobalNamespace.GetMember<TypeSymbol>("M");
+            TypeSymbol typeM = compilation.GlobalNamespace.GetMember<TypeSymbol>("M");
 
             Assert.Equal(typeM, localA.ElementType);
         }
@@ -56,15 +56,15 @@ class C
 }
 ";
 
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
-            var sym = model.GetSymbolInfo(expr);
+            ExpressionSyntax expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            SymbolInfo sym = model.GetSymbolInfo(expr);
             Assert.Equal(SymbolKind.Local, sym.Symbol.Kind);
 
-            var info = model.GetTypeInfo(expr);
+            TypeInfo info = model.GetTypeInfo(expr);
             Assert.NotNull(info.Type);
             Assert.NotNull(info.ConvertedType);
         }
@@ -82,17 +82,17 @@ class C
 }
 ";
 
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
-            var symInfo = model.GetSymbolInfo(expr);
+            ExpressionSyntax expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            SymbolInfo symInfo = model.GetSymbolInfo(expr);
 
             Assert.Equal("System.String[]", symInfo.Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.ArrayType, symInfo.Symbol.Kind);
 
-            var typeInfo = model.GetTypeInfo(expr);
+            TypeInfo typeInfo = model.GetTypeInfo(expr);
             Assert.NotNull(typeInfo.Type);
             Assert.NotNull(typeInfo.ConvertedType);
         }

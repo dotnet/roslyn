@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
 
             if (File.Exists(DestinationPath))
             {
-                var source = Guid.Empty;
+                Guid source = Guid.Empty;
                 try
                 {
                     source = ExtractMvid(SourcePath);

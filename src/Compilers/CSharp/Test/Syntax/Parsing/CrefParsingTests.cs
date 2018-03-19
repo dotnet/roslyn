@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         protected override CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options)
         {
             var commentText = string.Format(@"/// <see cref=""{0}""/>", text);
-            var trivia = SyntaxFactory.ParseLeadingTrivia(commentText).Single();
+            SyntaxTrivia trivia = SyntaxFactory.ParseLeadingTrivia(commentText).Single();
             var structure = (DocumentationCommentTriviaSyntax)trivia.GetStructure();
-            var attr = structure.DescendantNodes().OfType<XmlCrefAttributeSyntax>().Single();
+            XmlCrefAttributeSyntax attr = structure.DescendantNodes().OfType<XmlCrefAttributeSyntax>().Single();
             return attr.Cref;
         }
 

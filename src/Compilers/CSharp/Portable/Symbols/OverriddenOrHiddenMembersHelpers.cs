@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // If our base interface contains a matching member of the same kind, 
                     // then we don't need to look any further up this subtree.
-                    foreach (var hidden in currType.AllInterfacesNoUseSiteDiagnostics)
+                    foreach (NamedTypeSymbol hidden in currType.AllInterfacesNoUseSiteDiagnostics)
                     {
                         allMembersHidden.Add(hidden);
                     }
@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     {
                         if (!haveBestMatch)
                         {
-                            foreach (var hidden in currType.AllInterfacesNoUseSiteDiagnostics)
+                            foreach (NamedTypeSymbol hidden in currType.AllInterfacesNoUseSiteDiagnostics)
                             {
                                 allMembersHidden.Add(hidden);
                             }
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // If our base interface contains a (non-matching) member of the same kind, then
                     // it will hide all members that aren't of that kind further up the chain.
-                    foreach (var hidden in currType.AllInterfacesNoUseSiteDiagnostics)
+                    foreach (NamedTypeSymbol hidden in currType.AllInterfacesNoUseSiteDiagnostics)
                     {
                         membersOfOtherKindsHidden.Add(hidden);
                     }

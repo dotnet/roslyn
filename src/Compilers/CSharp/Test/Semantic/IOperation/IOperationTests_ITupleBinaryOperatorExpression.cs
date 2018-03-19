@@ -182,17 +182,17 @@ class C
     }
 }
 ";
-            var compilation = CreateEmptyCompilation(source);
-            (var operation, _) = GetOperationAndSyntaxForTest<BinaryExpressionSyntax>(compilation);
+            CSharpCompilation compilation = CreateEmptyCompilation(source);
+            (IOperation operation, _) = GetOperationAndSyntaxForTest<BinaryExpressionSyntax>(compilation);
             var equals = (ITupleBinaryOperation)operation;
             Assert.Equal(OperationKind.SimpleAssignment, equals.Parent.Kind);
             Assert.Equal(2, equals.Children.Count());
 
-            var left = equals.Children.ElementAt(0);
+            IOperation left = equals.Children.ElementAt(0);
             Assert.Equal(OperationKind.Conversion, left.Kind);
             Assert.Equal(OperationKind.ParameterReference, left.Children.Single().Kind);
 
-            var right = equals.Children.ElementAt(1);
+            IOperation right = equals.Children.ElementAt(1);
             Assert.Equal(OperationKind.Tuple, right.Kind);
         }
     }

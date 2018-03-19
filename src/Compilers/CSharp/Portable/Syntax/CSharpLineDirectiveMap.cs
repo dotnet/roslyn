@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public override LineVisibility GetLineVisibility(SourceText sourceText, int position)
         {
-            var unmappedPos = sourceText.Lines.GetLinePosition(position);
+            LinePosition unmappedPos = sourceText.Lines.GetLinePosition(position);
 
             // if there's only one entry (which is created as default for each file), all lines
             // are treated as being visible
@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             }
 
             var index = FindEntryIndex(unmappedPos.Line);
-            var entry = Entries[index];
+            LineMappingEntry entry = Entries[index];
 
             // the state should not be set to the ones used for VB only.
             Debug.Assert(entry.State != PositionState.Unknown &&
@@ -135,9 +135,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         internal override FileLinePositionSpan TranslateSpanAndVisibility(SourceText sourceText, string treeFilePath, TextSpan span, out bool isHiddenPosition)
         {
-            var lines = sourceText.Lines;
-            var unmappedStartPos = lines.GetLinePosition(span.Start);
-            var unmappedEndPos = lines.GetLinePosition(span.End);
+            TextLineCollection lines = sourceText.Lines;
+            LinePosition unmappedStartPos = lines.GetLinePosition(span.Start);
+            LinePosition unmappedEndPos = lines.GetLinePosition(span.End);
 
             // most common case is where we have only one mapping entry.
             if (this.Entries.Length == 1)
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 return new FileLinePositionSpan(treeFilePath, unmappedStartPos, unmappedEndPos);
             }
 
-            var entry = FindEntry(unmappedStartPos.Line);
+            LineMappingEntry entry = FindEntry(unmappedStartPos.Line);
 
             // the state should not be set to the ones used for VB only.
             Debug.Assert(entry.State != PositionState.Unknown &&

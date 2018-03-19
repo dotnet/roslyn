@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                var flags = module.GetFieldDefFlagsOrThrow(field);
+                FieldAttributes flags = module.GetFieldDefFlagsOrThrow(field);
                 return ShouldImportField(flags, importOptions);
             }
             catch (BadImageFormatException)
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                var flags = module.GetMethodDefFlagsOrThrow(methodDef);
+                MethodAttributes flags = module.GetMethodDefFlagsOrThrow(methodDef);
 
                 // If the method is virtual, it must be accessible, although
                 // it may be an explicit (private) interface implementation.

@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // 2) Expose the way to get an instance.
         public static LookupSymbolsInfo GetInstance()
         {
-            var info = s_pool.Allocate();
+            LookupSymbolsInfo info = s_pool.Allocate();
             Debug.Assert(info.Count == 0);
             return info;
         }

@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(memberIndex == _members.Length);
 
                 // fill nameToSymbols map
-                foreach (var symbol in _members)
+                foreach (Symbol symbol in _members)
                 {
                     _nameToSymbols.Add(symbol.Name, symbol);
                 }
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal AnonymousTypeKey GetAnonymousTypeKey()
             {
-                var properties = this.Properties.SelectAsArray(p => new AnonymousTypeKeyField(p.Name, isKey: false, ignoreCase: false));
+                ImmutableArray<AnonymousTypeKeyField> properties = this.Properties.SelectAsArray(p => new AnonymousTypeKeyField(p.Name, isKey: false, ignoreCase: false));
                 return new AnonymousTypeKey(properties);
             }
 
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 set
                 {
-                    var oldValue = Interlocked.CompareExchange(ref _nameAndIndex, value, null);
+                    NameAndIndex oldValue = Interlocked.CompareExchange(ref _nameAndIndex, value, null);
                     Debug.Assert(oldValue == null ||
                         ((oldValue.Name == value.Name) && (oldValue.Index == value.Index)));
                 }
@@ -203,7 +203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
             {
-                foreach (var m in this.GetMembers())
+                foreach (Symbol m in this.GetMembers())
                 {
                     switch (m.Kind)
                     {
@@ -236,9 +236,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override ImmutableArray<Symbol> GetMembers(string name)
             {
-                var symbols = _nameToSymbols[name];
+                MultiDictionary<string, Symbol>.ValueSet symbols = _nameToSymbols[name];
                 var builder = ArrayBuilder<Symbol>.GetInstance(symbols.Count);
-                foreach (var symbol in symbols)
+                foreach (Symbol symbol in symbols)
                 {
                     builder.Add(symbol);
                 }
@@ -481,7 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 else
                 {
                     var builder = PooledStringBuilder.GetInstance();
-                    var sb = builder.Builder;
+                    System.Text.StringBuilder sb = builder.Builder;
 
                     sb.Append("\\{ ");
                     int displayCount = Math.Min(this.Properties.Length, 10);

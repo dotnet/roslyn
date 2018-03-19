@@ -16,13 +16,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseDll, parseOptions: DefaultParseOptions);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45AndCSharp(source, options: TestOptions.ReleaseDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(expected);
         }
 
         internal void VerifyDiagnostics(string source, CSharpCompilationOptions options, params DiagnosticDescription[] expected)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSharp(source, options: options, parseOptions: DefaultParseOptions);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45AndCSharp(source, options: options, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(expected);
         }
     }
@@ -55,7 +55,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "localFunc");
         }
 
@@ -112,7 +112,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "123");
         }
 
@@ -144,7 +144,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib46(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (16,21): error CS1996: Cannot await in the body of a lock statement
                 //                     await Task.Yield();
@@ -205,7 +205,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib46(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (15,21): error CS1626: Cannot yield a value in the body of a try block with a catch clause
                 //                     yield return 1;
@@ -260,7 +260,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "localFunc_thrown");
         }
 
@@ -288,7 +288,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib46(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(source);
             comp.VerifyDiagnostics(
                 // (13,17): error CS0156: A throw statement with no arguments is not allowed outside of a catch clause
                 //                 throw;
@@ -306,21 +306,21 @@ class C
         void local<[X]T>() {}
     }
 }";
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree, ignoreAccessibility: true);
 
-            var newTree = SyntaxFactory.ParseSyntaxTree(text + " ");
-            var m = newTree.GetRoot()
+            SyntaxTree newTree = SyntaxFactory.ParseSyntaxTree(text + " ");
+            MethodDeclarationSyntax m = newTree.GetRoot()
                 .DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
 
             Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(m.Body.SpanStart, m, out model));
 
-            var x = newTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single();
+            IdentifierNameSyntax x = newTree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single();
             Assert.Equal("X", x.Identifier.Text);
 
             // If we aren't using the right binder here, the compiler crashes going through the binder factory
-            var info = model.GetSymbolInfo(x);
+            SymbolInfo info = model.GetSymbolInfo(x);
             Assert.Null(info.Symbol);
 
             comp.VerifyDiagnostics(
@@ -352,20 +352,20 @@ class C
         void local<[A]T>() {}
     }
 }";
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            var a = tree.GetRoot().DescendantNodes()
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            IdentifierNameSyntax a = tree.GetRoot().DescendantNodes()
                 .OfType<IdentifierNameSyntax>().ElementAt(2);
             Assert.Equal("A", a.Identifier.Text);
-            var attrInfo = model.GetSymbolInfo(a);
-            var attrType = comp.GlobalNamespace.GetTypeMember("A");
-            var attrCtor = attrType.GetMember(".ctor");
+            SymbolInfo attrInfo = model.GetSymbolInfo(a);
+            NamedTypeSymbol attrType = comp.GlobalNamespace.GetTypeMember("A");
+            Symbol attrCtor = attrType.GetMember(".ctor");
             Assert.Equal(attrCtor, attrInfo.Symbol);
 
             // Assert that this is also true for the speculative semantic model
-            var newTree = SyntaxFactory.ParseSyntaxTree(text + " ");
-            var m = newTree.GetRoot()
+            SyntaxTree newTree = SyntaxFactory.ParseSyntaxTree(text + " ");
+            MethodDeclarationSyntax m = newTree.GetRoot()
                 .DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
 
             Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(m.Body.SpanStart, m, out model));
@@ -374,7 +374,7 @@ class C
             Assert.Equal("A", a.Identifier.Text);
 
             // If we aren't using the right binder here, the compiler crashes going through the binder factory
-            var info = model.GetSymbolInfo(a);
+            SymbolInfo info = model.GetSymbolInfo(a);
             // This behavior is wrong. See https://github.com/dotnet/roslyn/issues/24135
             Assert.Equal(attrType, info.Symbol);
         }
@@ -401,7 +401,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             Assert.Empty(comp.GetDeclarationDiagnostics());
             comp.VerifyDiagnostics(
                 // (8,23): error CS0227: Unsafe code may only appear if compiling with /unsafe
@@ -409,7 +409,7 @@ class C
                 Diagnostic(ErrorCode.ERR_IllegalUnsafe, "local").WithLocation(8, 23)
                 );
 
-            var compWithUnsafe = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            CSharpCompilation compWithUnsafe = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             compWithUnsafe.VerifyDiagnostics();
         }
 
@@ -446,7 +446,7 @@ unsafe struct C
     }
 }";
             // no need to declare local function `local` or method `B` as unsafe
-            var compWithUnsafe = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            CSharpCompilation compWithUnsafe = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             compWithUnsafe.VerifyDiagnostics();
         }
 
@@ -475,14 +475,14 @@ struct C
     }
 }";
             // no need to declare local function `local` as unsafe
-            var compWithUnsafe = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            CSharpCompilation compWithUnsafe = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             compWithUnsafe.VerifyDiagnostics();
         }
 
         [Fact]
         public void ConstraintBinding()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -501,7 +501,7 @@ class C
         [Fact]
         public void ConstraintBinding2()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -527,7 +527,7 @@ class C
         [WorkItem(17014, "https://github.com/dotnet/roslyn/pull/17014")]
         public void RecursiveLocalFuncsAsParameterTypes()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -555,7 +555,7 @@ class C
         [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
         public void BadGenericConstraint()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     public void M<T>(T value) where T : object { }
@@ -570,7 +570,7 @@ class C
         [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
         public void RecursiveDefaultParameter()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     public static void Main()
@@ -590,7 +590,7 @@ class C
         [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
         public void RecursiveDefaultParameter2()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 class C
 {
@@ -611,7 +611,7 @@ class C
         [WorkItem(16451, "https://github.com/dotnet/roslyn/issues/16451")]
         public void MutuallyRecursiveDefaultParameters()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M()
@@ -635,7 +635,7 @@ class C
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/16652")]
         public void FetchLocalFunctionSymbolThroughLocal()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(@"
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(@"
 using System;
 class C
 {
@@ -648,7 +648,7 @@ class C
         Local<int>();
     }
 }");
-            var comp = CreateCompilation(tree);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.DeclarationDiagnostics.Verify();
             comp.VerifyDiagnostics(
                 // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
@@ -677,12 +677,12 @@ class C
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27));
 
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.ValueText == "x").Single();
+            VariableDeclaratorSyntax x = tree.GetRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().Where(v => v.Identifier.ValueText == "x").Single();
             var localSymbol = (LocalFunctionSymbol)model.GetDeclaredSymbol(x).ContainingSymbol;
-            var typeParam = localSymbol.TypeParameters.Single();
-            var attrs = typeParam.GetAttributes();
+            TypeParameterSymbol typeParam = localSymbol.TypeParameters.Single();
+            System.Collections.Immutable.ImmutableArray<CSharpAttributeData> attrs = typeParam.GetAttributes();
 
             Assert.True(attrs[0].AttributeClass.IsErrorType());
             Assert.True(attrs[1].AttributeClass.IsErrorType());
@@ -698,7 +698,7 @@ class C
         [Fact]
         public void TypeParameterAttributesInSemanticModel()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 class C
 {
@@ -727,41 +727,41 @@ class C
                 //         void Local<[A]T, [CLSCompliant]U>() { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local").WithArguments("Local").WithLocation(7, 14));
 
-            var tree = comp.SyntaxTrees[0];
-            var root = tree.GetRoot();
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SyntaxNode root = tree.GetRoot();
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var a = root.DescendantNodes()
+            IdentifierNameSyntax a = root.DescendantNodes()
                 .OfType<IdentifierNameSyntax>()
                 .Where(id => id.Identifier.ValueText == "A")
                 .Single();
 
             Assert.Null(model.GetDeclaredSymbol(a));
 
-            var aSymbolInfo = model.GetSymbolInfo(a);
+            SymbolInfo aSymbolInfo = model.GetSymbolInfo(a);
             Assert.Equal(0, aSymbolInfo.CandidateSymbols.Length);
             Assert.Null(aSymbolInfo.Symbol);
 
-            var aTypeInfo = model.GetTypeInfo(a);
+            TypeInfo aTypeInfo = model.GetTypeInfo(a);
             Assert.Equal(TypeKind.Error, aTypeInfo.Type.TypeKind);
 
             Assert.Null(model.GetAliasInfo(a));
 
             Assert.Empty(model.LookupNamespacesAndTypes(a.SpanStart, name: "A"));
 
-            var clsCompliant = root.DescendantNodes()
+            IdentifierNameSyntax clsCompliant = root.DescendantNodes()
                 .OfType<IdentifierNameSyntax>()
                 .Where(id => id.Identifier.ValueText == "CLSCompliant")
                 .Single();
-            var clsCompliantSymbol = comp.GlobalNamespace
+            NamedTypeSymbol clsCompliantSymbol = comp.GlobalNamespace
                 .GetMember<NamespaceSymbol>("System")
                 .GetTypeMember("CLSCompliantAttribute");
 
             Assert.Null(model.GetDeclaredSymbol(clsCompliant));
 
             // This should be null because there is no CLSCompliant ctor with no args
-            var clsCompliantSymbolInfo = model.GetSymbolInfo(clsCompliant);
+            SymbolInfo clsCompliantSymbolInfo = model.GetSymbolInfo(clsCompliant);
             Assert.Null(clsCompliantSymbolInfo.Symbol);
             Assert.Equal(clsCompliantSymbol.GetMember<MethodSymbol>(".ctor"),
                 clsCompliantSymbolInfo.CandidateSymbols.Single());
@@ -779,7 +779,7 @@ class C
         [Fact]
         public void ParameterAttributesInSemanticModel()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 class C
 {
@@ -808,41 +808,41 @@ class C
                 //         void Local([A]int x, [CLSCompliant]int y) { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local").WithArguments("Local").WithLocation(7, 14));
 
-            var tree = comp.SyntaxTrees[0];
-            var root = tree.GetRoot();
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SyntaxNode root = tree.GetRoot();
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var a = root.DescendantNodes()
+            IdentifierNameSyntax a = root.DescendantNodes()
                 .OfType<IdentifierNameSyntax>()
                 .Where(id => id.Identifier.ValueText == "A")
                 .Single();
 
             Assert.Null(model.GetDeclaredSymbol(a));
 
-            var aSymbolInfo = model.GetSymbolInfo(a);
+            SymbolInfo aSymbolInfo = model.GetSymbolInfo(a);
             Assert.Equal(0, aSymbolInfo.CandidateSymbols.Length);
             Assert.Null(aSymbolInfo.Symbol);
 
-            var aTypeInfo = model.GetTypeInfo(a);
+            TypeInfo aTypeInfo = model.GetTypeInfo(a);
             Assert.Equal(TypeKind.Error, aTypeInfo.Type.TypeKind);
 
             Assert.Null(model.GetAliasInfo(a));
 
             Assert.Empty(model.LookupNamespacesAndTypes(a.SpanStart, name: "A"));
 
-            var clsCompliant = root.DescendantNodes()
+            IdentifierNameSyntax clsCompliant = root.DescendantNodes()
                 .OfType<IdentifierNameSyntax>()
                 .Where(id => id.Identifier.ValueText == "CLSCompliant")
                 .Single();
-            var clsCompliantSymbol = comp.GlobalNamespace
+            NamedTypeSymbol clsCompliantSymbol = comp.GlobalNamespace
                 .GetMember<NamespaceSymbol>("System")
                 .GetTypeMember("CLSCompliantAttribute");
 
             Assert.Null(model.GetDeclaredSymbol(clsCompliant));
 
             // This should be null because there is no CLSCompliant ctor with no args
-            var clsCompliantSymbolInfo = model.GetSymbolInfo(clsCompliant);
+            SymbolInfo clsCompliantSymbolInfo = model.GetSymbolInfo(clsCompliant);
             Assert.Null(clsCompliantSymbolInfo.Symbol);
             Assert.Equal(clsCompliantSymbol.GetMember<MethodSymbol>(".ctor"),
                 clsCompliantSymbolInfo.CandidateSymbols.Single());
@@ -860,7 +860,7 @@ class C
         [Fact]
         public void LocalFunctionAttributeOnTypeParameter()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(@"
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(@"
 using System;
 class C
 {
@@ -870,7 +870,7 @@ class C
         Local<int>();
     }
 }");
-            var comp = CreateCompilation(tree);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.DeclarationDiagnostics.Verify();
             comp.VerifyDiagnostics(
                 // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
@@ -899,11 +899,11 @@ class C
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 27));
 
 
-            var localDecl = tree.FindNodeOrTokenByKind(SyntaxKind.LocalFunctionStatement);
-            var model = comp.GetSemanticModel(tree);
-            var localSymbol = Assert.IsType<LocalFunctionSymbol>(model.GetDeclaredSymbol(localDecl.AsNode()));
-            var typeParam = localSymbol.TypeParameters.Single();
-            var attrs = typeParam.GetAttributes();
+            SyntaxNodeOrToken localDecl = tree.FindNodeOrTokenByKind(SyntaxKind.LocalFunctionStatement);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            LocalFunctionSymbol localSymbol = Assert.IsType<LocalFunctionSymbol>(model.GetDeclaredSymbol(localDecl.AsNode()));
+            TypeParameterSymbol typeParam = localSymbol.TypeParameters.Single();
+            System.Collections.Immutable.ImmutableArray<CSharpAttributeData> attrs = typeParam.GetAttributes();
 
             Assert.True(attrs[0].AttributeClass.IsErrorType());
             Assert.True(attrs[1].AttributeClass.IsErrorType());
@@ -920,7 +920,7 @@ class C
         [Fact]
         public void LocalFunctionAttributeOnParameters()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(@"
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(@"
 using System;
 class C
 {
@@ -930,7 +930,7 @@ class C
         Local(0);
     }
 }");
-            var comp = CreateCompilation(tree);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.DeclarationDiagnostics.Verify();
             comp.VerifyDiagnostics(
                 // (7,20): error CS8204: Attributes are not allowed on local function parameters or type parameters
@@ -955,11 +955,11 @@ class C
                 //         void Local([A, B]int x, [CLSCompliant]string s = "") { }
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "CLSCompliant").WithArguments("isCompliant", "System.CLSCompliantAttribute.CLSCompliantAttribute(bool)").WithLocation(7, 34));
 
-            var localDecl = tree.FindNodeOrTokenByKind(SyntaxKind.LocalFunctionStatement);
-            var model = comp.GetSemanticModel(tree);
-            var localSymbol = Assert.IsType<LocalFunctionSymbol>(model.GetDeclaredSymbol(localDecl.AsNode()));
-            var param = localSymbol.Parameters[0];
-            var attrs = param.GetAttributes();
+            SyntaxNodeOrToken localDecl = tree.FindNodeOrTokenByKind(SyntaxKind.LocalFunctionStatement);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            LocalFunctionSymbol localSymbol = Assert.IsType<LocalFunctionSymbol>(model.GetDeclaredSymbol(localDecl.AsNode()));
+            ParameterSymbol param = localSymbol.Parameters[0];
+            System.Collections.Immutable.ImmutableArray<CSharpAttributeData> attrs = param.GetAttributes();
 
             Assert.True(attrs[0].AttributeClass.IsErrorType());
             Assert.True(attrs[1].AttributeClass.IsErrorType());
@@ -1053,7 +1053,7 @@ class C
     public void V<V>() { }
 }
 ";
-            var comp = CreateCompilation(src);
+            CSharpCompilation comp = CreateCompilation(src);
             comp.VerifyDiagnostics(
                 // (9,23): error CS0136: A local or parameter named 'T' cannot be declared in this scope because that name is used in an enclosing local scope to define a local or parameter
                 //             int Local<T>() => 0; // Should conflict with above
@@ -1087,7 +1087,7 @@ class C
         [Fact]
         public void LocalFuncAndTypeParameterOnType()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C2<T>
 {
     public void M()
@@ -1280,7 +1280,7 @@ class C
         [WorkItem(13193, "https://github.com/dotnet/roslyn/issues/13193")]
         public void LocalFunctionConflictingName()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     public void M<TLocal>()
@@ -1380,7 +1380,7 @@ class C
         [Fact]
         public void VarLocalFunction2()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     private class var
@@ -1474,7 +1474,7 @@ class Program
         [Fact]
         public void CallerMemberName()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(@"
 using System;
 using System.Runtime.CompilerServices;
 class C
@@ -2659,7 +2659,7 @@ class Program
     }
 }
 ";
-            var option = TestOptions.ReleaseExe;
+            CSharpCompilationOptions option = TestOptions.ReleaseExe;
             CreateCompilation(source, options: option, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
                 // (6,14): error CS8059: Feature 'local functions' is not available in C# 6. Please use language version 7.0 or greater.
                 //         void Local() { }
@@ -2738,7 +2738,7 @@ class Program
         Console.WriteLine(f());
     }
 }";
-                var comp = CreateCompilationWithMscorlib45(source, parseOptions: DefaultParseOptions);
+                CSharpCompilation comp = CreateCompilationWithMscorlib45(source, parseOptions: DefaultParseOptions);
                 comp.VerifyDiagnostics(
                     // (7,9): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                     //         var f() => 42;
@@ -2913,7 +2913,7 @@ class Program
     }
 }";
 
-                var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+                CSharpCompilation comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
                 CompileAndVerify(
                     comp,
                     expectedOutput: "async");
@@ -3058,7 +3058,7 @@ class C
         [WorkItem(13172, "https://github.com/dotnet/roslyn/issues/13172")]
         public void InheritUnsafeContext()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(@"
 using System;
 using System.Threading.Tasks;
 class C
@@ -3185,7 +3185,7 @@ namespace System
 ";
             // the scope of an expression variable introduced in the default expression
             // of a local function parameter is that default expression.
-            var compilation = CreateCompilationWithMscorlib45(text);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(text);
             compilation.VerifyDiagnostics(
                 // (6,30): error CS1736: Default parameter value for 'b' must be a compile-time constant
                 //         void Local1(bool b = M(arg is int z1, z1), int s1 = z1) {}
@@ -3266,17 +3266,17 @@ namespace System
                 //         void Local6(bool b = M(M((var z6, int a2) = (1, 2)), z6), int a3 = z6) {}
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "Local6").WithArguments("Local6").WithLocation(12, 14)
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var descendents = tree.GetRoot().DescendantNodes();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<SyntaxNode> descendents = tree.GetRoot().DescendantNodes();
             for (int i = 1; i <= 6; i++)
             {
                 var name = $"z{i}";
-                var designation = descendents.OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == name).Single();
+                SingleVariableDesignationSyntax designation = descendents.OfType<SingleVariableDesignationSyntax>().Where(d => d.Identifier.ValueText == name).Single();
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(designation);
                 Assert.NotNull(symbol);
                 Assert.Equal("System.Int32", symbol.Type.ToTestDisplayString());
-                var refs = descendents.OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == name).ToArray();
+                IdentifierNameSyntax[] refs = descendents.OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == name).ToArray();
                 Assert.Equal(3, refs.Length);
                 Assert.Equal(symbol, model.GetSymbolInfo(refs[0]).Symbol);
                 Assert.Null(model.GetSymbolInfo(refs[1]).Symbol);
@@ -3296,7 +3296,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(text);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(text);
             compilation.VerifyDiagnostics(
                 );
         }
@@ -3319,27 +3319,27 @@ class C
 ";
             CompileAndVerify(source, expectedOutput: "23", sourceSymbolValidator: m =>
             {
-                var compilation = m.DeclaringCompilation;
+                CSharpCompilation compilation = m.DeclaringCompilation;
                 // See https://github.com/dotnet/roslyn/issues/16454; this should actually produce no errors
                 compilation.VerifyDiagnostics(
                     // (6,19): warning CS0219: The variable 'N' is assigned but its value is never used
                     //         const int N = 2;
                     Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "N").WithArguments("N").WithLocation(6, 19)
                     );
-                var tree = compilation.SyntaxTrees[0];
-                var model = compilation.GetSemanticModel(tree);
-                var descendents = tree.GetRoot().DescendantNodes();
+                SyntaxTree tree = compilation.SyntaxTrees[0];
+                SemanticModel model = compilation.GetSemanticModel(tree);
+                System.Collections.Generic.IEnumerable<SyntaxNode> descendents = tree.GetRoot().DescendantNodes();
 
-                var parameter = descendents.OfType<ParameterSyntax>().Single();
+                ParameterSyntax parameter = descendents.OfType<ParameterSyntax>().Single();
                 Assert.Equal("int n = N", parameter.ToString());
                 Assert.Equal("[System.Int32 n = 2]", model.GetDeclaredSymbol(parameter).ToTestDisplayString());
 
                 var name = "N";
-                var declarator = descendents.OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == name).Single();
+                VariableDeclaratorSyntax declarator = descendents.OfType<VariableDeclaratorSyntax>().Where(d => d.Identifier.ValueText == name).Single();
                 var symbol = (ILocalSymbol)model.GetDeclaredSymbol(declarator);
                 Assert.NotNull(symbol);
                 Assert.Equal("System.Int32 N", symbol.ToTestDisplayString());
-                var refs = descendents.OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == name).ToArray();
+                IdentifierNameSyntax[] refs = descendents.OfType<IdentifierNameSyntax>().Where(n => n.Identifier.ValueText == name).ToArray();
                 Assert.Equal(1, refs.Length);
                 Assert.Same(symbol, model.GetSymbolInfo(refs[0]).Symbol);
             });
@@ -3373,7 +3373,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "5");
         }
 
@@ -3405,7 +3405,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "5");
         }
 
@@ -3438,7 +3438,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "5");
         }
 
@@ -3471,7 +3471,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: "5");
         }
 
@@ -3508,7 +3508,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(source, parseOptions: DefaultParseOptions, options: TestOptions.DebugExe);
             CompileAndVerify(comp, expectedOutput: 
 @"a
 5");
@@ -3544,7 +3544,7 @@ class Test : System.Attribute
     public bool p {get; set;}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: TestOptions.Regular);
             compilation.GetDiagnostics().Where(d => d.Code != (int)ErrorCode.ERR_AttributesInLocalFuncDecl).Verify(
                 // (10,23): error CS0103: The name 'b2' does not exist in the current context
                 //             [Test(p = b2)]
@@ -3554,14 +3554,14 @@ class Test : System.Attribute
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "b1").WithArguments("b1").WithLocation(6, 20)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var b2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b2").Single();
+            IdentifierNameSyntax b2 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b2").Single();
             Assert.Null(model.GetSymbolInfo(b2).Symbol);
 
-            var b1 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b1").Single();
-            var b1Symbol = model.GetSymbolInfo(b1).Symbol;
+            IdentifierNameSyntax b1 = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "b1").Single();
+            ISymbol b1Symbol = model.GetSymbolInfo(b1).Symbol;
             Assert.Equal("System.Boolean b1", b1Symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Local, b1Symbol.Kind);
         }
@@ -3581,7 +3581,7 @@ class C
         L(m => L(d => d, m), null);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef });
             comp.VerifyEmitDiagnostics(
                 // (8,18): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
                 //         L(m => L(d => d, m), null);
@@ -3606,7 +3606,7 @@ class C
             => await L(async m => L(async d => await d, m), p);
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(source, references: new[] { SystemCoreRef, CSharpRef });
             comp.VerifyEmitDiagnostics(
                 // (8,37): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
                 //             => await L(async m => L(async d => await d, m), p);
@@ -3696,24 +3696,24 @@ class C<T>
     }
 }
 ";
-            var comp = CreateCompilation(src);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateCompilation(src);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             var localDecl = (LocalFunctionStatementSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.LocalFunctionStatement).AsNode();
 
-            var typeParameters = localDecl.TypeParameterList.Parameters;
-            var parameters = localDecl.ParameterList.Parameters;
+            SeparatedSyntaxList<TypeParameterSyntax> typeParameters = localDecl.TypeParameterList.Parameters;
+            SeparatedSyntaxList<ParameterSyntax> parameters = localDecl.ParameterList.Parameters;
             verifyTypeParameterAndParameter(typeParameters[0], parameters[0], "T");
             verifyTypeParameterAndParameter(typeParameters[1], parameters[1], "U");
             verifyTypeParameterAndParameter(typeParameters[2], parameters[2], "V");
 
             void verifyTypeParameterAndParameter(TypeParameterSyntax typeParameter, ParameterSyntax parameter, string expected)
             {
-                var symbol = model.GetDeclaredSymbol(typeParameter);
+                ITypeParameterSymbol symbol = model.GetDeclaredSymbol(typeParameter);
                 Assert.Equal(expected, symbol.ToTestDisplayString());
 
-                var parameterSymbol = model.GetDeclaredSymbol(parameter);
+                IParameterSymbol parameterSymbol = model.GetDeclaredSymbol(parameter);
                 Assert.Equal(expected, parameterSymbol.Type.ToTestDisplayString());
                 Assert.Same(symbol, parameterSymbol.Type);
             }

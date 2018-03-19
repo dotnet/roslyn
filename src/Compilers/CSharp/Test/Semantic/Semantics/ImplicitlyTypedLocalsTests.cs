@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ConstVarField1()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class var {}
 
 class C 
@@ -20,8 +20,8 @@ class C
     const var a = null;
 }
 ");
-            var fieldA = compilation.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<FieldSymbol>("a");
-            var typeVar = compilation.GlobalNamespace.GetMember<TypeSymbol>("var");
+            FieldSymbol fieldA = compilation.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<FieldSymbol>("a");
+            TypeSymbol typeVar = compilation.GlobalNamespace.GetMember<TypeSymbol>("var");
 
             Assert.Equal(typeVar, fieldA.Type);
         }
@@ -29,7 +29,7 @@ class C
         [Fact]
         public void ConstVarField2()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using var = System.Int32;
 
 class C 
@@ -37,7 +37,7 @@ class C
     const var a = 123;
 }
 ");
-            var fieldA = compilation.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<FieldSymbol>("a");
+            FieldSymbol fieldA = compilation.GlobalNamespace.GetMember<TypeSymbol>("C").GetMember<FieldSymbol>("a");
 
             Assert.Equal(SpecialType.System_Int32, fieldA.Type.SpecialType);
         }
@@ -105,7 +105,7 @@ class B
 
             // However, once the alias is introduced, the local becomes implicitly typed
             // and everything works.
-            var verifier = CompileAndVerify(alias + text, expectedOutput: "1");
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(alias + text, expectedOutput: "1");
             verifier.VerifyIL("B.Main", @"
 {
   // Code size        7 (0x7)

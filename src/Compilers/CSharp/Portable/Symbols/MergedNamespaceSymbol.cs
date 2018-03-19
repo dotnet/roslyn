@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //return namespacesToMerge.FirstOrDefault(n => n.IsFromSource);
             //Replace above code with that below to eliminate allocation of array enumerator.
 
-            foreach (var n in _namespacesToMerge)
+            foreach (NamespaceSymbol n in _namespacesToMerge)
             {
                 if (n.IsFromCompilation(compilation))
                     return n;
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void ForceComplete(SourceLocation locationOpt, CancellationToken cancellationToken)
         {
-            foreach (var part in _namespacesToMerge)
+            foreach (NamespaceSymbol part in _namespacesToMerge)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 part.ForceComplete(locationOpt, cancellationToken);
@@ -166,9 +166,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var childNames = new HashSet<string>(comparer);
 
-            foreach (var ns in _namespacesToMerge)
+            foreach (NamespaceSymbol ns in _namespacesToMerge)
             {
-                foreach (var child in ns.GetMembersUnordered())
+                foreach (Symbol child in ns.GetMembersUnordered())
                 {
                     childNames.Add(child.Name);
                 }

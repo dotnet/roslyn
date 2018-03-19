@@ -29,7 +29,7 @@ class Program
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -74,7 +74,7 @@ class Program
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -119,7 +119,7 @@ class Program
 }
 ";
 
-            var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -172,7 +172,7 @@ class Program
     }
 }
 ";
-            var c = CompileAndVerify(text, options: TestOptions.ReleaseDll, symbolValidator: module =>
+            CompilationVerifier c = CompileAndVerify(text, options: TestOptions.ReleaseDll, symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -243,7 +243,7 @@ class Program
 }
 ";
 
-            var c = CompileAndVerify(text, options: TestOptions.DebugDll, symbolValidator: module =>
+            CompilationVerifier c = CompileAndVerify(text, options: TestOptions.DebugDll, symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -324,7 +324,7 @@ class Test<T>
         yield return val;
     }
 }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -417,7 +417,7 @@ class C
 ";
             using (new CultureContext(new CultureInfo("en-US", useUserOverride: false)))
             {
-                var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.ReleaseExe);
+                CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.ReleaseExe);
                 c.VerifyPdb(@"
 <symbols>
   <files>
@@ -532,7 +532,7 @@ public class Test
     }
 }
 ";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugExe);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugExe);
             c.VerifyPdb(@"
 <symbols>
   <files>
@@ -702,7 +702,7 @@ class C
 }
 ";
 
-            var v = CompileAndVerify(text, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompilationVerifier v = CompileAndVerify(text, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -773,7 +773,7 @@ class C
 ";
             // Note that conditional branch discriminator is not hoisted.
 
-            var v = CompileAndVerify(text, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompilationVerifier v = CompileAndVerify(text, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -898,7 +898,7 @@ class C
                 }, module.GetFieldNames("C.<M>d__0"));
             });
 
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 AssertEx.Equal(new[]
                 {
@@ -984,7 +984,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1058,7 +1058,7 @@ class C
             // class being pushed on evaluation stack, so that EE could find the locals.
             // Thus the locals are not available in EE.
 
-            var v = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1182,7 +1182,7 @@ class C
             // We need to hoist display class variable to allow adding a new lambda after yield return 
             // that shares closure with the existing lambda.
 
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1326,7 +1326,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompilationVerifier v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1410,7 +1410,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompilationVerifier v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1472,7 +1472,7 @@ class C
     }
 }
 ";
-            var v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
+            CompilationVerifier v = CompileAndVerify(source, new[] { CSharpRef }, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
                 Assert.Equal(new[]
                 {
@@ -1539,7 +1539,7 @@ class C
         yield break;
     }
 }";
-            var c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
+            CSharpCompilation c = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.DebugDll);
             c.VerifyPdb("C+<F>d__1.MoveNext", @"
 <symbols>
   <files>
@@ -1572,13 +1572,13 @@ public class C
 {
     IEnumerable<int> M() { yield return 1; }
 }";
-            var compilation = CreateCompilation(src, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(src, options: TestOptions.DebugDll);
             compilation.VerifyDiagnostics();
 
             var peStream = new MemoryStream();
             var pdbStream = new MemoryStream();
 
-            var result = compilation.Emit(
+            EmitResult result = compilation.Emit(
                peStream,
                pdbStream,
                options: EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb));
@@ -1586,7 +1586,7 @@ public class C
             pdbStream.Position = 0;
             using (var provider = MetadataReaderProvider.FromPortablePdbStream(pdbStream))
             {
-                var mdReader = provider.GetMetadataReader();
+                MetadataReader mdReader = provider.GetMetadataReader();
                 var writer = new StringWriter();
                 var visualizer = new MetadataVisualizer(mdReader, writer);
                 visualizer.WriteMethodDebugInformation();

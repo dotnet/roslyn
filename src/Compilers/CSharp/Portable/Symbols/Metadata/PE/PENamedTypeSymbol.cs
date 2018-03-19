@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private UncommonProperties GetUncommonProperties()
         {
-            var result = _lazyUncommonProperties;
+            UncommonProperties result = _lazyUncommonProperties;
             if (result != null)
             {
                 Debug.Assert(result != s_noUncommonProperties || result.IsDefaultValue(), "default value was modified");
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var uncommon = GetUncommonProperties();
+                UncommonProperties uncommon = GetUncommonProperties();
                 if (uncommon == s_noUncommonProperties)
                 {
                     return false;
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 try
                 {
-                    var moduleSymbol = ContainingPEModule;
+                    PEModuleSymbol moduleSymbol = ContainingPEModule;
                     EntityHandle token = moduleSymbol.Module.GetBaseTypeOfTypeOrThrow(_handle);
 
                     if (!token.IsNil)
@@ -475,8 +475,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             try
             {
-                var moduleSymbol = ContainingPEModule;
-                var interfaceImpls = moduleSymbol.Module.GetInterfaceImplementationsOrThrow(_handle);
+                PEModuleSymbol moduleSymbol = ContainingPEModule;
+                InterfaceImplementationHandleCollection interfaceImpls = moduleSymbol.Module.GetInterfaceImplementationsOrThrow(_handle);
 
                 if (interfaceImpls.Count > 0)
                 {
@@ -484,7 +484,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     var tokenDecoder = new MetadataDecoder(moduleSymbol, this);
 
                     int i = 0;
-                    foreach (var interfaceImpl in interfaceImpls)
+                    foreach (InterfaceImplementationHandle interfaceImpl in interfaceImpls)
                     {
                         EntityHandle interfaceHandle = moduleSymbol.Module.MetadataReader.GetInterfaceImplementation(interfaceImpl).Interface;
                         TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(interfaceHandle);
@@ -579,7 +579,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var uncommon = GetUncommonProperties();
+                UncommonProperties uncommon = GetUncommonProperties();
                 if (uncommon == s_noUncommonProperties)
                 {
                     return null;
@@ -592,7 +592,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            var uncommon = GetUncommonProperties();
+            UncommonProperties uncommon = GetUncommonProperties();
             if (uncommon == s_noUncommonProperties)
             {
                 return ImmutableArray<CSharpAttributeData>.Empty;
@@ -600,7 +600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (uncommon.lazyCustomAttributes.IsDefault)
             {
-                var loadedCustomAttributes = ContainingPEModule.GetCustomAttributesForToken(
+                ImmutableArray<CSharpAttributeData> loadedCustomAttributes = ContainingPEModule.GetCustomAttributesForToken(
                     Handle,
                     out _,
                     // Filter out [Extension]
@@ -639,14 +639,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (_lazyMemberNames == null)
             {
-                var moduleSymbol = ContainingPEModule;
-                var module = moduleSymbol.Module;
+                PEModuleSymbol moduleSymbol = ContainingPEModule;
+                PEModule module = moduleSymbol.Module;
 
                 var names = new HashSet<string>();
 
                 try
                 {
-                    foreach (var methodDef in module.GetMethodsOfTypeOrThrow(_handle))
+                    foreach (MethodDefinitionHandle methodDef in module.GetMethodsOfTypeOrThrow(_handle))
                     {
                         try
                         {
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 try
                 {
-                    foreach (var propertyDef in module.GetPropertiesOfTypeOrThrow(_handle))
+                    foreach (PropertyDefinitionHandle propertyDef in module.GetPropertiesOfTypeOrThrow(_handle))
                     {
                         try
                         {
@@ -676,7 +676,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 try
                 {
-                    foreach (var eventDef in module.GetEventsOfTypeOrThrow(_handle))
+                    foreach (EventDefinitionHandle eventDef in module.GetEventsOfTypeOrThrow(_handle))
                     {
                         try
                         {
@@ -691,7 +691,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 try
                 {
-                    foreach (var fieldDef in module.GetFieldsOfTypeOrThrow(_handle))
+                    foreach (FieldDefinitionHandle fieldDef in module.GetFieldsOfTypeOrThrow(_handle))
                     {
                         try
                         {
@@ -762,14 +762,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private IEnumerable<FieldSymbol> GetEnumFieldsToEmit()
         {
-            var uncommon = GetUncommonProperties();
+            UncommonProperties uncommon = GetUncommonProperties();
             if (uncommon == s_noUncommonProperties)
             {
                 yield break;
             }
 
-            var moduleSymbol = this.ContainingPEModule;
-            var module = moduleSymbol.Module;
+            PEModuleSymbol moduleSymbol = this.ContainingPEModule;
+            PEModule module = moduleSymbol.Module;
 
             // Non-static fields of enum types are not imported by default because they are not bindable,
             // but we need them for NoPia.
@@ -778,7 +778,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             try
             {
-                foreach (var fieldDef in module.GetFieldsOfTypeOrThrow(_handle))
+                foreach (FieldDefinitionHandle fieldDef in module.GetFieldsOfTypeOrThrow(_handle))
                 {
                     fieldDefs.Add(fieldDef);
                 }
@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 var builder = ArrayBuilder<PEFieldSymbol>.GetInstance();
 
-                foreach (var fieldDef in fieldDefs)
+                foreach (FieldDefinitionHandle fieldDef in fieldDefs)
                 {
                     try
                     {
@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             ImmutableArray<Symbol> staticFields = GetMembers();
             int instanceIndex = 0;
 
-            foreach (var fieldDef in fieldDefs)
+            foreach (FieldDefinitionHandle fieldDef in fieldDefs)
             {
                 if (instanceIndex < uncommon.lazyInstanceEnumFields.Length && uncommon.lazyInstanceEnumFields[instanceIndex].Handle == fieldDef)
                 {
@@ -853,7 +853,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // Event backing fields are not part of the set returned by GetMembers. Let's add them manually.
                 ArrayBuilder<FieldSymbol> eventFields = null;
 
-                foreach (var eventSymbol in GetEventsToEmit())
+                foreach (EventSymbol eventSymbol in GetEventsToEmit())
                 {
                     FieldSymbol associatedField = eventSymbol.AssociatedField;
                     if ((object)associatedField != null)
@@ -898,7 +898,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 try
                 {
-                    foreach (var handle in this.ContainingPEModule.Module.GetFieldsOfTypeOrThrow(_handle))
+                    foreach (FieldDefinitionHandle handle in this.ContainingPEModule.Module.GetFieldsOfTypeOrThrow(_handle))
                     {
                         FieldSymbol field;
                         if (handleToFieldMap.TryGetValue(handle, out field))
@@ -952,13 +952,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 var method = (PEMethodSymbol)members[index];
-                var module = this.ContainingPEModule.Module;
+                PEModule module = this.ContainingPEModule.Module;
 
                 var methodDefs = ArrayBuilder<MethodDefinitionHandle>.GetInstance();
 
                 try
                 {
-                    foreach (var methodDef in module.GetMethodsOfTypeOrThrow(_handle))
+                    foreach (MethodDefinitionHandle methodDef in module.GetMethodsOfTypeOrThrow(_handle))
                     {
                         methodDefs.Add(methodDef);
                     }
@@ -966,7 +966,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 catch (BadImageFormatException)
                 { }
 
-                foreach (var methodDef in methodDefs)
+                foreach (MethodDefinitionHandle methodDef in methodDefs)
                 {
                     if (method.Handle == methodDef)
                     {
@@ -1059,14 +1059,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // The underlying type shall be a built-in integer type. Enums shall derive from System.Enum, hence they are
                 // value types. Like all value types, they shall be sealed (see §8.9.9).
 
-                var moduleSymbol = this.ContainingPEModule;
-                var module = moduleSymbol.Module;
+                PEModuleSymbol moduleSymbol = this.ContainingPEModule;
+                PEModule module = moduleSymbol.Module;
                 var decoder = new MetadataDecoder(moduleSymbol, this);
                 NamedTypeSymbol underlyingType = null;
 
                 try
                 {
-                    foreach (var fieldDef in module.GetFieldsOfTypeOrThrow(_handle))
+                    foreach (FieldDefinitionHandle fieldDef in module.GetFieldsOfTypeOrThrow(_handle))
                     {
                         FieldAttributes fieldFlags;
 
@@ -1144,12 +1144,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 {
                     EnsureEnumUnderlyingTypeIsLoaded(this.GetUncommonProperties());
 
-                    var moduleSymbol = this.ContainingPEModule;
-                    var module = moduleSymbol.Module;
+                    PEModuleSymbol moduleSymbol = this.ContainingPEModule;
+                    PEModule module = moduleSymbol.Module;
 
                     try
                     {
-                        foreach (var fieldDef in module.GetFieldsOfTypeOrThrow(_handle))
+                        foreach (FieldDefinitionHandle fieldDef in module.GetFieldsOfTypeOrThrow(_handle))
                         {
                             FieldAttributes fieldFlags;
 
@@ -1249,7 +1249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // Now add types to the end.
                 int membersCount = members.Count;
 
-                foreach (var typeArray in _lazyNestedTypes.Values)
+                foreach (ImmutableArray<PENamedTypeSymbol> typeArray in _lazyNestedTypes.Values)
                 {
                     members.AddRange(typeArray);
                 }
@@ -1257,12 +1257,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // Sort the types based on row id.
                 members.Sort(membersCount, DeclarationOrderTypeSymbolComparer.Instance);
 
-                var membersInDeclarationOrder = members.ToImmutable();
+                ImmutableArray<Symbol> membersInDeclarationOrder = members.ToImmutable();
 
 #if DEBUG
                 ISymbol previous = null;
 
-                foreach (var s in membersInDeclarationOrder)
+                foreach (Symbol s in membersInDeclarationOrder)
                 {
                     if (previous == null)
                     {
@@ -1294,7 +1294,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (members == null)
                 {
                     members = ArrayBuilder<Symbol>.GetInstance();
-                    foreach (var member in _lazyMembersInDeclarationOrder)
+                    foreach (Symbol member in _lazyMembersInDeclarationOrder)
                     {
                         if (member.Kind == SymbolKind.NamedType)
                         {
@@ -1306,7 +1306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 Dictionary<string, ImmutableArray<Symbol>> membersDict = GroupByName(members);
 
-                var exchangeResult = Interlocked.CompareExchange(ref _lazyMembersByName, membersDict, null);
+                Dictionary<string, ImmutableArray<Symbol>> exchangeResult = Interlocked.CompareExchange(ref _lazyMembersByName, membersDict, null);
                 if (exchangeResult == null)
                 {
                     // we successfully swapped in the members dictionary.
@@ -1326,7 +1326,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     // NOTE(cyrusn): This means that it is possible (and by design) for people to get a
                     // different object back when they call MemberNames multiple times.  However, outside
                     // of object identity, both collections should appear identical to the user.
-                    var memberNames = SpecializedCollections.ReadOnlyCollection(membersDict.Keys);
+                    ICollection<string> memberNames = SpecializedCollections.ReadOnlyCollection(membersDict.Keys);
                     Interlocked.Exchange(ref _lazyMemberNames, memberNames);
                 }
             }
@@ -1376,7 +1376,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 FieldSymbol result = null;
 
-                var candidates = this.GetMembers(FixedFieldImplementationType.FixedElementFieldName);
+                ImmutableArray<Symbol> candidates = this.GetMembers(FixedFieldImplementationType.FixedElementFieldName);
                 if (!candidates.IsDefault && candidates.Length == 1)
                 {
                     result = candidates[0] as FieldSymbol;
@@ -1407,7 +1407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         private ImmutableArray<NamedTypeSymbol> GetMemberTypesPrivate()
         {
             var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-            foreach (var typeArray in _lazyNestedTypes.Values)
+            foreach (ImmutableArray<PENamedTypeSymbol> typeArray in _lazyNestedTypes.Values)
             {
                 builder.AddRange(typeArray);
             }
@@ -1421,14 +1421,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 var types = ArrayBuilder<PENamedTypeSymbol>.GetInstance();
                 types.AddRange(this.CreateNestedTypes());
-                var typesDict = GroupByName(types);
+                Dictionary<string, ImmutableArray<PENamedTypeSymbol>> typesDict = GroupByName(types);
 
-                var exchangeResult = Interlocked.CompareExchange(ref _lazyNestedTypes, typesDict, null);
+                Dictionary<string, ImmutableArray<PENamedTypeSymbol>> exchangeResult = Interlocked.CompareExchange(ref _lazyNestedTypes, typesDict, null);
                 if (exchangeResult == null)
                 {
                     // Build cache of TypeDef Tokens
                     // Potentially this can be done in the background.
-                    var moduleSymbol = this.ContainingPEModule;
+                    PEModuleSymbol moduleSymbol = this.ContainingPEModule;
                     moduleSymbol.OnNewTypeDeclarationsLoaded(typesDict);
                 }
                 types.Free();
@@ -1573,7 +1573,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var uncommon = GetUncommonProperties();
+                UncommonProperties uncommon = GetUncommonProperties();
                 if (uncommon == s_noUncommonProperties)
                 {
                     return false;
@@ -1581,7 +1581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (!uncommon.lazyContainsExtensionMethods.HasValue())
                 {
-                    var contains = ThreeState.False;
+                    ThreeState contains = ThreeState.False;
                     // Dev11 supports extension methods defined on non-static
                     // classes, structs, delegates, and generic types.
                     switch (this.TypeKind)
@@ -1589,8 +1589,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         case TypeKind.Class:
                         case TypeKind.Struct:
                         case TypeKind.Delegate:
-                            var moduleSymbol = this.ContainingPEModule;
-                            var module = moduleSymbol.Module;
+                            PEModuleSymbol moduleSymbol = this.ContainingPEModule;
+                            PEModule module = moduleSymbol.Module;
                             bool moduleHasExtension = module.HasExtensionAttribute(_handle, ignoreCase: false);
 
                             var containingAssembly = this.ContainingAssembly as PEAssemblySymbol;
@@ -1701,7 +1701,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private ImmutableArray<NamedTypeSymbol> MakeAcyclicInterfaces()
         {
-            var declaredInterfaces = GetDeclaredInterfaces(null);
+            ImmutableArray<NamedTypeSymbol> declaredInterfaces = GetDeclaredInterfaces(null);
             if (!IsInterface)
             {
                 // only interfaces needs to check for inheritance cycles via interfaces.
@@ -1719,8 +1719,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private IEnumerable<PENamedTypeSymbol> CreateNestedTypes()
         {
-            var moduleSymbol = this.ContainingPEModule;
-            var module = moduleSymbol.Module;
+            PEModuleSymbol moduleSymbol = this.ContainingPEModule;
+            PEModule module = moduleSymbol.Module;
 
             ImmutableArray<TypeDefinitionHandle> nestedTypeDefs;
 
@@ -1733,7 +1733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 yield break;
             }
 
-            foreach (var typeRid in nestedTypeDefs)
+            foreach (TypeDefinitionHandle typeRid in nestedTypeDefs)
             {
                 if (module.ShouldImportNestedType(typeRid))
                 {
@@ -1746,8 +1746,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             var privateFieldNameToSymbols = new MultiDictionary<string, PEFieldSymbol>();
 
-            var moduleSymbol = this.ContainingPEModule;
-            var module = moduleSymbol.Module;
+            PEModuleSymbol moduleSymbol = this.ContainingPEModule;
+            PEModule module = moduleSymbol.Module;
 
             // for ordinary struct types we import private fields so that we can distinguish empty structs from non-empty structs
             var isOrdinaryStruct = false;
@@ -1769,7 +1769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             try
             {
-                foreach (var fieldRid in module.GetFieldsOfTypeOrThrow(_handle))
+                foreach (FieldDefinitionHandle fieldRid in module.GetFieldsOfTypeOrThrow(_handle))
                 {
                     try
                     {
@@ -1805,8 +1805,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private PooledDictionary<MethodDefinitionHandle, PEMethodSymbol> CreateMethods(ArrayBuilder<Symbol> members)
         {
-            var moduleSymbol = this.ContainingPEModule;
-            var module = moduleSymbol.Module;
+            PEModuleSymbol moduleSymbol = this.ContainingPEModule;
+            PEModule module = moduleSymbol.Module;
             var map = PooledDictionary<MethodDefinitionHandle, PEMethodSymbol>.GetInstance();
 
             // for ordinary embeddable struct types we import private members so that we can report appropriate errors if the structure is used 
@@ -1814,7 +1814,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             try
             {
-                foreach (var methodHandle in module.GetMethodsOfTypeOrThrow(_handle))
+                foreach (MethodDefinitionHandle methodHandle in module.GetMethodsOfTypeOrThrow(_handle))
                 {
                     if (isOrdinaryEmbeddableStruct || module.ShouldImportMethod(methodHandle, moduleSymbol.ImportOptions))
                     {
@@ -1832,16 +1832,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private void CreateProperties(Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol, ArrayBuilder<Symbol> members)
         {
-            var moduleSymbol = this.ContainingPEModule;
-            var module = moduleSymbol.Module;
+            PEModuleSymbol moduleSymbol = this.ContainingPEModule;
+            PEModule module = moduleSymbol.Module;
 
             try
             {
-                foreach (var propertyDef in module.GetPropertiesOfTypeOrThrow(_handle))
+                foreach (PropertyDefinitionHandle propertyDef in module.GetPropertiesOfTypeOrThrow(_handle))
                 {
                     try
                     {
-                        var methods = module.GetPropertyMethodsOrThrow(propertyDef);
+                        PropertyAccessors methods = module.GetPropertyMethodsOrThrow(propertyDef);
 
                         PEMethodSymbol getMethod = GetAccessorMethod(module, methodHandleToSymbol, methods.Getter);
                         PEMethodSymbol setMethod = GetAccessorMethod(module, methodHandleToSymbol, methods.Setter);
@@ -1864,16 +1864,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             Dictionary<MethodDefinitionHandle, PEMethodSymbol> methodHandleToSymbol,
             ArrayBuilder<Symbol> members)
         {
-            var moduleSymbol = this.ContainingPEModule;
-            var module = moduleSymbol.Module;
+            PEModuleSymbol moduleSymbol = this.ContainingPEModule;
+            PEModule module = moduleSymbol.Module;
 
             try
             {
-                foreach (var eventRid in module.GetEventsOfTypeOrThrow(_handle))
+                foreach (EventDefinitionHandle eventRid in module.GetEventsOfTypeOrThrow(_handle))
                 {
                     try
                     {
-                        var methods = module.GetEventMethodsOrThrow(eventRid);
+                        EventAccessors methods = module.GetEventMethodsOrThrow(eventRid);
 
                         // NOTE: C# ignores all other accessors (most notably, raise/fire).
                         PEMethodSymbol addMethod = GetAccessorMethod(module, methodHandleToSymbol, methods.Adder);
@@ -1975,7 +1975,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var uncommon = GetUncommonProperties();
+                UncommonProperties uncommon = GetUncommonProperties();
                 if (uncommon == s_noUncommonProperties)
                 {
                     return "";
@@ -2055,7 +2055,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var uncommon = GetUncommonProperties();
+                UncommonProperties uncommon = GetUncommonProperties();
                 if (uncommon == s_noUncommonProperties)
                 {
                     return false;
@@ -2063,12 +2063,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (!uncommon.lazyIsByRefLike.HasValue())
                 {
-                    var isByRefLike = ThreeState.False;
+                    ThreeState isByRefLike = ThreeState.False;
 
                     if (this.TypeKind == TypeKind.Struct)
                     {
-                        var moduleSymbol = this.ContainingPEModule;
-                        var module = moduleSymbol.Module;
+                        PEModuleSymbol moduleSymbol = this.ContainingPEModule;
+                        PEModule module = moduleSymbol.Module;
                         isByRefLike = module.HasIsByRefLikeAttribute(_handle).ToThreeState();
                     }
 
@@ -2083,7 +2083,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var uncommon = GetUncommonProperties();
+                UncommonProperties uncommon = GetUncommonProperties();
                 if (uncommon == s_noUncommonProperties)
                 {
                     return false;
@@ -2091,12 +2091,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (!uncommon.lazyIsReadOnly.HasValue())
                 {
-                    var isReadOnly = ThreeState.False;
+                    ThreeState isReadOnly = ThreeState.False;
 
                     if (this.TypeKind == TypeKind.Struct)
                     {
-                        var moduleSymbol = this.ContainingPEModule;
-                        var module = moduleSymbol.Module;
+                        PEModuleSymbol moduleSymbol = this.ContainingPEModule;
+                        PEModule module = moduleSymbol.Module;
                         isReadOnly = module.HasIsReadOnlyAttribute(_handle).ToThreeState();
                     }
 
@@ -2126,7 +2126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return null;
                 }
 
-                var uncommon = GetUncommonProperties();
+                UncommonProperties uncommon = GetUncommonProperties();
                 if (uncommon == s_noUncommonProperties)
                 {
                     return null;
@@ -2134,8 +2134,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 if (ReferenceEquals(uncommon.lazyComImportCoClassType, ErrorTypeSymbol.UnknownResultType))
                 {
-                    var type = this.ContainingPEModule.TryDecodeAttributeWithTypeArgument(this.Handle, AttributeDescription.CoClassAttribute);
-                    var coClassType = ((object)type != null && (type.TypeKind == TypeKind.Class || type.IsErrorType())) ? (NamedTypeSymbol)type : null;
+                    TypeSymbol type = this.ContainingPEModule.TryDecodeAttributeWithTypeArgument(this.Handle, AttributeDescription.CoClassAttribute);
+                    NamedTypeSymbol coClassType = ((object)type != null && (type.TypeKind == TypeKind.Class || type.IsErrorType())) ? (NamedTypeSymbol)type : null;
 
                     Interlocked.CompareExchange(ref uncommon.lazyComImportCoClassType, coClassType, ErrorTypeSymbol.UnknownResultType);
                 }
@@ -2146,7 +2146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
-            var uncommon = GetUncommonProperties();
+            UncommonProperties uncommon = GetUncommonProperties();
             if (uncommon == s_noUncommonProperties)
             {
                 return ImmutableArray<string>.Empty;
@@ -2166,7 +2166,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                var uncommon = GetUncommonProperties();
+                UncommonProperties uncommon = GetUncommonProperties();
                 if (uncommon == s_noUncommonProperties)
                 {
                     return null;
@@ -2180,7 +2180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal override AttributeUsageInfo GetAttributeUsageInfo()
         {
-            var uncommon = GetUncommonProperties();
+            UncommonProperties uncommon = GetUncommonProperties();
             if (uncommon == s_noUncommonProperties)
             {
                 return ((object)this.BaseTypeNoUseSiteDiagnostics != null) ? this.BaseTypeNoUseSiteDiagnostics.GetAttributeUsageInfo() : AttributeUsageInfo.Default;
@@ -2196,7 +2196,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private AttributeUsageInfo DecodeAttributeUsageInfo()
         {
-            var handle = this.ContainingPEModule.Module.GetAttributeUsageAttributeHandle(_handle);
+            CustomAttributeHandle handle = this.ContainingPEModule.Module.GetAttributeUsageAttributeHandle(_handle);
 
             if (!handle.IsNil)
             {
@@ -2251,7 +2251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             int n = members.Length;
             for (int i = offset; i < n; i++)
             {
-                var member = members[i];
+                Symbol member = members[i];
                 if (member.Kind != kind)
                 {
                     yield break;
@@ -2381,7 +2381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 if (_lazyTypeParameters.IsDefault)
                 {
-                    var moduleSymbol = ContainingPEModule;
+                    PEModuleSymbol moduleSymbol = ContainingPEModule;
 
                     // If this is a nested type generic parameters in metadata include generic parameters of the outer types.
                     int firstIndex = _genericParameterHandles.Count - _arity;
@@ -2421,13 +2421,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             /// </summary>
             private bool MatchesContainingTypeParameters()
             {
-                var container = this.ContainingType;
+                NamedTypeSymbol container = this.ContainingType;
                 if ((object)container == null)
                 {
                     return true;
                 }
 
-                var containingTypeParameters = container.GetAllTypeParameters();
+                ImmutableArray<TypeParameterSymbol> containingTypeParameters = container.GetAllTypeParameters();
                 int n = containingTypeParameters.Length;
 
                 if (n == 0)
@@ -2440,15 +2440,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // types. The type parameters on this temporary type instance are used
                 // for comparison with those on the actual containing types. The
                 // containing symbol for the temporary type is the namespace directly.
-                var nestedType = Create(this.ContainingPEModule, (PENamespaceSymbol)this.ContainingNamespace, _handle, null);
-                var nestedTypeParameters = nestedType.TypeParameters;
+                PENamedTypeSymbol nestedType = Create(this.ContainingPEModule, (PENamespaceSymbol)this.ContainingNamespace, _handle, null);
+                ImmutableArray<TypeParameterSymbol> nestedTypeParameters = nestedType.TypeParameters;
                 var containingTypeMap = new TypeMap(containingTypeParameters, IndexedTypeParameterSymbol.Take(n), allowAlpha: false);
                 var nestedTypeMap = new TypeMap(nestedTypeParameters, IndexedTypeParameterSymbol.Take(nestedTypeParameters.Length), allowAlpha: false);
 
                 for (int i = 0; i < n; i++)
                 {
-                    var containingTypeParameter = containingTypeParameters[i];
-                    var nestedTypeParameter = nestedTypeParameters[i];
+                    TypeParameterSymbol containingTypeParameter = containingTypeParameters[i];
+                    TypeParameterSymbol nestedTypeParameter = nestedTypeParameters[i];
                     if (!MemberSignatureComparer.HaveSameConstraints(containingTypeParameter, containingTypeMap, nestedTypeParameter, nestedTypeMap))
                     {
                         return false;

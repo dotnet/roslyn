@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 var builder = ArrayBuilder<Cci.IFileReference>.GetInstance();
                 try
                 {
-                    var modules = _sourceAssembly.Modules;
+                    ImmutableArray<ModuleSymbol> modules = _sourceAssembly.Modules;
                     for (int i = 1; i < modules.Length; i++)
                     {
                         builder.Add((Cci.IFileReference)Translate(modules[i], context.Diagnostics));
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
         protected override void AddEmbeddedResourcesFromAddedModules(ArrayBuilder<Cci.ManagedResource> builder, DiagnosticBag diagnostics)
         {
-            var modules = _sourceAssembly.Modules;
+            ImmutableArray<ModuleSymbol> modules = _sourceAssembly.Modules;
             int count = modules.Length;
 
             for (int i = 1; i < count; i++)
@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if ((object)symbol == null)
             {
                 var attributeMetadataName = MetadataTypeName.FromFullName(description.FullName);
-                var userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
+                NamedTypeSymbol userDefinedAttribute = _sourceAssembly.SourceModule.LookupTopLevelMetadataType(ref attributeMetadataName);
                 Debug.Assert((object)userDefinedAttribute.ContainingModule == _sourceAssembly.SourceModule);
 
                 if (!(userDefinedAttribute is MissingMetadataTypeSymbol))

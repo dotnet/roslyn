@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 //}
                 //return hashCode;
 
-                var body = F.Block(
+                BoundBlock body = F.Block(
                         ImmutableArray.Create<LocalSymbol>(hashCode, i),
                         F.If(
                             F.Binary(BinaryOperatorKind.ObjectNotEqual, F.SpecialType(SpecialType.System_Boolean),
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var argBuilder = ArrayBuilder<BoundExpression>.GetInstance();
             //var refKindBuilder = ArrayBuilder<RefKind>.GetInstance();
 
-            foreach (var param in F.CurrentMethod.Parameters)
+            foreach (ParameterSymbol param in F.CurrentMethod.Parameters)
             {
                 argBuilder.Add(F.Parameter(param));
                 //refKindBuilder.Add(param.RefKind);

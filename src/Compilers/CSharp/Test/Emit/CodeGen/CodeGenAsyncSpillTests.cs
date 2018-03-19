@@ -592,7 +592,7 @@ public class Test
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Test.<F>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
@@ -755,7 +755,7 @@ public class Test
     }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.ReleaseDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.ReleaseDll);
 
             v.VerifyIL("Test.<F>d__2.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext", @"
 {
@@ -3166,7 +3166,7 @@ public class AsyncBug {
 }
 ";
 
-            var v = CompileAndVerify(source, "System.Int32");
+            CompilationVerifier v = CompileAndVerify(source, "System.Int32");
         }
 
         [Fact]
@@ -3211,7 +3211,7 @@ namespace AsyncBug
 }
 ";
             var expected = new bool[] { false, true, false, true, false }.Aggregate("", (str, next) => str += $"{next}{Environment.NewLine}");
-            var v = CompileAndVerify(source, expected);
+            CompilationVerifier v = CompileAndVerify(source, expected);
         }
 
         [Fact]
@@ -3247,7 +3247,7 @@ public class C
 }
 ";
 
-            var v = CompileAndVerify(source, "42");
+            CompilationVerifier v = CompileAndVerify(source, "42");
         }
 
         [Fact]
@@ -3283,7 +3283,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(source, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
                 // (18,28): error CS8178: 'await' cannot be used in an expression containing a call to 'C.P.get' because it returns by reference
                 //         Assign(second: ref P, first: await t);

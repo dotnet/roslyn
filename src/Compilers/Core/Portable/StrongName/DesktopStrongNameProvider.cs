@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis
         // internal for testing
         internal IClrStrongName GetStrongNameInterface()
         {
-            var factoryCreated = TestStrongNameInterfaceFactory?.Invoke();
+            IClrStrongName factoryCreated = TestStrongNameInterfaceFactory?.Invoke();
 
             if (factoryCreated != null)
             {

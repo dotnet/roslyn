@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            var conversion = Conversions.ClassifyConversionFromExpression(source, destination, ref useSiteDiagnostics);
+            Conversion conversion = Conversions.ClassifyConversionFromExpression(source, destination, ref useSiteDiagnostics);
 
             diagnostics.Add(source.Syntax, useSiteDiagnostics);
             return CreateConversion(source.Syntax, source, conversion, isCast: false, destination: destination, diagnostics: diagnostics);
@@ -284,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // UNDONE: is converted to a delegate that does not match. What to surface then?
 
             var unboundLambda = (UnboundLambda)source;
-            var boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination);
+            BoundLambda boundLambda = unboundLambda.Bind((NamedTypeSymbol)destination);
             diagnostics.AddRange(boundLambda.Diagnostics);
 
             return new BoundConversion(
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(conversion.IsStackAlloc);
 
             var boundStackAlloc = (BoundStackAllocArrayCreation)source;
-            var elementType = boundStackAlloc.ElementType;
+            TypeSymbol elementType = boundStackAlloc.ElementType;
             TypeSymbol stackAllocType;
 
             switch (conversion.Kind)
@@ -343,7 +343,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var convertedNode = new BoundConvertedStackAllocExpression(syntax, elementType, boundStackAlloc.Count, boundStackAlloc.InitializerOpt, stackAllocType, boundStackAlloc.HasErrors);
 
-            var underlyingConversion = conversion.UnderlyingConversions.Single();
+            Conversion underlyingConversion = conversion.UnderlyingConversions.Single();
             return CreateConversion(syntax, convertedNode, underlyingConversion, isCast, destination, diagnostics);
         }
 
@@ -353,8 +353,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
             Debug.Assert(conversion.IsNullable == destination.IsNullableType());
 
-            var destinationWithoutNullable = destination;
-            var conversionWithoutNullable = conversion;
+            TypeSymbol destinationWithoutNullable = destination;
+            Conversion conversionWithoutNullable = conversion;
 
             if (conversion.IsNullable)
             {
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var tupleSyntax = (TupleExpressionSyntax)sourceTuple.Syntax;
                     var locationBuilder = ArrayBuilder<Location>.GetInstance();
 
-                    foreach (var argument in tupleSyntax.Arguments)
+                    foreach (ArgumentSyntax argument in tupleSyntax.Arguments)
                     {
                         locationBuilder.Add(argument.NameColon?.Name.Location);
                     }
@@ -398,18 +398,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var arguments = sourceTuple.Arguments;
+            ImmutableArray<BoundExpression> arguments = sourceTuple.Arguments;
             var convertedArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length);
 
             ImmutableArray<TypeSymbol> targetElementTypes = targetType.GetElementTypesOfTupleOrCompatible();
             Debug.Assert(targetElementTypes.Length == arguments.Length, "converting a tuple literal to incompatible type?");
-            var underlyingConversions = conversionWithoutNullable.UnderlyingConversions;
+            ImmutableArray<Conversion> underlyingConversions = conversionWithoutNullable.UnderlyingConversions;
 
             for (int i = 0; i < arguments.Length; i++)
             {
-                var argument = arguments[i];
-                var destType = targetElementTypes[i];
-                var elementConversion = underlyingConversions[i];
+                BoundExpression argument = arguments[i];
+                TypeSymbol destType = targetElementTypes[i];
+                Conversion elementConversion = underlyingConversions[i];
 
                 convertedArguments.Add(CreateConversion(argument.Syntax, argument, elementConversion, isCast, destType, diagnostics));
             }
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var containingType = this.ContainingType;
+            NamedTypeSymbol containingType = this.ContainingType;
             if ((object)containingType != null)
             {
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -726,8 +726,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(!isExtensionMethod || (receiverOpt != null));
 
             // - Argument types "match", and
-            var delegateParameters = delegateMethod.Parameters;
-            var methodParameters = method.Parameters;
+            ImmutableArray<ParameterSymbol> delegateParameters = delegateMethod.Parameters;
+            ImmutableArray<ParameterSymbol> methodParameters = method.Parameters;
             int numParams = delegateParameters.Length;
 
             if (methodParameters.Length != numParams + (isExtensionMethod ? 1 : 0))
@@ -749,8 +749,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < numParams; i++)
             {
-                var delegateParameter = delegateParameters[i];
-                var methodParameter = methodParameters[isExtensionMethod ? i + 1 : i];
+                ParameterSymbol delegateParameter = delegateParameters[i];
+                ParameterSymbol methodParameter = methodParameters[isExtensionMethod ? i + 1 : i];
 
                 if (delegateParameter.RefKind != methodParameter.RefKind ||
                     !Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameter.Type, methodParameter.Type, ref useSiteDiagnostics))
@@ -921,7 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            var sourceConstantValue = source.ConstantValue;
+            ConstantValue sourceConstantValue = source.ConstantValue;
             if (sourceConstantValue == null)
             {
                 if (conversion.Kind == ConversionKind.DefaultOrNullLiteral && source.Kind == BoundKind.DefaultExpression)
@@ -996,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SpecialType destinationType;
             if ((object)destination != null && destination.IsEnumType())
             {
-                var underlyingType = ((NamedTypeSymbol)destination).EnumUnderlyingType;
+                NamedTypeSymbol underlyingType = ((NamedTypeSymbol)destination).EnumUnderlyingType;
                 Debug.Assert((object)underlyingType != null);
                 Debug.Assert(underlyingType.SpecialType != SpecialType.None);
                 destinationType = underlyingType.SpecialType;

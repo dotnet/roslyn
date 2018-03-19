@@ -28,9 +28,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Declaration and Initializers are mutually exclusive.
             if (_syntax.Declaration != null)
             {
-                foreach (var vdecl in _syntax.Declaration.Variables)
+                foreach (VariableDeclaratorSyntax vdecl in _syntax.Declaration.Variables)
                 {
-                    var localSymbol = MakeLocal(_syntax.Declaration, vdecl, LocalDeclarationKind.RegularVariable);
+                    SourceLocalSymbol localSymbol = MakeLocal(_syntax.Declaration, vdecl, LocalDeclarationKind.RegularVariable);
                     locals.Add(localSymbol);
 
                     // also gather expression-declared variables from the bracketed argument lists and the initializers
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression condition = null;
-            var innerLocals = ImmutableArray<LocalSymbol>.Empty;
+            ImmutableArray<LocalSymbol> innerLocals = ImmutableArray<LocalSymbol>.Empty;
             ExpressionSyntax conditionSyntax = node.Condition;
             if (conditionSyntax != null)
             {
@@ -79,12 +79,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             SeparatedSyntaxList<ExpressionSyntax> incrementors = node.Incrementors;
             if (incrementors.Count > 0)
             {
-                var scopeDesignator = incrementors.First();
-                var incrementBinder = originalBinder.GetBinder(scopeDesignator);
+                ExpressionSyntax scopeDesignator = incrementors.First();
+                Binder incrementBinder = originalBinder.GetBinder(scopeDesignator);
                 increment = incrementBinder.WrapWithVariablesIfAny(scopeDesignator, incrementBinder.BindStatementExpressionList(incrementors, diagnostics));
             }
 
-            var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
+            BoundStatement body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
 
             Debug.Assert(this.Locals == this.GetDeclaredLocalsForScope(node));
             return new BoundForStatement(node,

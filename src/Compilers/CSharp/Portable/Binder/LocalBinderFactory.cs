@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (possibleScopeBinder != null)
             {
-                foreach (var candidate in possibleScopeBinder.LocalFunctions)
+                foreach (LocalFunctionSymbol candidate in possibleScopeBinder.LocalFunctions)
                 {
                     if (candidate.Locations[0] == node.Identifier.GetLocation())
                     {
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.ArgumentList?.Arguments.Count > 0)
             {
-                foreach (var argument in node.ArgumentList.Arguments)
+                foreach (AttributeArgumentSyntax argument in node.ArgumentList.Arguments)
                 {
                     Visit(argument.Expression, attrBinder);
                 }
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitConstructorInitializer(ConstructorInitializerSyntax node)
         {
-            var binder = _enclosing.WithAdditionalFlags(BinderFlags.ConstructorInitializer);
+            Binder binder = _enclosing.WithAdditionalFlags(BinderFlags.ConstructorInitializer);
             AddToMap(node, binder);
 
             if (node.ArgumentList != null)
@@ -401,17 +401,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder binder = new ForLoopBinder(_enclosing, node);
             AddToMap(node, binder);
 
-            var declaration = node.Declaration;
+            VariableDeclarationSyntax declaration = node.Declaration;
             if (declaration != null)
             {
-                foreach (var variable in declaration.Variables)
+                foreach (VariableDeclaratorSyntax variable in declaration.Variables)
                 {
                     Visit(variable, binder);
                 }
             }
             else
             {
-                foreach (var initializer in node.Initializers)
+                foreach (ExpressionSyntax initializer in node.Initializers)
                 {
                     Visit(initializer, binder);
                 }
@@ -430,7 +430,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var incrementorsBinder = new ExpressionListVariableBinder(incrementors, binder);
                 AddToMap(incrementors.First(), incrementorsBinder);
-                foreach (var incrementor in incrementors)
+                foreach (ExpressionSyntax incrementor in incrementors)
                 {
                     Visit(incrementor, incrementorsBinder);
                 }
@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitCheckedStatement(CheckedStatementSyntax node)
         {
-            var binder = _enclosing.WithCheckedOrUncheckedRegion(@checked: node.Kind() == SyntaxKind.CheckedStatement);
+            Binder binder = _enclosing.WithCheckedOrUncheckedRegion(@checked: node.Kind() == SyntaxKind.CheckedStatement);
             AddToMap(node, binder);
 
             Visit(node.Block, binder);
@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitUnsafeStatement(UnsafeStatementSyntax node)
         {
-            var binder = _enclosing.WithAdditionalFlags(BinderFlags.UnsafeRegion);
+            Binder binder = _enclosing.WithAdditionalFlags(BinderFlags.UnsafeRegion);
             AddToMap(node, binder);
 
             Visit(node.Block, binder); // This will create the block binder for the block.
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.Expression, lockBinder);
 
             StatementSyntax statement = node.Statement;
-            var statementBinder = lockBinder.WithAdditionalFlags(BinderFlags.InLockBody);
+            Binder statementBinder = lockBinder.WithAdditionalFlags(BinderFlags.InLockBody);
             if (statementBinder != lockBinder)
             {
                 AddToMap(statement, statementBinder);
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var patternBinder = new ExpressionVariableBinder(node, _enclosing);
             AddToMap(node, patternBinder);
 
-            foreach (var label in node.Labels)
+            foreach (SwitchLabelSyntax label in node.Labels)
             {
                 switch (label.Kind())
                 {
@@ -594,7 +594,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Visit(node.Block, _enclosing);
             }
 
-            foreach (var c in node.Catches)
+            foreach (CatchClauseSyntax c in node.Catches)
             {
                 Visit(c, _enclosing);
             }
@@ -613,7 +613,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.Filter != null)
             {
-                var filterBinder = clauseBinder.WithAdditionalFlags(BinderFlags.InCatchFilter);
+                Binder filterBinder = clauseBinder.WithAdditionalFlags(BinderFlags.InCatchFilter);
                 AddToMap(node.Filter, filterBinder);
                 Visit(node.Filter, filterBinder);
             }
@@ -638,7 +638,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // statement with no arguments is not allowed in a finally clause that is nested inside
             // the nearest enclosing catch clause.
 
-            var additionalFlags = BinderFlags.InFinallyBlock;
+            BinderFlags additionalFlags = BinderFlags.InFinallyBlock;
             if (_enclosing.Flags.Includes(BinderFlags.InCatchBlock))
             {
                 additionalFlags |= BinderFlags.InNestedFinallyBlock;
@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
         {
-            foreach (var decl in node.Declaration.Variables)
+            foreach (VariableDeclaratorSyntax decl in node.Declaration.Variables)
             {
                 Visit(decl);
             }
@@ -814,7 +814,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override void VisitQueryBody(QueryBodySyntax node)
         {
-            foreach (var clause in node.Clauses)
+            foreach (QueryClauseSyntax clause in node.Clauses)
             {
                 if (clause.Kind() == SyntaxKind.JoinClause)
                 {

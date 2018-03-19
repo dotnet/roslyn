@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool IsAttributeName(SyntaxNode node)
         {
-            var parent = node.Parent;
+            SyntaxNode parent = node.Parent;
             if (parent == null || !IsName(node.Kind()))
             {
                 return false;
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public static bool IsInTypeOnlyContext(ExpressionSyntax node)
         {
             node = SyntaxFactory.GetStandaloneExpression(node);
-            var parent = node.Parent;
+            CSharpSyntaxNode parent = node.Parent;
             if (parent != null)
             {
                 switch (parent.Kind())
@@ -215,7 +215,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (node != null)
             {
                 node = (ExpressionSyntax)SyntaxFactory.GetStandaloneExpression(node);
-                var parent = node.Parent;
+                CSharpSyntaxNode parent = node.Parent;
                 if (parent != null)
                 {
                     switch (parent.Kind())
@@ -253,19 +253,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var parent1 = node.Parent;
+            SyntaxNode parent1 = node.Parent;
             if (parent1 == null || !parent1.IsKind(NameColon))
             {
                 return false;
             }
 
-            var parent2 = parent1.Parent;
+            SyntaxNode parent2 = parent1.Parent;
             if (parent2 == null || !(parent2.IsKind(Argument) || parent2.IsKind(AttributeArgument)))
             {
                 return false;
             }
 
-            var parent3 = parent2.Parent;
+            SyntaxNode parent3 = parent2.Parent;
             if (parent3 == null)
             {
                 return false;
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var parent4 = parent3.Parent;
+            SyntaxNode parent4 = parent3.Parent;
             if (parent4 == null)
             {
                 return false;
@@ -435,7 +435,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.DeclarationExpression:
                     var declaration = (DeclarationExpressionSyntax)syntax;
-                    var designationKind = declaration.Designation.Kind();
+                    SyntaxKind designationKind = declaration.Designation.Kind();
                     if (designationKind == SyntaxKind.ParenthesizedVariableDesignation ||
                         designationKind == SyntaxKind.DiscardDesignation)
                     {

@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string s = @"[assembly: System.Reflection.AssemblyVersion(""1.2.3.4"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             Assert.Empty(other.GetDiagnostics());
             Assert.Equal(new Version(1, 2, 3, 4), other.Assembly.Identity.Version);
         }
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string s = @"[assembly: System.Reflection.AssemblyVersion(""1.22.333.4444"")] public class C {}";
 
-            var comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
             VerifyAssemblyTable(comp, r =>
             {
                 Assert.Equal(new Version(1, 22, 333, 4444), r.Version);
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void VersionAttribute_TwoParts()
         {
             var s = @"[assembly: System.Reflection.AssemblyVersion(""1.2"")] public class C {}";
-            var comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
             VerifyAssemblyTable(comp, r =>
             {
                 Assert.Equal(1, r.Version.Major);
@@ -59,12 +59,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void VersionAttribute_WildCard()
         {
-            var now = DateTime.Now;
+            DateTime now = DateTime.Now;
             int days, seconds;
             VersionTestHelpers.GetDefaultVersion(now, out days, out seconds);
 
             var s = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
-            var comp = CreateCompilation(s, options: TestOptions.ReleaseDll.WithCurrentLocalTime(now));
+            CSharpCompilation comp = CreateCompilation(s, options: TestOptions.ReleaseDll.WithCurrentLocalTime(now));
             VerifyAssemblyTable(comp, r =>
             {
                 Assert.Equal(10101, r.Version.Major);
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void VersionAttribute_Overflow()
         {
             var s = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
-            var comp = CreateCompilation(s, options: TestOptions.ReleaseDll.WithCurrentLocalTime(new DateTime(2300, 1, 1)));
+            CSharpCompilation comp = CreateCompilation(s, options: TestOptions.ReleaseDll.WithCurrentLocalTime(new DateTime(2300, 1, 1)));
             VerifyAssemblyTable(comp, r =>
             {
                 Assert.Equal(10101, r.Version.Major);
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string s = @"[assembly: System.Reflection.AssemblyVersion(""1.*"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             other.VerifyDiagnostics(
                 // (1,46): error CS7034: The specified version string does not conform to the required format - major[.minor[.build[.revision]]]
                 // [assembly: System.Reflection.AssemblyVersion("1.*")] public class C {}
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string s = @"[assembly: System.Reflection.AssemblyVersion(""1.1.1.*"")]";
 
-            var comp = CreateCompilation(s, options: TestOptions.ReleaseDll.WithDeterministic(true));
+            CSharpCompilation comp = CreateCompilation(s, options: TestOptions.ReleaseDll.WithDeterministic(true));
             comp.VerifyDiagnostics(
                 // (1,46): error CS8357: The specified version string contains wildcards, which are not compatible with determinism. Either remove wildcards from the version string, or disable determinism for this compilation
                 // [assembly: System.Reflection.AssemblyVersion("1.1.1.*")]
@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string s = @"[assembly: System.Reflection.AssemblyFileVersion(""1.2.3.4"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             Assert.Empty(other.GetDiagnostics());
             Assert.Equal("1.2.3.4", ((SourceAssemblySymbol)other.Assembly).FileVersion);
         }
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string s = @"[assembly: System.Reflection.AssemblyFileVersion(""1.2"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             Assert.Empty(other.GetDiagnostics());
             Assert.Equal("1.2", ((SourceAssemblySymbol)other.Assembly).FileVersion);
         }
@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string s = @"[assembly: System.Reflection.AssemblyFileVersion(""65535.65535.65535.65535"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             Assert.Empty(other.GetDiagnostics());
             Assert.Equal("65535.65535.65535.65535", ((SourceAssemblySymbol)other.Assembly).FileVersion);
         }
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string s = @"[assembly: System.Reflection.AssemblyFileVersion(""1.2.*"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             other.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_InvalidVersionFormat, @"""1.2.*"""));
 
             // Confirm that suppressing the old alink warning 1607 shuts off WRN_ConflictingMachineAssembly
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string s = @"[assembly: System.Reflection.AssemblyFileVersion(""1.65536"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             other.VerifyDiagnostics(Diagnostic(ErrorCode.WRN_InvalidVersionFormat, @"""1.65536"""));
 
             // Confirm that suppressing the old alink warning 1607 shuts off WRN_ConflictingMachineAssembly
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string s = @"[assembly: System.Resources.SatelliteContractVersionAttribute(""1.2.3.A"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             other.VerifyDiagnostics(
                 // (1,63): error CS7058: The specified version string does not conform to the required format - major.minor.build.revision (without wildcards)
                 // [assembly: System.Resources.SatelliteContractVersionAttribute("1.2.3.A")] public class C {}
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string s = @"[assembly: System.Reflection.AssemblyTitle(""One Hundred Years of Solitude"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             Assert.Empty(other.GetDiagnostics());
             Assert.Equal("One Hundred Years of Solitude", ((SourceAssemblySymbol)other.Assembly).Title);
         }
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string s = @"[assembly: System.Reflection.AssemblyTitle(null)] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             Assert.Empty(other.GetDiagnostics());
             Assert.Null(((SourceAssemblySymbol)other.Assembly).Title);
         }
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string s = @"[assembly: System.Reflection.AssemblyDescription(""A classic of magical realist literature"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             Assert.Empty(other.GetDiagnostics());
             Assert.Equal("A classic of magical realist literature", ((SourceAssemblySymbol)other.Assembly).Description);
         }
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             string s = @"[assembly: System.Reflection.AssemblyCulture(""pt-BR"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             Assert.Empty(other.GetDiagnostics());
             Assert.Equal("pt-BR", (other.Assembly.Identity.CultureName));
         }
@@ -253,7 +253,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void CultureAttribute02()
         {
             string s = @"[assembly: System.Reflection.AssemblyCultureAttribute("""")]";
-            var comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
             VerifyAssemblyTable(comp, r => { Assert.True(r.Culture.IsNil); });
 
             s = @"[assembly: System.Reflection.AssemblyCulture(null)] public class C {  static void Main() { }  }";
@@ -270,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             // Executables cannot be satellite assemblies; culture should always be empty
             string s = @"[assembly: System.Reflection.AssemblyCulture(null)] public class C {  static void Main() { }  }";
-            var comp = CreateCompilation(s, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilation(s, options: TestOptions.ReleaseExe);
             VerifyAssemblyTable(comp, r => { Assert.True(r.Culture.IsNil); });
 
             s = @"[assembly: System.Reflection.AssemblyCulture("""")] public class C {  static void Main() { }  }";
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void CultureAttributeErr()
         {
             string s = @"[assembly: System.Reflection.AssemblyCulture(""pt-BR"")] public class C {  static void Main() { }  }";
-            var comp = CreateCompilation(s, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilation(s, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
                 // (1,46): error CS7059: Executables cannot be satellite assemblies; culture should always be empty
                 // [assembly: System.Reflection.AssemblyCulture("pt-BR")] public class C {  static void Main() { }  }
@@ -293,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void MismatchedSurrogateInAssemblyCultureAttribute()
         {
             string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\uD800"")]";
-            var comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
 
             CompileAndVerify(comp, verify: Verification.Fails, symbolValidator: m =>
             {
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void NulCharInAssemblyCultureAttribute()
         {
             string s = @"[assembly: System.Reflection.AssemblyCultureAttribute(""\0"")]";
-            var comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics(
                 // (1,55): error CS7100: Assembly culture strings may not contain embedded NUL characters.
                 // [assembly: System.Reflection.AssemblyCultureAttribute("\0")]
@@ -316,7 +316,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void CultureAttributeMismatch()
         {
-            var neutral = CreateCompilationWithMscorlib40(
+            CSharpCompilation neutral = CreateCompilationWithMscorlib40(
 @"
 public class neutral
 {}
@@ -324,7 +324,7 @@ public class neutral
 
             var neutralRef = new CSharpCompilationReference(neutral);
 
-            var de = CreateCompilationWithMscorlib40(
+            CSharpCompilation de = CreateCompilationWithMscorlib40(
 @"
 [assembly: System.Reflection.AssemblyCultureAttribute(""de"")]
 
@@ -334,7 +334,7 @@ public class de
 
             var deRef = new CSharpCompilationReference(de);
 
-            var en_us = CreateCompilationWithMscorlib40(
+            CSharpCompilation en_us = CreateCompilationWithMscorlib40(
 @"
 [assembly: System.Reflection.AssemblyCultureAttribute(""en-us"")]
 
@@ -421,7 +421,7 @@ public class en_US
                 {
                     Assert.Equal(1, m.GetReferencedAssemblySymbols().Length);
 
-                    var naturalRef = m.ContainingAssembly.Modules[1].GetReferencedAssemblySymbols()[1];
+                    AssemblySymbol naturalRef = m.ContainingAssembly.Modules[1].GetReferencedAssemblySymbols()[1];
                     Assert.True(naturalRef.IsMissing);
                     Assert.Equal("neutral, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", naturalRef.ToTestDisplayString());
                 },
@@ -462,7 +462,7 @@ public class neutral
         {
             string s = @"[assembly: System.Reflection.AssemblyCompany(""MossBrain"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             Assert.Empty(other.GetDiagnostics());
             Assert.Equal("MossBrain", ((SourceAssemblySymbol)other.Assembly).Company);
 
@@ -478,7 +478,7 @@ public class neutral
         {
             string s = @"[assembly: System.Reflection.AssemblyProduct(""Sound Cannon"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             Assert.Empty(other.GetDiagnostics());
             Assert.Equal("Sound Cannon", ((SourceAssemblySymbol)other.Assembly).Product);
         }
@@ -488,7 +488,7 @@ public class neutral
         {
             string s = @"[assembly: System.Reflection.AssemblyCopyright(""مايكروسوفت"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             Assert.Empty(other.GetDiagnostics());
             Assert.Equal("مايكروسوفت", ((SourceAssemblySymbol)other.Assembly).Copyright);
         }
@@ -498,7 +498,7 @@ public class neutral
         {
             string s = @"[assembly: System.Reflection.AssemblyTrademark(""circle R"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             Assert.Empty(other.GetDiagnostics());
             Assert.Equal("circle R", ((SourceAssemblySymbol)other.Assembly).Trademark);
 
@@ -514,7 +514,7 @@ public class neutral
         {
             string s = @"[assembly: System.Reflection.AssemblyInformationalVersion(""1.2.3garbage"")] public class C {}";
 
-            var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             other.VerifyEmitDiagnostics();
             Assert.Equal("1.2.3garbage", ((SourceAssemblySymbol)other.Assembly).InformationalVersion);
         }
@@ -522,9 +522,9 @@ public class neutral
         [Fact, WorkItem(529921, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529921")]
         public void AlgorithmIdAttribute()
         {
-            var hash_module = TestReferences.SymbolsTests.netModule.hash_module;
+            PortableExecutableReference hash_module = TestReferences.SymbolsTests.netModule.hash_module;
 
-            var hash_resources = new[] {new ResourceDescription("hash_resource", "snKey.snk",
+            ResourceDescription[] hash_resources = new[] {new ResourceDescription("hash_resource", "snKey.snk",
                 () => new MemoryStream(TestResources.General.snKey, writable: false),
                 true)};
 
@@ -542,15 +542,15 @@ class Program
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
-                    var reader = peAssembly.ManifestModule.GetMetadataReader();
+                    MetadataReader reader = peAssembly.ManifestModule.GetMetadataReader();
                     AssemblyDefinition assembly = reader.GetAssemblyDefinition();
                     Assert.Equal(AssemblyHashAlgorithm.Sha1, assembly.HashAlgorithm);
 
-                    var file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1));
+                    AssemblyFile file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1));
                     Assert.Equal(new byte[] { 0x6C, 0x9C, 0x3E, 0xDA, 0x60, 0x0F, 0x81, 0x93, 0x4A, 0xC1, 0x0D, 0x41, 0xB3, 0xE9, 0xB2, 0xB7, 0x2D, 0xEE, 0x59, 0xA8 },
                         reader.GetBlobBytes(file1.HashValue));
 
-                    var file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
+                    AssemblyFile file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
                     Assert.Equal(new byte[] { 0x7F, 0x28, 0xEA, 0xD1, 0xF4, 0xA1, 0x7C, 0xB8, 0x0C, 0x14, 0xC0, 0x2E, 0x8C, 0xFF, 0x10, 0xEC, 0xB3, 0xC2, 0xA5, 0x1D },
                         reader.GetBlobBytes(file2.HashValue));
 
@@ -571,15 +571,15 @@ class Program
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
-                    var reader = peAssembly.ManifestModule.GetMetadataReader();
+                    MetadataReader reader = peAssembly.ManifestModule.GetMetadataReader();
                     AssemblyDefinition assembly = reader.GetAssemblyDefinition();
                     Assert.Equal(AssemblyHashAlgorithm.None, assembly.HashAlgorithm);
 
-                    var file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1));
+                    AssemblyFile file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1));
                     Assert.Equal(new byte[] { 0x6C, 0x9C, 0x3E, 0xDA, 0x60, 0x0F, 0x81, 0x93, 0x4A, 0xC1, 0x0D, 0x41, 0xB3, 0xE9, 0xB2, 0xB7, 0x2D, 0xEE, 0x59, 0xA8 },
                         reader.GetBlobBytes(file1.HashValue));
 
-                    var file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
+                    AssemblyFile file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
                     Assert.Equal(new byte[] { 0x7F, 0x28, 0xEA, 0xD1, 0xF4, 0xA1, 0x7C, 0xB8, 0x0C, 0x14, 0xC0, 0x2E, 0x8C, 0xFF, 0x10, 0xEC, 0xB3, 0xC2, 0xA5, 0x1D },
                         reader.GetBlobBytes(file2.HashValue));
 
@@ -600,15 +600,15 @@ class Program
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
-                    var reader = peAssembly.ManifestModule.GetMetadataReader();
+                    MetadataReader reader = peAssembly.ManifestModule.GetMetadataReader();
                     AssemblyDefinition assembly = reader.GetAssemblyDefinition();
                     Assert.Equal(AssemblyHashAlgorithm.MD5, assembly.HashAlgorithm);
 
-                    var file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1));
+                    AssemblyFile file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1));
                     Assert.Equal(new byte[] { 0x24, 0x22, 0x03, 0xC3, 0x94, 0xD5, 0xC2, 0xD9, 0x99, 0xB3, 0x6D, 0x59, 0xB2, 0xCA, 0x23, 0xBC },
                         reader.GetBlobBytes(file1.HashValue));
 
-                    var file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
+                    AssemblyFile file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
                     Assert.Equal(new byte[] { 0x8D, 0xFE, 0xBF, 0x49, 0x8D, 0x62, 0x2A, 0x88, 0x89, 0xD1, 0x0E, 0x00, 0x9E, 0x29, 0x72, 0xF1 },
                         reader.GetBlobBytes(file2.HashValue));
 
@@ -629,15 +629,15 @@ class Program
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
-                    var reader = peAssembly.ManifestModule.GetMetadataReader();
+                    MetadataReader reader = peAssembly.ManifestModule.GetMetadataReader();
                     AssemblyDefinition assembly = reader.GetAssemblyDefinition();
                     Assert.Equal(AssemblyHashAlgorithm.Sha1, assembly.HashAlgorithm);
 
-                    var file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1));
+                    AssemblyFile file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1));
                     Assert.Equal(new byte[] { 0x6C, 0x9C, 0x3E, 0xDA, 0x60, 0x0F, 0x81, 0x93, 0x4A, 0xC1, 0x0D, 0x41, 0xB3, 0xE9, 0xB2, 0xB7, 0x2D, 0xEE, 0x59, 0xA8 },
                         reader.GetBlobBytes(file1.HashValue));
 
-                    var file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
+                    AssemblyFile file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
                     Assert.Equal(new byte[] { 0x7F, 0x28, 0xEA, 0xD1, 0xF4, 0xA1, 0x7C, 0xB8, 0x0C, 0x14, 0xC0, 0x2E, 0x8C, 0xFF, 0x10, 0xEC, 0xB3, 0xC2, 0xA5, 0x1D },
                         reader.GetBlobBytes(file2.HashValue));
                     Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
@@ -657,15 +657,15 @@ class Program
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
-                    var reader = peAssembly.ManifestModule.GetMetadataReader();
+                    MetadataReader reader = peAssembly.ManifestModule.GetMetadataReader();
                     AssemblyDefinition assembly = reader.GetAssemblyDefinition();
                     Assert.Equal(System.Configuration.Assemblies.AssemblyHashAlgorithm.SHA256, (System.Configuration.Assemblies.AssemblyHashAlgorithm)assembly.HashAlgorithm);
 
-                    var file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1));
+                    AssemblyFile file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1));
                     Assert.Equal(new byte[] { 0xA2, 0x32, 0x3F, 0x0D, 0xF4, 0xB8, 0xED, 0x5A, 0x1B, 0x7B, 0xBE, 0x14, 0x4F, 0xEC, 0xBF, 0x88, 0x23, 0x61, 0xEB, 0x40, 0xF7, 0xF9, 0x46, 0xEF, 0x68, 0x3B, 0x70, 0x29, 0xCF, 0x12, 0x05, 0x35 },
                         reader.GetBlobBytes(file1.HashValue));
 
-                    var file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
+                    AssemblyFile file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
                     Assert.Equal(new byte[] { 0xCC, 0xAE, 0xA0, 0xB4, 0x9E, 0xAE, 0x28, 0xE0, 0xA3, 0x46, 0xE9, 0xCF, 0xF3, 0xEF, 0xEA, 0xF7,
                                               0x1D, 0xDE, 0x62, 0x8F, 0xD6, 0xF4, 0x87, 0x76, 0x1A, 0xC3, 0x6F, 0xAD, 0x10, 0x1C, 0x10, 0xAC},
                         reader.GetBlobBytes(file2.HashValue));
@@ -686,17 +686,17 @@ class Program
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
-                    var reader = peAssembly.ManifestModule.GetMetadataReader();
+                    MetadataReader reader = peAssembly.ManifestModule.GetMetadataReader();
                     AssemblyDefinition assembly = reader.GetAssemblyDefinition();
                     Assert.Equal(System.Configuration.Assemblies.AssemblyHashAlgorithm.SHA384, (System.Configuration.Assemblies.AssemblyHashAlgorithm)assembly.HashAlgorithm);
 
-                    var file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1));
+                    AssemblyFile file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1));
                     Assert.Equal(new byte[] { 0xB6, 0x35, 0x9B, 0xBE, 0x82, 0x89, 0xFF, 0x01, 0x22, 0x8B, 0x56, 0x5E, 0x9B, 0x15, 0x5D, 0x10,
                                               0x68, 0x83, 0xF7, 0x75, 0x4E, 0xA6, 0x30, 0xF7, 0x8D, 0x39, 0x9A, 0xB7, 0xE8, 0xB6, 0x47, 0x1F,
                                               0xF6, 0xFD, 0x1E, 0x64, 0x63, 0x6B, 0xE7, 0xF4, 0xBE, 0xA7, 0x21, 0xED, 0xFC, 0x82, 0x38, 0x95},
                         reader.GetBlobBytes(file1.HashValue));
 
-                    var file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
+                    AssemblyFile file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
                     Assert.Equal(new byte[] { 0x45, 0x05, 0x2E, 0x90, 0x9B, 0x61, 0xA3, 0xF8, 0x60, 0xD2, 0x86, 0xCB, 0x10, 0x33, 0xC9, 0x86,
                                               0x68, 0xA5, 0xEE, 0x4A, 0xCF, 0x21, 0x10, 0xA9, 0x8F, 0x14, 0x62, 0x8D, 0x3E, 0x7D, 0xFD, 0x7E,
                                               0xE6, 0x23, 0x6F, 0x2D, 0xBA, 0x04, 0xE7, 0x13, 0xE4, 0x5E, 0x8C, 0xEB, 0x80, 0x68, 0xA3, 0x17},
@@ -719,18 +719,18 @@ class Program
                 manifestResources: hash_resources,
                 validator: (peAssembly) =>
                 {
-                    var reader = peAssembly.ManifestModule.GetMetadataReader();
+                    MetadataReader reader = peAssembly.ManifestModule.GetMetadataReader();
                     AssemblyDefinition assembly = reader.GetAssemblyDefinition();
                     Assert.Equal(System.Configuration.Assemblies.AssemblyHashAlgorithm.SHA512, (System.Configuration.Assemblies.AssemblyHashAlgorithm)assembly.HashAlgorithm);
 
-                    var file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1));
+                    AssemblyFile file1 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(1));
                     Assert.Equal(new byte[] { 0x5F, 0x4D, 0x7E, 0x63, 0xC9, 0x87, 0xD9, 0xEB, 0x4F, 0x5C, 0xFD, 0x96, 0x3F, 0x25, 0x58, 0x74,
                                               0x86, 0xDF, 0x97, 0x75, 0x93, 0xEE, 0xC2, 0x5F, 0xFD, 0x8A, 0x40, 0x5C, 0x92, 0x5E, 0xB5, 0x07,
                                               0xD6, 0x12, 0xE9, 0x21, 0x55, 0xCE, 0xD7, 0xE5, 0x15, 0xF5, 0xBA, 0xBC, 0x1B, 0x31, 0xAD, 0x3C,
                                               0x5E, 0xE0, 0x91, 0x98, 0xC2, 0xE0, 0x96, 0xBB, 0xAD, 0x0D, 0x4E, 0xF4, 0x91, 0x53, 0x3D, 0x84},
                         reader.GetBlobBytes(file1.HashValue));
 
-                    var file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
+                    AssemblyFile file2 = reader.GetAssemblyFile(MetadataTokens.AssemblyFileHandle(2));
                     Assert.Equal(new byte[] { 0x79, 0xFE, 0x97, 0xAB, 0x08, 0x8E, 0xDF, 0x74, 0xC2, 0xEF, 0x84, 0xBB, 0xFC, 0x74, 0xAC, 0x60,
                                               0x18, 0x6E, 0x1A, 0xD2, 0xC5, 0x94, 0xE0, 0xDA, 0xE0, 0x45, 0x33, 0x43, 0x99, 0xF0, 0xF3, 0xF1,
                                               0x72, 0x05, 0x4B, 0x0F, 0x37, 0x50, 0xC5, 0xD9, 0xCE, 0x29, 0x82, 0x4C, 0xF7, 0xE6, 0x94, 0x5F,
@@ -740,7 +740,7 @@ class Program
                     Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
                 });
 
-            var hash_module_Comp = CreateCompilation(
+            CSharpCompilation hash_module_Comp = CreateCompilation(
 @"
 [assembly: System.Reflection.AssemblyAlgorithmIdAttribute(System.Configuration.Assemblies.AssemblyHashAlgorithm.MD5)]
 
@@ -758,7 +758,7 @@ class Program
             CompileAndVerify(compilation,
                 validator: (peAssembly) =>
                 {
-                    var peReader = peAssembly.ManifestModule.GetMetadataReader();
+                    MetadataReader peReader = peAssembly.ManifestModule.GetMetadataReader();
                     AssemblyDefinition assembly = peReader.GetAssemblyDefinition();
                     Assert.Equal(AssemblyHashAlgorithm.MD5, assembly.HashAlgorithm);
                     Assert.Null(peAssembly.ManifestModule.FindTargetAttributes(peAssembly.Handle, AttributeDescription.AssemblyAlgorithmIdAttribute));
@@ -806,9 +806,9 @@ class Program
                 Diagnostic(ErrorCode.ERR_CryptoHashFailed));
 
             string s = @"[assembly: System.Reflection.AssemblyAlgorithmIdAttribute(System.Configuration.Assemblies.AssemblyHashAlgorithm.MD5)] public class C {}";
-            var comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
             Assert.Empty(comp.GetDiagnostics());
-            var attrs = comp.Assembly.GetAttributes();
+            System.Collections.Immutable.ImmutableArray<CSharpAttributeData> attrs = comp.Assembly.GetAttributes();
             Assert.Equal(1, attrs.Length);
             VerifyAssemblyTable(comp, r => { Assert.Equal(AssemblyHashAlgorithm.MD5, r.HashAlgorithm); });
 
@@ -829,11 +829,11 @@ class Program
 public class C {}
 ";
 
-            var comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
             Assert.Empty(comp.GetDiagnostics());
-            var attrs = comp.Assembly.GetAttributes();
+            System.Collections.Immutable.ImmutableArray<CSharpAttributeData> attrs = comp.Assembly.GetAttributes();
             Assert.Equal(1, attrs.Length);
-            var flags = System.Reflection.AssemblyNameFlags.EnableJITcompileOptimizer | System.Reflection.AssemblyNameFlags.Retargetable;
+            AssemblyNameFlags flags = System.Reflection.AssemblyNameFlags.EnableJITcompileOptimizer | System.Reflection.AssemblyNameFlags.Retargetable;
             VerifyAssemblyTable(comp, r => { Assert.Equal((int)flags, (int)r.Flags); });
         }
 
@@ -842,7 +842,7 @@ public class C {}
         {
             string s = @"[assembly: System.Reflection.AssemblyFlags(12345)] public class C {} ";
 
-            var comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
             // Both native & Roslyn PEVerifier fail: [MD]: Error: Invalid Assembly flags (0x3038). [token:0x20000001]
             VerifyAssemblyTable(comp, r => { Assert.Equal((uint)(12345 - 1), (uint)r.Flags); });
 
@@ -857,7 +857,7 @@ public class C {}
         {
             string s = @"[assembly: System.Reflection.AssemblyFlags(12345U)] public class C {} ";
 
-            var comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilation(s, options: TestOptions.ReleaseDll);
             // Both native & Roslyn PEVerifier fail: [MD]: Error: Invalid Assembly flags (0x3038). [token:0x20000001]
             VerifyAssemblyTable(comp, r => { Assert.Equal((uint)(12345 - 1), (uint)r.Flags); });
 
@@ -883,7 +883,7 @@ public class C {}
 
             using (var metadata = ModuleMetadata.CreateFromStream(stream))
             {
-                var peReader = metadata.MetadataReader;
+                MetadataReader peReader = metadata.MetadataReader;
                 AssemblyDefinition row = peReader.GetAssemblyDefinition();
                 verifier?.Invoke(row);
 
@@ -950,7 +950,7 @@ public class C {}
         private ModuleMetadata GetNetModuleWithAssemblyAttributes(string source = null, IEnumerable<MetadataReference> references = null, string assemblyName = null)
         {
             source = source ?? s_defaultNetModuleSourceHeader + s_defaultNetModuleSourceBody;
-            var netmoduleCompilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseModule, references: references, assemblyName: assemblyName);
+            CSharpCompilation netmoduleCompilation = CreateCompilationWithMscorlib40(source, options: TestOptions.ReleaseModule, references: references, assemblyName: assemblyName);
             return ModuleMetadata.CreateFromImage(netmoduleCompilation.EmitToArray());
         }
 
@@ -958,7 +958,7 @@ public class C {}
         {
             // SOURCE ATTRIBUTES
 
-            var sourceAttributes = compilation.Assembly
+            IEnumerable<CSharpAttributeData> sourceAttributes = compilation.Assembly
                 .GetAttributes()
                 .Where(a => string.Equals(a.AttributeClass.Name, attrTypeName, StringComparison.Ordinal));
 
@@ -971,14 +971,14 @@ public class C {}
                 // We should get only unique netmodule/assembly attributes here, duplicate ones should not be emitted.
                 var expectedEmittedAttrsCount = expectedSrcAttrCount - expectedDuplicateAttrCount;
 
-                var metadataAttributes = module.ContainingAssembly
+                IEnumerable<CSharpAttributeData> metadataAttributes = module.ContainingAssembly
                     .GetAttributes()
                     .Where(a => string.Equals(a.AttributeClass.Name, attrTypeName, StringComparison.Ordinal));
 
                 Assert.Equal(expectedEmittedAttrsCount, metadataAttributes.Count());
 
                 var uniqueAttributes = new HashSet<CSharpAttributeData>(comparer: CommonAttributeDataComparer.Instance);
-                foreach (var attr in metadataAttributes)
+                foreach (CSharpAttributeData attr in metadataAttributes)
                 {
                     Assert.True(uniqueAttributes.Add(attr));
                 }
@@ -998,10 +998,10 @@ public class C {}
                 }
                 ";
 
-            var netModuleWithAssemblyAttributes = GetNetModuleWithAssemblyAttributes();
+            ModuleMetadata netModuleWithAssemblyAttributes = GetNetModuleWithAssemblyAttributes();
 
             PEModule peModule = netModuleWithAssemblyAttributes.Module;
-            var metadataReader = peModule.GetMetadataReader();
+            MetadataReader metadataReader = peModule.GetMetadataReader();
 
             Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ExportedType));
             Assert.Equal(18, metadataReader.CustomAttributes.Count);
@@ -1010,18 +1010,18 @@ public class C {}
             EntityHandle token = peModule.GetTypeRef(peModule.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.False(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
-            var consoleappCompilation = CreateCompilationWithMscorlib40(
+            CSharpCompilation consoleappCompilation = CreateCompilationWithMscorlib40(
                 consoleappSource,
                 references: new[] { netModuleWithAssemblyAttributes.GetReference() },
                 options: TestOptions.ReleaseExe);
 
             Assert.NotNull(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"));
             Assert.NotNull(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHereM"));
-            var diagnostics = consoleappCompilation.GetDiagnostics();
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = consoleappCompilation.GetDiagnostics();
 
-            var attrs = consoleappCompilation.Assembly.GetAttributes();
+            System.Collections.Immutable.ImmutableArray<CSharpAttributeData> attrs = consoleappCompilation.Assembly.GetAttributes();
             Assert.Equal(4, attrs.Length);
-            foreach (var a in attrs)
+            foreach (CSharpAttributeData a in attrs)
             {
                 switch (a.AttributeClass.Name)
                 {
@@ -1111,7 +1111,7 @@ public class C {}
                 }
                 ";
 
-            var netmoduleCompilation = CreateEmptyCompilation(netModuleSource, 
+            CSharpCompilation netmoduleCompilation = CreateEmptyCompilation(netModuleSource, 
                                                          options: TestOptions.ReleaseModule, 
                                                          references: new[] { MinCorlibRef });
             Assert.Null(netmoduleCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHere"));
@@ -1119,7 +1119,7 @@ public class C {}
             var netModuleWithAssemblyAttributes = ModuleMetadata.CreateFromImage(netmoduleCompilation.EmitToArray());
 
             PEModule peModule = netModuleWithAssemblyAttributes.Module;
-            var metadataReader = peModule.GetMetadataReader();
+            MetadataReader metadataReader = peModule.GetMetadataReader();
 
             Assert.Equal(0, metadataReader.GetTableRowCount(TableIndex.ExportedType));
             Assert.Equal(4, metadataReader.CustomAttributes.Count);
@@ -1128,7 +1128,7 @@ public class C {}
             EntityHandle token = peModule.GetTypeRef(peModule.GetAssemblyRef("mincorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHereM");
             Assert.False(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
-            var consoleappCompilation = CreateEmptyCompilation(
+            CSharpCompilation consoleappCompilation = CreateEmptyCompilation(
                 consoleappSource,
                 references: new[] { MinCorlibRef, netModuleWithAssemblyAttributes.GetReference() },
                 options: TestOptions.ReleaseExe);
@@ -1137,9 +1137,9 @@ public class C {}
             Assert.Null(consoleappCompilation.GetTypeByMetadataName("System.Runtime.CompilerServices.AssemblyAttributesGoHereM"));
             consoleappCompilation.GetDiagnostics().Verify();
 
-            var attrs = consoleappCompilation.Assembly.GetAttributes();
+            System.Collections.Immutable.ImmutableArray<CSharpAttributeData> attrs = consoleappCompilation.Assembly.GetAttributes();
             Assert.Equal(2, attrs.Length);
-            foreach (var a in attrs)
+            foreach (CSharpAttributeData a in attrs)
             {
                 switch (a.AttributeClass.Name)
                 {
@@ -1203,8 +1203,8 @@ public class C {}
                 }
                 ";
 
-            var consoleappCompilation = CreateCompilationWithMscorlib40(consoleappSource, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseExe);
-            var diagnostics = consoleappCompilation.GetDiagnostics();
+            CSharpCompilation consoleappCompilation = CreateCompilationWithMscorlib40(consoleappSource, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseExe);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = consoleappCompilation.GetDiagnostics();
 
             TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation,
                expectedSrcAttrCount: 2,
@@ -1216,8 +1216,8 @@ public class C {}
                expectedDuplicateAttrCount: 1,
                attrTypeName: "UserDefinedAssemblyAttrNoAllowMultipleAttribute");
 
-            var attrs = consoleappCompilation.Assembly.GetAttributes();
-            foreach (var a in attrs)
+            System.Collections.Immutable.ImmutableArray<CSharpAttributeData> attrs = consoleappCompilation.Assembly.GetAttributes();
+            foreach (CSharpAttributeData a in attrs)
             {
                 switch (a.AttributeClass.Name)
                 {
@@ -1255,7 +1255,7 @@ public class C {}
                 }
                 ";
 
-            var consoleappCompilation = CreateCompilationWithMscorlib40(consoleappSource, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseExe);
+            CSharpCompilation consoleappCompilation = CreateCompilationWithMscorlib40(consoleappSource, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseExe);
 
             TestDuplicateAssemblyAttributesNotEmitted(consoleappCompilation,
                expectedSrcAttrCount: 2,
@@ -1264,7 +1264,7 @@ public class C {}
 
             CompileAndVerify(consoleappCompilation, symbolValidator: module =>
             {
-                foreach (var a in module.ContainingAssembly.GetAttributes())
+                foreach (CSharpAttributeData a in module.ContainingAssembly.GetAttributes())
                 {
                     switch (a.AttributeClass.Name)
                     {
@@ -1306,12 +1306,12 @@ public class C {}
                 }
                 ";
 
-            var consoleappCompilation = CreateCompilationWithMscorlib40(consoleappSource, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseExe);
-            var diagnostics = consoleappCompilation.GetDiagnostics();
+            CSharpCompilation consoleappCompilation = CreateCompilationWithMscorlib40(consoleappSource, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseExe);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = consoleappCompilation.GetDiagnostics();
 
-            var attrs = consoleappCompilation.Assembly.GetAttributes();
+            System.Collections.Immutable.ImmutableArray<CSharpAttributeData> attrs = consoleappCompilation.Assembly.GetAttributes();
             Assert.Equal(5, attrs.Length);
-            foreach (var a in attrs)
+            foreach (CSharpAttributeData a in attrs)
             {
                 switch (a.AttributeClass.Name)
                 {
@@ -1350,14 +1350,14 @@ public class C {}
                 }
                 ";
 
-            var netmodule1Ref = GetNetModuleWithAssemblyAttributesRef();
-            var compilation = CreateCompilationWithMscorlib40(consoleappSource, references: new[] { netmodule1Ref }, options: TestOptions.ReleaseExe);
-            var diagnostics = compilation.GetDiagnostics();
+            MetadataReference netmodule1Ref = GetNetModuleWithAssemblyAttributesRef();
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(consoleappSource, references: new[] { netmodule1Ref }, options: TestOptions.ReleaseExe);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = compilation.GetDiagnostics();
             compilation.VerifyDiagnostics(
                 // error CS7061: Duplicate 'UserDefinedAssemblyAttrNoAllowMultipleAttribute' attribute in 'Test.netmodule'
                 Diagnostic(ErrorCode.ERR_DuplicateAttributeInNetModule).WithArguments("UserDefinedAssemblyAttrNoAllowMultipleAttribute", netmodule1Ref.Display));
 
-            var attrs = compilation.Assembly.GetAttributes();
+            System.Collections.Immutable.ImmutableArray<CSharpAttributeData> attrs = compilation.Assembly.GetAttributes();
             // even duplicates are preserved in source.
             Assert.Equal(5, attrs.Length);
 
@@ -1366,7 +1366,7 @@ public class C {}
 ";
             compilation = CreateCompilationWithMscorlib40(netmodule2Source, options: TestOptions.ReleaseModule, references: new[] { netmodule1Ref });
             compilation.VerifyDiagnostics();
-            var netmodule2Ref = compilation.EmitToImageReference();
+            MetadataReference netmodule2Ref = compilation.EmitToImageReference();
 
             attrs = compilation.Assembly.GetAttributes();
             Assert.Equal(1, attrs.Length);
@@ -1389,7 +1389,7 @@ using System.Runtime.CompilerServices;
 [assembly:InternalsVisibleTo(""Assembly2"")]
 [assembly:InternalsVisibleTo(""Assembly2"")]
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             CompileAndVerify(compilation);
 
             TestDuplicateAssemblyAttributesNotEmitted(compilation,
@@ -1429,7 +1429,7 @@ class Program
     static void Main(string[] args) { }
 }";
 
-            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, references: new[] { GetNetModuleWithAssemblyAttributesRef() }, options: TestOptions.ReleaseDll);
 
             TestDuplicateAssemblyAttributesNotEmitted(compilation,
                 expectedSrcAttrCount: 20,
@@ -1452,10 +1452,10 @@ class Program
             string defaultHeaderString = @"
 using System;
 ";
-            var defsRef = CreateCompilationWithMscorlib40(defaultHeaderString + s_defaultNetModuleSourceBody).ToMetadataReference();
+            CompilationReference defsRef = CreateCompilationWithMscorlib40(defaultHeaderString + s_defaultNetModuleSourceBody).ToMetadataReference();
             MetadataReference netmodule1Ref = GetNetModuleWithAssemblyAttributesRef(source2, references: new[] { defsRef });
 
-            var compilation = CreateCompilationWithMscorlib40(source1, references: new[] { defsRef, netmodule1Ref }, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source1, references: new[] { defsRef, netmodule1Ref }, options: TestOptions.ReleaseDll);
             // duplicate ignored, no error because identical
             compilation.VerifyDiagnostics();
 
@@ -1508,7 +1508,7 @@ class Program
 {
     static void Main(string[] args) { }
 }";
-            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { netmoduleRef }, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, references: new[] { netmoduleRef }, options: TestOptions.ReleaseDll);
 
             TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 20,
@@ -1561,7 +1561,7 @@ class Program
 {
     static void Main(string[] args) { }
 }";
-            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { netmoduleDefsRef, netmodule0Ref, netmodule1Ref, netmodule2Ref, netmodule3Ref }, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, references: new[] { netmoduleDefsRef, netmodule0Ref, netmodule1Ref, netmodule2Ref, netmodule3Ref }, options: TestOptions.ReleaseDll);
 
             TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 21,
@@ -1603,7 +1603,7 @@ class Program
 {
     static void Main(string[] args) { }
 }";
-            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { netmoduleRef }, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, references: new[] { netmoduleRef }, options: TestOptions.ReleaseDll);
 
             TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 20,
@@ -1650,7 +1650,7 @@ class Program
 {
     static void Main(string[] args) { }
 }";
-            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { netmoduleRef }, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, references: new[] { netmoduleRef }, options: TestOptions.ReleaseDll);
 
             TestDuplicateAssemblyAttributesNotEmitted(compilation,
                expectedSrcAttrCount: 25,
@@ -1673,9 +1673,9 @@ class Program
                 public class Test { }
                 ";
 
-            var netModuleRef = GetNetModuleWithAssemblyAttributesRef(mod, new[] { SystemCoreRef });
-            var appCompilation = CreateCompilationWithMscorlib40(app, references: new[] { netModuleRef }, options: TestOptions.ReleaseDll);
-            var diagnostics = appCompilation.GetDiagnostics();
+            MetadataReference netModuleRef = GetNetModuleWithAssemblyAttributesRef(mod, new[] { SystemCoreRef });
+            CSharpCompilation appCompilation = CreateCompilationWithMscorlib40(app, references: new[] { netModuleRef }, options: TestOptions.ReleaseDll);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = appCompilation.GetDiagnostics();
             Assert.False(diagnostics.Any());
         }
 
@@ -1708,20 +1708,20 @@ class Program1 { static void Main(string[] args) {    } }
                 public class Test { }
                 ";
 
-            var netModuleRef = GetNetModuleWithAssemblyAttributesRef(mod, new[] { SystemCoreRef });
-            var appCompilation = CreateCompilationWithMscorlib40(app, references: new[] { netModuleRef }, options: TestOptions.ReleaseDll);
+            MetadataReference netModuleRef = GetNetModuleWithAssemblyAttributesRef(mod, new[] { SystemCoreRef });
+            CSharpCompilation appCompilation = CreateCompilationWithMscorlib40(app, references: new[] { netModuleRef }, options: TestOptions.ReleaseDll);
 
             var module = (PEModuleSymbol)appCompilation.Assembly.Modules[1];
-            var metadata = module.Module;
+            PEModule metadata = module.Module;
 
             EntityHandle token = metadata.GetTypeRef(metadata.GetAssemblyRef("mscorlib"), "System.Runtime.CompilerServices", "AssemblyAttributesGoHere");
             Assert.False(token.IsNil);   //could the type ref be located? If not then the attribute's not there.
 
-            var attributes = module.GetCustomAttributesForToken(token);
+            System.Collections.Immutable.ImmutableArray<CSharpAttributeData> attributes = module.GetCustomAttributesForToken(token);
             var builder = new System.Text.StringBuilder();
 
             builder.AppendLine();
-            foreach (var attr in attributes)
+            foreach (CSharpAttributeData attr in attributes)
             {
                 builder.AppendLine(attr.ToString());
             }
@@ -1760,13 +1760,13 @@ using System.Runtime.CompilerServices;
 [assembly: CompilationRelaxationsAttribute(CompilationRelaxations.NoStringInterning)]
 [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)]
 ";
-            var module = CreateCompilation(moduleSrc, options: TestOptions.ReleaseModule, assemblyName: "M");
+            CSharpCompilation module = CreateCompilation(moduleSrc, options: TestOptions.ReleaseModule, assemblyName: "M");
 
             string assemblySrc = @"
 public class C { }
 ";
 
-            var assembly = CreateCompilation(assemblySrc, new[] { module.EmitToImageReference() }, assemblyName: "C");
+            CSharpCompilation assembly = CreateCompilation(assemblySrc, new[] { module.EmitToImageReference() }, assemblyName: "C");
 
             CompileAndVerify(assembly, symbolValidator: moduleSymbol =>
             {
@@ -1857,7 +1857,7 @@ class C
 using System.Runtime.CompilerServices;
 [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)]
 ";
-            var module = CreateCompilation(moduleSrc, options: TestOptions.ReleaseModule, assemblyName: "M");
+            CSharpCompilation module = CreateCompilation(moduleSrc, options: TestOptions.ReleaseModule, assemblyName: "M");
 
             string assemblySrc = @"
 class C
@@ -1871,7 +1871,7 @@ class C
 }
 ";
 
-            var assembly = CreateCompilation(assemblySrc, new[] { module.EmitToImageReference() }, assemblyName: "C");
+            CSharpCompilation assembly = CreateCompilation(assemblySrc, new[] { module.EmitToImageReference() }, assemblyName: "C");
             assembly.VerifyDiagnostics();
         }
 
@@ -1883,20 +1883,20 @@ using System.Runtime.CompilerServices;
 [assembly: CompilationRelaxationsAttribute(CompilationRelaxations.NoStringInterning)]
 [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)]
 ";
-            var module1 = CreateCompilation(moduleSrc1, options: TestOptions.ReleaseModule, assemblyName: "M1");
+            CSharpCompilation module1 = CreateCompilation(moduleSrc1, options: TestOptions.ReleaseModule, assemblyName: "M1");
 
             string moduleSrc2 = @"
 using System.Runtime.CompilerServices;
 [assembly: CompilationRelaxationsAttribute(CompilationRelaxations.NoStringInterning)]
 [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)]
 ";
-            var module2 = CreateCompilation(moduleSrc2, options: TestOptions.ReleaseModule, assemblyName: "M2");
+            CSharpCompilation module2 = CreateCompilation(moduleSrc2, options: TestOptions.ReleaseModule, assemblyName: "M2");
 
             string assemblySrc = @"
 public class C { }
 ";
 
-            var assembly = CreateCompilation(assemblySrc, new[] { module1.EmitToImageReference(), module2.EmitToImageReference() }, assemblyName: "C");
+            CSharpCompilation assembly = CreateCompilation(assemblySrc, new[] { module1.EmitToImageReference(), module2.EmitToImageReference() }, assemblyName: "C");
 
             assembly.VerifyDiagnostics(
                 // error CS7061: Duplicate 'RuntimeCompatibilityAttribute' attribute in 'M1.netmodule'
@@ -1911,7 +1911,7 @@ using System.Runtime.CompilerServices;
 [assembly: CompilationRelaxationsAttribute(CompilationRelaxations.NoStringInterning)]
 [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = false)]
 ";
-            var module1 = CreateCompilation(moduleSrc1, options: TestOptions.ReleaseModule, assemblyName: "M1");
+            CSharpCompilation module1 = CreateCompilation(moduleSrc1, options: TestOptions.ReleaseModule, assemblyName: "M1");
 
             string assemblySrc = @"
 using System.Runtime.CompilerServices;
@@ -1921,7 +1921,7 @@ using System.Runtime.CompilerServices;
 public class C { }
 ";
 
-            var assembly = CreateCompilation(assemblySrc, new[] { module1.EmitToImageReference() }, assemblyName: "C");
+            CSharpCompilation assembly = CreateCompilation(assemblySrc, new[] { module1.EmitToImageReference() }, assemblyName: "C");
 
             assembly.VerifyDiagnostics(
                 // error CS7061: Duplicate 'RuntimeCompatibilityAttribute' attribute in 'M1.netmodule'
@@ -1936,20 +1936,20 @@ using System.Runtime.CompilerServices;
 [assembly: CompilationRelaxationsAttribute(2)]
 [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)]
 ";
-            var module1 = CreateCompilation(moduleSrc1, options: TestOptions.ReleaseModule, assemblyName: "M1");
+            CSharpCompilation module1 = CreateCompilation(moduleSrc1, options: TestOptions.ReleaseModule, assemblyName: "M1");
 
             string moduleSrc2 = @"
 using System.Runtime.CompilerServices;
 [assembly: CompilationRelaxationsAttribute(6)]
 [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)]
 ";
-            var module2 = CreateCompilation(moduleSrc2, options: TestOptions.ReleaseModule, assemblyName: "M2");
+            CSharpCompilation module2 = CreateCompilation(moduleSrc2, options: TestOptions.ReleaseModule, assemblyName: "M2");
 
             string assemblySrc = @"
 public class C { }
 ";
 
-            var assembly = CreateCompilation(assemblySrc, new[] { module1.EmitToImageReference(), module2.EmitToImageReference() }, assemblyName: "C");
+            CSharpCompilation assembly = CreateCompilation(assemblySrc, new[] { module1.EmitToImageReference(), module2.EmitToImageReference() }, assemblyName: "C");
 
             assembly.VerifyDiagnostics(
                 // error CS7061: Duplicate 'CompilationRelaxationsAttribute' attribute in 'M1.netmodule'
@@ -1964,7 +1964,7 @@ using System.Runtime.CompilerServices;
 [assembly: CompilationRelaxationsAttribute(2)]
 [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)]
 ";
-            var module1 = CreateCompilation(moduleSrc1, options: TestOptions.ReleaseModule, assemblyName: "M1");
+            CSharpCompilation module1 = CreateCompilation(moduleSrc1, options: TestOptions.ReleaseModule, assemblyName: "M1");
 
             string assemblySrc = @"
 using System.Runtime.CompilerServices;
@@ -1974,7 +1974,7 @@ using System.Runtime.CompilerServices;
 public class C { }
 ";
 
-            var assembly = CreateCompilation(assemblySrc, new[] { module1.EmitToImageReference() }, assemblyName: "C");
+            CSharpCompilation assembly = CreateCompilation(assemblySrc, new[] { module1.EmitToImageReference() }, assemblyName: "C");
 
             assembly.VerifyDiagnostics(
                 // error CS7061: Duplicate 'CompilationRelaxationsAttribute' attribute in 'M1.netmodule'
@@ -1989,20 +1989,20 @@ using System.Runtime.CompilerServices;
 [assembly: CompilationRelaxationsAttribute(2)]
 [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)]
 ";
-            var module1 = CreateCompilation(moduleSrc1, options: TestOptions.ReleaseModule, assemblyName: "M1");
+            CSharpCompilation module1 = CreateCompilation(moduleSrc1, options: TestOptions.ReleaseModule, assemblyName: "M1");
 
             string moduleSrc2 = @"
 using System.Runtime.CompilerServices;
 [assembly: CompilationRelaxationsAttribute(2)]
 [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)]
 ";
-            var module2 = CreateCompilation(moduleSrc2, options: TestOptions.ReleaseModule, assemblyName: "M2");
+            CSharpCompilation module2 = CreateCompilation(moduleSrc2, options: TestOptions.ReleaseModule, assemblyName: "M2");
 
             string assemblySrc = @"
 public class C { }
 ";
 
-            var assembly = CreateCompilation(assemblySrc, new[] { module1.EmitToImageReference(), module2.EmitToImageReference() }, assemblyName: "C");
+            CSharpCompilation assembly = CreateCompilation(assemblySrc, new[] { module1.EmitToImageReference(), module2.EmitToImageReference() }, assemblyName: "C");
 
             assembly.VerifyDiagnostics();
         }
@@ -2015,7 +2015,7 @@ using System.Runtime.CompilerServices;
 [assembly: CompilationRelaxationsAttribute(2)]
 [assembly: RuntimeCompatibilityAttribute(WrapNonExceptionThrows = true)]
 ";
-            var module1 = CreateCompilation(moduleSrc1, options: TestOptions.ReleaseModule, assemblyName: "M1");
+            CSharpCompilation module1 = CreateCompilation(moduleSrc1, options: TestOptions.ReleaseModule, assemblyName: "M1");
 
             string assemblySrc = @"
 using System.Runtime.CompilerServices;
@@ -2025,7 +2025,7 @@ using System.Runtime.CompilerServices;
 public class C { }
 ";
 
-            var assembly = CreateCompilation(assemblySrc, new[] { module1.EmitToImageReference() }, assemblyName: "C");
+            CSharpCompilation assembly = CreateCompilation(assemblySrc, new[] { module1.EmitToImageReference() }, assemblyName: "C");
 
             assembly.VerifyDiagnostics();
         }
@@ -2041,10 +2041,10 @@ public class C { }
 
             var source = "[assembly:System.Reflection.AssemblyDescriptionAttribute(\"Module1\")]";
 
-            var compMod1 = CreateCompilation(mod1Source, options: TestOptions.ReleaseModule, assemblyName: "M1");
-            var compMod2 = CreateCompilation(mod2Source, options: TestOptions.ReleaseModule, assemblyName: "M2");
+            CSharpCompilation compMod1 = CreateCompilation(mod1Source, options: TestOptions.ReleaseModule, assemblyName: "M1");
+            CSharpCompilation compMod2 = CreateCompilation(mod2Source, options: TestOptions.ReleaseModule, assemblyName: "M2");
 
-            var appCompilation = CreateCompilation(source,
+            CSharpCompilation appCompilation = CreateCompilation(source,
                                                                references: new MetadataReference[] { compMod1.EmitToImageReference(), compMod2.EmitToImageReference() },
                                                                options: TestOptions.ReleaseDll);
 
@@ -2052,7 +2052,7 @@ public class C { }
 
             CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
                                                               {
-                                                                  var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
+                                                                  CSharpAttributeData[] list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
                                                                   Assert.Equal(1, list.Length);
                                                                   Assert.Equal("System.Reflection.AssemblyDescriptionAttribute(\"Module1\")", list[0].ToString());
@@ -2073,10 +2073,10 @@ public class C { }
 
             var source = "";
 
-            var compMod1 = CreateCompilation(mod1Source, options: TestOptions.ReleaseModule, assemblyName: "M1");
-            var compMod2 = CreateCompilation(mod2Source, options: TestOptions.ReleaseModule, assemblyName: "M2");
+            CSharpCompilation compMod1 = CreateCompilation(mod1Source, options: TestOptions.ReleaseModule, assemblyName: "M1");
+            CSharpCompilation compMod2 = CreateCompilation(mod2Source, options: TestOptions.ReleaseModule, assemblyName: "M2");
 
-            var appCompilation = CreateCompilation(source,
+            CSharpCompilation appCompilation = CreateCompilation(source,
                                                                references: new MetadataReference[] { compMod1.EmitToImageReference(), compMod2.EmitToImageReference() },
                                                                options: TestOptions.ReleaseDll);
 
@@ -2084,7 +2084,7 @@ public class C { }
 
             CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
             {
-                var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
+                CSharpAttributeData[] list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
                 Assert.Equal(1, list.Length);
                 Assert.Equal("System.Reflection.AssemblyDescriptionAttribute(\"Module2\")", list[0].ToString());
@@ -2103,10 +2103,10 @@ public class C { }
 
             var source = "[assembly:System.Reflection.AssemblyDescriptionAttribute(\"Module3\")]";
 
-            var compMod1 = CreateCompilation(mod1Source, options: TestOptions.ReleaseModule, assemblyName: "M1");
-            var compMod2 = CreateCompilation(mod2Source, options: TestOptions.ReleaseModule, assemblyName: "M2");
+            CSharpCompilation compMod1 = CreateCompilation(mod1Source, options: TestOptions.ReleaseModule, assemblyName: "M1");
+            CSharpCompilation compMod2 = CreateCompilation(mod2Source, options: TestOptions.ReleaseModule, assemblyName: "M2");
 
-            var appCompilation = CreateCompilation(source,
+            CSharpCompilation appCompilation = CreateCompilation(source,
                                                                references: new MetadataReference[] { compMod1.EmitToImageReference(), compMod2.EmitToImageReference() },
                                                                options: TestOptions.ReleaseDll);
 
@@ -2114,7 +2114,7 @@ public class C { }
 
             CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
             {
-                var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
+                CSharpAttributeData[] list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
                 Assert.Equal(1, list.Length);
                 Assert.Equal("System.Reflection.AssemblyDescriptionAttribute(\"Module3\")", list[0].ToString());
@@ -2135,10 +2135,10 @@ public class C { }
 
             var source = "[assembly:System.Reflection.AssemblyDescriptionAttribute(\"Module1\")]";
 
-            var compMod1 = CreateCompilation(mod1Source, options: TestOptions.ReleaseModule, assemblyName: "M1");
-            var compMod2 = CreateCompilation(mod2Source, options: TestOptions.ReleaseModule, assemblyName: "M2");
+            CSharpCompilation compMod1 = CreateCompilation(mod1Source, options: TestOptions.ReleaseModule, assemblyName: "M1");
+            CSharpCompilation compMod2 = CreateCompilation(mod2Source, options: TestOptions.ReleaseModule, assemblyName: "M2");
 
-            var appCompilation = CreateCompilation(source,
+            CSharpCompilation appCompilation = CreateCompilation(source,
                                                                references: new MetadataReference[] { compMod1.EmitToImageReference(), compMod2.EmitToImageReference() },
                                                                options: TestOptions.ReleaseDll);
 
@@ -2146,7 +2146,7 @@ public class C { }
 
             CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
             {
-                var list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
+                CSharpAttributeData[] list = GetAssemblyDescriptionAttributes(m.ContainingAssembly).ToArray();
 
                 Assert.Equal(1, list.Length);
                 Assert.Equal("System.Reflection.AssemblyDescriptionAttribute(\"Module1\")", list[0].ToString());
@@ -2162,8 +2162,8 @@ public class C { }
             var mod1Source = "[assembly:System.Reflection.AssemblyFileVersionAttribute(\"1.2.3.4\")]";
             var source = @"[assembly:System.Reflection.AssemblyFileVersionAttribute(""4.3.2.1"")] class C { static void Main() {} }";
 
-            var compMod1 = CreateCompilation(mod1Source, options: TestOptions.ReleaseModule, assemblyName: "M1");
-            var appCompilation = CreateCompilation(source,
+            CSharpCompilation compMod1 = CreateCompilation(mod1Source, options: TestOptions.ReleaseModule, assemblyName: "M1");
+            CSharpCompilation appCompilation = CreateCompilation(source,
                                                                references: new MetadataReference[] { compMod1.EmitToImageReference() },
                                                                options: TestOptions.ReleaseExe);
 
@@ -2172,9 +2172,9 @@ public class C { }
             CompileAndVerify(appCompilation, symbolValidator: (ModuleSymbol m) =>
             {
                 // var list = new ArrayBuilder<AttributeData>();
-                var asm = m.ContainingAssembly;
-                var attrs = m.ContainingAssembly.GetAttributes();
-                var attrlist = attrs.Where(a => a.IsTargetAttribute(asm, AttributeDescription.AssemblyFileVersionAttribute));
+                AssemblySymbol asm = m.ContainingAssembly;
+                System.Collections.Immutable.ImmutableArray<CSharpAttributeData> attrs = m.ContainingAssembly.GetAttributes();
+                IEnumerable<CSharpAttributeData> attrlist = attrs.Where(a => a.IsTargetAttribute(asm, AttributeDescription.AssemblyFileVersionAttribute));
 
                 Assert.Equal(1, attrlist.Count());
                 Assert.Equal("System.Reflection.AssemblyFileVersionAttribute(\"4.3.2.1\")", attrlist.First().ToString());
@@ -2199,7 +2199,7 @@ static class Logo
 }
 ";
 
-            var compilation = CreateCompilation(s, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(s, options: TestOptions.ReleaseDll);
             compilation.GetDiagnostics();
         }
     }

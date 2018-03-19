@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void BasicTest()
         {
-            var text = CreateSourceText(HelloWorld);
+            SourceText text = CreateSourceText(HelloWorld);
             Assert.Equal(HelloWorld, text.ToString());
             Assert.Equal(HelloWorld.Length, text.Length);
         }
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             using (MemoryStream stream = new MemoryStream())
             {
-                var text = CreateSourceText(stream);
+                SourceText text = CreateSourceText(stream);
                 Assert.Equal(text.Length, 0);
             }
         }
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void IndexerTest()
         {
-            var text = CreateSourceText(HelloWorld);
+            SourceText text = CreateSourceText(HelloWorld);
             Assert.Throws(typeof(IndexOutOfRangeException), () => text[-1]);
             Assert.Throws(typeof(IndexOutOfRangeException), () => text[HelloWorld.Length]);
             for (int i = HelloWorld.Length - 1; i >= 0; i--)
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void CopyToTest()
         {
-            var text = CreateSourceText(HelloWorld);
+            SourceText text = CreateSourceText(HelloWorld);
 
             const int destOffset = 10;
             char[] buffer = new char[HelloWorld.Length + destOffset];
@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static void CheckLine(SourceText text, int lineNumber, int start, int length, int newlineLength, string lineText)
         {
-            var textLine = text.Lines[lineNumber];
+            TextLine textLine = text.Lines[lineNumber];
 
             Assert.Equal(start, textLine.Start);
             Assert.Equal(start + length, textLine.End);
@@ -191,7 +191,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void NewLines1()
         {
-            var data = CreateSourceText("goo" + Environment.NewLine + " bar");
+            SourceText data = CreateSourceText("goo" + Environment.NewLine + " bar");
             Assert.Equal(2, data.Lines.Count);
             CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "goo");
             CheckLine(data, lineNumber: 1, start: 5, length: 4, newlineLength: 0, lineText: " bar");
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 @"goo
 bar
 baz";
-            var data = CreateSourceText(text);
+            SourceText data = CreateSourceText(text);
             Assert.Equal(3, data.Lines.Count);
             CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "goo");
             CheckLine(data, lineNumber: 1, start: 5, length: 3, newlineLength: 2, lineText: "bar");
@@ -214,7 +214,7 @@ baz";
         [Fact]
         public void NewLines3()
         {
-            var data = CreateSourceText("goo\r\nbar");
+            SourceText data = CreateSourceText("goo\r\nbar");
             Assert.Equal(2, data.Lines.Count);
             CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "goo");
             CheckLine(data, lineNumber: 1, start: 5, length: 3, newlineLength: 0, lineText: "bar");
@@ -223,7 +223,7 @@ baz";
         [Fact]
         public void NewLines4()
         {
-            var data = CreateSourceText("goo\n\rbar\u2028");
+            SourceText data = CreateSourceText("goo\n\rbar\u2028");
             Assert.Equal(4, data.Lines.Count);
             CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 1, lineText: "goo");
             CheckLine(data, lineNumber: 1, start: 4, length: 0, newlineLength: 1, lineText: "");
@@ -235,7 +235,7 @@ baz";
         public void NewLines5()
         {
             // Trailing CR
-            var data = CreateSourceText("goo\r");
+            SourceText data = CreateSourceText("goo\r");
             Assert.Equal(2, data.Lines.Count);
             CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 1, lineText: "goo");
             CheckLine(data, lineNumber: 1, start: 4, length: 0, newlineLength: 0, lineText: "");
@@ -245,7 +245,7 @@ baz";
         public void NewLines6()
         {
             // Trailing CR+LF
-            var data = CreateSourceText("goo\r\n");
+            SourceText data = CreateSourceText("goo\r\n");
             Assert.Equal(2, data.Lines.Count);
             CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 2, lineText: "goo");
             CheckLine(data, lineNumber: 1, start: 5, length: 0, newlineLength: 0, lineText: "");
@@ -255,7 +255,7 @@ baz";
         public void NewLines7()
         {
             // Consecutive CR
-            var data = CreateSourceText("goo\r\rbar");
+            SourceText data = CreateSourceText("goo\r\rbar");
             Assert.Equal(3, data.Lines.Count);
             CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 1, lineText: "goo");
             CheckLine(data, lineNumber: 1, start: 4, length: 0, newlineLength: 1, lineText: "");
@@ -268,7 +268,7 @@ baz";
             // Mix CR with CR+LF
             const string cr = "\r";
             const string crLf = "\r\n";
-            var data = CreateSourceText("goo" + cr + crLf + cr + "bar");
+            SourceText data = CreateSourceText("goo" + cr + crLf + cr + "bar");
             Assert.Equal(4, data.Lines.Count);
             CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 1, lineText: "goo");
             CheckLine(data, lineNumber: 1, start: 4, length: 0, newlineLength: 2, lineText: "");
@@ -283,7 +283,7 @@ baz";
             const string cr = "\r";
             const string crLf = "\r\n";
             const string lf = "\n";
-            var data = CreateSourceText("goo" + cr + crLf + lf + "bar");
+            SourceText data = CreateSourceText("goo" + cr + crLf + lf + "bar");
             Assert.Equal(4, data.Lines.Count);
             CheckLine(data, lineNumber: 0, start: 0, length: 3, newlineLength: 1, lineText: "goo");
             CheckLine(data, lineNumber: 1, start: 4, length: 0, newlineLength: 2, lineText: "");
@@ -294,7 +294,7 @@ baz";
         [Fact]
         public void Empty()
         {
-            var data = CreateSourceText("");
+            SourceText data = CreateSourceText("");
             Assert.Equal(1, data.Lines.Count);
             CheckLine(data, lineNumber: 0, start: 0, length: 0, newlineLength: 0, lineText: "");
         }
@@ -305,7 +305,7 @@ baz";
             var text =
 @"goo
 bar baz";
-            var data = CreateSourceText(text);
+            SourceText data = CreateSourceText(text);
             Assert.Equal(2, data.Lines.Count);
             Assert.Equal("goo", data.Lines[0].ToString());
             Assert.Equal("bar baz", data.Lines[1].ToString());
@@ -315,7 +315,7 @@ bar baz";
         public void LinesGetText2()
         {
             var text = "goo";
-            var data = CreateSourceText(text);
+            SourceText data = CreateSourceText(text);
             Assert.Equal("goo", data.Lines[0].ToString());
         }
 
@@ -323,10 +323,10 @@ bar baz";
         public void FromTextReader()
         {
             var expected = "goo";
-            var expectedSourceText = CreateSourceText(expected);
+            SourceText expectedSourceText = CreateSourceText(expected);
 
             var actual = new StringReader(expected);
-            var actualSourceText = CreateSourceText(actual, expected.Length);
+            SourceText actualSourceText = CreateSourceText(actual, expected.Length);
 
             Assert.Equal("goo", actualSourceText.Lines[0].ToString());
             Assert.Equal<byte>(expectedSourceText.GetChecksum(), actualSourceText.GetChecksum());

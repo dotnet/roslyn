@@ -188,7 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 //  INIT_HASH
                 int initHash = 0;
-                foreach (var property in anonymousType.Properties)
+                foreach (AnonymousTypePropertySymbol property in anonymousType.Properties)
                 {
                     initHash = unchecked(initHash * HASH_FACTOR + Hash.GetFNVHashCode(property.BackingField.Name));
                 }
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     //  Generate expression for return statement
                     //      retExpression <= System.String.Format(args)
-                    var formatMethod = manager.System_String__Format_IFormatProvider;
+                    MethodSymbol formatMethod = manager.System_String__Format_IFormatProvider;
                     retExpression = F.StaticCall(manager.System_String, formatMethod, F.Null(formatMethod.Parameters[0].Type), format, F.ArrayOrEmpty(manager.System_Object, arguments));
                 }
                 else

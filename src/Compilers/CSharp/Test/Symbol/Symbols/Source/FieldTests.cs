@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public S(int i) : this() {}
 }";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     public int I = 9;
@@ -60,9 +60,9 @@ class A {
     A F;
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol a = global.GetTypeMembers("A", 0).Single();
             var sym = a.GetMembers("F").Single() as FieldSymbol;
 
             Assert.Equal(TypeKind.Class, sym.Type.TypeKind);
@@ -88,22 +88,22 @@ class A {
     A G;
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol a = global.GetTypeMembers("A", 0).Single();
             var f = a.GetMembers("F").Single() as FieldSymbol;
             Assert.Equal(TypeKind.Class, f.Type.TypeKind);
             Assert.Equal<TypeSymbol>(a, f.Type);
             Assert.Equal(Accessibility.Private, f.DeclaredAccessibility);
-            var gs = a.GetMembers("G");
+            System.Collections.Immutable.ImmutableArray<Symbol> gs = a.GetMembers("G");
             Assert.Equal(2, gs.Length);
-            foreach (var g in gs)
+            foreach (Symbol g in gs)
             {
                 Assert.Equal(a, (g as FieldSymbol).Type); // duplicate, but all the same.
             }
 
-            var errors = comp.GetDeclarationDiagnostics();
-            var one = errors.Single();
+            System.Collections.Immutable.ImmutableArray<Diagnostic> errors = comp.GetDeclarationDiagnostics();
+            Diagnostic one = errors.Single();
             Assert.Equal(ErrorCode.ERR_DuplicateNameInClass, (ErrorCode)one.Code);
         }
 
@@ -117,12 +117,12 @@ class A {
     A F;
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var fs = a.GetMembers("F");
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol a = global.GetTypeMembers("A", 0).Single();
+            System.Collections.Immutable.ImmutableArray<Symbol> fs = a.GetMembers("F");
             Assert.Equal(2, fs.Length);
-            foreach (var f in fs)
+            foreach (Symbol f in fs)
             {
                 Assert.Equal(a, (f as FieldSymbol).Type);
             }
@@ -141,9 +141,9 @@ class A
     private static char N3 = ' ';
 }
 ";
-            var comp = CreateEmptyCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
+            CSharpCompilation comp = CreateEmptyCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol a = global.GetTypeMembers("A", 0).Single();
             var n1 = a.GetMembers("N1").Single() as FieldSymbol;
             Assert.True(n1.IsConst);
             Assert.False(n1.IsVolatile);
@@ -175,9 +175,9 @@ class A {
     int? F = null;
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol a = global.GetTypeMembers("A", 0).Single();
             var sym = a.GetMembers("F").Single() as FieldSymbol;
             Assert.Equal("System.Int32? A.F", sym.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, sym.Type.TypeKind);
@@ -199,9 +199,9 @@ class A {
     }
 }
 ";
-            var comp = CreateCompilation(text);
-            var type1 = comp.GlobalNamespace.GetTypeMembers("C", 1).Single();
-            var type2 = type1.GetTypeMembers("S").Single();
+            CSharpCompilation comp = CreateCompilation(text);
+            NamedTypeSymbol type1 = comp.GlobalNamespace.GetTypeMembers("C", 1).Single();
+            NamedTypeSymbol type2 = type1.GetTypeMembers("S").Single();
 
             var s = type2.GetMembers("M").Single() as MethodSymbol;
             Assert.Equal("M", s.Name);
@@ -234,7 +234,7 @@ class C1
     @out @in;
 }
 ";
-            var comp = CreateCompilation(Parse(text));
+            CSharpCompilation comp = CreateCompilation(Parse(text));
             NamedTypeSymbol c1 = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("C1").Single();
             FieldSymbol ein = (FieldSymbol)c1.GetMembers("in").Single();
             Assert.Equal("in", ein.Name);
@@ -254,7 +254,7 @@ class C
     const int x;
 }
 ";
-            var comp = CreateCompilation(Parse(text));
+            CSharpCompilation comp = CreateCompilation(Parse(text));
             NamedTypeSymbol type1 = (NamedTypeSymbol)comp.SourceModule.GlobalNamespace.GetMembers("C").Single();
             FieldSymbol mem = (FieldSymbol)type1.GetMembers("x").Single();
             Assert.Equal("x", mem.Name);
@@ -470,7 +470,7 @@ class K
         return v => { value__ = v; };
     }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (19,25): warning CS0067: The event 'E.value__' is never used
                 //     event System.Action value__;

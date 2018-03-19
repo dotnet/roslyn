@@ -16,10 +16,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         [Fact, WorkItem(1006, "https://github.com/dotnet/roslyn/issues/1006")]
         public void TestDiagnosticLocalization()
         {
-            var resourceManager = GetTestResourceManagerInstance();
+            CustomResourceManager resourceManager = GetTestResourceManagerInstance();
             var arCulture = CultureInfo.CreateSpecificCulture("ar-SA");
-            var defaultCultureResourceSet = resourceManager.GetResourceSet(CustomResourceManager.DefaultCulture, false, false);
-            var arResourceSet = resourceManager.GetResourceSet(arCulture, false, false);
+            ResourceSet defaultCultureResourceSet = resourceManager.GetResourceSet(CustomResourceManager.DefaultCulture, false, false);
+            ResourceSet arResourceSet = resourceManager.GetResourceSet(arCulture, false, false);
 
             var nameOfResource1 = @"Resource1";
             var nameOfResource2 = @"Resource2";
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             {
                 _resourceSetMap = new Dictionary<string, CustomResourceSet>();
 
-                foreach (var kvp in resourceSetMap)
+                foreach (KeyValuePair<string, Dictionary<string, string>> kvp in resourceSetMap)
                 {
                     var resourceSet = new CustomResourceSet(kvp.Value);
                     _resourceSetMap.Add(kvp.Key, resourceSet);
@@ -233,8 +233,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         [Fact]
         public void LocalizableResourceStringEquality()
         {
-            var resourceManager = GetTestResourceManagerInstance();
-            var unit = EqualityUnit
+            CustomResourceManager resourceManager = GetTestResourceManagerInstance();
+            EqualityUnit<LocalizableResourceString> unit = EqualityUnit
                 .Create(new LocalizableResourceString(@"ResourceWithArguments", resourceManager, typeof(CustomResourceManager), "arg"))
                 .WithEqualValues(
                     new LocalizableResourceString(@"ResourceWithArguments", resourceManager, typeof(CustomResourceManager), "arg"))
@@ -256,11 +256,11 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void TestDescriptorIsExceptionSafe()
         {
             // Test descriptor with LocalizableResourceString fields that can throw.
-            var descriptor1 = GetDescriptorWithLocalizableResourceStringsThatThrow();
+            DiagnosticDescriptor descriptor1 = GetDescriptorWithLocalizableResourceStringsThatThrow();
             TestDescriptorIsExceptionSafeCore(descriptor1);
 
             // Test descriptor with Custom implemented LocalizableString fields that can throw.
-            var descriptor2 = GetDescriptorWithCustomLocalizableStringsThatThrow();
+            DiagnosticDescriptor descriptor2 = GetDescriptorWithCustomLocalizableStringsThatThrow();
             TestDescriptorIsExceptionSafeCore(descriptor2);
 
             // Also verify exceptions from Equals and GetHashCode don't go unhandled.
@@ -270,9 +270,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         private static void TestDescriptorIsExceptionSafeCore(DiagnosticDescriptor descriptor)
         {
-            var localizableTitle = descriptor.Title;
-            var localizableMessage = descriptor.MessageFormat;
-            var localizableDescription = descriptor.Description;
+            LocalizableString localizableTitle = descriptor.Title;
+            LocalizableString localizableMessage = descriptor.MessageFormat;
+            LocalizableString localizableDescription = descriptor.Description;
 
             // Verify exceptions from LocalizableResourceString don't go unhandled.
             var title = localizableTitle.ToString();
@@ -300,7 +300,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             Action<Exception, DiagnosticAnalyzer, Diagnostic> onAnalyzerException = (ex, a, diag) => exceptionDiagnostics.Add(diag);
             var analyzerManager = new AnalyzerManager(analyzer);
             var analyzerExecutor = AnalyzerExecutor.CreateForSupportedDiagnostics(onAnalyzerException, analyzerManager);
-            var descriptors = analyzerManager.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
+            ImmutableArray<DiagnosticDescriptor> descriptors = analyzerManager.GetSupportedDiagnosticDescriptors(analyzer, analyzerExecutor);
 
             Assert.Equal(1, descriptors.Length);
             Assert.Equal(descriptor.Id, descriptors[0].Id);
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 
         private static DiagnosticDescriptor GetDescriptorWithLocalizableResourceStringsThatThrow()
         {
-            var resourceManager = GetTestResourceManagerInstance();
+            CustomResourceManager resourceManager = GetTestResourceManagerInstance();
 
             // Test localizable title that throws.
             var localizableTitle = new LocalizableResourceString("NonExistentTitleResourceName", resourceManager, typeof(CustomResourceManager));

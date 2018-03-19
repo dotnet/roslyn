@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void RefReassignmentExpressions()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     ref readonly int M(ref int rx)
@@ -32,7 +32,7 @@ class C
 }");
             comp.VerifyDiagnostics();
 
-            var m = comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<BlockSyntax>().Single();
+            BlockSyntax m = comp.SyntaxTrees.Single().GetRoot().DescendantNodes().OfType<BlockSyntax>().Single();
             comp.VerifyOperationTree(m, expectedOperationTree: @"
 IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   Locals: Local_1: System.Int32 ry
@@ -92,7 +92,7 @@ IBlockOperation (4 statements, 1 locals) (OperationKind.Block, Type: null) (Synt
         [Fact]
         public void IOperationRefFor()
         {
-            var tree = CSharpSyntaxTree.ParseText(@"
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(@"
 using System;
 class C
 {
@@ -109,9 +109,9 @@ class C
         }
     }
 }", options: TestOptions.Regular);
-            var comp = CreateCompilation(tree);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-            var m = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
+            BlockSyntax m = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
             comp.VerifyOperationTree(m, @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   IForLoopOperation (LoopKind.For) (OperationKind.Loop, Type: null) (Syntax: 'for (ref re ... }')
@@ -170,7 +170,7 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
         [Fact]
         public void IOperationRefForeach()
         {
-            var tree = CSharpSyntaxTree.ParseText(@"
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(@"
 using System;
 class C
 {
@@ -201,9 +201,9 @@ class RefEnumerable
         public bool MoveNext() => ++_current != _arr.Length;
     }
 }", options: TestOptions.Regular);
-            var comp = CreateCompilation(tree);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
-            var m = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
+            BlockSyntax m = tree.GetRoot().DescendantNodes().OfType<BlockSyntax>().First();
             comp.VerifyOperationTree(m, @"
 IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ... }')
   IForEachLoopOperation (LoopKind.ForEach) (OperationKind.Loop, Type: null) (Syntax: 'foreach (re ... }')
@@ -256,15 +256,15 @@ public class Cls
     {
     }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular);
             compilation.VerifyDiagnostics(
                 // (7,15): error CS1503: Argument 1: cannot convert from 'object' to 'int'
                 //         Test2(new object(), null);
                 Diagnostic(ErrorCode.ERR_BadArgType, "new object()").WithArguments("1", "object", "int").WithLocation(7, 15)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            InvocationExpressionSyntax[] nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
 
             compilation.VerifyOperationTree(nodes[0], expectedOperationTree:
 @"IInvocationOperation (void Cls.Test1(params System.Int32[] x)) (OperationKind.Invocation, Type: System.Void) (Syntax: 'Test1(null)')
@@ -309,12 +309,12 @@ public class C
         a = b = c = 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(text, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             compilation.VerifyDiagnostics();
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var assignments = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().ToArray();
+            AssignmentExpressionSyntax[] assignments = tree.GetRoot().DescendantNodes().OfType<AssignmentExpressionSyntax>().ToArray();
             Assert.Equal("(x, y, z) = (1, 2, 3)", assignments[0].ToString());
             IOperation operation1 = model.GetOperation(assignments[0]);
             Assert.NotNull(operation1);
@@ -340,9 +340,9 @@ public class C
         {
             var sourceCode = TestResource.AllInOneCSharpCode;
 
-            var compilation = CreateCompilationWithMscorlib40(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             VerifyClone(model);
         }
@@ -356,13 +356,13 @@ public class C
 @"
 System.Console.WriteLine();
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe.WithScriptClassName("Script"), parseOptions: TestOptions.Script);
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var statement = tree.GetRoot().DescendantNodes().OfType<StatementSyntax>().Single();
-            var model = compilation.GetSemanticModel(tree);
-            var operation = model.GetOperation(statement);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            StatementSyntax statement = tree.GetRoot().DescendantNodes().OfType<StatementSyntax>().Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            IOperation operation = model.GetOperation(statement);
 
             Assert.Equal(OperationKind.ExpressionStatement, operation.Kind);
             Assert.Null(operation.Parent);
@@ -373,10 +373,10 @@ System.Console.WriteLine();
         public void TestParentOperations()
         {
             var sourceCode = TestResource.AllInOneCSharpCode;
-            
-            var compilation = CreateCompilationWithMscorlib40(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(sourceCode, new[] { SystemRef, SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceFileName: "file.cs");
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             VerifyParentOperations(model);
         }
@@ -404,14 +404,14 @@ public class Test
     }
 }
 ";
-            var comp = CreateCompilation(text);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateCompilation(text);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             // Verify we return non-null operation only for topmost member access expression.
             var expr = (MemberAccessExpressionSyntax)GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             Assert.Equal("a.b", expr.ToString());
-            var operation = model.GetOperation(expr);
+            IOperation operation = model.GetOperation(expr);
             Assert.NotNull(operation);
             Assert.Equal(OperationKind.FieldReference, operation.Kind);
             var fieldOperation = (IFieldReferenceOperation)operation;

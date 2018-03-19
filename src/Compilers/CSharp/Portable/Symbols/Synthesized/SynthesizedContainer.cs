@@ -85,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var compilation = ContainingSymbol.DeclaringCompilation;
+            CSharpCompilation compilation = ContainingSymbol.DeclaringCompilation;
 
             // this can only happen if frame is not nested in a source type/namespace (so far we do not do this)
             // if this happens for whatever reason, we do not need "CompilerGenerated" anyways
@@ -132,13 +132,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            var ctor = Constructor;
+            MethodSymbol ctor = Constructor;
             return ((object)ctor != null && name == ctor.Name) ? ImmutableArray.Create<Symbol>(ctor) : ImmutableArray<Symbol>.Empty;
         }
 
         internal override IEnumerable<FieldSymbol> GetFieldsToEmit()
         {
-            foreach (var m in this.GetMembers())
+            foreach (Symbol m in this.GetMembers())
             {
                 switch (m.Kind)
                 {

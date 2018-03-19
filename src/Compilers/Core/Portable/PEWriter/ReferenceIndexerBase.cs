@@ -191,7 +191,7 @@ namespace Microsoft.Cci
 
             RecordTypeReference(namespaceTypeReference);
 
-            var unit = namespaceTypeReference.GetUnit(Context);
+            IUnitReference unit = namespaceTypeReference.GetUnit(Context);
 
             var assemblyReference = unit as IAssemblyReference;
             if (assemblyReference != null)
@@ -255,7 +255,7 @@ namespace Microsoft.Cci
         {
             this.Visit(typeDefinition.GetAttributes(Context));
 
-            var baseType = typeDefinition.GetBaseClass(Context);
+            ITypeReference baseType = typeDefinition.GetBaseClass(Context);
             if (baseType != null)
             {
                 this.typeReferenceNeedsToken = true;
@@ -290,7 +290,7 @@ namespace Microsoft.Cci
 
         public void VisitTypeReferencesThatNeedTokens(IEnumerable<TypeReferenceWithAttributes> refsWithAttributes)
         {
-            foreach (var refWithAttributes in refsWithAttributes)
+            foreach (TypeReferenceWithAttributes refWithAttributes in refsWithAttributes)
             {
                 this.Visit(refWithAttributes.Attributes);
                 VisitTypeReferencesThatNeedTokens(refWithAttributes.TypeRef);

@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             do
             {
-                var child = ChildSyntaxList.ItemInternal((CSharpSyntaxNode)node, i);
+                SyntaxNodeOrToken child = ChildSyntaxList.ItemInternal((CSharpSyntaxNode)node, i);
                 i++;
 
-                var asNode = child.AsNode();
+                SyntaxNode asNode = child.AsNode();
                 if (asNode != null)
                 {
                     if (this.Depth >= SyntaxWalkerDepth.Node)
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (token.HasLeadingTrivia)
             {
-                foreach (var tr in token.LeadingTrivia)
+                foreach (SyntaxTrivia tr in token.LeadingTrivia)
                 {
                     this.VisitTrivia(tr);
                 }
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (token.HasTrailingTrivia)
             {
-                foreach (var tr in token.TrailingTrivia)
+                foreach (SyntaxTrivia tr in token.TrailingTrivia)
                 {
                     this.VisitTrivia(tr);
                 }

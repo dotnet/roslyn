@@ -34,7 +34,7 @@ IOperation:  (OperationKind.None, Type: null) (Syntax: 'Conditional(field)')
         Instance Receiver: 
           null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<AttributeSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -57,7 +57,7 @@ IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: Syst
     Instance Receiver: 
       IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Script, IsImplicit) (Syntax: 'i')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<DeclarationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 parseOptions: TestOptions.Script);
@@ -83,7 +83,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) 
           Instance Receiver: 
             IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Script, IsImplicit) (Syntax: 'i2')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 parseOptions: TestOptions.Script);
@@ -107,7 +107,7 @@ IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: Syst
     Instance Receiver: 
       IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Script, IsImplicit) (Syntax: 'i')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<DeclarationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 parseOptions: TestOptions.Script);
@@ -133,7 +133,7 @@ ITupleOperation (OperationKind.Tuple, Type: (System.Int32 i1, System.Int32 i2)) 
           Instance Receiver: 
             IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Script, IsImplicit) (Syntax: 'i2')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<TupleExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 parseOptions: TestOptions.Script);
@@ -158,7 +158,7 @@ IDeclarationExpressionOperation (OperationKind.DeclarationExpression, Type: (Sys
           Instance Receiver: 
             IInstanceReferenceOperation (OperationKind.InstanceReference, Type: Script, IsImplicit) (Syntax: 'i2')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<DeclarationExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 parseOptions: TestOptions.Script);
@@ -185,7 +185,7 @@ IFieldReferenceOperation: System.Int32 C.i (OperationKind.FieldReference, Type: 
   Instance Receiver: 
     IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C, IsImplicit) (Syntax: 'i')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -211,7 +211,7 @@ IFieldReferenceOperation: System.Int32 C.i (OperationKind.FieldReference, Type: 
   Instance Receiver: 
     IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'this')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -240,7 +240,7 @@ IFieldReferenceOperation: System.Int32 C.i (OperationKind.FieldReference, Type: 
   Instance Receiver: 
     IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C) (Syntax: 'base')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<MemberAccessExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

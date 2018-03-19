@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         public SyntaxList<TNode> ToListAndFree<TNode>(SyntaxListBuilder<TNode> item)
             where TNode : GreenNode
         {
-            var list = item.ToList();
+            SyntaxList<TNode> list = item.ToList();
             Free(item);
             return list;
         }

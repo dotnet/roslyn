@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Exception e)
                 {
-                    var messageProvider = _compiler.MessageProvider;
+                    CommonMessageProvider messageProvider = _compiler.MessageProvider;
                     var diagnosticInfo = new DiagnosticInfo(messageProvider, messageProvider.ERR_OutputWriteFailed, _filePath, e.Message);
                     diagnostics.Add(messageProvider.CreateDiagnostic(diagnosticInfo));
                 }
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis
 
             private void ReportOpenFileDiagnostic(DiagnosticBag diagnostics, Exception e)
             {
-                var messageProvider = _compiler.MessageProvider;
+                CommonMessageProvider messageProvider = _compiler.MessageProvider;
                 diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_CantOpenFileWrite, Location.None, _filePath, e.Message));
             }
         }

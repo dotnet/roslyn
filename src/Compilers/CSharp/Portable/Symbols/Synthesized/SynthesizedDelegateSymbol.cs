@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             internal InvokeMethod(SynthesizedDelegateSymbol containingType, BitVector byRefParameters, TypeSymbol voidReturnTypeOpt)
             {
-                var typeParams = containingType.TypeParameters;
+                ImmutableArray<TypeParameterSymbol> typeParams = containingType.TypeParameters;
 
                 _containingType = containingType;
 
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 for (int i = 0; i < parameters.Length; i++)
                 {
                     // we don't need to distinguish between out and ref since this is an internal synthesized symbol:
-                    var refKind = !byRefParameters.IsNull && byRefParameters[i] ? RefKind.Ref : RefKind.None;
+                    RefKind refKind = !byRefParameters.IsNull && byRefParameters[i] ? RefKind.Ref : RefKind.None;
 
                     parameters[i] = SynthesizedParameterSymbol.Create(this, typeParams[i], i, refKind);
                 }

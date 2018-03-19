@@ -990,7 +990,7 @@ class C : ILErrors.InterfaceEvents
     }
 }";
 
-            var delegatesWithoutInvokeReference = TestReferences.SymbolsTests.DelegateImplementation.DelegatesWithoutInvoke;
+            PortableExecutableReference delegatesWithoutInvokeReference = TestReferences.SymbolsTests.DelegateImplementation.DelegatesWithoutInvoke;
             CreateCompilation(text, new MetadataReference[] { delegatesWithoutInvokeReference }).VerifyDiagnostics(
                 // (7,16): error CS7023: Delegate 'DelegateWithoutInvoke.DelegateGenericFunctionWithoutInvoke<T>' has no invoke method or an invoke method with a return type or parameter types that are not supported.
                 //         return del("goo"); // will show ERR_InvalidDelegateType instead of ERR_NoSuchMemberOrExtension
@@ -1048,8 +1048,8 @@ class C : ILErrors.InterfaceEvents
     }
 }";
 
-            var csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp;
-            var ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL;
+            PortableExecutableReference csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp;
+            PortableExecutableReference ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL;
             CreateCompilation(text, new MetadataReference[] { csharpAssemblyReference, ilAssemblyReference }).VerifyDiagnostics(
                 // (5,16): error CS0012: The type 'UnavailableClass<>' is defined in an assembly that is not referenced. You must add a reference to assembly 'Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         return del.Invoke("goo");
@@ -1088,7 +1088,7 @@ public sealed class A
 }
 ";
 
-            var lib1 = CreateEmptyCompilation(
+            CSharpCompilation lib1 = CreateEmptyCompilation(
                 new[] { Parse(srcLib1) },
                 new[] { TestReferences.NetFx.v2_0_50727.mscorlib, TestReferences.NetFx.v3_5_30729.SystemCore },
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
@@ -1102,7 +1102,7 @@ class Program
     }
 }
 ";
-            var lib2 = CreateEmptyCompilation(
+            CSharpCompilation lib2 = CreateEmptyCompilation(
                 new[] { Parse(srcLib2) },
                 new[] { MscorlibRef, new CSharpCompilationReference(lib1) },
                 TestOptions.ReleaseDll.WithAssemblyIdentityComparer(DesktopAssemblyIdentityComparer.Default));
@@ -1119,7 +1119,7 @@ class Program
             var xSource = @"
 public class X {}
 ";
-            var xRef = CreateCompilation(xSource, assemblyName: "Test").EmitToImageReference();
+            MetadataReference xRef = CreateCompilation(xSource, assemblyName: "Test").EmitToImageReference();
 
 
             var libSource = @"
@@ -1133,12 +1133,12 @@ public class C
     public void Goo(X a) { }
 }
 ";
-            var lib = CreateCompilation(libSource, new[] { xRef }, assemblyName: "Test");
+            CSharpCompilation lib = CreateCompilation(libSource, new[] { xRef }, assemblyName: "Test");
 
             var mainSource = @"
 class B : C, I { }
 ";
-            var main = CreateCompilation(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
+            CSharpCompilation main = CreateCompilation(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
 
             main.VerifyDiagnostics(
                 // (2,7): error CS7068: Reference to type 'X' claims it is defined in this assembly, but it is not defined in source or any added modules
@@ -1152,7 +1152,7 @@ class B : C, I { }
             var xSource = @"
 public class X {}
 ";
-            var xRef = CreateCompilation(xSource, assemblyName: "X").EmitToImageReference();
+            MetadataReference xRef = CreateCompilation(xSource, assemblyName: "X").EmitToImageReference();
 
             var libSource = @"
 public interface I
@@ -1165,12 +1165,12 @@ public class C
     public virtual void Goo(X a) { }
 }
 ";
-            var lib = CreateCompilation(libSource, new[] { xRef }, assemblyName: "Lib");
+            CSharpCompilation lib = CreateCompilation(libSource, new[] { xRef }, assemblyName: "Lib");
 
             var mainSource = @"
 class B : C, I { }
 ";
-            var main = CreateCompilation(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
+            CSharpCompilation main = CreateCompilation(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
 
             main.VerifyEmitDiagnostics();
         }
@@ -1181,7 +1181,7 @@ class B : C, I { }
             var xSource = @"
 public class X {}
 ";
-            var xRef = CreateCompilation(xSource, assemblyName: "X").EmitToImageReference();
+            MetadataReference xRef = CreateCompilation(xSource, assemblyName: "X").EmitToImageReference();
 
             var libSource = @"
 public interface I
@@ -1194,12 +1194,12 @@ public class C
     public int this[X a] { get { return 1; } set { } }
 }
 ";
-            var lib = CreateCompilation(libSource, new[] { xRef }, assemblyName: "Lib");
+            CSharpCompilation lib = CreateCompilation(libSource, new[] { xRef }, assemblyName: "Lib");
 
             var mainSource = @"
 class B : C, I { }
 ";
-            var main = CreateCompilation(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
+            CSharpCompilation main = CreateCompilation(mainSource, new[] { new CSharpCompilationReference(lib) }, assemblyName: "Main");
 
             main.VerifyDiagnostics(
                 // (2,7): error CS0012: The type 'X' is defined in an assembly that is not referenced. You must add a reference to assembly 'X, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -1213,13 +1213,13 @@ class B : C, I { }
         [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void SynthesizedInterfaceImplementation_ModOpt()
         {
-            var unavailableRef = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
-            var ilRef = TestReferences.SymbolsTests.UseSiteErrors.IL;
+            PortableExecutableReference unavailableRef = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
+            PortableExecutableReference ilRef = TestReferences.SymbolsTests.UseSiteErrors.IL;
 
             var mainSource = @"
 class B : ILErrors.ClassEventsNonVirtual, ILErrors.InterfaceEvents { }
 ";
-            var main = CreateCompilation(mainSource, new[] { ilRef, unavailableRef });
+            CSharpCompilation main = CreateCompilation(mainSource, new[] { ilRef, unavailableRef });
 
             CompileAndVerify(main);
         }
@@ -1227,13 +1227,13 @@ class B : ILErrors.ClassEventsNonVirtual, ILErrors.InterfaceEvents { }
         [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void NoSynthesizedInterfaceImplementation_ModOpt()
         {
-            var unavailableRef = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
-            var ilRef = TestReferences.SymbolsTests.UseSiteErrors.IL;
+            PortableExecutableReference unavailableRef = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
+            PortableExecutableReference ilRef = TestReferences.SymbolsTests.UseSiteErrors.IL;
 
             var mainSource = @"
 class B : ILErrors.ClassEvents, ILErrors.InterfaceEvents { }
 ";
-            var main = CreateCompilation(mainSource, new[] { ilRef, unavailableRef });
+            CSharpCompilation main = CreateCompilation(mainSource, new[] { ilRef, unavailableRef });
 
             CompileAndVerify(main);
         }
@@ -1241,13 +1241,13 @@ class B : ILErrors.ClassEvents, ILErrors.InterfaceEvents { }
         [Fact, WorkItem(530974, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530974")]
         public void SynthesizedInterfaceImplementation_ModReq()
         {
-            var unavailableRef = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
-            var ilRef = TestReferences.SymbolsTests.UseSiteErrors.IL;
+            PortableExecutableReference unavailableRef = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
+            PortableExecutableReference ilRef = TestReferences.SymbolsTests.UseSiteErrors.IL;
 
             var mainSource = @"
 class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents { }
 ";
-            var main = CreateCompilation(mainSource, new[] { ilRef, unavailableRef });
+            CSharpCompilation main = CreateCompilation(mainSource, new[] { ilRef, unavailableRef });
 
             main.VerifyDiagnostics(
     // (2,49): error CS0648: '' is a type not supported by the language
@@ -1271,7 +1271,7 @@ class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents {
    public int AProperty { get; set; }
 }";
 
-            var compilation = CreateEmptyCompilation(text).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateEmptyCompilation(text).VerifyDiagnostics(
                 // (1,7): error CS0518: Predefined type 'System.Object' is not defined or imported
                 // class C 
                 Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "C").WithArguments("System.Object"),
@@ -1285,7 +1285,7 @@ class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents {
                 // class C 
                 Diagnostic(ErrorCode.ERR_BadCtorArgCount, "C").WithArguments("object", "0"));
 
-            foreach (var diag in compilation.GetDiagnostics())
+            foreach (Diagnostic diag in compilation.GetDiagnostics())
             {
                 Assert.DoesNotContain("System.Runtime.CompilerServices.CompilerGeneratedAttribute", diag.GetMessage(), StringComparison.Ordinal);
             }
@@ -1296,10 +1296,10 @@ class B : ILErrors.ModReqClassEventsNonVirtual, ILErrors.ModReqInterfaceEvents {
         {
             var baseSource =
 @"public class Base {}";
-            var baseLib = CreateCompilation(baseSource, assemblyName: "BaseAssembly");
+            CSharpCompilation baseLib = CreateCompilation(baseSource, assemblyName: "BaseAssembly");
             var derivedSource =
 @"public class Derived : Base {}";
-            var derivedLib = CreateCompilation(derivedSource, assemblyName: "DerivedAssembly", references: new[] { new CSharpCompilationReference(baseLib) });
+            CSharpCompilation derivedLib = CreateCompilation(derivedSource, assemblyName: "DerivedAssembly", references: new[] { new CSharpCompilationReference(baseLib) });
             var programSource =
 @"
 class Program
@@ -1708,8 +1708,8 @@ class C
     }
 }
 ";
-            var missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
-            var libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+            MetadataReference missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+            MetadataReference libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
             CreateCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
                 // (8,22): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //         var c1 = new Constructor1(1);
@@ -1779,8 +1779,8 @@ class Derived : Base
     public int this[string x] { get { return 0; } }
 }
 ";
-            var missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
-            var libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+            MetadataReference missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+            MetadataReference libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
             CreateCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
 
             // NOTE: No errors reported when the Derived member wins.
@@ -1834,8 +1834,8 @@ class Test
     }
 }
 ";
-            var missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
-            var libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+            MetadataReference missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+            MetadataReference libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
             CreateCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
 
             CreateCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
@@ -1891,8 +1891,8 @@ class Test
     }
 }
 ";
-            var missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
-            var libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+            MetadataReference missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+            MetadataReference libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
             CreateCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
 
             CreateCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
@@ -1948,8 +1948,8 @@ class Test
     }
 }
 ";
-            var missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
-            var libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+            MetadataReference missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+            MetadataReference libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
             CreateCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
 
             CreateCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
@@ -1995,11 +1995,11 @@ class Test
     }
 }
 ";
-            var missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
-            var libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
+            MetadataReference missingRef = CreateCompilation(missingSource, assemblyName: "Missing").EmitToImageReference();
+            MetadataReference libRef = CreateCompilation(libSource, new[] { missingRef }).EmitToImageReference();
             CreateCompilation(testSource, new[] { libRef, missingRef }).VerifyDiagnostics();
-            var getMissingDiagnostic = Diagnostic(ErrorCode.ERR_NoTypeDef, @"C.GetMissing").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
-            var setMissingDiagnostic = Diagnostic(ErrorCode.ERR_NoTypeDef, @"C.SetMissing").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
+            DiagnosticDescription getMissingDiagnostic = Diagnostic(ErrorCode.ERR_NoTypeDef, @"C.GetMissing").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
+            DiagnosticDescription setMissingDiagnostic = Diagnostic(ErrorCode.ERR_NoTypeDef, @"C.SetMissing").WithArguments("Missing", "Missing, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
             CreateCompilation(testSource, new[] { libRef /* and not missingRef */ }).VerifyDiagnostics(
                 getMissingDiagnostic,
                 getMissingDiagnostic,
@@ -2313,7 +2313,7 @@ namespace System
                 options = options.WithOutputKind(OutputKind.NetModule);
             }
 
-            var compilation = CreateEmptyCompilation(
+            CSharpCompilation compilation = CreateEmptyCompilation(
                 new[] { Parse(corLibText) },
                 options: options);
             compilation.VerifyDiagnostics(expectedDiagnostics);
@@ -2327,14 +2327,14 @@ namespace System
         /// </summary>
         private static CSharpCompilation CompileWithMissingReference(string source)
         {
-            var unavailableAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
-            var csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp;
-            var ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL;
+            PortableExecutableReference unavailableAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.Unavailable;
+            PortableExecutableReference csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp;
+            PortableExecutableReference ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL;
 
-            var successfulCompilation = CreateCompilation(source, new MetadataReference[] { unavailableAssemblyReference, csharpAssemblyReference, ilAssemblyReference });
+            CSharpCompilation successfulCompilation = CreateCompilation(source, new MetadataReference[] { unavailableAssemblyReference, csharpAssemblyReference, ilAssemblyReference });
             successfulCompilation.VerifyDiagnostics(); // No diagnostics when reference is present
 
-            var failingCompilation = CreateCompilation(source, new MetadataReference[] { csharpAssemblyReference, ilAssemblyReference });
+            CSharpCompilation failingCompilation = CreateCompilation(source, new MetadataReference[] { csharpAssemblyReference, ilAssemblyReference });
             return failingCompilation;
         }
 
@@ -2352,7 +2352,7 @@ public delegate void D();
 
 public interface I1 {}
 ";
-            var compilation1 = CreateEmptyCompilation(source1, options: TestOptions.ReleaseDll, references: new[] { MinCorlibRef });
+            CSharpCompilation compilation1 = CreateEmptyCompilation(source1, options: TestOptions.ReleaseDll, references: new[] { MinCorlibRef });
             compilation1.VerifyEmitDiagnostics();
 
             Assert.Equal(TypeKind.Struct, compilation1.GetTypeByMetadataName("A").TypeKind);
@@ -2368,7 +2368,7 @@ interface I2
 }
 ";
 
-            var compilation2 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MinCorlibRef });
+            CSharpCompilation compilation2 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MinCorlibRef });
 
             compilation2.VerifyEmitDiagnostics();
             CompileAndVerify(compilation2);
@@ -2379,7 +2379,7 @@ interface I2
             Assert.Equal(TypeKind.Delegate, compilation2.GetTypeByMetadataName("D").TypeKind);
             Assert.Equal(TypeKind.Interface, compilation2.GetTypeByMetadataName("I1").TypeKind);
 
-            var compilation3 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MinCorlibRef });
+            CSharpCompilation compilation3 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MinCorlibRef });
 
             compilation3.VerifyEmitDiagnostics();
             CompileAndVerify(compilation3);
@@ -2390,7 +2390,7 @@ interface I2
             Assert.Equal(TypeKind.Delegate, compilation3.GetTypeByMetadataName("D").TypeKind);
             Assert.Equal(TypeKind.Interface, compilation3.GetTypeByMetadataName("I1").TypeKind);
 
-            var compilation4 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference() });
+            CSharpCompilation compilation4 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference() });
 
             compilation4.VerifyDiagnostics(
                 // (4,10): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
@@ -2404,11 +2404,11 @@ interface I2
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "D").WithArguments("System.MulticastDelegate", "mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2").WithLocation(4, 25)
                 );
 
-            var a = compilation4.GetTypeByMetadataName("A");
-            var b = compilation4.GetTypeByMetadataName("B");
-            var c = compilation4.GetTypeByMetadataName("C");
-            var d = compilation4.GetTypeByMetadataName("D");
-            var i1 = compilation4.GetTypeByMetadataName("I1");
+            Symbols.NamedTypeSymbol a = compilation4.GetTypeByMetadataName("A");
+            Symbols.NamedTypeSymbol b = compilation4.GetTypeByMetadataName("B");
+            Symbols.NamedTypeSymbol c = compilation4.GetTypeByMetadataName("C");
+            Symbols.NamedTypeSymbol d = compilation4.GetTypeByMetadataName("D");
+            Symbols.NamedTypeSymbol i1 = compilation4.GetTypeByMetadataName("I1");
             Assert.Equal(TypeKind.Class, a.TypeKind);
             Assert.NotNull(a.GetUseSiteDiagnostic());
             Assert.Equal(TypeKind.Class, b.TypeKind);
@@ -2420,7 +2420,7 @@ interface I2
             Assert.Equal(TypeKind.Interface, i1.TypeKind);
             Assert.Null(i1.GetUseSiteDiagnostic());
 
-            var compilation5 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference() });
+            CSharpCompilation compilation5 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference() });
 
             compilation5.VerifyEmitDiagnostics(
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
@@ -2434,7 +2434,7 @@ interface I2
             Assert.Equal(TypeKind.Delegate, compilation5.GetTypeByMetadataName("D").TypeKind);
             Assert.Equal(TypeKind.Interface, compilation5.GetTypeByMetadataName("I1").TypeKind);
 
-            var compilation6 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MscorlibRef });
+            CSharpCompilation compilation6 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.EmitToImageReference(), MscorlibRef });
 
             compilation6.VerifyDiagnostics(
                 // (4,10): error CS0012: The type 'ValueType' is defined in an assembly that is not referenced. You must add a reference to assembly 'mincorlib, Version=0.0.0.0, Culture=neutral, PublicKeyToken=ce65828c82a341f2'.
@@ -2464,7 +2464,7 @@ interface I2
             Assert.Equal(TypeKind.Interface, i1.TypeKind);
             Assert.Null(i1.GetUseSiteDiagnostic());
 
-            var compilation7 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MscorlibRef });
+            CSharpCompilation compilation7 = CreateEmptyCompilation(source2, options: TestOptions.ReleaseDll, references: new[] { compilation1.ToMetadataReference(), MscorlibRef });
 
             compilation7.VerifyEmitDiagnostics();
             CompileAndVerify(compilation7);
@@ -2486,15 +2486,15 @@ class C : CSharpErrors.ClassMethods
     public override UnavailableClass[] ReturnType2() { return null; }
 }";
 
-            var compilation = CompileWithMissingReference(text);
-            var diagnostics = compilation.GetDiagnostics();
+            CSharpCompilation compilation = CompileWithMissingReference(text);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = compilation.GetDiagnostics();
             Assert.True(diagnostics.Any(d => d.Code == (int)ErrorCode.ERR_NoTypeDef));
 
-            foreach (var diagnostic in diagnostics)
+            foreach (Diagnostic diagnostic in diagnostics)
             {
                 if (diagnostic.Code == (int)ErrorCode.ERR_NoTypeDef)
                 {
-                    var actualAssemblyId = compilation.GetUnreferencedAssemblyIdentities(diagnostic).Single();
+                    AssemblyIdentity actualAssemblyId = compilation.GetUnreferencedAssemblyIdentities(diagnostic).Single();
                     AssemblyIdentity expectedAssemblyId;
                     AssemblyIdentity.TryParseDisplayName("Unavailable, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", out expectedAssemblyId);
 

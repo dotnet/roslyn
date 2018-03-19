@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestStaticMethod()
         {
-            var m0 = _widgetClass.GetMembers("M0").Single();
+            Symbol m0 = _widgetClass.GetMembers("M0").Single();
             Assert.Equal("M:Acme.Widget.M0", m0.GetDocumentationCommentId());
             Assert.Equal(
 @"<member name=""M:Acme.Widget.M0"">
@@ -191,18 +191,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestMethodWithMissingType()
         {
-            var csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp;
-            var ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL;
-            var compilation = CreateCompilation(references: new[] { csharpAssemblyReference, ilAssemblyReference }, source:
+            PortableExecutableReference csharpAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.CSharp;
+            PortableExecutableReference ilAssemblyReference = TestReferences.SymbolsTests.UseSiteErrors.IL;
+            CSharpCompilation compilation = CreateCompilation(references: new[] { csharpAssemblyReference, ilAssemblyReference }, source:
 @"class C
 {
     internal static CSharpErrors.ClassMethods F = null;
 }");
-            var type = compilation.Assembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            NamedTypeSymbol type = compilation.Assembly.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
             type = (NamedTypeSymbol)type.GetMember<FieldSymbol>("F").Type;
-            var members = type.GetMembers();
+            System.Collections.Immutable.ImmutableArray<Symbol> members = type.GetMembers();
             Assert.InRange(members.Length, 1, int.MaxValue);
-            foreach (var member in members)
+            foreach (Symbol member in members)
             {
                 var docComment = member.GetDocumentationCommentXml();
                 Assert.NotNull(docComment);
@@ -228,8 +228,8 @@ class Test
     static void Main() {}
 }
 ";
-            var compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose));
-            var main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
+            CSharpCompilation compilation = CreateEmptyCompilation(source, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithDocumentationMode(DocumentationMode.Diagnose));
+            MethodSymbol main = compilation.GetTypeByMetadataName("Test").GetMember<MethodSymbol>("Main");
 
             Assert.Equal(@"<!-- Badly formed XML comment ignored for member ""M:Test.Main"" -->", main.GetDocumentationCommentXml().Trim());
 

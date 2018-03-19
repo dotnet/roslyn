@@ -345,8 +345,8 @@ public struct S1
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(code, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "042");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(code, options: TestOptions.ReleaseExe);
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: "042");
 
             verifier.VerifyIL("C.Main", @"
 {
@@ -407,8 +407,8 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(code, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "Q");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(code, options: TestOptions.ReleaseExe);
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: "Q");
 
             verifier.VerifyIL("C..ctor(int)", @"
 {
@@ -469,8 +469,8 @@ public class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(code, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "Q");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(code, options: TestOptions.ReleaseExe);
+            CodeAnalysis.Test.Utilities.CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: "Q");
 
             verifier.VerifyIL("C..ctor(int)", @"
 {

@@ -25,8 +25,8 @@ class C
     {
     }
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
 
             comp.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -51,7 +51,7 @@ namespace ClassLibrary1
     }
 } 
 ";
-            var classLib1 = CreateCompilation(source: class1Source, assemblyName: "ClassLibrary1");
+            CSharpCompilation classLib1 = CreateCompilation(source: class1Source, assemblyName: "ClassLibrary1");
 
             string class2Source = @"using System;
 using ClassLibrary1;
@@ -66,7 +66,7 @@ namespace ClassLibrary2
         }
     }
 }";
-            var classLib2 = CreateCompilation(source: class2Source, assemblyName: "ClassLibrary2", references: new[] { classLib1.ToMetadataReference() });
+            CSharpCompilation classLib2 = CreateCompilation(source: class2Source, assemblyName: "ClassLibrary2", references: new[] { classLib1.ToMetadataReference() });
 
             string consoleApplicationSource = @"using ClassLibrary2;
 using ClassLibrary1;
@@ -82,11 +82,11 @@ namespace ConsoleApplication
         }
     }
 }";
-            var tree = Parse(consoleApplicationSource);
-            var comp = CreateCompilation(tree, new[] { classLib1.ToMetadataReference(), classLib2.ToMetadataReference() }, assemblyName: "ConsoleApplication");
+            SyntaxTree tree = Parse(consoleApplicationSource);
+            CSharpCompilation comp = CreateCompilation(tree, new[] { classLib1.ToMetadataReference(), classLib2.ToMetadataReference() }, assemblyName: "ConsoleApplication");
             var model = comp.GetSemanticModel(tree) as CSharpSemanticModel;
 
-            var syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            ExpressionSyntax syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
 
             //This is the crux of the test.
             //Without this line, with or without the fix, the model never gets pushed to evaluate extension method candidates
@@ -115,7 +115,7 @@ class Program
         Enumerable.Repeat(1, 1);
     }
 }";
-            var comp = CreateEmptyCompilation(text, new[] { MscorlibRef });
+            CSharpCompilation comp = CreateEmptyCompilation(text, new[] { MscorlibRef });
             //all unused because system.core was not included and Enumerable didn't bind
             comp.VerifyDiagnostics(
                 // (4,14): error CS0234: The type or namespace name 'Linq' does not exist in the namespace 'System' (are you missing an assembly reference?)
@@ -165,8 +165,8 @@ class C
         Console.WriteLine();
     }
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -183,12 +183,12 @@ class C
         /*here*/
     }
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             var position = text.IndexOf("/*here*/", StringComparison.Ordinal);
-            var info = model.GetSpeculativeSymbolInfo(position, SyntaxFactory.IdentifierName("Console"), SpeculativeBindingOption.BindAsTypeOrNamespace);
+            SymbolInfo info = model.GetSpeculativeSymbolInfo(position, SyntaxFactory.IdentifierName("Console"), SpeculativeBindingOption.BindAsTypeOrNamespace);
             Assert.NotNull(info.Symbol);
             Assert.Equal(SymbolKind.NamedType, info.Symbol.Kind);
             Assert.Equal("Console", info.Symbol.Name);
@@ -207,14 +207,14 @@ class C
         {
             var snkPath = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey).Path;
 
-            var signing = Parse(@"
+            SyntaxTree signing = Parse(@"
 using System.Reflection;
 
 [assembly: AssemblyVersion(""1.2.3.4"")]
 [assembly: AssemblyKeyFile(@""" + snkPath + @""")]
 ");
 
-            var ivtCompilation = CreateCompilation(
+            CSharpCompilation ivtCompilation = CreateCompilation(
                 assemblyName: "IVT",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()),
                 source: new[]
@@ -235,7 +235,7 @@ namespace NamespaceContainingInternalsOnly
                     signing
                 });
 
-            var libCompilation = CreateCompilation(
+            CSharpCompilation libCompilation = CreateCompilation(
                 assemblyName: "Lib",
                 options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()),
                 references: new[] { ivtCompilation.ToMetadataReference() },
@@ -274,7 +274,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Collections;
@@ -310,8 +310,8 @@ using C = System.Console;
             var source = @"
 extern alias A;
 ";
-            var lib = CreateEmptyCompilation("", assemblyName: "lib");
-            var comp = CreateCompilation(source, new[] { new CSharpCompilationReference(lib, aliases: ImmutableArray.Create("A")) });
+            CSharpCompilation lib = CreateEmptyCompilation("", assemblyName: "lib");
+            CSharpCompilation comp = CreateCompilation(source, new[] { new CSharpCompilationReference(lib, aliases: ImmutableArray.Create("A")) });
 
             comp.VerifyDiagnostics(
                 // (2,1): info CS8020: Unused extern alias.
@@ -347,7 +347,7 @@ public class C { }
             var source = @"
 using System;
 ";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error));
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.ReleaseDll.WithGeneralDiagnosticOption(ReportDiagnostic.Error));
             comp.VerifyEmitDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System;
@@ -357,7 +357,7 @@ using System;
         [Fact]
         public void UnusedUsingInteractive()
         {
-            var tree = Parse("using System;", options: TestOptions.Script);
+            SyntaxTree tree = Parse("using System;", options: TestOptions.Script);
             var comp = CSharpCompilation.CreateScriptCompilation("sub1", tree, new[] { MscorlibRef_v4_0_30316_17626 });
 
             comp.VerifyDiagnostics();
@@ -366,8 +366,8 @@ using System;
         [Fact]
         public void UnusedUsingScript()
         {
-            var tree = Parse("using System;", options: TestOptions.Script);
-            var comp = CreateCompilationWithMscorlib45(new[] { tree });
+            SyntaxTree tree = Parse("using System;", options: TestOptions.Script);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(new[] { tree });
 
             comp.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
@@ -390,10 +390,10 @@ partial class Program
 {
     partial void M(ref int x);
 }";
-            var comp = CreateCompilation(new[] { source1, source2 });
-            var tree = comp.SyntaxTrees[0];
+            CSharpCompilation comp = CreateCompilation(new[] { source1, source2 });
+            SyntaxTree tree = comp.SyntaxTrees[0];
             //comp.VerifyDiagnostics(); // doing this first hides the symptoms of the bug
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             // There should be no diagnostics.
             model.GetDiagnostics().Verify(
@@ -418,10 +418,10 @@ partial class Program
 {
     partial void M(ref int x) { }
 }";
-            var comp = CreateCompilation(new[] { source1, source2 });
-            var tree = comp.SyntaxTrees[0];
+            CSharpCompilation comp = CreateCompilation(new[] { source1, source2 });
+            SyntaxTree tree = comp.SyntaxTrees[0];
             //comp.VerifyDiagnostics(); // doing this first hides the symptoms of the bug
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             // There should be no diagnostics.
             model.GetDiagnostics().Verify(

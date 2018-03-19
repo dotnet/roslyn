@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SetState(ReachableState());
             MakeSlots(MethodParameters);
             if ((object)MethodThisParameter != null) GetOrCreateSlot(MethodThisParameter);
-            var result = base.Scan(ref badRegion);
+            ImmutableArray<PendingBranch> result = base.Scan(ref badRegion);
             return result;
         }
 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void MakeSlots(ImmutableArray<ParameterSymbol> parameters)
         {
             // assign slots to the parameters
-            foreach (var parameter in parameters)
+            foreach (ParameterSymbol parameter in parameters)
             {
                 GetOrCreateSlot(parameter);
             }

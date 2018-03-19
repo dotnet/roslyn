@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void MissingInAttributeModreq_Delegates_Parameters()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi sealed D extends [mscorlib]System.MulticastDelegate
 {
     .method public hidebysig specialname rtspecialname instance void .ctor (object 'object', native int 'method') runtime managed 
@@ -49,7 +49,7 @@ class Test
         [Fact]
         public void MissingInAttributeModreq_Delegates_Parameters_ModOpt()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi sealed D extends [mscorlib]System.MulticastDelegate
 {
     .method public hidebysig specialname rtspecialname instance void .ctor (object 'object', native int 'method') runtime managed 
@@ -94,7 +94,7 @@ class Test
         [Fact]
         public void MissingInAttributeModreq_Delegates_ReturnTypes()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi sealed D extends [mscorlib]System.MulticastDelegate
 {
     .method public hidebysig specialname rtspecialname instance void .ctor (object 'object', native int 'method') runtime managed 
@@ -115,7 +115,7 @@ class Test
     }
 }");
 
-            var c = CreateCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class Test
 {
     ref readonly int M(D d) => ref d();
@@ -128,7 +128,7 @@ class Test
         [Fact]
         public void MissingInAttributeModreq_Delegates_ReturnTypes_ModOpt()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi sealed D extends [mscorlib]System.MulticastDelegate
 {
     .method public hidebysig specialname rtspecialname instance void .ctor (object 'object', native int 'method') runtime managed 
@@ -162,7 +162,7 @@ class Test
         [Fact]
         public void MissingInAttributeModreq_Properties()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .method public hidebysig specialname instance int32& get_X () cil managed 
@@ -204,7 +204,7 @@ class Test
         [Fact]
         public void MissingInAttributeModreq_Properties_ModOpt()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .method public hidebysig specialname instance int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) get_X () cil managed 
@@ -246,7 +246,7 @@ class Test
         [Fact]
         public void MissingInAttributeModreq_Method_Parameters_Virtual()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .method public hidebysig newslot virtual instance void M ([in] int32& x) cil managed 
@@ -281,7 +281,7 @@ class Test
         [Fact]
         public void MissingInAttributeModreq_Method_Parameters_Virtual_ModOpt()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .method public hidebysig newslot virtual instance void M ([in] int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) x) cil managed 
@@ -316,7 +316,7 @@ class Test
         [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
         public void MissingInAttributeModreq_Method_Parameters_Override()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .method public hidebysig newslot virtual instance string M ([in] int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) x) cil managed 
@@ -380,7 +380,7 @@ Parent
 Parent",
                 symbolValidator: module =>
                 {
-                    var method = module.ContainingAssembly.BoundReferences()
+                    CSharp.Symbols.MethodSymbol method = module.ContainingAssembly.BoundReferences()
                         .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
                         .GetTypeByMetadataName("Child").GetMethod("M");
 
@@ -393,7 +393,7 @@ Parent",
         [Fact]
         public void MissingInAttributeModreq_Method_Parameters_Override_Inverse()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .method public hidebysig newslot virtual instance string M ([in] int32& x) cil managed 
@@ -469,7 +469,7 @@ class Test
         [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
         public void MissingInAttributeModreq_Method_Parameters_Override_ModOpt()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .method public hidebysig newslot virtual instance string M ([in] int32& modreq([mscorlib]System.Runtime.InteropServices.InAttribute) x) cil managed 
@@ -533,7 +533,7 @@ Parent
 Parent",
                 symbolValidator: module =>
                 {
-                    var method = module.ContainingAssembly.BoundReferences()
+                    CSharp.Symbols.MethodSymbol method = module.ContainingAssembly.BoundReferences()
                         .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
                         .GetTypeByMetadataName("Child").GetMethod("M");
 
@@ -546,7 +546,7 @@ Parent",
         [Fact]
         public void MissingInAttributeModreq_Method_Parameters_Override_ModOpt_Inverse()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .method public hidebysig newslot virtual instance string M ([in] int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) x) cil managed 
@@ -622,7 +622,7 @@ class Test
         [Fact]
         public void MissingInAttributeModreq_Method_Parameters_Abstract()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .method public hidebysig newslot abstract virtual instance void M ([in] int32& x) cil managed 
@@ -654,7 +654,7 @@ class Test
         [Fact]
         public void MissingInAttributeModreq_Method_Parameters_Abstract_ModOpt()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .method public hidebysig newslot abstract virtual instance void M ([in] int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) x) cil managed 
@@ -686,7 +686,7 @@ class Test
         [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Abstract()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -738,7 +738,7 @@ public class Test
         [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Abstract_Get()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -780,7 +780,7 @@ public class Test
         [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Abstract_Set()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -822,7 +822,7 @@ public class Test
         [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Abstract_ModOpt()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -874,7 +874,7 @@ public class Test
         [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Abstract_ModOpt_Get()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -916,7 +916,7 @@ public class Test
         [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Abstract_ModOpt_Set()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi abstract beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -958,7 +958,7 @@ public class Test
         [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Virtual()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1018,7 +1018,7 @@ public class Test
         [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Virtual_Get()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1064,7 +1064,7 @@ public class Test
         [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Virtual_Set()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1110,7 +1110,7 @@ public class Test
         [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Virtual_ModOpt()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1170,7 +1170,7 @@ public class Test
         [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Virtual_ModOpt_Get()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1216,7 +1216,7 @@ public class Test
         [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Virtual_ModOpt_Set()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1262,7 +1262,7 @@ public class Test
         [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
         public void MissingInAttributeModreq_Indexers_Parameters_Override()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1393,7 +1393,7 @@ Parent Get
 Parent Set",
                 symbolValidator: module =>
                 {
-                    var indexer = module.ContainingAssembly.BoundReferences()
+                    PEPropertySymbol indexer = module.ContainingAssembly.BoundReferences()
                         .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
                         .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
 
@@ -1406,7 +1406,7 @@ Parent Set",
         [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Override_Inverse()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1549,7 +1549,7 @@ Child Set");
         [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
         public void MissingInAttributeModreq_Indexers_Parameters_Override_Get()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1649,7 +1649,7 @@ Parent Get
 Parent Get",
                 symbolValidator: module =>
                 {
-                    var indexer = module.ContainingAssembly.BoundReferences()
+                    PEPropertySymbol indexer = module.ContainingAssembly.BoundReferences()
                         .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
                         .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
 
@@ -1662,7 +1662,7 @@ Parent Get",
         [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Override_Get_Inverse()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1771,7 +1771,7 @@ class Test
         [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
         public void MissingInAttributeModreq_Indexers_Parameters_Override_Set()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1861,7 +1861,7 @@ Parent Set
 Parent Set",
                 symbolValidator: module =>
                 {
-                    var indexer = module.ContainingAssembly.BoundReferences()
+                    PEPropertySymbol indexer = module.ContainingAssembly.BoundReferences()
                         .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
                         .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
 
@@ -1874,7 +1874,7 @@ Parent Set",
         [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Override_Set_Inverse()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -1973,7 +1973,7 @@ class Test
         [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
         public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -2104,7 +2104,7 @@ Parent Get
 Parent Set",
                 symbolValidator: module =>
                 {
-                    var indexer = module.ContainingAssembly.BoundReferences()
+                    PEPropertySymbol indexer = module.ContainingAssembly.BoundReferences()
                         .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
                         .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
 
@@ -2117,7 +2117,7 @@ Parent Set",
         [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Inverse()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -2260,7 +2260,7 @@ Child Set");
         [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
         public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Get()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -2360,7 +2360,7 @@ Parent Get
 Parent Get",
                 symbolValidator: module =>
                 {
-                    var indexer = module.ContainingAssembly.BoundReferences()
+                    PEPropertySymbol indexer = module.ContainingAssembly.BoundReferences()
                         .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
                         .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
 
@@ -2373,7 +2373,7 @@ Parent Get",
         [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Get_Inverse()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -2482,7 +2482,7 @@ class Test
         [ConditionalFact(typeof(ClrOnly))] // https://github.com/mono/mono/issues/6936
         public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Set()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -2572,7 +2572,7 @@ Parent Set
 Parent Set",
                 symbolValidator: module =>
                 {
-                    var indexer = module.ContainingAssembly.BoundReferences()
+                    PEPropertySymbol indexer = module.ContainingAssembly.BoundReferences()
                         .Single(assembly => !assembly.Identity.Equals(module.ContainingAssembly.CorLibrary.Identity))
                         .GetTypeByMetadataName("Child").GetIndexer<PEPropertySymbol>("Item");
 
@@ -2585,7 +2585,7 @@ Parent Set",
         [Fact]
         public void MissingInAttributeModreq_Indexers_Parameters_Override_ModOpt_Set_Inverse()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit Parent extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -2684,7 +2684,7 @@ class Test
         [Fact]
         public void MissingInAttributeModreq_Indexers_ReturnType()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -2731,7 +2731,7 @@ public class Test
         [Fact]
         public void MissingInAttributeModreq_Indexers_ReturnType_ModOpt()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .custom instance void [mscorlib]System.Reflection.DefaultMemberAttribute::.ctor(string) = (01 00 04 49 74 65 6d 00 00)
@@ -2778,7 +2778,7 @@ public class Test
         [Fact]
         public void MissingInAttributeModreq_Methods_ReturnType()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .method public hidebysig instance int32& M () cil managed 
@@ -2817,7 +2817,7 @@ public class Test
         [Fact]
         public void MissingInAttributeModreq_Methods_ReturnType_ModOpt()
         {
-            var reference = CompileIL(@"
+            MetadataReference reference = CompileIL(@"
 .class public auto ansi beforefieldinit RefTest extends [mscorlib]System.Object
 {
     .method public hidebysig instance int32& modopt([mscorlib]System.Runtime.InteropServices.InAttribute) M () cil managed 

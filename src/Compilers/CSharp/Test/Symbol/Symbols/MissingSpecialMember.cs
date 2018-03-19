@@ -29,7 +29,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator);
 
@@ -61,7 +61,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(SpecialMember.System_IDisposable__Dispose);
 
@@ -93,7 +93,7 @@ public class Program
         yield return 1;
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
@@ -116,7 +116,7 @@ public static class Program
 
     public static void Extension(this string x) {}
 }";
-            var comp = CreateEmptyCompilation(source, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateEmptyCompilation(source, new[] { MscorlibRef }, options: TestOptions.ReleaseDll);
 
             comp.MakeMemberMissing(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor);
 
@@ -149,12 +149,12 @@ namespace System
 ";
             Action<CSharpCompilation> validate = comp =>
             {
-                var specialType = comp.GetSpecialType(SpecialType.System_String);
+                CSharp.Symbols.NamedTypeSymbol specialType = comp.GetSpecialType(SpecialType.System_String);
                 Assert.Equal(TypeKind.Error, specialType.TypeKind);
                 Assert.Equal(SpecialType.System_String, specialType.SpecialType);
                 Assert.Equal(Accessibility.NotApplicable, specialType.DeclaredAccessibility);
 
-                var lookupType = comp.GetTypeByMetadataName("System.String");
+                CSharp.Symbols.NamedTypeSymbol lookupType = comp.GetTypeByMetadataName("System.String");
                 Assert.Equal(TypeKind.Class, lookupType.TypeKind);
                 Assert.Equal(SpecialType.None, lookupType.SpecialType);
                 Assert.Equal(Accessibility.Internal, lookupType.DeclaredAccessibility);
@@ -227,11 +227,11 @@ namespace System
 ";
             Action<CSharpCompilation> validate = comp =>
             {
-                var specialType = comp.GetSpecialType(SpecialType.System_Nullable_T);
+                CSharp.Symbols.NamedTypeSymbol specialType = comp.GetSpecialType(SpecialType.System_Nullable_T);
                 Assert.Equal(TypeKind.Struct, specialType.TypeKind);
                 Assert.Equal(SpecialType.System_Nullable_T, specialType.SpecialType);
 
-                var lookupType = comp.GetTypeByMetadataName("System.Nullable`1");
+                CSharp.Symbols.NamedTypeSymbol lookupType = comp.GetTypeByMetadataName("System.Nullable`1");
                 Assert.Equal(TypeKind.Struct, lookupType.TypeKind);
                 Assert.Equal(SpecialType.System_Nullable_T, lookupType.SpecialType);
             };
@@ -261,13 +261,13 @@ namespace System
     public struct Void { }
 }
 ";
-            var comp = CreateEmptyCompilation(source);
+            CSharpCompilation comp = CreateEmptyCompilation(source);
 
-            var wellKnownType = comp.GetWellKnownType(WellKnownType.System_Type);
+            CSharp.Symbols.NamedTypeSymbol wellKnownType = comp.GetWellKnownType(WellKnownType.System_Type);
             Assert.Equal(TypeKind.Class, wellKnownType.TypeKind);
             Assert.Equal(Accessibility.Internal, wellKnownType.DeclaredAccessibility);
 
-            var lookupType = comp.GetTypeByMetadataName("System.Type");
+            CSharp.Symbols.NamedTypeSymbol lookupType = comp.GetTypeByMetadataName("System.Type");
             Assert.Equal(TypeKind.Class, lookupType.TypeKind);
             Assert.Equal(Accessibility.Internal, lookupType.DeclaredAccessibility);
         }
@@ -296,11 +296,11 @@ namespace System
 ";
             Action<CSharpCompilation> validate = comp =>
             {
-                var wellKnownType = comp.GetWellKnownType(WellKnownType.System_Diagnostics_DebuggableAttribute__DebuggingModes);
+                CSharp.Symbols.NamedTypeSymbol wellKnownType = comp.GetWellKnownType(WellKnownType.System_Diagnostics_DebuggableAttribute__DebuggingModes);
                 Assert.Equal(TypeKind.Error, wellKnownType.TypeKind);
                 Assert.Equal(Accessibility.NotApplicable, wellKnownType.DeclaredAccessibility);
 
-                var lookupType = comp.GetTypeByMetadataName("System.Diagnostics.DebuggableAttribute+DebuggingModes");
+                CSharp.Symbols.NamedTypeSymbol lookupType = comp.GetTypeByMetadataName("System.Diagnostics.DebuggableAttribute+DebuggingModes");
                 Assert.Equal(TypeKind.Enum, lookupType.TypeKind);
                 Assert.NotEqual(Accessibility.NotApplicable, lookupType.DeclaredAccessibility);
             };
@@ -373,10 +373,10 @@ namespace System
 ";
             Action<CSharpCompilation> validate = comp =>
             {
-                var wellKnownType = comp.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+                CSharp.Symbols.NamedTypeSymbol wellKnownType = comp.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
                 Assert.Equal(TypeKind.Class, wellKnownType.TypeKind);
 
-                var lookupType = comp.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
+                CSharp.Symbols.NamedTypeSymbol lookupType = comp.GetTypeByMetadataName("System.Threading.Tasks.Task`1");
                 Assert.Equal(TypeKind.Class, lookupType.TypeKind);
             };
 
@@ -466,38 +466,38 @@ namespace System
 }}
 ";
 
-            var corlibRef = CreateEmptyCompilation(corlibSource).EmitToImageReference(expectedWarnings: new[]
+            MetadataReference corlibRef = CreateEmptyCompilation(corlibSource).EmitToImageReference(expectedWarnings: new[]
             {
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
             });
 
-            var publicLibRef = CreateEmptyCompilation(string.Format(libSourceTemplate, "public"), new[] { corlibRef }).EmitToImageReference();
-            var internalLibRef = CreateEmptyCompilation(string.Format(libSourceTemplate, "internal"), new[] { corlibRef }).EmitToImageReference();
+            MetadataReference publicLibRef = CreateEmptyCompilation(string.Format(libSourceTemplate, "public"), new[] { corlibRef }).EmitToImageReference();
+            MetadataReference internalLibRef = CreateEmptyCompilation(string.Format(libSourceTemplate, "internal"), new[] { corlibRef }).EmitToImageReference();
 
-            var comp = CreateEmptyCompilation("", new[] { corlibRef, publicLibRef, internalLibRef }, assemblyName: "Test");
+            CSharpCompilation comp = CreateEmptyCompilation("", new[] { corlibRef, publicLibRef, internalLibRef }, assemblyName: "Test");
 
-            var wellKnown = comp.GetWellKnownType(WellKnownType.System_Type);
+            CSharp.Symbols.NamedTypeSymbol wellKnown = comp.GetWellKnownType(WellKnownType.System_Type);
             Assert.NotNull(wellKnown);
             Assert.Equal(TypeKind.Class, wellKnown.TypeKind);
             Assert.Equal(Accessibility.Public, wellKnown.DeclaredAccessibility);
 
-            var lookup = comp.GetTypeByMetadataName("System.Type");
+            CSharp.Symbols.NamedTypeSymbol lookup = comp.GetTypeByMetadataName("System.Type");
             Assert.Null(lookup); // Ambiguous
         }
 
         private static void ValidateSourceAndMetadata(string source, Action<CSharpCompilation> validate)
         {
-            var comp1 = CreateEmptyCompilation(source);
+            CSharpCompilation comp1 = CreateEmptyCompilation(source);
             validate(comp1);
 
-            var reference = comp1.EmitToImageReference(expectedWarnings: new[]
+            MetadataReference reference = comp1.EmitToImageReference(expectedWarnings: new[]
             {
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1)
             });
 
-            var comp2 = CreateEmptyCompilation("", new[] { reference });
+            CSharpCompilation comp2 = CreateEmptyCompilation("", new[] { reference });
             validate(comp2);
         }
 
@@ -505,11 +505,11 @@ namespace System
         [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllSpecialTypes()
         {
-            var comp = CreateEmptyCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
+            CSharpCompilation comp = CreateEmptyCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
 
-            for (var special = SpecialType.None + 1; special <= SpecialType.Count; special++)
+            for (SpecialType special = SpecialType.None + 1; special <= SpecialType.Count; special++)
             {
-                var symbol = comp.GetSpecialType(special);
+                CSharp.Symbols.NamedTypeSymbol symbol = comp.GetSpecialType(special);
                 Assert.NotNull(symbol);
                 Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
             }
@@ -519,13 +519,13 @@ namespace System
         [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllSpecialTypeMembers()
         {
-            var comp = CreateEmptyCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
+            CSharpCompilation comp = CreateEmptyCompilation("", new[] { MscorlibRef_v4_0_30316_17626 });
 
             foreach (SpecialMember special in Enum.GetValues(typeof(SpecialMember)))
             {
                 if (special == SpecialMember.Count) continue; // Not a real value;
 
-                var symbol = comp.GetSpecialTypeMember(special);
+                Symbol symbol = comp.GetSpecialTypeMember(special);
                 Assert.NotNull(symbol);
             }
         }
@@ -534,7 +534,7 @@ namespace System
         [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllWellKnownTypes()
         {
-            var refs = new[]
+            MetadataReference[] refs = new[]
             {
                 MscorlibRef_v4_0_30316_17626,
                 SystemRef_v4_0_30319_17929,
@@ -546,9 +546,9 @@ namespace System
                 SystemWindowsFormsRef,
                 ValueTupleRef
             }.Concat(WinRtRefs).ToArray();
-            var comp = CreateEmptyCompilation("", refs);
+            CSharpCompilation comp = CreateEmptyCompilation("", refs);
 
-            for (var wkt = WellKnownType.First; wkt < WellKnownType.NextAvailable; wkt++)
+            for (WellKnownType wkt = WellKnownType.First; wkt < WellKnownType.NextAvailable; wkt++)
             {
                 switch (wkt)
                 {
@@ -590,7 +590,7 @@ namespace System
                         break;
                 }
 
-                var symbol = comp.GetWellKnownType(wkt);
+                CSharp.Symbols.NamedTypeSymbol symbol = comp.GetWellKnownType(wkt);
                 Assert.NotNull(symbol);
                 Assert.NotEqual(SymbolKind.ErrorType, symbol.Kind);
             }
@@ -599,7 +599,7 @@ namespace System
         [Fact]
         public void AllWellKnownTypesBeforeCSharp7()
         {
-            foreach (var type in new[] {
+            foreach (WellKnownType type in new[] {
                             WellKnownType.System_Math,
                             WellKnownType.System_Array,
                             WellKnownType.System_Attribute,
@@ -835,7 +835,7 @@ namespace System
         [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllWellKnownTypeMembers()
         {
-            var refs = new[]
+            MetadataReference[] refs = new[]
             {
                 MscorlibRef_v4_0_30316_17626,
                 SystemRef_v4_0_30319_17929,
@@ -847,7 +847,7 @@ namespace System
                 SystemWindowsFormsRef,
                 ValueTupleRef
             }.Concat(WinRtRefs).ToArray();
-            var comp = CreateEmptyCompilation("", refs);
+            CSharpCompilation comp = CreateEmptyCompilation("", refs);
 
             foreach (WellKnownMember wkm in Enum.GetValues(typeof(WellKnownMember)))
             {
@@ -879,7 +879,7 @@ namespace System
                 }
                 if (wkm == WellKnownMember.Count) continue; // Not a real value.
 
-                var symbol = comp.GetWellKnownTypeMember(wkm);
+                Symbol symbol = comp.GetWellKnownTypeMember(wkm);
                 Assert.NotNull(symbol);
             }
         }
@@ -898,7 +898,7 @@ public class MyClass
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.MakeMemberMissing(SpecialMember.System_IntPtr__op_Explicit_FromInt32);
             comp.VerifyEmitDiagnostics(
                 // (8,10): error CS0656: Missing compiler required member 'System.IntPtr.op_Explicit'
@@ -929,7 +929,7 @@ namespace RoslynAsyncDelegate
 }
 
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe);
             compilation.MakeMemberMissing(SpecialMember.System_Delegate__Combine);
             compilation.VerifyEmitDiagnostics(
                 // (13,12): error CS0656: Missing compiler required member 'System.Delegate.Combine'
@@ -967,7 +967,7 @@ public struct S
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
             compilation.VerifyEmitDiagnostics(
                 // (20,19): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
@@ -1008,7 +1008,7 @@ public struct S
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
             compilation.VerifyEmitDiagnostics(
                 // (22,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
@@ -1049,7 +1049,7 @@ public struct S
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
             compilation.VerifyEmitDiagnostics(
                 // (22,19): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
@@ -1089,7 +1089,7 @@ namespace Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
             compilation.VerifyEmitDiagnostics(
                 // (10,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
@@ -1114,7 +1114,7 @@ class C
         Console.WriteLine(p);
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_Value);
             compilation.VerifyEmitDiagnostics(
                 // (9,28): error CS0656: Missing compiler required member 'System.Nullable`1.get_Value'
@@ -1144,7 +1144,7 @@ class C
     static long? M_long(long? p = null) { return p; } 
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
             compilation.VerifyEmitDiagnostics(
                 // (8,27): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
@@ -1192,7 +1192,7 @@ class MyClass
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
             compilation.VerifyEmitDiagnostics(
                 // (9,21): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
@@ -1279,7 +1279,7 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source1 + source2);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source1 + source2);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
             compilation.VerifyEmitDiagnostics(
                 // (55,9): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
@@ -1315,7 +1315,7 @@ class MyClass
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_String__ConcatObjectObject);
             compilation.VerifyEmitDiagnostics(
                 // (16,27): error CS0656: Missing compiler required member 'System.String.Concat'
@@ -1351,7 +1351,7 @@ class MyClass
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
             compilation.VerifyEmitDiagnostics(
                 // (11,21): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
@@ -1391,7 +1391,7 @@ class MyClass
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
             compilation.VerifyEmitDiagnostics(
                 // (11,21): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
@@ -1432,7 +1432,7 @@ namespace Test
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
             compilation.VerifyEmitDiagnostics(
                 // (23,19): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
@@ -1460,7 +1460,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_String__ConcatStringStringString);
             compilation.VerifyEmitDiagnostics(
                 // (8,58): error CS0656: Missing compiler required member 'System.String.Concat'
@@ -1488,7 +1488,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_String__ConcatStringStringStringString);
             compilation.VerifyEmitDiagnostics(
                 // (8,58): error CS0656: Missing compiler required member 'System.String.Concat'
@@ -1530,7 +1530,7 @@ class C
     {
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_String__ConcatStringArray);
             compilation.VerifyEmitDiagnostics(
                 // (8,58): error CS0656: Missing compiler required member 'System.String.Concat'
@@ -1595,7 +1595,7 @@ struct S
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
             compilation.VerifyEmitDiagnostics(
                 // (9,17): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
@@ -1621,7 +1621,7 @@ struct S
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
             compilation.VerifyEmitDiagnostics(
                 // (8,17): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
@@ -1651,7 +1651,7 @@ class C
     System.Console.WriteLine(object.ReferenceEquals(c, null) ? 1 : 0);
   }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
             compilation.VerifyEmitDiagnostics(
                 // (11,5): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
@@ -1675,7 +1675,7 @@ class Program
         Func<decimal?, decimal?> lambda = a => { return checked(a * a); };
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Decimal__op_Multiply);
             compilation.VerifyEmitDiagnostics(
                 // (7,65): error CS0656: Missing compiler required member 'System.Decimal.op_Multiply'
@@ -1707,7 +1707,7 @@ struct S : IDisposable
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
             compilation.VerifyEmitDiagnostics(
                 // (13,9): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
@@ -1739,7 +1739,7 @@ class C
   }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
             compilation.VerifyEmitDiagnostics(
                 // (10,11): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
@@ -1768,7 +1768,7 @@ class C
   }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
             compilation.VerifyEmitDiagnostics(
                 // (8,18): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
@@ -1811,7 +1811,7 @@ class C
   }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
             compilation.VerifyEmitDiagnostics(
                 // (18,11): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
@@ -1848,7 +1848,7 @@ class C
   }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
             compilation.VerifyEmitDiagnostics(
                 // (15,12): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
@@ -1879,7 +1879,7 @@ class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
             compilation.VerifyEmitDiagnostics(
                 // (11,21): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'
@@ -1913,7 +1913,7 @@ class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
             compilation.VerifyEmitDiagnostics(
                 // (13,15): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
@@ -1948,7 +1948,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_String__op_Equality);
             compilation.VerifyEmitDiagnostics(
                 // (8,61): error CS0656: Missing compiler required member 'System.String.op_Equality'
@@ -1981,7 +1981,7 @@ static class LiveList
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_get_HasValue);
             compilation.VerifyEmitDiagnostics(
                 // (17,31): error CS0656: Missing compiler required member 'System.Nullable`1.get_HasValue'
@@ -2012,7 +2012,7 @@ public class X
         Console.WriteLine(""7. {0}"", (x is bool is bool));
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
             compilation.VerifyEmitDiagnostics(
                 // (16,38): warning CS0184: The given expression is never of the provided ('bool') type
@@ -2071,7 +2071,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_String__op_Equality);
             compilation.VerifyEmitDiagnostics(
                 // (11,9): error CS0656: Missing compiler required member 'System.String.op_Equality'
@@ -2168,7 +2168,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_String__Chars);
             compilation.VerifyEmitDiagnostics(
                 // (8,9): error CS0656: Missing compiler required member 'System.String.get_Chars'
@@ -2219,7 +2219,7 @@ struct X
         return 1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T_GetValueOrDefault);
             compilation.VerifyEmitDiagnostics(
                 // (9,13): error CS0656: Missing compiler required member 'System.Nullable`1.GetValueOrDefault'
@@ -2257,7 +2257,7 @@ public class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_String__ConcatObject);
             compilation.VerifyEmitDiagnostics(
                 // (11,27): error CS0656: Missing compiler required member 'System.String.Concat'
@@ -2281,7 +2281,7 @@ public class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Object__ToString);
             compilation.VerifyEmitDiagnostics(
                 // (9,27): error CS0656: Missing compiler required member 'System.Object.ToString'
@@ -2308,7 +2308,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
             compilation.MakeMemberMissing(SpecialMember.System_String__ConcatStringString);
             compilation.VerifyEmitDiagnostics(
                 // (10,71): error CS0656: Missing compiler required member 'System.String.Concat'
@@ -2336,7 +2336,7 @@ class C
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Array__GetLowerBound);
             compilation.VerifyEmitDiagnostics(
                 // (11,9): error CS0656: Missing compiler required member 'System.Array.GetLowerBound'
@@ -2367,7 +2367,7 @@ class C
         }
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.MakeMemberMissing(SpecialMember.System_Array__GetUpperBound);
             compilation.VerifyEmitDiagnostics(
                 // (11,9): error CS0656: Missing compiler required member 'System.Array.GetUpperBound'
@@ -2401,7 +2401,7 @@ public class Test
         Expression<Func<SampStruct?, decimal, decimal>> testExpr = (x, y) => x ?? y;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemCoreRef });
             compilation.MakeMemberMissing(SpecialMember.System_Decimal__op_Implicit_FromInt32);
             compilation.VerifyEmitDiagnostics(
                 // (16,78): error CS0656: Missing compiler required member 'System.Decimal.op_Implicit'
@@ -2426,7 +2426,7 @@ class Test {
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef });
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, new[] { SystemRef });
             compilation.MakeMemberMissing(SpecialMember.System_Nullable_T__ctor);
             compilation.VerifyEmitDiagnostics(
                 // (10,9): error CS0656: Missing compiler required member 'System.Nullable`1..ctor'

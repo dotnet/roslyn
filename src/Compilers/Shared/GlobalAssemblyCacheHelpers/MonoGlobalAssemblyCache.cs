@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis
         private static IEnumerable<string> GetCorlibPaths(Version version)
         {
             string corlibPath = CorLightup.Desktop.GetAssemblyLocation(typeof(object).GetTypeInfo().Assembly);
-            var corlibParentDir = Directory.GetParent(corlibPath).Parent;
+            DirectoryInfo corlibParentDir = Directory.GetParent(corlibPath).Parent;
 
             var corlibPaths = new List<string>();
 
-            foreach (var corlibDir in corlibParentDir.GetDirectories())
+            foreach (DirectoryInfo corlibDir in corlibParentDir.GetDirectories())
             {
                 var path = Path.Combine(corlibDir.FullName, "mscorlib.dll");
                 if (!File.Exists(path))
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis
                 yield break;
             }
 
-            foreach (var assemblyDir in gacAssemblyRootDir.GetDirectories())
+            foreach (DirectoryInfo assemblyDir in gacAssemblyRootDir.GetDirectories())
             {
                 if (version != null && !assemblyDir.Name.StartsWith(version.ToString(), StringComparison.Ordinal))
                 {
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis
         {
             foreach (string gacPath in RootLocations)
             {
-                var assemblyPaths = (name == "mscorlib") ?
+                IEnumerable<string> assemblyPaths = (name == "mscorlib") ?
                     GetCorlibPaths(version) :
                     GetGacAssemblyPaths(gacPath, name, version, publicKeyToken);
 
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis
             location = null;
             bool isBestMatch = false;
 
-            foreach (var identityAndPath in GetAssemblyIdentitiesAndPaths(assemblyName, architectureFilter))
+            foreach (Tuple<AssemblyIdentity, string> identityAndPath in GetAssemblyIdentitiesAndPaths(assemblyName, architectureFilter))
             {
                 var assemblyPath = identityAndPath.Item2;
 

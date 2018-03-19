@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(entityGeneration == -1 || entityGeneration >= methodGeneration);
 
             var result = PooledStringBuilder.GetInstance();
-            var builder = result.Builder;
+            StringBuilder builder = result.Builder;
             builder.Append('<');
 
             if (methodNameOpt != null)
@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // iterator local name).  See FUNCBRECEE::ImportIteratorMethodInheritedLocals.
 
             var result = PooledStringBuilder.GetInstance();
-            var builder = result.Builder;
+            StringBuilder builder = result.Builder;
             builder.Append('<');
             if (localNameOpt != null)
             {
@@ -477,7 +477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static string MakeDynamicCallSiteDelegateName(BitVector byRefs, bool returnsVoid, int generation)
         {
             var pooledBuilder = PooledStringBuilder.GetInstance();
-            var builder = pooledBuilder.Builder;
+            StringBuilder builder = pooledBuilder.Builder;
 
             builder.Append(returnsVoid ? "<>A" : "<>F");
 

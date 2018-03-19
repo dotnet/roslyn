@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void RefReassignSymbolInfo()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     int f = 0; 
@@ -29,19 +29,19 @@ class C
     }
 }");
             comp.VerifyDiagnostics();
-            var tree = comp.SyntaxTrees.Single();
-            var root = tree.GetCompilationUnitRoot();
-            var assignment = root.DescendantNodes().OfType<ParenthesizedExpressionSyntax>().Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            ParenthesizedExpressionSyntax assignment = root.DescendantNodes().OfType<ParenthesizedExpressionSyntax>().Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
             Assert.Null(model.GetDeclaredSymbol(assignment));
-            var assignmentInfo = model.GetSymbolInfo(assignment);
+            SymbolInfo assignmentInfo = model.GetSymbolInfo(assignment);
             Assert.Null(assignmentInfo.Symbol);
         }
 
         [Fact]
         public void RefForSymbolInfo()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     void M(int x)
@@ -56,23 +56,23 @@ class C
     }
 }");
             comp.VerifyDiagnostics();
-            var tree = comp.SyntaxTrees.Single();
-            var root = tree.GetCompilationUnitRoot();
-            var rx = root.DescendantNodes().OfType<IdentifierNameSyntax>().Last();
-            var model = comp.GetSemanticModel(tree);
-            var rxInfo = model.GetSymbolInfo(rx);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            IdentifierNameSyntax rx = root.DescendantNodes().OfType<IdentifierNameSyntax>().Last();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            SymbolInfo rxInfo = model.GetSymbolInfo(rx);
             Assert.NotNull(rxInfo.Symbol);
-            var rxSymbol = Assert.IsAssignableFrom<ILocalSymbol>(rxInfo.Symbol);
+            ILocalSymbol rxSymbol = Assert.IsAssignableFrom<ILocalSymbol>(rxInfo.Symbol);
             Assert.True(rxSymbol.IsRef);
             Assert.Equal(RefKind.RefReadOnly, rxSymbol.RefKind);
-            var rxDecl = root.DescendantNodes().OfType<ForStatementSyntax>().Single().Declaration;
+            VariableDeclarationSyntax rxDecl = root.DescendantNodes().OfType<ForStatementSyntax>().Single().Declaration;
             Assert.Same(model.GetDeclaredSymbol(rxDecl.Variables.Single()), rxSymbol);
         }
 
         [Fact]
         public void RefForEachSymbolInfo()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -88,16 +88,16 @@ class C
     }
 }");
             comp.VerifyDiagnostics();
-            var tree = comp.SyntaxTrees.Single();
-            var root = tree.GetCompilationUnitRoot();
-            var rx = root.DescendantNodes().OfType<IdentifierNameSyntax>().Last();
-            var model = comp.GetSemanticModel(tree);
-            var rxInfo = model.GetSymbolInfo(rx);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            IdentifierNameSyntax rx = root.DescendantNodes().OfType<IdentifierNameSyntax>().Last();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            SymbolInfo rxInfo = model.GetSymbolInfo(rx);
             Assert.NotNull(rxInfo.Symbol);
-            var rxSymbol = Assert.IsAssignableFrom<ILocalSymbol>(rxInfo.Symbol);
+            ILocalSymbol rxSymbol = Assert.IsAssignableFrom<ILocalSymbol>(rxInfo.Symbol);
             Assert.True(rxSymbol.IsRef);
             Assert.Equal(RefKind.RefReadOnly, rxSymbol.RefKind);
-            var rxDecl = root.DescendantNodes().OfType<ForEachStatementSyntax>().Single();
+            ForEachStatementSyntax rxDecl = root.DescendantNodes().OfType<ForEachStatementSyntax>().Single();
             Assert.Same(model.GetDeclaredSymbol(rxDecl), rxSymbol);
         }
 
@@ -105,16 +105,16 @@ class C
         public void LocalSymbolsAreEquivalentAcrossSemanticModelsFromTheSameCompilation()
         {
             var text = @"public class C { public void M() { int x = 10; } }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
 
-            var model1 = comp.GetSemanticModel(tree);
-            var model2 = comp.GetSemanticModel(tree);
+            SemanticModel model1 = comp.GetSemanticModel(tree);
+            SemanticModel model2 = comp.GetSemanticModel(tree);
             Assert.NotEqual(model1, model2);
 
-            var vardecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
-            var symbol1 = model1.GetDeclaredSymbol(vardecl);
-            var symbol2 = model2.GetDeclaredSymbol(vardecl);
+            VariableDeclaratorSyntax vardecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+            ISymbol symbol1 = model1.GetDeclaredSymbol(vardecl);
+            ISymbol symbol2 = model2.GetDeclaredSymbol(vardecl);
 
             Assert.NotSame(symbol1, symbol2);
             Assert.Equal(symbol1, symbol2);
@@ -124,17 +124,17 @@ class C
         public void LocalSymbolsAreDifferentArossSemanticModelsFromDifferentCompilations()
         {
             var text = @"public class C { public void M() { int x = 10; } }";
-            var tree = Parse(text);
-            var comp1 = CreateCompilation(tree);
-            var comp2 = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp1 = CreateCompilation(tree);
+            CSharpCompilation comp2 = CreateCompilation(tree);
 
-            var model1 = comp1.GetSemanticModel(tree);
-            var model2 = comp2.GetSemanticModel(tree);
+            SemanticModel model1 = comp1.GetSemanticModel(tree);
+            SemanticModel model2 = comp2.GetSemanticModel(tree);
             Assert.NotEqual(model1, model2);
 
-            var vardecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
-            var symbol1 = model1.GetDeclaredSymbol(vardecl);
-            var symbol2 = model2.GetDeclaredSymbol(vardecl);
+            VariableDeclaratorSyntax vardecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>().First();
+            ISymbol symbol1 = model1.GetDeclaredSymbol(vardecl);
+            ISymbol symbol2 = model2.GetDeclaredSymbol(vardecl);
 
             Assert.NotSame(symbol1, symbol2);
             Assert.NotEqual(symbol1, symbol2);
@@ -144,16 +144,16 @@ class C
         public void RangeVariableSymbolsAreEquivalentAcrossSemanticModelsFromTheSameCompilation()
         {
             var text = @"using System.Linq; public class C { public void M() { var q = from c in string.Empty select c; } }";
-            var tree = Parse(text);
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
 
-            var model1 = comp.GetSemanticModel(tree);
-            var model2 = comp.GetSemanticModel(tree);
+            SemanticModel model1 = comp.GetSemanticModel(tree);
+            SemanticModel model2 = comp.GetSemanticModel(tree);
             Assert.NotEqual(model1, model2);
 
-            var vardecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryClauseSyntax>().First();
-            var symbol1 = model1.GetDeclaredSymbol(vardecl);
-            var symbol2 = model2.GetDeclaredSymbol(vardecl);
+            QueryClauseSyntax vardecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryClauseSyntax>().First();
+            IRangeVariableSymbol symbol1 = model1.GetDeclaredSymbol(vardecl);
+            IRangeVariableSymbol symbol2 = model2.GetDeclaredSymbol(vardecl);
 
             Assert.NotSame(symbol1, symbol2);
             Assert.Equal(symbol1, symbol2);
@@ -163,17 +163,17 @@ class C
         public void RangeVariableSymbolsAreDifferentAcrossSemanticModelsFromDifferentCompilations()
         {
             var text = @"using System.Linq; public class C { public void M() { var q = from c in string.Empty select c; } }";
-            var tree = Parse(text);
-            var comp1 = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
-            var comp2 = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp1 = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
+            CSharpCompilation comp2 = CreateCompilationWithMscorlib40AndSystemCore(new[] { tree });
 
-            var model1 = comp1.GetSemanticModel(tree);
-            var model2 = comp2.GetSemanticModel(tree);
+            SemanticModel model1 = comp1.GetSemanticModel(tree);
+            SemanticModel model2 = comp2.GetSemanticModel(tree);
             Assert.NotEqual(model1, model2);
 
-            var vardecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryClauseSyntax>().First();
-            var symbol1 = model1.GetDeclaredSymbol(vardecl);
-            var symbol2 = model2.GetDeclaredSymbol(vardecl);
+            QueryClauseSyntax vardecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryClauseSyntax>().First();
+            IRangeVariableSymbol symbol1 = model1.GetDeclaredSymbol(vardecl);
+            IRangeVariableSymbol symbol2 = model2.GetDeclaredSymbol(vardecl);
 
             Assert.NotSame(symbol1, symbol2);
             Assert.NotEqual(symbol1, symbol2);
@@ -183,16 +183,16 @@ class C
         public void LabelSymbolsAreEquivalentAcrossSemanticModelsFromSameCompilation()
         {
             var text = @"public class C { public void M() { label: goto label; } }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
 
-            var model1 = comp.GetSemanticModel(tree);
-            var model2 = comp.GetSemanticModel(tree);
+            SemanticModel model1 = comp.GetSemanticModel(tree);
+            SemanticModel model2 = comp.GetSemanticModel(tree);
             Assert.NotEqual(model1, model2);
 
-            var statement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<GotoStatementSyntax>().First();
-            var symbol1 = model1.GetSymbolInfo(statement.Expression).Symbol;
-            var symbol2 = model2.GetSymbolInfo(statement.Expression).Symbol;
+            GotoStatementSyntax statement = tree.GetCompilationUnitRoot().DescendantNodes().OfType<GotoStatementSyntax>().First();
+            ISymbol symbol1 = model1.GetSymbolInfo(statement.Expression).Symbol;
+            ISymbol symbol2 = model2.GetSymbolInfo(statement.Expression).Symbol;
 
             Assert.Equal(false, ReferenceEquals(symbol1, symbol2));
             Assert.Equal(symbol1, symbol2);
@@ -202,16 +202,16 @@ class C
         public void LambdaParameterSymbolsAreEquivalentAcrossSemanticModelsFromSameCompilation()
         {
             var text = @"using System; public class C { public void M() { Func<int,int> f = (p) => p; } }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
 
-            var model1 = comp.GetSemanticModel(tree);
-            var model2 = comp.GetSemanticModel(tree);
+            SemanticModel model1 = comp.GetSemanticModel(tree);
+            SemanticModel model2 = comp.GetSemanticModel(tree);
             Assert.NotEqual(model1, model2);
 
-            var paramdecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().First();
-            var symbol1 = model1.GetDeclaredSymbol(paramdecl);
-            var symbol2 = model2.GetDeclaredSymbol(paramdecl);
+            ParameterSyntax paramdecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().First();
+            IParameterSymbol symbol1 = model1.GetDeclaredSymbol(paramdecl);
+            IParameterSymbol symbol2 = model2.GetDeclaredSymbol(paramdecl);
 
             Assert.NotSame(symbol1, symbol2);
             Assert.Equal(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
@@ -222,19 +222,19 @@ class C
         public void LambdaParameterSymbolsAreDifferentAcrossSemanticModelsFromDifferentCompilations()
         {
             var text = @"using System; public class C { public void M() { Func<int,int> f = (p) => p; } }";
-            var tree1 = Parse(text);
-            var tree2 = Parse(text);
-            var comp1 = CreateCompilation(tree1);
-            var comp2 = CreateCompilation(tree2);
+            SyntaxTree tree1 = Parse(text);
+            SyntaxTree tree2 = Parse(text);
+            CSharpCompilation comp1 = CreateCompilation(tree1);
+            CSharpCompilation comp2 = CreateCompilation(tree2);
 
-            var model1 = comp1.GetSemanticModel(tree1);
-            var model2 = comp2.GetSemanticModel(tree2);
+            SemanticModel model1 = comp1.GetSemanticModel(tree1);
+            SemanticModel model2 = comp2.GetSemanticModel(tree2);
             Assert.NotEqual(model1, model2);
 
-            var paramdecl1 = tree1.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().First();
-            var symbol1 = model1.GetDeclaredSymbol(paramdecl1);
-            var paramdecl2 = tree2.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().First();
-            var symbol2 = model2.GetDeclaredSymbol(paramdecl2);
+            ParameterSyntax paramdecl1 = tree1.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().First();
+            IParameterSymbol symbol1 = model1.GetDeclaredSymbol(paramdecl1);
+            ParameterSyntax paramdecl2 = tree2.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().First();
+            IParameterSymbol symbol2 = model2.GetDeclaredSymbol(paramdecl2);
 
             Assert.NotSame(symbol1, symbol2);
             Assert.NotEqual(symbol1.ContainingSymbol, symbol2.ContainingSymbol);
@@ -246,17 +246,17 @@ class C
         public void NamespaceWithoutName()
         {
             var text = "namespace";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            var errors = comp.GetDiagnostics().ToArray();
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            Diagnostic[] errors = comp.GetDiagnostics().ToArray();
             Assert.Equal(3, errors.Length);
 
-            var nsArray = tree.GetCompilationUnitRoot().DescendantNodes().Where(node => node.IsKind(SyntaxKind.NamespaceDeclaration)).ToArray();
+            SyntaxNode[] nsArray = tree.GetCompilationUnitRoot().DescendantNodes().Where(node => node.IsKind(SyntaxKind.NamespaceDeclaration)).ToArray();
             Assert.Equal(1, nsArray.Length);
 
             var nsSyntax = nsArray[0] as NamespaceDeclarationSyntax;
-            var symbol = model.GetDeclaredSymbol(nsSyntax);
+            INamespaceSymbol symbol = model.GetDeclaredSymbol(nsSyntax);
             Assert.Equal(string.Empty, symbol.Name);
         }
 
@@ -287,19 +287,19 @@ class A : L
     public K.S v = null;
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
-            var a = global.GetTypeMembers("A", 0).Single();
-            var abase = a.BaseType();
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol a = global.GetTypeMembers("A", 0).Single();
+            NamedTypeSymbol abase = a.BaseType();
             Assert.Equal("B.R", abase.ToTestDisplayString());
 
-            var b = global.GetTypeMembers("B", 0).Single();
-            var r = b.GetTypeMembers("R", 0).Single();
-            var q = r.GetTypeMembers("Q", 0).Single();
+            NamedTypeSymbol b = global.GetTypeMembers("B", 0).Single();
+            NamedTypeSymbol r = b.GetTypeMembers("R", 0).Single();
+            NamedTypeSymbol q = r.GetTypeMembers("Q", 0).Single();
             var v = a.GetMembers("v").Single() as FieldSymbol;
-            var s = v.Type;
+            TypeSymbol s = v.Type;
             Assert.Equal("B.R.Q.S", s.ToTestDisplayString());
-            var sbase = s.BaseType();
+            NamedTypeSymbol sbase = s.BaseType();
             Assert.Equal("B.R.Q", sbase.ToTestDisplayString());
         }
 
@@ -310,10 +310,10 @@ class A : L
 @"
 class A : A {}
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
 
-            var errs = comp.GetSemanticModel(tree).GetDeclarationDiagnostics();
+            ImmutableArray<Diagnostic> errs = comp.GetSemanticModel(tree).GetDeclarationDiagnostics();
             Assert.Equal(1, errs.Count());
         }
 
@@ -341,11 +341,11 @@ partial class A
 class B : NonExistent {}
 ";
 
-            var partial1Tree = Parse(partial1);
-            var partial2Tree = Parse(partial2);
-            var comp = CreateCompilation(new SyntaxTree[] { partial1Tree, partial2Tree });
+            SyntaxTree partial1Tree = Parse(partial1);
+            SyntaxTree partial2Tree = Parse(partial2);
+            CSharpCompilation comp = CreateCompilation(new SyntaxTree[] { partial1Tree, partial2Tree });
 
-            var errs = comp.GetSemanticModel(partial1Tree).GetDiagnostics();
+            ImmutableArray<Diagnostic> errs = comp.GetSemanticModel(partial1Tree).GetDiagnostics();
             Assert.Equal(1, errs.Count());
         }
 
@@ -357,16 +357,16 @@ class B : NonExistent {}
 class B : A {}
 class A {}
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
 
             var bdecl = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var bbase = bdecl.BaseList.Types[0].Type as TypeSyntax;
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var info = model.GetSymbolInfo(bbase);
+            SymbolInfo info = model.GetSymbolInfo(bbase);
             Assert.NotNull(info.Symbol);
-            var a = comp.GlobalNamespace.GetTypeMembers("A", 0).Single();
+            NamedTypeSymbol a = comp.GlobalNamespace.GetTypeMembers("A", 0).Single();
             Assert.Equal(a, info.Symbol);
             Assert.Equal(a, model.GetTypeInfo(bbase).Type);
         }
@@ -383,16 +383,16 @@ public class A {
 }
 public class B : A {}
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
 
             var cdecl = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var cbase = cdecl.BaseList.Types[0].Type as TypeSyntax;
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var info = model.GetSymbolInfo(cbase);
+            SymbolInfo info = model.GetSymbolInfo(cbase);
             Assert.NotNull(info.Symbol);
-            var b = comp.GlobalNamespace.GetTypeMembers("B", 0).Single();
+            NamedTypeSymbol b = comp.GlobalNamespace.GetTypeMembers("B", 0).Single();
             Assert.Equal(b, info.Symbol);
             Assert.Equal(b, model.GetTypeInfo(cbase).Type);
         }
@@ -409,18 +409,18 @@ public class B {
     public class T { }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
 
             var cdecl = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var cbase = cdecl.BaseList.Types[0].Type as TypeSyntax;
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var info = model.GetSymbolInfo(cbase);
+            SymbolInfo info = model.GetSymbolInfo(cbase);
             Assert.NotNull(info.Symbol);
             var cbasetype = info.Symbol as NamedTypeSymbol;
 
-            var c = comp.GlobalNamespace.GetTypeMembers("C", 1).Single();
+            NamedTypeSymbol c = comp.GlobalNamespace.GetTypeMembers("C", 1).Single();
             Assert.Equal(c.BaseType(), cbasetype);
         }
 
@@ -432,22 +432,22 @@ public class B {
 class B<T> : A<T> {}
 class A<T> {}
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
 
             var bdecl = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var bbase = bdecl.BaseList.Types[0].Type as TypeSyntax; // A<T>
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var info = model.GetSymbolInfo(bbase);
+            SymbolInfo info = model.GetSymbolInfo(bbase);
             Assert.NotNull(info.Symbol);
             var at2 = info.Symbol as NamedTypeSymbol;
             Assert.Equal(at2, model.GetTypeInfo(bbase).Type);
 
-            var a = comp.GlobalNamespace.GetTypeMembers("A", 1).Single();
-            var at = a.TypeParameters.First();
-            var b = comp.GlobalNamespace.GetTypeMembers("B", 1).Single();
-            var bt = b.TypeParameters.First();
+            NamedTypeSymbol a = comp.GlobalNamespace.GetTypeMembers("A", 1).Single();
+            TypeParameterSymbol at = a.TypeParameters.First();
+            NamedTypeSymbol b = comp.GlobalNamespace.GetTypeMembers("B", 1).Single();
+            TypeParameterSymbol bt = b.TypeParameters.First();
 
             Assert.Equal(a.OriginalDefinition, at2.OriginalDefinition);
             Assert.Equal(b.TypeParameters.First(), at2.TypeArguments().First());
@@ -465,19 +465,19 @@ class Program
 {
     static Program Field;
 }";
-            var tree1 = Parse(text);
-            var compilation = CreateCompilation(tree1);
+            SyntaxTree tree1 = Parse(text);
+            CSharpCompilation compilation = CreateCompilation(tree1);
 
-            var tree2 = Parse(text);
+            SyntaxTree tree2 = Parse(text);
             var classProgram = tree2.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var staticProgramField = classProgram.Members[0] as FieldDeclarationSyntax;
-            var program = staticProgramField.Declaration.Type;
-            var model = compilation.GetSemanticModel(tree1);
+            TypeSyntax program = staticProgramField.Declaration.Type;
+            SemanticModel model = compilation.GetSemanticModel(tree1);
 
             Assert.Throws<ArgumentException>(() =>
             {
                 // tree2 not in the compilation
-                var lookup = model.GetSymbolInfo(program);
+                SymbolInfo lookup = model.GetSymbolInfo(program);
             });
         }
 
@@ -497,15 +497,15 @@ class Program
     }
 }";
 
-            var tree1 = Parse(text);
-            var compilation = CreateCompilation(tree1);
+            SyntaxTree tree1 = Parse(text);
+            CSharpCompilation compilation = CreateCompilation(tree1);
 
             var decl = tree1.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var field = decl.Members[0] as FieldDeclarationSyntax;
-            var type = field.Declaration.Type;
-            var model = compilation.GetSemanticModel(tree1);
+            TypeSyntax type = field.Declaration.Type;
+            SemanticModel model = compilation.GetSemanticModel(tree1);
 
-            var info = model.GetSymbolInfo(type);
+            SymbolInfo info = model.GetSymbolInfo(type);
             Assert.Equal(compilation.GlobalNamespace.GetTypeMembers("Program", 0).Single(), info.Symbol);
         }
 
@@ -524,17 +524,17 @@ class Program
     }
 }";
 
-            var tree1 = Parse(text);
-            var tree2 = Parse(text);
-            var compilation = CreateCompilation(new SyntaxTree[] { tree1, tree2 });
+            SyntaxTree tree1 = Parse(text);
+            SyntaxTree tree2 = Parse(text);
+            CSharpCompilation compilation = CreateCompilation(new SyntaxTree[] { tree1, tree2 });
 
             var decl = tree1.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var method = decl.Members[0] as MethodDeclarationSyntax;
-            var type = method.ParameterList.Parameters[0].Type;
+            TypeSyntax type = method.ParameterList.Parameters[0].Type;
 
-            var model = compilation.GetSemanticModel(tree1);
+            SemanticModel model = compilation.GetSemanticModel(tree1);
 
-            var info = model.GetSymbolInfo(type);
+            SymbolInfo info = model.GetSymbolInfo(type);
             Assert.Equal<Symbol>(compilation.GetSpecialType(SpecialType.System_String), (info.Symbol as ArrayTypeSymbol).ElementType);
         }
 
@@ -548,21 +548,21 @@ class B {
 }
 class A {}
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
 
             var bdecl = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var xdecl = bdecl.Members[0] as FieldDeclarationSyntax;
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             TypeSyntax speculate = SyntaxFactory.IdentifierName(SyntaxFactory.Identifier("A"));
-            var symbolInfo = model.GetSpeculativeSymbolInfo(xdecl.SpanStart, speculate, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            SymbolInfo symbolInfo = model.GetSpeculativeSymbolInfo(xdecl.SpanStart, speculate, SpeculativeBindingOption.BindAsTypeOrNamespace);
             var lookup = symbolInfo.Symbol as TypeSymbol;
 
 
             Assert.NotNull(lookup);
-            var a = comp.GlobalNamespace.GetTypeMembers("A", 0).Single();
+            NamedTypeSymbol a = comp.GlobalNamespace.GetTypeMembers("A", 0).Single();
             Assert.Equal(a, lookup);
         }
 
@@ -575,19 +575,19 @@ class A {
     class B {}
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
 
             var adecl = tree.GetCompilationUnitRoot().Members[0] as TypeDeclarationSyntax;
             var bdecl = adecl.Members[0] as TypeDeclarationSyntax;
 
-            var model = comp.GetSemanticModel(tree);
-            var a1 = model.GetDeclaredSymbol(adecl);
-            var b1 = model.GetDeclaredSymbol(bdecl);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            INamedTypeSymbol a1 = model.GetDeclaredSymbol(adecl);
+            INamedTypeSymbol b1 = model.GetDeclaredSymbol(bdecl);
 
-            var global = comp.GlobalNamespace;
-            var a2 = global.GetTypeMembers("A", 0).Single();
-            var b2 = a2.GetTypeMembers("B", 0).Single();
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol a2 = global.GetTypeMembers("A", 0).Single();
+            NamedTypeSymbol b2 = a2.GetTypeMembers("B", 0).Single();
 
             Assert.Equal(a2, a1);
             Assert.Equal(b2, b1);
@@ -606,27 +606,27 @@ class A {
 }
 class B {}
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
 
-            var root = tree.GetCompilationUnitRoot();
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var mainDecl = root.Members[0] as TypeDeclarationSyntax;
-            var mainType = model.GetDeclaredSymbol(mainDecl);
+            INamedTypeSymbol mainType = model.GetDeclaredSymbol(mainDecl);
 
             var aDecl = root.Members[1] as TypeDeclarationSyntax;
-            var aType = model.GetDeclaredSymbol(aDecl);
+            INamedTypeSymbol aType = model.GetDeclaredSymbol(aDecl);
 
             var abDecl = aDecl.Members[0] as TypeDeclarationSyntax;
-            var abType = model.GetDeclaredSymbol(abDecl);
+            INamedTypeSymbol abType = model.GetDeclaredSymbol(abDecl);
 
             var bDecl = root.Members[2] as TypeDeclarationSyntax;
-            var bType = model.GetDeclaredSymbol(bDecl);
+            INamedTypeSymbol bType = model.GetDeclaredSymbol(bDecl);
 
             var xDecl = mainDecl.Members[0] as FieldDeclarationSyntax;
             var xSym = mainType.GetMembers("x").Single() as FieldSymbol;
             Assert.Equal<ISymbol>(abType, xSym.Type);
-            var info = model.GetSymbolInfo((xDecl.Declaration.Type as QualifiedNameSyntax).Right);
+            SymbolInfo info = model.GetSymbolInfo((xDecl.Declaration.Type as QualifiedNameSyntax).Right);
             Assert.Equal(abType, info.Symbol);
         }
 
@@ -641,19 +641,19 @@ namespace N {
   class B {}
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var root = tree.GetCompilationUnitRoot();
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var nDecl = root.Members[0] as NamespaceDeclarationSyntax;
             var n2Decl = root.Members[1] as NamespaceDeclarationSyntax;
             var cDecl = n2Decl.Members[0] as TypeDeclarationSyntax;
-            var cBase = (cDecl.BaseList.Types[0].Type as AliasQualifiedNameSyntax).Name;
+            SimpleNameSyntax cBase = (cDecl.BaseList.Types[0].Type as AliasQualifiedNameSyntax).Name;
 
-            var cBaseType = model.GetSymbolInfo(cBase).Symbol;
-            var bOuter = comp.GlobalNamespace.GetTypeMembers("B", 0).Single();
-            var bInner = (comp.GlobalNamespace.GetMembers("N").Single() as NamespaceSymbol).GetTypeMembers("B", 0).Single();
+            ISymbol cBaseType = model.GetSymbolInfo(cBase).Symbol;
+            NamedTypeSymbol bOuter = comp.GlobalNamespace.GetTypeMembers("B", 0).Single();
+            NamedTypeSymbol bInner = (comp.GlobalNamespace.GetMembers("N").Single() as NamespaceSymbol).GetTypeMembers("B", 0).Single();
             Assert.Equal(bOuter, cBaseType);
         }
 
@@ -667,13 +667,13 @@ public class A
 	static int Main() {	return 1;    }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var mems = comp.SourceModule.GlobalNamespace.GetMembers();
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            ImmutableArray<Symbol> mems = comp.SourceModule.GlobalNamespace.GetMembers();
 
-            var typeA = mems.Where(s => s.Name == "A").Select(s => s);
+            IEnumerable<Symbol> typeA = mems.Where(s => s.Name == "A").Select(s => s);
             Assert.Equal(1, typeA.Count());
-            var invalid = mems.Where(s => s.Name == "<invalid-global-code>").Select(s => s);
+            IEnumerable<Symbol> invalid = mems.Where(s => s.Name == "<invalid-global-code>").Select(s => s);
             Assert.Equal(1, invalid.Count());
         }
 
@@ -693,27 +693,27 @@ partial class PC
     partial void PM(int pp) {}
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var pTypeSym = comp.SourceModule.GlobalNamespace.GetTypeMembers("PC").Single();
-            var pMethodSym = pTypeSym.GetMembers("PM").Single();
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            NamedTypeSymbol pTypeSym = comp.SourceModule.GlobalNamespace.GetTypeMembers("PC").Single();
+            Symbol pMethodSym = pTypeSym.GetMembers("PM").Single();
 
             var model = (CSharpSemanticModel)comp.GetSemanticModel(tree);
-            var pType01 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().First();
-            var pType02 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().Last();
+            ClassDeclarationSyntax pType01 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().First();
+            ClassDeclarationSyntax pType02 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().Last();
             Assert.NotEqual(pType01, pType02);
-            var ptSym01 = model.GetDeclaredSymbol(pType01);
-            var ptSym02 = model.GetDeclaredSymbol(pType02);
+            INamedTypeSymbol ptSym01 = model.GetDeclaredSymbol(pType01);
+            INamedTypeSymbol ptSym02 = model.GetDeclaredSymbol(pType02);
             // same partial type symbol
             Assert.Same(ptSym01, ptSym02);
             Assert.Equal(2, ptSym01.Locations.Length);
 
-            var pMethod01 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
-            var pMethod02 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Last();
+            MethodDeclarationSyntax pMethod01 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+            MethodDeclarationSyntax pMethod02 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Last();
             Assert.NotEqual(pMethod01, pMethod02);
 
-            var pmSym01 = model.GetDeclaredSymbol(pMethod01);
-            var pmSym02 = model.GetDeclaredSymbol(pMethod02);
+            IMethodSymbol pmSym01 = model.GetDeclaredSymbol(pMethod01);
+            IMethodSymbol pmSym02 = model.GetDeclaredSymbol(pMethod02);
             // different partial method symbols:(
             Assert.NotSame(pmSym01, pmSym02);
             // the declaration one is what one can get from GetMembers()
@@ -726,12 +726,12 @@ partial class PC
             Assert.Same(pmSym01, pmSym02.PartialDefinitionPart);
             Assert.Null(pmSym02.PartialImplementationPart);
 
-            var pParam01 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().First();
-            var pParam02 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().Last();
+            ParameterSyntax pParam01 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().First();
+            ParameterSyntax pParam02 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().Last();
             Assert.NotEqual(pParam01, pParam02);
 
-            var ppSym01 = model.GetDeclaredSymbol(pParam01);
-            var ppSym02 = model.GetDeclaredSymbol(pParam02);
+            IParameterSymbol ppSym01 = model.GetDeclaredSymbol(pParam01);
+            IParameterSymbol ppSym02 = model.GetDeclaredSymbol(pParam02);
             Assert.NotSame(ppSym01, ppSym02);
             Assert.Equal(1, ppSym01.Locations.Length);
             Assert.Equal(1, ppSym02.Locations.Length);
@@ -749,15 +749,15 @@ class Test
     protected internal void MGoo(sbyte j = 2) { }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            var root = tree.GetCompilationUnitRoot();
-            var exprs = root.DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            LiteralExpressionSyntax[] exprs = root.DescendantNodes().OfType<LiteralExpressionSyntax>().ToArray();
             Assert.Equal(2, exprs.Length);
 
-            var type1 = model.GetTypeInfo(exprs[0]);
-            var type2 = model.GetTypeInfo(exprs[1]);
+            TypeInfo type1 = model.GetTypeInfo(exprs[0]);
+            TypeInfo type2 = model.GetTypeInfo(exprs[1]);
 
             Assert.NotNull(type1.Type);
             Assert.Equal("System.Int32", type1.Type.ToTestDisplayString());
@@ -786,18 +786,18 @@ partial class Partial001
     static int Main()  {    return 1;    }
 }
 ";
-            var tree1 = Parse(text1);
-            var tree2 = Parse(text2);
-            var comp = CreateCompilation(new[] { tree1, tree2 });
+            SyntaxTree tree1 = Parse(text1);
+            SyntaxTree tree2 = Parse(text2);
+            CSharpCompilation comp = CreateCompilation(new[] { tree1, tree2 });
 
-            var model1 = comp.GetSemanticModel(tree1);
-            var model2 = comp.GetSemanticModel(tree2);
-            var root1 = tree1.GetCompilationUnitRoot();
-            var root2 = tree1.GetCompilationUnitRoot();
-            var para1 = tree1.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().First();
-            var para2 = tree2.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().First();
-            var sym1 = model1.GetDeclaredSymbol(para1);
-            var sym2 = model2.GetDeclaredSymbol(para2);
+            SemanticModel model1 = comp.GetSemanticModel(tree1);
+            SemanticModel model2 = comp.GetSemanticModel(tree2);
+            CompilationUnitSyntax root1 = tree1.GetCompilationUnitRoot();
+            CompilationUnitSyntax root2 = tree1.GetCompilationUnitRoot();
+            ParameterSyntax para1 = tree1.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().First();
+            ParameterSyntax para2 = tree2.GetCompilationUnitRoot().DescendantNodes().OfType<ParameterSyntax>().First();
+            IParameterSymbol sym1 = model1.GetDeclaredSymbol(para1);
+            IParameterSymbol sym2 = model2.GetDeclaredSymbol(para2);
 
             Assert.NotNull(sym1);
             Assert.NotNull(sym2);
@@ -827,18 +827,18 @@ partial class Partial001
     static int Main()  {    return 1;    }
 }
 ";
-            var tree1 = Parse(text1);
-            var tree2 = Parse(text2);
-            var comp = CreateCompilation(new List<SyntaxTree> { tree1, tree2 });
+            SyntaxTree tree1 = Parse(text1);
+            SyntaxTree tree2 = Parse(text2);
+            CSharpCompilation comp = CreateCompilation(new List<SyntaxTree> { tree1, tree2 });
 
-            var model1 = comp.GetSemanticModel(tree1);
-            var model2 = comp.GetSemanticModel(tree2);
-            var root1 = tree1.GetCompilationUnitRoot();
-            var root2 = tree1.GetCompilationUnitRoot();
-            var para1 = tree1.GetCompilationUnitRoot().DescendantNodes().OfType<TypeParameterSyntax>().First();
-            var para2 = tree2.GetCompilationUnitRoot().DescendantNodes().OfType<TypeParameterSyntax>().First();
-            var sym1 = model1.GetDeclaredSymbol(para1);
-            var sym2 = model2.GetDeclaredSymbol(para2);
+            SemanticModel model1 = comp.GetSemanticModel(tree1);
+            SemanticModel model2 = comp.GetSemanticModel(tree2);
+            CompilationUnitSyntax root1 = tree1.GetCompilationUnitRoot();
+            CompilationUnitSyntax root2 = tree1.GetCompilationUnitRoot();
+            TypeParameterSyntax para1 = tree1.GetCompilationUnitRoot().DescendantNodes().OfType<TypeParameterSyntax>().First();
+            TypeParameterSyntax para2 = tree2.GetCompilationUnitRoot().DescendantNodes().OfType<TypeParameterSyntax>().First();
+            ITypeParameterSymbol sym1 = model1.GetDeclaredSymbol(para1);
+            ITypeParameterSymbol sym2 = model2.GetDeclaredSymbol(para2);
 
             Assert.NotNull(sym1);
             Assert.NotNull(sym2);
@@ -866,12 +866,12 @@ struct AnonTypeTest
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            var anonProps = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectMemberDeclaratorSyntax>();
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            IEnumerable<AnonymousObjectMemberDeclaratorSyntax> anonProps = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectMemberDeclaratorSyntax>();
             Assert.Equal(4, anonProps.Count());
-            var symList = from ap in anonProps
+            IEnumerable<string> symList = from ap in anonProps
                           let apsym = model.GetDeclaredSymbol(ap)
                           orderby apsym.Name
                           select apsym.Name;
@@ -897,12 +897,12 @@ class AnonTypeTest
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            var anonProps = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectMemberDeclaratorSyntax>();
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            IEnumerable<AnonymousObjectMemberDeclaratorSyntax> anonProps = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectMemberDeclaratorSyntax>();
             Assert.Equal(5, anonProps.Count());
-            var symList = from ap in anonProps
+            IEnumerable<string> symList = from ap in anonProps
                           let apsym = model.GetDeclaredSymbol(ap)
                           orderby apsym.Name
                           select apsym.Name;
@@ -938,12 +938,12 @@ class AnonTypeTest : Base
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            var anonProps = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectMemberDeclaratorSyntax>();
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            IEnumerable<AnonymousObjectMemberDeclaratorSyntax> anonProps = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectMemberDeclaratorSyntax>();
             Assert.Equal(4, anonProps.Count());
-            var symList = from ap in anonProps
+            IEnumerable<string> symList = from ap in anonProps
                           let apsym = model.GetDeclaredSymbol(ap)
                           orderby apsym.Name
                           select apsym.Name;
@@ -982,12 +982,12 @@ class AnonTypeTest
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            var anonProps = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectMemberDeclaratorSyntax>();
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            IEnumerable<AnonymousObjectMemberDeclaratorSyntax> anonProps = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectMemberDeclaratorSyntax>();
             Assert.Equal(9, anonProps.Count());
-            var symList = from ap in anonProps
+            IEnumerable<string> symList = from ap in anonProps
                           let apsym = model.GetDeclaredSymbol(ap)
                           orderby apsym.Name
                           select apsym.Name;
@@ -1018,20 +1018,20 @@ public class Test
     } 
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            var descendants = tree.GetCompilationUnitRoot().DescendantNodes();
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            IEnumerable<SyntaxNode> descendants = tree.GetCompilationUnitRoot().DescendantNodes();
 
-            var paras = descendants.OfType<ParameterSyntax>();
+            IEnumerable<ParameterSyntax> paras = descendants.OfType<ParameterSyntax>();
             Assert.Equal(1, paras.Count());
-            var parasym = model.GetDeclaredSymbol(paras.First());
-            var ploc = parasym.Locations[0];
+            IParameterSymbol parasym = model.GetDeclaredSymbol(paras.First());
+            Location ploc = parasym.Locations[0];
 
-            var args = descendants.OfType<ArgumentSyntax>().Where(s => s.ToString() == "index").Select(s => s);
+            IEnumerable<ArgumentSyntax> args = descendants.OfType<ArgumentSyntax>().Where(s => s.ToString() == "index").Select(s => s);
             Assert.Equal(2, args.Count());
-            var argsym1 = model.GetSymbolInfo(args.First().Expression).Symbol;
-            var argsym2 = model.GetSymbolInfo(args.Last().Expression).Symbol;
+            ISymbol argsym1 = model.GetSymbolInfo(args.First().Expression).Symbol;
+            ISymbol argsym2 = model.GetSymbolInfo(args.Last().Expression).Symbol;
             Assert.NotNull(argsym1);
             Assert.NotNull(argsym2);
 
@@ -1056,13 +1056,13 @@ using X = System;
 class X { }
 ";
 
-            var comp = CreateCompilation(source);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateCompilation(source);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var aliasSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
+            UsingDirectiveSyntax aliasSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
 
-            var symbol = model.GetDeclaredSymbol(aliasSyntax);
+            IAliasSymbol symbol = model.GetDeclaredSymbol(aliasSyntax);
             Assert.Equal(symbol.Target, comp.GlobalNamespace.GetMember<NamespaceSymbol>("System"));
 
             comp.VerifyDiagnostics(
@@ -1086,18 +1086,18 @@ class Test
     }
 }
 ";
-            var comp1 = CreateCompilation("public class C { }");
-            var ref1 = comp1.EmitToImageReference(aliases: ImmutableArray.Create("X"));
+            CSharpCompilation comp1 = CreateCompilation("public class C { }");
+            MetadataReference ref1 = comp1.EmitToImageReference(aliases: ImmutableArray.Create("X"));
 
-            var comp2 = CreateCompilation(source, new[] { ref1 });
-            var tree = comp2.SyntaxTrees.Single();
-            var model = comp2.GetSemanticModel(tree);
+            CSharpCompilation comp2 = CreateCompilation(source, new[] { ref1 });
+            SyntaxTree tree = comp2.SyntaxTrees.Single();
+            SemanticModel model = comp2.GetSemanticModel(tree);
 
-            var aliasSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExternAliasDirectiveSyntax>().Single();
+            ExternAliasDirectiveSyntax aliasSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExternAliasDirectiveSyntax>().Single();
 
             // Compilation.GetExternAliasTarget defines this behavior: the target is a merged namespace
             // with the same name as the alias, contained in the global namespace of the compilation.
-            var aliasSymbol = model.GetDeclaredSymbol(aliasSyntax);
+            IAliasSymbol aliasSymbol = model.GetDeclaredSymbol(aliasSyntax);
             var aliasTarget = (NamespaceSymbol)aliasSymbol.Target;
             Assert.Equal(NamespaceKind.Module, aliasTarget.Extent.Kind);
             Assert.Equal("", aliasTarget.Name);
@@ -1106,7 +1106,7 @@ class Test
 
             Assert.Equal(0, comp2.GlobalNamespace.GetMembers("X").Length); //Doesn't contain the alias target namespace as a child.
 
-            var aliasQualifiedSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AliasQualifiedNameSyntax>().Single();
+            AliasQualifiedNameSyntax aliasQualifiedSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AliasQualifiedNameSyntax>().Single();
             Assert.Equal(aliasSymbol, model.GetAliasInfo(aliasQualifiedSyntax.Alias));
 
             comp2.VerifyDiagnostics(
@@ -1130,16 +1130,16 @@ class Test
 }
 ";
 
-            var comp = CreateCompilation(source);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateCompilation(source);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var aliasSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExternAliasDirectiveSyntax>().Single();
+            ExternAliasDirectiveSyntax aliasSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ExternAliasDirectiveSyntax>().Single();
 
-            var aliasSymbol = model.GetDeclaredSymbol(aliasSyntax);
+            IAliasSymbol aliasSymbol = model.GetDeclaredSymbol(aliasSyntax);
             Assert.IsType<MissingNamespaceSymbol>(aliasSymbol.Target);
 
-            var aliasQualifiedSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AliasQualifiedNameSyntax>().Single();
+            AliasQualifiedNameSyntax aliasQualifiedSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AliasQualifiedNameSyntax>().Single();
             Assert.Equal(aliasSymbol, model.GetAliasInfo(aliasQualifiedSyntax.Alias));
 
             comp.VerifyDiagnostics(
@@ -1157,19 +1157,19 @@ class Test
         {
             var source = "using X = System;";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (1,1): info CS8019: Unnecessary using directive.
                 // using X = System;
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using X = System;"));
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var aliasSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<NameEqualsSyntax>().Single().Name;
+            IdentifierNameSyntax aliasSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<NameEqualsSyntax>().Single().Name;
             Assert.Equal(SymbolInfo.None, model.GetSymbolInfo(aliasSyntax));
 
-            var usingSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
+            UsingDirectiveSyntax usingSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
             Assert.Equal(SymbolKind.Alias, model.GetDeclaredSymbol(usingSyntax).Kind);
         }
 
@@ -1183,18 +1183,18 @@ class Test
     C() : this((int) 1) { }
 }";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var oldSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
+            ConstructorInitializerSyntax oldSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
 
-            var newSyntax = SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer);
+            ConstructorInitializerSyntax newSyntax = SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer);
 
-            var info = model.GetSpeculativeSymbolInfo(oldSyntax.SpanStart, newSyntax);
-            var symbol = info.Symbol;
+            SymbolInfo info = model.GetSpeculativeSymbolInfo(oldSyntax.SpanStart, newSyntax);
+            ISymbol symbol = info.Symbol;
             Assert.NotNull(symbol);
             Assert.Equal(comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C"), symbol.ContainingType);
             Assert.Equal(SymbolKind.Method, symbol.Kind);
@@ -1212,44 +1212,44 @@ class Test
     C() { }
 }";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var oldSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            ConstructorDeclarationSyntax oldSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
 
-            var newSyntax = SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer);
+            ConstructorInitializerSyntax newSyntax = SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer);
 
-            var info = model.GetSpeculativeSymbolInfo(oldSyntax.ParameterList.Span.End, newSyntax);
+            SymbolInfo info = model.GetSpeculativeSymbolInfo(oldSyntax.ParameterList.Span.End, newSyntax);
             Assert.Equal(SymbolInfo.None, info);
         }
 
         [Fact]
         public void TestGetSpeculativeSemanticModelInFieldInitializer()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
   object y = 1;
 }
 ");
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var fieldDecl = (FieldDeclarationSyntax)typeDecl.Members[0];
-            var varDecl = fieldDecl.Declaration.Variables.First();
+            VariableDeclaratorSyntax varDecl = fieldDecl.Declaration.Variables.First();
 
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
             Assert.False(model.IsSpeculativeSemanticModel);
             Assert.Null(model.ParentModel);
             Assert.Equal(0, model.OriginalPositionForSpeculation);
 
             // Speculate on the equals value syntax (initializer)
             // Conversion info available, ConvertedType: Object.
-            var equalsValue = SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression(@"(string)""Hello"""));
-            var expr = equalsValue.Value;
+            EqualsValueClauseSyntax equalsValue = SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression(@"(string)""Hello"""));
+            ExpressionSyntax expr = equalsValue.Value;
             int position = varDecl.Initializer.SpanStart;
 
             SemanticModel speculativeModel;
@@ -1260,12 +1260,12 @@ class C
             Assert.Equal(model, speculativeModel.ParentModel);
             Assert.Equal(position, speculativeModel.OriginalPositionForSpeculation);
 
-            var typeInfo = speculativeModel.GetTypeInfo(expr);
+            TypeInfo typeInfo = speculativeModel.GetTypeInfo(expr);
             Assert.NotNull(typeInfo.Type);
             Assert.Equal("String", typeInfo.Type.Name);
             Assert.Equal("Object", typeInfo.ConvertedType.Name);
 
-            var constantInfo = speculativeModel.GetConstantValue(expr);
+            Optional<object> constantInfo = speculativeModel.GetConstantValue(expr);
             Assert.True(constantInfo.HasValue, "must be a constant");
             Assert.Equal("Hello", constantInfo.Value);
         }
@@ -1273,36 +1273,36 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelInEnumMember()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 enum C 
 {
   y = 1
 }
 ");
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (EnumDeclarationSyntax)root.Members[0];
             var enumMemberDecl = (EnumMemberDeclarationSyntax)typeDecl.Members[0];
-            var equalsValue = enumMemberDecl.EqualsValue;
-            var initializer = equalsValue.Value;
+            EqualsValueClauseSyntax equalsValue = enumMemberDecl.EqualsValue;
+            ExpressionSyntax initializer = equalsValue.Value;
 
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             // Speculate on the equals value syntax (initializer)
             // Conversion info available, ConvertedType: Int32.
-            var newEqualsValue = SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression("(short)0"));
-            var expr = newEqualsValue.Value;
+            EqualsValueClauseSyntax newEqualsValue = SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression("(short)0"));
+            ExpressionSyntax expr = newEqualsValue.Value;
             SemanticModel speculativeModel;
             bool success = model.TryGetSpeculativeSemanticModel(equalsValue.SpanStart, newEqualsValue, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var typeInfo = speculativeModel.GetTypeInfo(expr);
+            TypeInfo typeInfo = speculativeModel.GetTypeInfo(expr);
             Assert.NotNull(typeInfo.Type);
             Assert.Equal("Int16", typeInfo.Type.Name);
             Assert.Equal("Int32", typeInfo.ConvertedType.Name);
 
-            var constantInfo = speculativeModel.GetConstantValue(expr);
+            Optional<object> constantInfo = speculativeModel.GetConstantValue(expr);
             Assert.True(constantInfo.HasValue, "must be a constant");
             Assert.Equal((short)0, constantInfo.Value);
         }
@@ -1311,7 +1311,7 @@ enum C
         [WorkItem(648305, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/648305")]
         public void TestGetSpeculativeSemanticModelInDefaultValueArgument()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
   void M(int x = 1)
@@ -1320,33 +1320,33 @@ class C
   }
 }
 ");
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
-            var equalsValue = methodDecl.ParameterList.Parameters[0].Default;
-            var paramDefaultArg = equalsValue.Value;
+            EqualsValueClauseSyntax equalsValue = methodDecl.ParameterList.Parameters[0].Default;
+            ExpressionSyntax paramDefaultArg = equalsValue.Value;
 
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var ti = model.GetTypeInfo(paramDefaultArg);
+            TypeInfo ti = model.GetTypeInfo(paramDefaultArg);
 
             // Speculate on the equals value syntax (initializer)
             // Conversion info available, ConvertedType: Int32.
-            var newEqualsValue = SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression("(short)0"));
-            var expr = newEqualsValue.Value;
+            EqualsValueClauseSyntax newEqualsValue = SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression("(short)0"));
+            ExpressionSyntax expr = newEqualsValue.Value;
 
             SemanticModel speculativeModel;
             bool success = model.TryGetSpeculativeSemanticModel(equalsValue.SpanStart, newEqualsValue, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var typeInfo = speculativeModel.GetTypeInfo(expr);
+            TypeInfo typeInfo = speculativeModel.GetTypeInfo(expr);
             Assert.NotNull(typeInfo.Type);
             Assert.Equal("Int16", typeInfo.Type.Name);
             Assert.Equal("Int32", typeInfo.ConvertedType.Name);
 
-            var constantInfo = speculativeModel.GetConstantValue(expr);
+            Optional<object> constantInfo = speculativeModel.GetConstantValue(expr);
             Assert.True(constantInfo.HasValue, "must be a constant");
             Assert.Equal((short)0, constantInfo.Value);
         }
@@ -1355,7 +1355,7 @@ class C
         [WorkItem(746002, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/746002")]
         public void TestGetSpeculativeSemanticModelInDefaultValueArgument2()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using System;
 
 enum E
@@ -1369,27 +1369,27 @@ interface I
     void M1(E e = E.A);
 }
 ");
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var interfaceDecl = (TypeDeclarationSyntax)root.Members[1];
             var methodDecl = (MethodDeclarationSyntax)interfaceDecl.Members[0];
-            var param = methodDecl.ParameterList.Parameters[0];
-            var equalsValue = param.Default;
-            var paramDefaultArg = equalsValue.Value;
+            ParameterSyntax param = methodDecl.ParameterList.Parameters[0];
+            EqualsValueClauseSyntax equalsValue = param.Default;
+            ExpressionSyntax paramDefaultArg = equalsValue.Value;
 
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             // Speculate on the equals value syntax (initializer) with a non-null parent
-            var newEqualsValue = SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression("E.B | E.A"));
+            EqualsValueClauseSyntax newEqualsValue = SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression("E.B | E.A"));
             newEqualsValue = param.ReplaceNode(equalsValue, newEqualsValue).Default;
-            var binaryExpr = newEqualsValue.Value;
+            ExpressionSyntax binaryExpr = newEqualsValue.Value;
 
             SemanticModel speculativeModel;
             bool success = model.TryGetSpeculativeSemanticModel(equalsValue.SpanStart, newEqualsValue, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var typeInfo = speculativeModel.GetTypeInfo(binaryExpr);
+            TypeInfo typeInfo = speculativeModel.GetTypeInfo(binaryExpr);
             Assert.NotNull(typeInfo.Type);
             Assert.Equal("E", typeInfo.Type.Name);
             Assert.Equal("E", typeInfo.ConvertedType.Name);
@@ -1399,7 +1399,7 @@ interface I
         [WorkItem(657701, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/657701")]
         public void TestGetSpeculativeSemanticModelInConstructorDefaultValueArgument()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
   C(int x = 1)
@@ -1408,33 +1408,33 @@ class C
   }
 }
 ");
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var constructorDecl = (ConstructorDeclarationSyntax)typeDecl.Members[0];
-            var equalsValue = constructorDecl.ParameterList.Parameters[0].Default;
-            var paramDefaultArg = equalsValue.Value;
+            EqualsValueClauseSyntax equalsValue = constructorDecl.ParameterList.Parameters[0].Default;
+            ExpressionSyntax paramDefaultArg = equalsValue.Value;
 
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var ti = model.GetTypeInfo(paramDefaultArg);
+            TypeInfo ti = model.GetTypeInfo(paramDefaultArg);
 
             // Speculate on the equals value syntax (initializer)
             // Conversion info available, ConvertedType: Int32.
-            var newEqualsValue = SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression("(short)0"));
-            var expr = newEqualsValue.Value;
+            EqualsValueClauseSyntax newEqualsValue = SyntaxFactory.EqualsValueClause(SyntaxFactory.ParseExpression("(short)0"));
+            ExpressionSyntax expr = newEqualsValue.Value;
 
             SemanticModel speculativeModel;
             bool success = model.TryGetSpeculativeSemanticModel(equalsValue.SpanStart, newEqualsValue, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var typeInfo = speculativeModel.GetTypeInfo(expr);
+            TypeInfo typeInfo = speculativeModel.GetTypeInfo(expr);
             Assert.NotNull(typeInfo.Type);
             Assert.Equal("Int16", typeInfo.Type.Name);
             Assert.Equal("Int32", typeInfo.ConvertedType.Name);
 
-            var constantInfo = speculativeModel.GetConstantValue(expr);
+            Optional<object> constantInfo = speculativeModel.GetConstantValue(expr);
             Assert.True(constantInfo.HasValue, "must be a constant");
             Assert.Equal((short)0, constantInfo.Value);
         }
@@ -1442,17 +1442,17 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelInExpressionBody_Property()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
   public object X => 0;
 }
 ");
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var propertyDecl = (PropertyDeclarationSyntax)typeDecl.Members[0];
-            var expressionBody = propertyDecl.ExpressionBody;
+            ArrowExpressionClauseSyntax expressionBody = propertyDecl.ExpressionBody;
 
             TestExpressionBodySpeculation(compilation, tree, expressionBody);
         }
@@ -1460,17 +1460,17 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelInExpressionBody_Method()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
   public object X() => 0;
 }
 ");
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
-            var expressionBody = methodDecl.ExpressionBody;
+            ArrowExpressionClauseSyntax expressionBody = methodDecl.ExpressionBody;
 
             TestExpressionBodySpeculation(compilation, tree, expressionBody);
         }
@@ -1478,32 +1478,32 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelInExpressionBody_Indexer()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
   public object this[int x] => 0;
 }
 ");
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var indexerDecl = (IndexerDeclarationSyntax)typeDecl.Members[0];
-            var expressionBody = indexerDecl.ExpressionBody;
+            ArrowExpressionClauseSyntax expressionBody = indexerDecl.ExpressionBody;
 
             TestExpressionBodySpeculation(compilation, tree, expressionBody);
         }
 
         private static void TestExpressionBodySpeculation(Compilation compilation, SyntaxTree tree, ArrowExpressionClauseSyntax expressionBody)
         {
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
             Assert.False(model.IsSpeculativeSemanticModel);
             Assert.Null(model.ParentModel);
             Assert.Equal(0, model.OriginalPositionForSpeculation);
 
             // Speculate on the expression body syntax.
             // Conversion info available, ConvertedType: Object.
-            var newExpressionBody = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.ParseExpression(@"(string)""Hello"""));
-            var expr = newExpressionBody.Expression;
+            ArrowExpressionClauseSyntax newExpressionBody = SyntaxFactory.ArrowExpressionClause(SyntaxFactory.ParseExpression(@"(string)""Hello"""));
+            ExpressionSyntax expr = newExpressionBody.Expression;
             int position = expressionBody.SpanStart;
 
             SemanticModel speculativeModel;
@@ -1514,12 +1514,12 @@ class C
             Assert.Equal(model, speculativeModel.ParentModel);
             Assert.Equal(position, speculativeModel.OriginalPositionForSpeculation);
 
-            var typeInfo = speculativeModel.GetTypeInfo(expr);
+            TypeInfo typeInfo = speculativeModel.GetTypeInfo(expr);
             Assert.NotNull(typeInfo.Type);
             Assert.Equal("String", typeInfo.Type.Name);
             Assert.Equal("Object", typeInfo.ConvertedType.Name);
 
-            var constantInfo = speculativeModel.GetConstantValue(expr);
+            Optional<object> constantInfo = speculativeModel.GetConstantValue(expr);
             Assert.True(constantInfo.HasValue, "must be a constant");
             Assert.Equal("Hello", constantInfo.Value);
         }
@@ -1537,49 +1537,49 @@ class Q
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,9): warning CS0169: The field 'Q.q' is never used
                 //     var q;
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "q").WithArguments("Q.q"));
 
-            var classQ = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Q");
-            var fieldQ = classQ.GetMember<FieldSymbol>("q");
+            NamedTypeSymbol classQ = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Q");
+            FieldSymbol fieldQ = classQ.GetMember<FieldSymbol>("q");
 
             Assert.Equal(classQ, fieldQ.Type);
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var aliasDecl = tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
+            UsingDirectiveSyntax aliasDecl = tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
 
-            var aliasSymbol = model.GetDeclaredSymbol(aliasDecl);
+            IAliasSymbol aliasSymbol = model.GetDeclaredSymbol(aliasDecl);
             Assert.Equal(SymbolKind.Alias, aliasSymbol.Kind);
             Assert.Equal(classQ, ((AliasSymbol)aliasSymbol).Target);
             Assert.Equal("var", aliasSymbol.Name);
 
-            var aliasDeclInfo = model.GetSymbolInfo(aliasDecl.Alias.Name);
+            SymbolInfo aliasDeclInfo = model.GetSymbolInfo(aliasDecl.Alias.Name);
             Assert.Null(aliasDeclInfo.Symbol);
             Assert.Equal(CandidateReason.None, aliasDeclInfo.CandidateReason);
 
-            var fieldDecl = tree.GetRoot().DescendantNodes().OfType<FieldDeclarationSyntax>().Single();
+            FieldDeclarationSyntax fieldDecl = tree.GetRoot().DescendantNodes().OfType<FieldDeclarationSyntax>().Single();
 
-            var fieldSymbol = model.GetDeclaredSymbol(fieldDecl.Declaration.Variables.Single());
+            ISymbol fieldSymbol = model.GetDeclaredSymbol(fieldDecl.Declaration.Variables.Single());
             Assert.Equal(fieldQ, fieldSymbol);
 
             var typeSyntax = (IdentifierNameSyntax)fieldDecl.Declaration.Type;
 
-            var fieldTypeInfo = model.GetSymbolInfo(typeSyntax);
+            SymbolInfo fieldTypeInfo = model.GetSymbolInfo(typeSyntax);
             Assert.Equal(classQ, fieldTypeInfo.Symbol);
 
-            var fieldTypeAliasInfo = model.GetAliasInfo(typeSyntax);
+            IAliasSymbol fieldTypeAliasInfo = model.GetAliasInfo(typeSyntax);
             Assert.Equal(aliasSymbol, fieldTypeAliasInfo);
         }
 
         [Fact]
         public void TestGetSpeculativeSemanticModelForStatement()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
   void M(int x)
@@ -1597,11 +1597,11 @@ class C
 }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             SemanticModel speculativeModel;
             bool success = model.TryGetSpeculativeSemanticModel(methodDecl.Body.Statements[0].SpanStart, statement, out speculativeModel);
@@ -1609,27 +1609,27 @@ class C
             Assert.NotNull(speculativeModel);
 
             var localDecl = (LocalDeclarationStatementSyntax)statement.Statements[0];
-            var declarator = localDecl.Declaration.Variables.First();
-            var local = speculativeModel.GetDeclaredSymbol(declarator);
+            VariableDeclaratorSyntax declarator = localDecl.Declaration.Variables.First();
+            ISymbol local = speculativeModel.GetDeclaredSymbol(declarator);
             Assert.NotNull(local);
             Assert.Equal("z", local.Name);
             Assert.Equal(SymbolKind.Local, local.Kind);
             Assert.Equal("Int32", ((LocalSymbol)local).Type.Name);
 
-            var typeInfo = speculativeModel.GetTypeInfo(localDecl.Declaration.Type);
+            TypeInfo typeInfo = speculativeModel.GetTypeInfo(localDecl.Declaration.Type);
             Assert.NotNull(typeInfo.Type);
             Assert.Equal("Int32", typeInfo.Type.Name);
 
             var call = (InvocationExpressionSyntax)((ExpressionStatementSyntax)statement.Statements[1]).Expression;
-            var arg = call.ArgumentList.Arguments[0].Expression;
-            var info = speculativeModel.GetSymbolInfo(arg);
+            ExpressionSyntax arg = call.ArgumentList.Arguments[0].Expression;
+            SymbolInfo info = speculativeModel.GetSymbolInfo(arg);
             Assert.NotNull(info.Symbol);
             Assert.Equal("z", info.Symbol.Name);
             Assert.Equal(SymbolKind.Local, info.Symbol.Kind);
 
             var call2 = (InvocationExpressionSyntax)((ExpressionStatementSyntax)((BlockSyntax)statement).Statements[2]).Expression;
-            var arg2 = call2.ArgumentList.Arguments[0].Expression;
-            var info2 = speculativeModel.GetSymbolInfo(arg2);
+            ExpressionSyntax arg2 = call2.ArgumentList.Arguments[0].Expression;
+            SymbolInfo info2 = speculativeModel.GetSymbolInfo(arg2);
             Assert.NotNull(info2.Symbol);
             Assert.Equal("y", info2.Symbol.Name);
             Assert.Equal(SymbolKind.Local, info2.Symbol.Kind);
@@ -1638,7 +1638,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForStatement_DeclaredLocal()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
   void M(int x)
@@ -1648,22 +1648,22 @@ class C
 }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             // different name local
-            var statement = SyntaxFactory.ParseStatement(@"int z = 0;");
+            StatementSyntax statement = SyntaxFactory.ParseStatement(@"int z = 0;");
 
             SemanticModel speculativeModel;
             bool success = model.TryGetSpeculativeSemanticModel(methodDecl.Body.Statements[0].SpanStart, statement, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var declarator = ((LocalDeclarationStatementSyntax)statement).Declaration.Variables.First();
-            var local = speculativeModel.GetDeclaredSymbol(declarator);
+            VariableDeclaratorSyntax declarator = ((LocalDeclarationStatementSyntax)statement).Declaration.Variables.First();
+            ISymbol local = speculativeModel.GetDeclaredSymbol(declarator);
             Assert.NotNull(local);
             Assert.Equal("z", local.Name);
             Assert.Equal(SymbolKind.Local, local.Kind);
@@ -1686,7 +1686,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForStatement_GetDeclaredLabelSymbol()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
   void M(int x)
@@ -1696,20 +1696,20 @@ class C
 }
 ");
 
-            var labeledStatement = SyntaxFactory.ParseStatement(@"label: y++;");
+            StatementSyntax labeledStatement = SyntaxFactory.ParseStatement(@"label: y++;");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             SemanticModel statModel;
             bool success = model.TryGetSpeculativeSemanticModel(methodDecl.Body.Statements[0].SpanStart, labeledStatement, out statModel);
             Assert.True(success);
             Assert.NotNull(statModel);
 
-            var label = statModel.GetDeclaredSymbol(labeledStatement);
+            ISymbol label = statModel.GetDeclaredSymbol(labeledStatement);
             Assert.NotNull(label);
             Assert.Equal("label", label.Name);
             Assert.Equal(SymbolKind.Label, label.Kind);
@@ -1718,7 +1718,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForStatement_GetDeclaredSwitchLabelSymbol()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
   void M(int x)
@@ -1735,19 +1735,19 @@ switch (y)
     y++;
     break;
 }");
-            var switchLabel = switchStatement.Sections[0].Labels[0];
+            SwitchLabelSyntax switchLabel = switchStatement.Sections[0].Labels[0];
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
             SemanticModel statModel;
             bool success = model.TryGetSpeculativeSemanticModel(methodDecl.Body.Statements[0].Span.End, switchStatement, out statModel);
             Assert.True(success);
             Assert.NotNull(statModel);
 
-            var symbol = statModel.GetDeclaredSymbol(switchLabel);
+            ILabelSymbol symbol = statModel.GetDeclaredSymbol(switchLabel);
             Assert.NotNull(symbol);
             Assert.IsType<SourceLabelSymbol>(symbol);
 
@@ -1760,7 +1760,7 @@ switch (y)
         [Fact]
         public void TestGetSpeculativeSemanticModelForStatement_GetDeclaredLambdaParameterSymbol()
         {
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(@"
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
 
 class C 
@@ -1774,20 +1774,20 @@ class C
 
             var speculatedStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(@"Func<int, int> var = (z) => x + z;");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             SemanticModel speculativeModel;
             bool success = model.TryGetSpeculativeSemanticModel(methodDecl.Body.Statements[0].Span.End, speculatedStatement, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var lambdaExpression = speculatedStatement.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().FirstOrDefault();
-            var lambdaParam = lambdaExpression.ParameterList.Parameters[0];
-            var parameterSymbol = speculativeModel.GetDeclaredSymbol(lambdaParam);
+            ParenthesizedLambdaExpressionSyntax lambdaExpression = speculatedStatement.DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().FirstOrDefault();
+            ParameterSyntax lambdaParam = lambdaExpression.ParameterList.Parameters[0];
+            IParameterSymbol parameterSymbol = speculativeModel.GetDeclaredSymbol(lambdaParam);
             Assert.NotNull(parameterSymbol);
             Assert.Equal("z", parameterSymbol.Name);
         }
@@ -1795,7 +1795,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForStatement_ForEach()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
   void M(int x)
@@ -1811,11 +1811,11 @@ foreach(short ele in a)
 } 
 ");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             SemanticModel speculativeModel;
             bool success = model.TryGetSpeculativeSemanticModel(methodDecl.Body.Statements[0].SpanStart, statement, out speculativeModel);
@@ -1839,22 +1839,22 @@ foreach(short ele in a)
     int X { get; } = 1;
 }";
 
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular);
-            var tree = comp.SyntaxTrees.Single();
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
             Assert.False(model.IsSpeculativeSemanticModel);
             Assert.Null(model.ParentModel);
             Assert.Equal(0, model.OriginalPositionForSpeculation);
 
             // Speculate on the initializer
-            var root = tree.GetCompilationUnitRoot();
-            var oldSyntax = root.DescendantNodes()
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            EqualsValueClauseSyntax oldSyntax = root.DescendantNodes()
                 .OfType<EqualsValueClauseSyntax>().ElementAt(1);
             var position = oldSyntax.SpanStart;
-            var newSyntax = SyntaxFactory.EqualsValueClause(
+            EqualsValueClauseSyntax newSyntax = SyntaxFactory.EqualsValueClause(
                 SyntaxFactory.ParseExpression("this.y"));
-            var expr = newSyntax.Value;
+            ExpressionSyntax expr = newSyntax.Value;
 
             SemanticModel speculativeModel;
             bool success = model.TryGetSpeculativeSemanticModel(oldSyntax.SpanStart,
@@ -1865,16 +1865,16 @@ foreach(short ele in a)
             Assert.Equal(model, speculativeModel.ParentModel);
             Assert.Equal(position, speculativeModel.OriginalPositionForSpeculation);
 
-            var typeInfo = speculativeModel.GetTypeInfo(expr);
+            TypeInfo typeInfo = speculativeModel.GetTypeInfo(expr);
             Assert.NotNull(typeInfo);
             Assert.Equal("Int32", typeInfo.Type.Name);
 
-            var thisSyntax = expr.DescendantNodes().OfType<ThisExpressionSyntax>().Single();
-            var symbolInfo = speculativeModel.GetSpeculativeSymbolInfo(
+            ThisExpressionSyntax thisSyntax = expr.DescendantNodes().OfType<ThisExpressionSyntax>().Single();
+            SymbolInfo symbolInfo = speculativeModel.GetSpeculativeSymbolInfo(
                 thisSyntax.SpanStart,
                 thisSyntax, SpeculativeBindingOption.BindAsExpression);
             Assert.NotNull(symbolInfo);
-            var candidates = symbolInfo.CandidateSymbols;
+            ImmutableArray<ISymbol> candidates = symbolInfo.CandidateSymbols;
             Assert.Equal(1, candidates.Length);
             Assert.IsType<ThisParameterSymbol>(candidates[0]);
             Assert.Equal(CandidateReason.NotReferencable, symbolInfo.CandidateReason);
@@ -1889,23 +1889,23 @@ foreach(short ele in a)
     C() : this((int) 1) { }
 }";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var parentModel = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel parentModel = comp.GetSemanticModel(tree);
 
-            var oldSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
+            ConstructorInitializerSyntax oldSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ConstructorInitializerSyntax>().Single();
 
-            var newSyntax = SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer);
+            ConstructorInitializerSyntax newSyntax = SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer);
 
             SemanticModel speculativeModel;
             bool success = parentModel.TryGetSpeculativeSemanticModel(oldSyntax.SpanStart, newSyntax, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var info = speculativeModel.GetSymbolInfo(newSyntax);
-            var symbol = info.Symbol;
+            SymbolInfo info = speculativeModel.GetSymbolInfo(newSyntax);
+            ISymbol symbol = info.Symbol;
             Assert.NotNull(symbol);
             Assert.Equal(comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C"), symbol.ContainingType);
             Assert.Equal(SymbolKind.Method, symbol.Kind);
@@ -1914,7 +1914,7 @@ foreach(short ele in a)
             Assert.Equal(0, method.ParameterCount);
 
             // test unnecessary cast removal
-            var newArgument = SyntaxFactory.ParseExpression("1");
+            ExpressionSyntax newArgument = SyntaxFactory.ParseExpression("1");
             newSyntax = oldSyntax.ReplaceNode(oldSyntax.DescendantNodes().OfType<CastExpressionSyntax>().Single(), newArgument);
 
             success = parentModel.TryGetSpeculativeSemanticModel(oldSyntax.SpanStart, newSyntax, out speculativeModel);
@@ -1942,7 +1942,7 @@ foreach(short ele in a)
             Assert.Null(symbol);
             Assert.Equal(CandidateReason.OverloadResolutionFailure, info.CandidateReason);
             Assert.Equal(2, info.CandidateSymbols.Length);
-            var sortedCandidates = info.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            ISymbol[] sortedCandidates = info.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
             Assert.Equal("C..ctor()", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.Method, sortedCandidates[0].Kind);
             Assert.Equal("C..ctor(System.Int32 x)", sortedCandidates[1].ToTestDisplayString());
@@ -1958,15 +1958,15 @@ foreach(short ele in a)
     C() { }
 }";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var parentModel = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel parentModel = comp.GetSemanticModel(tree);
 
-            var oldSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
+            ConstructorDeclarationSyntax oldSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single();
 
-            var newSyntax = SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer);
+            ConstructorInitializerSyntax newSyntax = SyntaxFactory.ConstructorInitializer(SyntaxKind.ThisConstructorInitializer);
 
             SemanticModel speculativeModel;
             bool success = parentModel.TryGetSpeculativeSemanticModel(oldSyntax.SpanStart, newSyntax, out speculativeModel);
@@ -1977,7 +1977,7 @@ foreach(short ele in a)
         [Fact]
         public void TestArgumentsToGetSpeculativeSemanticModelAPI()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
   public C(): this(0) {}
@@ -1990,18 +1990,18 @@ class C
   }
 }
 ");
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var ctor1 = (ConstructorDeclarationSyntax)typeDecl.Members[0];
             var ctor2 = (ConstructorDeclarationSyntax)typeDecl.Members[1];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[2];
 
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
             var statement = (LocalDeclarationStatementSyntax)methodDecl.Body.Statements[0];
-            var initializer = statement.Declaration.Variables[0].Initializer;
-            var ctorInitializer = ctor1.Initializer;
-            var attribute = methodDecl.AttributeLists[0].Attributes[0];
+            EqualsValueClauseSyntax initializer = statement.Declaration.Variables[0].Initializer;
+            ConstructorInitializerSyntax ctorInitializer = ctor1.Initializer;
+            AttributeSyntax attribute = methodDecl.AttributeLists[0].Attributes[0];
 
             SemanticModel speculativeModel;
             Assert.Throws<ArgumentNullException>(() => model.TryGetSpeculativeSemanticModel(statement.SpanStart, statement: null, speculativeModel: out speculativeModel));
@@ -2014,7 +2014,7 @@ class C
             Assert.Throws<ArgumentException>(() => model.TryGetSpeculativeSemanticModel(attribute.SpanStart, attribute: attribute, speculativeModel: out speculativeModel));
 
             // Chaining speculative semantic model is not supported.
-            var speculatedStatement = statement.ReplaceNode(initializer.Value, SyntaxFactory.ParseExpression("0"));
+            LocalDeclarationStatementSyntax speculatedStatement = statement.ReplaceNode(initializer.Value, SyntaxFactory.ParseExpression("0"));
             model.TryGetSpeculativeSemanticModel(statement.SpanStart, speculatedStatement, speculativeModel: out speculativeModel);
             Assert.Throws<InvalidOperationException>(() => speculativeModel.TryGetSpeculativeSemanticModel(speculatedStatement.SpanStart, speculatedStatement, speculativeModel: out speculativeModel));
         }
@@ -2022,7 +2022,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelOnSpeculativeSemanticModel()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
   public C(): this(0) {}
@@ -2035,20 +2035,20 @@ class C
   }
 }
 ");
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var ctor1 = (ConstructorDeclarationSyntax)typeDecl.Members[0];
             var ctor2 = (ConstructorDeclarationSyntax)typeDecl.Members[1];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[2];
 
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
             var statement = (LocalDeclarationStatementSyntax)methodDecl.Body.Statements[0];
-            var expression = statement.Declaration.Variables[0].Initializer.Value;
-            var ctorInitializer = ctor1.Initializer;
-            var attribute = methodDecl.AttributeLists[0].Attributes[0];
+            ExpressionSyntax expression = statement.Declaration.Variables[0].Initializer.Value;
+            ConstructorInitializerSyntax ctorInitializer = ctor1.Initializer;
+            AttributeSyntax attribute = methodDecl.AttributeLists[0].Attributes[0];
 
-            var speculatedStatement = statement.ReplaceNode(expression, SyntaxFactory.ParseExpression("0"));
+            LocalDeclarationStatementSyntax speculatedStatement = statement.ReplaceNode(expression, SyntaxFactory.ParseExpression("0"));
             SemanticModel speculativeModel;
             var success = model.TryGetSpeculativeSemanticModel(statement.SpanStart, speculatedStatement, out speculativeModel);
             Assert.True(success);
@@ -2056,7 +2056,7 @@ class C
 
             // Chaining speculative semantic model is not supported.
             // (a) Expression
-            var newSpeculatedStatement = statement.ReplaceNode(expression, SyntaxFactory.ParseExpression("1.1"));
+            LocalDeclarationStatementSyntax newSpeculatedStatement = statement.ReplaceNode(expression, SyntaxFactory.ParseExpression("1.1"));
             SemanticModel newModel;
             Assert.Throws<InvalidOperationException>(() => speculativeModel.TryGetSpeculativeSemanticModel(speculatedStatement.SpanStart, newSpeculatedStatement, out newModel));
 
@@ -2068,7 +2068,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelInsideUnsafeCode()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 unsafe class C
 {
     void M()
@@ -2077,12 +2077,12 @@ unsafe class C
     }
 }
 ");
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
 
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var unsafeStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement("int *p = &x;");
 
@@ -2091,23 +2091,23 @@ unsafe class C
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var declarator = unsafeStatement.Declaration.Variables.First();
-            var initializer = declarator.Initializer.Value;
+            VariableDeclaratorSyntax declarator = unsafeStatement.Declaration.Variables.First();
+            ExpressionSyntax initializer = declarator.Initializer.Value;
 
-            var binder = ((CSharpSemanticModel)speculativeModel).GetEnclosingBinder(initializer.SpanStart);
+            Binder binder = ((CSharpSemanticModel)speculativeModel).GetEnclosingBinder(initializer.SpanStart);
             Assert.True(binder.InUnsafeRegion, "must be in unsafe code");
             Assert.True(binder.IsSemanticModelBinder, "must be speculative");
 
-            var typeInfo = speculativeModel.GetTypeInfo(initializer);
+            TypeInfo typeInfo = speculativeModel.GetTypeInfo(initializer);
             Assert.Equal("System.Int32*", typeInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Pointer, typeInfo.Type.TypeKind);
             Assert.Equal("System.Int32*", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(TypeKind.Pointer, typeInfo.ConvertedType.TypeKind);
 
-            var conv = speculativeModel.GetConversion(initializer);
+            Conversion conv = speculativeModel.GetConversion(initializer);
             Assert.Equal(ConversionKind.Identity, conv.Kind);
 
-            var symbol = speculativeModel.GetDeclaredSymbol(declarator);
+            ISymbol symbol = speculativeModel.GetDeclaredSymbol(declarator);
             Assert.NotNull(symbol);
             Assert.Equal(SymbolKind.Local, symbol.Kind);
             Assert.Equal("p", symbol.Name);
@@ -2129,18 +2129,18 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateCompilation(source);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var accessorSyntax = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
+            AccessorDeclarationSyntax accessorSyntax = tree.GetRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>().Single();
             Assert.Equal(SyntaxKind.UnknownAccessorDeclaration, accessorSyntax.Kind());
 
-            var statementSyntax = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single();
-            var memberModel = ((CSharpSemanticModel)model).GetMemberModel(statementSyntax);
+            ReturnStatementSyntax statementSyntax = tree.GetRoot().DescendantNodes().OfType<ReturnStatementSyntax>().Single();
+            MemberSemanticModel memberModel = ((CSharpSemanticModel)model).GetMemberModel(statementSyntax);
             Assert.Null(memberModel); // No member model since no symbol.
 
-            var speculativeSyntax = SyntaxFactory.ParseStatement("return default(C);");
+            StatementSyntax speculativeSyntax = SyntaxFactory.ParseStatement("return default(C);");
 
             SemanticModel speculativeModel;
             var success = model.TryGetSpeculativeSemanticModel(statementSyntax.SpanStart, speculativeSyntax, out speculativeModel);
@@ -2151,7 +2151,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForMethodBody()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
   void M(int x)
@@ -2169,13 +2169,13 @@ class C
 }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var speculatedMethod = methodDecl.ReplaceNode(methodDecl.Body, blockStatement);
+            MethodDeclarationSyntax speculatedMethod = methodDecl.ReplaceNode(methodDecl.Body, blockStatement);
             blockStatement = speculatedMethod.Body;
 
             SemanticModel speculativeModel;
@@ -2190,11 +2190,11 @@ class C
         [WorkItem(10211, "https://github.com/dotnet/roslyn/issues/10211")]
         public void GetDependenceChainRegression_10211_working()
         {
-            var compilation = CreateEmptyCompilation(@"
+            CSharpCompilation compilation = CreateEmptyCompilation(@"
 class Parent {}
 class Child : Parent {}
 ");
-            var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
+            SemanticModel semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
             // Ensure that we don't crash here.
             semanticModel.GetMethodBodyDiagnostics();
         }
@@ -2203,11 +2203,11 @@ class Child : Parent {}
         [WorkItem(10211, "https://github.com/dotnet/roslyn/issues/10211")]
         public void GetDependenceChainRegression_10211()
         {
-            var compilation = CreateEmptyCompilation(@"
+            CSharpCompilation compilation = CreateEmptyCompilation(@"
 class Child : Parent {}
 class Parent {}
 ");
-            var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
+            SemanticModel semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
             // Ensure that we don't crash here.
             semanticModel.GetMethodBodyDiagnostics();
         }
@@ -2215,35 +2215,35 @@ class Parent {}
         private static void VerifySpeculativeSemanticModelForMethodBody(BlockSyntax blockStatement, SemanticModel speculativeModel)
         {
             var localDecl = (LocalDeclarationStatementSyntax)blockStatement.Statements[0];
-            var declarator = localDecl.Declaration.Variables.First();
-            var local = speculativeModel.GetDeclaredSymbol(declarator);
+            VariableDeclaratorSyntax declarator = localDecl.Declaration.Variables.First();
+            ISymbol local = speculativeModel.GetDeclaredSymbol(declarator);
             Assert.NotNull(local);
             Assert.Equal("z", local.Name);
             Assert.Equal(SymbolKind.Local, local.Kind);
             Assert.Equal("Int32", ((LocalSymbol)local).Type.Name);
 
-            var typeInfo = speculativeModel.GetTypeInfo(localDecl.Declaration.Type);
+            TypeInfo typeInfo = speculativeModel.GetTypeInfo(localDecl.Declaration.Type);
             Assert.NotNull(typeInfo.Type);
             Assert.Equal("Int32", typeInfo.Type.Name);
 
             var call = (InvocationExpressionSyntax)((ExpressionStatementSyntax)blockStatement.Statements[1]).Expression;
-            var arg = call.ArgumentList.Arguments[0].Expression;
-            var info = speculativeModel.GetSymbolInfo(arg);
+            ExpressionSyntax arg = call.ArgumentList.Arguments[0].Expression;
+            SymbolInfo info = speculativeModel.GetSymbolInfo(arg);
             Assert.NotNull(info.Symbol);
             Assert.Equal("z", info.Symbol.Name);
             Assert.Equal(SymbolKind.Local, info.Symbol.Kind);
 
             // Shouldn't bind to local y in the original method as we are replacing the method body.
             var call2 = (InvocationExpressionSyntax)((ExpressionStatementSyntax)((BlockSyntax)blockStatement).Statements[2]).Expression;
-            var arg2 = call2.ArgumentList.Arguments[0].Expression;
-            var info2 = speculativeModel.GetSymbolInfo(arg2);
+            ExpressionSyntax arg2 = call2.ArgumentList.Arguments[0].Expression;
+            SymbolInfo info2 = speculativeModel.GetSymbolInfo(arg2);
             Assert.Null(info2.Symbol);
         }
 
         [Fact]
         public void TestGetSpeculativeSemanticModelForIndexerAccessorBody()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
     private int this[int x]
@@ -2264,14 +2264,14 @@ class C
 }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var indexerDecl = (IndexerDeclarationSyntax)typeDecl.Members[0];
-            var methodDecl = indexerDecl.AccessorList.Accessors[0];
-            var model = compilation.GetSemanticModel(tree);
+            AccessorDeclarationSyntax methodDecl = indexerDecl.AccessorList.Accessors[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var speculatedMethod = methodDecl.ReplaceNode(methodDecl.Body, blockStatement);
+            AccessorDeclarationSyntax speculatedMethod = methodDecl.ReplaceNode(methodDecl.Body, blockStatement);
             blockStatement = speculatedMethod.Body;
 
             SemanticModel speculativeModel;
@@ -2285,7 +2285,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForPropertyAccessorBody()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
     private int M
@@ -2306,14 +2306,14 @@ class C
 }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var propertyDecl = (PropertyDeclarationSyntax)typeDecl.Members[0];
-            var methodDecl = propertyDecl.AccessorList.Accessors[0];
-            var model = compilation.GetSemanticModel(tree);
+            AccessorDeclarationSyntax methodDecl = propertyDecl.AccessorList.Accessors[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var speculatedMethod = methodDecl.ReplaceNode(methodDecl.Body, blockStatement);
+            AccessorDeclarationSyntax speculatedMethod = methodDecl.ReplaceNode(methodDecl.Body, blockStatement);
             blockStatement = speculatedMethod.Body;
 
             SemanticModel speculativeModel;
@@ -2327,7 +2327,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForEventAccessorBody()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
     private event System.Action E
@@ -2351,14 +2351,14 @@ class C
 }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var eventDecl = (EventDeclarationSyntax)typeDecl.Members[0];
-            var methodDecl = eventDecl.AccessorList.Accessors[0];
-            var model = compilation.GetSemanticModel(tree);
+            AccessorDeclarationSyntax methodDecl = eventDecl.AccessorList.Accessors[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var speculatedMethod = methodDecl.ReplaceNode(methodDecl.Body, blockStatement);
+            AccessorDeclarationSyntax speculatedMethod = methodDecl.ReplaceNode(methodDecl.Body, blockStatement);
             blockStatement = speculatedMethod.Body;
 
             SemanticModel speculativeModel;
@@ -2372,7 +2372,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForMethodBody_DeclaredLocal()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
   void M(int x)
@@ -2382,15 +2382,15 @@ class C
 }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             // different name local
             var blockStatement = (BlockSyntax)SyntaxFactory.ParseStatement(@"{ int z = 0; }");
-            var speculatedMethod = methodDecl.ReplaceNode(methodDecl.Body, blockStatement);
+            MethodDeclarationSyntax speculatedMethod = methodDecl.ReplaceNode(methodDecl.Body, blockStatement);
             blockStatement = speculatedMethod.Body;
 
             SemanticModel speculativeModel;
@@ -2398,8 +2398,8 @@ class C
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var declarator = ((LocalDeclarationStatementSyntax)blockStatement.Statements[0]).Declaration.Variables.First();
-            var local = speculativeModel.GetDeclaredSymbol(declarator);
+            VariableDeclaratorSyntax declarator = ((LocalDeclarationStatementSyntax)blockStatement.Statements[0]).Declaration.Variables.First();
+            ISymbol local = speculativeModel.GetDeclaredSymbol(declarator);
             Assert.NotNull(local);
             Assert.Equal("z", local.Name);
             Assert.Equal(SymbolKind.Local, local.Kind);
@@ -2433,7 +2433,7 @@ class C
             Assert.Equal(SymbolKind.Local, local.Kind);
             Assert.Equal("Int32", ((LocalSymbol)local).Type.Name);
 
-            var param = speculativeModel.GetSymbolInfo(declarator.Initializer.Value).Symbol;
+            ISymbol param = speculativeModel.GetSymbolInfo(declarator.Initializer.Value).Symbol;
             Assert.NotNull(param);
             Assert.Equal(SymbolKind.Parameter, param.Kind);
             var paramSymbol = (ParameterSymbol)param;
@@ -2444,7 +2444,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForMethodBody_GetDeclaredLabelSymbol()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class C 
 {
   void M(int x)
@@ -2454,23 +2454,23 @@ class C
 }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var blockStatement = (BlockSyntax)SyntaxFactory.ParseStatement(@"{ label: y++; }");
-            var speculatedMethod = methodDecl.ReplaceNode(methodDecl.Body, blockStatement);
+            MethodDeclarationSyntax speculatedMethod = methodDecl.ReplaceNode(methodDecl.Body, blockStatement);
             blockStatement = speculatedMethod.Body;
-            var labeledStatement = blockStatement.Statements[0];
+            StatementSyntax labeledStatement = blockStatement.Statements[0];
 
             SemanticModel speculativeModel;
             var success = model.TryGetSpeculativeSemanticModelForMethodBody(methodDecl.Body.Statements[0].SpanStart, speculatedMethod, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var label = speculativeModel.GetDeclaredSymbol(labeledStatement);
+            ISymbol label = speculativeModel.GetDeclaredSymbol(labeledStatement);
             Assert.NotNull(label);
             Assert.Equal("label", label.Name);
             Assert.Equal(SymbolKind.Label, label.Kind);
@@ -2479,7 +2479,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForMethodBody_GetDeclaredLambdaParameterSymbol()
         {
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(@"
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(@"
 using System.Linq;
 
 class C 
@@ -2491,14 +2491,14 @@ class C
 }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var blockStatement = (BlockSyntax)SyntaxFactory.ParseStatement(@"{ Func<int, int> var = (z) => x + z; }");
-            var speculatedMethod = methodDecl.ReplaceNode(methodDecl.Body, blockStatement);
+            MethodDeclarationSyntax speculatedMethod = methodDecl.ReplaceNode(methodDecl.Body, blockStatement);
             blockStatement = speculatedMethod.Body;
 
             SemanticModel speculativeModel;
@@ -2506,9 +2506,9 @@ class C
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var lambdaExpression = blockStatement.Statements[0].DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().FirstOrDefault();
-            var lambdaParam = lambdaExpression.ParameterList.Parameters[0];
-            var parameterSymbol = speculativeModel.GetDeclaredSymbol(lambdaParam);
+            ParenthesizedLambdaExpressionSyntax lambdaExpression = blockStatement.Statements[0].DescendantNodes().OfType<ParenthesizedLambdaExpressionSyntax>().FirstOrDefault();
+            ParameterSyntax lambdaParam = lambdaExpression.ParameterList.Parameters[0];
+            IParameterSymbol parameterSymbol = speculativeModel.GetDeclaredSymbol(lambdaParam);
             Assert.NotNull(parameterSymbol);
             Assert.Equal("z", parameterSymbol.Name);
         }
@@ -2535,19 +2535,19 @@ class C
             Assert.NotNull(speculativeModel);
             Assert.Equal(position, speculativeModel.OriginalPositionForSpeculation);
 
-            var symbol = speculativeModel.GetSymbolInfo(speculatedTypeSyntax).Symbol;
+            ISymbol symbol = speculativeModel.GetSymbolInfo(speculatedTypeSyntax).Symbol;
             Assert.NotNull(symbol);
             Assert.Equal(expectedSymbolKind, symbol.Kind);
             Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString());
 
-            var typeSymbol = speculativeModel.GetTypeInfo(speculatedTypeSyntax).Type;
+            ITypeSymbol typeSymbol = speculativeModel.GetTypeInfo(speculatedTypeSyntax).Type;
             Assert.NotNull(symbol);
             Assert.Equal(expectedSymbolKind, symbol.Kind);
             Assert.Equal(expectedTypeDisplayString, symbol.ToDisplayString());
 
             if (speculatedTypeSyntax.Kind() == SyntaxKind.QualifiedName)
             {
-                var right = ((QualifiedNameSyntax)speculatedTypeSyntax).Right;
+                SimpleNameSyntax right = ((QualifiedNameSyntax)speculatedTypeSyntax).Right;
 
                 symbol = speculativeModel.GetSymbolInfo(right).Symbol;
                 Assert.NotNull(symbol);
@@ -2564,7 +2564,7 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForMethodBody_SwitchStatement()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using System;
 
 class C 
@@ -2581,11 +2581,11 @@ class C
 }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var blockStatement = (BlockSyntax)SyntaxFactory.ParseStatement(@"{
     switch(x)
@@ -2596,7 +2596,7 @@ class C
     }
 }");
 
-            var speculatedMethod = methodDecl.ReplaceNode(methodDecl.Body, blockStatement);
+            MethodDeclarationSyntax speculatedMethod = methodDecl.ReplaceNode(methodDecl.Body, blockStatement);
             blockStatement = speculatedMethod.Body;
             var switchStatement = (SwitchStatementSyntax)blockStatement.Statements[0];
 
@@ -2607,7 +2607,7 @@ class C
 
             var switchLabel = switchStatement.Sections[0].Labels[0] as CaseSwitchLabelSyntax;
             Assert.NotNull(switchLabel);
-            var constantVal = speculativeModel.GetConstantValue(switchLabel.Value);
+            Optional<object> constantVal = speculativeModel.GetConstantValue(switchLabel.Value);
             Assert.True(constantVal.HasValue);
             Assert.Equal(1, constantVal.Value);
         }
@@ -2615,14 +2615,14 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForTypeSyntax_InGlobalUsing()
         {
-            var compilation = CreateCompilation(@"using System.Runtime;");
+            CSharpCompilation compilation = CreateCompilation(@"using System.Runtime;");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
-            var usingStatement = root.Usings[0];
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            UsingDirectiveSyntax usingStatement = root.Usings[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var speculatedUsingExpression = SyntaxFactory.ParseName("System.Collections");
+            NameSyntax speculatedUsingExpression = SyntaxFactory.ParseName("System.Collections");
             TestGetSpeculativeSemanticModelForTypeSyntax_Common(model, usingStatement.Name.Position,
                 speculatedUsingExpression, SpeculativeBindingOption.BindAsTypeOrNamespace, SymbolKind.Namespace, "System.Collections");
         }
@@ -2630,14 +2630,14 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForTypeSyntax_InGlobalAlias()
         {
-            var compilation = CreateCompilation(@"using A = System.Exception;");
+            CSharpCompilation compilation = CreateCompilation(@"using A = System.Exception;");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
-            var usingStatement = root.Usings[0];
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            UsingDirectiveSyntax usingStatement = root.Usings[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var speculatedUsingExpression = SyntaxFactory.ParseName("System.ArgumentException");
+            NameSyntax speculatedUsingExpression = SyntaxFactory.ParseName("System.ArgumentException");
             TestGetSpeculativeSemanticModelForTypeSyntax_Common(model, usingStatement.Name.Position,
                 speculatedUsingExpression, SpeculativeBindingOption.BindAsExpression, SymbolKind.NamedType, "System.ArgumentException");
         }
@@ -2645,19 +2645,19 @@ class C
         [Fact]
         public void TestGetSpeculativeSemanticModelForTypeSyntax_InBaseList()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class MyException : System.Exception
 {
 }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
-            var baseList = typeDecl.BaseList;
-            var model = compilation.GetSemanticModel(tree);
+            BaseListSyntax baseList = typeDecl.BaseList;
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var speculatedTypeExpression = SyntaxFactory.ParseName("System.ArgumentException");
+            NameSyntax speculatedTypeExpression = SyntaxFactory.ParseName("System.ArgumentException");
             TestGetSpeculativeSemanticModelForTypeSyntax_Common(model, baseList.SpanStart,
                 speculatedTypeExpression, SpeculativeBindingOption.BindAsTypeOrNamespace, SymbolKind.NamedType, "System.ArgumentException");
         }
@@ -2665,7 +2665,7 @@ class MyException : System.Exception
         [Fact]
         public void TestGetSpeculativeSemanticModelForTypeSyntax_InMemberDeclaration()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 class Program
 {
     System.Exception field = null;
@@ -2676,14 +2676,14 @@ class Program
 }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var fieldDecl = (FieldDeclarationSyntax)typeDecl.Members[0];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[1];
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var speculatedTypeExpression = SyntaxFactory.ParseName("System.ArgumentException");
+            NameSyntax speculatedTypeExpression = SyntaxFactory.ParseName("System.ArgumentException");
             TestGetSpeculativeSemanticModelForTypeSyntax_Common(model, fieldDecl.SpanStart,
                 speculatedTypeExpression, SpeculativeBindingOption.BindAsTypeOrNamespace, SymbolKind.NamedType, "System.ArgumentException");
 
@@ -2697,7 +2697,7 @@ class Program
         [Fact]
         public void TestGetSpeculativeSemanticModelForTypeSyntax_AliasName()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using A = System.ArgumentException;
 
 class Program
@@ -2706,13 +2706,13 @@ class Program
 }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var fieldDecl = (FieldDeclarationSyntax)typeDecl.Members[0];
-            var model = compilation.GetSemanticModel(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var speculatedAliasName = SyntaxFactory.ParseName("A");
+            NameSyntax speculatedAliasName = SyntaxFactory.ParseName("A");
 
             SemanticModel speculativeModel;
             var success = model.TryGetSpeculativeSemanticModel(fieldDecl.SpanStart, speculatedAliasName, out speculativeModel);
@@ -2728,20 +2728,20 @@ class Program
         [Fact]
         public void TestGetSpeculativeSemanticModelForTypeCrefSyntax()
         {
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"
 /// <summary>
 /// <see cref=""int""/>
 /// </summary>
 class A { }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
-            var cref = typeDecl.DescendantNodes(descendIntoTrivia: true).OfType<TypeCrefSyntax>().Single();
+            TypeCrefSyntax cref = typeDecl.DescendantNodes(descendIntoTrivia: true).OfType<TypeCrefSyntax>().Single();
 
             var model = (CSharpSemanticModel)compilation.GetSemanticModel(tree);
-            var symbol = model.GetSymbolInfo(cref.Type).Symbol;
+            ISymbol symbol = model.GetSymbolInfo(cref.Type).Symbol;
             Assert.NotNull(symbol);
             Assert.Equal("int", symbol.ToDisplayString());
 
@@ -2768,20 +2768,20 @@ class A { }
         [Fact]
         public void TestGetSpeculativeSemanticModelForNameMemberCrefSyntax()
         {
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"
 /// <summary>
 /// <see cref=""int""/>
 /// </summary>
 class A { }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
-            var cref = typeDecl.DescendantNodes(descendIntoTrivia: true).OfType<TypeCrefSyntax>().Single();
+            TypeCrefSyntax cref = typeDecl.DescendantNodes(descendIntoTrivia: true).OfType<TypeCrefSyntax>().Single();
 
             var model = (CSharpSemanticModel)compilation.GetSemanticModel(tree);
-            var symbol = model.GetSymbolInfo(cref.Type).Symbol;
+            ISymbol symbol = model.GetSymbolInfo(cref.Type).Symbol;
             Assert.NotNull(symbol);
             Assert.Equal("int", symbol.ToDisplayString());
 
@@ -2808,7 +2808,7 @@ class A { }
         [Fact]
         public void TestGetSpeculativeSemanticModelForQualifiedCrefSyntax()
         {
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"
 /// <summary>
 /// <see cref=""int""/>
 /// </summary>
@@ -2820,13 +2820,13 @@ class A
 }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
-            var cref = typeDecl.DescendantNodes(descendIntoTrivia: true).OfType<TypeCrefSyntax>().Single();
+            TypeCrefSyntax cref = typeDecl.DescendantNodes(descendIntoTrivia: true).OfType<TypeCrefSyntax>().Single();
 
             var model = (CSharpSemanticModel)compilation.GetSemanticModel(tree);
-            var symbol = model.GetSymbolInfo(cref.Type).Symbol;
+            ISymbol symbol = model.GetSymbolInfo(cref.Type).Symbol;
             Assert.NotNull(symbol);
             Assert.Equal("int", symbol.ToDisplayString());
 
@@ -2891,7 +2891,7 @@ class A
         [Fact]
         public void TestGetSpeculativeSemanticModelForCrefSyntax_InvalidPosition()
         {
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndDocumentationComments(@"
 /// <summary>
 /// <see cref=""int""/>
 /// </summary>
@@ -2901,8 +2901,8 @@ class A
 }
 ");
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var typeDecl = (TypeDeclarationSyntax)root.Members[0];
             var methodDecl = (MethodDeclarationSyntax)typeDecl.Members[0];
             var model = (CSharpSemanticModel)compilation.GetSemanticModel(tree);
@@ -2918,7 +2918,7 @@ class A
             Assert.False(success);
 
             // GetSpeculativeSymbolInfo
-            var symbolInfo = model.GetSpeculativeSymbolInfo(methodDecl.Body.SpanStart, speculatedCref);
+            SymbolInfo symbolInfo = model.GetSpeculativeSymbolInfo(methodDecl.Body.SpanStart, speculatedCref);
             Assert.Null(symbolInfo.Symbol);
         }
 
@@ -2940,15 +2940,15 @@ public class C
 }
 ";
 
-            var comp = CreateCompilation(source);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateCompilation(source);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var syntax = tree.GetRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single().
+            IdentifierNameSyntax syntax = tree.GetRoot().DescendantNodes().OfType<SimpleLambdaExpressionSyntax>().Single().
                 Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().Single();
             Assert.Equal("x", syntax.Identifier.ValueText);
 
-            var symbol = model.GetSymbolInfo(syntax).Symbol;
+            ISymbol symbol = model.GetSymbolInfo(syntax).Symbol;
             Assert.Equal(SymbolKind.Parameter, symbol.Kind);
             Assert.Equal("x", symbol.Name);
             Assert.Equal(TypeKind.Error, ((ParameterSymbol)symbol).Type.TypeKind);
@@ -2968,11 +2968,11 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             var position = source.IndexOf("return", StringComparison.Ordinal);
             var yieldStatement = (YieldStatementSyntax)SyntaxFactory.ParseStatement("yield return 1;");
@@ -2982,7 +2982,7 @@ class C
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var info = speculativeModel.GetTypeInfo(yieldStatement.Expression);
+            TypeInfo info = speculativeModel.GetTypeInfo(yieldStatement.Expression);
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
             Assert.Equal(TypeKind.Error, info.ConvertedType.TypeKind);
         }
@@ -3003,11 +3003,11 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             var position = source.IndexOf("return", StringComparison.Ordinal);
             var yieldStatement = (YieldStatementSyntax)SyntaxFactory.ParseStatement("yield return 1;");
@@ -3017,7 +3017,7 @@ class C
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var info = speculativeModel.GetTypeInfo(yieldStatement.Expression);
+            TypeInfo info = speculativeModel.GetTypeInfo(yieldStatement.Expression);
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
             Assert.Equal(SpecialType.System_Int64, info.ConvertedType.SpecialType);
         }
@@ -3033,22 +3033,22 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             var position = source.IndexOf("int", StringComparison.Ordinal);
-            var typeSyntax = SyntaxFactory.ParseTypeName("System.Collections.Generic.IEnumerable<C[]>");
+            TypeSyntax typeSyntax = SyntaxFactory.ParseTypeName("System.Collections.Generic.IEnumerable<C[]>");
 
             SemanticModel speculativeModel;
             var success = model.TryGetSpeculativeSemanticModel(position, typeSyntax, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var omittedArraySize = typeSyntax.DescendantNodes().OfType<OmittedArraySizeExpressionSyntax>().Single();
-            var info = speculativeModel.GetSymbolInfo(omittedArraySize); // Used to throw NRE.
+            OmittedArraySizeExpressionSyntax omittedArraySize = typeSyntax.DescendantNodes().OfType<OmittedArraySizeExpressionSyntax>().Single();
+            SymbolInfo info = speculativeModel.GetSymbolInfo(omittedArraySize); // Used to throw NRE.
             Assert.Null(info.Symbol);
             Assert.Equal(CandidateReason.None, info.CandidateReason);
             Assert.Equal(0, info.CandidateSymbols.Length);
@@ -3070,26 +3070,26 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var method1 = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
-            var info1 = model.GetSymbolInfo(method1);
+            ExpressionSyntax method1 = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            SymbolInfo info1 = model.GetSymbolInfo(method1);
             Assert.NotNull(info1.Symbol);
 
             var position = source.IndexOf("TakesOut", StringComparison.Ordinal);
-            var statementSyntax = SyntaxFactory.ParseStatement("TakesOut(out int x);");
+            StatementSyntax statementSyntax = SyntaxFactory.ParseStatement("TakesOut(out int x);");
 
             SemanticModel speculativeModel;
             var success = model.TryGetSpeculativeSemanticModel(position, statementSyntax, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var method2 = statementSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
-            var info2 = speculativeModel.GetSymbolInfo(method2);
+            ExpressionSyntax method2 = statementSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            SymbolInfo info2 = speculativeModel.GetSymbolInfo(method2);
             Assert.NotNull(info2.Symbol);
 
             Assert.Equal(info1.Symbol, info2.Symbol);
@@ -3111,26 +3111,26 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var method1 = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
-            var info1 = model.GetSymbolInfo(method1);
+            ExpressionSyntax method1 = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            SymbolInfo info1 = model.GetSymbolInfo(method1);
             Assert.NotNull(info1.Symbol);
 
             var position = source.IndexOf("TakesOut", StringComparison.Ordinal);
-            var statementSyntax = SyntaxFactory.ParseStatement("TakesOut(out int x);");
+            StatementSyntax statementSyntax = SyntaxFactory.ParseStatement("TakesOut(out int x);");
 
             SemanticModel speculativeModel;
             var success = model.TryGetSpeculativeSemanticModel(position, statementSyntax, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var method2 = statementSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
-            var info2 = speculativeModel.GetSymbolInfo(method2);
+            ExpressionSyntax method2 = statementSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            SymbolInfo info2 = speculativeModel.GetSymbolInfo(method2);
             Assert.NotNull(info2.Symbol);
 
             Assert.Equal(info1.Symbol, info2.Symbol);
@@ -3152,19 +3152,19 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var method1 = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
-            var info1 = model.GetSymbolInfo(method1);
+            ExpressionSyntax method1 = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            SymbolInfo info1 = model.GetSymbolInfo(method1);
             Assert.NotNull(info1.Symbol);
 
             var position = source.IndexOf("TakesOut", StringComparison.Ordinal);
-            var statementSyntax = SyntaxFactory.ParseExpression("TakesOut(out int x)");
-            var info2 = model.GetSpeculativeSymbolInfo(position, statementSyntax, SpeculativeBindingOption.BindAsExpression);
+            ExpressionSyntax statementSyntax = SyntaxFactory.ParseExpression("TakesOut(out int x)");
+            SymbolInfo info2 = model.GetSpeculativeSymbolInfo(position, statementSyntax, SpeculativeBindingOption.BindAsExpression);
             Assert.NotNull(info2.Symbol);
 
             Assert.Equal(info1.Symbol, info2.Symbol);
@@ -3186,18 +3186,18 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var method1 = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
-            var info1 = model.GetSymbolInfo(method1);
+            ExpressionSyntax method1 = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            SymbolInfo info1 = model.GetSymbolInfo(method1);
             Assert.NotNull(info1.Symbol);
 
             var position = source.IndexOf("TakesOut", StringComparison.Ordinal);
-            var statementSyntax = SyntaxFactory.ParseStatement("{ TakesOut(out int x); }");
+            StatementSyntax statementSyntax = SyntaxFactory.ParseStatement("{ TakesOut(out int x); }");
             statementSyntax = ((BlockSyntax)statementSyntax).Statements[0];
 
             SemanticModel speculativeModel;
@@ -3205,8 +3205,8 @@ class C
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var method2 = statementSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
-            var info2 = speculativeModel.GetSymbolInfo(method2);
+            ExpressionSyntax method2 = statementSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            SymbolInfo info2 = speculativeModel.GetSymbolInfo(method2);
             Assert.NotNull(info2.Symbol);
 
             Assert.Equal(info1.Symbol, info2.Symbol);
@@ -3228,26 +3228,26 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var method1 = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
-            var info1 = model.GetSymbolInfo(method1);
+            ExpressionSyntax method1 = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            SymbolInfo info1 = model.GetSymbolInfo(method1);
             Assert.NotNull(info1.Symbol);
 
             var position = source.IndexOf("Method", StringComparison.Ordinal);
-            var statementSyntax = SyntaxFactory.ParseStatement("Method(o is string s);");
+            StatementSyntax statementSyntax = SyntaxFactory.ParseStatement("Method(o is string s);");
 
             SemanticModel speculativeModel;
             var success = model.TryGetSpeculativeSemanticModel(position, statementSyntax, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var method2 = statementSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
-            var info2 = speculativeModel.GetSymbolInfo(method2);
+            ExpressionSyntax method2 = statementSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            SymbolInfo info2 = speculativeModel.GetSymbolInfo(method2);
             Assert.NotNull(info2.Symbol);
 
             Assert.Equal(info1.Symbol, info2.Symbol);
@@ -3269,26 +3269,26 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var method1 = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
-            var info1 = model.GetSymbolInfo(method1);
+            ExpressionSyntax method1 = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            SymbolInfo info1 = model.GetSymbolInfo(method1);
             Assert.NotNull(info1.Symbol);
 
             var position = source.IndexOf("Method", StringComparison.Ordinal);
-            var statementSyntax = SyntaxFactory.ParseStatement("Method(o is string s);");
+            StatementSyntax statementSyntax = SyntaxFactory.ParseStatement("Method(o is string s);");
 
             SemanticModel speculativeModel;
             var success = model.TryGetSpeculativeSemanticModel(position, statementSyntax, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var method2 = statementSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
-            var info2 = speculativeModel.GetSymbolInfo(method2);
+            ExpressionSyntax method2 = statementSyntax.DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            SymbolInfo info2 = speculativeModel.GetSymbolInfo(method2);
             Assert.NotNull(info2.Symbol);
 
             Assert.Equal(info1.Symbol, info2.Symbol);
@@ -3310,19 +3310,19 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndDocumentationComments(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var method1 = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
-            var info1 = model.GetSymbolInfo(method1);
+            ExpressionSyntax method1 = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single().Expression;
+            SymbolInfo info1 = model.GetSymbolInfo(method1);
             Assert.NotNull(info1.Symbol);
 
             var position = source.IndexOf("Method", StringComparison.Ordinal);
-            var statementSyntax = SyntaxFactory.ParseExpression("Method(o is string s)");
-            var info2 = model.GetSpeculativeSymbolInfo(position, statementSyntax, SpeculativeBindingOption.BindAsExpression);
+            ExpressionSyntax statementSyntax = SyntaxFactory.ParseExpression("Method(o is string s)");
+            SymbolInfo info2 = model.GetSpeculativeSymbolInfo(position, statementSyntax, SpeculativeBindingOption.BindAsExpression);
             Assert.NotNull(info2.Symbol);
 
             Assert.Equal(info1.Symbol, info2.Symbol);
@@ -3336,15 +3336,15 @@ class C
             var source =
 @"using System;
 class C { }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var position = tree.GetText().ToString().IndexOf("class C {", StringComparison.Ordinal);
-            var attr2 = ParseAttributeSyntax("[ObsoleteAttribute(string.Empty is string s ? s : string.Empty)]");
+            AttributeSyntax attr2 = ParseAttributeSyntax("[ObsoleteAttribute(string.Empty is string s ? s : string.Empty)]");
 
-            var symbolInfo = model.GetSpeculativeSymbolInfo(position, attr2);
+            SymbolInfo symbolInfo = model.GetSpeculativeSymbolInfo(position, attr2);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.Symbol.ToTestDisplayString());
         }
@@ -3357,17 +3357,17 @@ class C { }";
             var source =
 @"using System;
 class C { }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
             var position = tree.GetText().ToString().IndexOf("class C {", StringComparison.Ordinal);
-            var attr2 = ParseAttributeSyntax("[ObsoleteAttribute(string.Empty is string s ? s : string.Empty)]");
+            AttributeSyntax attr2 = ParseAttributeSyntax("[ObsoleteAttribute(string.Empty is string s ? s : string.Empty)]");
             SemanticModel model2;
             model.TryGetSpeculativeSemanticModel(position, attr2, out model2);
 
-            var symbolInfo = model2.GetSymbolInfo(attr2);
+            SymbolInfo symbolInfo = model2.GetSymbolInfo(attr2);
             Assert.Equal(CandidateReason.None, symbolInfo.CandidateReason);
             Assert.Equal("System.ObsoleteAttribute..ctor(System.String message)", symbolInfo.Symbol.ToTestDisplayString());
         }
@@ -3395,28 +3395,28 @@ struct S
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             var position = source.IndexOf("struct", StringComparison.Ordinal);
-            var attributeSyntax = SyntaxFactory.Attribute(SyntaxFactory.IdentifierName("Category"));
+            AttributeSyntax attributeSyntax = SyntaxFactory.Attribute(SyntaxFactory.IdentifierName("Category"));
 
             SemanticModel speculativeModel;
             var success = model.TryGetSpeculativeSemanticModel(position, attributeSyntax, out speculativeModel);
             Assert.True(success);
             Assert.NotNull(speculativeModel);
 
-            var info = speculativeModel.GetSymbolInfo(attributeSyntax.Name);
+            SymbolInfo info = speculativeModel.GetSymbolInfo(attributeSyntax.Name);
         }
 
         [WorkItem(1015557, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1015557")]
         [Fact(Skip = "1015557")]
         public void GetSpeculativeSymbolInfoForGenericNameInCref()
         {
-            var tree = CSharpSyntaxTree.ParseText(@"using System.Collections.Generic;
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(@"using System.Collections.Generic;
 class Program
 {
     /// <summary>
@@ -3426,20 +3426,20 @@ class Program
     {
     }
 }", CSharpParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose));
-            var compilation = CreateCompilation(tree);
-            var root = tree.GetCompilationUnitRoot();
-            var crefSyntax = root.DescendantNodes(descendIntoTrivia: true).OfType<QualifiedCrefSyntax>().Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilation(tree);
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            QualifiedCrefSyntax crefSyntax = root.DescendantNodes(descendIntoTrivia: true).OfType<QualifiedCrefSyntax>().Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var symbolInfo = semanticModel.GetSymbolInfo(crefSyntax.FindNode(new TextSpan(91, 34)));
-            var oldSymbol = symbolInfo.Symbol;
+            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(crefSyntax.FindNode(new TextSpan(91, 34)));
+            ISymbol oldSymbol = symbolInfo.Symbol;
             Assert.NotNull(oldSymbol);
             Assert.Equal(SymbolKind.NamedType, oldSymbol.Kind);
             Assert.Equal("System.Collections.Generic.List<T>", oldSymbol.ToTestDisplayString());
 
             var speculatedName = (GenericNameSyntax)SyntaxFactory.GenericName("List{T}");
-            var speculativeSymbolInfo = semanticModel.GetSpeculativeSymbolInfo(crefSyntax.SpanStart, speculatedName, SpeculativeBindingOption.BindAsExpression);
-            var newSymbol = speculativeSymbolInfo.Symbol;
+            SymbolInfo speculativeSymbolInfo = semanticModel.GetSpeculativeSymbolInfo(crefSyntax.SpanStart, speculatedName, SpeculativeBindingOption.BindAsExpression);
+            ISymbol newSymbol = speculativeSymbolInfo.Symbol;
             Assert.NotNull(newSymbol);
             Assert.Equal(SymbolKind.NamedType, newSymbol.Kind);
             Assert.Equal("System.Collections.Generic.List<T>", newSymbol.ToTestDisplayString());
@@ -3553,28 +3553,28 @@ class Derived : Test
 
         private static void CheckLambdaArgumentInBadCall(string source)
         {
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
 
-            var tree = comp.SyntaxTrees.Single();
+            SyntaxTree tree = comp.SyntaxTrees.Single();
             Assert.NotEmpty(tree.GetDiagnostics());
 
-            var memberAccess = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
+            MemberAccessExpressionSyntax memberAccess = tree.GetRoot().DescendantNodes().OfType<MemberAccessExpressionSyntax>().Single();
             var identifier = (IdentifierNameSyntax)memberAccess.Expression;
             Assert.Equal("s", identifier.Identifier.ValueText);
 
-            var stringType = comp.GetSpecialType(SpecialType.System_String);
-            var actionType = comp.GetWellKnownType(WellKnownType.System_Action_T).Construct(stringType);
+            NamedTypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+            NamedTypeSymbol actionType = comp.GetWellKnownType(WellKnownType.System_Action_T).Construct(stringType);
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             // Can't walk up to ArgumentListSyntax because indexers use BracketedArgumentListSyntax.
-            var expr = identifier.FirstAncestorOrSelf<ArgumentSyntax>().Parent.Parent;
+            CSharpSyntaxNode expr = identifier.FirstAncestorOrSelf<ArgumentSyntax>().Parent.Parent;
 
-            var exprInfo = model.GetSymbolInfo(expr);
-            var firstParamType = ((Symbol)exprInfo.CandidateSymbols.Single()).GetParameterTypes().First();
+            SymbolInfo exprInfo = model.GetSymbolInfo(expr);
+            TypeSymbol firstParamType = ((Symbol)exprInfo.CandidateSymbols.Single()).GetParameterTypes().First();
             Assert.Equal(actionType, firstParamType);
 
-            var identifierInfo = model.GetTypeInfo(identifier);
+            TypeInfo identifierInfo = model.GetTypeInfo(identifier);
             Assert.Equal(stringType, identifierInfo.Type);
             Assert.Equal(stringType, identifierInfo.ConvertedType);
         }
@@ -3593,17 +3593,17 @@ static class Extensions
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
 
-            var extensionMethod = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Extensions").GetMember<MethodSymbol>("ToString");
+            MethodSymbol extensionMethod = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Extensions").GetMember<MethodSymbol>("ToString");
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            InvocationExpressionSyntax callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 
-            var memberGroup = model.GetMemberGroup(callSyntax.Expression);
+            ImmutableArray<ISymbol> memberGroup = model.GetMemberGroup(callSyntax.Expression);
             Assert.Contains(extensionMethod.ReduceExtensionMethod(), memberGroup);
         }
 
@@ -3623,14 +3623,14 @@ class C
 
 ";
 
-            var libRef = CreateCompilation("", assemblyName: "lib").EmitToImageReference(aliases: ImmutableArray.Create("Alias"));
-            var comp = CreateCompilation(source, new[] { libRef });
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            MetadataReference libRef = CreateCompilation("", assemblyName: "lib").EmitToImageReference(aliases: ImmutableArray.Create("Alias"));
+            CSharpCompilation comp = CreateCompilation(source, new[] { libRef });
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var syntax = tree.GetRoot().DescendantNodes().OfType<AliasQualifiedNameSyntax>().Single();
+            AliasQualifiedNameSyntax syntax = tree.GetRoot().DescendantNodes().OfType<AliasQualifiedNameSyntax>().Single();
 
-            var symbol = model.LookupSymbols(syntax.SpanStart, name: "Alias").Single();
+            ISymbol symbol = model.LookupSymbols(syntax.SpanStart, name: "Alias").Single();
             Assert.Equal("Alias", symbol.Name);
             Assert.Equal(SymbolKind.Alias, symbol.Kind);
 
@@ -3661,31 +3661,31 @@ static class Program
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
-            var init0 = method.Body.Statements[0].DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
-            var value0 = model.GetConstantValue(init0);
-            var typeInfo0 = model.GetTypeInfo(init0);
+            MethodDeclarationSyntax method = tree.GetRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().Single();
+            ExpressionSyntax init0 = method.Body.Statements[0].DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
+            Optional<object> value0 = model.GetConstantValue(init0);
+            TypeInfo typeInfo0 = model.GetTypeInfo(init0);
             Assert.True(value0.HasValue);
             Assert.Equal(-1, (short)value0.Value);
             Assert.True(typeInfo0.Type != null && typeInfo0.Type.SpecialType == SpecialType.System_Int16);
 
             // The CodePlex bug indicates this should return a constant value of 5.  While 'case2' should 
             // have that value it is not constant because of the nullable cast
-            var init1 = method.Body.Statements[2].DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
-            var value1 = model.GetConstantValue(init1);
-            var typeInfo1 = model.GetTypeInfo(init1);
-            var type1 = comp.GetSpecialType(SpecialType.System_Nullable_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            ExpressionSyntax init1 = method.Body.Statements[2].DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
+            Optional<object> value1 = model.GetConstantValue(init1);
+            TypeInfo typeInfo1 = model.GetTypeInfo(init1);
+            NamedTypeSymbol type1 = comp.GetSpecialType(SpecialType.System_Nullable_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
             Assert.False(value1.HasValue);
             Assert.True(typeInfo1.Type != null && typeInfo1.Type.Equals(type1));
 
-            var init2 = method.Body.Statements[4].DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
-            var value2 = model.GetConstantValue(init2);
-            var typeInfo2 = model.GetTypeInfo(init2);
-            var type2 = comp.GetSpecialType(SpecialType.System_Nullable_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            ExpressionSyntax init2 = method.Body.Statements[4].DescendantNodes().OfType<VariableDeclaratorSyntax>().Single().Initializer.Value;
+            Optional<object> value2 = model.GetConstantValue(init2);
+            TypeInfo typeInfo2 = model.GetTypeInfo(init2);
+            NamedTypeSymbol type2 = comp.GetSpecialType(SpecialType.System_Nullable_T).Construct(comp.GetSpecialType(SpecialType.System_Int32));
             Assert.False(value2.HasValue);
             Assert.True(typeInfo2.Type != null && typeInfo2.Type.Equals(type2));
 
@@ -3782,11 +3782,11 @@ class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
-            var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
-            for (var match = System.Text.RegularExpressions.Regex.Match(source, " => x"); match.Success; match = match.NextMatch())
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            SemanticModel model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+            for (System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(source, " => x"); match.Success; match = match.NextMatch())
             {
-                var discarded = model.GetEnclosingSymbol(match.Index);
+                ISymbol discarded = model.GetEnclosingSymbol(match.Index);
             }
         }
 
@@ -3809,14 +3809,14 @@ class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
-            for (var match = System.Text.RegularExpressions.Regex.Match(source, " => x"); match.Success; match = match.NextMatch())
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            for (System.Text.RegularExpressions.Match match = System.Text.RegularExpressions.Regex.Match(source, " => x"); match.Success; match = match.NextMatch())
             {
-                var x = tree.GetRoot().FindToken(match.Index + 4).Parent;
-                var discarded = model.GetEnclosingSymbol(match.Index);
-                var disc = model.GetSymbolInfo(x);
+                SyntaxNode x = tree.GetRoot().FindToken(match.Index + 4).Parent;
+                ISymbol discarded = model.GetEnclosingSymbol(match.Index);
+                SymbolInfo disc = model.GetSymbolInfo(x);
             }
         }
 
@@ -3838,10 +3838,10 @@ class C
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
-            var model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
-            var discarded1 = model.GetEnclosingSymbol(source.LastIndexOf(" => x"));
-            var discarded2 = model.GetEnclosingSymbol(source.IndexOf(" => x"));
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndDocumentationComments(source);
+            SemanticModel model = compilation.GetSemanticModel(compilation.SyntaxTrees.Single());
+            ISymbol discarded1 = model.GetEnclosingSymbol(source.LastIndexOf(" => x"));
+            ISymbol discarded2 = model.GetEnclosingSymbol(source.IndexOf(" => x"));
         }
 
         [WorkItem(976, "https://github.com/dotnet/roslyn/issues/976")]
@@ -3858,10 +3858,10 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            foreach (var interp in tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>())
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            foreach (InterpolatedStringExpressionSyntax interp in tree.GetRoot().DescendantNodes().OfType<InterpolatedStringExpressionSyntax>())
             {
                 Assert.False(model.GetConstantValue(interp).HasValue);
             }
@@ -3882,12 +3882,12 @@ using System.Dynamic;
         }   
      }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            var typeSyntax = SyntaxFactory.ParseTypeName("dynamic");
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            TypeSyntax typeSyntax = SyntaxFactory.ParseTypeName("dynamic");
             int spanStart = source.IndexOf("dynamic a = 5;");
-            var dynamicType = model.GetSpeculativeTypeInfo(spanStart, typeSyntax, SpeculativeBindingOption.BindAsTypeOrNamespace);
+            TypeInfo dynamicType = model.GetSpeculativeTypeInfo(spanStart, typeSyntax, SpeculativeBindingOption.BindAsTypeOrNamespace);
             Assert.Equal(TypeKind.Dynamic, dynamicType.Type.TypeKind);
         }
 
@@ -3922,18 +3922,18 @@ namespace N
 {
     // in N
 }";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
+            CSharpCompilation compilation = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
             compilation.GetDiagnostics().Where(d => d.Severity == DiagnosticSeverity.Error).Verify();
 
-            var tree = compilation.SyntaxTrees[0];
+            SyntaxTree tree = compilation.SyntaxTrees[0];
             var text = tree.GetText().ToString();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
             int positionInB = text.IndexOf("in B class level");
             int positionInBGoo = text.IndexOf("in B.Goo");
             int positionInCGoo = text.IndexOf("in C.Goo");
             int positionInN = text.IndexOf("in N");
 
-            var globalNs = compilation.GlobalNamespace;
+            NamespaceSymbol globalNs = compilation.GlobalNamespace;
             var classA = (NamedTypeSymbol)globalNs.GetMembers("A").Single();
             var fieldX = (FieldSymbol)classA.GetMembers("X").Single();
             var fieldY = (FieldSymbol)classA.GetMembers("Y").Single();
@@ -3956,18 +3956,18 @@ namespace N
         #region "regression helper"
         private void Regression(string text)
         {
-            var tree = Parse(text);
-            var compilation = CreateCompilation(tree);
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation compilation = CreateCompilation(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
             var exprSynList = new List<ExpressionSyntax>();
             GetExpressionSyntax(tree.GetCompilationUnitRoot(), exprSynList);
 
             // Console.WriteLine("Roslyn Symbol Info: ");
-            foreach (var exprSyn in exprSynList)
+            foreach (ExpressionSyntax exprSyn in exprSynList)
             {
                 var expr = exprSyn.ToString();
                 // Console.WriteLine("Expression: " + expr);
-                var type = model.GetTypeInfo(exprSyn).Type;
+                ITypeSymbol type = model.GetTypeInfo(exprSyn).Type;
                 // Console.WriteLine("Type: " + type);
                 // Console.WriteLine();
             }
@@ -3977,7 +3977,7 @@ namespace N
             if (node is ExpressionSyntax)
                 exprSynList.Add(node as ExpressionSyntax);
 
-            foreach (var child in node.ChildNodesAndTokens())
+            foreach (SyntaxNodeOrToken child in node.ChildNodesAndTokens())
                 if (child.IsNode)
                     GetExpressionSyntax(child.AsNode(), exprSynList);
         }

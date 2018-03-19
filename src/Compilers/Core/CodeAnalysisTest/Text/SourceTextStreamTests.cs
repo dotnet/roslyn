@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Text
         {
             var baseText = "food time";
             var text = string.Format("{0}{1}", baseText, '\u2019');
-            var encoding = s_utf8NoBom;
+            Encoding encoding = s_utf8NoBom;
             var sourceText = SourceText.From(text, encoding);
             using (var stream = new SourceTextStream(sourceText, bufferSize: text.Length * 2))
             {

@@ -247,7 +247,7 @@ class Z
 }
 ";
 
-            var comp = CreateCompilation(source1 + source2);
+            CSharpCompilation comp = CreateCompilation(source1 + source2);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source1 + source3);
@@ -310,7 +310,7 @@ class Z
         MG((G)default(R?));
     }
 }";
-            var comp = CreateCompilation(implicitConversions + implicitConversionBadSuccess);
+            CSharpCompilation comp = CreateCompilation(implicitConversions + implicitConversionBadSuccess);
             comp.VerifyDiagnostics();
 
             // More cases where the specification says that the conversion should be bad, but
@@ -427,7 +427,7 @@ class C
     }
 }";
 
-            var comp = CreateCompilation(source1);
+            CSharpCompilation comp = CreateCompilation(source1);
             comp.VerifyDiagnostics(
                 // (18,13): error CS0457: Ambiguous user defined conversions 'B.implicit operator B(long)' and 'A.implicit operator A(int)' when converting from 'int' to 'B'
                 //         b = (B)1; 
@@ -477,7 +477,7 @@ class X<T> where T : Mammal
   }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,15): error CS0030: Cannot convert type 'T' to 'X<T>'
                 //     X<T> xt = (X<T>)t;
@@ -662,7 +662,7 @@ class Z
 ";
 
 
-            var comp = CreateCompilation(source1 + source3);
+            CSharpCompilation comp = CreateCompilation(source1 + source3);
             comp.VerifyDiagnostics();
 
             comp = CreateCompilation(source2 + source3);
@@ -1143,14 +1143,14 @@ unsafe class P
             string source5 = "}}";
 
             // All of the cases above should pass semantic analysis:
-            var comp = CreateCompilation(source1 + source2 + source3 + source4 + source5, options: TestOptions.UnsafeReleaseDll);
+            CSharpCompilation comp = CreateCompilation(source1 + source2 + source3 + source4 + source5, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics();
 
             // However, we have not yet implemented lowering and code generation for decimal,
             // lifted operators, nullable conversions and unsafe code so only generate code for
             // the straightforward intptr/number conversions:
 
-            var verifier = CompileAndVerify(source: source1 + source3 + source5, options: TestOptions.UnsafeReleaseExe, expectedOutput: "");
+            CompilationVerifier verifier = CompileAndVerify(source: source1 + source3 + source5, options: TestOptions.UnsafeReleaseExe, expectedOutput: "");
         }
 
         [Fact, WorkItem(543427, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543427")]
@@ -1177,7 +1177,7 @@ class A
         return null;
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,15): error CS0457: Ambiguous user defined conversions 'A.implicit operator A(ulong)' and 'A.implicit operator A(long)' when converting from 'int' to 'A'
                 Diagnostic(ErrorCode.ERR_AmbigUDConv, "1").WithArguments("A.implicit operator A(ulong)", "A.implicit operator A(long)", "int", "A"));
@@ -1240,7 +1240,7 @@ class A
 
             CompileAndVerify(source1, expectedOutput: "A5A5A6A7A7A7A6A5A5");
 
-            var comp = CreateCompilation(source2);
+            CSharpCompilation comp = CreateCompilation(source2);
             comp.VerifyDiagnostics(
 // (13,9): error CS0029: Cannot implicitly convert type 'int' to 'A'
 //         a++;
@@ -1278,7 +1278,7 @@ class D<T> : C<T>
 }";
 
 
-            var verifier = CompileAndVerify(source, expectedOutput: "23");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "23");
         }
 
         [Fact, WorkItem(543436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543436")]
@@ -1304,7 +1304,7 @@ class C
     }
 }";
 
-            var verifier = CompileAndVerify(source, expectedOutput: "a");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "a");
         }
 
         [Fact, WorkItem(543439, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543439")]
@@ -1337,7 +1337,7 @@ struct C
         System.Console.WriteLine(c.str);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "b");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "b");
         }
 
         [Fact, WorkItem(543440, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543440")]
@@ -1363,7 +1363,7 @@ class C
         return c;
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "1");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "1");
         }
 
         [Fact, WorkItem(543441, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543441")]
@@ -1403,7 +1403,7 @@ class C
         }
  ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(// (7,17): error CS0121: The call is ambiguous between the following methods or properties: 'Program.Goo(B)' and 'Program.Goo(C)'
                                    //                 Goo(x);
                                    Diagnostic(ErrorCode.ERR_AmbigCall, "Goo").WithArguments("Program.Goo(B)", "Program.Goo(C)"));
@@ -1433,7 +1433,7 @@ class C
     }
 }";
 
-            var verifier = CompileAndVerify(source, expectedOutput: "a");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "a");
         }
 
         [Fact, WorkItem(543595, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543595")]
@@ -1462,10 +1462,10 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(source1);
+            CSharpCompilation comp = CreateCompilation(source1);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(source: source1, expectedOutput: "");
+            CompilationVerifier verifier = CompileAndVerify(source: source1, expectedOutput: "");
         }
 
         [Fact, WorkItem(543598, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543598")]

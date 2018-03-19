@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 sessionKeyOpt = sessionKeyOpt ?? GetSessionKey(buildPaths);
                 var libDirectory = Environment.GetEnvironmentVariable("LIB");
-                var serverResult = RunServerCompilation(textWriter, parsedArgs, buildPaths, libDirectory, sessionKeyOpt, keepAliveOpt);
+                RunCompilationResult? serverResult = RunServerCompilation(textWriter, parsedArgs, buildPaths, libDirectory, sessionKeyOpt, keepAliveOpt);
                 if (serverResult.HasValue)
                 {
                     Debug.Assert(serverResult.Value.RanOnServer);
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                     "RoslynCompiler",
                     "ProfileOptimization");
-                var assemblyName = Assembly.GetExecutingAssembly().GetName();
+                AssemblyName assemblyName = Assembly.GetExecutingAssembly().GetName();
                 var profileName = assemblyName.Name + assemblyName.Version + ".profile";
                 Directory.CreateDirectory(profileRoot);
 #if NET46
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             {
                 try
                 {
-                    var result = RunCompilation(originalArguments, buildPaths, textWriter);
+                    RunCompilationResult result = RunCompilation(originalArguments, buildPaths, textWriter);
                     tcs.SetResult(result);
                 }
                 catch (Exception ex)
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             try
             {
-                var buildResponseTask = RunServerCompilation(
+                Task<BuildResponse> buildResponseTask = RunServerCompilation(
                     arguments,
                     buildPaths,
                     sessionName,

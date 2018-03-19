@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             ObjectBinder.RegisterTypeReader(typeof(SyntaxToken), r => new SyntaxToken(r));
 
-            for (var kind = FirstTokenWithWellKnownText; kind <= LastTokenWithWellKnownText; kind++)
+            for (SyntaxKind kind = FirstTokenWithWellKnownText; kind <= LastTokenWithWellKnownText; kind++)
             {
                 s_tokensWithNoTrivia[(int)kind].Value = new SyntaxToken(kind);
                 s_tokensWithElasticTrivia[(int)kind].Value = new SyntaxTokenWithTrivia(kind, SyntaxFactory.ElasticZeroSpace, SyntaxFactory.ElasticZeroSpace);
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         internal static IEnumerable<SyntaxToken> GetWellKnownTokens()
         {
-            foreach (var element in s_tokensWithNoTrivia)
+            foreach (ArrayElement<SyntaxToken> element in s_tokensWithNoTrivia)
             {
                 if (element.Value != null)
                 {
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            foreach (var element in s_tokensWithElasticTrivia)
+            foreach (ArrayElement<SyntaxToken> element in s_tokensWithElasticTrivia)
             {
                 if (element.Value != null)
                 {
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            foreach (var element in s_tokensWithSingleTrailingSpace)
+            foreach (ArrayElement<SyntaxToken> element in s_tokensWithSingleTrailingSpace)
             {
                 if (element.Value != null)
                 {
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            foreach (var element in s_tokensWithSingleTrailingCRLF)
+            foreach (ArrayElement<SyntaxToken> element in s_tokensWithSingleTrailingCRLF)
             {
                 if (element.Value != null)
                 {
@@ -311,13 +311,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         public override int GetLeadingTriviaWidth()
         {
-            var leading = this.GetLeadingTrivia();
+            GreenNode leading = this.GetLeadingTrivia();
             return leading != null ? leading.FullWidth : 0;
         }
 
         public override int GetTrailingTriviaWidth()
         {
-            var trailing = this.GetTrailingTrivia();
+            GreenNode trailing = this.GetTrailingTrivia();
             return trailing != null ? trailing.FullWidth : 0;
         }
 
@@ -398,7 +398,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (leading)
             {
-                var trivia = this.GetLeadingTrivia();
+                GreenNode trivia = this.GetLeadingTrivia();
                 if (trivia != null)
                 {
                     trivia.WriteTo(writer, true, true);
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
             if (trailing)
             {
-                var trivia = this.GetTrailingTrivia();
+                GreenNode trivia = this.GetTrailingTrivia();
                 if (trivia != null)
                 {
                     trivia.WriteTo(writer, true, true);
@@ -431,8 +431,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 return false;
             }
 
-            var thisLeading = this.GetLeadingTrivia();
-            var otherLeading = otherToken.GetLeadingTrivia();
+            GreenNode thisLeading = this.GetLeadingTrivia();
+            GreenNode otherLeading = otherToken.GetLeadingTrivia();
             if (thisLeading != otherLeading)
             {
                 if (thisLeading == null || otherLeading == null)
@@ -446,8 +446,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 }
             }
 
-            var thisTrailing = this.GetTrailingTrivia();
-            var otherTrailing = otherToken.GetTrailingTrivia();
+            GreenNode thisTrailing = this.GetTrailingTrivia();
+            GreenNode otherTrailing = otherToken.GetTrailingTrivia();
             if (thisTrailing != otherTrailing)
             {
                 if (thisTrailing == null || otherTrailing == null)

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var result = new StringBuilder("[");
             result.Append(this.GetType().Name);
-            foreach (var kv in Mapping)
+            foreach (KeyValuePair<TypeParameterSymbol, TypeWithModifiers> kv in Mapping)
             {
                 result.Append(" ").Append(kv.Key).Append(":").Append(kv.Value.Type);
             }

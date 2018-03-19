@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public PartialTypeDocumentationCommentTests()
         {
-            var tree1 = Parse(
+            SyntaxTree tree1 = Parse(
                 @"
 /// <summary>Summary on first file's Goo.</summary>
 partial class Goo
@@ -30,7 +30,7 @@ partial class Goo
     partial void ImplementedMethod();
 }", options: TestOptions.RegularWithDocumentationComments);
 
-            var tree2 = Parse(
+            SyntaxTree tree2 = Parse(
                 @"
 /// <summary>Summary on second file's Goo.</summary>
 partial class Goo
@@ -61,7 +61,7 @@ partial class Goo
         [Fact]
         public void TestSummaryOfMethodWithNoImplementation()
         {
-            var method = _gooClass.GetMembers("MethodWithNoImplementation").Single();
+            Symbol method = _gooClass.GetMembers("MethodWithNoImplementation").Single();
             Assert.Equal(string.Empty, method.GetDocumentationCommentXml()); //Matches what would be written to an XML file.
         }
 
@@ -71,7 +71,7 @@ partial class Goo
             // This is an interesting behavior; as long as there is any XML at all on the implementation, it overrides
             // any XML on the latent declaration. Since we don't have a summary on this implementation, this should be
             // null!
-            var method = _gooClass.GetMembers("ImplementedMethodWithNoSummaryOnImpl").Single();
+            Symbol method = _gooClass.GetMembers("ImplementedMethodWithNoSummaryOnImpl").Single();
             Assert.Equal(
 @"<member name=""M:Goo.ImplementedMethodWithNoSummaryOnImpl"">
     <remarks>Goo.</remarks>
@@ -82,7 +82,7 @@ partial class Goo
         [Fact]
         public void TestImplementedMethod()
         {
-            var method = _gooClass.GetMembers("ImplementedMethod").Single();
+            Symbol method = _gooClass.GetMembers("ImplementedMethod").Single();
             Assert.Equal(
 @"<member name=""M:Goo.ImplementedMethod"">
     <summary>Implemented method.</summary>

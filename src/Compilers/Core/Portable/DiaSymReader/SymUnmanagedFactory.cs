@@ -61,9 +61,9 @@ namespace Microsoft.DiaSymReader
         {
             try
             {
-                foreach (var method in typeof(Environment).GetTypeInfo().GetDeclaredMethods("GetEnvironmentVariable"))
+                foreach (MethodInfo method in typeof(Environment).GetTypeInfo().GetDeclaredMethods("GetEnvironmentVariable"))
                 {
-                    var parameters = method.GetParameters();
+                    ParameterInfo[] parameters = method.GetParameters();
                     if (parameters.Length == 1 && parameters[0].ParameterType == typeof(string))
                     {
                         return (Func<string, string>)method.CreateDelegate(typeof(Func<string, string>));
@@ -103,7 +103,7 @@ namespace Microsoft.DiaSymReader
                 return null;
             }
 
-            var moduleHandle = LoadLibrary(Path.Combine(dir, DiaSymReaderModuleName));
+            IntPtr moduleHandle = LoadLibrary(Path.Combine(dir, DiaSymReaderModuleName));
             if (moduleHandle == IntPtr.Zero)
             {
                 Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
@@ -112,7 +112,7 @@ namespace Microsoft.DiaSymReader
             object instance = null;
             try
             {
-                var createAddress = GetProcAddress(moduleHandle, factoryName);
+                IntPtr createAddress = GetProcAddress(moduleHandle, factoryName);
                 if (createAddress == IntPtr.Zero)
                 {
                     Marshal.ThrowExceptionForHR(Marshal.GetHRForLastWin32Error());
@@ -121,7 +121,7 @@ namespace Microsoft.DiaSymReader
 #if NET20 || NETSTANDARD1_1
                 var creator = (NativeFactory)Marshal.GetDelegateForFunctionPointer(createAddress, typeof(NativeFactory));
 #else
-                var creator = Marshal.GetDelegateForFunctionPointer<NativeFactory>(createAddress);
+                NativeFactory creator = Marshal.GetDelegateForFunctionPointer<NativeFactory>(createAddress);
 #endif
                 creator(ref clsid, out instance);
             }
@@ -209,7 +209,7 @@ namespace Microsoft.DiaSymReader
                 // Try to find a registered CLR implementation
                 try
                 {
-                    var comType = createReader ?
+                    Type comType = createReader ?
                         GetComTypeType(ref s_lazySymReaderComType, clsid) :
                         GetComTypeType(ref s_lazySymWriterComType, clsid);
 

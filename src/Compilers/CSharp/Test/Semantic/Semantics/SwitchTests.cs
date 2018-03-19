@@ -1290,7 +1290,7 @@ class Program
     }
 } 
 ";
-            var comp = CompileAndVerify(text, expectedOutput: "");
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(text, expectedOutput: "");
 
             // Previous versions of the compiler used to report a warning (CS1691)
             // whenever an unrecognized warning code was supplied in a #pragma directive.
@@ -1324,18 +1324,18 @@ class Program
     }
 }";
 
-            var syntaxTree = SyntaxFactory.ParseSyntaxTree(source);
+            SyntaxTree syntaxTree = SyntaxFactory.ParseSyntaxTree(source);
 
             // Intentionally not passing any references here to ensure System.Int32 is 
             // unresolvable and hence the constant values in the enum "E" will all be 
             // created as ConstantValue.Bad 
-            var comp = CreateEmptyCompilation(new[] { syntaxTree }, references: null);
-            var semanticModel = comp.GetSemanticModel(syntaxTree);
-            var node = syntaxTree.GetRoot().DescendantNodes().First(x => x.IsKind(SyntaxKind.SimpleMemberAccessExpression));
+            CSharpCompilation comp = CreateEmptyCompilation(new[] { syntaxTree }, references: null);
+            SemanticModel semanticModel = comp.GetSemanticModel(syntaxTree);
+            SyntaxNode node = syntaxTree.GetRoot().DescendantNodes().First(x => x.IsKind(SyntaxKind.SimpleMemberAccessExpression));
 
             // Ensure the model can still bind without throwing when multiple labels values 
             // have duplicate constants (ConstantValue.Bad).  
-            var symbolInfo = semanticModel.GetSymbolInfo(node);
+            SymbolInfo symbolInfo = semanticModel.GetSymbolInfo(node);
             Assert.NotNull(symbolInfo);
         }
 
@@ -3126,7 +3126,7 @@ class C
         }
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"1001");
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"1001");
             comp.VerifyDiagnostics();
         }
 
@@ -3159,7 +3159,7 @@ class C
         }
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"1001");
+            CodeAnalysis.Test.Utilities.CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"1001");
             comp.VerifyDiagnostics();
         }
 

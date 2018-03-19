@@ -308,7 +308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestSyntaxTreeForFactoryGenerated()
         {
-            var node = SyntaxFactory.ClassDeclaration("Class1");
+            ClassDeclarationSyntax node = SyntaxFactory.ClassDeclaration("Class1");
             Assert.NotNull(node.SyntaxTree);
             Assert.False(node.SyntaxTree.HasCompilationUnitRoot, "how did we get a CompilationUnit root?");
             Assert.Same(node, node.SyntaxTree.GetRoot());
@@ -317,11 +317,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestSyntaxTreeForParsedSyntaxNode()
         {
-            var node1 = SyntaxFactory.ParseCompilationUnit("class Class1<T> { }");
+            CompilationUnitSyntax node1 = SyntaxFactory.ParseCompilationUnit("class Class1<T> { }");
             Assert.NotNull(node1.SyntaxTree);
             Assert.True(node1.SyntaxTree.HasCompilationUnitRoot, "how did we get a non-CompilationUnit root?");
             Assert.Same(node1, node1.SyntaxTree.GetRoot());
-            var node2 = SyntaxFactory.ParseExpression("2 + 2");
+            ExpressionSyntax node2 = SyntaxFactory.ParseExpression("2 + 2");
             Assert.NotNull(node2.SyntaxTree);
             Assert.False(node2.SyntaxTree.HasCompilationUnitRoot, "how did we get a CompilationUnit root?");
             Assert.Same(node2, node2.SyntaxTree.GetRoot());
@@ -330,10 +330,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestSyntaxTreeForSyntaxTreeWithReplacedToken()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("class Class1<T> { }");
-            var tokenT = tree.GetCompilationUnitRoot().DescendantTokens().Where(t => t.ToString() == "T").Single();
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree("class Class1<T> { }");
+            SyntaxToken tokenT = tree.GetCompilationUnitRoot().DescendantTokens().Where(t => t.ToString() == "T").Single();
             Assert.Same(tree, tree.GetCompilationUnitRoot().ReplaceToken(tokenT, tokenT).SyntaxTree);
-            var newRoot = tree.GetCompilationUnitRoot().ReplaceToken(tokenT, SyntaxFactory.Identifier("U"));
+            CompilationUnitSyntax newRoot = tree.GetCompilationUnitRoot().ReplaceToken(tokenT, SyntaxFactory.Identifier("U"));
             Assert.NotNull(newRoot.SyntaxTree);
             Assert.True(newRoot.SyntaxTree.HasCompilationUnitRoot, "how did we get a non-CompilationUnit root?");
             Assert.Same(newRoot, newRoot.SyntaxTree.GetRoot());
@@ -342,10 +342,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestSyntaxTreeForSyntaxTreeWithReplacedNode()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("class Class1 : Class2<T> { }");
-            var typeName = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.GenericName)).Single();
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree("class Class1 : Class2<T> { }");
+            SyntaxNode typeName = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.GenericName)).Single();
             Assert.Same(tree, tree.GetCompilationUnitRoot().ReplaceNode(typeName, typeName).SyntaxTree);
-            var newRoot = tree.GetCompilationUnitRoot().ReplaceNode(typeName, SyntaxFactory.ParseTypeName("Class2<U>"));
+            CompilationUnitSyntax newRoot = tree.GetCompilationUnitRoot().ReplaceNode(typeName, SyntaxFactory.ParseTypeName("Class2<U>"));
             Assert.NotNull(newRoot.SyntaxTree);
             Assert.True(newRoot.SyntaxTree.HasCompilationUnitRoot, "how did we get a non-CompilationUnit root?");
             Assert.Same(newRoot, newRoot.SyntaxTree.GetRoot());
@@ -355,13 +355,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
         public void TestReplaceNodeShouldNotLoseParseOptions()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("System.Console.Write(\"Before\")", TestOptions.Script);
-            var root = tree.GetRoot();
-            var before = root.DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
-            var after = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("After"));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree("System.Console.Write(\"Before\")", TestOptions.Script);
+            SyntaxNode root = tree.GetRoot();
+            LiteralExpressionSyntax before = root.DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            LiteralExpressionSyntax after = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, SyntaxFactory.Literal("After"));
 
-            var newRoot = root.ReplaceNode(before, after);
-            var newTree = newRoot.SyntaxTree;
+            SyntaxNode newRoot = root.ReplaceNode(before, after);
+            SyntaxTree newTree = newRoot.SyntaxTree;
             Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind);
             Assert.Equal(tree.Options, newTree.Options);
         }
@@ -370,17 +370,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
         public void TestReplaceNodeInListShouldNotLoseParseOptions()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("m(a, b)", TestOptions.Script);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree("m(a, b)", TestOptions.Script);
             Assert.Equal(SourceCodeKind.Script, tree.Options.Kind);
 
-            var argC = SyntaxFactory.Argument(SyntaxFactory.ParseExpression("c"));
-            var argD = SyntaxFactory.Argument(SyntaxFactory.ParseExpression("d"));
-            var root = tree.GetRoot();
-            var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            var newRoot = root.ReplaceNode(invocation.ArgumentList.Arguments[0], new SyntaxNode[] { argC, argD });
+            ArgumentSyntax argC = SyntaxFactory.Argument(SyntaxFactory.ParseExpression("c"));
+            ArgumentSyntax argD = SyntaxFactory.Argument(SyntaxFactory.ParseExpression("d"));
+            SyntaxNode root = tree.GetRoot();
+            InvocationExpressionSyntax invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            SyntaxNode newRoot = root.ReplaceNode(invocation.ArgumentList.Arguments[0], new SyntaxNode[] { argC, argD });
             Assert.Equal("m(c,d, b)", newRoot.ToFullString());
 
-            var newTree = newRoot.SyntaxTree;
+            SyntaxTree newTree = newRoot.SyntaxTree;
             Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind);
             Assert.Equal(tree.Options, newTree.Options);
         }
@@ -389,25 +389,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
         public void TestInsertNodeShouldNotLoseParseOptions()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("m(a, b)", TestOptions.Script);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree("m(a, b)", TestOptions.Script);
             Assert.Equal(SourceCodeKind.Script, tree.Options.Kind);
 
-            var argC = SyntaxFactory.Argument(SyntaxFactory.ParseExpression("c"));
-            var argD = SyntaxFactory.Argument(SyntaxFactory.ParseExpression("d"));
-            var root = tree.GetRoot();
-            var invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            ArgumentSyntax argC = SyntaxFactory.Argument(SyntaxFactory.ParseExpression("c"));
+            ArgumentSyntax argD = SyntaxFactory.Argument(SyntaxFactory.ParseExpression("d"));
+            SyntaxNode root = tree.GetRoot();
+            InvocationExpressionSyntax invocation = root.DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 
             // insert before first
-            var newNode = invocation.InsertNodesBefore(invocation.ArgumentList.Arguments[0], new SyntaxNode[] { argC, argD });
+            InvocationExpressionSyntax newNode = invocation.InsertNodesBefore(invocation.ArgumentList.Arguments[0], new SyntaxNode[] { argC, argD });
             Assert.Equal("m(c,d,a, b)", newNode.ToFullString());
-            var newTree = newNode.SyntaxTree;
+            SyntaxTree newTree = newNode.SyntaxTree;
             Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind);
             Assert.Equal(tree.Options, newTree.Options);
 
             // insert after first
-            var newNode2 = invocation.InsertNodesAfter(invocation.ArgumentList.Arguments[0], new SyntaxNode[] { argC, argD });
+            InvocationExpressionSyntax newNode2 = invocation.InsertNodesAfter(invocation.ArgumentList.Arguments[0], new SyntaxNode[] { argC, argD });
             Assert.Equal("m(a,c,d, b)", newNode2.ToFullString());
-            var newTree2 = newNode2.SyntaxTree;
+            SyntaxTree newTree2 = newNode2.SyntaxTree;
             Assert.Equal(SourceCodeKind.Script, newTree2.Options.Kind);
             Assert.Equal(tree.Options, newTree2.Options);
         }
@@ -416,18 +416,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
         public void TestReplaceTokenShouldNotLoseParseOptions()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("private class C { }", options: TestOptions.Script);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree("private class C { }", options: TestOptions.Script);
             Assert.Equal(SourceCodeKind.Script, tree.Options.Kind);
 
-            var root = tree.GetRoot();
-            var privateToken = root.DescendantTokens().First();
-            var publicToken = SyntaxFactory.ParseToken("public ");
-            var partialToken = SyntaxFactory.ParseToken("partial ");
+            SyntaxNode root = tree.GetRoot();
+            SyntaxToken privateToken = root.DescendantTokens().First();
+            SyntaxToken publicToken = SyntaxFactory.ParseToken("public ");
+            SyntaxToken partialToken = SyntaxFactory.ParseToken("partial ");
 
-            var newRoot = root.ReplaceToken(privateToken, new[] { publicToken, partialToken });
+            SyntaxNode newRoot = root.ReplaceToken(privateToken, new[] { publicToken, partialToken });
             Assert.Equal("public partial class C { }", newRoot.ToFullString());
 
-            var newTree = newRoot.SyntaxTree;
+            SyntaxTree newTree = newRoot.SyntaxTree;
             Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind);
             Assert.Equal(tree.Options, newTree.Options);
         }
@@ -436,21 +436,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
         public void TestInsertTokenShouldNotLoseParseOptions()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("public class C { }", options: TestOptions.Script);
-            var root = tree.GetRoot();
-            var publicToken = root.DescendantTokens().First();
-            var partialToken = SyntaxFactory.ParseToken("partial ");
-            var staticToken = SyntaxFactory.ParseToken("static ");
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree("public class C { }", options: TestOptions.Script);
+            SyntaxNode root = tree.GetRoot();
+            SyntaxToken publicToken = root.DescendantTokens().First();
+            SyntaxToken partialToken = SyntaxFactory.ParseToken("partial ");
+            SyntaxToken staticToken = SyntaxFactory.ParseToken("static ");
 
-            var newRoot = root.InsertTokensBefore(publicToken, new[] { staticToken });
+            SyntaxNode newRoot = root.InsertTokensBefore(publicToken, new[] { staticToken });
             Assert.Equal("static public class C { }", newRoot.ToFullString());
-            var newTree = newRoot.SyntaxTree;
+            SyntaxTree newTree = newRoot.SyntaxTree;
             Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind);
             Assert.Equal(tree.Options, newTree.Options);
 
-            var newRoot2 = root.InsertTokensAfter(publicToken, new[] { staticToken });
+            SyntaxNode newRoot2 = root.InsertTokensAfter(publicToken, new[] { staticToken });
             Assert.Equal("public static class C { }", newRoot2.ToFullString());
-            var newTree2 = newRoot2.SyntaxTree;
+            SyntaxTree newTree2 = newRoot2.SyntaxTree;
             Assert.Equal(SourceCodeKind.Script, newTree2.Options.Kind);
             Assert.Equal(tree.Options, newTree2.Options);
         }
@@ -459,25 +459,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
         public void TestReplaceTriviaShouldNotLoseParseOptions()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("/* c */ identifier", options: TestOptions.Script);
-            var root = tree.GetRoot();
-            var leadingTrivia = root.GetLeadingTrivia();
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree("/* c */ identifier", options: TestOptions.Script);
+            SyntaxNode root = tree.GetRoot();
+            SyntaxTriviaList leadingTrivia = root.GetLeadingTrivia();
             Assert.Equal(2, leadingTrivia.Count);
-            var comment1 = leadingTrivia[0];
+            SyntaxTrivia comment1 = leadingTrivia[0];
             Assert.Equal(SyntaxKind.MultiLineCommentTrivia, comment1.Kind());
 
-            var newComment1 = SyntaxFactory.ParseLeadingTrivia("/* a */")[0];
-            var newComment2 = SyntaxFactory.ParseLeadingTrivia("/* b */")[0];
+            SyntaxTrivia newComment1 = SyntaxFactory.ParseLeadingTrivia("/* a */")[0];
+            SyntaxTrivia newComment2 = SyntaxFactory.ParseLeadingTrivia("/* b */")[0];
 
-            var newRoot = root.ReplaceTrivia(comment1, new[] { newComment1, newComment2 });
+            SyntaxNode newRoot = root.ReplaceTrivia(comment1, new[] { newComment1, newComment2 });
             Assert.Equal("/* a *//* b */ identifier", newRoot.ToFullString());
-            var newTree = newRoot.SyntaxTree;
+            SyntaxTree newTree = newRoot.SyntaxTree;
             Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind);
             Assert.Equal(tree.Options, newTree.Options);
 
-            var newRoot2 = root.ReplaceTrivia(comment1, new SyntaxTrivia[] { });
+            SyntaxNode newRoot2 = root.ReplaceTrivia(comment1, new SyntaxTrivia[] { });
             Assert.Equal(" identifier", newRoot2.ToFullString());
-            var newTree2 = newRoot2.SyntaxTree;
+            SyntaxTree newTree2 = newRoot2.SyntaxTree;
             Assert.Equal(SourceCodeKind.Script, newTree2.Options.Kind);
             Assert.Equal(tree.Options, newTree2.Options);
         }
@@ -486,20 +486,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
         public void TestInsertTriviaShouldNotLoseParseOptions()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("/* c */ identifier", options: TestOptions.Script);
-            var root = tree.GetRoot();
-            var leadingTrivia = root.GetLeadingTrivia();
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree("/* c */ identifier", options: TestOptions.Script);
+            SyntaxNode root = tree.GetRoot();
+            SyntaxTriviaList leadingTrivia = root.GetLeadingTrivia();
             Assert.Equal(2, leadingTrivia.Count);
-            var comment1 = leadingTrivia[0];
+            SyntaxTrivia comment1 = leadingTrivia[0];
             Assert.Equal(SyntaxKind.MultiLineCommentTrivia, comment1.Kind());
 
-            var newComment1 = SyntaxFactory.ParseLeadingTrivia("/* a */")[0];
-            var newComment2 = SyntaxFactory.ParseLeadingTrivia("/* b */")[0];
+            SyntaxTrivia newComment1 = SyntaxFactory.ParseLeadingTrivia("/* a */")[0];
+            SyntaxTrivia newComment2 = SyntaxFactory.ParseLeadingTrivia("/* b */")[0];
 
-            var newRoot = root.InsertTriviaAfter(comment1, new[] { newComment1, newComment2 });
+            SyntaxNode newRoot = root.InsertTriviaAfter(comment1, new[] { newComment1, newComment2 });
             Assert.Equal("/* c *//* a *//* b */ identifier", newRoot.ToFullString());
 
-            var newTree = newRoot.SyntaxTree;
+            SyntaxTree newTree = newRoot.SyntaxTree;
             Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind);
             Assert.Equal(tree.Options, newTree.Options);
         }
@@ -508,11 +508,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
         public void TestRemoveNodeShouldNotLoseParseOptions()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("private class C { }", options: TestOptions.Script);
-            var root = tree.GetRoot();
-            var newRoot = root.RemoveNode(root.DescendantNodes().First(), SyntaxRemoveOptions.KeepDirectives);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree("private class C { }", options: TestOptions.Script);
+            SyntaxNode root = tree.GetRoot();
+            SyntaxNode newRoot = root.RemoveNode(root.DescendantNodes().First(), SyntaxRemoveOptions.KeepDirectives);
 
-            var newTree = newRoot.SyntaxTree;
+            SyntaxTree newTree = newRoot.SyntaxTree;
             Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind);
             Assert.Equal(tree.Options, newTree.Options);
         }
@@ -521,11 +521,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(22010, "https://github.com/dotnet/roslyn/issues/22010")]
         public void TestNormalizeWhitespaceShouldNotLoseParseOptions()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("private class C { }", options: TestOptions.Script);
-            var root = tree.GetRoot();
-            var newRoot = root.NormalizeWhitespace("  ");
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree("private class C { }", options: TestOptions.Script);
+            SyntaxNode root = tree.GetRoot();
+            SyntaxNode newRoot = root.NormalizeWhitespace("  ");
 
-            var newTree = newRoot.SyntaxTree;
+            SyntaxTree newTree = newRoot.SyntaxTree;
             Assert.Equal(SourceCodeKind.Script, newTree.Options.Kind);
             Assert.Equal(tree.Options, newTree.Options);
         }
@@ -533,10 +533,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestSyntaxTreeForRewrittenRoot()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree("class Class1<T> { }");
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree("class Class1<T> { }");
             Assert.NotNull(tree.GetCompilationUnitRoot().SyntaxTree);
             var rewriter = new BadRewriter();
-            var rewrittenRoot = rewriter.Visit(tree.GetCompilationUnitRoot());
+            SyntaxNode rewrittenRoot = rewriter.Visit(tree.GetCompilationUnitRoot());
             Assert.NotNull(rewrittenRoot.SyntaxTree);
             Assert.True(((SyntaxTree)rewrittenRoot.SyntaxTree).HasCompilationUnitRoot, "how did we get a non-CompilationUnit root?");
             Assert.Same(rewrittenRoot, rewrittenRoot.SyntaxTree.GetRoot());
@@ -550,7 +550,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ifStmt1 = (IfStatementSyntax)SyntaxFactory.ParseStatement("if (true)");
             var exprStmt1 = (ExpressionStatementSyntax)ifStmt1.Statement;
             var expr1 = (IdentifierNameSyntax)exprStmt1.Expression;
-            var token1 = expr1.Identifier;
+            SyntaxToken token1 = expr1.Identifier;
 
             Assert.NotNull(expr1.SyntaxTree);
             Assert.False(expr1.SyntaxTree.HasCompilationUnitRoot, "how did we get a CompilationUnit root?");
@@ -561,13 +561,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(token1.IsMissing);
             Assert.False(token1.ContainsDiagnostics);
 
-            var trivia = SyntaxFactory.ParseTrailingTrivia(" ");
+            SyntaxTriviaList trivia = SyntaxFactory.ParseTrailingTrivia(" ");
             var rewriter = new RedRewriter(rewriteToken: tok => tok.Kind() == SyntaxKind.IdentifierToken ? tok.WithLeadingTrivia(trivia) : tok);
 
             var ifStmt2 = (IfStatementSyntax)rewriter.Visit(ifStmt1);
             var exprStmt2 = (ExpressionStatementSyntax)ifStmt2.Statement;
             var expr2 = (IdentifierNameSyntax)exprStmt2.Expression;
-            var token2 = expr2.Identifier;
+            SyntaxToken token2 = expr2.Identifier;
 
             Assert.NotEqual(expr1, expr2);
             Assert.NotNull(expr2.SyntaxTree);
@@ -594,11 +594,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void RewriteMissingIdentifierInExpressionStatement_WithSyntaxTree()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree("class C { static void Main() { if (true) } }");
-            var ifStmt1 = tree1.GetCompilationUnitRoot().DescendantNodes().OfType<IfStatementSyntax>().Single();
+            SyntaxTree tree1 = SyntaxFactory.ParseSyntaxTree("class C { static void Main() { if (true) } }");
+            IfStatementSyntax ifStmt1 = tree1.GetCompilationUnitRoot().DescendantNodes().OfType<IfStatementSyntax>().Single();
             var exprStmt1 = (ExpressionStatementSyntax)ifStmt1.Statement;
             var expr1 = (IdentifierNameSyntax)exprStmt1.Expression;
-            var token1 = expr1.Identifier;
+            SyntaxToken token1 = expr1.Identifier;
 
             Assert.Equal(tree1, expr1.SyntaxTree);
             Assert.True(expr1.IsMissing);
@@ -607,13 +607,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(token1.IsMissing);
             Assert.False(token1.ContainsDiagnostics);
 
-            var trivia = SyntaxFactory.ParseTrailingTrivia(" ");
+            SyntaxTriviaList trivia = SyntaxFactory.ParseTrailingTrivia(" ");
             var rewriter = new RedRewriter(rewriteToken: tok => tok.Kind() == SyntaxKind.IdentifierToken ? tok.WithLeadingTrivia(trivia) : tok);
 
             var ifStmt2 = (IfStatementSyntax)rewriter.Visit(ifStmt1);
             var exprStmt2 = (ExpressionStatementSyntax)ifStmt2.Statement;
             var expr2 = (IdentifierNameSyntax)exprStmt2.Expression;
-            var token2 = expr2.Identifier;
+            SyntaxToken token2 = expr2.Identifier;
 
             Assert.NotEqual(expr1, expr2);
             Assert.NotNull(expr2.SyntaxTree);
@@ -643,10 +643,10 @@ class C { }
 class C { }
 ";
 
-            var oldTree = CSharpTestBase.Parse(oldSource, options: TestOptions.RegularWithDocumentationComments);
-            var oldRoot = oldTree.GetRoot();
-            var xmlNode = oldRoot.DescendantNodes(descendIntoTrivia: true).OfType<XmlEmptyElementSyntax>().Single();
-            var newRoot = oldRoot.RemoveNode(xmlNode, SyntaxRemoveOptions.KeepDirectives);
+            SyntaxTree oldTree = CSharpTestBase.Parse(oldSource, options: TestOptions.RegularWithDocumentationComments);
+            SyntaxNode oldRoot = oldTree.GetRoot();
+            XmlEmptyElementSyntax xmlNode = oldRoot.DescendantNodes(descendIntoTrivia: true).OfType<XmlEmptyElementSyntax>().Single();
+            SyntaxNode newRoot = oldRoot.RemoveNode(xmlNode, SyntaxRemoveOptions.KeepDirectives);
 
             Assert.Equal(expectedNewSource, newRoot.ToFullString());
         }
@@ -664,8 +664,8 @@ class C { }
 @"class C { }
 #endregion";
 
-            var root = SyntaxFactory.ParseCompilationUnit(text);
-            var newRoot = new RemoveRegionRewriter().Visit(root);
+            CompilationUnitSyntax root = SyntaxFactory.ParseCompilationUnit(text);
+            SyntaxNode newRoot = new RemoveRegionRewriter().Visit(root);
 
             Assert.Equal(expectedText, newRoot.ToFullString());
         }
@@ -689,12 +689,12 @@ class C { }
 
         private static void TestGreen(string input, string output, GreenRewriter rewriter, bool isExpr)
         {
-            var red = isExpr ? (CSharpSyntaxNode)SyntaxFactory.ParseExpression(input) : SyntaxFactory.ParseStatement(input);
-            var green = red.CsGreen;
+            CSharpSyntaxNode red = isExpr ? (CSharpSyntaxNode)SyntaxFactory.ParseExpression(input) : SyntaxFactory.ParseStatement(input);
+            InternalSyntax.CSharpSyntaxNode green = red.CsGreen;
 
             Assert.False(green.ContainsDiagnostics);
 
-            var result = rewriter.Visit(green);
+            InternalSyntax.CSharpSyntaxNode result = rewriter.Visit(green);
 
             Assert.Equal(input == output, ReferenceEquals(green, result));
             Assert.Equal(output, result.ToFullString());
@@ -702,11 +702,11 @@ class C { }
 
         private static void TestRed(string input, string output, RedRewriter rewriter, bool isExpr)
         {
-            var red = isExpr ? (CSharpSyntaxNode)SyntaxFactory.ParseExpression(input) : SyntaxFactory.ParseStatement(input);
+            CSharpSyntaxNode red = isExpr ? (CSharpSyntaxNode)SyntaxFactory.ParseExpression(input) : SyntaxFactory.ParseStatement(input);
 
             Assert.False(red.ContainsDiagnostics);
 
-            var result = rewriter.Visit(red);
+            SyntaxNode result = rewriter.Visit(red);
 
             Assert.Equal(input == output, ReferenceEquals(red, result));
             Assert.Equal(output, result.ToFullString());
@@ -734,7 +734,7 @@ class C { }
 
             public override InternalSyntax.CSharpSyntaxNode Visit(InternalSyntax.CSharpSyntaxNode node)
             {
-                var visited = base.Visit(node);
+                InternalSyntax.CSharpSyntaxNode visited = base.Visit(node);
                 return _rewriteNode == null ? visited : _rewriteNode(visited);
             }
 
@@ -766,19 +766,19 @@ class C { }
 
             public override SyntaxNode Visit(SyntaxNode node)
             {
-                var visited = base.Visit(node);
+                SyntaxNode visited = base.Visit(node);
                 return _rewriteNode == null ? visited : _rewriteNode(visited);
             }
 
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
-                var visited = base.VisitToken(token);
+                SyntaxToken visited = base.VisitToken(token);
                 return _rewriteToken == null ? visited : _rewriteToken(token);
             }
 
             public override SyntaxTrivia VisitTrivia(SyntaxTrivia trivia)
             {
-                var visited = base.VisitTrivia(trivia);
+                SyntaxTrivia visited = base.VisitTrivia(trivia);
                 return _rewriteTrivia == null ? visited : _rewriteTrivia(trivia);
             }
         }

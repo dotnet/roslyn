@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case SyntaxKind.Parameter:
-                    var paramDefault = ((ParameterSyntax)rootSyntax).Default;
+                    EqualsValueClauseSyntax paramDefault = ((ParameterSyntax)rootSyntax).Default;
                     rootSyntax = (paramDefault == null) ? null : paramDefault.Value;
                     break;
 
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal override bool TryGetSpeculativeSemanticModelCore(SyntaxTreeSemanticModel parentModel, int position, EqualsValueClauseSyntax initializer, out SemanticModel speculativeModel)
         {
-            var binder = this.GetEnclosingBinder(position);
+            Binder binder = this.GetEnclosingBinder(position);
             if (binder == null)
             {
                 speculativeModel = null;

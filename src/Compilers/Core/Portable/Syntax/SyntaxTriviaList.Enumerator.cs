@@ -59,14 +59,14 @@ namespace Microsoft.CodeAnalysis
             // by ref since it's a non-trivial struct
             internal void InitializeFromTrailingTrivia(ref SyntaxToken token)
             {
-                var leading = token.Node.GetLeadingTriviaCore();
+                GreenNode leading = token.Node.GetLeadingTriviaCore();
                 int index = 0;
                 if (leading != null)
                 {
                     index = leading.IsList ? leading.SlotCount : 1;
                 }
 
-                var trailingGreen = token.Node.GetTrailingTriviaCore();
+                GreenNode trailingGreen = token.Node.GetTrailingTriviaCore();
                 int trailingPosition = token.Position + token.FullWidth;
                 if (trailingGreen != null)
                 {

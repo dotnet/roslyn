@@ -53,8 +53,8 @@ namespace Microsoft.CodeAnalysis.Emit
         public AddedOrChangedMethodInfo MapTypes(SymbolMatcher map)
         {
             var mappedLocals = ImmutableArray.CreateRange(this.Locals, MapLocalInfo, map);
-            var mappedHoistedLocalSlots = StateMachineHoistedLocalSlotsOpt.IsDefault ? StateMachineHoistedLocalSlotsOpt : ImmutableArray.CreateRange(StateMachineHoistedLocalSlotsOpt, MapHoistedLocalSlot, map);
-            var mappedAwaiterSlots = StateMachineAwaiterSlotsOpt.IsDefault ? StateMachineAwaiterSlotsOpt : ImmutableArray.CreateRange(StateMachineAwaiterSlotsOpt, map.MapReference);
+            ImmutableArray<EncHoistedLocalInfo> mappedHoistedLocalSlots = StateMachineHoistedLocalSlotsOpt.IsDefault ? StateMachineHoistedLocalSlotsOpt : ImmutableArray.CreateRange(StateMachineHoistedLocalSlotsOpt, MapHoistedLocalSlot, map);
+            ImmutableArray<Cci.ITypeReference> mappedAwaiterSlots = StateMachineAwaiterSlotsOpt.IsDefault ? StateMachineAwaiterSlotsOpt : ImmutableArray.CreateRange(StateMachineAwaiterSlotsOpt, map.MapReference);
 
             return new AddedOrChangedMethodInfo(this.MethodId, mappedLocals, LambdaDebugInfo, ClosureDebugInfo, StateMachineTypeNameOpt, mappedHoistedLocalSlots, mappedAwaiterSlots);
         }

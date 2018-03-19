@@ -358,8 +358,8 @@ namespace Microsoft.CodeAnalysis
             // The instantiated type might have a generic parent, in which case some or all of the type
             // arguments might actually be for the parent.
 
-            var arguments = argumentsBuilder.ToImmutableAndFree();
-            var argumentRefersToNoPiaLocalType = argumentRefersToNoPiaLocalTypeBuilder.ToImmutableAndFree();
+            ImmutableArray<KeyValuePair<TypeSymbol, ImmutableArray<ModifierInfo<TypeSymbol>>>> arguments = argumentsBuilder.ToImmutableAndFree();
+            ImmutableArray<bool> argumentRefersToNoPiaLocalType = argumentRefersToNoPiaLocalTypeBuilder.ToImmutableAndFree();
             TypeSymbol typeSymbol = SubstituteTypeParameters(generic, arguments, argumentRefersToNoPiaLocalType);
 
             foreach (bool flag in argumentRefersToNoPiaLocalType)
@@ -887,9 +887,9 @@ namespace Microsoft.CodeAnalysis
                     {
                         try
                         {
-                            var memoryReader = this.Module.GetTypeSpecificationSignatureReaderOrThrow((TypeSpecificationHandle)token);
-                            var modifiers = DecodeModifiersOrThrow(ref memoryReader, AllowedRequiredModifierType.System_Runtime_InteropServices_UnmanagedType, out var typeCode, out var modReqFound);
-                            var type = DecodeTypeOrThrow(ref memoryReader, typeCode, out _);
+                            BlobReader memoryReader = this.Module.GetTypeSpecificationSignatureReaderOrThrow((TypeSpecificationHandle)token);
+                            ImmutableArray<ModifierInfo<TypeSymbol>> modifiers = DecodeModifiersOrThrow(ref memoryReader, AllowedRequiredModifierType.System_Runtime_InteropServices_UnmanagedType, out SignatureTypeCode typeCode, out var modReqFound);
+                            TypeSymbol type = DecodeTypeOrThrow(ref memoryReader, typeCode, out _);
 
                             if (modReqFound)
                             {
@@ -935,8 +935,8 @@ namespace Microsoft.CodeAnalysis
         {
             SignatureTypeCode typeCode;
 
-            var customModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
-            var constraints = LocalSlotConstraints.None;
+            ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers = DecodeModifiersOrThrow(ref signatureReader, AllowedRequiredModifierType.None, out typeCode, out _);
+            LocalSlotConstraints constraints = LocalSlotConstraints.None;
             TypeSymbol typeSymbol;
 
             if (typeCode == SignatureTypeCode.Pinned)
@@ -976,7 +976,7 @@ namespace Microsoft.CodeAnalysis
         {
             SignatureTypeCode typeCode;
 
-            var customModifiers = DecodeModifiersOrThrow(ref sigReader, AllowedRequiredModifierType.None, out typeCode, out _);
+            ImmutableArray<ModifierInfo<TypeSymbol>> customModifiers = DecodeModifiersOrThrow(ref sigReader, AllowedRequiredModifierType.None, out typeCode, out _);
 
             if (typeCode == SignatureTypeCode.TypeHandle)
             {
@@ -1114,8 +1114,8 @@ namespace Microsoft.CodeAnalysis
 
         internal ImmutableArray<LocalInfo<TypeSymbol>> GetLocalsOrThrow(StandaloneSignatureHandle handle)
         {
-            var signatureHandle = Module.MetadataReader.GetStandaloneSignature(handle).Signature;
-            var signatureReader = Module.MetadataReader.GetBlobReader(signatureHandle);
+            BlobHandle signatureHandle = Module.MetadataReader.GetStandaloneSignature(handle).Signature;
+            BlobReader signatureReader = Module.MetadataReader.GetBlobReader(signatureHandle);
             return DecodeLocalSignatureOrThrow(ref signatureReader);
         }
 
@@ -1132,7 +1132,7 @@ namespace Microsoft.CodeAnalysis
             fixed (byte* ptr = ImmutableByteArrayInterop.DangerousGetUnderlyingArray(signature))
             {
                 var blobReader = new BlobReader(ptr, signature.Length);
-                var info = DecodeLocalVariableOrThrow(ref blobReader);
+                LocalInfo<TypeSymbol> info = DecodeLocalVariableOrThrow(ref blobReader);
 
                 if (info.IsByRef || info.IsPinned)
                 {
@@ -1153,9 +1153,9 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
             }
 
-            var reader = Module.MetadataReader;
-            var signature = reader.GetStandaloneSignature(localSignatureHandle).Signature;
-            var blobReader = reader.GetBlobReader(signature);
+            MetadataReader reader = Module.MetadataReader;
+            BlobHandle signature = reader.GetStandaloneSignature(localSignatureHandle).Signature;
+            BlobReader blobReader = reader.GetBlobReader(signature);
             return DecodeLocalSignatureOrThrow(ref blobReader);
         }
 
@@ -1202,7 +1202,7 @@ namespace Microsoft.CodeAnalysis
                     int paramInfoLength = paramInfo.Length;
 
                     // For each parameter, get corresponding row id from Param table. 
-                    foreach (var param in Module.GetParametersOfMethodOrThrow(methodDef))
+                    foreach (ParameterHandle param in Module.GetParametersOfMethodOrThrow(methodDef))
                     {
                         int sequenceNumber = Module.GetParameterSequenceNumberOrThrow(param);
 
@@ -1249,7 +1249,7 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                var signature = Module.GetPropertySignatureOrThrow(handle);
+                BlobHandle signature = Module.GetPropertySignatureOrThrow(handle);
                 BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
 
                 int typeParameterCount; //CONSIDER: expose to caller?
@@ -1276,7 +1276,7 @@ namespace Microsoft.CodeAnalysis
         {
             try
             {
-                var signature = Module.GetPropertySignatureOrThrow(handle);
+                BlobHandle signature = Module.GetPropertySignatureOrThrow(handle);
                 SignatureHeader signatureHeader;
                 DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
                 return signatureHeader;
@@ -1346,7 +1346,7 @@ namespace Microsoft.CodeAnalysis
                     bool isNoPiaLocalType;
                     type = GetSymbolForTypeHandleOrThrow(sigReader.ReadTypeHandle(), out isNoPiaLocalType, allowTypeSpec: true, requireShortForm: true);
 
-                    var underlyingEnumType = GetEnumUnderlyingType(type);
+                    TypeSymbol underlyingEnumType = GetEnumUnderlyingType(type);
 
                     // Spec: If the parameter kind is an enum -- simply store the value of the enum's underlying integer type.
                     if ((object)underlyingEnumType != null)
@@ -1424,7 +1424,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     type = GetTypeSymbolForSerializedType(enumTypeName);
-                    var underlyingType = GetEnumUnderlyingType(type);
+                    TypeSymbol underlyingType = GetEnumUnderlyingType(type);
                     if ((object)underlyingType == null)
                     {
                         throw new UnsupportedSignatureContent();
@@ -1698,7 +1698,7 @@ namespace Microsoft.CodeAnalysis
                     int paramCount = sigReader.ReadCompressedInteger();
 
                     // Get the type return type.
-                    var returnTypeCode = sigReader.ReadSignatureTypeCode();
+                    SignatureTypeCode returnTypeCode = sigReader.ReadSignatureTypeCode();
                     if (returnTypeCode != SignatureTypeCode.Void)
                     {
                         return false;
@@ -1801,7 +1801,7 @@ namespace Microsoft.CodeAnalysis
         private TypeSymbol[] DecodeMethodSpecTypeArgumentsOrThrow(BlobHandle signature)
         {
             SignatureHeader signatureHeader;
-            var signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
+            BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
             if (signatureHeader.Kind != SignatureKind.MethodSpecification)
             {
                 throw new BadImageFormatException();
@@ -1955,7 +1955,7 @@ namespace Microsoft.CodeAnalysis
 
             try
             {
-                foreach (var methodImpl in Module.GetMethodImplementationsOrThrow(implementingTypeDef))
+                foreach (MethodImplementationHandle methodImpl in Module.GetMethodImplementationsOrThrow(implementingTypeDef))
                 {
                     EntityHandle methodDebugHandle;
                     EntityHandle implementedMethodHandle;
@@ -2092,9 +2092,9 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
         private void EnqueueTypeDefInterfacesAndBaseTypeOrThrow(Queue<TypeDefinitionHandle> typeDefsToSearch, Queue<TypeSymbol> typeSymbolsToSearch, TypeDefinitionHandle searchTypeDef)
         {
-            foreach (var interfaceImplHandle in Module.GetInterfaceImplementationsOrThrow(searchTypeDef))
+            foreach (InterfaceImplementationHandle interfaceImplHandle in Module.GetInterfaceImplementationsOrThrow(searchTypeDef))
             {
-                var interfaceImpl = Module.MetadataReader.GetInterfaceImplementation(interfaceImplHandle);
+                InterfaceImplementation interfaceImpl = Module.MetadataReader.GetInterfaceImplementation(interfaceImplHandle);
                 EnqueueTypeToken(typeDefsToSearch, typeSymbolsToSearch, interfaceImpl.Interface);
             }
 
@@ -2289,7 +2289,7 @@ namespace Microsoft.CodeAnalysis
                             return null;
                         }
 
-                        var genericArguments = DecodeMethodSpecTypeArgumentsOrThrow(instantiation);
+                        TypeSymbol[] genericArguments = DecodeMethodSpecTypeArgumentsOrThrow(instantiation);
                         return (MethodSymbol)genericDefinition.Construct(genericArguments);
 
                     case HandleKind.MemberReference:
@@ -2403,8 +2403,8 @@ namespace Microsoft.CodeAnalysis
                     ((paramIndex1 == 0) && comparingToSetter) ?
                     signature1.Length :
                     paramIndex1;
-                var param1 = signature1[paramIndex1];
-                var param2 = signature2[paramIndex2];
+                ParamInfo<TypeSymbol> param1 = signature1[paramIndex1];
+                ParamInfo<TypeSymbol> param2 = signature2[paramIndex2];
                 if (compareParamByRef && (param2.IsByRef != param1.IsByRef))
                 {
                     return false;
@@ -2438,7 +2438,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            var methodParam = methodParams[1];
+            ParamInfo<TypeSymbol> methodParam = methodParams[1];
             return !methodParam.IsByRef && methodParam.Type.Equals(eventType);
         }
 

@@ -35,7 +35,7 @@ class Program
     static void Goo(Action a) { }
     static void Goo(Expression<Action> a) { }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
@@ -595,11 +595,11 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics();
 
-            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
-            var normalized = type.NormalizeTaskTypes(compilation);
+            TypeSymbol type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            TypeSymbol normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task", normalized.ToTestDisplayString());
 
@@ -675,11 +675,11 @@ namespace System.Runtime.CompilerServices
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics();
 
-            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
-            var normalized = type.NormalizeTaskTypes(compilation);
+            TypeSymbol type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            TypeSymbol normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask<(MyTask, T)>", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task<(System.Threading.Tasks.Task, T)>", normalized.ToTestDisplayString());
 
@@ -708,8 +708,8 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
         {
             while (type.IsTupleType)
             {
-                var underlyingType = type.TupleUnderlyingType;
-                var typeArgs = underlyingType.TypeArguments();
+                NamedTypeSymbol underlyingType = type.TupleUnderlyingType;
+                ImmutableArray<TypeSymbol> typeArgs = underlyingType.TypeArguments();
                 if (typeArgs.Length < 8)
                 {
                     return underlyingType;
@@ -758,12 +758,12 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 ";
             var source =
 @"";
-            var reference = CompileIL(ilSource);
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            MetadataReference reference = CompileIL(ilSource);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
             compilation.VerifyDiagnostics();
 
-            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
-            var normalized = type.NormalizeTaskTypes(compilation);
+            TypeSymbol type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            TypeSymbol normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask<MyTask modopt(MyTask<System.Object>)>", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task<System.Threading.Tasks.Task modopt(MyTask<System.Object>)>", normalized.ToTestDisplayString());
         }
@@ -789,14 +789,14 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.UnsafeDebugDll);
             compilation.VerifyDiagnostics(
                 // (4,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C<MyTask<int>>')
                 //     static C<MyTask<int>>* F0;
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "C<MyTask<int>>*").WithArguments("C<MyTask<int>>").WithLocation(6, 12));
 
-            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
-            var normalized = type.NormalizeTaskTypes(compilation);
+            TypeSymbol type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            TypeSymbol normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("C<MyTask<System.Int32>>*", type.ToTestDisplayString());
             Assert.Equal("C<System.Threading.Tasks.Task<System.Int32>>*", normalized.ToTestDisplayString());
         }
@@ -829,12 +829,12 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
 ";
             var source =
 @"";
-            var reference = CompileIL(ilSource);
-            var compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
+            MetadataReference reference = CompileIL(ilSource);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, references: new[] { reference });
             compilation.VerifyDiagnostics();
 
-            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
-            var normalized = type.NormalizeTaskTypes(compilation);
+            TypeSymbol type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            TypeSymbol normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask modopt(MyTask) *[]", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task modopt(MyTask) *[]", normalized.ToTestDisplayString());
         }
@@ -867,7 +867,7 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics(
                 // (5,19): error CS0246: The type or namespace name 'B' could not be found (are you missing a using directive or an assembly reference?)
                 //     static MyTask<B> F1;
@@ -876,9 +876,9 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
                 //     static A<int, MyTask> F0;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "A<int, MyTask>").WithArguments("A<,>").WithLocation(6, 12));
 
-            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            TypeSymbol type = compilation.GetMember<FieldSymbol>("C.F0").Type;
             Assert.Equal(TypeKind.Error, type.TypeKind);
-            var normalized = type.NormalizeTaskTypes(compilation);
+            TypeSymbol normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("A<System.Int32, MyTask>", type.ToTestDisplayString());
             Assert.Equal("A<System.Int32, System.Threading.Tasks.Task>", normalized.ToTestDisplayString());
 
@@ -921,11 +921,11 @@ class C<T, U>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics();
 
-            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
-            var normalized = type.NormalizeTaskTypes(compilation);
+            TypeSymbol type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            TypeSymbol normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("C<T, U>.MyTask<U>", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task<U>", normalized.ToTestDisplayString());
 
@@ -974,11 +974,11 @@ class MyTaskMethodBuilder<V>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
             compilation.VerifyDiagnostics();
 
-            var type = compilation.GetMember<FieldSymbol>("C.F0").Type;
-            var normalized = type.NormalizeTaskTypes(compilation);
+            TypeSymbol type = compilation.GetMember<FieldSymbol>("C.F0").Type;
+            TypeSymbol normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask<MyTask.A>", type.ToTestDisplayString());
             Assert.Equal("System.Threading.Tasks.Task<MyTask.A>", normalized.ToTestDisplayString());
 
@@ -1019,10 +1019,10 @@ struct MyTaskMethodBuilder<T>
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateEmptyCompilation(source, references: new[] { MscorlibRef_v20 });
+            CSharpCompilation compilation = CreateEmptyCompilation(source, references: new[] { MscorlibRef_v20 });
             compilation.VerifyDiagnostics();
-            var type = compilation.GetMember<FieldSymbol>("C.F").Type;
-            var normalized = type.NormalizeTaskTypes(compilation);
+            TypeSymbol type = compilation.GetMember<FieldSymbol>("C.F").Type;
+            TypeSymbol normalized = type.NormalizeTaskTypes(compilation);
             Assert.Equal("MyTask<MyTask>", type.ToTestDisplayString());
             Assert.Equal("MyTask<MyTask>", normalized.ToTestDisplayString());
         }
@@ -1276,7 +1276,7 @@ class C
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugDll);
 
             compilation.VerifyDiagnostics(
     // (9,9): error CS0121: The call is ambiguous between the following methods or properties: 'C.X(params string[])' and 'C.X<T>(T)'
@@ -1849,7 +1849,7 @@ class Test2
     }
 }";
             // Same errors as in source case
-            var comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             comp.VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"),
                 Diagnostic(ErrorCode.ERR_BadArgCount, "Method2").WithArguments("Method2", "5"));
@@ -2200,18 +2200,18 @@ class C
         [Fact]
         public void MissingBaseTypeAndParamsCtor()
         {
-            var cCommon = CreateCompilation(@"
+            CSharpCompilation cCommon = CreateCompilation(@"
 public class TCommon {}
 ", assemblyName: "cCommon");
             Assert.Empty(cCommon.GetDiagnostics());
 
-            var cCS = CreateCompilation(@"
+            CSharpCompilation cCS = CreateCompilation(@"
 public class MProvider : TCommon {}
 ", new MetadataReference[] { new CSharpCompilationReference(cCommon) }, assemblyName: "cCS");
 
             Assert.Empty(cCS.GetDiagnostics());
 
-            var cFinal = CreateCompilation(@"
+            CSharpCompilation cFinal = CreateCompilation(@"
 public class T : MProvider {}
 
 class PArray
@@ -2838,7 +2838,7 @@ public class MainClass
     }
 }";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, ilSource);
 
             compilation.VerifyDiagnostics(
                 // (7,26): error CS1620: Argument 1 must be passed with the 'ref' keyword
@@ -4455,7 +4455,7 @@ class Test
 30
 31
 32";
-            var compilation = CreateCompilationWithILAndMscorlib40(source2, source1, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source2, source1, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -6594,7 +6594,7 @@ class MainClass
 
 ";
             // Roslyn matches the native behavior - it compiles cleanly.
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics();
         }
 
@@ -6625,7 +6625,7 @@ class MainClass
     { return new MainClass(); }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (8,13): error CS0019: Operator '+' cannot be applied to operands of type 'MainClass' and 'lambda expression'
                 //         r = r + ((MainClass x) => x + (MainClass)((MainClass y) => (y + null)));
@@ -6666,7 +6666,7 @@ class MainClass
 ";
             // NOTE: roslyn suppresses the error for (x + (...)) in the first assignment,
             // but it's still an error (as indicated by the standalone test below).
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0019: Operator '+' cannot be applied to operands of type 'MainClass' and 'lambda expression'
                 //         r = r + ((MainClass x) => (x + ((MainClass y) => (y + null))));
@@ -6703,7 +6703,7 @@ class MainClass
 //  { return new MainClass(); }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0019: Operator '+' cannot be applied to operands of type 'MainClass' and 'lambda expression'
                 //         r = r + ((MainClass x) => x + ((MainClass y) => (y + null)));
@@ -6730,11 +6730,11 @@ public class Test
     }
 }
 ";
-            var libRef = TestReferences.SymbolsTests.BigVisitor;
+            PortableExecutableReference libRef = TestReferences.SymbolsTests.BigVisitor;
 
-            var start = DateTime.UtcNow;
+            DateTime start = DateTime.UtcNow;
             CreateCompilationWithMscorlib40AndSystemCore(source, new[] { libRef }).VerifyDiagnostics();
-            var elapsed = DateTime.UtcNow - start;
+            TimeSpan elapsed = DateTime.UtcNow - start;
             Assert.InRange(elapsed.TotalSeconds, 0, 10.0); // Was originally over 30 minutes, so we have some wiggle room here.
         }
 
@@ -6922,7 +6922,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput: "0");
         }
@@ -7044,13 +7044,13 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            InvocationExpressionSyntax callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 
             Assert.Equal("void C.M1(System.Func<System.String, System.String, System.Int32> f)",
                 model.GetSymbolInfo(callSyntax).Symbol.ToTestDisplayString());
@@ -7154,13 +7154,13 @@ public class Derived : Base
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            InvocationExpressionSyntax callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
             var methodSymbol = (MethodSymbol)model.GetSymbolInfo(callSyntax).Symbol;
 
             Assert.Equal(SpecialType.System_Int32, methodSymbol.TypeArguments.Single().SpecialType);
@@ -7328,14 +7328,14 @@ public class Test
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            var symbol = model.GetSymbolInfo(syntax).Symbol;
+            InvocationExpressionSyntax syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            ISymbol symbol = model.GetSymbolInfo(syntax).Symbol;
 
             // Func<Color, Color> is convertible to ColorToColor, but the converse is not true.
             Assert.Equal("void Test.N(System.Func<Color, Color> F)", symbol.ToTestDisplayString());
@@ -7369,14 +7369,14 @@ public class Test
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
-            var symbol = model.GetSymbolInfo(syntax).Symbol;
+            InvocationExpressionSyntax syntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            ISymbol symbol = model.GetSymbolInfo(syntax).Symbol;
 
             // Func<Func<Color, Color>> is convertible to Func<ColorToColor>, but the converse is not true.
             Assert.Equal("void Test.N(System.Func<System.Func<Color, Color>> F)", symbol.ToTestDisplayString());
@@ -7400,7 +7400,7 @@ class Program
         M(gt1, 1, 2);
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (9,27): error CS0314: The type 'T' cannot be used as type parameter 'T' in the generic type or method 'G<T>'. There is no boxing conversion or type parameter conversion from 'T' to 'I'.
                 //     static void M<T>(G<T> gt1, params int[] i)
@@ -7428,7 +7428,7 @@ class Test
         y += x => 2;
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (9,14): error CS0123: No overload for 'goo' matches delegate 'System.EventHandler'
                 //         y += goo;
@@ -7454,7 +7454,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
     // (8,46): error CS1503: Argument 1: cannot convert from 'string' to 'int'
     //         var d = new Dictionary<int, int>() {["aaa"] = 3};
@@ -7477,7 +7477,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
     // (8,28): error CS1513: } expected
     //         var d = new int[] {[1] = 3 };
@@ -7521,7 +7521,7 @@ class C
 }
 
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
     // (8,44): error CS0121: The call is ambiguous between the following methods or properties: 'C.M<T>(System.Func<bool, T>)' and 'C.M<T>(System.Func<byte, T>)'
     //         M(a => M(b => M(c => M(d => M(e => M(f => a))))));
@@ -7626,7 +7626,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"2
 2
 2
@@ -7659,7 +7659,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: @"2
 2
 2
@@ -7687,7 +7687,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source1, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(compilation, expectedOutput: @"2
 1");
@@ -7735,7 +7735,7 @@ namespace C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
     // (31,19): error CS0121: The call is ambiguous between the following methods or properties: 'X.Test(int)' and 'X.Test(int)'
     //             if (1.Test() != 1)
@@ -7778,7 +7778,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput: @"Create(Func<T, bool> filter)");
         }
@@ -7858,7 +7858,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput: @"Create(Func<T, V> propertyPrev, Func<T, bool> filter = null)");
         }
@@ -8061,7 +8061,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"IfNotNull<T, U>(this T? source, Func<T, U> selector)
@@ -8100,7 +8100,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -8136,7 +8136,7 @@ namespace ConsoleApplication2
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics();
         }
 
@@ -8169,7 +8169,7 @@ class CTest
 }
 ";
 
-            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput: @"M1(int x)");
         }
@@ -8215,7 +8215,7 @@ public class C : CodeAccessSecurityAttribute
 
 
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (16,35): error CS1001: Identifier expected
                 //     public A(params SecurityAction)
@@ -8277,7 +8277,7 @@ public class A
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,28): error CS0231: A params parameter must be the last parameter in a formal parameter list
                 //     public static void Goo(params int[] vals, bool truth)
@@ -8397,7 +8397,7 @@ namespace VS2015CompilerBug
 }
 ";
 
-            var compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"int Properties(this IFirstInterface source, params int[] x)
@@ -8445,7 +8445,7 @@ namespace VS2015CompilerBug
 }
 ";
 
-            var compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"void Test2(int x, params int[] y)
@@ -8492,7 +8492,7 @@ namespace VS2015CompilerBug
 }
 ";
 
-            var compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput:
 @"void Test2(int x = 0, int y = 0)
@@ -8531,7 +8531,7 @@ namespace VS2015CompilerBug
 }
 ";
 
-            var compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source1, new[] { SystemCoreRef }, options: TestOptions.DebugExe);
 
             compilation.VerifyDiagnostics(
     // (9,39): error CS0121: The call is ambiguous between the following methods or properties: 'VS2015CompilerBug.Test2(int, int)' and 'VS2015CompilerBug.Test2(int, int, int)'
@@ -8566,7 +8566,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput: @"void M1(string s, object o1, object o2)");
         }
@@ -8592,7 +8592,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
 
             compilation.VerifyDiagnostics(
     // (14,9): error CS0121: The call is ambiguous between the following methods or properties: 'Test.M1(object, object, string)' and 'Test.M1(string, object, object)'
@@ -8622,7 +8622,7 @@ class Test
 }
 ";
 
-            var compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(source1, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput: @"2");
         }
@@ -8742,7 +8742,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source1);
+            CSharpCompilation compilation = CreateCompilation(source1);
 
             compilation.VerifyDiagnostics(
     // (12,24): error CS1739: The best overload for 'F1' does not have a parameter named 'z'
@@ -8827,7 +8827,7 @@ class C
         M(x: 1, y: 2, z: 3);
     }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -8872,7 +8872,7 @@ namespace ClassLibraryOverloadResolution
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib45(source1);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source1);
 
             compilation.VerifyDiagnostics(
     // (34,18): error CS0121: The call is ambiguous between the following methods or properties: 'FluentAssertions.AssertionExtensions.Should<TKey, TValue>(System.Collections.Generic.IDictionary<TKey, TValue>)' and 'Extensions.TestExtensions.Should<TKey, TValue>(System.Collections.Generic.IReadOnlyDictionary<TKey, TValue>)'
@@ -8937,7 +8937,7 @@ public static class Class
         System.Console.WriteLine(""RemoveDetail"");
     }
 }";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput:
 @"RemoveDetail
 RemoveDetail
@@ -8964,7 +8964,7 @@ class D
     private void M(double d) { }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             compilation.VerifyDiagnostics(
     // (6,11): error CS0122: 'D.M(int)' is inaccessible due to its protection level
@@ -8972,15 +8972,15 @@ class D
     Diagnostic(ErrorCode.ERR_BadAccess, "M").WithArguments("D.M(int)").WithLocation(6, 11)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            InvocationExpressionSyntax callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 
-            var symbolInfo = model.GetSymbolInfo(callSyntax);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(callSyntax);
 
             Assert.Equal(CandidateReason.Inaccessible, symbolInfo.CandidateReason);
-            var candidates = symbolInfo.CandidateSymbols;
+            ImmutableArray<ISymbol> candidates = symbolInfo.CandidateSymbols;
             Assert.Equal(2, candidates.Length);
             Assert.Equal("void D.M(System.Int32 i)", candidates[0].ToTestDisplayString());
             Assert.Equal("void D.M(System.Double d)", candidates[1].ToTestDisplayString());
@@ -9198,7 +9198,7 @@ public class Test
         }
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (17,9): error CS0411: The type arguments for method 'Test.Assert<T>(T, T)' cannot be inferred from the usage. Try specifying the type arguments explicitly.
                 //         Assert(a, b);
@@ -9237,7 +9237,7 @@ static class E
     internal static void F(this B x, Action<object> y) { }
     internal static void F(this B x, Action<object> y, A z) { }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (9,22): error CS1503: Argument 3: cannot convert from 'A' to 'B'
                 //         a.F(o => {}, a);
@@ -9272,7 +9272,7 @@ static class E
     internal static void F(this A x, Action<object> y) { }
     internal static void F(this A x, Action<object> y, B z) { }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (9,9): error CS1929: 'A' does not contain a definition for 'F' and the best extension method overload 'E.F(B, Action<object>, A)' requires a receiver of type 'B'
                 //         a.F(o => {}, a);
@@ -9313,22 +9313,22 @@ public class Program
     public static void Main() => E.F(new D());
 }
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (28,36): error CS0121: The call is ambiguous between the following methods or properties: 'E.F(A)' and 'E.F(B)'
                 //     public static void Main() => E.F(new D());
                 Diagnostic(ErrorCode.ERR_AmbigCall, "F").WithArguments("E.F(A)", "E.F(B)").WithLocation(28, 36)
             );
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
+            InvocationExpressionSyntax callSyntax = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().Single();
 
-            var symbolInfo = model.GetSymbolInfo(callSyntax);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(callSyntax);
 
             Assert.Equal(CandidateReason.OverloadResolutionFailure, symbolInfo.CandidateReason);
-            var candidates = symbolInfo.CandidateSymbols;
+            ImmutableArray<ISymbol> candidates = symbolInfo.CandidateSymbols;
             Assert.Equal(3, candidates.Length);
             Assert.Equal("void E.F(A a)", candidates[0].ToTestDisplayString());
             Assert.Equal("void E.F(B b)", candidates[1].ToTestDisplayString());
@@ -10950,7 +10950,7 @@ public static class Extensions
 }
 ";
 
-            var libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { SystemCoreRef }).VerifyDiagnostics();
+            CSharpCompilation libComp = CreateCompilationWithMscorlib40(librarySrc, references: new[] { SystemCoreRef }).VerifyDiagnostics();
 
 
             var code = @"

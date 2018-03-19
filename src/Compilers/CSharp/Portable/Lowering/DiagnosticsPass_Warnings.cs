@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (argumentRefKindsOpt[i] != RefKind.None)
                     {
-                        var argument = arguments[i];
+                        BoundExpression argument = arguments[i];
                         switch (argument.Kind)
                         {
                             case BoundKind.FieldAccess:
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool IsInterlockedAPI(Symbol method)
         {
-            var interlocked = _compilation.GetWellKnownType(WellKnownType.System_Threading_Interlocked);
+            NamedTypeSymbol interlocked = _compilation.GetWellKnownType(WellKnownType.System_Threading_Interlocked);
             if ((object)interlocked != null && interlocked == method.ContainingType)
                 return true;
 
@@ -333,13 +333,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol nt = conv.Operand.Type as NamedTypeSymbol;
             if ((object)nt == null || !nt.IsReferenceType) return false;
             string opName = (oldOperatorKind == BinaryOperatorKind.ObjectEqual) ? WellKnownMemberNames.EqualityOperatorName : WellKnownMemberNames.InequalityOperatorName;
-            for (var t = nt; (object)t != null; t = t.BaseTypeNoUseSiteDiagnostics)
+            for (NamedTypeSymbol t = nt; (object)t != null; t = t.BaseTypeNoUseSiteDiagnostics)
             {
-                foreach (var sym in t.GetMembers(opName))
+                foreach (Symbol sym in t.GetMembers(opName))
                 {
                     MethodSymbol op = sym as MethodSymbol;
                     if ((object)op == null || op.MethodKind != MethodKind.UserDefinedOperator) continue;
-                    var parameters = op.GetParameters();
+                    ImmutableArray<ParameterSymbol> parameters = op.GetParameters();
                     if (parameters.Length == 2 && parameters[0].Type == t && parameters[1].Type == t)
                     {
                         type = t;
@@ -883,14 +883,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var rightTuple = (BoundTupleExpression)right;
-            var leftArguments = leftTuple.Arguments;
+            ImmutableArray<BoundExpression> leftArguments = leftTuple.Arguments;
             int length = leftArguments.Length;
             Debug.Assert(length == rightTuple.Arguments.Length);
 
             for (int i = 0; i < length; i++)
             {
-                var leftArgument = leftArguments[i];
-                var rightArgument = rightTuple.Arguments[i];
+                BoundExpression leftArgument = leftArguments[i];
+                BoundExpression rightArgument = rightTuple.Arguments[i];
 
                 if (leftArgument.Kind == BoundKind.TupleLiteral)
                 {

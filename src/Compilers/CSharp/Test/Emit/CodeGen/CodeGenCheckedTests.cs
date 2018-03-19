@@ -38,7 +38,7 @@ class C
     } 
 }
 ";
-            var verifier = CompileAndVerify(source);
+            CompilationVerifier verifier = CompileAndVerify(source);
 
             verifier.VerifyIL("C.Add", @"
 {
@@ -112,7 +112,7 @@ class C
     } 
 }
 ";
-            var verifier = CompileAndVerify(source);
+            CompilationVerifier verifier = CompileAndVerify(source);
 
             verifier.VerifyIL("C.Add", @"
 {
@@ -210,7 +210,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source);
+            CompilationVerifier verifier = CompileAndVerify(source);
 
             verifier.VerifyIL("C.Add1", @"
 {
@@ -383,7 +383,7 @@ unsafe struct C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            CompilationVerifier verifier = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             // NOTE: unsigned addition
             verifier.VerifyIL("C.Add_Int1", @"
@@ -603,7 +603,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source);
+            CompilationVerifier verifier = CompileAndVerify(source);
 
             verifier.VerifyIL("C.Local", @"
 {
@@ -672,7 +672,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source);
+            CompilationVerifier verifier = CompileAndVerify(source);
 
             verifier.VerifyIL("C.PostInc", @"
 {
@@ -758,7 +758,7 @@ class C
     } 
 }
 ";
-            var verifier = CompileAndVerify(source);
+            CompilationVerifier verifier = CompileAndVerify(source);
 
             verifier.VerifyIL("C.Add", @"
 {
@@ -839,7 +839,7 @@ class C
     }
 }";
 
-            var verifier = CompileAndVerify(source);
+            CompilationVerifier verifier = CompileAndVerify(source);
 
             verifier.VerifyIL("C.Add", @"
 {
@@ -896,7 +896,7 @@ class C
         checked { return s++; }
     }
 }";
-            var verifier = CompileAndVerify(source);
+            CompilationVerifier verifier = CompileAndVerify(source);
 
             verifier.VerifyIL("C.PostIncUserDefined", @"
 {
@@ -983,7 +983,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source);
+            CompilationVerifier verifier = CompileAndVerify(source);
 
             verifier.VerifyIL("C.ArraySize", @"
 {
@@ -1037,7 +1037,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source);
+            CompilationVerifier verifier = CompileAndVerify(source);
 
             verifier.VerifyIL("C.ForEachString", @"
 {
@@ -1193,7 +1193,7 @@ class C
     } 
 }
 ";
-            var verifier = CompileAndVerify(source);
+            CompilationVerifier verifier = CompileAndVerify(source);
 
             verifier.VerifyIL("C.Add", @"
 {
@@ -1289,7 +1289,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source);
+            CompilationVerifier verifier = CompileAndVerify(source);
 
             verifier.VerifyIL("C.SByte_UInt", @"
 {
@@ -1330,7 +1330,7 @@ class C
         [Fact]
         public void Lambda_Statement()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {
     static void F()
@@ -1359,7 +1359,7 @@ class C
         [Fact]
         public void Lambda_QueryStmt()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 using System.Linq;
 
 class C
@@ -1387,7 +1387,7 @@ class C
         [Fact]
         public void Lambda_QueryExpr()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 using System.Linq;
 
 class C
@@ -1412,7 +1412,7 @@ class C
         [Fact]
         public void Lambda_AddOvfAssignment()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {
     static void F()
@@ -1439,7 +1439,7 @@ class C
         [Fact]
         public void Lambda_Add()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {
     static void F()
@@ -1465,7 +1465,7 @@ class C
         [Fact]
         public void Lambda_Cast()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {    
     static void F()
@@ -1491,7 +1491,7 @@ class C
         [Fact]
         public void Lambda_AddOvfCompoundAssignment()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {
     static void F()
@@ -1518,7 +1518,7 @@ class C
         [Fact]
         public void Lambda_AddOvfArgument()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1546,7 +1546,7 @@ class C
         [Fact]
         public void Lambda_AddOvfArgument2()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1574,7 +1574,7 @@ class C
         [Fact]
         public void Lambda_AddArgument3()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {   
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1602,7 +1602,7 @@ class C
         [Fact]
         public void Lambda_AddOvfArgument4()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1631,7 +1631,7 @@ class C
         [Fact]
         public void Lambda_AddOvfArgument5()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1659,7 +1659,7 @@ class C
         [Fact]
         public void Lambda_AddArgument6()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {   
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1687,7 +1687,7 @@ class C
         [Fact]
         public void Lambda_AddArgument7()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1715,7 +1715,7 @@ class C
         [Fact]
         public void Lambda_AddOvfArgument8()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {    
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1743,7 +1743,7 @@ class C
         [Fact]
         public void Lambda_LambdaVsDelegate1()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {    
     static void F()
@@ -1767,7 +1767,7 @@ class C
         [Fact]
         public void Lambda_LambdaVsDelegate2()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {
     static void F()
@@ -1790,7 +1790,7 @@ class C
         [Fact]
         public void Lambda_LambdaVsDelegate3()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {
     static void F()
@@ -1813,7 +1813,7 @@ class C
         [Fact]
         public void Lambda_NewDelegate1()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1838,7 +1838,7 @@ class C
         [Fact]
         public void Lambda_NewDelegate2()
         {
-            var verifier = CompileAndVerify(@"
+            CompilationVerifier verifier = CompileAndVerify(@"
 class C
 {
     static System.Func<int, int> Id(System.Func<int, int> x) { return x; }
@@ -1982,7 +1982,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0220: The operation overflows at compile time in checked mode
                 //         r = int.MaxValue + 1;
@@ -2018,7 +2018,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source);
+            CompilationVerifier verifier = CompileAndVerify(source);
 
             verifier.VerifyIL("Program.Main", @"
 {
@@ -2114,7 +2114,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,81): error CS0220: The operation overflows at compile time in checked mode
                 //         d1 = unchecked(delegate (int i) { r1 = int.MaxValue + 1; return checked(int.MaxValue + 1); });
@@ -2152,7 +2152,7 @@ class M
         var r1 = decimal.MaxValue + 1;
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,25): error CS0463: Evaluation of the decimal constant expression failed
                 //         var r = checked(decimal.MaxValue + 1);
@@ -2332,7 +2332,7 @@ class Derived2 : Base1
     }
 }
 ";
-            var verifier = CompileAndVerify(source);
+            CompilationVerifier verifier = CompileAndVerify(source);
 
             verifier.VerifyIL("Derived2.inc", @"
 {
@@ -2679,7 +2679,7 @@ class Derived2 : Base1
         private void CheckedConversionInExpressionTree_Implicit(string fromType, string toType, ConvertMethod expectedMethod, string additionalTypes = "")
         {
             var source = CheckedConversionInExpressionTree_ImplicitSource(fromType, toType, additionalTypes);
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             string expectedOutput;
             switch (expectedMethod)
             {
@@ -2693,7 +2693,7 @@ class Derived2 : Base1
                     expectedOutput = "arg => F(ConvertChecked(arg))";
                     break;
             }
-            var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             // Since Expression.ConvertChecked can generate a Checked result
             // (rather than ConvertChecked), verify the correct method was called.
             VerifyConversionInExpressionTreeIL(verifier.TestData.GetMethodData("C.Main").GetMethodIL(), expectedMethod);
@@ -2702,7 +2702,7 @@ class Derived2 : Base1
         private void CheckedConversionInExpressionTree_Implicit(string fromType, string toType, string expectedOutput)
         {
             var source = CheckedConversionInExpressionTree_ImplicitSource(fromType, toType, additionalTypes: "");
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 
@@ -2726,7 +2726,7 @@ class C
         private void CheckedConversionInExpressionTree_Explicit(string fromType, string toType, ConvertMethod expectedMethod, string additionalTypes = "")
         {
             var source = CheckedConversionInExpressionTree_ExplicitSource(fromType, toType, additionalTypes);
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             string expectedOutput;
             switch (expectedMethod)
             {
@@ -2740,7 +2740,7 @@ class C
                     expectedOutput = "arg => ConvertChecked(arg)";
                     break;
             }
-            var verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
+            CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: expectedOutput);
             // Since Expression.ConvertChecked can generate a Checked result
             // (rather than ConvertChecked), verify the correct method was called.
             VerifyConversionInExpressionTreeIL(verifier.TestData.GetMethodData("C.Main").GetMethodIL(), expectedMethod);
@@ -2749,7 +2749,7 @@ class C
         private void CheckedConversionInExpressionTree_Explicit(string fromType, string toType, string expectedOutput)
         {
             var source = CheckedConversionInExpressionTree_ExplicitSource(fromType, toType, additionalTypes: "");
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: expectedOutput);
         }
 

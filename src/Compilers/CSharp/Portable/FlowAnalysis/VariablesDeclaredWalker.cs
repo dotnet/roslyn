@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
         {
-            foreach (var label in node.SwitchLabels)
+            foreach (BoundPatternSwitchLabel label in node.SwitchLabels)
             {
                 NoteDeclaredPatternVariables(label.Pattern);
             }
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside && !node.WasCompilerGenerated)
             {
-                foreach (var parameter in node.Symbol.Parameters)
+                foreach (ParameterSymbol parameter in node.Symbol.Parameters)
                 {
                     _variablesDeclared.Add(parameter);
                 }
@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside && !node.WasCompilerGenerated)
             {
-                foreach (var parameter in node.Symbol.Parameters)
+                foreach (ParameterSymbol parameter in node.Symbol.Parameters)
                 {
                     _variablesDeclared.Add(parameter);
                 }
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside)
             {
-                var deconstructionAssignment = node.DeconstructionOpt?.DeconstructionAssignment;
+                BoundDeconstructionAssignmentOperator deconstructionAssignment = node.DeconstructionOpt?.DeconstructionAssignment;
 
                 if (deconstructionAssignment == null)
                 {
@@ -135,7 +135,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside)
             {
-                var local = catchBlock.Locals.FirstOrDefault();
+                LocalSymbol local = catchBlock.Locals.FirstOrDefault();
 
                 if (local?.DeclarationKind == LocalDeclarationKind.CatchVariable)
                 {

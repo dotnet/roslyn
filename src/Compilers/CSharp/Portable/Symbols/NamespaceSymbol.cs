@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var extent = this.Extent;
+                NamespaceExtent extent = this.Extent;
                 if (extent.Kind == NamespaceKind.Module)
                 {
                     return extent.Module;
@@ -219,7 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var types = this.GetTypeMembers(TypeSymbol.ImplicitTypeName);
+                ImmutableArray<NamedTypeSymbol> types = this.GetTypeMembers(TypeSymbol.ImplicitTypeName);
                 if (types.Length == 0)
                 {
                     return null;
@@ -278,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal NamespaceSymbol GetNestedNamespace(string name)
         {
-            foreach (var sym in this.GetMembers(name))
+            foreach (Symbol sym in this.GetMembers(name))
             {
                 if (sym.Kind == SymbolKind.Namespace)
                 {
@@ -299,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 case SyntaxKind.QualifiedName:
                     var qn = (QualifiedNameSyntax)name;
-                    var leftNs = this.GetNestedNamespace(qn.Left);
+                    NamespaceSymbol leftNs = this.GetNestedNamespace(qn.Left);
                     if ((object)leftNs != null)
                     {
                         return leftNs.GetNestedNamespace(qn.Right);
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var typesWithExtensionMethods = this._lazyTypesMightContainExtensionMethods;
+                ImmutableArray<NamedTypeSymbol> typesWithExtensionMethods = this._lazyTypesMightContainExtensionMethods;
                 if (typesWithExtensionMethods.IsDefault)
                 {
                     this._lazyTypesMightContainExtensionMethods = this.GetTypeMembersUnordered().WhereAsArray(t => t.MightContainExtensionMethods);
@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="options">Lookup options</param>
         internal virtual void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
         {
-            var assembly = this.ContainingAssembly;
+            AssemblySymbol assembly = this.ContainingAssembly;
 
             // Only MergedAssemblySymbol should have a null ContainingAssembly
             // and MergedAssemblySymbol overrides GetExtensionMethods.
@@ -353,9 +353,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return;
             }
 
-            var typesWithExtensionMethods = this.TypesMightContainExtensionMethods;
+            ImmutableArray<NamedTypeSymbol> typesWithExtensionMethods = this.TypesMightContainExtensionMethods;
 
-            foreach (var type in typesWithExtensionMethods)
+            foreach (NamedTypeSymbol type in typesWithExtensionMethods)
             {
                 type.DoGetExtensionMethods(methods, nameOpt, arity, options);
             }

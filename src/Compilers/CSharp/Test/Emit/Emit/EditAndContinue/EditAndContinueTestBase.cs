@@ -72,24 +72,24 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
 
         internal static Func<SyntaxNode, SyntaxNode> GetEquivalentNodesMap(MethodSymbol method1, MethodSymbol method0)
         {
-            var tree1 = method1.Locations[0].SourceTree;
-            var tree0 = method0.Locations[0].SourceTree;
+            SyntaxTree tree1 = method1.Locations[0].SourceTree;
+            SyntaxTree tree0 = method0.Locations[0].SourceTree;
             Assert.NotEqual(tree1, tree0);
 
-            var locals0 = GetAllLocals(method0);
+            ImmutableArray<SyntaxNode> locals0 = GetAllLocals(method0);
             return s =>
             {
-                var s1 = s;
+                SyntaxNode s1 = s;
                 Assert.Equal(s1.SyntaxTree, tree1);
-                foreach (var s0 in locals0)
+                foreach (SyntaxNode s0 in locals0)
                 {
                     if (!SyntaxFactory.AreEquivalent(s0, s1))
                     {
                         continue;
                     }
                     // Make sure the containing statements are the same.
-                    var p0 = GetNearestStatement(s0);
-                    var p1 = GetNearestStatement(s1);
+                    StatementSyntax p0 = GetNearestStatement(s0);
+                    StatementSyntax p1 = GetNearestStatement(s1);
                     if (SyntaxFactory.AreEquivalent(p0, p1))
                     {
                         return s0;

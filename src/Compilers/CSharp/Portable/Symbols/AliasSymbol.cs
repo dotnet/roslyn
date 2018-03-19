@@ -103,14 +103,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // We can pass basesBeingResolved: null because base type cycles can't cross
             // submission boundaries - there's no way to depend on a subsequent submission.
-            var previousTarget = GetAliasTarget(basesBeingResolved: null);
+            NamespaceOrTypeSymbol previousTarget = GetAliasTarget(basesBeingResolved: null);
             if (previousTarget.Kind != SymbolKind.Namespace)
             {
                 return this;
             }
 
-            var expandedGlobalNamespace = compilation.GlobalNamespace;
-            var expandedNamespace = Imports.ExpandPreviousSubmissionNamespace((NamespaceSymbol)previousTarget, expandedGlobalNamespace);
+            NamespaceSymbol expandedGlobalNamespace = compilation.GlobalNamespace;
+            NamespaceSymbol expandedNamespace = Imports.ExpandPreviousSubmissionNamespace((NamespaceSymbol)previousTarget, expandedGlobalNamespace);
             var binder = new InContainerBinder(expandedGlobalNamespace, new BuckStopsHereBinder(compilation));
             return new AliasSymbol(binder, expandedNamespace, _aliasName, _locations);
         }
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var target = this.Target as TypeSymbol;
             if ((object)target != null && _locations.Length > 0)
             {
-                var corLibrary = this.ContainingAssembly.CorLibrary;
+                AssemblySymbol corLibrary = this.ContainingAssembly.CorLibrary;
                 var conversions = new TypeConversions(corLibrary);
                 target.CheckAllConstraints(conversions, _locations[0], diagnostics);
             }
@@ -323,7 +323,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static NamespaceOrTypeSymbol ResolveAliasTarget(Binder binder, NameSyntax syntax, DiagnosticBag diagnostics, ConsList<Symbol> basesBeingResolved)
         {
-            var declarationBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
+            Binder declarationBinder = binder.WithAdditionalFlags(BinderFlags.SuppressConstraintChecks | BinderFlags.SuppressObsoleteChecks);
             return declarationBinder.BindNamespaceOrTypeSymbol(syntax, diagnostics, basesBeingResolved);
         }
 

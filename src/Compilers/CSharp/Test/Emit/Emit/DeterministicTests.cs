@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 
         private Guid CompiledGuid(string source, string assemblyName, CSharpCompilationOptions options, EmitOptions emitOptions = null, Platform platform = Platform.AnyCpu)
         {
-            var compilation = CreateEmptyCompilation(source,
+            CSharpCompilation compilation = CreateEmptyCompilation(source,
                 assemblyName: assemblyName,
                 references: new[] { MscorlibRef },
                 options: options.WithDeterministic(true).WithPlatform(platform));
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
             Guid result = default(Guid);
             base.CompileAndVerify(compilation, emitOptions: emitOptions, validator: a =>
             {
-                var module = a.Modules[0];
+                PEModule module = a.Modules[0];
                 result = module.GetModuleVersionIdOrThrow();
             });
 
@@ -41,9 +41,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
 
         private (ImmutableArray<byte> pe, ImmutableArray<byte> pdb) EmitDeterministic(string source, Platform platform, DebugInformationFormat pdbFormat, bool optimize)
         {
-            var options = (optimize ? TestOptions.ReleaseExe : TestOptions.DebugExe).WithPlatform(platform).WithDeterministic(true);
+            CSharpCompilationOptions options = (optimize ? TestOptions.ReleaseExe : TestOptions.DebugExe).WithPlatform(platform).WithDeterministic(true);
 
-            var compilation = CreateEmptyCompilation(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef, SystemCoreRef, CSharpRef }, options: options);
+            CSharpCompilation compilation = CreateEmptyCompilation(source, assemblyName: "DeterminismTest", references: new[] { MscorlibRef, SystemCoreRef, CSharpRef }, options: options);
 
             // The resolution of the PE header time date stamp is seconds, and we want to make sure that has an opportunity to change
             // between calls to Emit.
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
                 Thread.Sleep(TimeSpan.FromSeconds(1));
             }
 
-            var pdbStream = (pdbFormat == DebugInformationFormat.Embedded) ? null : new MemoryStream();
+            MemoryStream pdbStream = (pdbFormat == DebugInformationFormat.Embedded) ? null : new MemoryStream();
 
             return (pe: compilation.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(pdbFormat), pdbStream: pdbStream), 
                     pdb: (pdbStream ?? new MemoryStream()).ToImmutable());
@@ -62,18 +62,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         public void BanVersionWildcards()
         {
             string source = @"[assembly: System.Reflection.AssemblyVersion(""10101.0.*"")] public class C {}";
-            var compilationDeterministic = CreateEmptyCompilation(
+            CSharpCompilation compilationDeterministic = CreateEmptyCompilation(
                 source,
                 assemblyName: "DeterminismTest", references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(true));
-            var compilationNonDeterministic = CreateEmptyCompilation(
+            CSharpCompilation compilationNonDeterministic = CreateEmptyCompilation(
                 source,
                 assemblyName: "DeterminismTest",
                 references: new[] { MscorlibRef },
                 options: TestOptions.DebugDll.WithDeterministic(false));
 
-            var resultDeterministic = compilationDeterministic.Emit(Stream.Null, pdbStream: Stream.Null);
-            var resultNonDeterministic = compilationNonDeterministic.Emit(Stream.Null, pdbStream: Stream.Null);
+            EmitResult resultDeterministic = compilationDeterministic.Emit(Stream.Null, pdbStream: Stream.Null);
+            EmitResult resultNonDeterministic = compilationNonDeterministic.Emit(Stream.Null, pdbStream: Stream.Null);
 
             Assert.False(resultDeterministic.Success);
             Assert.True(resultNonDeterministic.Success);
@@ -88,21 +88,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
     public static void Main(string[] args) {}
 }";
             // Two identical compilations should produce the same MVID
-            var mvid1 = CompiledGuid(source, "X1", false);
-            var mvid2 = CompiledGuid(source, "X1", false);
+            Guid mvid1 = CompiledGuid(source, "X1", false);
+            Guid mvid2 = CompiledGuid(source, "X1", false);
             Assert.Equal(mvid1, mvid2);
 
             // Changing the module name should change the MVID
-            var mvid3 = CompiledGuid(source, "X2", false);
+            Guid mvid3 = CompiledGuid(source, "X2", false);
             Assert.NotEqual(mvid1, mvid3);
 
             // Two identical debug compilations should produce the same MVID also
-            var mvid5 = CompiledGuid(source, "X1", true);
-            var mvid6 = CompiledGuid(source, "X1", true);
+            Guid mvid5 = CompiledGuid(source, "X1", true);
+            Guid mvid6 = CompiledGuid(source, "X1", true);
             Assert.Equal(mvid5, mvid6);
 
             // But even in debug, a changed module name changes the MVID
-            var mvid7 = CompiledGuid(source, "X2", true);
+            Guid mvid7 = CompiledGuid(source, "X2", true);
             Assert.NotEqual(mvid5, mvid7);
 
             // adding the debug option should change the MVID
@@ -119,16 +119,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
     public static void Main(string[] args) {}
 }";
             // Two identical compilations should produce the same MVID
-            var mvid1 = CompiledGuid(source, "X1", false, Platform.X86);
-            var mvid2 = CompiledGuid(source, "X1", false, Platform.X86);
+            Guid mvid1 = CompiledGuid(source, "X1", false, Platform.X86);
+            Guid mvid2 = CompiledGuid(source, "X1", false, Platform.X86);
             Assert.Equal(mvid1, mvid2);
 
-            var mvid3 = CompiledGuid(source, "X1", false, Platform.X64);
-            var mvid4 = CompiledGuid(source, "X1", false, Platform.X64);
+            Guid mvid3 = CompiledGuid(source, "X1", false, Platform.X64);
+            Guid mvid4 = CompiledGuid(source, "X1", false, Platform.X64);
             Assert.Equal(mvid3, mvid4);
 
-            var mvid5 = CompiledGuid(source, "X1", false, Platform.Arm64);
-            var mvid6 = CompiledGuid(source, "X1", false, Platform.Arm64);
+            Guid mvid5 = CompiledGuid(source, "X1", false, Platform.Arm64);
+            Guid mvid6 = CompiledGuid(source, "X1", false, Platform.Arm64);
             Assert.Equal(mvid5, mvid6);
 
             // No two platforms should produce the same MVID
@@ -140,8 +140,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [Fact]
         public void PlatformChangeTimestamp()
         {
-            var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, DebugInformationFormat.Embedded, optimize: false);
-            var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, DebugInformationFormat.Embedded, optimize: false);
+            (ImmutableArray<byte> pe, ImmutableArray<byte> pdb) result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, DebugInformationFormat.Embedded, optimize: false);
+            (ImmutableArray<byte> pe, ImmutableArray<byte> pdb) result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, DebugInformationFormat.Embedded, optimize: false);
 
             AssertEx.NotEqual(result1.pe, result2.pe);
 
@@ -161,10 +161,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
     public static void Main(string[] args) {}
     CHANGE
 }";
-            var emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
+            EmitOptions emitRefAssembly = EmitOptions.Default.WithEmitMetadataOnly(true).WithIncludePrivateMembers(false);
 
-            var mvid1 = CompiledGuid(source.Replace("CHANGE", ""), "X1", TestOptions.DebugDll, emitRefAssembly);
-            var mvid2 = CompiledGuid(source.Replace("CHANGE", "private void M() { }"), "X1", TestOptions.DebugDll, emitRefAssembly);
+            Guid mvid1 = CompiledGuid(source.Replace("CHANGE", ""), "X1", TestOptions.DebugDll, emitRefAssembly);
+            Guid mvid2 = CompiledGuid(source.Replace("CHANGE", "private void M() { }"), "X1", TestOptions.DebugDll, emitRefAssembly);
             Assert.Equal(mvid1, mvid2);
         }
 
@@ -199,25 +199,25 @@ namespace N
         [Fact]
         public void CompareAllBytesEmitted_Release()
         {
-            foreach (var pdbFormat in new[]
+            foreach (DebugInformationFormat pdbFormat in new[]
             {
                 DebugInformationFormat.Pdb,
                 DebugInformationFormat.PortablePdb,
                 DebugInformationFormat.Embedded
             })
             {
-                var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
-                var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
+                (ImmutableArray<byte> pe, ImmutableArray<byte> pdb) result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
+                (ImmutableArray<byte> pe, ImmutableArray<byte> pdb) result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: true);
                 AssertEx.Equal(result1.pe, result2.pe);
                 AssertEx.Equal(result1.pdb, result2.pdb);
 
-                var result3 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: true);
-                var result4 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: true);
+                (ImmutableArray<byte> pe, ImmutableArray<byte> pdb) result3 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: true);
+                (ImmutableArray<byte> pe, ImmutableArray<byte> pdb) result4 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: true);
                 AssertEx.Equal(result3.pe, result4.pe);
                 AssertEx.Equal(result3.pdb, result4.pdb);
 
-                var result5 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: true);
-                var result6 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: true);
+                (ImmutableArray<byte> pe, ImmutableArray<byte> pdb) result5 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: true);
+                (ImmutableArray<byte> pe, ImmutableArray<byte> pdb) result6 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: true);
                 AssertEx.Equal(result5.pe, result6.pe);
                 AssertEx.Equal(result5.pdb, result6.pdb);
             }
@@ -226,25 +226,25 @@ namespace N
         [Fact, WorkItem(926, "https://github.com/dotnet/roslyn/issues/926")]
         public void CompareAllBytesEmitted_Debug()
         {
-            foreach (var pdbFormat in new[]
+            foreach (DebugInformationFormat pdbFormat in new[]
             {
                 DebugInformationFormat.Pdb,
                 DebugInformationFormat.PortablePdb,
                 DebugInformationFormat.Embedded
             })
             {
-                var result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
-                var result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
+                (ImmutableArray<byte> pe, ImmutableArray<byte> pdb) result1 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
+                (ImmutableArray<byte> pe, ImmutableArray<byte> pdb) result2 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.AnyCpu32BitPreferred, pdbFormat, optimize: false);
                 AssertEx.Equal(result1.pe, result2.pe);
                 AssertEx.Equal(result1.pdb, result2.pdb);
 
-                var result3 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: false);
-                var result4 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: false);
+                (ImmutableArray<byte> pe, ImmutableArray<byte> pdb) result3 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: false);
+                (ImmutableArray<byte> pe, ImmutableArray<byte> pdb) result4 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.X64, pdbFormat, optimize: false);
                 AssertEx.Equal(result3.pe, result4.pe);
                 AssertEx.Equal(result3.pdb, result4.pdb);
 
-                var result5 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: false);
-                var result6 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: false);
+                (ImmutableArray<byte> pe, ImmutableArray<byte> pdb) result5 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: false);
+                (ImmutableArray<byte> pe, ImmutableArray<byte> pdb) result6 = EmitDeterministic(CompareAllBytesEmitted_Source, Platform.Arm64, pdbFormat, optimize: false);
                 AssertEx.Equal(result5.pe, result6.pe);
                 AssertEx.Equal(result5.pdb, result6.pdb);
             }
@@ -253,7 +253,7 @@ namespace N
         [Fact]
         public void TestWriteOnlyStream()
         {
-            var tree = CSharpSyntaxTree.ParseText("class Program { static void Main() { } }");
+            SyntaxTree tree = CSharpSyntaxTree.ParseText("class Program { static void Main() { } }");
             var compilation = CSharpCompilation.Create("Program",
                                                        new[] { tree },
                                                        new[] { MetadataReference.CreateFromAssemblyInternal(typeof(object).Assembly) },
@@ -288,7 +288,7 @@ namespace Namespace3 {
     public class GenericType<T, U> {}
 }
 ";
-            var forwardedToCompilation = CreateEmptyCompilation(forwardedToCode);
+            CSharpCompilation forwardedToCompilation = CreateEmptyCompilation(forwardedToCode);
             var forwardedToReference = new CSharpCompilationReference(forwardedToCompilation);
 
             var forwardingCode = @"
@@ -306,7 +306,7 @@ using System.Runtime.CompilerServices;
 [assembly: TypeForwardedTo(typeof(Namespace3.GenericType<int, int>))]
 ";
 
-            var forwardingCompilation = CreateCompilation(forwardingCode, new MetadataReference[] { forwardedToReference });
+            CSharpCompilation forwardingCompilation = CreateCompilation(forwardingCode, new MetadataReference[] { forwardedToReference });
 
             var sortedFullNames = new string[]
             {
@@ -323,11 +323,11 @@ using System.Runtime.CompilerServices;
                 "Namespace4.Embedded.Type2"
             };
 
-            using (var stream = forwardingCompilation.EmitToStream())
+            using (MemoryStream stream = forwardingCompilation.EmitToStream())
             {
                 using (var block = ModuleMetadata.CreateFromStream(stream))
                 {
-                    var metadataFullNames = MetadataValidation.GetExportedTypesFullNames(block.MetadataReader);
+                    System.Collections.Generic.IEnumerable<string> metadataFullNames = MetadataValidation.GetExportedTypesFullNames(block.MetadataReader);
                     Assert.Equal(sortedFullNames, metadataFullNames);
                 }
             }
@@ -394,9 +394,9 @@ Partial.c = 3";
             // we run more than once to increase the chance of observing a problem due to nondeterminism
             for (int i = 0; i < 2; i++)
             {
-                var cv = CompileAndVerify(source: new string[] { x1, x2, x3 }, expectedOutput: expectedOutput1);
-                var trees = cv.Compilation.SyntaxTrees.ToArray();
-                var comp2 = cv.Compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(trees[1], trees[0], trees[2]);
+                CompilationVerifier cv = CompileAndVerify(source: new string[] { x1, x2, x3 }, expectedOutput: expectedOutput1);
+                SyntaxTree[] trees = cv.Compilation.SyntaxTrees.ToArray();
+                Compilation comp2 = cv.Compilation.RemoveAllSyntaxTrees().AddSyntaxTrees(trees[1], trees[0], trees[2]);
                 CompileAndVerify(comp2, expectedOutput: expectedOutput2);
                 CompileAndVerify(source: new string[] { x2, x1, x3 }, expectedOutput: expectedOutput2);
             }

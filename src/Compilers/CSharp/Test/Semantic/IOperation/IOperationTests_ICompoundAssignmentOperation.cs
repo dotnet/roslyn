@@ -36,8 +36,8 @@ class C
 }
 ";
 
-            var syntaxTree = Parse(source);
-            var compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree });
+            SyntaxTree syntaxTree = Parse(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree });
             (IOperation operation, _) = GetOperationAndSyntaxForTest<AssignmentExpressionSyntax>(compilation);
             var compoundAssignment = (ICompoundAssignmentOperation)operation;
 
@@ -72,15 +72,15 @@ class C
 
 ";
 
-            var syntaxTree = Parse(source);
-            var compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree });
+            SyntaxTree syntaxTree = Parse(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(new[] { syntaxTree });
             (IOperation operation, SyntaxNode node) = GetOperationAndSyntaxForTest<AssignmentExpressionSyntax>(compilation);
             var compoundAssignment = (ICompoundAssignmentOperation)operation;
 
             var typeSymbol = (TypeSymbol)compilation.GetSymbolsWithName(sym => sym == "C", SymbolFilter.All).Single();
-            var implicitSymbols = typeSymbol.GetMembers("op_Implicit").Cast<MethodSymbol>();
-            var inSymbol = implicitSymbols.Where(sym => sym.ReturnType.SpecialType == SpecialType.System_Int32).Single();
-            var outSymbol = implicitSymbols.Where(sym => sym != inSymbol).Single();
+            System.Collections.Generic.IEnumerable<MethodSymbol> implicitSymbols = typeSymbol.GetMembers("op_Implicit").Cast<MethodSymbol>();
+            MethodSymbol inSymbol = implicitSymbols.Where(sym => sym.ReturnType.SpecialType == SpecialType.System_Int32).Single();
+            MethodSymbol outSymbol = implicitSymbols.Where(sym => sym != inSymbol).Single();
             var inConversion = new Conversion(ConversionKind.ImplicitUserDefined, inSymbol, false);
             var outConversion = new Conversion(ConversionKind.ImplicitUserDefined, outSymbol, false);
 
@@ -122,7 +122,7 @@ ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperationKind.CompoundAss
   Right: 
     ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -245,7 +245,7 @@ ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: C C.op_Ad
       Operand: 
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -292,7 +292,7 @@ ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: System.In
       Operand: 
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -339,7 +339,7 @@ ICompoundAssignmentOperation (BinaryOperatorKind.Add) (OperatorMethod: System.In
       Operand: 
         ILocalReferenceOperation: x (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'x')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<AssignmentExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

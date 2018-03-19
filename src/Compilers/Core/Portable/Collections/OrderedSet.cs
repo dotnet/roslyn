@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public void AddRange(IEnumerable<T> items)
         {
-            foreach (var item in items)
+            foreach (T item in items)
             {
                 Add(item);
             }

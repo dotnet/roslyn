@@ -73,7 +73,7 @@ class C
         d2();
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"12");
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: @"12");
 
             compilation.VerifyIL("C.Main",
 @"
@@ -130,7 +130,7 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"12
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: @"12
 12");
 
             compilation.VerifyIL("C.M",
@@ -198,7 +198,7 @@ class Program
         Console.WriteLine(d(2));
     }
 } ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"12");
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: @"12");
         }
 
         [Fact]
@@ -743,7 +743,7 @@ class Program
         a();
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "pass");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "pass");
 
             verifier.VerifyIL("Program.Main", @"
 {
@@ -808,7 +808,7 @@ class Program
     }
 }";
 
-            var verifier = CompileAndVerify(source, expectedOutput: "pass");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "pass");
 
             verifier.VerifyIL("Program.Main", @"
 {
@@ -888,7 +888,7 @@ class Program
     }
 }";
 
-            var verifier = CompileAndVerify(source, expectedOutput: "pass");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "pass");
         }
 
         [Fact]
@@ -910,7 +910,7 @@ class Program
         }
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "pass");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "pass");
             verifier.VerifyIL("Program.Main", @"
 {
   // Code size       73 (0x49)
@@ -985,7 +985,7 @@ class Program
         })();
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "pass");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "pass");
             verifier.VerifyIL("Program.<>c__1<T>.<F>b__1_0", @"
 {
   // Code size       67 (0x43)
@@ -1057,7 +1057,7 @@ class Program
         })();
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "pass_xy");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "pass_xy");
             verifier.VerifyIL("Program.<>c__DisplayClass1_0<T>.<F>b__0", @"
 {
   // Code size      131 (0x83)
@@ -1168,7 +1168,7 @@ class Program
         })();
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput: "pass_xy");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "pass_xy");
         }
 
         [Fact]
@@ -3909,7 +3909,7 @@ public class C
 }";
             CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
             {
-                var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 AssertEx.Equal(new[]
                 {
                     "C.<>c__0<TF>",
@@ -3918,7 +3918,7 @@ public class C
                     "C.<>c__3<TG1, TG2>"
                 }, c.GetMembers().Where(member => member.Kind == SymbolKind.NamedType).Select(member => member.ToString()));
 
-                var c0 = c.GetMember<NamedTypeSymbol>("<>c__0");
+                NamedTypeSymbol c0 = c.GetMember<NamedTypeSymbol>("<>c__0");
                 AssertEx.SetEqual(new[]
                 {
                     "C.<>c__0<TF>.<>9",
@@ -3928,7 +3928,7 @@ public class C
                     "C.<>c__0<TF>.<F>b__0_0()",
                 }, c0.GetMembers().Select(member => member.ToString()));
 
-                var c1 = c.GetMember<NamedTypeSymbol>("<>c__1");
+                NamedTypeSymbol c1 = c.GetMember<NamedTypeSymbol>("<>c__1");
                 AssertEx.SetEqual(new[]
                 {
                     "C.<>c__1<TG>.<>9",
@@ -3938,7 +3938,7 @@ public class C
                     "C.<>c__1<TG>.<G>b__1_0()",
                 }, c1.GetMembers().Select(member => member.ToString()));
 
-                var c2 = c.GetMember<NamedTypeSymbol>("<>c__2");
+                NamedTypeSymbol c2 = c.GetMember<NamedTypeSymbol>("<>c__2");
                 AssertEx.SetEqual(new[]
                 {
                     "C.<>c__2<TF1, TF2>.<>9",
@@ -3948,7 +3948,7 @@ public class C
                     "C.<>c__2<TF1, TF2>.<F>b__2_0(TF1)",
                 }, c2.GetMembers().Select(member => member.ToString()));
 
-                var c3 = c.GetMember<NamedTypeSymbol>("<>c__3");
+                NamedTypeSymbol c3 = c.GetMember<NamedTypeSymbol>("<>c__3");
                 AssertEx.SetEqual(new[]
                 {
                     "C.<>c__3<TG1, TG2>.<>9",
@@ -3980,7 +3980,7 @@ public class C
 }";
             CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
             {
-                var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 AssertEx.Equal(new[]
                 {
                     "C.<>c__0<TF>",
@@ -4021,7 +4021,7 @@ public class C
 }";
             CompileAndVerify(source, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: m =>
             {
-                var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 AssertEx.SetEqual(new[]
                 {
                     "C.F<TF>()",
@@ -4343,7 +4343,7 @@ class A
     }
 }
 ";
-            var verifier = CompileAndVerify(
+            CompilationVerifier verifier = CompileAndVerify(
                 source,
                 expectedOutput: "12");
         }
@@ -4366,7 +4366,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"True
+            CompilationVerifier compilation = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"True
 False");
         }
 
@@ -4388,7 +4388,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"True
+            CompilationVerifier compilation = CompileAndVerify(source, options: TestOptions.DebugExe, expectedOutput: @"True
 False");
         }
 
@@ -4415,7 +4415,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(
+            CompilationVerifier verifier = CompileAndVerify(
                 source,
                 expectedOutput: "");
         }
@@ -4473,7 +4473,7 @@ class Program
         new Program(1);
     }
 }";
-            var verifier = CompileAndVerify(
+            CompilationVerifier verifier = CompileAndVerify(
                 source,
                 expectedOutput: "11102");
         }
@@ -4548,7 +4548,7 @@ class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(
+            CompilationVerifier verifier = CompileAndVerify(
                 source,
                 expectedOutput: "True");
         }
@@ -4575,7 +4575,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(
+            CompilationVerifier verifier = CompileAndVerify(
                 source,
                 expectedOutput: "0");
         }
@@ -4617,7 +4617,7 @@ class Test
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "0");
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "0");
         }
 
         [WorkItem(545430, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545430")]
@@ -4650,8 +4650,8 @@ class D
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp, expectedSignatures: new[]
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
+            CompilationVerifier verifier = CompileAndVerify(comp, expectedSignatures: new[]
             {
                 Signature("C+<>c__DisplayClass0_0`1", "<>9__0",
                     ".field public instance System.Func`2[T,System.Boolean] <>9__0")
@@ -4742,8 +4742,8 @@ class D
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
+            CompilationVerifier verifier = CompileAndVerify(comp);
 
             verifier.VerifyIL("Program.Test", @"
 {
@@ -4871,8 +4871,8 @@ class D
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
-            var verifier = CompileAndVerify(comp);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseDll);
+            CompilationVerifier verifier = CompileAndVerify(comp);
 
             verifier.VerifyIL("Program.Test", @"
 {
@@ -5001,7 +5001,7 @@ class VsCatalogProvider
         });
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "success");
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "success");
         }
 
         [WorkItem(546748, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546748")]
@@ -5058,7 +5058,7 @@ class Program
         };
     }
 }";
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
         }
 
         [WorkItem(530911, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530911")]
@@ -5089,7 +5089,7 @@ class Program
     }
 }
 ";
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
         }
 
         [WorkItem(691006, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/691006")]
@@ -5294,7 +5294,7 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: @"True");
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: @"True");
             compilation.VerifyIL("C.Main",
 @"{
   // Code size       92 (0x5c)

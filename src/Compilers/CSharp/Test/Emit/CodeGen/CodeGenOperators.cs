@@ -30,7 +30,7 @@ class C
 ";
 
             // Release
-            var compilation = CompileAndVerify(source, expectedOutput: "False", options: TestOptions.ReleaseExe);
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "False", options: TestOptions.ReleaseExe);
             compilation.VerifyIL("C.Main", @"{
   // Code size       14 (0xe)
   .maxstack  2
@@ -113,7 +113,7 @@ class C
 ";
 
             // Release
-            var compilation = CompileAndVerify(source, expectedOutput: "False", options: TestOptions.ReleaseExe);
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "False", options: TestOptions.ReleaseExe);
             compilation.VerifyIL("C.M<T>(T)", @"{
     // Code size       33 (0x21)
     .maxstack  2
@@ -184,7 +184,7 @@ class C
 ";
 
             // Release
-            var compilation = CompileAndVerify(source, expectedOutput: "False Branch not taken-True Branch taken", options: TestOptions.ReleaseExe);
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "False Branch not taken-True Branch taken", options: TestOptions.ReleaseExe);
             compilation.VerifyIL("C.M", @"{
     // Code size       46 (0x2e)
     .maxstack  2
@@ -256,7 +256,7 @@ class C
 ";
 
             // Release
-            var compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.ReleaseExe);
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.ReleaseExe);
             compilation.VerifyIL("C.Main", @"{
     // Code size       20 (0x14)
     .maxstack  2
@@ -314,7 +314,7 @@ class C
 ";
 
             // Release
-            var compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.ReleaseExe);
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "True Branch taken", options: TestOptions.ReleaseExe);
             compilation.VerifyIL("C.Main", @"{
     // Code size       20 (0x14)
     .maxstack  2
@@ -394,7 +394,7 @@ False
 123456
 123456123
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -460,7 +460,7 @@ class C
 789789987
 GetC100
 11";
-            var compilation = CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         // TODO: Add VerifyIL for is and as Codegen tests
@@ -515,7 +515,7 @@ namespace TestIsOperator
     }
 }
 ";
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
         }
 
         // TODO: Add VerifyIL for is and as Codegen tests
@@ -549,7 +549,7 @@ namespace TestIsOperatorGeneric
     }
 }
 ";
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
         }
 
         [Fact]
@@ -568,7 +568,7 @@ class MyClass
 }
 ";
 
-            var comp = CompileAndVerify(text, expectedOutput: "False");
+            CompilationVerifier comp = CompileAndVerify(text, expectedOutput: "False");
             comp.VerifyDiagnostics(
                 // (7,18): warning CS0184: The given expression is never of the provided ('string') type
                 //         bool b = i is string;   // CS0184
@@ -601,7 +601,7 @@ enum color
 { }
 ";
 
-            var comp = CompileAndVerify(text, expectedOutput: "False");
+            CompilationVerifier comp = CompileAndVerify(text, expectedOutput: "False");
             comp.VerifyDiagnostics(
             // (6,17): warning CS0184: The given expression is never of the provided ('color') type
             //         var b = 1 is color;
@@ -633,7 +633,7 @@ enum color
 { }
 ";
 
-            var comp = CompileAndVerify(text, expectedOutput: "False");
+            CompilationVerifier comp = CompileAndVerify(text, expectedOutput: "False");
             comp.VerifyDiagnostics(
                 // (6,17): warning CS0184: The given expression is never of the provided ('int') type
                 //         var b = default(color) is int;
@@ -663,7 +663,7 @@ class IsTest
 }
 ";
 
-            var comp = CompileAndVerify(text, expectedOutput: "False");
+            CompilationVerifier comp = CompileAndVerify(text, expectedOutput: "False");
             comp.VerifyDiagnostics(
                 // (6,17): warning CS0184: The given expression is never of the provided ('double') type
                 //         var b = 1 is double;
@@ -696,7 +696,7 @@ class IsTest
 }
 ";
 
-            var comp = CompileAndVerify(text, expectedOutput: @"False
+            CompilationVerifier comp = CompileAndVerify(text, expectedOutput: @"False
 False
 False");
             comp.VerifyDiagnostics(
@@ -784,7 +784,7 @@ public class Test
 ";
             #endregion
 
-            var comp = CompileAndVerify(text, expectedOutput: @"123456");
+            CompilationVerifier comp = CompileAndVerify(text, expectedOutput: @"123456");
             comp.VerifyDiagnostics(
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "v0 is ushort?").WithArguments("ushort?"),
                 Diagnostic(ErrorCode.WRN_IsAlwaysFalse, "v1 is short?").WithArguments("short?"),
@@ -873,7 +873,7 @@ namespace TestAsOperator
     }
 }
 ";
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
         }
 
         [Fact]
@@ -920,7 +920,7 @@ public class TestAsOperatorGeneric
     }
 }
 ";
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
             compilation.VerifyIL("TestAsOperatorGeneric.M<T, U, W>(T, U, W)",
 @"{
   // Code size      186 (0xba)
@@ -993,7 +993,7 @@ public class C
         var c = Get();
     }
 }";
-            var comp = CompileAndVerify(source,
+            CompilationVerifier comp = CompileAndVerify(source,
                 references: new[] { CSharpRef },
                 expectedOutput: string.Empty);
             comp.VerifyIL("C.Get",
@@ -1055,7 +1055,7 @@ public class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: string.Empty);
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: string.Empty);
             compilation.VerifyIL("C.Nullable_a_Implicit_b_to_a0_null_a", @"
 {
   // Code size       31 (0x1f)
@@ -1188,7 +1188,7 @@ public class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: string.Empty);
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: string.Empty);
             compilation.VerifyIL("C.Nullable_a_Implicit_b_to_a0_null_a", @"
 {
   // Code size       31 (0x1f)
@@ -1262,7 +1262,7 @@ public class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: string.Empty);
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: string.Empty);
             compilation.VerifyIL("C.ImplicitReference_a_to_b_null_a_nullable", @"
 {
   // Code size       36 (0x24)
@@ -1329,7 +1329,7 @@ public class C
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: string.Empty);
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: string.Empty);
             compilation.VerifyIL("C.ImplicitReference_a_to_b_null_a", @"
 {
   // Code size       13 (0xd)
@@ -1412,7 +1412,7 @@ public class Test
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "Goo");
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "Goo");
             compilation.VerifyIL("Test.Main", @"
 {
   // Code size       14 (0xe)
@@ -1475,7 +1475,7 @@ public class Test
 }";
             // Note the explicit casts, even though the conversions are
             // implicit reference conversions.
-            var comp = CompileAndVerify(source, expectedOutput: "System.Collections.Generic.IEnumerable`1[System.Int32]");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "System.Collections.Generic.IEnumerable`1[System.Int32]");
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
@@ -1522,7 +1522,7 @@ public class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: "System.Collections.Generic.IEnumerable`1[System.Int32]");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "System.Collections.Generic.IEnumerable`1[System.Int32]");
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
@@ -1569,7 +1569,7 @@ public class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: "System.Collections.Generic.IEnumerable`1[System.Int32]System.Collections.Generic.IEnumerable`1[System.Int32]");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "System.Collections.Generic.IEnumerable`1[System.Int32]System.Collections.Generic.IEnumerable`1[System.Int32]");
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
@@ -1616,7 +1616,7 @@ public class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: "System.Collections.Generic.IEnumerable`1[System.Int32]");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "System.Collections.Generic.IEnumerable`1[System.Int32]");
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
@@ -1665,7 +1665,7 @@ class MainClass
 }";
             // Note the explicit casts, even though the conversions are
             // implicit reference conversions.
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("MainClass.g", @"
 {
@@ -1712,7 +1712,7 @@ class C : I
         System.Console.Write(Tester(null, null).GetType());
     }
 }";
-            var verify = CompileAndVerify(src,
+            CompilationVerifier verify = CompileAndVerify(src,
                 options: TestOptions.DebugExe, expectedOutput: "C");
             verify.VerifyIL("C.Tester", @"
 {
@@ -1853,7 +1853,7 @@ using System.Collections.Generic;
     }
 ";
 
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
 {
@@ -1912,7 +1912,7 @@ using System.Collections.Generic;
     }
 ";
 
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
 {
@@ -1978,7 +1978,7 @@ using System.Collections.Generic;
     }
 ";
 
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
 {
@@ -2041,7 +2041,7 @@ using System.Collections.Generic;
     }
 ";
 
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
 {
@@ -2420,7 +2420,7 @@ class Program
         Console.WriteLine();
     }
 }";
-            var verifier = CompileAndVerify(source,
+            CompilationVerifier verifier = CompileAndVerify(source,
                 expectedOutput: @"
 -2147483648
 1
@@ -2512,7 +2512,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(source,
+            CompilationVerifier verifier = CompileAndVerify(source,
                 expectedOutput: @"32==32 0==0");
 
             verifier.VerifyIL("Test.Main", @"
@@ -2619,7 +2619,7 @@ class TestFunction
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: @"0");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: @"0");
         }
 
         [WorkItem(543569, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543569")]
@@ -2646,7 +2646,7 @@ public class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: @"PASS");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: @"PASS");
         }
 
         [WorkItem(543577, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543577")]
@@ -2671,7 +2671,7 @@ class C
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: @"0");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: @"0");
         }
 
         [WorkItem(543446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543446"), WorkItem(543446, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543446")]
@@ -2709,7 +2709,7 @@ namespace Test
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: @"01");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: @"01");
         }
 
         [WorkItem(543586, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543586")]
@@ -2744,7 +2744,7 @@ struct Str
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: @"10");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: @"10");
         }
 
         [WorkItem(543602, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543602")]
@@ -2780,7 +2780,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: @"0");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: @"0");
         }
 
         [WorkItem(543498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543498")]
@@ -2899,7 +2899,7 @@ True
 False
 True
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -2949,7 +2949,7 @@ class Program
 @"3
 5
 6";
-            var compilation = CompileAndVerify(source, expectedOutput: expectedOutput);
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: expectedOutput);
         }
 
         [Fact]
@@ -2968,7 +2968,7 @@ class MyClass
 }
 ";
 
-            var comp = CompileAndVerify(text, expectedOutput: "");
+            CompilationVerifier comp = CompileAndVerify(text, expectedOutput: "");
 
             comp.VerifyIL("MyClass.Main", @"
 {
@@ -3104,7 +3104,7 @@ class Program
     }
 }
 ";
-            var verifier = CompileAndVerify(source: source, expectedOutput: "Pass");
+            CompilationVerifier verifier = CompileAndVerify(source: source, expectedOutput: "Pass");
 
             verifier.VerifyIL("Program.Main", @"
 {
@@ -3273,7 +3273,7 @@ class MyClass
 }
 ";
 
-            var comp = CompileAndVerify(text, expectedOutput: @"False
+            CompilationVerifier comp = CompileAndVerify(text, expectedOutput: @"False
 False
 ");
 
@@ -3333,7 +3333,7 @@ class MyClass
 }
 ";
 
-            var comp = CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: @"True
+            CompilationVerifier comp = CompileAndVerify(text, options: TestOptions.DebugExe, expectedOutput: @"True
 True
 ");
 
@@ -3396,7 +3396,7 @@ checked {
 }
 ";
 
-            var comp = CompileAndVerify(text, expectedOutput: @"one");
+            CompilationVerifier comp = CompileAndVerify(text, expectedOutput: @"one");
 
             // Can't actually see an unchecked cast here since only constant values are emitted.
             comp.VerifyIL("A.Main", @"
@@ -3514,7 +3514,7 @@ public static class Test
 
 ";
 
-            var comp = CompileAndVerify(text, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(text, expectedOutput: @"
 -1
 -1
 255
@@ -3646,7 +3646,7 @@ public class Program
   IL_001c:  ret
 }";
 
-            var comp = CompileAndVerify(text, expectedOutput: @"ttff");
+            CompilationVerifier comp = CompileAndVerify(text, expectedOutput: @"ttff");
 
             comp.VerifyIL("Program.M", il);
         }
@@ -3680,7 +3680,7 @@ public class Program
             var expectedOutput =
 @"XX
 YY";
-            var comp = CompileAndVerify(text, expectedOutput: expectedOutput);
+            CompilationVerifier comp = CompileAndVerify(text, expectedOutput: expectedOutput);
             string il = @"{
   // Code size       13 (0xd)
   .maxstack  2
@@ -3714,7 +3714,7 @@ class C
 }";
 
             //NOTE: all xors optimized away
-            var comp = CompileAndVerify(text).VerifyIL("C.M", @"
+            CompilationVerifier comp = CompileAndVerify(text).VerifyIL("C.M", @"
 {
   // Code size       31 (0x1f)
   .maxstack  2
@@ -3754,7 +3754,7 @@ class C
     }
 }";
 
-            var comp = CompileAndVerify(text, expectedOutput: @"True
+            CompilationVerifier comp = CompileAndVerify(text, expectedOutput: @"True
 False");
         }
 
@@ -3782,7 +3782,7 @@ class C
     }
 }";
 
-            var comp = CompileAndVerify(text, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(text, expectedOutput: @"
 True
 Infinity
 -Infinity
@@ -3818,7 +3818,7 @@ class C
     }
 }";
 
-            var comp = CompileAndVerify(text, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(text, expectedOutput: @"
 True
 Infinity
 -Infinity
@@ -3855,7 +3855,7 @@ class C
     }
 }";
 
-            var comp = CompileAndVerify(text, expectedOutput: @"
+            CompilationVerifier comp = CompileAndVerify(text, expectedOutput: @"
 True
 Infinity
 -Infinity
@@ -4012,7 +4012,7 @@ public class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: "System.Collections.Generic.IEnumerable`1[System.Int32]");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "System.Collections.Generic.IEnumerable`1[System.Int32]");
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
@@ -4064,7 +4064,7 @@ public class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: "System.Collections.Generic.IEnumerable`1[System.Int32]System.Collections.Generic.IEnumerable`1[System.Int32]");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "System.Collections.Generic.IEnumerable`1[System.Int32]System.Collections.Generic.IEnumerable`1[System.Int32]");
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
@@ -4118,7 +4118,7 @@ public class Test
     }
 }";
 
-            var comp = CompileAndVerify(source, expectedOutput: "System.Collections.Generic.IEnumerable`1[System.Int32]");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "System.Collections.Generic.IEnumerable`1[System.Int32]");
             comp.VerifyDiagnostics();
             comp.VerifyIL("Test.Main", @"
 {
@@ -4166,7 +4166,7 @@ class MainClass
     }
 }";
 
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("MainClass.g", @"
 {
@@ -4214,7 +4214,7 @@ using System.Collections.Generic;
     }
 ";
 
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
 {
@@ -4275,7 +4275,7 @@ using System.Collections.Generic;
     }
 ";
 
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
 {
@@ -4346,7 +4346,7 @@ using System.Security;
     }
 ";
 
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
 {
@@ -4412,7 +4412,7 @@ using System.Security;
     }
 ";
 
-            var comp = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: @"");
+            CompilationVerifier comp = CompileAndVerify(new string[] { source }, references: new[] { SystemCoreRef }, expectedOutput: @"");
             //            var comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
@@ -4481,7 +4481,7 @@ using System.Security;
     }
 ";
 
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
 {
@@ -4548,7 +4548,7 @@ using System.Security;
     }
 ";
 
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
 {
@@ -4605,7 +4605,7 @@ using System.Security;
     }
 ";
 
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
 {
@@ -4667,7 +4667,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
 {
@@ -4709,7 +4709,7 @@ public class Program
 }
 ";
 
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
 {
@@ -4766,7 +4766,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
 {
@@ -4838,7 +4838,7 @@ class Program
     static int Main(int? x, int y) { return x ?? y; }
 }
 ";
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
             comp.VerifyIL("Program.Main", @"
 {
@@ -4919,7 +4919,7 @@ class test<T> where T : c0
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: @"3
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: @"3
 1");
             compilation.VerifyIL("test<T>.Repro1(T)", @"
 {
@@ -4991,7 +4991,7 @@ class test<T> where T : c0
             int b = a + a / 1;
         }
     }";
-            var result = CompileAndVerify(source, options: TestOptions.ReleaseExe);
+            CompilationVerifier result = CompileAndVerify(source, options: TestOptions.ReleaseExe);
 
             result.VerifyIL("Program.Main",
 @"
@@ -5046,7 +5046,7 @@ class Test
 }
 ";
 
-            var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "True");
+            CompilationVerifier result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "True");
         }
 
         private static string BuildSequenceOfBinaryExpressions_01(int count = 4096)
@@ -5093,7 +5093,7 @@ class Test
 }
 ";
 
-            var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "11461640193");
+            CompilationVerifier result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "11461640193");
         }
 
         [NoIOperationValidationFact]
@@ -5101,7 +5101,7 @@ class Test
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_03()
         {
-            var diagnostics = ImmutableArray<Diagnostic>.Empty;
+            ImmutableArray<Diagnostic> diagnostics = ImmutableArray<Diagnostic>.Empty;
 
             const int start = 8192;
             const int step = 4096;
@@ -5124,7 +5124,7 @@ class Test
 }
 ";
 
-                var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+                CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
                 diagnostics = compilation.GetEmitDiagnostics();
             }
 
@@ -5183,7 +5183,7 @@ class Test
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyEmitDiagnostics(
     // (17,16): error CS8078: An expression is too long or complex to compile
     //         return 1 * f[0] + 2 * f[1] + 3 * f[2] + 4 * f[3] + ...
@@ -5240,7 +5240,7 @@ class Test
 }
 ";
 
-            var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"5180801
+            CompilationVerifier result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: @"5180801
 5180801");
         }
 
@@ -5291,7 +5291,7 @@ struct S1
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.VerifyEmitDiagnostics(
     // (10,16): error CS8078: An expression is too long or complex to compile
     //         return a[0] && f[0] || a[1] && f[1] || a[2] && f[2] || ...
@@ -5322,7 +5322,7 @@ class Test
 @"4242691
 4242691
 4242691";
-            var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
+            CompilationVerifier result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: expectedOutput);
         }
 
         [Fact, WorkItem(17756, "https://github.com/dotnet/roslyn/issues/17756")]

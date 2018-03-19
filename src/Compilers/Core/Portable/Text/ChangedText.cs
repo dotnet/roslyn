@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.Text
             {
                 // look for last info in the chain that still has reference to old text
                 ChangeInfo lastInfo = this;
-                for (var info = this; info != null; info = info.Previous)
+                for (ChangeInfo info = this; info != null; info = info.Previous)
                 {
                     SourceText tmp;
                     if (info.WeakOldText.TryGetTarget(out tmp))
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Text
             // otherwise look to see if there are a series of changes from the old text to this text and merge them.
             if (IsChangedFrom(oldText))
             {
-                var changes = GetChangesBetween(oldText, this);
+                IReadOnlyList<ImmutableArray<TextChangeRange>> changes = GetChangesBetween(oldText, this);
                 if (changes.Count > 1)
                 {
                     return Merge(changes);
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         private bool IsChangedFrom(SourceText oldText)
         {
-            for (var info = _info; info != null; info = info.Previous)
+            for (ChangeInfo info = _info; info != null; info = info.Previous)
             {
                 SourceText text;
                 if (info.WeakOldText.TryGetTarget(out text) && text == oldText)
@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             var list = new List<ImmutableArray<TextChangeRange>>();
 
-            var change = newText._info;
+            ChangeInfo change = newText._info;
             list.Add(change.ChangeRanges);
 
             while (change != null)
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             Debug.Assert(changeSets.Count > 1);
 
-            var merged = changeSets[0];
+            ImmutableArray<TextChangeRange> merged = changeSets[0];
             for (int i = 1; i < changeSets.Count; i++)
             {
                 merged = Merge(merged, changeSets[i]);
@@ -246,12 +246,12 @@ namespace Microsoft.CodeAnalysis.Text
         nextNewChange:
             if (newIndex < newChanges.Length)
             {
-                var newChange = newChanges[newIndex];
+                TextChangeRange newChange = newChanges[newIndex];
 
             nextOldChange:
                 if (oldIndex < oldChanges.Length)
                 {
-                    var oldChange = oldChanges[oldIndex];
+                    TextChangeRange oldChange = oldChanges[oldIndex];
 
                 tryAgain:
                     if (oldChange.Span.Length == 0 && oldChange.NewLength == 0)
@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             if (list.Count > 0)
             {
-                var last = list[list.Count - 1];
+                TextChangeRange last = list[list.Count - 1];
                 if (last.Span.End == range.Span.Start)
                 {
                     // merge changes together if they are adjacent
@@ -406,7 +406,7 @@ namespace Microsoft.CodeAnalysis.Text
             // true if last segment ends with CR and we need to check for CR+LF code below assumes that both CR and LF are also line breaks alone
             var endsWithCR = false;
 
-            foreach (var change in _info.ChangeRanges)
+            foreach (TextChangeRange change in _info.ChangeRanges)
             {
                 // include existing line starts that occur before this change
                 if (change.Span.Start > position)
@@ -418,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Text
                         lineStarts.RemoveLast();
                     }
 
-                    var lps = oldLineInfo.GetLinePositionSpan(TextSpan.FromBounds(position, change.Span.Start));
+                    LinePositionSpan lps = oldLineInfo.GetLinePositionSpan(TextSpan.FromBounds(position, change.Span.Start));
                     for (int i = lps.Start.Line + 1; i <= lps.End.Line; i++)
                     {
                         lineStarts.Add(oldLineInfo[i].Start + delta);
@@ -438,7 +438,7 @@ namespace Microsoft.CodeAnalysis.Text
                 if (change.NewLength > 0)
                 {
                     var changeStart = change.Span.Start + delta;
-                    var text = GetSubText(new TextSpan(changeStart, change.NewLength));
+                    SourceText text = GetSubText(new TextSpan(changeStart, change.NewLength));
 
                     if (endsWithCR && text[0] == '\n')
                     {
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.Text
                     lineStarts.RemoveLast();
                 }
 
-                var lps = oldLineInfo.GetLinePositionSpan(TextSpan.FromBounds(position, oldText.Length));
+                LinePositionSpan lps = oldLineInfo.GetLinePositionSpan(TextSpan.FromBounds(position, oldText.Length));
                 for (int i = lps.Start.Line + 1; i <= lps.End.Line; i++)
                 {
                     lineStarts.Add(oldLineInfo[i].Start + delta);

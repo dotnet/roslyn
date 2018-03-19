@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var wkType = GetWellKnownType(wellKnownType);
+            NamedTypeSymbol wkType = GetWellKnownType(wellKnownType);
             return type.Equals(wkType, TypeCompareKind.ConsiderEverything) || type.IsDerivedFrom(wkType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics);
         }
 
@@ -287,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(descriptor.Flags);
             }
 
-            foreach (var member in declaringType.GetMembers(descriptor.Name))
+            foreach (Symbol member in declaringType.GetMembers(descriptor.Name))
             {
                 Debug.Assert(member.Name.Equals(descriptor.Name));
 
@@ -412,9 +412,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 var builder = new ArrayBuilder<KeyValuePair<string, TypedConstant>>(namedArguments.Length);
-                foreach (var arg in namedArguments)
+                foreach (KeyValuePair<WellKnownMember, TypedConstant> arg in namedArguments)
                 {
-                    var wellKnownMember = Binder.GetWellKnownTypeMember(this, arg.Key, out diagnosticInfo, isOptional: true);
+                    Symbol wellKnownMember = Binder.GetWellKnownTypeMember(this, arg.Key, out diagnosticInfo, isOptional: true);
                     if (wellKnownMember == null || wellKnownMember is ErrorTypeSymbol)
                     {
                         // if this assert fails, UseSiteErrors for "member" have not been checked before emitting ...
@@ -439,10 +439,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             byte scale;
             uint low, mid, high;
             value.GetBits(out isNegative, out scale, out low, out mid, out high);
-            var systemByte = GetSpecialType(SpecialType.System_Byte);
+            NamedTypeSymbol systemByte = GetSpecialType(SpecialType.System_Byte);
             Debug.Assert(!systemByte.HasUseSiteError);
 
-            var systemUnit32 = GetSpecialType(SpecialType.System_UInt32);
+            NamedTypeSymbol systemUnit32 = GetSpecialType(SpecialType.System_UInt32);
             Debug.Assert(!systemUnit32.HasUseSiteError);
 
             return TrySynthesizeAttribute(
@@ -545,7 +545,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool CheckIfAttributeShouldBeEmbedded(DiagnosticBag diagnosticsOpt, Location locationOpt, WellKnownType attributeType, WellKnownMember attributeCtor)
         {
-            var userDefinedAttribute = GetWellKnownType(attributeType);
+            NamedTypeSymbol userDefinedAttribute = GetWellKnownType(attributeType);
 
             if (userDefinedAttribute is MissingMetadataTypeSymbol)
             {
@@ -661,7 +661,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 NamedTypeSymbol booleanType = GetSpecialType(SpecialType.System_Boolean);
                 Debug.Assert((object)booleanType != null);
-                var transformFlags = DynamicTransformsEncoder.Encode(type, refKindOpt, customModifiersCount, booleanType);
+                ImmutableArray<TypedConstant> transformFlags = DynamicTransformsEncoder.Encode(type, refKindOpt, customModifiersCount, booleanType);
                 var boolArray = ArrayTypeSymbol.CreateSZArray(booleanType.ContainingAssembly, booleanType, customModifiers: ImmutableArray<CustomModifier>.Empty);
                 var arguments = ImmutableArray.Create<TypedConstant>(new TypedConstant(boolArray, transformFlags));
                 return TrySynthesizeAttribute(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags, arguments);
@@ -673,9 +673,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)type != null);
             Debug.Assert(type.ContainsTuple());
 
-            var stringType = GetSpecialType(SpecialType.System_String);
+            NamedTypeSymbol stringType = GetSpecialType(SpecialType.System_String);
             Debug.Assert((object)stringType != null);
-            var names = TupleNamesEncoder.Encode(type, stringType);
+            ImmutableArray<TypedConstant> names = TupleNamesEncoder.Encode(type, stringType);
 
             Debug.Assert(!names.IsDefault, "should not need the attribute when no tuple names");
 
@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return default(ImmutableArray<TypedConstant>);
                 }
 
-                var names = namesBuilder.SelectAsArray((name, constantType) =>
+                ImmutableArray<TypedConstant> names = namesBuilder.SelectAsArray((name, constantType) =>
                     new TypedConstant(constantType, TypedConstantKind.Primitive, name), stringType);
                 namesBuilder.Free();
                 return names;
@@ -757,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(flagsBuilder.Any());
                 Debug.Assert(flagsBuilder.Contains(true));
 
-                var result = flagsBuilder.SelectAsArray((flag, constantType) => new TypedConstant(constantType, TypedConstantKind.Primitive, flag), booleanType);
+                ImmutableArray<TypedConstant> result = flagsBuilder.SelectAsArray((flag, constantType) => new TypedConstant(constantType, TypedConstantKind.Primitive, flag), booleanType);
                 flagsBuilder.Free();
                 return result;
             }

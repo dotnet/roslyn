@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                             512,
                             (key) =>
                             {
-                                var kind = SyntaxFacts.GetKeywordKind(key);
+                                SyntaxKind kind = SyntaxFacts.GetKeywordKind(key);
                                 if (kind == SyntaxKind.None)
                                 {
                                     kind = SyntaxFacts.GetContextualKeywordKind(key);
@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int hashCode,
             Func<SyntaxTrivia> createTriviaFunction)
         {
-            var value = _triviaMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
+            SyntaxTrivia value = _triviaMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
 
             if (value == null)
             {
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int hashCode,
             Func<SyntaxToken> createTokenFunction)
         {
-            var value = _tokenMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
+            SyntaxToken value = _tokenMap.FindItem(textBuffer, keyStart, keyLength, hashCode);
 
             if (value == null)
             {

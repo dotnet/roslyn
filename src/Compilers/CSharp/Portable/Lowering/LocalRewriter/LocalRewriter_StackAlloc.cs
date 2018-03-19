@@ -16,8 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation stackAllocNode)
         {
-            var rewrittenCount = VisitExpression(stackAllocNode.Count);
-            var type = stackAllocNode.Type;
+            BoundExpression rewrittenCount = VisitExpression(stackAllocNode.Count);
+            TypeSymbol type = stackAllocNode.Type;
 
             if (rewrittenCount.ConstantValue?.Int32Value == 0)
             {
@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return _factory.Default(type);
             }
 
-            var elementType = stackAllocNode.ElementType;
+            TypeSymbol elementType = stackAllocNode.ElementType;
 
-            var initializerOpt = stackAllocNode.InitializerOpt;
+            BoundArrayInitialization initializerOpt = stackAllocNode.InitializerOpt;
             if (initializerOpt != null)
             {
                 initializerOpt = initializerOpt.Update(VisitList(initializerOpt.Initializers));
@@ -35,14 +35,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (type.IsPointerType())
             {
-                var stackSize = RewriteStackAllocCountToSize(rewrittenCount, elementType);
+                BoundExpression stackSize = RewriteStackAllocCountToSize(rewrittenCount, elementType);
                 return new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, initializerOpt, stackAllocNode.Type);
             }
             else if (type.OriginalDefinition == _compilation.GetWellKnownType(WellKnownType.System_Span_T))
             {
                 var spanType = (NamedTypeSymbol)stackAllocNode.Type;
-                var countTemp = _factory.StoreToTemp(rewrittenCount, out BoundAssignmentOperator countTempAssignment);
-                var stackSize = RewriteStackAllocCountToSize(countTemp, elementType);
+                BoundLocal countTemp = _factory.StoreToTemp(rewrittenCount, out BoundAssignmentOperator countTempAssignment);
+                BoundExpression stackSize = RewriteStackAllocCountToSize(countTemp, elementType);
                 stackAllocNode = new BoundConvertedStackAllocExpression(stackAllocNode.Syntax, elementType, stackSize, initializerOpt, spanType);
 
                 BoundExpression constructorCall;
@@ -95,14 +95,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundExpression sizeOfExpression = _factory.Sizeof(elementType);
 
-            var sizeConst = sizeOfExpression.ConstantValue;
+            ConstantValue sizeConst = sizeOfExpression.ConstantValue;
             if (sizeConst != null)
             {
                 int size = sizeConst.Int32Value;
                 Debug.Assert(size > 0);
 
                 // common case: stackalloc int[123]
-                var countConst = countExpression.ConstantValue;
+                ConstantValue countConst = countExpression.ConstantValue;
                 if (countConst != null)
                 {
                     var count = countConst.Int32Value;

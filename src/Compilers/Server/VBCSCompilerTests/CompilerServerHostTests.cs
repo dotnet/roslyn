@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 var host = new TestableCompilerServerHost();
                 var request = new RunRequest(LanguageNames.CSharp, currentDirectory: temp.CreateDirectory().Path, tempDirectory: null, libDirectory: null, arguments: Array.Empty<string>());
-                var response = host.RunCompilation(request, CancellationToken.None);
+                CommandLine.BuildResponse response = host.RunCompilation(request, CancellationToken.None);
                 Assert.Equal(ResponseType.Rejected, response.Type);
             }
         }

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal IteratorConstructor(IteratorStateMachine container)
             : base(container)
         {
-            var intType = container.DeclaringCompilation.GetSpecialType(SpecialType.System_Int32);
+            NamedTypeSymbol intType = container.DeclaringCompilation.GetSpecialType(SpecialType.System_Int32);
             _parameters = ImmutableArray.Create<ParameterSymbol>(
                 SynthesizedParameterSymbol.Create(this, intType, 0, RefKind.None, GeneratedNames.MakeStateMachineStateFieldName()));
         }
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            var compilation = this.DeclaringCompilation;
+            CSharpCompilation compilation = this.DeclaringCompilation;
             AddSynthesizedAttribute(ref attributes, compilation.TrySynthesizeAttribute(WellKnownMember.System_Diagnostics_DebuggerHiddenAttribute__ctor));
         }
 

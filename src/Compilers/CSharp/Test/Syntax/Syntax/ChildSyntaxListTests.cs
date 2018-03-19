@@ -13,8 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Equality()
         {
-            var node1 = SyntaxFactory.ReturnStatement();
-            var node2 = SyntaxFactory.ReturnStatement();
+            ReturnStatementSyntax node1 = SyntaxFactory.ReturnStatement();
+            ReturnStatementSyntax node2 = SyntaxFactory.ReturnStatement();
 
             EqualityTesting.AssertEqual(default(ChildSyntaxList), default(ChildSyntaxList));
             EqualityTesting.AssertEqual(new ChildSyntaxList(node1), new ChildSyntaxList(node1));
@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Reverse_Equality()
         {
-            var node1 = SyntaxFactory.ReturnStatement();
-            var node2 = SyntaxFactory.ReturnStatement();
+            ReturnStatementSyntax node1 = SyntaxFactory.ReturnStatement();
+            ReturnStatementSyntax node2 = SyntaxFactory.ReturnStatement();
 
             EqualityTesting.AssertEqual(default(ChildSyntaxList.Reversed), default(ChildSyntaxList.Reversed));
             EqualityTesting.AssertEqual(new ChildSyntaxList(node1).Reverse(), new ChildSyntaxList(node1).Reverse());

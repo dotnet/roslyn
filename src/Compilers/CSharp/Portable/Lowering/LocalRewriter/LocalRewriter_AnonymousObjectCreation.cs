@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitAnonymousObjectCreationExpression(BoundAnonymousObjectCreationExpression node)
         {
             // Rewrite the arguments.
-            var rewrittenArguments = VisitList(node.Arguments);
+            ImmutableArray<BoundExpression> rewrittenArguments = VisitList(node.Arguments);
 
             return new BoundObjectCreationExpression(
                 syntax: node.Syntax,

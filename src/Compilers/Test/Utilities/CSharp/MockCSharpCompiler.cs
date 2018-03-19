@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             List<DiagnosticInfo> diagnostics,
             CommonMessageProvider messageProvider)
         {
-            var analyzers = base.ResolveAnalyzersFromArguments(diagnostics, messageProvider);
+            ImmutableArray<DiagnosticAnalyzer> analyzers = base.ResolveAnalyzersFromArguments(diagnostics, messageProvider);
             if (!_analyzers.IsDefaultOrEmpty)
             {
                 analyzers = analyzers.InsertRange(0, _analyzers);

@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis
                 return trivia;
             }
 
-            var annotations = this.UnderlyingNode.GetAnnotations();
+            SyntaxAnnotation[] annotations = this.UnderlyingNode.GetAnnotations();
             if (annotations == null || annotations.Length == 0)
             {
                 return trivia;

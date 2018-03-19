@@ -38,7 +38,7 @@ class Query
     }
 }
 ";
-            var verifier = CompileAndVerify(
+            CompilationVerifier verifier = CompileAndVerify(
                 source,
                 symbolValidator: module => TestAnonymousTypeSymbols(
                                                module,
@@ -250,7 +250,7 @@ class Program
             Assert.Equal(1, attrs.Count);
             Assert.Equal(typeof(DebuggerBrowsableAttribute), attrs[0].AttributeType);
 
-            var args = attrs[0].ConstructorArguments.ToArray();
+            CustomAttributeTypedArgument[] args = attrs[0].ConstructorArguments.ToArray();
             Assert.Equal(1, args.Length);
             Assert.Equal(typeof(DebuggerBrowsableState), args[0].ArgumentType);
             Assert.Equal(DebuggerBrowsableState.Never, (DebuggerBrowsableState)args[0].Value);
@@ -595,7 +595,7 @@ class Query
 ";
             for (int i = 0; i < 100; i++)
             {
-                var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+                CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
 
                 var tasks = new Task[10];
                 for (int j = 0; j < tasks.Length; j++)
@@ -604,7 +604,7 @@ class Query
                     tasks[j] = Task.Run(() =>
                     {
                         var stream = new MemoryStream();
-                        var result = compilation.Emit(stream, options: new EmitOptions(metadataOnly: metadataOnly));
+                        EmitResult result = compilation.Emit(stream, options: new EmitOptions(metadataOnly: metadataOnly));
                         result.Diagnostics.Verify();
                     });
                 }
@@ -1067,7 +1067,7 @@ class Query
             //  test properties
             for (int i = 0; i < fieldsCount; i++)
             {
-                var typeParameter = type.TypeParameters[i];
+                TypeParameterSymbol typeParameter = type.TypeParameters[i];
                 Assert.Equal(genericParameters[i], typeParameter.ToDisplayString());
                 TestAnonymousTypeProperty(type, typeViewName, typeDescr.FieldNames[i], typeParameter);
             }
@@ -1104,7 +1104,7 @@ class Query
 
         private T GetMemberByName<T>(NamedTypeSymbol type, string name) where T : Symbol
         {
-            foreach (var symbol in type.GetMembers(name))
+            foreach (Symbol symbol in type.GetMembers(name))
             {
                 if (symbol is T)
                 {
@@ -1129,7 +1129,7 @@ class Query
             Assert.False(property.IsVirtual);
             Assert.False(property.IsWriteOnly);
 
-            var getter = property.GetMethod;
+            MethodSymbol getter = property.GetMethod;
             Assert.NotNull(getter);
             Assert.Equal("get_" + name, getter.Name);
             CheckMethodSymbol(
@@ -1170,12 +1170,12 @@ class Query
 
         private void TestAttributeOnSymbol(Symbol symbol, params AttributeInfo[] attributes)
         {
-            var actual = symbol.GetAttributes();
+            ImmutableArray<CSharpAttributeData> actual = symbol.GetAttributes();
             Assert.Equal(attributes.Length, actual.Length);
 
             for (int index = 0; index < attributes.Length; index++)
             {
-                var attr = attributes[index];
+                AttributeInfo attr = attributes[index];
 
                 Assert.Equal(attr.CtorName, actual[index].AttributeConstructor.ToDisplayString());
 
@@ -1475,7 +1475,7 @@ class Class3
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40(new string[] { source1, source2, source3 }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal), parseOptions: TestOptions.Regular);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(new string[] { source1, source2, source3 }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal), parseOptions: TestOptions.Regular);
 
             for (int i = 0; i < 10; i++)
             {
@@ -1499,10 +1499,10 @@ class Class3
                 );
 
                 // do some speculative semantic query
-                var model = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
+                SemanticModel model = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
                 var position = source1.IndexOf("var d", StringComparison.Ordinal) - 1;
-                var expr1 = SyntaxFactory.ParseExpression("new { x = 1, y" + i.ToString() + " = \"---\" }");
-                var info1 = model.GetSpeculativeTypeInfo(position, expr1, SpeculativeBindingOption.BindAsExpression);
+                ExpressionSyntax expr1 = SyntaxFactory.ParseExpression("new { x = 1, y" + i.ToString() + " = \"---\" }");
+                TypeInfo info1 = model.GetSpeculativeTypeInfo(position, expr1, SpeculativeBindingOption.BindAsExpression);
                 Assert.NotNull(info1.Type);
             }
         }
@@ -1660,21 +1660,21 @@ class Program
     }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            var expr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectCreationExpressionSyntax>().Single();
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            AnonymousObjectCreationExpressionSyntax expr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AnonymousObjectCreationExpressionSyntax>().Single();
 
-            var sym = model.GetSymbolInfo(expr);
+            SymbolInfo sym = model.GetSymbolInfo(expr);
             Assert.NotNull(sym.Symbol);
             Assert.True(((Symbol)sym.Symbol).IsFromCompilation(comp), "IsFromCompilation");
             Assert.False(sym.Symbol.Locations.IsEmpty, "Symbol Location");
             Assert.True(sym.Symbol.Locations[0].IsInSource);
 
-            var info = model.GetTypeInfo(expr);
+            TypeInfo info = model.GetTypeInfo(expr);
             Assert.NotNull(info.Type);
-            var mems = info.Type.GetMembers();
-            foreach (var m in mems)
+            ImmutableArray<ISymbol> mems = info.Type.GetMembers();
+            foreach (ISymbol m in mems)
             {
                 Assert.True(((Symbol)m).IsFromCompilation(comp), "IsFromCompilation");
                 Assert.False(m.Locations.IsEmpty, String.Format("No Location: {0}", m));
@@ -1701,21 +1701,21 @@ class Program
     }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
             var programType = (NamedTypeSymbol)(comp.GlobalNamespace.GetTypeMembers("Program").Single());
             var mainMethod = (MethodSymbol)(programType.GetMembers("Main").Single());
             var mainSyntax = mainMethod.DeclaringSyntaxReferences.Single().GetSyntax() as MethodDeclarationSyntax;
-            var mainBlock = mainSyntax.Body;
+            BlockSyntax mainBlock = mainSyntax.Body;
             var statement1 = mainBlock.Statements[0] as LocalDeclarationStatementSyntax;
             var statement2 = mainBlock.Statements[1] as LocalDeclarationStatementSyntax;
             var statement3 = mainBlock.Statements[2] as LocalDeclarationStatementSyntax;
             var statement4 = mainBlock.Statements[3] as LocalDeclarationStatementSyntax;
             var localA3 = model.GetDeclaredSymbol(statement3.Declaration.Variables[0]) as LocalSymbol;
             var localA4 = model.GetDeclaredSymbol(statement4.Declaration.Variables[0]) as LocalSymbol;
-            var typeA3 = localA3.Type;
-            var typeA4 = localA4.Type;
+            TypeSymbol typeA3 = localA3.Type;
+            TypeSymbol typeA4 = localA4.Type;
 
             // A3 and A4 should have different type objects, that compare equal. They should have 
             // different locations.
@@ -1780,8 +1780,8 @@ class Program
             // Dev11: omits methods that are not defined on Object (see also Dev10 bug 487707)
             // Roslyn: we require Equals, ToString, GetHashCode, Format to be defined
 
-            var comp = CreateEmptyCompilation(new[] { Parse(source), s_equalityComparerSourceTree }, new[] { MinCorlibRef });
-            var result = comp.Emit(new MemoryStream());
+            CSharpCompilation comp = CreateEmptyCompilation(new[] { Parse(source), s_equalityComparerSourceTree }, new[] { MinCorlibRef });
+            EmitResult result = comp.Emit(new MemoryStream());
 
             result.Diagnostics.Verify(
                 // error CS0656: Missing compiler required member 'System.Object.Equals'
@@ -1808,7 +1808,7 @@ namespace System.Diagnostics
     }
 }
 ";
-            var stateLib = CreateEmptyCompilation(stateSource, new[] { MinCorlibRef });
+            CSharpCompilation stateLib = CreateEmptyCompilation(stateSource, new[] { MinCorlibRef });
 
             var attributeSource = @"
 namespace System.Diagnostics
@@ -1822,7 +1822,7 @@ namespace System.Diagnostics
     }
 }
 ";
-            var attributeLib = CreateEmptyCompilation(attributeSource, new[] { MinCorlibRef, stateLib.ToMetadataReference() });
+            CSharpCompilation attributeLib = CreateEmptyCompilation(attributeSource, new[] { MinCorlibRef, stateLib.ToMetadataReference() });
 
             var source = @"
 class Program
@@ -1834,8 +1834,8 @@ class Program
     }
 }";
 
-            var comp = CreateEmptyCompilation(new[] { Parse(source), s_equalityComparerSourceTree }, new[] { MinCorlibRef, attributeLib.ToMetadataReference() });
-            var result = comp.Emit(new MemoryStream());
+            CSharpCompilation comp = CreateEmptyCompilation(new[] { Parse(source), s_equalityComparerSourceTree }, new[] { MinCorlibRef, attributeLib.ToMetadataReference() });
+            EmitResult result = comp.Emit(new MemoryStream());
 
             result.Diagnostics.Verify(
                 // error CS0656: Missing compiler required member 'System.Object.Equals'
@@ -1868,7 +1868,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // error CS0746: Invalid anonymous type member declarator. Anonymous type members must be declared with a member assignment, simple name or member access.
                 Diagnostic(ErrorCode.ERR_InvalidAnonymousTypeMemberDeclarator, "local?.M()").WithLocation(12, 24),
@@ -1945,7 +1945,7 @@ class C
 
             CompileAndVerify(source).VerifyIL("C.Main", expectedIL);
 
-            var compilation = GetCompilationForEmit(new[] { source }, references: null, options: null, parseOptions: null);
+            Compilation compilation = GetCompilationForEmit(new[] { source }, references: null, options: null, parseOptions: null);
             compilation.CreateAnonymousTypeSymbol(
                 ImmutableArray.Create<ITypeSymbol>(compilation.GetSpecialType(SpecialType.System_Int32), compilation.GetSpecialType(SpecialType.System_Boolean)),
                 ImmutableArray.Create("m1", "m2"));

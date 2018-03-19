@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             ArrayBuilder<BoundStatement> inits = null;
 
-            foreach (var decl in node.LocalDeclarations)
+            foreach (BoundLocalDeclaration decl in node.LocalDeclarations)
             {
-                var init = VisitLocalDeclaration(decl);
+                BoundNode init = VisitLocalDeclaration(decl);
 
                 if (init != null)
                 {

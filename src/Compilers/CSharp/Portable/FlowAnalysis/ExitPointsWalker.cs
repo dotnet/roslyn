@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 bool badRegion = false;
                 walker.Analyze(ref badRegion);
-                var result = walker._branchesOutOf.ToImmutableAndFree();
+                System.Collections.Immutable.ImmutableArray<StatementSyntax> result = walker._branchesOutOf.ToImmutableAndFree();
                 walker._branchesOutOf = null;
                 return badRegion ? SpecializedCollections.EmptyEnumerable<StatementSyntax>() : result;
             }
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         override protected void LeaveRegion()
         {
-            foreach (var pending in PendingBranches)
+            foreach (PendingBranch pending in PendingBranches)
             {
                 if (pending.Branch == null || !RegionContains(pending.Branch.Syntax.Span)) continue;
                 switch (pending.Branch.Kind)

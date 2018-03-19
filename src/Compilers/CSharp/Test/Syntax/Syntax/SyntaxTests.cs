@@ -146,14 +146,14 @@ void goo()
         [Fact]
         public void TestBug530094()
         {
-            var t = SyntaxFactory.AccessorDeclaration(SyntaxKind.UnknownAccessorDeclaration);
+            Syntax.AccessorDeclarationSyntax t = SyntaxFactory.AccessorDeclaration(SyntaxKind.UnknownAccessorDeclaration);
         }
 
         [Fact]
         public void TestBug991510()
         {
-            var section = SyntaxFactory.SwitchSection();
-            var span = section.Span;
+            Syntax.SwitchSectionSyntax section = SyntaxFactory.SwitchSection();
+            TextSpan span = section.Span;
             Assert.Equal(default(TextSpan), span);
         }
 
@@ -171,7 +171,7 @@ void goo()
         [InlineData("typeof(x)", null)]
         public void TestTryGetInferredMemberName(string source, string expected)
         {
-            var expr = SyntaxFactory.ParseExpression(source, options: TestOptions.Regular);
+            Syntax.ExpressionSyntax expr = SyntaxFactory.ParseExpression(source, options: TestOptions.Regular);
             var actual = SyntaxFacts.TryGetInferredMemberName(expr);
             Assert.Equal(expected, actual);
         }

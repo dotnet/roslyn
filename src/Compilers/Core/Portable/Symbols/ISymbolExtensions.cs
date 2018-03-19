@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            var reducedFrom = method.ReducedFrom;
+            IMethodSymbol reducedFrom = method.ReducedFrom;
             if (!reducedFrom.IsGenericMethod)
             {
                 // not generic, no inferences were made
@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis
             // first seed with any type arguments from reduced method
             for (int i = 0, n = method.TypeParameters.Length; i < n; i++)
             {
-                var arg = method.TypeArguments[i];
+                ITypeSymbol arg = method.TypeArguments[i];
 
                 // make sure we don't construct with type parameters originating from reduced symbol.
                 if (arg.Equals(method.TypeParameters[i]))
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis
             // add any inferences
             for (int i = 0, n = reducedFrom.TypeParameters.Length; i < n; i++)
             {
-                var inferredType = method.GetTypeInferredDuringReduction(reducedFrom.TypeParameters[i]);
+                ITypeSymbol inferredType = method.GetTypeInferredDuringReduction(reducedFrom.TypeParameters[i]);
                 if (inferredType != null)
                 {
                     typeArgs[i] = inferredType;
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static INamespaceSymbol GetNestedNamespace(this INamespaceSymbol container, string name)
         {
-            foreach (var sym in container.GetMembers(name))
+            foreach (INamespaceOrTypeSymbol sym in container.GetMembers(name))
             {
                 if (sym.Kind == SymbolKind.Namespace)
                 {

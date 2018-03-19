@@ -23,7 +23,7 @@ namespace Roslyn.Reflection.PortableExecutable
         {
             if (s_dataBuilderField == null)
             {
-                var type = typeof(DebugDirectoryBuilder).GetTypeInfo();
+                TypeInfo type = typeof(DebugDirectoryBuilder).GetTypeInfo();
                 s_dataBuilderField = type.GetDeclaredField("_dataBuilder");
                 s_addEntry = (Action<DebugDirectoryBuilder, DebugDirectoryEntryType, uint, uint, int>)
                     type.GetDeclaredMethod("AddEntry", typeof(DebugDirectoryEntryType), typeof(uint), typeof(uint), typeof(int)).
@@ -66,10 +66,10 @@ namespace Roslyn.Reflection.PortableExecutable
                 throw new ArgumentException("Unexpected debug directory entry type", nameof(entry));
             }
 
-            var peImage = peReader.GetEntireImage();
+            PEMemoryBlock peImage = peReader.GetEntireImage();
 
             int dataOffset = peReader.IsLoadedImage ? entry.DataRelativeVirtualAddress : entry.DataPointer;
-            var reader = peImage.GetReader(dataOffset, entry.DataSize);
+            BlobReader reader = peImage.GetReader(dataOffset, entry.DataSize);
 
             int nameLength = reader.IndexOf(0);
             if (nameLength <= 0)

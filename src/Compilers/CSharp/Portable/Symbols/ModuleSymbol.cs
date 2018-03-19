@@ -247,7 +247,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal AssemblySymbol GetReferencedAssemblySymbol(int referencedAssemblyIndex)
         {
-            var referencedAssemblies = GetReferencedAssemblySymbols();
+            ImmutableArray<AssemblySymbol> referencedAssemblies = GetReferencedAssemblySymbols();
             if (referencedAssemblyIndex < referencedAssemblies.Length)
             {
                 return referencedAssemblies[referencedAssemblyIndex];
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // This module must be a corlib where the original metadata contains assembly
             // references (see https://github.com/dotnet/roslyn/issues/13275).
-            var assembly = ContainingAssembly;
+            AssemblySymbol assembly = ContainingAssembly;
             if ((object)assembly != assembly.CorLibrary)
             {
                 throw new ArgumentOutOfRangeException(nameof(referencedAssemblyIndex));
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var cns = GetModuleNamespace(namespaceSymbol.ContainingNamespace);
+                NamespaceSymbol cns = GetModuleNamespace(namespaceSymbol.ContainingNamespace);
                 if ((object)cns != null)
                 {
                     return cns.GetNestedNamespace(namespaceSymbol.Name);

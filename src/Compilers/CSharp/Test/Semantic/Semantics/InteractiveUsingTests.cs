@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Using()
         {
-            var sub = CreateSubmission("using System; typeof(String)");
+            CSharpCompilation sub = CreateSubmission("using System; typeof(String)");
             sub.VerifyDiagnostics();
 
             Assert.Equal(SpecialType.System_String, GetSpeculativeType(sub, "String").SpecialType);
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Alias()
         {
-            var sub = CreateSubmission("using I = System.Int32; typeof(I)");
+            CSharpCompilation sub = CreateSubmission("using I = System.Int32; typeof(I)");
             sub.VerifyDiagnostics();
 
             Assert.Equal(SpecialType.System_Int32, GetSpeculativeType(sub, "I").SpecialType);
@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void UsingStatic()
         {
-            var sub = CreateSubmission("using static System.Environment; NewLine");
+            CSharpCompilation sub = CreateSubmission("using static System.Environment; NewLine");
             sub.VerifyDiagnostics();
 
             Assert.Equal(SymbolKind.Property, GetSpeculativeSymbol(sub, "NewLine").Kind);
@@ -44,19 +44,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void GlobalUsings()
         {
-            var sub1 = CreateSubmission(
+            CSharpCompilation sub1 = CreateSubmission(
                 "Combine(Environment.NewLine, Environment.NewLine)",
                 options: TestOptions.DebugDll.WithUsings("System", "System.IO.Path"));
             sub1.VerifyDiagnostics();
 
             // No global usings specified - expect to reuse previous.
-            var sub2 = CreateSubmission(
+            CSharpCompilation sub2 = CreateSubmission(
                 "Combine(Environment.NewLine, Environment.NewLine)",
                 previous: sub1);
             sub2.VerifyDiagnostics();
 
             // Global usings specified - expect to append to previous.
-            var sub3 = CreateSubmission(
+            CSharpCompilation sub3 = CreateSubmission(
                 "new StringBuilder().Append(Combine(Environment.NewLine, Environment.NewLine))",
                 previous: sub2,
                 options: TestOptions.DebugDll.WithUsings("System.Text"));
@@ -73,16 +73,16 @@ using T = Type;
 class Type { }
 ";
 
-            var sub = CreateSubmission(source);
+            CSharpCompilation sub = CreateSubmission(source);
             sub.VerifyDiagnostics();
 
-            var typeSymbol = sub.ScriptClass.GetMember("Type");
+            Symbol typeSymbol = sub.ScriptClass.GetMember("Type");
 
-            var tree = sub.SyntaxTrees.Single();
-            var model = sub.GetSemanticModel(tree);
-            var syntax = tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
+            SyntaxTree tree = sub.SyntaxTrees.Single();
+            SemanticModel model = sub.GetSemanticModel(tree);
+            UsingDirectiveSyntax syntax = tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
 
-            var aliasSymbol = model.GetDeclaredSymbol(syntax);
+            IAliasSymbol aliasSymbol = model.GetDeclaredSymbol(syntax);
             Assert.Equal(SymbolKind.Alias, aliasSymbol.Kind);
             Assert.Equal(typeSymbol, ((AliasSymbol)aliasSymbol).Target);
 
@@ -96,23 +96,23 @@ class Type { }
         [Fact]
         public void AliasPreviousSubmission()
         {
-            var sub1 = CreateSubmission("class A { }");
-            var sub2 = CreateSubmission("class B : A { }", previous: sub1);
-            var sub3 = CreateSubmission("class C : B { }", previous: sub2);
+            CSharpCompilation sub1 = CreateSubmission("class A { }");
+            CSharpCompilation sub2 = CreateSubmission("class B : A { }", previous: sub1);
+            CSharpCompilation sub3 = CreateSubmission("class C : B { }", previous: sub2);
 
             CreateSubmission("using A1 = A;", previous: sub3).VerifyDiagnostics();
             CreateSubmission("using B1 = B;", previous: sub3).VerifyDiagnostics();
 
-            var sub4 = CreateSubmission("using C1 = C; typeof(C1)", previous: sub3);
+            CSharpCompilation sub4 = CreateSubmission("using C1 = C; typeof(C1)", previous: sub3);
             sub4.VerifyDiagnostics();
 
-            var typeSymbol = sub3.ScriptClass.GetMember("C");
+            Symbol typeSymbol = sub3.ScriptClass.GetMember("C");
 
-            var tree = sub4.SyntaxTrees.Single();
-            var model = sub4.GetSemanticModel(tree);
-            var syntax = tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
+            SyntaxTree tree = sub4.SyntaxTrees.Single();
+            SemanticModel model = sub4.GetSemanticModel(tree);
+            UsingDirectiveSyntax syntax = tree.GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
 
-            var aliasSymbol = model.GetDeclaredSymbol(syntax);
+            IAliasSymbol aliasSymbol = model.GetDeclaredSymbol(syntax);
             Assert.Equal(SymbolKind.Alias, aliasSymbol.Kind);
             Assert.Equal(typeSymbol, ((AliasSymbol)aliasSymbol).Target);
 
@@ -128,7 +128,7 @@ class Type { }
 using I = Int32;
 using System;
 ";
-            var expectedDiagnostics = new[]
+            DiagnosticDescription[] expectedDiagnostics = new[]
             {
                 // (2,11): error CS0246: The type or namespace name 'Int32' could not be found (are you missing a using directive or an assembly reference?)
                 // using I = Int32;
@@ -145,14 +145,14 @@ using System;
             const string source = @"
 using I = Int32;
 ";
-            var expectedDiagnostics = new[]
+            DiagnosticDescription[] expectedDiagnostics = new[]
             {
                 // (2,11): error CS0246: The type or namespace name 'Int32' could not be found (are you missing a using directive or an assembly reference?)
                 // using I = Int32;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Int32").WithArguments("Int32").WithLocation(2, 11)
             };
 
-            var options = TestOptions.DebugDll.WithUsings("System");
+            CSharpCompilationOptions options = TestOptions.DebugDll.WithUsings("System");
 
             CreateCompilation(source, options: options).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
             CreateSubmission(source, options: options).GetDiagnostics().Verify(expectedDiagnostics);
@@ -165,7 +165,7 @@ using I = Int32;
 using I = System.Int32;
 using J = I;
 ";
-            var expectedDiagnostics = new[]
+            DiagnosticDescription[] expectedDiagnostics = new[]
             {
                 // (3,11): error CS0246: The type or namespace name 'I' could not be found (are you missing a using directive or an assembly reference?)
                 // using J = I;
@@ -179,16 +179,16 @@ using J = I;
         [Fact]
         public void AliasHiding()
         {
-            var sub1 = CreateSubmission("using A = System.Int32; typeof(A)");
+            CSharpCompilation sub1 = CreateSubmission("using A = System.Int32; typeof(A)");
             Assert.Equal(SpecialType.System_Int32, GetSpeculativeType(sub1, "A").SpecialType);
 
-            var sub2 = CreateSubmission("using A = System.Int16; typeof(A)", previous: sub1);
+            CSharpCompilation sub2 = CreateSubmission("using A = System.Int16; typeof(A)", previous: sub1);
             Assert.Equal(SpecialType.System_Int16, GetSpeculativeType(sub2, "A").SpecialType);
 
-            var sub3 = CreateSubmission("class A { }", previous: sub2);
+            CSharpCompilation sub3 = CreateSubmission("class A { }", previous: sub2);
             Assert.Equal(sub3.ScriptClass, GetSpeculativeType(sub3, "A").ContainingType);
 
-            var sub4 = CreateSubmission("using A = System.Int64; typeof(A)", previous: sub3);
+            CSharpCompilation sub4 = CreateSubmission("using A = System.Int64; typeof(A)", previous: sub3);
             Assert.Equal(SpecialType.System_Int64, GetSpeculativeType(sub4, "A").SpecialType);
         }
 
@@ -205,7 +205,7 @@ class Type
 }
 ";
 
-            var sub = CreateSubmission(source);
+            CSharpCompilation sub = CreateSubmission(source);
             sub.VerifyDiagnostics();
 
             Assert.Equal(sub.ScriptClass.GetMember("Type"), GetSpeculativeSymbol(sub, "Field").ContainingType);
@@ -215,17 +215,17 @@ class Type
         [Fact]
         public void UsingStaticPreviousSubmission()
         {
-            var sub1 = CreateSubmission("class A { public static int AA; }");
-            var sub2 = CreateSubmission("class B { public static int BB; }", previous: sub1);
-            var sub3 = CreateSubmission("class C { public static int CC; }", previous: sub2);
+            CSharpCompilation sub1 = CreateSubmission("class A { public static int AA; }");
+            CSharpCompilation sub2 = CreateSubmission("class B { public static int BB; }", previous: sub1);
+            CSharpCompilation sub3 = CreateSubmission("class C { public static int CC; }", previous: sub2);
 
             CreateSubmission("using static A;", previous: sub3).VerifyDiagnostics();
             CreateSubmission("using static B;", previous: sub3).VerifyDiagnostics();
 
-            var sub4 = CreateSubmission("using static C;", previous: sub3);
+            CSharpCompilation sub4 = CreateSubmission("using static C;", previous: sub3);
             sub4.VerifyDiagnostics();
 
-            var typeSymbol = sub3.ScriptClass.GetMember("C");
+            Symbol typeSymbol = sub3.ScriptClass.GetMember("C");
 
             Assert.Equal(typeSymbol, GetSpeculativeSymbol(sub4, "CC").ContainingType);
         }
@@ -237,7 +237,7 @@ class Type
 using static Path;
 using System.IO;
 ";
-            var expectedDiagnostics = new[]
+            DiagnosticDescription[] expectedDiagnostics = new[]
             {
                 // (2,14): error CS0246: The type or namespace name 'Path' could not be found (are you missing a using directive or an assembly reference?)
                 // using static Path;
@@ -254,14 +254,14 @@ using System.IO;
             const string source = @"
 using static Path;
 ";
-            var expectedDiagnostics = new[]
+            DiagnosticDescription[] expectedDiagnostics = new[]
             {
                 // (2,14): error CS0246: The type or namespace name 'Path' could not be found (are you missing a using directive or an assembly reference?)
                 // using static Path;
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "Path").WithArguments("Path").WithLocation(2, 14)
             };
 
-            var options = TestOptions.DebugDll.WithUsings("System");
+            CSharpCompilationOptions options = TestOptions.DebugDll.WithUsings("System");
 
             CreateCompilation(source, options: options).GetDiagnostics().Where(d => d.Severity > DiagnosticSeverity.Hidden).Verify(expectedDiagnostics);
             CreateSubmission(source, options: options).GetDiagnostics().Verify(expectedDiagnostics);
@@ -291,12 +291,12 @@ using static Path;
         [Fact]
         public void DuplicateGlobalUsing_PreviousSubmission()
         {
-            var options = TestOptions.DebugDll.WithUsings("System");
+            CSharpCompilationOptions options = TestOptions.DebugDll.WithUsings("System");
 
-            var sub1 = CreateSubmission("typeof(String)", options: options);
+            CSharpCompilation sub1 = CreateSubmission("typeof(String)", options: options);
             sub1.VerifyDiagnostics();
 
-            var sub2 = CreateSubmission("typeof(String)", options: options, previous: sub1);
+            CSharpCompilation sub2 = CreateSubmission("typeof(String)", options: options, previous: sub1);
             sub2.VerifyDiagnostics();
         }
 
@@ -315,15 +315,15 @@ namespace B
 }}
 ";
 
-            var lib1 = CreateCompilation(string.Format(libSourceTemplate, 1), assemblyName: "Lib1").EmitToImageReference();
-            var lib2 = CreateCompilation(string.Format(libSourceTemplate, 2), assemblyName: "Lib2").EmitToImageReference();
+            MetadataReference lib1 = CreateCompilation(string.Format(libSourceTemplate, 1), assemblyName: "Lib1").EmitToImageReference();
+            MetadataReference lib2 = CreateCompilation(string.Format(libSourceTemplate, 2), assemblyName: "Lib2").EmitToImageReference();
 
-            var options = TestOptions.DebugDll.WithUsings("B");
+            CSharpCompilationOptions options = TestOptions.DebugDll.WithUsings("B");
 
-            var sub1 = CreateSubmission("using A; typeof(A1) == typeof(B1)", new[] { lib1 }, options);
+            CSharpCompilation sub1 = CreateSubmission("using A; typeof(A1) == typeof(B1)", new[] { lib1 }, options);
             sub1.VerifyDiagnostics();
 
-            var sub2 = CreateSubmission("typeof(A1) == typeof(B1) && typeof(A2) == typeof(B2)", new[] { lib1, lib2 }, options: options, previous: sub1);
+            CSharpCompilation sub2 = CreateSubmission("typeof(A1) == typeof(B1) && typeof(A2) == typeof(B2)", new[] { lib1, lib2 }, options: options, previous: sub1);
             sub2.VerifyDiagnostics();
         }
 
@@ -351,12 +351,12 @@ t = typeof(F); // using alias not exposed
 t = typeof(C); // declaration exposed
 ";
 
-            var resolver = TestSourceReferenceResolver.Create(new Dictionary<string, string>
+            SourceReferenceResolver resolver = TestSourceReferenceResolver.Create(new Dictionary<string, string>
             {
                 { "a.csx", scriptSource }
             });
 
-            var compilation = CreateSubmission(
+            CSharpCompilation compilation = CreateSubmission(
                 submissionSource,
                 options: TestOptions.DebugDll.WithSourceReferenceResolver(resolver));
 
@@ -422,12 +422,12 @@ using F = System.IO.File;
 class C { }
 ";
 
-            var resolver = TestSourceReferenceResolver.Create(new Dictionary<string, string>
+            SourceReferenceResolver resolver = TestSourceReferenceResolver.Create(new Dictionary<string, string>
             {
                 { "a.csx", scriptSource }
             });
 
-            var compilation = CreateSubmission(
+            CSharpCompilation compilation = CreateSubmission(
                 submissionSource,
                 options: TestOptions.DebugDll.WithSourceReferenceResolver(resolver),
                 previous: CreateSubmission(previousSubmissionSource));
@@ -472,12 +472,12 @@ t = typeof(File); // global using exposed
 #load ""a.csx""
 ";
 
-            var resolver = TestSourceReferenceResolver.Create(new Dictionary<string, string>
+            SourceReferenceResolver resolver = TestSourceReferenceResolver.Create(new Dictionary<string, string>
             {
                 { "a.csx", scriptSource }
             });
 
-            var compilation = CreateSubmission(
+            CSharpCompilation compilation = CreateSubmission(
                 submissionSource,
                 options: TestOptions.DebugDll.WithSourceReferenceResolver(resolver).WithUsings("System.IO", "System.IO.Path"));
 
@@ -508,8 +508,8 @@ namespace NOuter
 }
 ";
 
-            var lib = CreateCompilation(libSource).EmitToImageReference();
-            var refs = new[] { lib };
+            MetadataReference lib = CreateCompilation(libSource).EmitToImageReference();
+            MetadataReference[] refs = new[] { lib };
 
             var submissions = new[]
             {
@@ -526,7 +526,7 @@ namespace NOuter
             CSharpCompilation prev = null;
             foreach (var submission in submissions)
             {
-                var curr = CreateSubmission(submission, refs, previous: prev);
+                CSharpCompilation curr = CreateSubmission(submission, refs, previous: prev);
                 curr.VerifyDiagnostics();
                 prev = curr;
             }
@@ -549,8 +549,8 @@ namespace NOuter
 }
 ";
 
-            var lib = CreateCompilation(libSource).EmitToImageReference();
-            var refs = new[] { lib };
+            MetadataReference lib = CreateCompilation(libSource).EmitToImageReference();
+            MetadataReference[] refs = new[] { lib };
 
             CreateSubmission("using NInner;", refs, previous: CreateSubmission("using NOuter;", refs)).VerifyDiagnostics(
                 // (1,7): error CS0246: The type or namespace name 'NInner' could not be found (are you missing a using directive or an assembly reference?)
@@ -575,8 +575,8 @@ namespace NOuter
 
         private static Symbol GetSpeculativeSymbol(CSharpCompilation comp, string name)
         {
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
             return (Symbol)model.GetSpeculativeSymbolInfo(
                 tree.Length,
                 SyntaxFactory.IdentifierName(name),
@@ -585,8 +585,8 @@ namespace NOuter
 
         private static TypeSymbol GetSpeculativeType(CSharpCompilation comp, string name)
         {
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
             return (TypeSymbol)model.GetSpeculativeTypeInfo(
                 tree.Length,
                 SyntaxFactory.IdentifierName(name),

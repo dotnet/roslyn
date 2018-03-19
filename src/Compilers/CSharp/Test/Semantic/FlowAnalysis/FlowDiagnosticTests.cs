@@ -111,8 +111,8 @@ namespace ConsoleApplication1
         }
     }
 }";
-            var comp = CreateCompilation(program);
-            var errs = this.FlowDiagnostics(comp);
+            CSharpCompilation comp = CreateCompilation(program);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> errs = this.FlowDiagnostics(comp);
             Assert.Equal(0, errs.Count());
         }
 
@@ -126,8 +126,8 @@ class Program
     {
     }
 }";
-            var comp = CreateCompilation(program);
-            var errs = this.FlowDiagnostics(comp);
+            CSharpCompilation comp = CreateCompilation(program);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> errs = this.FlowDiagnostics(comp);
             Assert.Equal(1, errs.Count());
         }
 
@@ -147,9 +147,9 @@ class Program
                         }
                     }
                 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             int[] count = new int[4];
-            foreach (var e in this.FlowDiagnostics(comp))
+            foreach (Diagnostic e in this.FlowDiagnostics(comp))
                 count[(int)e.Severity]++;
 
             Assert.Equal(0, count[(int)DiagnosticSeverity.Error]);
@@ -175,9 +175,9 @@ class Program
                     }
                 }
 ";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             int[] count = new int[4];
-            foreach (var e in this.FlowDiagnostics(comp))
+            foreach (Diagnostic e in this.FlowDiagnostics(comp))
                 count[(int)e.Severity]++;
 
             Assert.Equal(0, count[(int)DiagnosticSeverity.Error]);
@@ -202,7 +202,7 @@ public class Test
     }
 }
 ";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
 
             comp.GetMethodBodyDiagnostics().Verify(
                 // (7,9): error CS0139: No enclosing loop out of which to break or continue
@@ -225,7 +225,7 @@ class Program
         }
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             Assert.Equal(0, this.FlowDiagnostics(comp).Count());
         }
 
@@ -249,7 +249,7 @@ class Program
     {
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             Assert.Equal(0, this.FlowDiagnostics(comp).Count());
         }
 
@@ -265,7 +265,7 @@ class Program
             break;
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             Assert.Equal(0, this.FlowDiagnostics(comp).Count());
         }
 
@@ -283,7 +283,7 @@ class Program
         x = 1;
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             Assert.Equal(0, this.FlowDiagnostics(comp).Count());
         }
 
@@ -298,7 +298,7 @@ class Program
         if (b) return;
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             Assert.Equal(2, this.FlowDiagnostics(comp).Count());
         }
 
@@ -318,7 +318,7 @@ class Program
         F(out x, x);
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             Assert.Equal(1, this.FlowDiagnostics(comp).Count());
         }
 
@@ -343,10 +343,10 @@ class Program
     {
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
 
             int[] count = new int[4];
-            foreach (var e in this.FlowDiagnostics(comp))
+            foreach (Diagnostic e in this.FlowDiagnostics(comp))
                 count[(int)e.Severity]++;
 
             Assert.Equal(0, count[(int)DiagnosticSeverity.Error]);
@@ -374,11 +374,11 @@ class Program
         Console.WriteLine(z);
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
 
             int[] count = new int[4];
             Dictionary<int, int> warnings = new Dictionary<int, int>();
-            foreach (var e in this.FlowDiagnostics(comp))
+            foreach (Diagnostic e in this.FlowDiagnostics(comp))
             {
                 count[(int)e.Severity]++;
                 if (!warnings.ContainsKey(e.Code)) warnings[e.Code] = 0;
@@ -425,7 +425,7 @@ class Program
             }
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             Assert.Equal(0, this.FlowDiagnostics(comp).Count());
         }
 
@@ -448,7 +448,7 @@ class Program
             s = null;
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             Assert.Equal(0, this.FlowDiagnostics(comp).Count());
         }
 
@@ -472,7 +472,7 @@ class Program
         byte b11 = b1; // Should not report CS0219
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             Assert.Equal(0, this.FlowDiagnostics(comp).Count());
         }
 
@@ -489,7 +489,7 @@ class Program
     }
     static void F(ref int i) { }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             Assert.NotEmpty(this.FlowDiagnostics(comp).Where(e => e.Severity >= DiagnosticSeverity.Error));
         }
 
@@ -507,7 +507,7 @@ class Program
     }
     static void F(out int i) { i = 1; }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             Assert.Empty(this.FlowDiagnostics(comp).Where(e => e.Severity >= DiagnosticSeverity.Error));
         }
 
@@ -528,7 +528,7 @@ class Program
         int j = i; // i not definitely assigned
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             Assert.NotEmpty(this.FlowDiagnostics(comp).Where(e => e.Severity >= DiagnosticSeverity.Error));
         }
 
@@ -545,7 +545,7 @@ class Program
         Func fnc = (ref int arg, int arg2) => { arg = arg; };
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             Assert.Empty(this.FlowDiagnostics(comp).Where(e => e.Severity >= DiagnosticSeverity.Error));
         }
 
@@ -566,7 +566,7 @@ class Program
         int j = i;
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             Assert.NotEmpty(this.FlowDiagnostics(comp).Where(e => e.Severity >= DiagnosticSeverity.Error));
         }
 
@@ -584,7 +584,7 @@ class Program
         };
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             Assert.NotEmpty(this.FlowDiagnostics(comp).Where(e => e.Severity >= DiagnosticSeverity.Error));
         }
 
@@ -630,7 +630,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             Assert.NotEmpty(this.FlowDiagnostics(comp).Where(e => e.Severity >= DiagnosticSeverity.Error));
         }
 
@@ -778,7 +778,7 @@ struct S<T>
         x.x = 1;
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             comp.VerifyDiagnostics(
                 // (8,9): error CS0120: An object reference is required for the non-static field, method, or property 'S<T>.x'
                 //         x.x = 1;
@@ -803,7 +803,7 @@ struct S<T>
         };
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             comp.VerifyDiagnostics(
                 // unreachable statement
                 // (7,23): warning CS0162: Unreachable code detected
@@ -831,7 +831,7 @@ partial class C
         Goo(() => { int x, y = x; });
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             comp.VerifyDiagnostics(
                 // (9,32): error CS0165: Use of unassigned local variable 'x'
                 //         Goo(() => { int x, y = x; });
@@ -856,9 +856,9 @@ class Program
         return 1;
     }
 }";
-            var comp = CreateCompilation(program);
-            var parseErrors = comp.SyntaxTrees[0].GetDiagnostics();
-            var errors = comp.GetDiagnostics();
+            CSharpCompilation comp = CreateCompilation(program);
+            IEnumerable<Diagnostic> parseErrors = comp.SyntaxTrees[0].GetDiagnostics();
+            System.Collections.Immutable.ImmutableArray<Diagnostic> errors = comp.GetDiagnostics();
             Assert.Equal(parseErrors.Count(), errors.Count());
         }
 
@@ -870,7 +870,7 @@ class Program
 {
     System.Action a = () => { int i; int j = i; };
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             comp.VerifyDiagnostics(
                 // (3,46): error CS0165: Use of unassigned local variable 'i'
                 //     System.Action a = () => { int i; int j = i; };
@@ -898,7 +898,7 @@ class Program
         }
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             comp.VerifyDiagnostics(
                 // (11,21): warning CS0219: The variable 'M' is assigned but its value is never used
                 //                 int M = N;
@@ -1265,7 +1265,7 @@ struct Program
     public S(int i) {}
 }";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (3,16): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     public int P { get; set; } = 1;
@@ -1291,7 +1291,7 @@ struct Program
     }
 }";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (5,20): error CS0573: 'S': cannot have instance property or field initializers in structs
     //     public decimal R { get; } = 300;
@@ -1331,7 +1331,7 @@ struct Program
     }
 }";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
     //         x.i = 1;
@@ -1380,7 +1380,7 @@ struct Program
     }
 }";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (16,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
     //         x.i = 1;
@@ -1432,7 +1432,7 @@ struct Program
     }
 }";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (17,9): error CS1612: Cannot modify the return value of 'Program.x' because it is not a variable
     //         x.i += 1;
@@ -1484,7 +1484,7 @@ struct Program
     }
 }";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (20,13): error CS1673: Anonymous methods, lambda expressions, and query expressions inside structs cannot access instance members of 'this'. Consider copying 'this' to a local variable outside the anonymous method, lambda expression or query expression and using the local instead.
     //             this.x = new S1();
@@ -1537,7 +1537,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (23,13): error CS0200: Property or indexer 'Program.x2' cannot be assigned to -- it is read only
     //             this.x2 = new S1();
@@ -1579,7 +1579,7 @@ struct Program
     }
 }";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (6,20): warning CS0649: Field 'Program.S1.i' is never assigned to, and will always have its default value 0
     //         public int i;
@@ -1615,7 +1615,7 @@ struct Program
     }
 }";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             // no errors since S1 is empty
             comp.VerifyDiagnostics(
                 );
@@ -1662,7 +1662,7 @@ struct Program
     }
 }";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             // no errors since S1 is empty
             comp.VerifyDiagnostics(
     // (15,17): error CS0206: A property or indexer may not be passed as an out or ref parameter
@@ -1753,16 +1753,16 @@ struct T
         [Fact]
         public void UnreferencedFieldWarningsMissingInEmit()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public class Class1
 {
     int field1;
 }");
-            var bindingDiags = comp.GetDiagnostics().ToArray();
+            Diagnostic[] bindingDiags = comp.GetDiagnostics().ToArray();
             Assert.Equal(1, bindingDiags.Length);
             Assert.Equal(ErrorCode.WRN_UnreferencedField, (ErrorCode)bindingDiags[0].Code);
 
-            var emitDiags = comp.Emit(new System.IO.MemoryStream()).Diagnostics.ToArray();
+            Diagnostic[] emitDiags = comp.Emit(new System.IO.MemoryStream()).Diagnostics.ToArray();
             Assert.Equal(bindingDiags.Length, emitDiags.Length);
             Assert.Equal(bindingDiags[0], emitDiags[0]);
         }
@@ -1886,7 +1886,7 @@ public struct A
     }
 }
 ";
-            var c = CreateCompilation(program, new[] { TestReferences.SymbolsTests.CycledStructs });
+            CSharpCompilation c = CreateCompilation(program, new[] { TestReferences.SymbolsTests.CycledStructs });
 
             c.VerifyDiagnostics(
                 // (6,12): warning CS0219: The variable 's1' is assigned but its value is never used

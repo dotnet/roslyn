@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             var builder = SyntaxTokenListBuilder.Create();
-            foreach (var token in tokens)
+            foreach (SyntaxToken token in tokens)
             {
                 builder.Add(token.Node);
             }
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis
         {
             for (int i = 0, n = this.Count; i < n; i++)
             {
-                var token = this[i];
+                SyntaxToken token = this[i];
                 if (token == tokenInList)
                 {
                     return i;

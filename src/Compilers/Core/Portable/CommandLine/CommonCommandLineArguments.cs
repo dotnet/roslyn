@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis
 
             foreach (CommandLineReference cmdReference in MetadataReferences)
             {
-                var references = ResolveMetadataReference(cmdReference, metadataResolver, diagnosticsOpt, messageProviderOpt);
+                ImmutableArray<PortableExecutableReference> references = ResolveMetadataReference(cmdReference, metadataResolver, diagnosticsOpt, messageProviderOpt);
                 if (!references.IsDefaultOrEmpty)
                 {
                     resolved.AddRange(references);
@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis
             }
             catch (Exception e) when (diagnosticsOpt != null && (e is BadImageFormatException || e is IOException))
             {
-                var diagnostic = PortableExecutableReference.ExceptionToDiagnostic(e, messageProviderOpt, Location.None, cmdReference.Reference, cmdReference.Properties.Kind);
+                Diagnostic diagnostic = PortableExecutableReference.ExceptionToDiagnostic(e, messageProviderOpt, Location.None, cmdReference.Reference, cmdReference.Properties.Kind);
                 diagnosticsOpt.Add(((DiagnosticWithInfo)diagnostic).Info);
                 return ImmutableArray<PortableExecutableReference>.Empty;
             }
@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis
             CommonMessageProvider messageProvider,
             IAnalyzerAssemblyLoader analyzerLoader)
         {
-            var analyzerBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            ImmutableArray<DiagnosticAnalyzer>.Builder analyzerBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
 
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) =>
             {
@@ -443,9 +443,9 @@ namespace Microsoft.CodeAnalysis
             };
 
             var resolvedReferences = ArrayBuilder<AnalyzerFileReference>.GetInstance();
-            foreach (var reference in AnalyzerReferences)
+            foreach (CommandLineAnalyzerReference reference in AnalyzerReferences)
             {
-                var resolvedReference = ResolveAnalyzerReference(reference, analyzerLoader);
+                AnalyzerFileReference resolvedReference = ResolveAnalyzerReference(reference, analyzerLoader);
                 if (resolvedReference != null)
                 {
                     resolvedReferences.Add(resolvedReference);
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // All analyzer references are registered now, we can start loading them:
-            foreach (var resolvedReference in resolvedReferences)
+            foreach (AnalyzerFileReference resolvedReference in resolvedReferences)
             {
                 resolvedReference.AnalyzerLoadFailed += errorHandler;
                 resolvedReference.AddAnalyzers(analyzerBuilder, language);

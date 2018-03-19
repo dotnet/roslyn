@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         private ImmutableArray<EventSymbol> RetargetExplicitInterfaceImplementations()
         {
-            var impls = _underlyingEvent.ExplicitInterfaceImplementations;
+            ImmutableArray<EventSymbol> impls = _underlyingEvent.ExplicitInterfaceImplementations;
 
             if (impls.IsEmpty)
             {
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             for (int i = 0; i < impls.Length; i++)
             {
-                var retargeted = this.RetargetingTranslator.Retarget(impls[i]);
+                EventSymbol retargeted = this.RetargetingTranslator.Retarget(impls[i]);
                 if ((object)retargeted != null)
                 {
                     builder.Add(retargeted);

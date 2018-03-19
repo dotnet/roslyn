@@ -38,22 +38,22 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Func<TOptions, T> getter, T validNonDefaultValue)
             where TOptions : CompilationOptions
         {
-            var validDefaultValue = getter(oldOptions);
+            T validDefaultValue = getter(oldOptions);
 
             // we need non-default value to test Equals and GetHashCode
             Assert.NotEqual(validNonDefaultValue, validDefaultValue);
 
             // check that the assigned value can be read:
-            var newOpt1 = factory(oldOptions, validNonDefaultValue);
+            TOptions newOpt1 = factory(oldOptions, validNonDefaultValue);
             Assert.Equal(validNonDefaultValue, getter(newOpt1));
             Assert.Equal(0, newOpt1.Errors.Length);
 
             // check that creating new options with the same value yields the same options instance:
-            var newOpt1_alias = factory(newOpt1, validNonDefaultValue);
+            TOptions newOpt1_alias = factory(newOpt1, validNonDefaultValue);
             Assert.Same(newOpt1_alias, newOpt1);
 
             // check that Equals and GetHashCode work
-            var newOpt2 = factory(oldOptions, validNonDefaultValue);
+            TOptions newOpt2 = factory(oldOptions, validNonDefaultValue);
             Assert.False(newOpt1.Equals(oldOptions));
             Assert.True(newOpt1.Equals(newOpt2));
 
@@ -195,10 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void WithUsings()
         {
-            var actual1 = new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings(new[] { "A", "B" }).Usings;
+            ImmutableArray<string> actual1 = new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings(new[] { "A", "B" }).Usings;
             Assert.True(actual1.SequenceEqual(new[] { "A", "B" }));
 
-            var actual2 = new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings(Enumerable.Repeat("A", 1)).Usings;
+            ImmutableArray<string> actual2 = new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings(Enumerable.Repeat("A", 1)).Usings;
             Assert.True(actual2.SequenceEqual(Enumerable.Repeat("A", 1)));
 
             Assert.Equal(0, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithUsings("A", "B").WithUsings(null).Usings.Count());
@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             MetadataImportOptions metadataImportOptions = 0;
             bool referencesSupersedeLowerVersions = false;
             bool reportSuppressedDiagnostics = false;
-            var topLevelBinderFlags = BinderFlags.None;
+            BinderFlags topLevelBinderFlags = BinderFlags.None;
             var publicSign = false;
 
             return new CSharpCompilationOptions(OutputKind.ConsoleApplication, reportSuppressedDiagnostics, moduleName, mainTypeName, scriptClassName, usings,

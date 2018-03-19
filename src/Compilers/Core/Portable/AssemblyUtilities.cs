@@ -50,12 +50,12 @@ namespace Roslyn.Utilities
 
                 using (var reader = new PEReader(FileUtilities.OpenRead(assemblyPath)))
                 {
-                    var metadataReader = reader.GetMetadataReader();
-                    var assemblyReferenceHandles = metadataReader.AssemblyReferences;
+                    MetadataReader metadataReader = reader.GetMetadataReader();
+                    AssemblyReferenceHandleCollection assemblyReferenceHandles = metadataReader.AssemblyReferences;
 
-                    foreach (var handle in assemblyReferenceHandles)
+                    foreach (AssemblyReferenceHandle handle in assemblyReferenceHandles)
                     {
-                        var reference = metadataReader.GetAssemblyReference(handle);
+                        AssemblyReference reference = metadataReader.GetAssemblyReference(handle);
                         var referenceName = metadataReader.GetString(reference.Name);
 
                         string referencePath = Path.Combine(directory, referenceName + ".dll");
@@ -85,9 +85,9 @@ namespace Roslyn.Utilities
 
             using (var reader = new PEReader(FileUtilities.OpenRead(filePath)))
             {
-                var metadataReader = reader.GetMetadataReader();
-                var mvidHandle = metadataReader.GetModuleDefinition().Mvid;
-                var fileMvid = metadataReader.GetGuid(mvidHandle);
+                MetadataReader metadataReader = reader.GetMetadataReader();
+                GuidHandle mvidHandle = metadataReader.GetModuleDefinition().Mvid;
+                Guid fileMvid = metadataReader.GetGuid(mvidHandle);
 
                 return fileMvid;
             }
@@ -104,7 +104,7 @@ namespace Roslyn.Utilities
             Debug.Assert(filePath != null);
             Debug.Assert(PathUtilities.IsAbsolute(filePath));
 
-            var builder = ImmutableArray.CreateBuilder<string>();
+            ImmutableArray<string>.Builder builder = ImmutableArray.CreateBuilder<string>();
 
             string directory = Path.GetDirectoryName(filePath);
             string fileNameWithoutExtension = Path.GetFileNameWithoutExtension(filePath);
@@ -146,8 +146,8 @@ namespace Roslyn.Utilities
             {
                 using (var reader = new PEReader(FileUtilities.OpenRead(potentialDependency)))
                 {
-                    var metadataReader = reader.GetMetadataReader();
-                    var assemblyDefinition = metadataReader.ReadAssemblyIdentityOrThrow();
+                    MetadataReader metadataReader = reader.GetMetadataReader();
+                    AssemblyIdentity assemblyDefinition = metadataReader.ReadAssemblyIdentityOrThrow();
 
                     assemblyDefinitions.Add(assemblyDefinition);
                 }
@@ -156,9 +156,9 @@ namespace Roslyn.Utilities
             HashSet<AssemblyIdentity> assemblyReferences = new HashSet<AssemblyIdentity>();
             using (var reader = new PEReader(FileUtilities.OpenRead(assemblyPath)))
             {
-                var metadataReader = reader.GetMetadataReader();
+                MetadataReader metadataReader = reader.GetMetadataReader();
 
-                var references = metadataReader.GetReferencedAssembliesOrThrow();
+                ImmutableArray<AssemblyIdentity> references = metadataReader.GetReferencedAssembliesOrThrow();
 
                 assemblyReferences.AddAll(references);
             }
@@ -181,8 +181,8 @@ namespace Roslyn.Utilities
 
             using (var reader = new PEReader(FileUtilities.OpenRead(assemblyPath)))
             {
-                var metadataReader = reader.GetMetadataReader();
-                var assemblyIdentity = metadataReader.ReadAssemblyIdentityOrThrow();
+                MetadataReader metadataReader = reader.GetMetadataReader();
+                AssemblyIdentity assemblyIdentity = metadataReader.ReadAssemblyIdentityOrThrow();
 
                 return assemblyIdentity;
             }

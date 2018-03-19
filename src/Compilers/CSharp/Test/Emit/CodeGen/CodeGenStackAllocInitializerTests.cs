@@ -460,7 +460,7 @@ static unsafe class C
         [Fact]
         public void TestSpan()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 static class C
 {
@@ -506,7 +506,7 @@ namespace System
         [Fact]
         public void TestReadOnlySpan()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 using System;
 static class C
 {

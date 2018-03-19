@@ -123,16 +123,16 @@ public class Derived2 : Derived<int>
 }
 ";
 
-            var comp1 = CreateCompilation(text1);
+            CSharpCompilation comp1 = CreateCompilation(text1);
             var comp1ref = new CSharpCompilationReference(comp1);
             var ref1 = new List<MetadataReference>() { comp1ref };
 
-            var comp2 = CreateCompilation(text2, references: ref1, assemblyName: "Test2");
+            CSharpCompilation comp2 = CreateCompilation(text2, references: ref1, assemblyName: "Test2");
             var comp2ref = new CSharpCompilationReference(comp2);
 
             var ref2 = new List<MetadataReference>() { comp1ref, comp2ref };
-            var comp = CreateCompilation(text3, ref2, assemblyName: "Test3");
-            var diagnostics = comp.GetDiagnostics();
+            CSharpCompilation comp = CreateCompilation(text3, ref2, assemblyName: "Test3");
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = comp.GetDiagnostics();
 
             comp.VerifyDiagnostics(
                 // (4,26): error CS0462: The inherited members 'Derived<TInt>.Method(long, TInt)' and 'Derived<TInt>.Method(long, int)' have the same signature in type 'Derived2', so they cannot be overridden
@@ -296,7 +296,7 @@ public class Test
     }
 }
 ";
-            var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
+            PortableExecutableReference asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
 
             CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Metadata.LeastModoptsWinAmbiguous.M(byte, byte)", "Metadata.LeastModoptsWinAmbiguous.M(byte, byte)")
@@ -319,7 +319,7 @@ public class Test
     }
 }
 ";
-            var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
+            PortableExecutableReference asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
 
             CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_AmbigMember, "P").WithArguments("Metadata.ModoptPropAmbiguous.P", "Metadata.ModoptPropAmbiguous.P")
@@ -340,7 +340,7 @@ class CBar : IFoo // CS0535 * 2
     public sbyte M1<T, V>(T t, V v) { return 123; }
 }
 ";
-            var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
+            PortableExecutableReference asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
 
             CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
     // (7,14): error CS0535: 'CBar' does not implement interface member 'IFoo.M<T>(T)'
@@ -365,7 +365,7 @@ public class CFoo : IFooAmbiguous<string, long> // CS0535 *2
     long IFooAmbiguous<string, long>.M(string t) { return -128; } // W CS0437
 }
 ";
-            var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
+            PortableExecutableReference asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
 
             CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
     // (4,38): warning CS0473: Explicit interface implementation 'CFoo.IFooAmbiguous<string, long>.M(string)' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
@@ -397,7 +397,7 @@ class Test
     }
 }
 ";
-            var asm = MetadataReference.CreateFromImage(TestResources.SymbolsTests.CustomModifiers.ModoptTests.AsImmutableOrNull());
+            PortableExecutableReference asm = MetadataReference.CreateFromImage(TestResources.SymbolsTests.CustomModifiers.ModoptTests.AsImmutableOrNull());
             CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
     // (11,9): error CS0570: 'Metadata.Modreq.M(?)' is not supported by the language
     //         new D().M(11); // Dev10: error CS0570: 'M' is not supported by the language
@@ -424,7 +424,7 @@ class Test
     }
 }
 ";
-            var asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
+            PortableExecutableReference asm = TestReferences.SymbolsTests.CustomModifiers.ModoptTests;
 
             CreateCompilation(text, new[] { asm }).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_OverrideNotExpected, "M").WithArguments("Test.D.M(uint)"));
@@ -464,19 +464,19 @@ public class Derived : Base
     public override void Foo(int x) { }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             // No diagnostics - just choose the overload with fewer custom modifiers
             compilation.VerifyDiagnostics();
 
             Func<int, Func<MethodSymbol, bool>> hasCustomModifierCount = c => m => m.CustomModifierCount() == c;
 
-            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-            var baseMethod1 = baseClass.GetMembers("Foo").Cast<MethodSymbol>().Where(hasCustomModifierCount(1)).Single();
-            var baseMethod2 = baseClass.GetMembers("Foo").Cast<MethodSymbol>().Where(hasCustomModifierCount(2)).Single();
+            NamedTypeSymbol baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            MethodSymbol baseMethod1 = baseClass.GetMembers("Foo").Cast<MethodSymbol>().Where(hasCustomModifierCount(1)).Single();
+            MethodSymbol baseMethod2 = baseClass.GetMembers("Foo").Cast<MethodSymbol>().Where(hasCustomModifierCount(2)).Single();
 
-            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            var derivedMethod = derivedClass.GetMember<MethodSymbol>("Foo");
+            NamedTypeSymbol derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            MethodSymbol derivedMethod = derivedClass.GetMember<MethodSymbol>("Foo");
 
             Assert.Equal(baseMethod1, derivedMethod.OverriddenMethod);
             Assert.NotEqual(baseMethod2, derivedMethod.OverriddenMethod);
@@ -518,7 +518,7 @@ public class Derived : Base
     public override char Foo(int x) { return 'a'; }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             compilation.VerifyDiagnostics(
                 // (4,26): error CS0508: 'Derived.Foo(int)': return type must be 'long' to match overridden member 'Base.Foo(int)'
@@ -526,12 +526,12 @@ public class Derived : Base
 
             Func<int, Func<MethodSymbol, bool>> hasCustomModifierCount = c => m => m.CustomModifierCount() == c;
 
-            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-            var baseMethod1 = baseClass.GetMembers("Foo").Cast<MethodSymbol>().Where(hasCustomModifierCount(1)).Single();
-            var baseMethod2 = baseClass.GetMembers("Foo").Cast<MethodSymbol>().Where(hasCustomModifierCount(2)).Single();
+            NamedTypeSymbol baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            MethodSymbol baseMethod1 = baseClass.GetMembers("Foo").Cast<MethodSymbol>().Where(hasCustomModifierCount(1)).Single();
+            MethodSymbol baseMethod2 = baseClass.GetMembers("Foo").Cast<MethodSymbol>().Where(hasCustomModifierCount(2)).Single();
 
-            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            var derivedMethod = derivedClass.GetMember<MethodSymbol>("Foo");
+            NamedTypeSymbol derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            MethodSymbol derivedMethod = derivedClass.GetMember<MethodSymbol>("Foo");
 
             Assert.Equal(baseMethod1, derivedMethod.OverriddenMethod);
             Assert.NotEqual(baseMethod2, derivedMethod.OverriddenMethod);
@@ -584,19 +584,19 @@ public class Derived : Base
     public override int P { get { return 0; } }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             // No diagnostics - just choose the overload with fewer custom modifiers
             compilation.VerifyDiagnostics();
 
             Func<int, Func<PropertySymbol, bool>> hasCustomModifierCount = c => p => p.CustomModifierCount() == c;
 
-            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-            var baseProperty1 = baseClass.GetMembers("P").Cast<PropertySymbol>().Where(hasCustomModifierCount(1)).Single();
-            var baseProperty2 = baseClass.GetMembers("P").Cast<PropertySymbol>().Where(hasCustomModifierCount(2)).Single();
+            NamedTypeSymbol baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            PropertySymbol baseProperty1 = baseClass.GetMembers("P").Cast<PropertySymbol>().Where(hasCustomModifierCount(1)).Single();
+            PropertySymbol baseProperty2 = baseClass.GetMembers("P").Cast<PropertySymbol>().Where(hasCustomModifierCount(2)).Single();
 
-            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            var derivedProperty = derivedClass.GetMember<PropertySymbol>("P");
+            NamedTypeSymbol derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            PropertySymbol derivedProperty = derivedClass.GetMember<PropertySymbol>("P");
 
             Assert.Equal(baseProperty1, derivedProperty.OverriddenProperty);
             Assert.NotEqual(baseProperty2, derivedProperty.OverriddenProperty);
@@ -651,7 +651,7 @@ public class Derived : Base
     public override int P { get { return 0; } }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             compilation.VerifyDiagnostics(
                 // (4,25): error CS1715: 'Derived.P': type must be 'char' to match overridden member 'Base.P'
@@ -659,12 +659,12 @@ public class Derived : Base
 
             Func<int, Func<PropertySymbol, bool>> hasCustomModifierCount = c => p => p.CustomModifierCount() == c;
 
-            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-            var baseProperty1 = baseClass.GetMembers("P").Cast<PropertySymbol>().Where(hasCustomModifierCount(1)).Single();
-            var baseProperty2 = baseClass.GetMembers("P").Cast<PropertySymbol>().Where(hasCustomModifierCount(2)).Single();
+            NamedTypeSymbol baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            PropertySymbol baseProperty1 = baseClass.GetMembers("P").Cast<PropertySymbol>().Where(hasCustomModifierCount(1)).Single();
+            PropertySymbol baseProperty2 = baseClass.GetMembers("P").Cast<PropertySymbol>().Where(hasCustomModifierCount(2)).Single();
 
-            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            var derivedProperty = derivedClass.GetMember<PropertySymbol>("P");
+            NamedTypeSymbol derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            PropertySymbol derivedProperty = derivedClass.GetMember<PropertySymbol>("P");
 
             Assert.Equal(baseProperty1, derivedProperty.OverriddenProperty);
             Assert.NotEqual(baseProperty2, derivedProperty.OverriddenProperty);
@@ -718,22 +718,22 @@ public class Derived : Base
     public override int this[int x] { get { return 0; } }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             // No diagnostics - just choose the overload with fewer custom modifiers
             compilation.VerifyDiagnostics();
 
             Func<int, Func<PropertySymbol, bool>> hasCustomModifierCount = c => p => p.CustomModifierCount() == c;
 
-            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-            var baseProperty1 = baseClass.Indexers.Where(hasCustomModifierCount(1)).Single();
-            var baseProperty2 = baseClass.Indexers.Where(hasCustomModifierCount(2)).Single();
+            NamedTypeSymbol baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            PropertySymbol baseProperty1 = baseClass.Indexers.Where(hasCustomModifierCount(1)).Single();
+            PropertySymbol baseProperty2 = baseClass.Indexers.Where(hasCustomModifierCount(2)).Single();
 
             Assert.True(baseProperty1.IsIndexer);
             Assert.True(baseProperty2.IsIndexer);
 
-            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            var derivedProperty = derivedClass.Indexers.Single();
+            NamedTypeSymbol derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            PropertySymbol derivedProperty = derivedClass.Indexers.Single();
 
             Assert.True(derivedProperty.IsIndexer);
 
@@ -791,7 +791,7 @@ public class Derived : Base
     public override int this[int x] { get { return 0; } }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             compilation.VerifyDiagnostics(
                 // (4,25): error CS1715: 'Derived.this[int]': type must be 'char' to match overridden member 'Base.this[int]'
@@ -799,15 +799,15 @@ public class Derived : Base
 
             Func<int, Func<PropertySymbol, bool>> hasCustomModifierCount = c => p => p.CustomModifierCount() == c;
 
-            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-            var baseProperty1 = baseClass.Indexers.Where(hasCustomModifierCount(1)).Single();
-            var baseProperty2 = baseClass.Indexers.Where(hasCustomModifierCount(2)).Single();
+            NamedTypeSymbol baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            PropertySymbol baseProperty1 = baseClass.Indexers.Where(hasCustomModifierCount(1)).Single();
+            PropertySymbol baseProperty2 = baseClass.Indexers.Where(hasCustomModifierCount(2)).Single();
 
             Assert.True(baseProperty1.IsIndexer);
             Assert.True(baseProperty2.IsIndexer);
 
-            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            var derivedProperty = derivedClass.Indexers.Single();
+            NamedTypeSymbol derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            PropertySymbol derivedProperty = derivedClass.Indexers.Single();
 
             Assert.True(derivedProperty.IsIndexer);
 
@@ -876,19 +876,19 @@ public class Derived : Base
     void UseEvent() { E(null); }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             // No diagnostics - just choose the overload with fewer custom modifiers
             compilation.VerifyDiagnostics();
 
             Func<int, Func<EventSymbol, bool>> hasCustomModifierCount = c => e => e.Type.CustomModifierCount() == c;
 
-            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-            var baseEvent1 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(1)).Single();
-            var baseEvent2 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(2)).Single();
+            NamedTypeSymbol baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            EventSymbol baseEvent1 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(1)).Single();
+            EventSymbol baseEvent2 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(2)).Single();
 
-            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            var derivedEvent = derivedClass.GetMember<EventSymbol>("E");
+            NamedTypeSymbol derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            EventSymbol derivedEvent = derivedClass.GetMember<EventSymbol>("E");
 
             Assert.Equal(baseEvent1, derivedEvent.OverriddenEvent);
             Assert.NotEqual(baseEvent2, derivedEvent.OverriddenEvent);
@@ -957,7 +957,7 @@ public class Derived : Base
     void UseEvent() { E(null); }
 }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             compilation.VerifyDiagnostics(
                 // (4,48): error CS1715: 'Derived.E': type must be 'System.Action<char[]>' to match overridden member 'Base.E'
@@ -966,12 +966,12 @@ public class Derived : Base
 
             Func<int, Func<EventSymbol, bool>> hasCustomModifierCount = c => e => e.Type.CustomModifierCount() == c;
 
-            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-            var baseEvent1 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(1)).Single();
-            var baseEvent2 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(2)).Single();
+            NamedTypeSymbol baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            EventSymbol baseEvent1 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(1)).Single();
+            EventSymbol baseEvent2 = baseClass.GetMembers("E").Cast<EventSymbol>().Where(hasCustomModifierCount(2)).Single();
 
-            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            var derivedEvent = derivedClass.GetMember<EventSymbol>("E");
+            NamedTypeSymbol derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            EventSymbol derivedEvent = derivedClass.GetMember<EventSymbol>("E");
 
             Assert.Equal(baseEvent1, derivedEvent.OverriddenEvent);
             Assert.NotEqual(baseEvent2, derivedEvent.OverriddenEvent);
@@ -1307,9 +1307,9 @@ class M
 }
 ";
 
-            var reference = CompileIL(il, prependDefaultHeader: true);
+            MetadataReference reference = CompileIL(il, prependDefaultHeader: true);
 
-            var verifier = CompileAndVerify(csharp, new[] { reference }, options: TestOptions.ReleaseExe, expectedOutput: @"
+            CompilationVerifier verifier = CompileAndVerify(csharp, new[] { reference }, options: TestOptions.ReleaseExe, expectedOutput: @"
 ***** Start mod opt tests ****
   *** Generic Non-ref
 C# EG.F(T): CG::F(T)
@@ -1333,7 +1333,7 @@ abstract class TestClass
     public void Method(in int x) { }
 }";
 
-            var comp = CreateCompilation(text).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(text).VerifyDiagnostics(
                 // (5,17): error CS0663: 'TestClass' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'ref'
                 //     public void Method(in int x) { }
                 Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("TestClass", "method", "in", "ref").WithLocation(5, 17));
@@ -1350,7 +1350,7 @@ abstract class TestClass
     public void Method(in int x) { }
 }";
 
-            var comp = CreateCompilation(text).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(text).VerifyDiagnostics(
                 // (5,17): error CS0663: 'TestClass' cannot define an overloaded method that differs only on parameter modifiers 'in' and 'out'
                 //     public void Method(in int x) { }
                 Diagnostic(ErrorCode.ERR_OverloadRefKind, "Method").WithArguments("TestClass", "method", "in", "out").WithLocation(5, 17));

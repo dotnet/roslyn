@@ -129,9 +129,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     throw ExceptionUtilities.UnexpectedValue(kind);
             }
 
-            var leftType = left.Type;
+            TypeSymbol leftType = left.Type;
             var leftDelegate = (object)leftType != null && leftType.IsDelegateType();
-            var rightType = right.Type;
+            TypeSymbol rightType = right.Type;
             var rightDelegate = (object)rightType != null && rightType.IsDelegateType();
 
             // If no operands have delegate types then add nothing.
@@ -242,13 +242,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var underlying = enumType.GetEnumUnderlyingType();
+            NamedTypeSymbol underlying = enumType.GetEnumUnderlyingType();
             Debug.Assert((object)underlying != null);
             Debug.Assert(underlying.SpecialType != SpecialType.None);
 
-            var nullable = Compilation.GetSpecialType(SpecialType.System_Nullable_T);
-            var nullableEnum = nullable.Construct(enumType);
-            var nullableUnderlying = nullable.Construct(underlying);
+            NamedTypeSymbol nullable = Compilation.GetSpecialType(SpecialType.System_Nullable_T);
+            NamedTypeSymbol nullableEnum = nullable.Construct(enumType);
+            NamedTypeSymbol nullableUnderlying = nullable.Construct(underlying);
 
             switch (kind)
             {
@@ -296,7 +296,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BinaryOperatorKind.LessThan:
                 case BinaryOperatorKind.GreaterThanOrEqual:
                 case BinaryOperatorKind.LessThanOrEqual:
-                    var boolean = Compilation.GetSpecialType(SpecialType.System_Boolean);
+                    NamedTypeSymbol boolean = Compilation.GetSpecialType(SpecialType.System_Boolean);
                     operators.Add(new BinaryOperatorSignature(kind | BinaryOperatorKind.Enum, enumType, enumType, boolean));
                     operators.Add(new BinaryOperatorSignature(kind | BinaryOperatorKind.Lifted | BinaryOperatorKind.Enum, nullableEnum, nullableEnum, boolean));
                     break;
@@ -376,13 +376,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
             }
 
-            var leftType = left.Type;
+            TypeSymbol leftType = left.Type;
             if ((object)leftType != null)
             {
                 leftType = leftType.StrippedType();
             }
 
-            var rightType = right.Type;
+            TypeSymbol rightType = right.Type;
             if ((object)rightType != null)
             {
                 rightType = rightType.StrippedType();
@@ -517,7 +517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void GetReferenceEquality(BinaryOperatorKind kind, ArrayBuilder<BinaryOperatorSignature> operators)
         {
-            var @object = Compilation.GetSpecialType(SpecialType.System_Object);
+            NamedTypeSymbol @object = Compilation.GetSpecialType(SpecialType.System_Object);
             operators.Add(new BinaryOperatorSignature(kind | BinaryOperatorKind.Object, @object, @object, Compilation.GetSpecialType(SpecialType.System_Boolean)));
         }
 
@@ -529,10 +529,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             bool hadApplicableCandidate = false;
-            foreach (var op in operators)
+            foreach (BinaryOperatorSignature op in operators)
             {
-                var convLeft = Conversions.ClassifyConversionFromExpression(left, op.LeftType, ref useSiteDiagnostics);
-                var convRight = Conversions.ClassifyConversionFromExpression(right, op.RightType, ref useSiteDiagnostics);
+                Conversion convLeft = Conversions.ClassifyConversionFromExpression(left, op.LeftType, ref useSiteDiagnostics);
+                Conversion convRight = Conversions.ClassifyConversionFromExpression(right, op.RightType, ref useSiteDiagnostics);
                 if (convLeft.IsImplicit && convRight.IsImplicit)
                 {
                     results.Add(BinaryOperatorAnalysisResult.Applicable(op, convLeft, convRight));
@@ -611,13 +611,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             int initialCount = result.Count;
 
-            foreach (var op in additionalOperators)
+            foreach (BinaryOperatorAnalysisResult op in additionalOperators)
             {
                 bool equivalentToExisting = false;
 
                 for (int i = 0; i < initialCount; i++)
                 {
-                    var existingSignature = result[i].Signature;
+                    BinaryOperatorSignature existingSignature = result[i].Signature;
 
                     Debug.Assert(op.Signature.Kind.Operator() == existingSignature.Kind.Operator());
 
@@ -811,7 +811,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: better than all other function members, then the function member invocation is ambiguous and a binding-time 
             // SPEC: error occurs.
 
-            var candidates = result.Results;
+            ArrayBuilder<BinaryOperatorAnalysisResult> candidates = result.Results;
             // Try to find a single best candidate
             int bestIndex = GetTheBestCandidateIndex(left, right, candidates, ref useSiteDiagnostics);
             if (bestIndex != -1)
@@ -843,7 +843,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var better = BetterOperator(candidates[i].Signature, candidates[j].Signature, left, right, ref useSiteDiagnostics);
+                    BetterResult better = BetterOperator(candidates[i].Signature, candidates[j].Signature, left, right, ref useSiteDiagnostics);
                     if (better == BetterResult.Left)
                     {
                         candidates[j] = candidates[j].Worse();
@@ -877,7 +877,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var better = BetterOperator(candidates[currentBestIndex].Signature, candidates[index].Signature, left, right, ref useSiteDiagnostics);
+                    BetterResult better = BetterOperator(candidates[currentBestIndex].Signature, candidates[index].Signature, left, right, ref useSiteDiagnostics);
                     if (better == BetterResult.Right)
                     {
                         // The current best is worse
@@ -899,7 +899,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     continue;
                 }
 
-                var better = BetterOperator(candidates[currentBestIndex].Signature, candidates[index].Signature, left, right, ref useSiteDiagnostics);
+                BetterResult better = BetterOperator(candidates[currentBestIndex].Signature, candidates[index].Signature, left, right, ref useSiteDiagnostics);
                 if (better != BetterResult.Left)
                 {
                     // The current best is not better
@@ -1051,7 +1051,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol op1Left, op1Right, op2Left, op2Right;
             if ((object)op1.Method != null)
             {
-                var p = op1.Method.OriginalDefinition.GetParameters();
+                System.Collections.Immutable.ImmutableArray<ParameterSymbol> p = op1.Method.OriginalDefinition.GetParameters();
                 op1Left = p[0].Type;
                 op1Right = p[1].Type;
                 if (op1.Kind.IsLifted())
@@ -1068,7 +1068,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)op2.Method != null)
             {
-                var p = op2.Method.OriginalDefinition.GetParameters();
+                System.Collections.Immutable.ImmutableArray<ParameterSymbol> p = op2.Method.OriginalDefinition.GetParameters();
                 op2Left = p[0].Type;
                 op2Right = p[1].Type;
                 if (op2.Kind.IsLifted())

@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis
             {
                 _writer.WriteArrayStart("relatedLocations");
 
-                foreach (var additionalLocation in additionalLocations)
+                foreach (Location additionalLocation in additionalLocations)
                 {
                     if (HasPath(additionalLocation))
                     {
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     _writer.WriteObjectStart("customProperties");
 
-                    foreach (var pair in diagnostic.Properties.OrderBy(x => x.Key, StringComparer.Ordinal))
+                    foreach (KeyValuePair<string, string> pair in diagnostic.Properties.OrderBy(x => x.Key, StringComparer.Ordinal))
                     {
                         _writer.Write(pair.Key, pair.Value);
                     }
@@ -232,7 +232,7 @@ namespace Microsoft.CodeAnalysis
             {
                 _writer.WriteObjectStart("rules");
 
-                foreach (var pair in _descriptors.ToSortedList())
+                foreach (KeyValuePair<string, DiagnosticDescriptor> pair in _descriptors.ToSortedList())
                 {
                     DiagnosticDescriptor descriptor = pair.Value;
 
@@ -389,7 +389,7 @@ namespace Microsoft.CodeAnalysis
 
                 var list = new List<KeyValuePair<string, DiagnosticDescriptor>>(Count);
 
-                foreach (var pair in _keys)
+                foreach (KeyValuePair<DiagnosticDescriptor, string> pair in _keys)
                 {
                     Debug.Assert(list.Capacity > list.Count);
                     list.Add(new KeyValuePair<string, DiagnosticDescriptor>(pair.Value, pair.Key));

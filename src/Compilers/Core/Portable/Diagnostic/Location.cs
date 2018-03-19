@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis
             }
             else
             {
-                var pos = GetLineSpan();
+                FileLinePositionSpan pos = GetLineSpan();
                 if (pos.Path != null)
                 {
                     // user-visible line and column counts are 1-based, but internally are 0-based.
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis
         protected virtual string GetDebuggerDisplay()
         {
             string result = this.GetType().Name;
-            var pos = GetLineSpan();
+            FileLinePositionSpan pos = GetLineSpan();
             if (pos.Path != null)
             {
                 // user-visible line and column counts are 1-based, but internally are 0-based.

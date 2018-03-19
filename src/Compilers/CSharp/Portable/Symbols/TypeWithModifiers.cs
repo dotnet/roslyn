@@ -88,8 +88,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeWithModifiers SubstituteType(AbstractTypeMap typeMap)
         {
-            var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
-            var newTypeWithModifiers = typeMap.SubstituteType(this.Type);
+            ImmutableArray<CustomModifier> newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
+            TypeWithModifiers newTypeWithModifiers = typeMap.SubstituteType(this.Type);
             if (!newTypeWithModifiers.Is(this.Type) || newCustomModifiers != this.CustomModifiers)
             {
                 return new TypeWithModifiers(newTypeWithModifiers.Type, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
@@ -102,8 +102,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public TypeWithModifiers SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap)
         {
-            var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
-            var newTypeWithModifiers = typeMap.SubstituteTypeWithTupleUnification(this.Type);
+            ImmutableArray<CustomModifier> newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
+            TypeWithModifiers newTypeWithModifiers = typeMap.SubstituteTypeWithTupleUnification(this.Type);
             if (!newTypeWithModifiers.Is(this.Type) || newCustomModifiers != this.CustomModifiers)
             {
                 return new TypeWithModifiers(newTypeWithModifiers.Type, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));

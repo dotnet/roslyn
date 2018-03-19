@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             base.AddSynthesizedAttributes(moduleBuilder, ref attributes);
 
-            var compilation = this.DeclaringCompilation;
+            CSharpCompilation compilation = this.DeclaringCompilation;
 
             if (this.IsParams)
             {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // Synthesize DecimalConstantAttribute if we don't have an explicit custom attribute already:
-            var defaultValue = this.ExplicitDefaultConstantValue;
+            ConstantValue defaultValue = this.ExplicitDefaultConstantValue;
             if (defaultValue != ConstantValue.NotAvailable &&
                 defaultValue.SpecialType == SpecialType.System_Decimal &&
                 DefaultValueFromAttributes == ConstantValue.NotAvailable)

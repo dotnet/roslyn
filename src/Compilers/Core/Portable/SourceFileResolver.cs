@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis
             {
                 var pathMapBuilder = ArrayBuilder<KeyValuePair<string, string>>.GetInstance(pathMap.Length);
 
-                foreach (var kv in pathMap)
+                foreach (KeyValuePair<string, string> kv in pathMap)
                 {
                     var key = kv.Key;
                     if (key == null || key.Length == 0)

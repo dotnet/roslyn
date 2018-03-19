@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [ClrOnlyFact]
         public void OldGetFormat_IndexedProperties()
         {
-            var reference = GetReference();
+            MetadataReference reference = GetReference();
             var source =
 @"
 using System;
@@ -41,7 +41,7 @@ class B
         [ClrOnlyFact]
         public void IndexedProperties_Complete()
         {
-            var reference = GetReference();
+            MetadataReference reference = GetReference();
             var source =
 @"
 using System;
@@ -62,7 +62,7 @@ class B
         [ClrOnlyFact]
         public void IndexedProperties_Incomplete()
         {
-            var reference = GetReference();
+            MetadataReference reference = GetReference();
             var source =
 @"
 using System;
@@ -83,7 +83,7 @@ class B
         [ClrOnlyFact]
         public void IndexedProperties_Set_In_Constructor()
         {
-            var reference = GetReference();
+            MetadataReference reference = GetReference();
             var source =
 @"
 using System;
@@ -103,7 +103,7 @@ class B
         [ClrOnlyFact]
         public void IndexedProperties_LINQ()
         {
-            var reference = GetReference();
+            MetadataReference reference = GetReference();
             var source = @"
 using System;
 using System.Linq;
@@ -128,30 +128,30 @@ class B
 
         private void IndexedPropertiesBindingChecks(string source, MetadataReference reference, SymbolKind symbolKind, string name)
         {
-            var tree = Parse(source);
-            var comp = CreateCompilation(tree, new[] { reference });
+            SyntaxTree tree = Parse(source);
+            CSharpCompilation comp = CreateCompilation(tree, new[] { reference });
 
-            var model = comp.GetSemanticModel(tree);
-            var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            SemanticModel model = comp.GetSemanticModel(tree);
+            ExpressionSyntax expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
-            var sym = model.GetSymbolInfo(expr);
+            SymbolInfo sym = model.GetSymbolInfo(expr);
 
             Assert.Equal(symbolKind, sym.Symbol.Kind);
             Assert.Equal(name, sym.Symbol.Name);
 
-            var typeInfo = model.GetTypeInfo(expr);
+            TypeInfo typeInfo = model.GetTypeInfo(expr);
             Assert.NotNull(typeInfo);
 
-            var methodGroup = model.GetMemberGroup(expr);
+            System.Collections.Immutable.ImmutableArray<ISymbol> methodGroup = model.GetMemberGroup(expr);
             Assert.NotNull(methodGroup);
 
-            var indexerGroup = model.GetIndexerGroup(expr);
+            System.Collections.Immutable.ImmutableArray<IPropertySymbol> indexerGroup = model.GetIndexerGroup(expr);
             Assert.NotNull(indexerGroup);
 
             var position = GetPositionForBinding(tree);
 
             // Get the list of LookupNames at the location at the end of the tag
-            var actual_lookupNames = model.LookupNames(position);
+            List<string> actual_lookupNames = model.LookupNames(position);
 
             Assert.NotEmpty(actual_lookupNames);
             Assert.True(actual_lookupNames.Contains("System"), "LookupNames does not contain System");
@@ -161,8 +161,8 @@ class B
             Assert.True(actual_lookupNames.Contains("a"), "LookupNames does not contain a");
 
             // Get the list of LookupSymbols at the location at the end of the tag
-            var actual_lookupSymbols = model.LookupSymbols(position);
-            var actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
+            System.Collections.Immutable.ImmutableArray<ISymbol> actual_lookupSymbols = model.LookupSymbols(position);
+            IEnumerable<string> actual_lookupSymbols_as_string = actual_lookupSymbols.Select(e => e.ToTestDisplayString());
 
             Assert.NotEmpty(actual_lookupSymbols_as_string);
             Assert.True(actual_lookupSymbols_as_string.Contains("void B.Main(System.String[] args)"), "LookupSymbols does not contain Main");
@@ -197,7 +197,7 @@ Public Class A
 End Class
 ";
 
-            var reference = BasicCompilationUtils.CompileToMetadata(COMSource, verify: Verification.Passes);
+            MetadataReference reference = BasicCompilationUtils.CompileToMetadata(COMSource, verify: Verification.Passes);
             return reference;
         }
     }

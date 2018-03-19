@@ -378,7 +378,7 @@ namespace X
     }
 }
 ";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                 assemblyName: GetUniqueName(),
                 options: TestOptions.DebugDll,
                 references: new[]
@@ -469,14 +469,14 @@ namespace X
 namespace U.V.W {}
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, assemblyName: "TestExternAliases2");
+            CSharpCompilation compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, assemblyName: "TestExternAliases2");
 
             string source2 = @"
 using U.V.W;
  
 class A { void M() {  } }
 ";
-            var compilation2 = CreateCompilation(
+            CSharpCompilation compilation2 = CreateCompilation(
                 source2,
                 options: TestOptions.DebugDll,
                 references: new[]
@@ -520,14 +520,14 @@ class A { void M() {  } }
 namespace U.V.W {}
 ";
 
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, assemblyName: "TestExternAliases3");
+            CSharpCompilation compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll, assemblyName: "TestExternAliases3");
 
             string source2 = @"
 using U.V.W;
  
 class A { void M() {  } }
 ";
-            var compilation2 = CreateCompilation(
+            CSharpCompilation compilation2 = CreateCompilation(
                 source2,
                 options: TestOptions.DebugDll,
                 references: new[]
@@ -572,7 +572,7 @@ namespace N
 {
     public class C { }
 }";
-            var dummyCompilation = CreateCompilation(src1, assemblyName: "A", options: TestOptions.DebugDll);
+            CSharpCompilation dummyCompilation = CreateCompilation(src1, assemblyName: "A", options: TestOptions.DebugDll);
 
             var src2 = @"
 namespace M
@@ -589,7 +589,7 @@ namespace M
         }
     }
 }";
-            var compilation = CreateCompilation(src2,
+            CSharpCompilation compilation = CreateCompilation(src2,
                 assemblyName: GetUniqueName(),
                 options: TestOptions.DebugDll,
                 references: new[]
@@ -623,7 +623,7 @@ using Z = global::N;
 
 class C { void M() { } }
 ";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                 assemblyName: GetUniqueName(),
                 options: TestOptions.DebugDll,
                 references: new[]
@@ -696,7 +696,7 @@ namespace N
     class B { void M() { } }
 }
 ";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                 assemblyName: "Test",
                 options: TestOptions.DebugDll,
                 references: new[] { new CSharpCompilationReference(libComp, ImmutableArray.Create("P")) });
@@ -770,7 +770,7 @@ namespace X
     }
 }
 ";
-            var compilation = CreateCompilation(text,
+            CSharpCompilation compilation = CreateCompilation(text,
                 assemblyName: GetUniqueName(),
                 options: TestOptions.DebugDll,
                 references: new[]
@@ -905,7 +905,7 @@ namespace X
 namespace N { public class D { } }
 namespace M { public class E { } }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
 
             var source2 = @"
 extern alias A;
@@ -927,7 +927,7 @@ public class C
     }
 }";
 
-            var compilation2 = CreateCompilation(source2,
+            CSharpCompilation compilation2 = CreateCompilation(source2,
                 options: TestOptions.DebugDll,
                 references: new[]
                 {
@@ -977,7 +977,7 @@ public class C
             var source1 = @"
 namespace N { public class D { } }
 ";
-            var compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = CreateCompilation(source1, options: TestOptions.DebugDll);
 
             var source2 = @"
 extern alias A;
@@ -993,7 +993,7 @@ public class C
     }
 }";
 
-            var compilation2 = CreateCompilation(source2,
+            CSharpCompilation compilation2 = CreateCompilation(source2,
                 options: TestOptions.DebugDll,
                 references: new[]
                 {
@@ -1073,7 +1073,7 @@ namespace X
     }
 }
 ";
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
                 text1,
                 assemblyName: GetUniqueName(),
                 options: TestOptions.DebugDll,
@@ -1251,7 +1251,7 @@ namespace X
     }
 }
 ";
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
                 new string[] { text1, text2 },
                 assemblyName: GetUniqueName(),
                 options: TestOptions.DebugDll,
@@ -1769,7 +1769,7 @@ public class Test : IDisposable
     public void Dispose() { }
 }
 ";
-            var v = CompileAndVerify(source, options: TestOptions.DebugDll);
+            CompilationVerifier v = CompileAndVerify(source, options: TestOptions.DebugDll);
 
             v.VerifyIL("Test.Main", @"
 {
@@ -1810,7 +1810,7 @@ public class Outer
 }
 ";
 
-            var libRef = CreateCompilation(libSource, assemblyName: "Lib").EmitToImageReference();
+            MetadataReference libRef = CreateCompilation(libSource, assemblyName: "Lib").EmitToImageReference();
 
             var source = @"
 using I = Outer.Inner;
@@ -1871,7 +1871,7 @@ namespace @namespace
 
 class Test { static void Main() { } }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
 
             // As in dev12, we drop all '@'s.
             comp.VerifyPdb("Test.Main", @"
@@ -1904,8 +1904,8 @@ class Test { static void Main() { } }
         public void UsingExternAlias()
         {
             var libSource = "public class C { }";
-            var lib = CreateCompilation(libSource, assemblyName: "Lib");
-            var libRef = lib.EmitToImageReference(aliases: ImmutableArray.Create("Q"));
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib");
+            MetadataReference libRef = lib.EmitToImageReference(aliases: ImmutableArray.Create("Q"));
 
             var source = @"
 extern alias Q;
@@ -1923,7 +1923,7 @@ namespace N
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { libRef });
+            CSharpCompilation comp = CreateCompilation(source, new[] { libRef });
             comp.VerifyPdb("N.D.Main", @"
 <symbols>
   <files>
@@ -1965,7 +1965,7 @@ class D
     static void Main() { }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyPdb("D.Main", @"
 <symbols>
   <files>
@@ -2045,7 +2045,7 @@ public class Y<T>
   public class Z<U> {}
 }
 ";
-            var comp1 = CreateCompilation(source1, options: TestOptions.DebugDll, assemblyName: "Comp1");
+            CSharpCompilation comp1 = CreateCompilation(source1, options: TestOptions.DebugDll, assemblyName: "Comp1");
 
             var source2 = @"
 using t1 = Y<W[]>;
@@ -2062,7 +2062,7 @@ public class C1
     }
 }
 ";
-            var comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.DebugExe);
+            CSharpCompilation comp2 = CreateCompilation(source2, new[] { comp1.ToMetadataReference() }, options: TestOptions.DebugExe);
 
             comp2.VerifyPdb(@"
 <symbols>
@@ -2116,11 +2116,11 @@ namespace goo
     }
 }";
 
-            var compilation = CreateCompilation(text, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.DebugExe);
 
             var exebits = new MemoryStream();
             var pdbbits = new MemoryStream();
-            var result = compilation.Emit(exebits, pdbbits);
+            EmitResult result = compilation.Emit(exebits, pdbbits);
 
             result.Diagnostics.Verify(
                 Diagnostic(ErrorCode.WRN_DebugFullNameTooLong, "Main").WithArguments("AACT TSystem.Action`7[[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Collections.Generic.Dictionary`2[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089],[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089"));
@@ -2141,7 +2141,7 @@ class D
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyPdb("D.Main", @"
 <symbols>
     <files>
@@ -2184,10 +2184,10 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
-            var v = CompileAndVerify(comp, validator: (peAssembly) =>
+            CSharpCompilation comp = CreateCompilation(source, new[] { SystemCoreRef.WithAliases(new[] { "A" }), SystemDataRef });
+            CompilationVerifier v = CompileAndVerify(comp, validator: (peAssembly) =>
             {
-                var reader = peAssembly.ManifestModule.MetadataReader;
+                MetadataReader reader = peAssembly.ManifestModule.MetadataReader;
 
                 Assert.Equal(new[]
                 {
@@ -2229,7 +2229,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
                 // (6,11): error CS0246: The type or namespace name 'F<>' could not be found (are you missing a using directive or an assembly reference?)
@@ -2281,14 +2281,14 @@ class C
 }
 ";
 
-            var c = CreateCompilation(source, assemblyName: "EmittingPdbVsNot", options: TestOptions.ReleaseDll);
+            CSharpCompilation c = CreateCompilation(source, assemblyName: "EmittingPdbVsNot", options: TestOptions.ReleaseDll);
 
             var peStream1 = new MemoryStream();
             var peStream2 = new MemoryStream();
             var pdbStream = new MemoryStream();
 
-            var emitResult1 = c.Emit(peStream: peStream1, pdbStream: pdbStream);
-            var emitResult2 = c.Emit(peStream: peStream2);
+            EmitResult emitResult1 = c.Emit(peStream: peStream1, pdbStream: pdbStream);
+            EmitResult emitResult2 = c.Emit(peStream: peStream2);
 
             MetadataValidation.VerifyMetadataEqualModuloMvid(peStream1, peStream2);
         }
@@ -2364,9 +2364,9 @@ class C
     }
 }
 ";
-            var libRef = CreateCompilation(sourceLib, assemblyName: "ImportedNoPiaTypesAssemblyName").EmitToImageReference(embedInteropTypes: true);
-            var compilation = CreateCompilation(source, new[] { libRef });
-            var v = CompileAndVerify(compilation);
+            MetadataReference libRef = CreateCompilation(sourceLib, assemblyName: "ImportedNoPiaTypesAssemblyName").EmitToImageReference(embedInteropTypes: true);
+            CSharpCompilation compilation = CreateCompilation(source, new[] { libRef });
+            CompilationVerifier v = CompileAndVerify(compilation);
 
             v.Diagnostics.Verify(
                 // (14,8): warning CS0169: The field 'C.i' is never used
@@ -2436,10 +2436,10 @@ class C
     }
 }
 ";
-            var libRef1 = CreateCompilation(sourceLib1).EmitToImageReference();
-            var libRef2 = CreateCompilation(sourceLib2, new[] { libRef1 }, assemblyName: "LibRef2").EmitToImageReference();
-            var compilation = CreateCompilation(source, new[] { libRef2 });
-            var v = CompileAndVerify(compilation);
+            MetadataReference libRef1 = CreateCompilation(sourceLib1).EmitToImageReference();
+            MetadataReference libRef2 = CreateCompilation(sourceLib2, new[] { libRef1 }, assemblyName: "LibRef2").EmitToImageReference();
+            CSharpCompilation compilation = CreateCompilation(source, new[] { libRef2 });
+            CompilationVerifier v = CompileAndVerify(compilation);
 
             v.Diagnostics.Verify(
                 // (3,1): hidden CS8019: Unnecessary using directive.
@@ -2528,13 +2528,13 @@ using System;
 class C6 { void F() {} }
 " };
 
-            var c = CreateCompilation(sources, new[] { SystemCoreRef.WithAliases(ImmutableArray.Create("A")) });
+            CSharpCompilation c = CreateCompilation(sources, new[] { SystemCoreRef.WithAliases(ImmutableArray.Create("A")) });
             var pdbStream = new MemoryStream();
             c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
-            var pdbImage = pdbStream.ToImmutable();
+            ImmutableArray<byte> pdbImage = pdbStream.ToImmutable();
             using (var metadata = new PinnedMetadata(pdbImage))
             {
-                var mdReader = metadata.Reader;
+                MetadataReader mdReader = metadata.Reader;
                 var writer = new StringWriter();
                 var mdVisualizer = new MetadataVisualizer(mdReader, writer);
                 mdVisualizer.WriteImportScope();

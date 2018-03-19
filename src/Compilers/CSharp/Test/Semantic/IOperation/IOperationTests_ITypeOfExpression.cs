@@ -27,7 +27,7 @@ class C
 ITypeOfOperation (OperationKind.TypeOf, Type: System.Type) (Syntax: 'typeof(int)')
   TypeOperand: System.Int32
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<TypeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -51,7 +51,7 @@ class C
 ITypeOfOperation (OperationKind.TypeOf, Type: System.Type) (Syntax: 'typeof(C)')
   TypeOperand: C
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<TypeOfExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }

@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
         [InlineData(true)] // use same tests against a BCL implementation to demonstrate test correctness.
         public void EmptySetRespectsInterfaceContract(bool useReferenceImplementation)
         {
-            var emptySet = useReferenceImplementation
+            ISet<int> emptySet = useReferenceImplementation
                 ? ImmutableHashSet<int>.Empty
                 : SpecializedCollections.EmptySet<int>();
 

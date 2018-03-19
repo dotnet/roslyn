@@ -149,7 +149,7 @@ public class Test2
         [Fact]
         public void EnumConstraint_Reference_Alone()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public class Test<T> where T : System.Enum
 {
 }"
@@ -185,7 +185,7 @@ public class Test2
         [Fact]
         public void EnumConstraint_Reference_ReferenceType()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public class Test<T> where T : class, System.Enum
 {
 }"
@@ -224,7 +224,7 @@ public class Test2
         [Fact]
         public void EnumConstraint_Reference_ValueType()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public class Test<T> where T : struct, System.Enum
 {
 }"
@@ -263,7 +263,7 @@ public class Test2
         [Fact]
         public void EnumConstraint_Reference_Constructor()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public class Test<T> where T : System.Enum, new()
 {
 }"
@@ -388,7 +388,7 @@ public class Test2
 
             Action<ModuleSymbol> validator = module =>
             {
-                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                TypeParameterSymbol typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
                 Assert.False(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
                 Assert.Equal(SpecialType.System_Enum, typeParameter.ConstraintTypes().Single().SpecialType);
@@ -404,7 +404,7 @@ public class Test2
 
             Action<ModuleSymbol> validator = module =>
             {
-                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                TypeParameterSymbol typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
                 Assert.False(typeParameter.HasConstructorConstraint);
@@ -421,7 +421,7 @@ public class Test2
 
             Action<ModuleSymbol> validator = module =>
             {
-                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                TypeParameterSymbol typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
                 Assert.False(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasReferenceTypeConstraint);
                 Assert.False(typeParameter.HasConstructorConstraint);
@@ -438,7 +438,7 @@ public class Test2
 
             Action<ModuleSymbol> validator = module =>
             {
-                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                TypeParameterSymbol typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
                 Assert.False(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
                 Assert.True(typeParameter.HasConstructorConstraint);
@@ -478,7 +478,7 @@ public enum E
         [Fact]
         public void EnumConstraint_EnforcedInInheritanceChain_Downwards_Reference()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public abstract class A
 {
     public abstract void M<T>() where T : System.Enum;
@@ -524,7 +524,7 @@ public class B : A
         [Fact]
         public void EnumConstraint_EnforcedInInheritanceChain_Upwards_Reference()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public abstract class A
 {
     public abstract void M<T>();
@@ -543,7 +543,7 @@ public class B : A
         [Fact]
         public void EnumConstraint_ResolveParentConstraints()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public enum MyEnum
 {
 }
@@ -558,8 +558,8 @@ public class B : A<MyEnum>
 
             Action<ModuleSymbol> validator = module =>
             {
-                var method = module.GlobalNamespace.GetTypeMember("B").GetMethod("F");
-                var constraintTypeNames = method.TypeParameters.Single().ConstraintTypes().Select(type => type.ToTestDisplayString());
+                MethodSymbol method = module.GlobalNamespace.GetTypeMember("B").GetMethod("F");
+                System.Collections.Generic.IEnumerable<string> constraintTypeNames = method.TypeParameters.Single().ConstraintTypes().Select(type => type.ToTestDisplayString());
 
                 AssertEx.SetEqual(new[] { "System.Enum", "MyEnum" }, constraintTypeNames);
             };
@@ -708,7 +708,7 @@ public class Test2
         [Fact]
         public void DelegateConstraint_Reference_Alone()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public class Test<T> where T : System.Delegate
 {
 }").EmitToImageReference();
@@ -736,7 +736,7 @@ public class Test2
         [Fact]
         public void DelegateConstraint_Reference_ReferenceType()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public class Test<T> where T : class, System.Delegate
 {
 }").EmitToImageReference();
@@ -764,7 +764,7 @@ public class Test2
         [Fact]
         public void DelegateConstraint_Reference_Constructor()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public class Test<T> where T : System.Delegate, new()
 {
 }").EmitToImageReference();
@@ -851,7 +851,7 @@ public class Test2
 
             Action<ModuleSymbol> validator = module =>
             {
-                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                TypeParameterSymbol typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
                 Assert.False(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
                 Assert.Equal(SpecialType.System_Delegate, typeParameter.ConstraintTypes().Single().SpecialType);
@@ -863,14 +863,14 @@ public class Test2
         [Fact]
         public void DelegateConstraint_IsReflectedinSymbols_ValueType()
         {
-            var compilation = CreateCompilation("public class Test<T> where T : struct, System.Delegate { }")
+            CSharpCompilation compilation = CreateCompilation("public class Test<T> where T : struct, System.Delegate { }")
                     .VerifyDiagnostics(
                         // (1,40): error CS0450: 'Delegate': cannot specify both a constraint class and the 'class' or 'struct' constraint
                         // public class Test<T> where T : struct, System.Delegate { }
                         Diagnostic(ErrorCode.ERR_RefValBoundWithClass, "System.Delegate").WithArguments("System.Delegate").WithLocation(1, 40)
                     );
 
-            var typeParameter = compilation.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+            TypeParameterSymbol typeParameter = compilation.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
 
             Assert.True(typeParameter.HasValueTypeConstraint);
             Assert.False(typeParameter.HasReferenceTypeConstraint);
@@ -885,7 +885,7 @@ public class Test2
 
             Action<ModuleSymbol> validator = module =>
             {
-                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                TypeParameterSymbol typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
                 Assert.False(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasReferenceTypeConstraint);
                 Assert.False(typeParameter.HasConstructorConstraint);
@@ -902,7 +902,7 @@ public class Test2
 
             Action<ModuleSymbol> validator = module =>
             {
-                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                TypeParameterSymbol typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
                 Assert.False(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
                 Assert.True(typeParameter.HasConstructorConstraint);
@@ -940,7 +940,7 @@ public class B : A
         [Fact]
         public void DelegateConstraint_EnforcedInInheritanceChain_Downwards_Reference()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public abstract class A
 {
     public abstract void M<T>() where T : System.Delegate;
@@ -984,7 +984,7 @@ public class B : A
         [Fact]
         public void DelegateConstraint_EnforcedInInheritanceChain_Upwards_Reference()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public abstract class A
 {
     public abstract void M<T>();
@@ -1003,7 +1003,7 @@ public class B : A
         [Fact]
         public void DelegateConstraint_ResolveParentConstraints()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public delegate void D1();
 public abstract class A<T>
 {
@@ -1016,8 +1016,8 @@ public class B : A<D1>
 
             Action<ModuleSymbol> validator = module =>
             {
-                var method = module.GlobalNamespace.GetTypeMember("B").GetMethod("F");
-                var constraintTypeNames = method.TypeParameters.Single().ConstraintTypes().Select(type => type.ToTestDisplayString());
+                MethodSymbol method = module.GlobalNamespace.GetTypeMember("B").GetMethod("F");
+                System.Collections.Generic.IEnumerable<string> constraintTypeNames = method.TypeParameters.Single().ConstraintTypes().Select(type => type.ToTestDisplayString());
 
                 AssertEx.SetEqual(new[] { "System.Delegate", "D1" }, constraintTypeNames);
             };
@@ -1169,7 +1169,7 @@ public class Test2
         [Fact]
         public void MulticastDelegateConstraint_Reference_Alone()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public class Test<T> where T : System.MulticastDelegate
 {
 }").EmitToImageReference();
@@ -1197,7 +1197,7 @@ public class Test2
         [Fact]
         public void MulticastDelegateConstraint_Reference_ReferenceType()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public class Test<T> where T : class, System.MulticastDelegate
 {
 }").EmitToImageReference();
@@ -1225,7 +1225,7 @@ public class Test2
         [Fact]
         public void MulticastDelegateConstraint_Reference_Constructor()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public class Test<T> where T : System.MulticastDelegate, new()
 {
 }").EmitToImageReference();
@@ -1315,7 +1315,7 @@ public class Test2
 
             Action<ModuleSymbol> validator = module =>
             {
-                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                TypeParameterSymbol typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
                 Assert.False(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
                 Assert.Equal(SpecialType.System_MulticastDelegate, typeParameter.ConstraintTypes().Single().SpecialType);
@@ -1327,14 +1327,14 @@ public class Test2
         [Fact]
         public void MulticastDelegateConstraint_IsReflectedinSymbols_ValueType()
         {
-            var compilation = CreateCompilation("public class Test<T> where T : struct, System.MulticastDelegate { }")
+            CSharpCompilation compilation = CreateCompilation("public class Test<T> where T : struct, System.MulticastDelegate { }")
                     .VerifyDiagnostics(
                         // (1,40): error CS0450: 'MulticastDelegate': cannot specify both a constraint class and the 'class' or 'struct' constraint
                         // public class Test<T> where T : struct, System.MulticastDelegate { }
                         Diagnostic(ErrorCode.ERR_RefValBoundWithClass, "System.MulticastDelegate").WithArguments("System.MulticastDelegate").WithLocation(1, 40)
                      );
 
-            var typeParameter = compilation.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+            TypeParameterSymbol typeParameter = compilation.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
 
             Assert.True(typeParameter.HasValueTypeConstraint);
             Assert.False(typeParameter.HasReferenceTypeConstraint);
@@ -1349,7 +1349,7 @@ public class Test2
 
             Action<ModuleSymbol> validator = module =>
             {
-                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                TypeParameterSymbol typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
                 Assert.False(typeParameter.HasValueTypeConstraint);
                 Assert.True(typeParameter.HasReferenceTypeConstraint);
                 Assert.False(typeParameter.HasConstructorConstraint);
@@ -1366,7 +1366,7 @@ public class Test2
 
             Action<ModuleSymbol> validator = module =>
             {
-                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                TypeParameterSymbol typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
                 Assert.False(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
                 Assert.True(typeParameter.HasConstructorConstraint);
@@ -1404,7 +1404,7 @@ public class B : A
         [Fact]
         public void MulticastDelegateConstraint_EnforcedInInheritanceChain_Downwards_Reference()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public abstract class A
 {
     public abstract void M<T>() where T : System.MulticastDelegate;
@@ -1448,7 +1448,7 @@ public class B : A
         [Fact]
         public void MulticastDelegateConstraint_EnforcedInInheritanceChain_Upwards_Reference()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public abstract class A
 {
     public abstract void M<T>();
@@ -1467,7 +1467,7 @@ public class B : A
         [Fact]
         public void MulticastDelegateConstraint_ResolveParentConstraints()
         {
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 public delegate void D1();
 public abstract class A<T>
 {
@@ -1480,8 +1480,8 @@ public class B : A<D1>
 
             Action<ModuleSymbol> validator = module =>
             {
-                var method = module.GlobalNamespace.GetTypeMember("B").GetMethod("F");
-                var constraintTypeNames = method.TypeParameters.Single().ConstraintTypes().Select(type => type.ToTestDisplayString());
+                MethodSymbol method = module.GlobalNamespace.GetTypeMember("B").GetMethod("F");
+                System.Collections.Generic.IEnumerable<string> constraintTypeNames = method.TypeParameters.Single().ConstraintTypes().Select(type => type.ToTestDisplayString());
 
                 AssertEx.SetEqual(new[] { "System.MulticastDelegate", "D1" }, constraintTypeNames);
             };
@@ -1666,14 +1666,14 @@ public abstract class Test2<U, W> where U : unmanaged
         [Fact]
         public void UnmanagedConstraint_Compilation_ReferenceType()
         {
-            var c = CreateCompilation("public class Test<T> where T : class, unmanaged {}");
+            CSharpCompilation c = CreateCompilation("public class Test<T> where T : class, unmanaged {}");
             
             c.VerifyDiagnostics(
                 // (1,39): error CS8380: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T> where T : class, unmanaged {}
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 39));
 
-            var typeParameter = c.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+            TypeParameterSymbol typeParameter = c.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
             Assert.False(typeParameter.HasUnmanagedTypeConstraint);
             Assert.False(typeParameter.HasValueTypeConstraint);
             Assert.True(typeParameter.HasReferenceTypeConstraint);
@@ -1684,14 +1684,14 @@ public abstract class Test2<U, W> where U : unmanaged
         [Fact]
         public void UnmanagedConstraint_Compilation_ValueType()
         {
-            var c = CreateCompilation("public class Test<T> where T : struct, unmanaged {}");
+            CSharpCompilation c = CreateCompilation("public class Test<T> where T : struct, unmanaged {}");
 
             c.VerifyDiagnostics(
                 // (1,40): error CS8380: The 'unmanaged' constraint must come before any other constraints
                 // public class Test<T> where T : struct, unmanaged {}
                 Diagnostic(ErrorCode.ERR_UnmanagedConstraintMustBeFirst, "unmanaged").WithLocation(1, 40));
 
-            var typeParameter = c.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+            TypeParameterSymbol typeParameter = c.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
             Assert.False(typeParameter.HasUnmanagedTypeConstraint);
             Assert.True(typeParameter.HasValueTypeConstraint);
             Assert.False(typeParameter.HasReferenceTypeConstraint);
@@ -1802,7 +1802,7 @@ public class Test<T> where T : unmanaged
         [Fact]
         public void UnmanagedConstraint_Reference_Alone_Type()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public class Test<T> where T : unmanaged
 {
 }").EmitToImageReference();
@@ -1837,7 +1837,7 @@ public class Test2
         [Fact]
         public void UnmanagedConstraint_Reference_Alone_Method()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public class Test
 {
     public int M<T>() where T : unmanaged => 0;
@@ -1874,7 +1874,7 @@ public class Test2
         [Fact]
         public void UnmanagedConstraint_Reference_Alone_Delegate()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public delegate void D<T>() where T : unmanaged;
 ").EmitToImageReference();
 
@@ -1923,7 +1923,7 @@ public class Test<T> where T : unmanaged
 
             Action<ModuleSymbol> validator = module =>
             {
-                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
+                TypeParameterSymbol typeParameter = module.GlobalNamespace.GetTypeMember("Test").TypeParameters.Single();
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
@@ -1945,7 +1945,7 @@ public class Test
 
             Action<ModuleSymbol> validator = module =>
             {
-                var typeParameter = module.GlobalNamespace.GetTypeMember("Test").GetMethod("M").TypeParameters.Single();
+                TypeParameterSymbol typeParameter = module.GlobalNamespace.GetTypeMember("Test").GetMethod("M").TypeParameters.Single();
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
@@ -1963,7 +1963,7 @@ public class Test
 
             Action<ModuleSymbol> validator = module =>
             {
-                var typeParameter = module.GlobalNamespace.GetTypeMember("D").TypeParameters.Single();
+                TypeParameterSymbol typeParameter = module.GlobalNamespace.GetTypeMember("D").TypeParameters.Single();
                 Assert.True(typeParameter.HasUnmanagedTypeConstraint);
                 Assert.True(typeParameter.HasValueTypeConstraint);
                 Assert.False(typeParameter.HasReferenceTypeConstraint);
@@ -2009,7 +2009,7 @@ public class B : A
         [Fact]
         public void UnmanagedConstraint_EnforcedInInheritanceChain_Downwards_Reference()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public abstract class A
 {
     public abstract void M<T>() where T : unmanaged;
@@ -2127,7 +2127,7 @@ public class C2<T> : I1<T> where T : unmanaged
         [Fact]
         public void UnmanagedConstraint_TypeMismatchInImplementsMeta()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public interface I1<in T> where T : unmanaged, System.IDisposable
 {
     void Test<G>(G x) where G : unmanaged, System.Enum;
@@ -2162,14 +2162,14 @@ public class C2<T> : I1<T> where T : unmanaged
         [Fact]
         public void UnmanagedConstraint_TypeMismatchInImplementsMeta2()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
     public interface I1
     {
         void Test<G>(ref G x) where G : unmanaged, System.IDisposable;
     }
 ").EmitToImageReference();
 
-            var reference1 = CreateCompilation(@"
+            MetadataReference reference1 = CreateCompilation(@"
 public class C1 : I1
 {
     void I1.Test<G>(ref G x)
@@ -2207,7 +2207,7 @@ class Test
         [Fact]
         public void UnmanagedConstraint_EnforcedInInheritanceChain_Upwards_Reference()
         {
-            var reference = CreateCompilation(@"
+            MetadataReference reference = CreateCompilation(@"
 public abstract class A
 {
     public abstract void M<T>();
@@ -2605,7 +2605,7 @@ class Program
         [Fact]
         public void UnmanagedConstraints_PointerTypeSubstitution()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 unsafe public class Test
 {
     public T* M<T>() where T : unmanaged => throw null;
@@ -2616,10 +2616,10 @@ unsafe public class Test
     }
 }", options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree, ignoreAccessibility: true);
 
-            var value = ((VariableDeclaratorSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.VariableDeclarator)).Initializer.Value;
+            ExpressionSyntax value = ((VariableDeclaratorSyntax)tree.FindNodeOrTokenByKind(SyntaxKind.VariableDeclarator)).Initializer.Value;
             Assert.Equal("M<int>()", value.ToFullString());
 
             var symbol = (MethodSymbol)model.GetSymbolInfo(value).Symbol;

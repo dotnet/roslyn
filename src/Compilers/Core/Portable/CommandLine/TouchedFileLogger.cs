@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis
         {
             var temp = new string[_readFiles.Count];
             int i = 0;
-            var readFiles = Interlocked.Exchange(
+            ConcurrentSet<string> readFiles = Interlocked.Exchange(
                 ref _readFiles,
                 null);
             foreach (var path in readFiles)
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis
         {
             var temp = new string[_writtenFiles.Count];
             int i = 0;
-            var writtenFiles = Interlocked.Exchange(
+            ConcurrentSet<string> writtenFiles = Interlocked.Exchange(
                 ref _writtenFiles,
                 null);
             foreach (var path in writtenFiles)

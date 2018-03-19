@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int count = 0;
             using (var assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData))
             {
-                var compilation = CreateEmptyCompilation(new SyntaxTree[0], new[] { assembly.GetReference() },
+                CSharpCompilation compilation = CreateEmptyCompilation(new SyntaxTree[0], new[] { assembly.GetReference() },
                     options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
                 foreach (NamedTypeSymbol type in compilation.GlobalNamespace.GetMembers().Where(s => s.Kind == SymbolKind.NamedType))
                 {
-                    var fields = type.GetMembers().Where(s => s.Kind == SymbolKind.Field);
+                    IEnumerable<Symbol> fields = type.GetMembers().Where(s => s.Kind == SymbolKind.Field);
                     foreach (FieldSymbol field in fields)
                     {
                         Assert.Null(field.MarshallingInformation);
@@ -56,11 +56,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             int count = 0;
             using (var assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData))
             {
-                var compilation = CreateEmptyCompilation(new SyntaxTree[0], new[] { assembly.GetReference() });
+                CSharpCompilation compilation = CreateEmptyCompilation(new SyntaxTree[0], new[] { assembly.GetReference() });
 
                 foreach (NamedTypeSymbol type in compilation.GlobalNamespace.GetMembers().Where(s => s.Kind == SymbolKind.NamedType))
                 {
-                    var methods = type.GetMembers().Where(s => s.Kind == SymbolKind.Method);
+                    IEnumerable<Symbol> methods = type.GetMembers().Where(s => s.Kind == SymbolKind.Method);
                     foreach (MethodSymbol method in methods)
                     {
                         foreach (ParameterSymbol parameter in method.Parameters)
@@ -255,7 +255,7 @@ public class X
                 { "VariantBool",  new byte[] { 0x25 } },
             };
 
-            var verifier = CompileAndVerifyFieldMarshal(source, blobs);
+            CompilationVerifier verifier = CompileAndVerifyFieldMarshal(source, blobs);
             VerifyFieldMetadataDecoding(verifier, blobs);
         }
 
@@ -328,7 +328,7 @@ public class X
                 { "Default",   new byte[] { 0x1a } },
             };
 
-            var verifier = CompileAndVerifyFieldMarshal(source, blobs);
+            CompilationVerifier verifier = CompileAndVerifyFieldMarshal(source, blobs);
             VerifyFieldMetadataDecoding(verifier, blobs);
         }
 
@@ -375,7 +375,7 @@ public class X
                 { "<Default>k__BackingField",   new byte[] { 0x1a } },
             };
 
-            var verifier = CompileAndVerifyFieldMarshal(source, blobs);
+            CompilationVerifier verifier = CompileAndVerifyFieldMarshal(source, blobs);
             VerifyFieldMetadataDecoding(verifier, blobs);
         }
 
@@ -462,7 +462,7 @@ public class X
                 { "LPArray6", new byte[] { 0x2a, 0x00 } },
             };
 
-            var verifier = CompileAndVerifyFieldMarshal(source, blobs);
+            CompilationVerifier verifier = CompileAndVerifyFieldMarshal(source, blobs);
             VerifyFieldMetadataDecoding(verifier, blobs);
         }
 
@@ -595,7 +595,7 @@ public class X
                 { "ByValArray5", new byte[] { 0x1e, 0x01, 0x2c } },
             };
 
-            var verifier = CompileAndVerifyFieldMarshal(source, blobs);
+            CompilationVerifier verifier = CompileAndVerifyFieldMarshal(source, blobs);
             VerifyFieldMetadataDecoding(verifier, blobs);
         }
 
@@ -716,7 +716,7 @@ public class X
                 { "SafeArray10", new byte[] { 0x1d, 0x24, (byte)openGenericAqn.Length }.Append(openGenericAqn) },
             };
 
-            var verifier = CompileAndVerifyFieldMarshal(source, blobs);
+            CompilationVerifier verifier = CompileAndVerifyFieldMarshal(source, blobs);
             VerifyFieldMetadataDecoding(verifier, blobs);
         }
 
@@ -750,7 +750,7 @@ public class X
             };
 
             // RefEmit has slightly different encoding of the type name
-            var verifier = CompileAndVerifyFieldMarshal(source, blobs);
+            CompilationVerifier verifier = CompileAndVerifyFieldMarshal(source, blobs);
             VerifyFieldMetadataDecoding(verifier, blobs);
         }
 
@@ -774,7 +774,7 @@ public class X
     int SafeArray7;
 }
 ";
-            var e = Encoding.ASCII;
+            Encoding e = Encoding.ASCII;
 
             var cciBlobs = new Dictionary<string, byte[]>
             {
@@ -863,7 +863,7 @@ public class X
                 { "ByValTStr2", new byte[] { 0x17, 0xdf, 0xff, 0xff, 0xff } },
             };
 
-            var verifier = CompileAndVerifyFieldMarshal(source, blobs);
+            CompilationVerifier verifier = CompileAndVerifyFieldMarshal(source, blobs);
             VerifyFieldMetadataDecoding(verifier, blobs);
         }
 
@@ -994,7 +994,7 @@ public class X
                 { "CustomMarshaler14", new byte[] { 0x2c, 0x00, 0x00, 0x04, 0xf0, 0xaa, 0x9b, 0x96, 0x04, 0xf0, 0xaa, 0x9b, 0x96 } },
             };
 
-            var verifier = CompileAndVerifyFieldMarshal(source, blobs);
+            CompilationVerifier verifier = CompileAndVerifyFieldMarshal(source, blobs);
             VerifyFieldMetadataDecoding(verifier, blobs);
         }
 
@@ -1093,7 +1093,7 @@ class X
                 { "foo:CustomMarshaler13", new byte[] { 0x2c, 0x00, 0x00, 0x07, 0x61, 0x61, 0x61, 0x00, 0x62, 0x62, 0x62, 0x07, 0x63, 0x63, 0x63, 0x00, 0x64, 0x64, 0x64 } },
             };
 
-            var verifier = CompileAndVerifyFieldMarshal(source, blobs, isField: false);
+            CompilationVerifier verifier = CompileAndVerifyFieldMarshal(source, blobs, isField: false);
             VerifyParameterMetadataDecoding(verifier, blobs);
         }
 
@@ -1383,8 +1383,8 @@ class C
     }
 }
 ";
-            var comp1 = CreateCompilation(text1, assemblyName: "OptionalMarshalAsLibrary");
-            var comp2 = CreateCompilation(text2,
+            CSharpCompilation comp1 = CreateCompilation(text1, assemblyName: "OptionalMarshalAsLibrary");
+            CSharpCompilation comp2 = CreateCompilation(text2,
                 options: TestOptions.ReleaseExe,
                 references: new[] { comp1.EmitToImageReference() },  // it has to be real assembly, Comp2comp reference OK
                 assemblyName: "APP");

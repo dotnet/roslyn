@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var uncommonData = _uncommonData;
+                UncommonData uncommonData = _uncommonData;
                 if (uncommonData != null)
                 {
                     if ((object)uncommonData._conversionMethod != null)
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return uncommonData._conversionMethod;
                     }
 
-                    var conversionResult = uncommonData._conversionResult;
+                    UserDefinedConversionResult conversionResult = uncommonData._conversionResult;
                     if (conversionResult.Kind == UserDefinedConversionResultKind.Valid)
                     {
                         UserDefinedConversionAnalysis analysis = conversionResult.Results[conversionResult.Best];
@@ -384,10 +384,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
 
-                var nestedConversionsOpt = _uncommonData?._nestedConversionsOpt;
+                ImmutableArray<Conversion>? nestedConversionsOpt = _uncommonData?._nestedConversionsOpt;
                 if (nestedConversionsOpt != null)
                 {
-                    foreach (var conv in nestedConversionsOpt)
+                    foreach (Conversion conv in nestedConversionsOpt)
                     {
                         if (!conv.IsValid)
                         {
@@ -762,7 +762,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var conversionResult = _uncommonData?._conversionResult ?? default(UserDefinedConversionResult);
+                UserDefinedConversionResult conversionResult = _uncommonData?._conversionResult ?? default(UserDefinedConversionResult);
 
                 switch (conversionResult.Kind)
                 {
@@ -833,14 +833,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return ImmutableArray<MethodSymbol>.Empty;
                 }
 
-                var conversionResult = _uncommonData._conversionResult;
+                UserDefinedConversionResult conversionResult = _uncommonData._conversionResult;
                 if (conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators)
                 {
                     return ImmutableArray<MethodSymbol>.Empty;
                 }
 
                 var builder = ArrayBuilder<MethodSymbol>.GetInstance();
-                foreach (var analysis in conversionResult.Results)
+                foreach (UserDefinedConversionAnalysis analysis in conversionResult.Results)
                 {
                     builder.Add(analysis.Operator);
                 }
@@ -857,7 +857,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                var conversionResult = _uncommonData._conversionResult;
+                UserDefinedConversionResult conversionResult = _uncommonData._conversionResult;
 
                 if (conversionResult.Kind == UserDefinedConversionResultKind.Valid)
                 {
@@ -880,7 +880,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public CommonConversion ToCommonConversion()
         {
             // The MethodSymbol of CommonConversion only refers to UserDefined conversions, not method groups
-            var methodSymbol = IsUserDefined ? MethodSymbol : null;
+            IMethodSymbol methodSymbol = IsUserDefined ? MethodSymbol : null;
             return new CommonConversion(Exists, IsIdentity, IsNumeric, IsReference, methodSymbol);
         }
 
@@ -964,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         new[] { BoundTreeDumperNodeProducer.MakeTree(self.DeconstructionInfo.Invocation)}));
                 }
 
-                var underlyingConversions = self.UnderlyingConversions;
+                ImmutableArray<Conversion> underlyingConversions = self.UnderlyingConversions;
                 if (!underlyingConversions.IsDefaultOrEmpty)
                 {
                     sub.Add(new TreeDumperNode($"underlyingConversions[{underlyingConversions.Length}]", null,

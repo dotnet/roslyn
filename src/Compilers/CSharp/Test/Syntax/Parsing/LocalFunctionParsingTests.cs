@@ -306,7 +306,7 @@ class C
         [WorkItem(12280, "https://github.com/dotnet/roslyn/issues/12280")]
         public void LocalFuncWithWhitespace()
         {
-            var file = ParseFile(@"
+            CompilationUnitSyntax file = ParseFile(@"
 class C
 {
     void Main()
@@ -377,7 +377,7 @@ class C
                 //             goo<T>) { }
                 Diagnostic(ErrorCode.WRN_UnreferencedLocalFunction, "goo").WithArguments("goo").WithLocation(11, 13));
 
-            var m = Assert.IsType<MethodDeclarationSyntax>(file.DescendantNodes()
+            MethodDeclarationSyntax m = Assert.IsType<MethodDeclarationSyntax>(file.DescendantNodes()
                 .Where(n => n.Kind() == SyntaxKind.MethodDeclaration)
                 .Single());
             Assert.All(m.Body.Statements,
@@ -387,7 +387,7 @@ class C
         [Fact]
         public void NeverEndingTest()
         {
-            var file = ParseFile(@"public class C {
+            CompilationUnitSyntax file = ParseFile(@"public class C {
     public void M() {
         async public virtual M() {}
         unsafe public M() {}
@@ -425,7 +425,7 @@ class C
         {
             // Experimental nodes should only appear when experimental are
             // turned on in parse options
-            var file = ParseFile(@"
+            CompilationUnitSyntax file = ParseFile(@"
 class c
 {
     void m()
@@ -450,13 +450,13 @@ class c
                 );
 
             Assert.Equal(0, file.SyntaxTree.Options.Features.Count);
-            var c = Assert.IsType<ClassDeclarationSyntax>(file.Members.Single());
+            ClassDeclarationSyntax c = Assert.IsType<ClassDeclarationSyntax>(file.Members.Single());
             Assert.Equal(2, c.Members.Count);
-            var m = Assert.IsType<MethodDeclarationSyntax>(c.Members[0]);
-            var s1 = Assert.IsType<LocalFunctionStatementSyntax>(m.Body.Statements[0]);
+            MethodDeclarationSyntax m = Assert.IsType<MethodDeclarationSyntax>(c.Members[0]);
+            LocalFunctionStatementSyntax s1 = Assert.IsType<LocalFunctionStatementSyntax>(m.Body.Statements[0]);
             Assert.True(s1.ContainsDiagnostics);
 
-            var m2 = Assert.IsType<MethodDeclarationSyntax>(c.Members[1]);
+            MethodDeclarationSyntax m2 = Assert.IsType<MethodDeclarationSyntax>(c.Members[1]);
             s1 = Assert.IsType<LocalFunctionStatementSyntax>(m.Body.Statements[0]);
             Assert.True(s1.ContainsDiagnostics);
         }
@@ -466,7 +466,7 @@ class c
         {
             // Experimental nodes should only appear when experimental are
             // turned on in parse options
-            var file = ParseFile(@"
+            CompilationUnitSyntax file = ParseFile(@"
 class c
 {
     void m()
@@ -485,10 +485,10 @@ class c
             Assert.NotNull(file);
             Assert.False(file.HasErrors);
             Assert.Equal(0, file.SyntaxTree.Options.Features.Count);
-            var c = Assert.IsType<ClassDeclarationSyntax>(file.Members.Single());
+            ClassDeclarationSyntax c = Assert.IsType<ClassDeclarationSyntax>(file.Members.Single());
             Assert.Equal(2, c.Members.Count);
-            var m = Assert.IsType<MethodDeclarationSyntax>(c.Members[0]);
-            var s1 = Assert.IsType<LocalFunctionStatementSyntax>(m.Body.Statements[0]);
+            MethodDeclarationSyntax m = Assert.IsType<MethodDeclarationSyntax>(c.Members[0]);
+            LocalFunctionStatementSyntax s1 = Assert.IsType<LocalFunctionStatementSyntax>(m.Body.Statements[0]);
             Assert.Equal(SyntaxKind.PredefinedType, s1.ReturnType.Kind());
             Assert.Equal("int", s1.ReturnType.ToString());
             Assert.Equal("local", s1.Identifier.ToString());
@@ -497,7 +497,7 @@ class c
             Assert.NotNull(s1.ExpressionBody);
             Assert.Equal(SyntaxKind.NumericLiteralExpression, s1.ExpressionBody.Expression.Kind());
 
-            var m2 = Assert.IsType<MethodDeclarationSyntax>(c.Members[1]);
+            MethodDeclarationSyntax m2 = Assert.IsType<MethodDeclarationSyntax>(c.Members[1]);
             s1 = Assert.IsType<LocalFunctionStatementSyntax>(m2.Body.Statements[0]);
             Assert.Equal(SyntaxKind.PredefinedType, s1.ReturnType.Kind());
             Assert.Equal("int", s1.ReturnType.ToString());
@@ -506,14 +506,14 @@ class c
             Assert.Empty(s1.ParameterList.Parameters);
             Assert.Null(s1.ExpressionBody);
             Assert.NotNull(s1.Body);
-            var s2 = Assert.IsType<ReturnStatementSyntax>(s1.Body.Statements.Single());
+            ReturnStatementSyntax s2 = Assert.IsType<ReturnStatementSyntax>(s1.Body.Statements.Single());
             Assert.Equal(SyntaxKind.NumericLiteralExpression, s2.Expression.Kind());
         }
 
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/10388")]
         public void LocalFunctionsWithAwait()
         {
-            var file = ParseFile(@"class c
+            CompilationUnitSyntax file = ParseFile(@"class c
 {
     void m1() { await await() => new await(); }
     void m2() { await () => new await(); }
@@ -577,7 +577,7 @@ class c
         [Fact]
         public void AsyncVariable()
         {
-            var file = ParseFile(
+            CompilationUnitSyntax file = ParseFile(
 @"class C
 {
     static void F(object async)

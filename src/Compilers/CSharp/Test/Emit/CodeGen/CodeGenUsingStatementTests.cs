@@ -67,7 +67,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            CompilationVerifier verifier = CompileAndVerify(text, expectedOutput: @"Before
 In
 After");
             verifier.VerifyIL("Test.Main", @"
@@ -104,7 +104,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            CompilationVerifier verifier = CompileAndVerify(text, expectedOutput: @"Before
 In
 After");
             verifier.VerifyIL("Test.Main", @"
@@ -140,7 +140,7 @@ public class Test
     }
 }
 " + DisposableClass;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            CompilationVerifier verifier = CompileAndVerify(text, expectedOutput: @"Before
 Creating A
 In
 Disposing A
@@ -194,7 +194,7 @@ public class Test
     }
 }
 " + DisposableStruct;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            CompilationVerifier verifier = CompileAndVerify(text, expectedOutput: @"Before
 Creating A
 In
 Disposing A
@@ -270,7 +270,7 @@ In
 Disposing B
 After";
 
-            var verifier = CompileAndVerify(text, expectedOutput: expected);
+            CompilationVerifier verifier = CompileAndVerify(text, expectedOutput: expected);
             verifier.VerifyIL("Test.M<T>", @"
 {
   // Code size       57 (0x39)
@@ -326,7 +326,7 @@ public class Test
     }
 }
 " + DisposableStruct;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Creating A
+            CompilationVerifier verifier = CompileAndVerify(text, expectedOutput: @"Creating A
 Before
 In
 Disposing A
@@ -378,7 +378,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            CompilationVerifier verifier = CompileAndVerify(text, expectedOutput: @"Before
 In
 After");
             verifier.VerifyIL("Test.Main", @"
@@ -415,7 +415,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            CompilationVerifier verifier = CompileAndVerify(text, expectedOutput: @"Before
 In
 After");
             verifier.VerifyIL("Test.Main", @"
@@ -451,7 +451,7 @@ public class Test
     }
 }
 " + DisposableClass;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            CompilationVerifier verifier = CompileAndVerify(text, expectedOutput: @"Before
 Creating A
 In
 Disposing A
@@ -505,7 +505,7 @@ public class Test
     }
 }
 " + DisposableStruct;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            CompilationVerifier verifier = CompileAndVerify(text, expectedOutput: @"Before
 Creating A
 In
 Disposing A
@@ -581,7 +581,7 @@ In
 Disposing B
 After";
 
-            var verifier = CompileAndVerify(text, expectedOutput: expected);
+            CompilationVerifier verifier = CompileAndVerify(text, expectedOutput: expected);
             verifier.VerifyIL("Test.M<T>", @"
 {
   // Code size       57 (0x39)
@@ -637,7 +637,7 @@ public class Test
     }
 }
 " + DisposableStruct;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Creating A
+            CompilationVerifier verifier = CompileAndVerify(text, expectedOutput: @"Creating A
 Before
 In
 Disposing A
@@ -689,7 +689,7 @@ public class Test
     }
 }
 " + DisposableClass;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            CompilationVerifier verifier = CompileAndVerify(text, expectedOutput: @"Before
 Creating A
 Creating B
 Creating C
@@ -777,7 +777,7 @@ public class Test
     }
 }
 " + DisposableStruct;
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            CompilationVerifier verifier = CompileAndVerify(text, expectedOutput: @"Before
 Creating A
 Creating B
 Creating C
@@ -863,7 +863,7 @@ public class Test
 }
 " + DisposableClass + DisposableStruct;
 
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            CompilationVerifier verifier = CompileAndVerify(text, expectedOutput: @"Before
 Creating A
 Creating C
 In
@@ -935,7 +935,7 @@ public class Test
 }
 " + DisposableClass + DisposableStruct;
 
-            var verifier = CompileAndVerify(text, expectedOutput: @"Before
+            CompilationVerifier verifier = CompileAndVerify(text, expectedOutput: @"Before
 In
 After");
             verifier.VerifyIL("Test.Main", @"
@@ -1786,7 +1786,7 @@ struct MyManagedClass : IDisposable
             //
             // Roslyn does the latter.
 
-            var comp = CompileAndVerify(source, expectedOutput: @"InUsing");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"InUsing");
             comp.VerifyIL("Program.Main", @"
 {
   // Code size       50 (0x32)
@@ -1842,7 +1842,7 @@ struct MyManagedClass : IDisposable
     { System.Console.WriteLine(""Func""); }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "");
 
             // Note that changing the value of the expression does not cause the
             // Dispose to be called; we dispose the original value, not the new value.
@@ -1910,7 +1910,7 @@ struct MyManagedClass : IDisposable
             string expected = @"Func
 Dispose";
 
-            var comp = CompileAndVerify(source, expectedOutput: expected);
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: expected);
 
             // Note that changing the value of the expression does not cause the
             // Dispose to be called; we dispose the original value, not the new value.
@@ -2578,7 +2578,7 @@ class Program
         }
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: @"");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"");
         }
 
         // Anonymous Delegate in using block

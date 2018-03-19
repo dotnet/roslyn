@@ -48,7 +48,7 @@ namespace Microsoft.Cci
 
         protected override ImmutableArray<Section> CreateSections()
         {
-            var baseSections = base.CreateSections();
+            ImmutableArray<Section> baseSections = base.CreateSections();
 
             if (_withMvidSection)
             {
@@ -80,7 +80,7 @@ namespace Microsoft.Cci
 
         internal BlobContentId Serialize(BlobBuilder peBlob, out Blob mvidSectionFixup)
         {
-            var result = base.Serialize(peBlob);
+            BlobContentId result = base.Serialize(peBlob);
             mvidSectionFixup = _mvidSectionFixup;
             return result;
         }

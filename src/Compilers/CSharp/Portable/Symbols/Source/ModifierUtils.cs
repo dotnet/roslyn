@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // If we can find the 'partial' token, report it on that.
             if (modifierTokens != null)
             {
-                var partialToken = modifierTokens.Value.FirstOrDefault(SyntaxKind.PartialKeyword);
+                SyntaxToken partialToken = modifierTokens.Value.FirstOrDefault(SyntaxKind.PartialKeyword);
                 if (partialToken != default)
                 {
                     diagnostics.Add(ErrorCode.ERR_PartialMisplaced, partialToken.GetLocation());
@@ -191,11 +191,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static DeclarationModifiers ToDeclarationModifiers(
             this SyntaxTokenList modifiers, DiagnosticBag diagnostics)
         {
-            var result = DeclarationModifiers.None;
+            DeclarationModifiers result = DeclarationModifiers.None;
             bool seenNoDuplicates = true;
             bool seenNoAccessibilityDuplicates = true;
  
-            foreach (var modifier in modifiers)
+            foreach (SyntaxToken modifier in modifiers)
             {
                 DeclarationModifiers one = ToDeclarationModifier(modifier.ContextualKind());
 

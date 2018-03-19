@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 }
 ";
             var simpleName = GetUniqueName();
-            var comp = CreateCompilation(text, assemblyName: simpleName);
-            var sym = comp.Assembly;
+            CSharpCompilation comp = CreateCompilation(text, assemblyName: simpleName);
+            AssemblySymbol sym = comp.Assembly;
             // See bug 2058: the following lines assume System.Reflection.AssemblyName preserves the case of
             // the "displayName" passed to it, but it sometimes does not.
             Assert.Equal(simpleName, sym.Name, StringComparer.OrdinalIgnoreCase);
@@ -50,9 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     class A {}
 }
 ";
-            var comp = CreateCompilation(text, assemblyName: "Test");
+            CSharpCompilation comp = CreateCompilation(text, assemblyName: "Test");
 
-            var sym = comp.SourceModule;
+            ModuleSymbol sym = comp.SourceModule;
             Assert.Equal("Test.dll", sym.Name);
             // Bug: 2026
             Assert.Equal("Test.dll", sym.ToDisplayString());
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var ns = comp.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var ns1 = (ns.GetMembers("NS1").Single() as NamespaceSymbol).GetMembers("NS2").Single() as NamespaceSymbol;
             // NamespaceExtent 
-            var ext = ns1.Extent;
+            NamespaceExtent ext = ns1.Extent;
             Assert.Equal(NamespaceKind.Module, ext.Kind);
             Assert.Equal(1, ns1.ConstituentNamespaces.Length);
             Assert.Same(ns1, ns1.ConstituentNamespaces[0]);
@@ -118,7 +118,7 @@ namespace N1 {
                             syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(text1), SyntaxFactory.ParseSyntaxTree(text2) },
                             references: new MetadataReference[] { compRef });
 
-            var global = comp.GlobalNamespace;
+            NamespaceSymbol global = comp.GlobalNamespace;
             var ns = global.GetMembers("N1").Single() as NamespaceSymbol;
             Assert.Equal(1, ns.GetTypeMembers().Length); // S
             Assert.Equal(3, ns.GetMembers().Length); // N11, N12, S
@@ -154,14 +154,14 @@ namespace NS.NS1 {
     }
 }
 ";
-            var comp1 = CreateCompilation(text);
+            CSharpCompilation comp1 = CreateCompilation(text);
             var compRef = new CSharpCompilationReference(comp1);
 
             var comp = CSharpCompilation.Create(assemblyName: "Test1", options: new CSharpCompilationOptions(OutputKind.ConsoleApplication),
                             syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(text1), SyntaxFactory.ParseSyntaxTree(text2) },
                             references: new MetadataReference[] { compRef });
 
-            var global = comp.GlobalNamespace;
+            NamespaceSymbol global = comp.GlobalNamespace;
             var ns = global.GetMembers("NS").Single() as NamespaceSymbol;
             Assert.Equal(1, ns.GetTypeMembers().Length); // IGoo
             Assert.Equal(3, ns.GetMembers().Length); // NS1, NS2, IGoo
@@ -195,29 +195,29 @@ namespace NS.NS1 {
     struct SGoo {}
 }
 ";
-            var comp1 = CreateCompilation(text1, assemblyName: "Compilation1");
-            var comp2 = CreateCompilation(text2, assemblyName: "Compilation2");
+            CSharpCompilation comp1 = CreateCompilation(text1, assemblyName: "Compilation1");
+            CSharpCompilation comp2 = CreateCompilation(text2, assemblyName: "Compilation2");
 
             var compRef1 = new CSharpCompilationReference(comp1);
             var compRef2 = new CSharpCompilationReference(comp2);
 
-            var comp = CreateEmptyCompilation(new string[] { text3 }, references: new MetadataReference[] { compRef1, compRef2 }.ToList(), assemblyName: "Test3");
+            CSharpCompilation comp = CreateEmptyCompilation(new string[] { text3 }, references: new MetadataReference[] { compRef1, compRef2 }.ToList(), assemblyName: "Test3");
             //Compilation.Create(outputName: "Test3", options: CompilationOptions.Default,
             //                        syntaxTrees: new SyntaxTree[] { SyntaxTree.ParseCompilationUnit(text3) },
             //                        references: new MetadataReference[] { compRef1, compRef2 });
 
-            var global = comp.GlobalNamespace; // throw
+            NamespaceSymbol global = comp.GlobalNamespace; // throw
             var ns = global.GetMembers("N1").Single() as NamespaceSymbol;
             Assert.Equal(3, ns.GetTypeMembers().Length); // A, IGoo & SGoo
             Assert.Equal(NamespaceKind.Compilation, ns.Extent.Kind);
 
-            var constituents = ns.ConstituentNamespaces;
+            ImmutableArray<NamespaceSymbol> constituents = ns.ConstituentNamespaces;
             Assert.Equal(3, constituents.Length);
             Assert.True(constituents.Contains(comp.SourceAssembly.GlobalNamespace.GetMembers("N1").Single() as NamespaceSymbol));
             Assert.True(constituents.Contains(comp.GetReferencedAssemblySymbol(compRef1).GlobalNamespace.GetMembers("N1").Single() as NamespaceSymbol));
             Assert.True(constituents.Contains(comp.GetReferencedAssemblySymbol(compRef2).GlobalNamespace.GetMembers("N1").Single() as NamespaceSymbol));
 
-            foreach (var constituentNs in constituents)
+            foreach (NamespaceSymbol constituentNs in constituents)
             {
                 Assert.Equal(NamespaceKind.Module, constituentNs.Extent.Kind);
                 Assert.Equal(ns.ToTestDisplayString(), constituentNs.ToTestDisplayString());
@@ -254,12 +254,12 @@ namespace NS.NS1 {
                                         syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(text3) },
                                         references: new MetadataReference[] { compRef1, compRef2 });
 
-            var global = comp.GlobalNamespace; // throw
+            NamespaceSymbol global = comp.GlobalNamespace; // throw
             var ns = global.GetMembers("N1").Single() as NamespaceSymbol;
             Assert.Equal(3, ns.GetTypeMembers().Length); // A, IGoo & SGoo
             Assert.Equal(NamespaceKind.Compilation, ns.Extent.Kind);
 
-            var constituents = ns.ConstituentNamespaces;
+            ImmutableArray<NamespaceSymbol> constituents = ns.ConstituentNamespaces;
             Assert.Equal(3, constituents.Length);
             Assert.True(constituents.Contains(comp.SourceAssembly.GlobalNamespace.GetMembers("N1").Single() as NamespaceSymbol));
             Assert.True(constituents.Contains(comp.GetReferencedAssemblySymbol(compRef1).GlobalNamespace.GetMembers("N1").Single() as NamespaceSymbol));
@@ -295,10 +295,10 @@ namespace NS.NS1 {
                 assemblyName: "Test1",
                 syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(text1) },
                 references: new MetadataReference[] { });
-            var global = comp.GlobalNamespace; // throw
+            NamespaceSymbol global = comp.GlobalNamespace; // throw
             var ns = global.GetMembers("N1").Single() as NamespaceSymbol;
             Assert.Equal(1, ns.GetTypeMembers().Length); // A
-            var b = ns.GetTypeMembers("A")[0].GetMembers("b");
+            ImmutableArray<Symbol> b = ns.GetTypeMembers("A")[0].GetMembers("b");
             Assert.Equal(5, b.Length);
         }
 
@@ -306,7 +306,7 @@ namespace NS.NS1 {
         [Fact]
         public void GetDeclaredSymbolDupNsAliasErr()
         {
-            var compilation = CreateEmptyCompilation(@"
+            CSharpCompilation compilation = CreateEmptyCompilation(@"
 namespace NS1 {
 	class A { }
 }	
@@ -323,21 +323,21 @@ namespace NS
 	class C : ns.A {}
 }
 ");
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var globalNS = compilation.SourceModule.GlobalNamespace;
+            NamespaceSymbol globalNS = compilation.SourceModule.GlobalNamespace;
             var ns1 = globalNS.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns1.GetTypeMembers("C").First() as NamedTypeSymbol;
-            var b = type1.BaseType();
+            NamedTypeSymbol b = type1.BaseType();
         }
 
         [WorkItem(540785, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540785")]
         [Fact]
         public void GenericNamespace()
         {
-            var compilation = CreateEmptyCompilation(@"
+            CSharpCompilation compilation = CreateEmptyCompilation(@"
 namespace Goo<T>
 {
     class Program    
@@ -348,15 +348,15 @@ namespace Goo<T>
     }
 }
 ");
-            var global = compilation.GlobalNamespace;
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var @namespace = global.GetMember<NamespaceSymbol>("Goo");
+            NamespaceSymbol @namespace = global.GetMember<NamespaceSymbol>("Goo");
             Assert.NotNull(@namespace);
 
-            var @class = @namespace.GetMember<NamedTypeSymbol>("Program");
+            NamedTypeSymbol @class = @namespace.GetMember<NamedTypeSymbol>("Program");
             Assert.NotNull(@class);
 
-            var method = @class.GetMember<MethodSymbol>("Main");
+            MethodSymbol method = @class.GetMember<MethodSymbol>("Main");
             Assert.NotNull(method);
         }
 
@@ -366,15 +366,15 @@ namespace Goo<T>
         {
             var source = @"public class C { }";
 
-            var aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Goo"));
+            PortableExecutableReference aliasedCorlib = TestReferences.NetFx.v4_0_30319.mscorlib.WithAliases(ImmutableArray.Create("Goo"));
 
-            var comp = CreateEmptyCompilation(source, new[] { aliasedCorlib });
+            CSharpCompilation comp = CreateEmptyCompilation(source, new[] { aliasedCorlib });
 
             // NOTE: this doesn't compile in dev11 - it reports that it cannot find System.Object.
             // However, we've already changed how special type lookup works, so this is not a major issue.
             comp.VerifyDiagnostics();
 
-            var objectType = comp.GetSpecialType(SpecialType.System_Object);
+            NamedTypeSymbol objectType = comp.GetSpecialType(SpecialType.System_Object);
             Assert.Equal(TypeKind.Class, objectType.TypeKind);
             Assert.Equal("System.Object", objectType.ToTestDisplayString());
 
@@ -405,10 +405,10 @@ class App
 }
 ";
 
-            var libComp = CreateCompilationWithMscorlib45(lib, assemblyName: "lib");
-            var libRef = libComp.EmitToImageReference(aliases: ImmutableArray.Create("myTask"));
+            CSharpCompilation libComp = CreateCompilationWithMscorlib45(lib, assemblyName: "lib");
+            MetadataReference libRef = libComp.EmitToImageReference(aliases: ImmutableArray.Create("myTask"));
 
-            var comp = CreateCompilationWithMscorlib45(source, new[] { libRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(source, new[] { libRef });
 
             // NOTE: As in dev11, we don't consider myTask::System.Threading.Tasks.Task to be
             // ambiguous with global::System.Threading.Tasks.Task (prefer global).
@@ -426,7 +426,7 @@ class App
                 // extern alias myTask;
                 Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias myTask;"));
 
-            var taskType = comp.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
+            NamedTypeSymbol taskType = comp.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task);
             Assert.Equal(TypeKind.Class, taskType.TypeKind);
             Assert.Equal("System.Threading.Tasks.Task", taskType.ToTestDisplayString());
 

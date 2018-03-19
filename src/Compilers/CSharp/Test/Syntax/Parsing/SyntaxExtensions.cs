@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var l = new SyntaxDiagnosticInfoList(node);
 
-            foreach (var item in l)
+            foreach (DiagnosticInfo item in l)
             {
                 if (item.Severity == (errorsOnly ? DiagnosticSeverity.Error : DiagnosticSeverity.Warning))
                     b.Add(item);
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var l = new SyntaxDiagnosticInfoList(node);
 
-            foreach (var item in l)
+            foreach (DiagnosticInfo item in l)
             {
                 b.Add(item);
             }

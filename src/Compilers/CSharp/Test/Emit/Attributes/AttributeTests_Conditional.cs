@@ -137,35 +137,35 @@ public class Test
         {
             var attributesArrayBuilder = new List<ImmutableArray<CSharpAttributeData>>();
 
-            var classZ = module.GlobalNamespace.GetTypeMember("Z");
+            NamedTypeSymbol classZ = module.GlobalNamespace.GetTypeMember("Z");
             attributesArrayBuilder.Add(classZ.GetAttributes());
             attributesArrayBuilder.Add(classZ.TypeParameters[0].GetAttributes());
 
-            var methodM = classZ.GetMember<MethodSymbol>("m");
+            MethodSymbol methodM = classZ.GetMember<MethodSymbol>("m");
             attributesArrayBuilder.Add(methodM.GetAttributes());
             attributesArrayBuilder.Add(methodM.GetReturnTypeAttributes());
-            var param1 = methodM.Parameters[0];
+            ParameterSymbol param1 = methodM.Parameters[0];
             attributesArrayBuilder.Add(param1.GetAttributes());
 
-            var fieldF = classZ.GetMember<FieldSymbol>("f");
+            FieldSymbol fieldF = classZ.GetMember<FieldSymbol>("f");
             attributesArrayBuilder.Add(fieldF.GetAttributes());
 
-            var propP1 = classZ.GetMember<PropertySymbol>("p1");
+            PropertySymbol propP1 = classZ.GetMember<PropertySymbol>("p1");
             attributesArrayBuilder.Add(propP1.GetAttributes());
-            var propGetMethod = propP1.GetMethod;
+            MethodSymbol propGetMethod = propP1.GetMethod;
             attributesArrayBuilder.Add(propGetMethod.GetAttributes());
             attributesArrayBuilder.Add(propGetMethod.GetReturnTypeAttributes());
-            var propSetMethod = propP1.SetMethod;
+            MethodSymbol propSetMethod = propP1.SetMethod;
             attributesArrayBuilder.Add(propSetMethod.GetAttributes());
             attributesArrayBuilder.Add(propSetMethod.Parameters[0].GetAttributes());
 
-            var propP2 = classZ.GetMember<PropertySymbol>("p2");
+            PropertySymbol propP2 = classZ.GetMember<PropertySymbol>("p2");
             attributesArrayBuilder.Add(propP2.GetAttributes());
             propGetMethod = propP2.GetMethod;
             attributesArrayBuilder.Add(propGetMethod.GetAttributes());
             attributesArrayBuilder.Add(propGetMethod.GetReturnTypeAttributes());
 
-            var propP3 = classZ.GetMember<PropertySymbol>("p3");
+            PropertySymbol propP3 = classZ.GetMember<PropertySymbol>("p3");
             attributesArrayBuilder.Add(propP3.GetAttributes());
             propGetMethod = propP3.GetMethod;
             attributesArrayBuilder.Add(propGetMethod.GetAttributes());
@@ -174,7 +174,7 @@ public class Test
             attributesArrayBuilder.Add(propSetMethod.GetAttributes());
             attributesArrayBuilder.Add(propSetMethod.Parameters[0].GetAttributes());
 
-            var eventE = classZ.GetMember<EventSymbol>("e");
+            EventSymbol eventE = classZ.GetMember<EventSymbol>("e");
             attributesArrayBuilder.Add(eventE.GetAttributes());
             attributesArrayBuilder.Add(eventE.AddMethod.GetAttributes());
             attributesArrayBuilder.Add(eventE.RemoveMethod.GetAttributes());
@@ -183,16 +183,16 @@ public class Test
                 attributesArrayBuilder.Add(eventE.AssociatedField.GetAttributes());
             }
 
-            var enumE = module.GlobalNamespace.GetTypeMember("E");
+            NamedTypeSymbol enumE = module.GlobalNamespace.GetTypeMember("E");
             attributesArrayBuilder.Add(enumE.GetAttributes());
 
-            var fieldA = enumE.GetMember<FieldSymbol>("A");
+            FieldSymbol fieldA = enumE.GetMember<FieldSymbol>("A");
             attributesArrayBuilder.Add(fieldA.GetAttributes());
 
-            var structS = module.GlobalNamespace.GetTypeMember("S");
+            NamedTypeSymbol structS = module.GlobalNamespace.GetTypeMember("S");
             attributesArrayBuilder.Add(structS.GetAttributes());
 
-            foreach (var attributes in attributesArrayBuilder)
+            foreach (ImmutableArray<CSharpAttributeData> attributes in attributesArrayBuilder)
             {
                 // PreservedAppliedAttribute and OmittedAppliedAttribute have applied conditional attributes, such that
                 // (a) PreservedAppliedAttribute is conditionally applied to symbols
@@ -206,7 +206,7 @@ public class Test
                 // (a) PreservedMultipleAttribute is conditionally applied to symbols
                 // (b) OmittedMultipleAttribute is conditionally NOT applied to symbols
 
-                var actualAttributeNames = attributes.
+                IEnumerable<string> actualAttributeNames = attributes.
                     Where(a => a.AttributeClass.Name != "CompilerGeneratedAttribute").
                     Select(a => a.AttributeClass.Name);
 
@@ -247,8 +247,8 @@ public class Test
 
             // Scenario to test Conditional directive stack creation during SyntaxTree.Create, see Devdiv Bug #13846 for details.
             CompilationUnitSyntax root = SyntaxFactory.ParseCompilationUnit(testSource);
-            var syntaxTree = SyntaxFactory.SyntaxTree(root);
-            var compilation = CreateCompilation(syntaxTree, options: TestOptions.ReleaseExe);
+            SyntaxTree syntaxTree = SyntaxFactory.SyntaxTree(root);
+            CSharpCompilation compilation = CreateCompilation(syntaxTree, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
         }
 
@@ -264,7 +264,7 @@ using System;
             CompileAndVerify(testSources, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
 
             // Different source files, different compilation
-            var comp1 = CreateCompilation(source1);
+            CSharpCompilation comp1 = CreateCompilation(source1);
             CompileAndVerify(source2, references: new[] { comp1.ToMetadataReference() }, sourceSymbolValidator: CommonSourceValidatorForCondAttrType, symbolValidator: CommonMetadataValidatorForCondAttrType, expectedOutput: "");
         }
 
@@ -458,8 +458,8 @@ Z.PreservedCalls_MultipleConditional_Method";
 
             // Scenario to test Conditional directive stack creation during SyntaxTree.Create, see Devdiv Bug #13846 for details.
             CompilationUnitSyntax root = SyntaxFactory.ParseCompilationUnit(testSource);
-            var syntaxTree = SyntaxFactory.SyntaxTree(root);
-            var compilation = CreateCompilation(syntaxTree, options: TestOptions.ReleaseExe);
+            SyntaxTree syntaxTree = SyntaxFactory.SyntaxTree(root);
+            CSharpCompilation compilation = CreateCompilation(syntaxTree, options: TestOptions.ReleaseExe);
             CompileAndVerify(compilation, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
         }
 
@@ -475,7 +475,7 @@ using System;
             CompileAndVerify(testSources, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
 
             // Different source files, different compilation
-            var comp1 = CreateCompilation(source1, assemblyName: Guid.NewGuid().ToString());
+            CSharpCompilation comp1 = CreateCompilation(source1, assemblyName: Guid.NewGuid().ToString());
             CompileAndVerify(source2, references: new[] { comp1.ToMetadataReference() }, expectedOutput: s_commonExpectedOutput_ConditionalMethodsTest);
         }
 
@@ -554,7 +554,7 @@ using System;
         [Fact, WorkItem(529683, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529683")]
         public void CondMethodInDelegateCreationExpr()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using System.Diagnostics;
 
 class Test
@@ -620,17 +620,17 @@ class Bar
 ";
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var globalNamespace = module.GlobalNamespace;
+                NamespaceSymbol globalNamespace = module.GlobalNamespace;
 
-                var classGoo = globalNamespace.GetMember<NamedTypeSymbol>("Goo");
+                NamedTypeSymbol classGoo = globalNamespace.GetMember<NamedTypeSymbol>("Goo");
                 Assert.True(classGoo.IsConditional);
 
-                var gooCtor = classGoo.InstanceConstructors.First();
+                MethodSymbol gooCtor = classGoo.InstanceConstructors.First();
                 Assert.Equal(1, gooCtor.ParameterCount);
 
-                var paramY = gooCtor.Parameters[0];
+                ParameterSymbol paramY = gooCtor.Parameters[0];
                 Assert.True(paramY.IsOptional);
-                var attributes = paramY.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attributes = paramY.GetAttributes();
                 if (isFromSource)
                 {
                     Assert.Equal(2, attributes.Length);

@@ -738,13 +738,13 @@ namespace Microsoft.CodeAnalysis
             var nestedNamespaces = new List<KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>>();
             bool possiblyHavePairsWithDuplicateKey = false;
 
-            var enumerator = typesByNS.GetEnumerator();
+            IEnumerator<IGrouping<string, TypeDefinitionHandle>> enumerator = typesByNS.GetEnumerator();
 
             using (enumerator)
             {
                 if (enumerator.MoveNext())
                 {
-                    var pair = enumerator.Current;
+                    IGrouping<string, TypeDefinitionHandle> pair = enumerator.Current;
 
                     // Simple name of the last encountered child namespace.
                     string lastChildNamespaceName = null;
@@ -845,12 +845,12 @@ namespace Microsoft.CodeAnalysis
                 {
                     for (int i = 1; i < nestedNamespaces.Count; i++)
                     {
-                        var pair = nestedNamespaces[i];
+                        KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>> pair = nestedNamespaces[i];
                         int keyIndex = names[pair.Key];
                         if (keyIndex != i)
                         {
                             Debug.Assert(keyIndex < i);
-                            var primaryPair = nestedNamespaces[keyIndex];
+                            KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>> primaryPair = nestedNamespaces[keyIndex];
                             nestedNamespaces[keyIndex] = KeyValuePair.Create(primaryPair.Key, primaryPair.Value.Concat(pair.Value));
                             nestedNamespaces[i] = default(KeyValuePair<string, IEnumerable<IGrouping<string, TypeDefinitionHandle>>>);
                         }
@@ -1007,7 +1007,7 @@ namespace Microsoft.CodeAnalysis
         internal static string MangleForTypeNameIfNeeded(string moduleName)
         {
             var pooledStrBuilder = PooledStringBuilder.GetInstance();
-            var s = pooledStrBuilder.Builder;
+            StringBuilder s = pooledStrBuilder.Builder;
             s.Append(moduleName);
             s.Replace("Q", "QQ");
             s.Replace("_", "Q_");

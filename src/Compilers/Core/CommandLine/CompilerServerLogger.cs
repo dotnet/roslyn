@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         private static int GetCurrentThreadId()
         {
-            var thread = Thread.CurrentThread;
+            Thread thread = Thread.CurrentThread;
             return thread.ManagedThreadId;
         }
 

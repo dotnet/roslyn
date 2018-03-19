@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
             if (pipeTask != null)
             {
-                var pipe = await pipeTask.ConfigureAwait(false);
+                NamedPipeClientStream pipe = await pipeTask.ConfigureAwait(false);
                 if (pipe != null)
                 {
                     var request = BuildRequest.Create(language,
@@ -210,8 +210,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
                 Log("Begin reading response");
 
-                var responseTask = BuildResponse.ReadAsync(pipeStream, serverCts.Token);
-                var monitorTask = CreateMonitorDisconnectTask(pipeStream, "client", serverCts.Token);
+                Task<BuildResponse> responseTask = BuildResponse.ReadAsync(pipeStream, serverCts.Token);
+                Task monitorTask = CreateMonitorDisconnectTask(pipeStream, "client", serverCts.Token);
                 await Task.WhenAny(responseTask, monitorTask).ConfigureAwait(false);
 
                 Log("End reading response");
@@ -455,9 +455,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 if (PlatformInformation.IsWindows)
                 {
                     var currentIdentity = WindowsIdentity.GetCurrent();
-                    var currentOwner = currentIdentity.Owner;
-                    var remotePipeSecurity = GetPipeSecurity(pipeStream);
-                    var remoteOwner = remotePipeSecurity.GetOwner(typeof(SecurityIdentifier));
+                    SecurityIdentifier currentOwner = currentIdentity.Owner;
+                    ObjectSecurity remotePipeSecurity = GetPipeSecurity(pipeStream);
+                    IdentityReference remoteOwner = remotePipeSecurity.GetOwner(typeof(SecurityIdentifier));
                     return currentOwner.Equals(remoteOwner);
                 }
                 else
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static bool CheckIdentityUnix(PipeStream stream)
         {
-            var flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
             var handle = (SafePipeHandle)typeof(PipeStream).GetField("_handle", flags).GetValue(stream);
             var handle2 = (SafeHandle)typeof(SafePipeHandle).GetField("_namedPipeSocketHandle", flags).GetValue(handle);
 

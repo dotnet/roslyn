@@ -32,7 +32,7 @@ class Test
 
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
                 Assert.Empty(type.GetAttributes());
 
@@ -51,7 +51,7 @@ readonly struct S1{}
 
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("S1");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("S1");
                 Assert.True(type.IsReadOnly);
                 Assert.Empty(type.GetAttributes());
             });
@@ -69,7 +69,7 @@ class Test
 
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
                 Assert.Empty(type.GetAttributes());
             });
@@ -87,7 +87,7 @@ class Test
 
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test+S1`1");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test+S1`1");
                 Assert.True(type.IsReadOnly);
                 Assert.Empty(type.GetAttributes());
             });
@@ -105,7 +105,7 @@ class Test<T>
 
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test`1").GetTypeMember("S1");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test`1").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
                 Assert.Empty(type.GetAttributes());
             });
@@ -120,7 +120,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            CompilationReference referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 class Test
@@ -131,7 +131,7 @@ class Test
 
             CompileAndVerify(codeB, verify: Verification.Passes, references: new[] { referenceA }, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
                 Assert.Empty(type.GetAttributes());
                 AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);
@@ -147,7 +147,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            CompilationReference referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -174,7 +174,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            CompilationReference referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -200,7 +200,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            CompilationReference referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -229,7 +229,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            CompilationReference referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -258,7 +258,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            CompilationReference referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -295,7 +295,7 @@ namespace System.Runtime.CompilerServices
     public class IsReadOnlyAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            CompilationReference referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -339,15 +339,15 @@ public class Test
         [Fact]
         public void TypeReferencingAnotherTypeThatUsesAPublicIsReadOnlyAttributeFromAThirdNotReferencedAssemblyShouldGenerateItsOwn()
         {
-            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
+            CSharpCompilationOptions options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
 
-            var code1 = CreateCompilation(@"
+            CSharpCompilation code1 = CreateCompilation(@"
 namespace System.Runtime.CompilerServices
 {
     public class IsReadOnlyAttribute : System.Attribute { }
 }");
 
-            var code2 = CreateCompilation(@"
+            CSharpCompilation code2 = CreateCompilation(@"
 public class Test1
 {
 	public readonly struct S1{}
@@ -360,7 +360,7 @@ public class Test1
                 Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(isReadOnlyAttributeName));
             });
 
-            var code3 = CreateCompilation(@"
+            CSharpCompilation code3 = CreateCompilation(@"
 public class Test2
 {
 	public readonly struct S1{}
@@ -411,7 +411,7 @@ public class Test
         [Fact]
         public void BuildingAModuleRequiresIsReadOnlyAttributeToBeThere_InAReference()
         {
-            var reference = CreateCompilation(@"
+            CompilationReference reference = CreateCompilation(@"
 namespace System.Runtime.CompilerServices
 {
     public class IsReadOnlyAttribute : System.Attribute { }
@@ -425,7 +425,7 @@ public class Test
 
             CompileAndVerify(code, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsReadOnly);
                 Assert.Empty(type.GetAttributes());
                 AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);
@@ -435,7 +435,7 @@ public class Test
         [Fact]
         public void ReferencingAnEmbeddedIsReadOnlyAttributeDoesNotUseIt_InternalsVisible()
         {
-            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
+            CSharpCompilationOptions options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
 
             var code1 = @"
 [assembly:System.Runtime.CompilerServices.InternalsVisibleToAttribute(""Assembly2"")]
@@ -444,7 +444,7 @@ public class Test1
 	public readonly struct S1{}
 }";
 
-            var comp1 = CompileAndVerify(code1, options: options, verify: Verification.Passes, symbolValidator: module =>
+            CompilationVerifier comp1 = CompileAndVerify(code1, options: options, verify: Verification.Passes, symbolValidator: module =>
             {
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.IsReadOnlyAttribute.FullName);
@@ -555,7 +555,7 @@ class Test
         [Fact]
         public void IsReadOnlyAttributesInNoPia()
         {
-            var comAssembly = CreateCompilationWithMscorlib40(@"
+            CSharpCompilation comAssembly = CreateCompilationWithMscorlib40(@"
 using System;
 using System.Runtime.InteropServices;
 [assembly: ImportedFromTypeLib(""test.dll"")]
@@ -573,9 +573,9 @@ public readonly struct S1{}
 
             CompileAndVerify(comAssembly, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test");
 
-                var property = type.GetMember<PEPropertySymbol>("Property");
+                PEPropertySymbol property = type.GetMember<PEPropertySymbol>("Property");
                 Assert.NotNull(property);
                 AssertNotReferencedIsReadOnlyAttribute(type.GetAttributes());
             });
@@ -590,12 +590,12 @@ class User
 }";
 
 
-            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
+            CSharpCompilationOptions options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
 
-            var compilation_CompilationReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comAssembly.ToMetadataReference(embedInteropTypes: true) });
+            CSharpCompilation compilation_CompilationReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comAssembly.ToMetadataReference(embedInteropTypes: true) });
             CompileAndVerify(compilation_CompilationReference, symbolValidator: symbolValidator);
 
-            var compilation_BinaryReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) });
+            CSharpCompilation compilation_BinaryReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) });
             CompileAndVerify(compilation_BinaryReference, symbolValidator: symbolValidator);
 
             void symbolValidator(ModuleSymbol module)
@@ -603,9 +603,9 @@ class User
                 // No attribute is copied
                 AssertNoIsReadOnlyAttributeExists(module.ContainingAssembly);
 
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test");
 
-                var property = type.GetMember<PEPropertySymbol>("Property");
+                PEPropertySymbol property = type.GetMember<PEPropertySymbol>("Property");
                 Assert.NotNull(property);
                 AssertNotReferencedIsReadOnlyAttribute(property.Type.GetAttributes());
             }
@@ -636,7 +636,7 @@ public class Test
 
         private static void AssertNotReferencedIsReadOnlyAttribute(ImmutableArray<CSharpAttributeData> attributes)
         {
-            foreach (var attr in attributes)
+            foreach (CSharpAttributeData attr in attributes)
             {
                 Assert.NotEqual("IsReadOnlyAttribute", attr.AttributeClass.Name);
             }
@@ -650,11 +650,11 @@ public class Test
 
         private static void AssertGeneratedEmbeddedAttribute(AssemblySymbol assembly, string expectedTypeName)
         {
-            var typeSymbol = assembly.GetTypeByMetadataName(expectedTypeName);
+            NamedTypeSymbol typeSymbol = assembly.GetTypeByMetadataName(expectedTypeName);
             Assert.NotNull(typeSymbol);
             Assert.Equal(Accessibility.Internal, typeSymbol.DeclaredAccessibility);
 
-            var attributes = typeSymbol.GetAttributes().OrderBy(attribute => attribute.AttributeClass.Name).ToArray();
+            CSharpAttributeData[] attributes = typeSymbol.GetAttributes().OrderBy(attribute => attribute.AttributeClass.Name).ToArray();
             Assert.Equal(2, attributes.Length);
 
             Assert.Equal(WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_CompilerGeneratedAttribute), attributes[0].AttributeClass.ToDisplayString());

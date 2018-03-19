@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void NamespaceBindingInInteractiveCode()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using Z = Goo.Bar.Script.C;
 
 class C { }
@@ -31,12 +31,12 @@ namespace Goo.Bar
                 options: TestOptions.ReleaseExe.WithScriptClassName("Goo.Bar.Script")
             );
 
-            var tree = compilation.SyntaxTrees[0];
-            var root = tree.GetCompilationUnitRoot();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            CompilationUnitSyntax root = tree.GetCompilationUnitRoot();
             var classB = (root.Members[1] as NamespaceDeclarationSyntax).Members[0] as TypeDeclarationSyntax;
-            var model = compilation.GetSemanticModel(tree);
-            var symbol = model.GetDeclaredSymbol(classB);
-            var baseType = symbol?.BaseType;
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            INamedTypeSymbol symbol = model.GetDeclaredSymbol(classB);
+            INamedTypeSymbol baseType = symbol?.BaseType;
             Assert.NotNull(baseType);
             Assert.Equal(TypeKind.Error, baseType.TypeKind);
             Assert.Equal(LookupResultKind.Inaccessible, ((ErrorTypeSymbol)baseType).ResultKind); // Script class members are private.
@@ -75,7 +75,7 @@ void Goo() {};
 /*<bind>*/Goo()/*</bind>*/;
 ";
             // Get the bind info for the text identified within the commented <bind> </bind> tags
-            var bindInfo = GetBindInfoForTest(testSrc);
+            CompilationUtils.SemanticInfoSummary bindInfo = GetBindInfoForTest(testSrc);
 
             Assert.NotNull(bindInfo.Type);
             Assert.Equal("System.Void", bindInfo.Type.ToTestDisplayString());
@@ -86,7 +86,7 @@ void Goo() {};
         {
             var testSrc = @"string s = /*<bind>*/null/*</bind>*/;";
             // Get the bind info for the text identified within the commented <bind> </bind> tags
-            var bindInfo = GetBindInfoForTest(testSrc);
+            CompilationUtils.SemanticInfoSummary bindInfo = GetBindInfoForTest(testSrc);
             Assert.Null(bindInfo.Type);
         }
 
@@ -98,7 +98,7 @@ bool result = true ;
 /*<bind>*/ result /*</bind>*/= false;
 ";
             // Get the bind info for the text identified within the commented <bind> </bind> tags
-            var bindInfo = GetBindInfoForTest(testSrc);
+            CompilationUtils.SemanticInfoSummary bindInfo = GetBindInfoForTest(testSrc);
             Assert.NotNull(bindInfo.Type);
             Assert.Equal("System.Boolean", bindInfo.Type.ToTestDisplayString());
         }
@@ -117,9 +117,9 @@ int field = constantField;
     int local2 = constantField;
 }";
             // Get the bind info for the text identified within the commented <bind> </bind> tags
-            var bindInfo = GetBindInfoForTest(testSrc);
+            CompilationUtils.SemanticInfoSummary bindInfo = GetBindInfoForTest(testSrc);
             Assert.Equal(SpecialType.System_Int32, bindInfo.Type.SpecialType);
-            var symbol = bindInfo.Symbol;
+            ISymbol symbol = bindInfo.Symbol;
             Assert.Equal("System.Int32 local1", symbol.ToTestDisplayString());
             Assert.IsAssignableFrom<SourceLocalSymbol>(symbol);
         }
@@ -132,9 +132,9 @@ int field = constantField;
 int i = 2;
 ++/*<bind>*/i/*</bind>*/;";
             // Get the bind info for the text identified within the commented <bind> </bind> tags
-            var bindInfo = GetBindInfoForTest(testSrc);
+            CompilationUtils.SemanticInfoSummary bindInfo = GetBindInfoForTest(testSrc);
             Assert.Equal(SpecialType.System_Int32, bindInfo.Type.SpecialType);
-            var symbol = bindInfo.Symbol;
+            ISymbol symbol = bindInfo.Symbol;
             Assert.Equal("System.Int32 Script.i", symbol.ToTestDisplayString());
             Assert.Equal(SymbolKind.Field, symbol.Kind);
         }
@@ -147,7 +147,7 @@ int i = 2;
 /*<bind>*/var/*</bind>*/ rand = new System.Random();";
 
             // Get the bind info for the text identified within the commented <bind> </bind> tags
-            var semanticInfo = GetBindInfoForTest(testSrc);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetBindInfoForTest(testSrc);
 
             Assert.Equal("System.Random", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
@@ -172,7 +172,7 @@ int i = 2;
 /*<bind>*/var/*</bind>*/ i = new int(), j = new char();
 ";
             // Get the bind info for the text identified within the commented <bind> </bind> tags
-            var semanticInfo = GetBindInfoForTest(testSrc);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetBindInfoForTest(testSrc);
 
             Assert.Equal("var", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind);
@@ -198,7 +198,7 @@ public class var { }
 /*<bind>*/var/*</bind>*/ x = new var();
 ";
             // Get the bind info for the text identified within the commented <bind> </bind> tags
-            var semanticInfo = GetBindInfoForTest(testSrc);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetBindInfoForTest(testSrc);
 
             Assert.Equal("Script.var", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
@@ -226,7 +226,7 @@ public struct var { }
 /*<bind>*/var/*</bind>*/ x = new var();
 ";
             // Get the bind info for the text identified within the commented <bind> </bind> tags
-            var semanticInfo = GetBindInfoForTest(testSrc);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetBindInfoForTest(testSrc);
 
             Assert.Equal("Script.var", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Error, semanticInfo.Type.TypeKind);
@@ -237,7 +237,7 @@ public struct var { }
             Assert.Null(semanticInfo.Symbol);
             Assert.Equal(CandidateReason.Ambiguous, semanticInfo.CandidateReason);
             Assert.Equal(2, semanticInfo.CandidateSymbols.Length);
-            var sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
+            ISymbol[] sortedCandidates = semanticInfo.CandidateSymbols.OrderBy(s => s.ToTestDisplayString()).ToArray();
             Assert.Equal("Script.var", sortedCandidates[0].ToTestDisplayString());
             Assert.Equal(SymbolKind.NamedType, sortedCandidates[0].Kind);
             Assert.Equal("Script.var", sortedCandidates[1].ToTestDisplayString());
@@ -257,7 +257,7 @@ using System.Linq;
 
 var x = from c in ""goo"" select /*<bind>*/c/*</bind>*/";
             // Get the bind info for the text identified within the commented <bind> </bind> tags
-            var semanticInfo = GetBindInfoForTest(testSrc);
+            CompilationUtils.SemanticInfoSummary semanticInfo = GetBindInfoForTest(testSrc);
             Assert.Equal("c", semanticInfo.Symbol.Name);
             Assert.Equal(SymbolKind.RangeVariable, semanticInfo.Symbol.Kind);
             Assert.Equal(SpecialType.System_Char, semanticInfo.Type.SpecialType);
@@ -280,7 +280,7 @@ var x = from c in ""goo"" select /*<bind>*/c/*</bind>*/";
                 exprSynList.Add(node as ExpressionSyntax);
             }
 
-            foreach (var child in node.ChildNodesAndTokens())
+            foreach (SyntaxNodeOrToken child in node.ChildNodesAndTokens())
             {
                 if (child.IsNode)
                     exprSynList = GetExprSyntaxList(child.AsNode(), exprSynList);
@@ -291,7 +291,7 @@ var x = from c in ""goo"" select /*<bind>*/c/*</bind>*/";
 
         private ExpressionSyntax GetExprSyntaxForBinding(List<ExpressionSyntax> exprSynList)
         {
-            foreach (var exprSyntax in exprSynList)
+            foreach (ExpressionSyntax exprSyntax in exprSynList)
             {
                 string exprFullText = exprSyntax.ToFullString();
                 exprFullText = exprFullText.Trim();
@@ -341,7 +341,7 @@ var x = from c in ""goo"" select /*<bind>*/c/*</bind>*/";
         private void CompileAndVerifyBindInfo(string testSrc, string expected)
         {
             // Get the bind info for the text identified within the commented <bind> </bind> tags
-            var bindInfo = GetBindInfoForTest(testSrc);
+            CompilationUtils.SemanticInfoSummary bindInfo = GetBindInfoForTest(testSrc);
             Assert.NotNull(bindInfo.Type);
             var method = bindInfo.Symbol.ToDisplayString();
             Assert.Equal(expected, method);
@@ -349,11 +349,11 @@ var x = from c in ""goo"" select /*<bind>*/c/*</bind>*/";
 
         private CompilationUtils.SemanticInfoSummary GetBindInfoForTest(string testSrc)
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
                 testSrc, parseOptions: TestOptions.Script, references: new[] { SystemCoreRef });
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            ExpressionSyntax exprSyntaxToBind = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
 
             return model.GetSemanticInfoSummary(exprSyntaxToBind);
         }

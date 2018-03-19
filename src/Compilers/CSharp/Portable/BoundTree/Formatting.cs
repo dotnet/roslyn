@@ -77,8 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 var pooledBuilder = PooledStringBuilder.GetInstance();
-                var builder = pooledBuilder.Builder;
-                var arguments = this.Arguments;
+                System.Text.StringBuilder builder = pooledBuilder.Builder;
+                System.Collections.Immutable.ImmutableArray<BoundExpression> arguments = this.Arguments;
                 var argumentDisplays = new object[arguments.Length];
 
                 builder.Append('(');

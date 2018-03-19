@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // SyntaxTree is referenced by two different compilations.
                 if (location0 == location1)
                 {
-                    var containingAssembly0 = unwrappedSymbol0.ContainingAssembly;
-                    var containingAssembly1 = unwrappedSymbol1.ContainingAssembly;
+                    AssemblySymbol containingAssembly0 = unwrappedSymbol0.ContainingAssembly;
+                    AssemblySymbol containingAssembly1 = unwrappedSymbol1.ContainingAssembly;
 
                     // May not be the case if there are error types.
                     if ((object)containingAssembly0 != null && (object)containingAssembly1 != null)
@@ -160,8 +160,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<SyntaxReference> syntaxReferences = unwrappedSymbol.DeclaringSyntaxReferences;
             if (syntaxReferences.Length > 0)
             {
-                var tree = syntaxReferences[0].SyntaxTree;
-                var span = syntaxReferences[0].Span;
+                SyntaxTree tree = syntaxReferences[0].SyntaxTree;
+                Text.TextSpan span = syntaxReferences[0].Span;
                 string path = tree.GetDisplayPath(span, (compilation != null) ? compilation.Options.SourceReferenceResolver : null);
                 if (!string.IsNullOrEmpty(path))
                 {
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public override int GetHashCode()
             {
                 int result = GetSymbol().GetHashCode();
-                var compilation = _distinguisher._compilation;
+                Compilation compilation = _distinguisher._compilation;
                 if (compilation != null)
                 {
                     result = Hash.Combine(result, compilation.GetHashCode());

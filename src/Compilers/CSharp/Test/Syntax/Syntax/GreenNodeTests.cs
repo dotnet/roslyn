@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static void AttachAndCheckDiagnostics(InternalSyntax.CSharpSyntaxNode node)
         {
-            var nodeWithDiags = node.SetDiagnostics(new DiagnosticInfo[] { new CSDiagnosticInfo(ErrorCode.ERR_AbstractAndExtern) });
-            var diags = nodeWithDiags.GetDiagnostics();
+            GreenNode nodeWithDiags = node.SetDiagnostics(new DiagnosticInfo[] { new CSDiagnosticInfo(ErrorCode.ERR_AbstractAndExtern) });
+            DiagnosticInfo[] diags = nodeWithDiags.GetDiagnostics();
 
             Assert.NotEqual(node, nodeWithDiags);
             Assert.Equal(1, diags.Length);

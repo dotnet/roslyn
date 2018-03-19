@@ -217,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol opType = null;
             if (kind.IsLifted())
             {
-                var nullable = _compilation.GetSpecialType(SpecialType.System_Nullable_T);
+                NamedTypeSymbol nullable = _compilation.GetSpecialType(SpecialType.System_Nullable_T);
 
                 switch (kind.OperandTypes())
                 {
@@ -559,7 +559,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }),
                 };
 
-                var allOperators = new[] { nonLogicalOperators, logicalOperators };
+                ImmutableArray<BinaryOperatorSignature>[][] allOperators = new[] { nonLogicalOperators, logicalOperators };
 
                 Interlocked.CompareExchange(ref _builtInOperators, allOperators, null);
             }
@@ -569,7 +569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal BinaryOperatorSignature GetSignature(BinaryOperatorKind kind)
         {
-            var left = LeftType(kind);
+            TypeSymbol left = LeftType(kind);
             switch (kind.Operator())
             {
                 case BinaryOperatorKind.Multiplication:
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(kind.IsLifted());
 
-            var nullable = _compilation.GetSpecialType(SpecialType.System_Nullable_T);
+            NamedTypeSymbol nullable = _compilation.GetSpecialType(SpecialType.System_Nullable_T);
 
             switch (kind.OperandTypes())
             {
@@ -777,13 +777,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var leftConversion = Conversions.ClassifyConversionFromType(leftType, rightType, ref useSiteDiagnostics);
+            Conversion leftConversion = Conversions.ClassifyConversionFromType(leftType, rightType, ref useSiteDiagnostics);
             if (leftConversion.IsIdentity || leftConversion.IsReference)
             {
                 return true;
             }
 
-            var rightConversion = Conversions.ClassifyConversionFromType(rightType, leftType, ref useSiteDiagnostics);
+            Conversion rightConversion = Conversions.ClassifyConversionFromType(rightType, leftType, ref useSiteDiagnostics);
             if (rightConversion.IsIdentity || rightConversion.IsReference)
             {
                 return true;

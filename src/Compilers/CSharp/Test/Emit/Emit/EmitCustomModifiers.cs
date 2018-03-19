@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Emit
         [Fact]
         public void Test1()
         {
-            var mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib;
+            PortableExecutableReference mscorlibRef = TestReferences.NetFx.v4_0_21006.mscorlib;
             string source = @"
 public class A
 {
@@ -35,7 +35,7 @@ public class A
     }
 }
 ";
-            var c = CreateCompilation(source,
+            CSharpCompilation c = CreateCompilation(source,
                 new[] { TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll },
                 options: TestOptions.UnsafeReleaseExe);
 
@@ -91,7 +91,7 @@ Class.Method1(3)
 Class.Method2(4)
 ".TrimStart();
 
-            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
+            PortableExecutableReference ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
             CompileAndVerify(
                 source: text,
@@ -150,7 +150,7 @@ Class.Method1b(5)
 Class.Method2(6)
 ".TrimStart();
 
-            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
+            PortableExecutableReference ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
             CompileAndVerify(
                 source: text,
@@ -202,7 +202,7 @@ Class.VirtualMethod(3)
 CppBase1::NonVirtualMethod(4)
 ".TrimStart();
 
-            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
+            PortableExecutableReference ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
             CompileAndVerify(
                 source: text,
@@ -273,7 +273,7 @@ Derived.VirtualMethod(5)
 CppBase1::NonVirtualMethod(6)
 ".TrimStart();
 
-            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
+            PortableExecutableReference ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
             CompileAndVerify(
                 source: text,
@@ -366,7 +366,7 @@ Class3.Method1(11)
 CppBase2::Method2(12)
 ".TrimStart();
 
-            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
+            PortableExecutableReference ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
             CompileAndVerify(
                 source: text,
@@ -448,7 +448,7 @@ CppBestMatchBase1::Method(21,22)
 Class2.Method(23,24)
 ".TrimStart();
 
-            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
+            PortableExecutableReference ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.CppCli.dll;
 
             CompileAndVerify(
                 source: text,
@@ -500,7 +500,7 @@ Derived2.Method(Int64[], Int16[], Object[])
 Derived2.Method(Int64[], Int16[], Single[])
 ".TrimStart();
 
-            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
+            PortableExecutableReference ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
             CompileAndVerify(
                 source: text,
@@ -543,7 +543,7 @@ System.Int32[]
 0
 ".TrimStart();
 
-            var ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
+            PortableExecutableReference ilAssemblyReference = TestReferences.SymbolsTests.CustomModifiers.Modifiers.dll;
 
             CompileAndVerify(
                 source: text,
@@ -592,11 +592,11 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
 
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var method = type.GetMember<MethodSymbol>("Incr");
-            var parameter = method.Parameters.Single();
+            NamedTypeSymbol type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            MethodSymbol method = type.GetMember<MethodSymbol>("Incr");
+            ParameterSymbol parameter = method.Parameters.Single();
 
             Assert.Equal(RefKind.Ref, parameter.RefKind);
             Assert.False(parameter.CustomModifiers.IsEmpty);
@@ -648,19 +648,19 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40(source, il, TargetFramework.Mscorlib40, options: TestOptions.ReleaseExe);
 
-            var baseType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var baseMethod = baseType.GetMember<MethodSymbol>("M");
-            var baseParameter = baseMethod.Parameters.Single();
+            NamedTypeSymbol baseType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            MethodSymbol baseMethod = baseType.GetMember<MethodSymbol>("M");
+            ParameterSymbol baseParameter = baseMethod.Parameters.Single();
 
             Assert.Equal(RefKind.Ref, baseParameter.RefKind);
             Assert.False(baseParameter.CustomModifiers.IsEmpty);
             Assert.True(baseParameter.RefCustomModifiers.IsEmpty);
 
-            var derivedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("D");
-            var derivedMethod = derivedType.GetMember<MethodSymbol>("M");
-            var derivedParameter = derivedMethod.Parameters.Single();
+            NamedTypeSymbol derivedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("D");
+            MethodSymbol derivedMethod = derivedType.GetMember<MethodSymbol>("M");
+            ParameterSymbol derivedParameter = derivedMethod.Parameters.Single();
 
             Assert.Equal(RefKind.Ref, derivedParameter.RefKind);
             Assert.False(derivedParameter.CustomModifiers.IsEmpty);
@@ -699,7 +699,7 @@ class Test
         }
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.UnsafeReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, verify: Verification.Fails);
         }
@@ -733,7 +733,7 @@ class Test
         }
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.UnsafeReleaseExe);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(source, ilSource, options: TestOptions.UnsafeReleaseExe);
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, verify: Verification.Fails);
         }

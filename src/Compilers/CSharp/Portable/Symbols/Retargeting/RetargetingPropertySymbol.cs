@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             {
                 if ((object)_lazyType == null)
                 {
-                    var type = this.RetargetingTranslator.Retarget(_underlyingProperty.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
+                    TypeSymbol type = this.RetargetingTranslator.Retarget(_underlyingProperty.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode);
                     _lazyType = type.AsDynamicIfNoPia(this.ContainingType);
                 }
                 return _lazyType;
@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         private ImmutableArray<ParameterSymbol> RetargetParameters()
         {
-            var list = _underlyingProperty.Parameters;
+            ImmutableArray<ParameterSymbol> list = _underlyingProperty.Parameters;
             int count = list.Length;
 
             if (count == 0)
@@ -180,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
         private ImmutableArray<PropertySymbol> RetargetExplicitInterfaceImplementations()
         {
-            var impls = _underlyingProperty.ExplicitInterfaceImplementations;
+            ImmutableArray<PropertySymbol> impls = _underlyingProperty.ExplicitInterfaceImplementations;
 
             if (impls.IsEmpty)
             {
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             for (int i = 0; i < impls.Length; i++)
             {
-                var retargeted = this.RetargetingTranslator.Retarget(impls[i], MemberSignatureComparer.RetargetedExplicitImplementationComparer);
+                PropertySymbol retargeted = this.RetargetingTranslator.Retarget(impls[i], MemberSignatureComparer.RetargetedExplicitImplementationComparer);
                 if ((object)retargeted != null)
                 {
                     builder.Add(retargeted);

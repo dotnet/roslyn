@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            foreach (var typeParameter in TypeParameterMap[name])
+            foreach (TypeParameterSymbol typeParameter in TypeParameterMap[name])
             {
                 result.MergeEqual(originalBinder.CheckViability(typeParameter, arity, options, null, diagnose, ref useSiteDiagnostics));
             }

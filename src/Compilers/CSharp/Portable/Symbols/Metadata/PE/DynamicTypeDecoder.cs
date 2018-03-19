@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (containerIsChanged || transformedTypeArguments != typeArguments)
             {
-                var newTypeArguments = namedType.HasTypeArgumentsCustomModifiers ?
+                ImmutableArray<TypeWithModifiers> newTypeArguments = namedType.HasTypeArgumentsCustomModifiers ?
                                            transformedTypeArguments.SelectAsArray((t, i, nt) => new TypeWithModifiers(t, nt.GetTypeArgumentCustomModifiers(i)), namedType) :
                                            transformedTypeArguments.SelectAsArray(TypeMap.TypeSymbolAsTypeWithModifiers);
 
@@ -273,8 +273,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             Debug.Assert(tupleType.IsTupleType);
 
-            var underlying = tupleType.TupleUnderlyingType;
-            var transformedUnderlying = TransformNamedType(underlying, isContaining);
+            NamedTypeSymbol underlying = tupleType.TupleUnderlyingType;
+            NamedTypeSymbol transformedUnderlying = TransformNamedType(underlying, isContaining);
             
             if (transformedUnderlying == null)
             {
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             var transformedTypeArgsBuilder = ArrayBuilder<TypeSymbol>.GetInstance();
             bool anyTransformed = false;
-            foreach (var typeArg in typeArguments)
+            foreach (TypeSymbol typeArg in typeArguments)
             {
                 TypeSymbol transformedTypeArg = TransformType(typeArg);
                 if ((object)transformedTypeArg == null)

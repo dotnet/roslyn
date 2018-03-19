@@ -64,8 +64,8 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithILAndMscorlib40(source, il);
-            var emitResult = comp.Emit(new System.IO.MemoryStream());
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40(source, il);
+            EmitResult emitResult = comp.Emit(new System.IO.MemoryStream());
             emitResult.Diagnostics.Verify(Diagnostic(ErrorCode.ERR_BadDelegateConstructor, "Goo").WithArguments("F"));
         }
 
@@ -92,14 +92,14 @@ class Test
 }";
 
             var name1 = GetUniqueName();
-            var module1 = CreateCompilation(text1, options: TestOptions.ReleaseModule, assemblyName: name1);
+            CSharpCompilation module1 = CreateCompilation(text1, options: TestOptions.ReleaseModule, assemblyName: name1);
 
-            var module2 = CreateCompilation(text2,
+            CSharpCompilation module2 = CreateCompilation(text2,
                 options: TestOptions.ReleaseModule,
                 references: new[] { ModuleMetadata.CreateFromImage(module1.EmitToArray(options: new EmitOptions(metadataOnly: true))).GetReference() });
 
             // use ref2 only
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(new Dictionary<string, ReportDiagnostic>() { { MessageProvider.Instance.GetIdForErrorCode((int)ErrorCode.WRN_UnreferencedField), ReportDiagnostic.Suppress } }),
                 references: new[] { ModuleMetadata.CreateFromImage(module2.EmitToArray(options: new EmitOptions(metadataOnly: true))).GetReference() });
 
@@ -134,8 +134,8 @@ class Test
     }
 }";
 
-            var ref2 = TestReferences.SymbolsTests.MDTestLib2;
-            var comp = CreateCompilation(text, references: new MetadataReference[] { ref2 }, assemblyName: "Test3");
+            PortableExecutableReference ref2 = TestReferences.SymbolsTests.MDTestLib2;
+            CSharpCompilation comp = CreateCompilation(text, references: new MetadataReference[] { ref2 }, assemblyName: "Test3");
             comp.VerifyDiagnostics(
     // (9,22): error CS0012: The type 'C1<>.C2<>' is defined in an assembly that is not referenced. You must add a reference to assembly 'MDTestLib1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
     //             Test x = var;
@@ -186,7 +186,7 @@ public class MyClass2
     public static void Main() { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisReturnType, Line = 7, Column = 27 });
         }
 
@@ -208,7 +208,7 @@ public class MyClass2
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisParamType, Line = 7, Column = 24 });
         }
 
@@ -226,7 +226,7 @@ public class MyClass2
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisParamType, Line = 7, Column = 21 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisParamType, Line = 8, Column = 24 });
         }
@@ -284,7 +284,7 @@ public class MainClass
     {
     }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisFieldType, Line = 3, Column = 20 });
         }
 
@@ -482,7 +482,7 @@ public class MyClass3
     {
     }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisIndexerParam, Line = 7, Column = 16 });
         }
 
@@ -505,7 +505,7 @@ public class A
     }
 }";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (7,28): error CS0056: Inconsistent accessibility: return type 'MyClass' is less accessible than operator 'A.implicit operator MyClass(A)'
 //     public static implicit operator MyClass(A a)   // CS0056
@@ -532,7 +532,7 @@ public class MyClass2
     }
 }";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (7,37): error CS0057: Inconsistent accessibility: parameter type 'MyClass' is less accessible than operator 'MyClass2.implicit operator MyClass2(MyClass)'
 //     public static implicit operator MyClass2(MyClass iii)   // CS0057
@@ -554,7 +554,7 @@ public class A
     {
     }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisDelegateReturn, Line = 5, Column = 25 });
         }
 
@@ -582,7 +582,7 @@ public class Outer
 class MyClass {} //defaults to internal accessibility
 public delegate void MyClassDel(MyClass myClass);   // CS0059
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (3,22): error CS0059: Inconsistent accessibility: parameter type 'MyClass' is less accessible than delegate 'MyClassDel'
                 // public delegate void MyClassDel(MyClass myClass);   // CS0059
@@ -609,7 +609,7 @@ namespace NS
         protected internal class MyClass01 : MyBase { }
     }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseClass, Line = 6, Column = 18 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseClass, Line = 11, Column = 25 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseClass, Line = 14, Column = 34 });
@@ -630,7 +630,7 @@ public class A<T>
     protected class D { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseClass, Line = 4, Column = 18 });
         }
 
@@ -658,7 +658,7 @@ internal class F : A
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseClass, Line = 14, Column = 22 });
         }
 
@@ -675,7 +675,7 @@ public class A<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseClass, Line = 4, Column = 19 });
         }
 
@@ -692,7 +692,7 @@ class A<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
         }
 
         [WorkItem(539950, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539950")]
@@ -715,7 +715,7 @@ class C<T> { }
 
 class E : A.B.D { }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 // E.F is inaccessible where written; cascaded ERR_BadVisBaseClass is therefore suppressed
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadAccess, Line = 2, Column = 15 });
         }
@@ -775,7 +775,7 @@ internal interface BB : B { }
 internal interface C { }
 internal interface CC : C { }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVisBaseInterface, Line = 2, Column = 18 });
         }
 
@@ -1005,7 +1005,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (1,10): error CS0076: The enumerator name 'value__' is reserved and cannot be used
                 // enum E { value__ }
@@ -1377,7 +1377,7 @@ class C : I
     }
 }
 ";
-            var comp = CreateCompilation(text).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(text).VerifyDiagnostics(
     // (5,31): error CS0100: The parameter name 'b' is a duplicate
     //         void M1(byte b, sbyte b);
     Diagnostic(ErrorCode.ERR_DuplicateParamName, "b").WithArguments("b").WithLocation(5, 31),
@@ -1414,7 +1414,7 @@ class C : I
         class A<T, V> { }
     }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateNameInNS, Line = 4, Column = 11 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateNameInNS, Line = 5, Column = 15 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateNameInNS, Line = 10, Column = 15 },
@@ -1435,7 +1435,7 @@ class C : I
     struct SS { }
     public class SS { }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateNameInNS, Line = 4, Column = 11 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateNameInNS, Line = 7, Column = 18 });
 
@@ -1453,7 +1453,7 @@ class C : I
     struct SS { }
     public struct SS { }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateNameInNS, Line = 4, Column = 15 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateNameInNS, Line = 7, Column = 19 });
 
@@ -1468,7 +1468,7 @@ class C : I
     partial class Goo<T, V> { } // no error, because ""partial""
     partial class Goo<T, V> { }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
         }
@@ -1482,7 +1482,7 @@ class C : I
     long n = 1;
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (4,10): error CS0102: The type 'A' already contains a definition for 'n'
                 //     long n = 1;
@@ -1496,9 +1496,9 @@ class C : I
                 );
 
             var classA = comp.SourceModule.GlobalNamespace.GetTypeMembers("A").Single() as NamedTypeSymbol;
-            var ns = classA.GetMembers("n");
+            ImmutableArray<Symbol> ns = classA.GetMembers("n");
             Assert.Equal(2, ns.Length);
-            foreach (var n in ns)
+            foreach (Symbol n in ns)
             {
                 Assert.Equal(TypeKind.Struct, (n as FieldSymbol).Type.TypeKind);
             }
@@ -1594,7 +1594,7 @@ namespace n3
         A a;
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (22,9): error CS0104: 'A' is an ambiguous reference between 'n1.A' and 'n3.n2.A'
                 //         A a;
@@ -1607,14 +1607,14 @@ namespace n3
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "a").WithArguments("n3.S.a").WithLocation(22, 11)
             );
 
-            var ns3 = comp.SourceModule.GlobalNamespace.GetMember<NamespaceSymbol>("n3");
-            var classC = ns3.GetMember<NamedTypeSymbol>("C");
-            var classCInterface = classC.Interfaces().Single();
+            NamespaceSymbol ns3 = comp.SourceModule.GlobalNamespace.GetMember<NamespaceSymbol>("n3");
+            NamedTypeSymbol classC = ns3.GetMember<NamedTypeSymbol>("C");
+            NamedTypeSymbol classCInterface = classC.Interfaces().Single();
             Assert.Equal("IGoo", classCInterface.Name);
             Assert.Equal(TypeKind.Error, classCInterface.TypeKind);
 
-            var structS = ns3.GetMember<NamedTypeSymbol>("S");
-            var structSField = structS.GetMember<FieldSymbol>("a");
+            NamedTypeSymbol structS = ns3.GetMember<NamedTypeSymbol>("S");
+            FieldSymbol structSField = structS.GetMember<FieldSymbol>("a");
             Assert.Equal("A", structSField.Type.Name);
             Assert.Equal(TypeKind.Error, structSField.Type.TypeKind);
         }
@@ -1809,14 +1809,14 @@ struct Goo
     public static void Main() { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_MemberAlreadyExists, Line = 4, Column = 24 });
         }
 
         [Fact]
         public void CS0111ERR_MemberAlreadyExists02()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"static class S
 {
     internal static void E<T>(this T t, object o) where T : new() { }
@@ -1833,7 +1833,7 @@ struct Goo
         [Fact]
         public void CS0111ERR_MemberAlreadyExists03()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"class C
 {
     object this[object o] { get { return null; } set { } }
@@ -1862,7 +1862,7 @@ interface I
         [Fact]
         public void CS0111ERR_MemberAlreadyExists04()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"
 using AliasForI = I;
 public interface I
@@ -1895,7 +1895,7 @@ public class C : I, J
         [Fact]
         public void CS0111ERR_MemberAlreadyExists05()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"class C
 {
     void M<T>(T t) where T : new() { }
@@ -1937,7 +1937,7 @@ interface I<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 9, Column = 37 });
         }
 
@@ -1956,7 +1956,7 @@ class B : A
     internal static abstract object R { get; set; }
 }
 ";
-            var tree = Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            SyntaxTree tree = Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             CreateCompilation(tree).VerifyDiagnostics(
     // (7,38): error CS0112: A static member 'B.P' cannot be marked as override, virtual, or abstract
     //     protected static override object P { get { return null; } }
@@ -1993,7 +1993,7 @@ abstract class B : A
     internal static abstract event System.Action R;
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 7, Column = 51 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 8, Column = 47 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_StaticNotVirtual, Line = 9, Column = 50 },
@@ -2032,7 +2032,7 @@ abstract class B : A
         }
     }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotNew, Line = 14, Column = 34 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotNew, Line = 17, Column = 38 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotNew, Line = 20, Column = 38 });
@@ -2053,7 +2053,7 @@ class B : A
     internal virtual override object Q { get; set; }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotNew, Line = 8, Column = 35 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotNew, Line = 9, Column = 38 });
         }
@@ -2114,7 +2114,7 @@ class B : A
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OverrideNotExpected, Line = 10, Column = 29 });
         }
 
@@ -2140,7 +2140,7 @@ class B : A
 
     public class A : Goo {}
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (7,18): error CS0118: 'Goo' is a namespace but is used like a type
                 //         void Goo(Goo f) {}
@@ -2157,7 +2157,7 @@ class B : A
                 );
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
-            var baseType = ns.GetTypeMembers("A").Single().BaseType();
+            NamedTypeSymbol baseType = ns.GetTypeMembers("A").Single().BaseType();
             Assert.Equal("Goo", baseType.Name);
             Assert.Equal(TypeKind.Error, baseType.TypeKind);
             Assert.Null(baseType.BaseType());
@@ -2169,7 +2169,7 @@ class B : A
 
             var type3 = ns.GetTypeMembers("S").Single() as NamedTypeSymbol;
             var mem2 = type3.GetMembers("Goo").Single() as MethodSymbol;
-            var param = mem2.Parameters[0];
+            ParameterSymbol param = mem2.Parameters[0];
             Assert.Equal("Goo", param.Type.Name);
             Assert.Equal(TypeKind.Error, param.Type.TypeKind);
         }
@@ -2188,7 +2188,7 @@ class Test
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadSKknown, Line = 6, Column = 10 });
         }
 
@@ -2273,7 +2273,7 @@ class Test
         static cly() { }
     }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_StaticConstParam, Line = 5, Column = 16 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_StaticConstParam, Line = 10, Column = 16 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_StaticConstParam, Line = 11, Column = 16 });
@@ -2353,7 +2353,7 @@ namespace NS
 
     struct S {}
 }";
-            var comp = CreateCompilation(Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
+            CSharpCompilation comp = CreateCompilation(Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
             comp.VerifyDiagnostics(
                 // (1,7): error CS0138: A using namespace directive can only be applied to namespaces; 'object' is a type not a namespace
                 // using System.Object;
@@ -2390,7 +2390,7 @@ namespace NS
 }
 ";
 
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CircularBase, Line = 3, Column = 11 }, // Roslyn extra
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CircularBase, Line = 4, Column = 11 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CircularBase, Line = 7, Column = 18 }, // Roslyn extra
@@ -2425,7 +2425,7 @@ public class D : C<D.Q>
    private class Q { } // accessible in base clause
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
         }
 
         [WorkItem(4169, "DevDiv_Projects/Roslyn")]
@@ -2438,7 +2438,7 @@ class A : object, A.IC
     protected interface IC { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
         }
 
         [WorkItem(4169, "DevDiv_Projects/Roslyn")]
@@ -2453,7 +2453,7 @@ class A : object, I<A.IC>
 
 interface I<T> { }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
         }
 
         [Fact]
@@ -2475,7 +2475,7 @@ namespace NS
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
             comp.VerifyDiagnostics(
                 // (6,16): error CS0179: 'C.C()' cannot be extern and declare a body
@@ -2878,7 +2878,7 @@ public class MyClass
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (12,21): error CS0218: In order to be applicable as a short circuit operator, the declaring type 'MyClass' of user-defined operator 'MyClass.operator &(MyClass, MyClass)' must declare operator true and operator false.
 //         MyClass i = f && f;   // CS0218, requires operators true and false
@@ -2897,7 +2897,7 @@ Diagnostic(ErrorCode.ERR_MustHaveOpTF, "f && f").WithArguments("MyClass.operator
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadVarargs, Line = 5, Column = 28 });
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -2950,7 +2950,7 @@ public class A
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ParamsMustBeArray, Line = 8, Column = 46 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ParamsMustBeArray, Line = 13, Column = 28 });
 
@@ -2968,7 +2968,7 @@ public class A
     }
 }
 ";
-            var c = CreateCompilation(text, options: TestOptions.ReleaseDll.WithAllowUnsafe(false));
+            CSharpCompilation c = CreateCompilation(text, options: TestOptions.ReleaseDll.WithAllowUnsafe(false));
             c.VerifyDiagnostics(
                 // (3,31): error CS0227: Unsafe code may only appear if compiling with /unsafe
                 //     unsafe public static void Main()   // CS0227
@@ -3113,7 +3113,7 @@ class MyClass3 : MyClass2
 }
 
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideSealed, Line = 19, Column = 26 });
         }
 
@@ -3156,7 +3156,7 @@ public class MyClass2 : MyClass
      }
   }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SingleTypeNameNotFound, Line = 3, Column = 20 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SingleTypeNameNotFound, Line = 6, Column = 18 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SingleTypeNameNotFound, Line = 6, Column = 33 },
@@ -3175,13 +3175,13 @@ public class MyClass2 : MyClass
             //ErrorTypes now appear as though they are declared in the global namespace. 
             Assert.Equal("System.String NS.IBar.M(ref NoType p1, out NoType p2, params NOType[] ary)", mem1.ToTestDisplayString());
             var param = mem1.Parameters[0] as ParameterSymbol;
-            var ptype = param.Type;
+            TypeSymbol ptype = param.Type;
             Assert.Equal(RefKind.Ref, param.RefKind);
             Assert.Equal(TypeKind.Error, ptype.TypeKind);
             Assert.Equal("NoType", ptype.Name);
 
             var type3 = ns.GetTypeMembers("A").Single() as NamedTypeSymbol;
-            var base1 = type3.BaseType();
+            NamedTypeSymbol base1 = type3.BaseType();
             Assert.Null(base1.BaseType());
             Assert.Equal(TypeKind.Error, base1.TypeKind);
             Assert.Equal("CNotExist", base1.Name);
@@ -3252,7 +3252,7 @@ namespace NS
 class BAttribute : System.Attribute { }
 [A][@B] class C { }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SingleTypeNameNotFound, Line = 3, Column = 5 });
         }
 
@@ -3328,7 +3328,7 @@ class BAttribute : System.Attribute { }
     interface I { } // CS0260
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_MissingPartial, Line = 3, Column = 18 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_MissingPartial, Line = 6, Column = 16 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_MissingPartial, Line = 13, Column = 15 });
@@ -3351,7 +3351,7 @@ class BAttribute : System.Attribute { }
     partial interface B<T, U> { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PartialTypeKindConflict, Line = 5, Column = 20 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PartialTypeKindConflict, Line = 6, Column = 23 });
 
@@ -3378,7 +3378,7 @@ class BAttribute : System.Attribute { }
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (3,30): error CS0262: Partial declarations of 'I' have conflicting accessibility modifiers
                 //     public partial interface I { }
@@ -3410,12 +3410,12 @@ class BAttribute : System.Attribute { }
     {
     }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMultipleBases, Line = 5, Column = 19 });
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetTypeMembers("C").Single() as NamedTypeSymbol;
-            var base1 = type1.BaseType();
+            NamedTypeSymbol base1 = type1.BaseType();
             Assert.Null(base1.BaseType());
             Assert.Equal(TypeKind.Error, base1.TypeKind);
             Assert.Equal("B1", base1.Name);
@@ -3446,7 +3446,7 @@ class BAttribute : System.Attribute { }
     interface N8 : I, I { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NonInterfaceInInterfaceList, Line = 8, Column = 24 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NonInterfaceInInterfaceList, Line = 8, Column = 32 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NoMultipleInheritance, Line = 10, Column = 26 },
@@ -3483,7 +3483,7 @@ class BAttribute : System.Attribute { }
 }
 ";
 
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PartialWrongTypeParams, Line = 3, Column = 26 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PartialWrongTypeParams, Line = 9, Column = 24 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PartialWrongTypeParams, Line = 13, Column = 32 });
@@ -3491,7 +3491,7 @@ class BAttribute : System.Attribute { }
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetTypeMembers("C").Single() as NamedTypeSymbol;
             Assert.Equal(1, type1.TypeParameters.Length);
-            var param = type1.TypeParameters[0];
+            TypeParameterSymbol param = type1.TypeParameters[0];
             // Assert.Equal(TypeKind.Error, param.TypeKind); // this assert it incorrect: it is definitely a type parameter
             Assert.Equal("T1", param.Name);
         }
@@ -3507,15 +3507,15 @@ class BAttribute : System.Attribute { }
         partial void F<U, T>(U u) where U : class {}
     }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetTypeMembers("MyClass").Single() as NamedTypeSymbol;
             Assert.Equal(0, type1.TypeParameters.Length);
             var f = type1.GetMembers("F").Single() as MethodSymbol;
             Assert.Equal(2, f.TypeParameters.Length);
-            var param1 = f.TypeParameters[0];
-            var param2 = f.TypeParameters[1];
+            TypeParameterSymbol param1 = f.TypeParameters[0];
+            TypeParameterSymbol param2 = f.TypeParameters[1];
             Assert.Equal("T", param1.Name);
             Assert.Equal("U", param2.Name);
         }
@@ -3664,10 +3664,10 @@ namespace N
     public interface I3 : I1 { }
 }
 ";
-            var ref1 = TestReferences.SymbolsTests.CyclicInheritance.Class1;
-            var ref2 = TestReferences.SymbolsTests.CyclicInheritance.Class2;
+            PortableExecutableReference ref1 = TestReferences.SymbolsTests.CyclicInheritance.Class1;
+            PortableExecutableReference ref2 = TestReferences.SymbolsTests.CyclicInheritance.Class2;
 
-            var comp = CreateCompilation(text, new[] { ref1, ref2 });
+            CSharpCompilation comp = CreateCompilation(text, new[] { ref1, ref2 });
             comp.VerifyDiagnostics(
                 // (3,23): error CS0268: Imported type 'C2' is invalid. It contains a circular base class dependency.
                 //     public class C3 : C1 { }
@@ -4023,7 +4023,7 @@ public class MyClass : MyInterface   // CS0277
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceAccessor, Line = 10, Column = 24 });
         }
 
@@ -4038,12 +4038,12 @@ public class MyClass : MyInterface   // CS0277
             //csc /target:library /keyfile:CS0281.snk /reference:class1.dll class2.cs
             //csc /target:library /keyfile:CS0281.snk /reference:class2.dll /out:class1.dll program.cs
             var text1 = @"public class A { }";
-            var tree1 = SyntaxFactory.ParseCompilationUnit(text1);
+            Syntax.CompilationUnitSyntax tree1 = SyntaxFactory.ParseCompilationUnit(text1);
 
             var text2 = @"[assembly: System.Runtime.CompilerServices.InternalsVisibleTo(""Class1 , PublicKey=abc"")]
 class B : A { }
 ";
-            var tree2 = SyntaxFactory.ParseCompilationUnit(text2);
+            Syntax.CompilationUnitSyntax tree2 = SyntaxFactory.ParseCompilationUnit(text2);
 
             var text3 = @"using System.Runtime.CompilerServices;
 [assembly: System.Reflection.AssemblyVersion(""3"")]
@@ -4053,7 +4053,7 @@ class C : B { }
 public class A { }
 ";
 
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text3,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text3,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_FriendRefNotEqualToThis, Line = 10, Column = 14 });
         }
 
@@ -4084,7 +4084,7 @@ public class A { }
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadArity, Line = 5, Column = 19 },
                 //new ErrorDescription { Code = (int)ErrorCode.ERR_BadArity, Line = 13, Column = 13 }, // Dev10 miss this due to other errors
                 //new ErrorDescription { Code = (int)ErrorCode.ERR_BadArity, Line = 13, Column = 23 }, // Dev10 miss this due to other errors
@@ -4346,7 +4346,7 @@ public class NormalType
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (14,17): error CS0400: The type or namespace name 'G' could not be found in the global namespace (are you missing an assembly reference?)
                 //         global::G field;
@@ -4517,7 +4517,7 @@ public class A : IA
     int IA.this[int index] { get { return 0; } set { } }
 }
 ";
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
 
             // NOTE: uses attribute name from syntax.
             compilation.VerifyDiagnostics(
@@ -4525,7 +4525,7 @@ public class A : IA
                 Diagnostic(ErrorCode.ERR_BadIndexerNameAttr, @"Alias").WithArguments("Alias"));
 
             // Note: invalid attribute had no effect on metadata name.
-            var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetProperty("IA." + WellKnownMemberNames.Indexer);
+            PropertySymbol indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetProperty("IA." + WellKnownMemberNames.Indexer);
             Assert.Equal("IA.Item", indexer.MetadataName);
         }
 
@@ -4547,7 +4547,7 @@ class G<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AttrArgWithTypeVars, Line = 10, Column = 18 });
         }
 
@@ -4567,7 +4567,7 @@ class G<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractSealedStatic, Line = 3, Column = 34 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractSealedStatic, Line = 5, Column = 40 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractSealedStatic, Line = 7, Column = 50 },
@@ -5001,7 +5001,7 @@ abstract class B2 : IB
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (14,18): error CS0426: The type name 's' does not exist in the type 'NS.S'
                 //         void M(S.s p) { } // CS0426
@@ -5069,7 +5069,7 @@ public class MyClass { }
 }
 
 class E : C::A { }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AliasNotFound, Line = 6, Column = 11 });
         }
 
@@ -5088,13 +5088,13 @@ class E : C::A { }";
     }
 }
 ";
-            var ref1 = TestReferences.SymbolsTests.V1.MTTestLib1.dll;
+            PortableExecutableReference ref1 = TestReferences.SymbolsTests.V1.MTTestLib1.dll;
 
             // this is not related to this test, but need by lib2 (don't want to add a new dll resource)
-            var ref2 = TestReferences.SymbolsTests.MultiModule.Assembly;
+            PortableExecutableReference ref2 = TestReferences.SymbolsTests.MultiModule.Assembly;
 
             // Roslyn give CS0104 for now
-            var comp = CreateCompilation(text, new List<MetadataReference> { ref1, ref2 });
+            CSharpCompilation comp = CreateCompilation(text, new List<MetadataReference> { ref1, ref2 });
             comp.VerifyDiagnostics(
                 // (6,16): error CS0433: The type 'Class1' exists in both 'MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' and 'MultiModule, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 //         void M(Class1 p) {}
@@ -5149,10 +5149,10 @@ namespace NS
     }
 }
 ";
-            var ref1 = TestReferences.DiagnosticTests.ErrTestLib11.dll;
-            var ref2 = TestReferences.DiagnosticTests.ErrTestLib02.dll;
+            PortableExecutableReference ref1 = TestReferences.DiagnosticTests.ErrTestLib11.dll;
+            PortableExecutableReference ref2 = TestReferences.DiagnosticTests.ErrTestLib02.dll;
 
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new List<MetadataReference> { ref1, ref2 },
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new List<MetadataReference> { ref1, ref2 },
                 // new ErrorDescription { Code = (int)ErrorCode.ERR_SameFullNameNsAgg, Line = 9, Column = 28 }, // Dev10 one error
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SameFullNameNsAgg, Line = 12, Column = 19 });
 
@@ -5187,7 +5187,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod1.GetReference(),
@@ -5226,7 +5226,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod2.GetReference(),
@@ -5253,7 +5253,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
 
@@ -5271,7 +5271,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod1.GetReference(),
@@ -5314,7 +5314,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -5333,7 +5333,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod2.GetReference(),
@@ -5374,7 +5374,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
 
@@ -5392,7 +5392,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod1.GetReference(),
@@ -5435,7 +5435,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -5454,7 +5454,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod2.GetReference(),
@@ -5495,7 +5495,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
 
@@ -5513,7 +5513,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod1.GetReference(),
@@ -5552,7 +5552,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
 
@@ -5570,7 +5570,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod2.GetReference(),
@@ -5611,7 +5611,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
 
@@ -5629,7 +5629,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod2.GetReference(),
@@ -5670,7 +5670,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
 
@@ -5688,7 +5688,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod1.GetReference(),
@@ -5735,7 +5735,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod1.GetReference(),
@@ -5771,7 +5771,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod1.GetReference(),
@@ -5807,7 +5807,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod2.GetReference(),
@@ -5843,7 +5843,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod2.GetReference(),
@@ -5866,7 +5866,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -5885,7 +5885,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod1.GetReference(),
@@ -5926,7 +5926,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -5945,7 +5945,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod1.GetReference(),
@@ -5988,7 +5988,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -6007,7 +6007,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod1.GetReference(),
@@ -6048,7 +6048,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -6067,7 +6067,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod1.GetReference(),
@@ -6110,7 +6110,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -6132,7 +6132,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod1.GetReference(),
@@ -6173,7 +6173,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -6195,7 +6195,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod2.GetReference(),
@@ -6236,7 +6236,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -6258,7 +6258,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod1.GetReference(),
@@ -6307,7 +6307,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -6329,7 +6329,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod1.GetReference(),
@@ -6370,7 +6370,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -6392,7 +6392,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod2.GetReference(),
@@ -6439,7 +6439,7 @@ namespace NS
 }
 ";
 
-            var lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
+            CSharpCompilation lib = CreateCompilation(libSource, assemblyName: "Lib", options: TestOptions.ReleaseDll);
 
             CompileAndVerify(lib);
             var text = @"using System;
@@ -6461,7 +6461,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod1.GetReference(),
@@ -6510,7 +6510,7 @@ namespace NS
 }
 ";
 
-            var mod3Ref = CreateCompilation(mod3Source, options: TestOptions.ReleaseModule, assemblyName: "ErrTestMod03").EmitToImageReference();
+            MetadataReference mod3Ref = CreateCompilation(mod3Source, options: TestOptions.ReleaseModule, assemblyName: "ErrTestMod03").EmitToImageReference();
 
             var text = @"using System;
 
@@ -6526,7 +6526,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod1.GetReference(),
@@ -6595,7 +6595,7 @@ namespace NS
     }
 }";
 
-            var mod3Ref = CreateCompilation(mod3Source, options: TestOptions.ReleaseModule, assemblyName: "ErrTestMod03").EmitToImageReference();
+            MetadataReference mod3Ref = CreateCompilation(mod3Source, options: TestOptions.ReleaseModule, assemblyName: "ErrTestMod03").EmitToImageReference();
 
             var text = @"using System;
 
@@ -6611,7 +6611,7 @@ namespace NS
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     s_mod1.GetReference(),
@@ -6666,7 +6666,7 @@ public static int AT = (new { field = 1 }).field;
 }
 ";
 
-            var ModuleA01Ref = CreateCompilation(ModuleA01, options: TestOptions.ReleaseModule, assemblyName: "ModuleA01").EmitToImageReference();
+            MetadataReference ModuleA01Ref = CreateCompilation(ModuleA01, options: TestOptions.ReleaseModule, assemblyName: "ModuleA01").EmitToImageReference();
 
             var ModuleB01 = @"
 class B01{
@@ -6674,7 +6674,7 @@ public static int AT = (new { field = 2 }).field;
 }
 ";
 
-            var ModuleB01Ref = CreateCompilation(ModuleB01, options: TestOptions.ReleaseModule, assemblyName: "ModuleB01").EmitToImageReference();
+            MetadataReference ModuleB01Ref = CreateCompilation(ModuleB01, options: TestOptions.ReleaseModule, assemblyName: "ModuleB01").EmitToImageReference();
 
             var text = @"
    class Test {
@@ -6686,7 +6686,7 @@ public static int AT = (new { field = 2 }).field;
 }
 ";
 
-            var comp = CreateCompilation(text,
+            CSharpCompilation comp = CreateCompilation(text,
                 new List<MetadataReference>()
                 {
                     ModuleA01Ref,
@@ -6728,12 +6728,12 @@ public static int AT = (new { field = 2 }).field;
 ";
 
             ImmutableArray<Byte> ilBytes;
-            using (var reference = IlasmUtilities.CreateTempAssembly(ilSource, prependDefaultHeader: false))
+            using (DisposableFile reference = IlasmUtilities.CreateTempAssembly(ilSource, prependDefaultHeader: false))
             {
                 ilBytes = ReadFromFile(reference.Path);
             }
 
-            var moduleRef = ModuleMetadata.CreateFromImage(ilBytes).GetReference();
+            PortableExecutableReference moduleRef = ModuleMetadata.CreateFromImage(ilBytes).GetReference();
 
             var source =
 @"
@@ -6741,7 +6741,7 @@ interface ITest20
 {}
 ";
 
-            var compilation = CreateCompilation(source,
+            CSharpCompilation compilation = CreateCompilation(source,
                 new List<MetadataReference>()
                 {
                     moduleRef
@@ -6797,12 +6797,12 @@ interface ITest20
 ";
 
             ImmutableArray<Byte> ilBytes;
-            using (var reference = IlasmUtilities.CreateTempAssembly(ilSource, prependDefaultHeader: false))
+            using (DisposableFile reference = IlasmUtilities.CreateTempAssembly(ilSource, prependDefaultHeader: false))
             {
                 ilBytes = ReadFromFile(reference.Path);
             }
 
-            var moduleRef1 = ModuleMetadata.CreateFromImage(ilBytes).GetReference();
+            PortableExecutableReference moduleRef1 = ModuleMetadata.CreateFromImage(ilBytes).GetReference();
 
             var mod2Source =
 @"
@@ -6828,9 +6828,9 @@ namespace ns1
 }
 ";
 
-            var moduleRef2 = CreateCompilation(mod2Source, options: TestOptions.ReleaseModule, assemblyName: "mod_1_2").EmitToImageReference();
+            MetadataReference moduleRef2 = CreateCompilation(mod2Source, options: TestOptions.ReleaseModule, assemblyName: "mod_1_2").EmitToImageReference();
 
-            var compilation = CreateCompilation("",
+            CSharpCompilation compilation = CreateCompilation("",
                 new List<MetadataReference>()
                 {
                     moduleRef1,
@@ -6864,13 +6864,13 @@ public class CF3<T>
 {}
 ";
 
-            var forwardedTypes1 = CreateCompilation(forwardedTypesSource, options: TestOptions.ReleaseDll, assemblyName: "ForwardedTypes1");
+            CSharpCompilation forwardedTypes1 = CreateCompilation(forwardedTypesSource, options: TestOptions.ReleaseDll, assemblyName: "ForwardedTypes1");
             var forwardedTypes1Ref = new CSharpCompilationReference(forwardedTypes1);
 
-            var forwardedTypes2 = CreateCompilation(forwardedTypesSource, options: TestOptions.ReleaseDll, assemblyName: "ForwardedTypes2");
+            CSharpCompilation forwardedTypes2 = CreateCompilation(forwardedTypesSource, options: TestOptions.ReleaseDll, assemblyName: "ForwardedTypes2");
             var forwardedTypes2Ref = new CSharpCompilationReference(forwardedTypes2);
 
-            var forwardedTypesModRef = CreateCompilation(forwardedTypesSource,
+            MetadataReference forwardedTypesModRef = CreateCompilation(forwardedTypesSource,
                                                                 options: TestOptions.ReleaseModule,
                                                                 assemblyName: "forwardedTypesMod").
                                        EmitToImageReference();
@@ -6881,31 +6881,31 @@ public class CF3<T>
 [assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(ns.CF2))]
 ";
 
-            var module1_FT1_Ref = CreateCompilation(modSource,
+            MetadataReference module1_FT1_Ref = CreateCompilation(modSource,
                                                                 options: TestOptions.ReleaseModule,
                                                                 assemblyName: "module1_FT1",
                                                                 references: new MetadataReference[] { forwardedTypes1Ref }).
                                   EmitToImageReference();
 
-            var module2_FT1_Ref = CreateCompilation(modSource,
+            MetadataReference module2_FT1_Ref = CreateCompilation(modSource,
                                                                 options: TestOptions.ReleaseModule,
                                                                 assemblyName: "module2_FT1",
                                                                 references: new MetadataReference[] { forwardedTypes1Ref }).
                                   EmitToImageReference();
 
-            var module3_FT2_Ref = CreateCompilation(modSource,
+            MetadataReference module3_FT2_Ref = CreateCompilation(modSource,
                                                                 options: TestOptions.ReleaseModule,
                                                                 assemblyName: "module3_FT2",
                                                                 references: new MetadataReference[] { forwardedTypes2Ref }).
                                   EmitToImageReference();
 
-            var module4_Ref = CreateCompilation("[assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(CF3<int>))]",
+            MetadataReference module4_Ref = CreateCompilation("[assembly: System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(CF3<int>))]",
                                                                 options: TestOptions.ReleaseModule,
                                                                 assemblyName: "module4_FT1",
                                                                 references: new MetadataReference[] { forwardedTypes1Ref }).
                                   EmitToImageReference();
 
-            var compilation = CreateCompilation(forwardedTypesSource,
+            CSharpCompilation compilation = CreateCompilation(forwardedTypesSource,
                 new List<MetadataReference>()
                 {
                     module1_FT1_Ref,
@@ -7047,7 +7047,7 @@ extern alias FT1;
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (3,25): error CS0441: 'NS.Test': a class cannot be both static and sealed
                 Diagnostic(ErrorCode.ERR_SealedStaticClass, "Test").WithArguments("NS.Test"),
@@ -7559,7 +7559,7 @@ class D : C<int>
    public override void F(int t) {}   // CS0462
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeOverrideMatches, Line = 3, Column = 24, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AmbigOverride, Line = 9, Column = 25 });
         }
@@ -7620,7 +7620,7 @@ class MyClass : I
     public int P2 { get { return 0; } }   // OK
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 6, Column = 17 }, //Dev10 doesn't include this
                 new ErrorDescription { Code = (int)ErrorCode.ERR_MethodImplementingAccessor, Line = 8, Column = 16 });
         }
@@ -7641,7 +7641,7 @@ class MyClass : I
     } // class clx
 }
 ";
-            var comp = CreateCompilation(text).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(text).VerifyDiagnostics(
                 // (5,30): error CS0500: 'clx.M1()' cannot declare a body because it is marked abstract
                 //         abstract public void M1() { }
                 Diagnostic(ErrorCode.ERR_AbstractHasBody, "M1").WithArguments("NS.clx.M1()").WithLocation(5, 30),
@@ -7769,7 +7769,7 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
     } // class cly
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractAndSealed, Line = 13, Column = 46 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractAndSealed, Line = 14, Column = 49 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractAndSealed, Line = 15, Column = 50 },
@@ -7794,7 +7794,7 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
 }
 ";
 
-            var comp = CreateCompilation(source).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(source).VerifyDiagnostics(
                 // (7,40): error CS0503: The abstract property 'clx.P' cannot be marked virtual
                 //         virtual abstract public object P { get; set; }
                 Diagnostic(ErrorCode.ERR_AbstractNotVirtual, "P").WithArguments("property", "NS.clx.P").WithLocation(7, 40),
@@ -7825,7 +7825,7 @@ Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "M3").WithArguments("NS.clx<T>.M3(
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_StaticConstant, Line = 5, Column = 26 });
         }
 
@@ -7842,7 +7842,7 @@ public class cly : clx
    public override int i() { return 0; }   // CS0505
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonFunction, Line = 8, Column = 24 });
         }
 
@@ -7873,7 +7873,7 @@ public class cly : clx
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonVirtual, Line = 13, Column = 29 });
         }
 
@@ -7974,7 +7974,7 @@ class Derived2 : Base_VirtGet_Set
     }
 }
 ";
-            var comp = CreateCompilationWithILAndMscorlib40(text, s_typeWithMixedProperty);
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40(text, s_typeWithMixedProperty);
             comp.VerifyDiagnostics(
                 // (4,25): error CS0506: 'Derived2.Prop.set': cannot override inherited member 'Base_VirtGet_Set.Prop.set' because it is not marked virtual, abstract, or override
                 //         get { return base.Prop; }
@@ -8005,7 +8005,7 @@ class Derived2 : Base_VirtGet_Set
     }
 }
 ";
-            var comp = CreateCompilationWithILAndMscorlib40(text, s_typeWithMixedProperty);
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40(text, s_typeWithMixedProperty);
             comp.VerifyDiagnostics();
         }
 
@@ -8037,7 +8037,7 @@ public class MyClass : BaseClass2
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 11, Column = 23, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonVirtual, Line = 19, Column = 25 });
         }
@@ -8056,7 +8056,7 @@ public class cly : clx
     public static void Main() { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeAccessOnOverride, Line = 8, Column = 26 });
         }
 
@@ -8077,7 +8077,7 @@ public class Cly : Clx
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantChangeReturnTypeOnOverride, Line = 9, Column = 28 });
         }
 
@@ -8235,7 +8235,7 @@ class C
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_StaticConstructorWithAccessModifiers, Line = 5, Column = 24 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_StaticConstructorWithAccessModifiers, Line = 9, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_StaticConstructorWithAccessModifiers, Line = 15, Column = 23 },
@@ -8720,7 +8720,7 @@ struct S6<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_InterfacesCannotContainTypes, Line = 5, Column = 19 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_InterfacesCannotContainTypes, Line = 6, Column = 22 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_InterfacesCannotContainTypes, Line = 7, Column = 16 },
@@ -8746,7 +8746,7 @@ struct S6<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_InterfacesCantContainFields, Line = 5, Column = 16 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_InterfacesCantContainFields, Line = 6, Column = 21 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_InterfacesCantContainFields, Line = 7, Column = 21 });
@@ -8767,7 +8767,7 @@ struct S6<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_InterfacesCantContainConstructors, Line = 5, Column = 17 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_InterfacesCantContainConstructors, Line = 6, Column = 19 });
 
@@ -8790,7 +8790,7 @@ struct S6<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NonInterfaceInInterfaceList, Line = 5, Column = 23 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NonInterfaceInInterfaceList, Line = 5, Column = 31 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NonInterfaceInInterfaceList, Line = 7, Column = 26 });
@@ -8814,7 +8814,7 @@ struct S6<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateInterfaceInBaseList, Line = 5, Column = 28 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateInterfaceInBaseList, Line = 8, Column = 28 });
 
@@ -8839,7 +8839,7 @@ struct S6<T>
     interface I3 : I1 { }
 }";
 
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CycleInInterfaceInheritance, Line = 7, Column = 15 }, // Extra
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CycleInInterfaceInheritance, Line = 8, Column = 15 }, // Extra
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CycleInInterfaceInheritance, Line = 9, Column = 15 });
@@ -8868,7 +8868,7 @@ struct S6<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_SemicolonExpected, Line = 14, Column = 39 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_InterfaceMemberHasBody, Line = 5, Column = 13 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_InterfaceMemberHasBody, Line = 6, Column = 14 },
@@ -8893,7 +8893,7 @@ struct S6<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadMemberFlag, Line = 5, Column = 18 });
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -8970,7 +8970,7 @@ class C
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_HidingAbstractMethod, Line = 11, Column = 34 });
         }
 
@@ -9193,7 +9193,7 @@ public abstract class Base<T>
 public class Derived : Base<int> // CS0534
 { }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 13, Column = 7 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 26, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 26, Column = 14 });
@@ -9209,7 +9209,7 @@ public class Derived : Base<int> // CS0534
 
 public class B : A { }   // CS0535 A::F is not implemented
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 6, Column = 18 });
         }
 
@@ -9291,7 +9291,7 @@ class C : MyIFace
     int MyClass.P { get { return 1; } }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, Line = 11, Column = 10 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitInterfaceImplementationNotInterface, Line = 14, Column = 9 });
         }
@@ -9321,7 +9321,7 @@ class C : MyIFace
    }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_InterfaceMemberNotFound, Line = 10, Column = 14 });
         }
 
@@ -9338,7 +9338,7 @@ public class Clx
     void I.m() { }   // CS0540
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ClassDoesntImplementInterface, Line = 8, Column = 10 });
         }
 
@@ -9373,7 +9373,7 @@ public class Clx
         [Fact]
         public void CS0542ERR_MemberNameSameAsType01()
         {
-            var comp = CreateCompilation(
+            CSharpCompilation comp = CreateCompilation(
 @"namespace NS
 {
     class NS { } // no error
@@ -9631,7 +9631,7 @@ namespace N2
     .set instance void A::B2(object v)
   }
 }";
-            var reference1 = CompileIL(source1);
+            MetadataReference reference1 = CompileIL(source1);
             var source2 =
 @"class B0 : A
 {
@@ -9653,7 +9653,7 @@ class set_P : A
 {
     public override object P { get { return null; } set { } }
 }";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (7,32): error CS0542: 'B1': member names cannot be the same as their enclosing type
                 Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "get").WithArguments("B1").WithLocation(7, 32),
@@ -9681,7 +9681,7 @@ class set_P : A
     .removeon instance void A::B2(class [mscorlib]System.Action);
   }
 }";
-            var reference1 = CompileIL(source1);
+            MetadataReference reference1 = CompileIL(source1);
             var source2 =
 @"using System;
 class B0 : A
@@ -9704,7 +9704,7 @@ class remove_E : A
 {
     public override event Action E;
 }";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (8,34): error CS0542: 'B1': member names cannot be the same as their enclosing type
                 //     public override event Action E;
@@ -9748,7 +9748,7 @@ public class b : a
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CantOverrideNonProperty, Line = 8, Column = 25 });
         }
 
@@ -9771,7 +9771,7 @@ public class b : a
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NoGetToOverride, Line = 13, Column = 9 });
         }
 
@@ -9791,13 +9791,13 @@ public class C : A
     public sealed override int P2 { set { } } //CS0546 since we can't see A.P2.set to override it as sealed
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (10,32): error CS0545: 'C.P2': cannot override because 'A.P2' does not have an overridable get accessor
                 Diagnostic(ErrorCode.ERR_NoGetToOverride, "P2").WithArguments("C.P2", "A.P2"));
 
-            var classA = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var classAProp1 = classA.GetMember<PropertySymbol>("P1");
+            NamedTypeSymbol classA = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            PropertySymbol classAProp1 = classA.GetMember<PropertySymbol>("P1");
 
             Assert.True(classAProp1.IsVirtual);
             Assert.True(classAProp1.SetMethod.IsVirtual);
@@ -9825,7 +9825,7 @@ public class b : a
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NoSetToOverride, Line = 15, Column = 9 });
         }
 
@@ -9845,13 +9845,13 @@ public class C : A
     public sealed override int P2 { get { return 0; } } //CS0546 since we can't see A.P2.set to override it as sealed
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (10,32): error CS0546: 'C.P2': cannot override because 'A.P2' does not have an overridable set accessor
                 Diagnostic(ErrorCode.ERR_NoSetToOverride, "P2").WithArguments("C.P2", "A.P2"));
 
-            var classA = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var classAProp1 = classA.GetMember<PropertySymbol>("P1");
+            NamedTypeSymbol classA = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            PropertySymbol classAProp1 = classA.GetMember<PropertySymbol>("P1");
 
             Assert.True(classAProp1.IsVirtual);
             Assert.True(classAProp1.GetMethod.IsVirtual);
@@ -9871,7 +9871,7 @@ class C
     internal void P { set { } }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PropertyCantHaveVoidType, Line = 3, Column = 10 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PropertyCantHaveVoidType, Line = 7, Column = 19 });
         }
@@ -9941,7 +9941,7 @@ class B
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NewVirtualInSealed, Line = 5, Column = 29 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NewVirtualInSealed, Line = 6, Column = 31 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NewVirtualInSealed, Line = 7, Column = 35 },
@@ -10011,7 +10011,7 @@ public sealed class C
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitPropertyAddingAccessor, Line = 19, Column = 13 });
         }
 
@@ -10034,7 +10034,7 @@ public class a : ii
     { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedInterfaceMember, Line = 10, Column = 18 }, //CONSIDER: dev10 suppresses this
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitPropertyMissingAccessor, Line = 12, Column = 12 });
         }
@@ -10058,7 +10058,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (7,37): error CS0552: 'C.implicit operator I(C)': user-defined conversions to or from an interface are not allowed
                 //     public static implicit operator I(C c) // CS0552
@@ -10088,7 +10088,7 @@ public struct C
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (5,37): error CS0553: 'D.implicit operator B(D)': user-defined conversions to or from a base class are not allowed
                 //     public static implicit operator B(D d) // CS0553
@@ -10111,7 +10111,7 @@ public class B
 }
 public class D : B {}
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (4,37): error CS0554: 'B.implicit operator B(D)': user-defined conversions to or from a derived class are not allowed
 //     public static implicit operator B(D d) // CS0554
@@ -10136,7 +10136,7 @@ public struct S
 }
 
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (4,37): error CS0555: User-defined operator cannot take an object of the enclosing type and convert to an object of the enclosing type
 //     public static implicit operator MyClass(MyClass aa)   // CS0555
@@ -10160,7 +10160,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (4,37): error CS0556: User-defined conversion must convert to or from the enclosing type
                 //     public static implicit operator int(string aa)   // CS0556
@@ -10191,7 +10191,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (12,45): error CS0557: Duplicate user-defined conversion in type 'x.ii.iii'
 //             public static explicit operator int(iii aa)
@@ -10216,7 +10216,7 @@ Diagnostic(ErrorCode.ERR_DuplicateConversionInClass, "int").WithArguments("x.ii.
    }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (7,35): error CS0558: User-defined operator 'x.ii.iii.implicit operator int(x.ii.iii)' must be declared static and public
 //          static implicit operator int(iii aa)   // CS0558, add public
@@ -10235,7 +10235,7 @@ Diagnostic(ErrorCode.ERR_OperatorsMustBeStatic, "int").WithArguments("x.ii.iii.i
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (3,32): error CS0559: The parameter type for ++ or -- operator must be the containing type
 //     public static iii operator ++(int aa)   // CS0559
@@ -10253,7 +10253,7 @@ Diagnostic(ErrorCode.ERR_BadIncDecSignature, "++"));
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (3,32): error CS0562: The parameter of a unary operator must be the containing type
 //     public static iii operator +(int aa)   // CS0562
@@ -10272,7 +10272,7 @@ Diagnostic(ErrorCode.ERR_BadUnaryOperatorSignature, "+")
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (3,32): error CS0563: One of the parameters of a binary operator must be the containing type
                 //     public static int operator +(int aa, int bb)   // CS0563 
@@ -10299,7 +10299,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (4,32): error CS0564: The first operand of an overloaded shift operator must have the same type as the containing type, and the type of the second operand must be int
                 //     public static int operator <<(C c1, C c2) // CS0564
@@ -10321,7 +10321,7 @@ interface IA
 }
 ";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (4,17): error CS0567: Interfaces cannot contain operators
 //    int operator +(int aa, int bb);   // CS0567
@@ -10359,14 +10359,14 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
     .set instance void B::set_abstract(object)
   }
 }";
-            var reference1 = CompileIL(source1);
+            MetadataReference reference1 = CompileIL(source1);
             var source2 =
 @"class C : B
 {
     public override object P { get { return 0; } }
     public override object Q { set { } }
 }";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (3,28): error CS0569: 'C.P': cannot override 'B.P' because it is not supported by the language
                 Diagnostic(ErrorCode.ERR_CantOverrideBogusMethod, "P").WithArguments("C.P", "B.P").WithLocation(3, 28),
@@ -10395,7 +10395,7 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
     // (12,13): error CS0573: 'cly': cannot have instance property or field initializers in structs
     //         clx a = new clx();   // CS8036
@@ -10431,7 +10431,7 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
     }
 }
 ";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5));
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp5));
             comp.VerifyDiagnostics(
     // (5,16): error CS0568: Structs cannot contain explicit parameterless constructors
     //         public S1() {}
@@ -10459,7 +10459,7 @@ Diagnostic(ErrorCode.ERR_InterfacesCantContainOperators, "+")
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_OnlyClassesCanContainDestructors, Line = 5, Column = 10 });
         }
 
@@ -10491,7 +10491,7 @@ namespace NS
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (22,27): error CS0576: Namespace 'NS' contains a definition conflicting with alias 'B'
                 //         public void M(ref B p) { }
@@ -10584,7 +10584,7 @@ class B : System.Attribute { }
 [A, A] class C { }
 [B][A][B] class D { }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateAttribute, Line = 3, Column = 5 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateAttribute, Line = 4, Column = 8 });
         }
@@ -10617,7 +10617,7 @@ public class C
     public static void operator >>(C c, int x) { }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (4,33): error CS0590: User-defined operators cannot return void
                 //     public static void operator +(C c1, C c2) { }
@@ -10646,7 +10646,7 @@ class A : Attribute { }
 [AttributeUsageAttribute(0)]   // CS0591
 class B : Attribute { }";
 
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
                 // (2,17): error CS0591: Invalid value for argument to 'AttributeUsage' attribute
                 Diagnostic(ErrorCode.ERR_InvalidAttributeArgument, "0").WithArguments("AttributeUsage").WithLocation(2, 17),
@@ -10673,7 +10673,7 @@ public class A
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AttributeOnBadSymbolType, Line = 8, Column = 2 });
         }
 
@@ -10697,7 +10697,7 @@ namespace x
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ComImportWithoutUuidAttribute, Line = 5, Column = 6 });
         }
 
@@ -10790,7 +10790,7 @@ public class C
             var text = @"[CMyClass]   // CS0616
 public class CMyClass {}
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NotAnAttributeClass, Line = 1, Column = 2 });
         }
 
@@ -10800,7 +10800,7 @@ public class CMyClass {}
             var text = @"[CMyClass]   // CS0616
 public class CMyClassAttribute {}
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NotAnAttributeClass, Line = 1, Column = 2 });
         }
 
@@ -10827,7 +10827,7 @@ class Class1 { }   // CS0617
 [MyClass(5, Bad2 = 0)]
 class Class2 { }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadNamedAttributeArgument, Line = 16, Column = 13 });
         }
 
@@ -10849,7 +10849,7 @@ class Class2 { }
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_IndexerCantHaveVoidType, Line = 8, Column = 10 });
         }
 
@@ -10869,7 +10869,7 @@ class Class2 { }
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_VirtualPrivate, Line = 5, Column = 30 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_VirtualPrivate, Line = 9, Column = 30 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_VirtualPrivate, Line = 10, Column = 19 });
@@ -10917,7 +10917,7 @@ class B
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_VirtualPrivate, Line = 5, Column = 30 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_VirtualPrivate, Line = 6, Column = 30 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_VirtualPrivate, Line = 10, Column = 31 },
@@ -10966,7 +10966,7 @@ public class MyClass : MyInterface
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_InterfaceImplementedByConditional, Line = 9, Column = 17 });
         }
 
@@ -10990,7 +10990,7 @@ class Derived : Base, I<int>
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (13,23): error CS0629: Conditional member 'Base.M(int)' cannot implement interface member 'I<int>.M(int)' in type 'Derived'
                 // class Derived : Base, I<int>
@@ -11070,7 +11070,7 @@ class E
 class A { }
 [System.AttributeUsageAttribute(AttributeTargets.Class)]
 class B { }";
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
                 // (2,2): error CS0641: Attribute 'AttributeUsage' is only valid on classes derived from System.Attribute
                 Diagnostic(ErrorCode.ERR_AttributeUsageOnNonAttributeClass, "AttributeUsage").WithArguments("AttributeUsage").WithLocation(2, 2),
@@ -11105,7 +11105,7 @@ public class MainClass
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateNamedAttributeArgument, Line = 13, Column = 21 });
         }
 
@@ -11186,7 +11186,7 @@ class MyClass
     public int x = 0;
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DefaultMemberOnIndexedType, Line = 1, Column = 2 });
         }
 
@@ -11239,7 +11239,7 @@ class MyClass
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AbstractAttributeClass, Line = 7, Column = 2 });
         }
 
@@ -11262,7 +11262,7 @@ class C
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadNamedAttributeArgumentType, Line = 9, Column = 5 });
         }
 
@@ -11440,7 +11440,7 @@ public class A4 : Attribute
 }
 ";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
             comp.VerifyDiagnostics(
                 // (7,14): error CS0663: 'IGoo<T>' cannot define an overloaded method that differs only on parameter modifiers 'out' and 'ref'
@@ -11606,7 +11606,7 @@ class IndexerClass
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_InconsistentIndexerNames, Line = 19, Column = 16 });
         }
 
@@ -11739,7 +11739,7 @@ class TestClass
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (5,9): error CS0670: Field cannot have void type
                 //         void Field2 = 0;
@@ -11812,7 +11812,7 @@ public class MyClass
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitParamArray, Line = 4, Column = 35 });
         }
 
@@ -11924,7 +11924,7 @@ class C5<T> where T : I
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (6,27): error CS0681: The modifier 'abstract' is not valid on fields. Try using a property instead.
                 //         public abstract T field;
@@ -11966,7 +11966,7 @@ class C5<T> where T : I
     .removeon instance void I::remove_E(class [mscorlib]System.Action& v);
   }
 }";
-            var reference1 = CompileIL(source1);
+            MetadataReference reference1 = CompileIL(source1);
             var source2 =
 @"using System;
 class C1 : I
@@ -11989,7 +11989,7 @@ class C2 : I
         remove { }
     }
 }";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (11,14): error CS0682: 'C2.I.P' cannot implement 'I.P' because it is not supported by the language
                 Diagnostic(ErrorCode.ERR_BogusExplicitImpl, "P").WithArguments("C2.I.P", "I.P").WithLocation(11, 14),
@@ -12011,7 +12011,7 @@ class CExample : IExample
     int IExample.Test { get { return 0; } } // correct
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitMethodImplAccessor, Line = 8, Column = 18 });
         }
 
@@ -12063,7 +12063,7 @@ class C : I
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AccessorImplementingMethod, Line = 10, Column = 9 });
         }
 
@@ -12084,7 +12084,7 @@ class C : I
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DerivingFromATyVar, Line = 3, Column = 28 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DerivingFromATyVar, Line = 7, Column = 27 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DerivingFromATyVar, Line = 9, Column = 30 });
@@ -12133,7 +12133,7 @@ class C : I
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, Line = 5, Column = 16, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, Line = 10, Column = 28, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.WRN_TypeParameterSameAsOuterTypeParameter, Line = 12, Column = 25, IsWarning = true });
@@ -12190,7 +12190,7 @@ interface I2<T> : I<T> { }
 
 class G6<T1, T2> : I<T1>, I2<T2> { } // CS0695
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnifyingInterfaceInstantiations, Line = 3, Column = 7 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnifyingInterfaceInstantiations, Line = 5, Column = 7 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnifyingInterfaceInstantiations, Line = 11, Column = 7 },
@@ -12206,7 +12206,7 @@ interface I<T, S> { }
 
 class A<T, S> : I<I<T, T>, T>, I<I<T, S>, S> { } // CS0695
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnifyingInterfaceInstantiations, Line = 4, Column = 7 });
         }
 
@@ -12222,7 +12222,7 @@ class A<T, S>
     interface IB : B.IA, B.B.IA { } // fine
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
         }
 
         [Fact]
@@ -12415,7 +12415,7 @@ public partial class C
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (5,13): error CS0708: 'NS.Goo.i': cannot declare instance members in a static class
                 //         int i;
@@ -12480,7 +12480,7 @@ public partial class C
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_StaticBaseClass, Line = 7, Column = 18 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_StaticBaseClass, Line = 15, Column = 18 });
 
@@ -12508,7 +12508,7 @@ public partial class C
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ConstructorInStaticClass, Line = 5, Column = 16 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ConstructorInStaticClass, Line = 6, Column = 9 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ConstructorInStaticClass, Line = 10, Column = 22 },
@@ -12532,7 +12532,7 @@ public partial class C
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DestructorInStaticClass, Line = 3, Column = 6 });
         }
 
@@ -12720,7 +12720,7 @@ static class C
     }
 }
 ";
-            var regularComp = CreateCompilation(text);
+            CSharpCompilation regularComp = CreateCompilation(text);
 
             // these diagnostics correspond to those produced by the native compiler.
             regularComp.VerifyDiagnostics(
@@ -12742,7 +12742,7 @@ static class C
                 );
 
             // in strict mode we also diagnose "is" and "as" operators with a static type.
-            var strictComp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithStrictFeature());
+            CSharpCompilation strictComp = CreateCompilation(text, parseOptions: TestOptions.Regular.WithStrictFeature());
             strictComp.VerifyDiagnostics(
                 // In the native compiler these three produce no errors.
 
@@ -12860,7 +12860,7 @@ static class S
             // a local because it is static. This seems unnecessary, redundant and wrong.
             // I've eliminated the second error; the first is sufficient to diagnose the issue.
 
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ArrayOfStaticClass, Line = 14, Column = 26 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ArrayOfStaticClass, Line = 15, Column = 26 });
 
@@ -12892,7 +12892,7 @@ static class S
         D<int> Z;
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (12,9): error CS0719: 'NS.C': array elements cannot be of static type
                 //         C[] X;
@@ -12930,7 +12930,7 @@ static class S
     static void Main() {}
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_IndexerInStaticClass, Line = 3, Column = 16 });
         }
 
@@ -12966,7 +12966,7 @@ static class S
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 // new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 12, Column = 14 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 16, Column = 21 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ParameterIsStaticClass, Line = 22, Column = 20 });
@@ -13133,10 +13133,10 @@ using System.Runtime.CompilerServices;
 
 [assembly: TypeForwardedTo(typeof(C.CC))]";
 
-            var comp1 = CreateCompilation(text1);
+            CSharpCompilation comp1 = CreateCompilation(text1);
             var compRef1 = new CSharpCompilationReference(comp1);
 
-            var comp2 = CreateCompilation(text2, new MetadataReference[] { compRef1 });
+            CSharpCompilation comp2 = CreateCompilation(text2, new MetadataReference[] { compRef1 });
             comp2.VerifyDiagnostics(
                 // (4,12): error CS0730: Cannot forward type 'C.CC' because it is a nested type of 'C'
                 // [assembly: TypeForwardedTo(typeof(C.CC))]
@@ -13183,7 +13183,7 @@ using System.Runtime.CompilerServices;
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberStatic, Line = 8, Column = 21 });
         }
 
@@ -13207,7 +13207,7 @@ public class Test
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberNotPublic, Line = 6, Column = 18 });
         }
 
@@ -13225,7 +13225,7 @@ public class Test : ITest
     public void TestMethod() { } // CS0738
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_CloseUnimplementedInterfaceMemberWrongReturnType, Line = 7, Column = 21 });
         }
 
@@ -13244,7 +13244,7 @@ namespace cs0739
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateTypeForwarder, Line = 2, Column = 12 });
         }
 
@@ -13364,7 +13364,7 @@ public class C
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodOnlyInPartialClass, Line = 5, Column = 18 });
         }
 
@@ -13381,7 +13381,7 @@ namespace NS
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodCannotHaveOutParameters, Line = 7, Column = 22 });
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
@@ -13403,7 +13403,7 @@ partial class C
     partial void M();
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (4,5): error CS0267: The 'partial' modifier can only appear immediately before 'class', 'struct', 'interface', or 'void'
                 //     partial int f;
@@ -13436,7 +13436,7 @@ public partial class C : IF
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodNotExplicit, Line = 8, Column = 21 });
         }
 
@@ -13497,7 +13497,7 @@ public partial class C
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodOnlyOneActual, Line = 8, Column = 18 });
         }
 
@@ -13749,7 +13749,7 @@ public partial class C
 
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodMustReturnVoid, Line = 5, Column = 17 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_PartialMethodMustReturnVoid, Line = 6, Column = 17 });
         }
@@ -13775,7 +13775,7 @@ class A : IFace<int>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitImplCollisionOnRefOut, Line = 1, Column = 11 }, //error for IFace<int, int>.Goo(ref int)
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ExplicitImplCollisionOnRefOut, Line = 1, Column = 11 } //error for IFace<int, int>.Goo(out int)
                 );
@@ -13794,7 +13794,7 @@ class A : IFace<int>
     } 
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (6,24): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
                 //         extern private var M();
@@ -13931,7 +13931,7 @@ namespace TestNamespace
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ProtectedInStatic, Line = 5, Column = 33 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_ProtectedInStatic, Line = 6, Column = 40 });
 
@@ -14039,7 +14039,7 @@ static class B {
 class Goo1
 {
 }";
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
                 // (3,34): error CS1100: Method 'ExtMethod' has a parameter modifier 'this' which is not on the first parameter
                 Diagnostic(ErrorCode.ERR_BadThisParam, "this").WithArguments("ExtMethod").WithLocation(3, 34));
@@ -14051,7 +14051,7 @@ class Goo1
             // Note that the dev11 compiler does not report error CS0721, that C cannot be used as a parameter type.
             // This appears to be a shortcoming of the dev11 compiler; there is no good reason to not report the error.
 
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"static class C
 {
     static void M1(this Unknown u) { }
@@ -14089,8 +14089,8 @@ class Goo1
     public void Test<T>(this System.String s) { } //CS1105
 }
 ";
-            var reference = SystemCoreRef;
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            MetadataReference reference = SystemCoreRef;
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new List<MetadataReference> { reference },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadExtensionAgg, Line = 1, Column = 14 });
         }
@@ -14098,7 +14098,7 @@ class Goo1
         [Fact]
         public void CS1106ERR_BadExtensionAgg01()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"class A
 {
     static void M(this object o) { }
@@ -14159,7 +14159,7 @@ struct U<T>
         [Fact]
         public void CS1109ERR_ExtensionMethodsDecl()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"class A
 {
     static class C
@@ -14203,7 +14203,7 @@ class B
 {
     public static void M4(this object o) { }
 }";
-            var compilation = CreateEmptyCompilation(source, new[] { MscorlibRef });
+            CSharpCompilation compilation = CreateEmptyCompilation(source, new[] { MscorlibRef });
             compilation.VerifyDiagnostics(
                 // (3,27): error CS1110: Cannot define a new extension method because the compiler required type 'System.Runtime.CompilerServices.ExtensionAttribute' cannot be found. Are you missing a reference to System.Core.dll?
                 Diagnostic(ErrorCode.ERR_ExtensionAttrNotFound, "this").WithArguments("System.Runtime.CompilerServices.ExtensionAttribute").WithLocation(3, 27),
@@ -14244,7 +14244,7 @@ static class B
     [Extension(0)]
     static object F;
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (2,2): error CS1112: Do not use 'System.Runtime.CompilerServices.ExtensionAttribute'. Use the 'this' keyword instead.
                 // [System.Runtime.CompilerServices.ExtensionAttribute]
@@ -14280,7 +14280,7 @@ static class B
         return 1;
     }
 }";
-            var ref1 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule1).GetReference(display: "NetModule.mod");
+            PortableExecutableReference ref1 = AssemblyMetadata.CreateFromImage(TestResources.SymbolsTests.netModule.netModule1).GetReference(display: "NetModule.mod");
 
             CreateCompilation(text, new[] { ref1 }).VerifyDiagnostics(
                 // error CS1509: The referenced file 'NetModule.mod' is not an assembly
@@ -14291,7 +14291,7 @@ static class B
         public void CS1527ERR_NoNamespacePrivate1()
         {
             var text = @"private class C { }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NoNamespacePrivate, Line = 1, Column = 15 } //pos = the class name
                 );
         }
@@ -14300,7 +14300,7 @@ static class B
         public void CS1527ERR_NoNamespacePrivate2()
         {
             var text = @"protected class C { }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NoNamespacePrivate, Line = 1, Column = 17 } //pos = the class name
                 );
         }
@@ -14309,7 +14309,7 @@ static class B
         public void CS1527ERR_NoNamespacePrivate3()
         {
             var text = @"protected internal class C { }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NoNamespacePrivate, Line = 1, Column = 26 } //pos = the class name
                 );
         }
@@ -14325,7 +14325,7 @@ namespace NS
     using O = System.Object;
     using O = System.Object;
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (2,7): error CS1537: The using alias 'A' appeared previously in this namespace
                 // using A = System;
@@ -14374,7 +14374,7 @@ namespace NS
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (14,11): error CS1537: The using alias 'ns' appeared previously in this namespace
                 //     using ns = namespace2;
@@ -14388,7 +14388,7 @@ namespace NS
 
             var ns = comp.SourceModule.GlobalNamespace.GetMembers("NS").Single() as NamespaceSymbol;
             var type1 = ns.GetMembers("C").Single() as NamedTypeSymbol;
-            var b = type1.BaseType();
+            NamedTypeSymbol b = type1.BaseType();
         }
 
         [Fact]
@@ -14417,7 +14417,7 @@ using X = ABC.X<int>;";
 {
     public void M0() { }
 }";
-            var ref1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.CorLibrary.NoMsCorLibRef).GetReference(display: "NoMsCorLibRef.mod");
+            PortableExecutableReference ref1 = ModuleMetadata.CreateFromImage(TestResources.SymbolsTests.CorLibrary.NoMsCorLibRef).GetReference(display: "NoMsCorLibRef.mod");
 
             CreateCompilation(text, references: new[] { ref1 }).VerifyDiagnostics(
                 // error CS1542: 'NoMsCorLibRef.mod' cannot be added to this assembly because it already is an assembly
@@ -14540,7 +14540,7 @@ class A : Attribute { }
 class AAttribute : Attribute { }
 [A][@A][AAttribute] class C { }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AmbiguousAttribute, Line = 4, Column = 2 });
         }
 
@@ -14552,7 +14552,7 @@ class AAttribute : Attribute { }
     public fixed int ab[10];   // CS0214
 }
 ";
-            var comp = CreateCompilation(text, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilation(text, options: TestOptions.ReleaseDll);
             // (3,25): error CS0214: Pointers and fixed size buffers may only be used in an unsafe context
             //     public fixed string ab[10];   // CS0214
             Diagnostic(ErrorCode.ERR_UnsafeNeeded, "ab[10]");
@@ -14566,7 +14566,7 @@ class AAttribute : Attribute { }
 {
     fixed int a[10];   // CS1642
 }";
-            var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            CSharpCompilation comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (3,15): error CS1642: Fixed size buffer fields may only be members of structs
                 //     fixed int a[10];   // CS1642
@@ -14580,7 +14580,7 @@ class AAttribute : Attribute { }
 {
     fixed string ab[10];   // CS1663
 }";
-            var comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
+            CSharpCompilation comp = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (3,11): error CS1663: Fixed size buffer type must be one of the following: bool, byte, short, int, long, char, sbyte, ushort, uint, ulong, float or double
                 //     fixed string ab[10];   // CS1663
@@ -14875,7 +14875,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(text).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(text).VerifyDiagnostics(
     // (8,10): error CS1667: Attribute 'Obsolete' is not valid on property or event accessors. It is only valid on 'class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate' declarations.
     //         [Obsolete]  // CS1667
     Diagnostic(ErrorCode.ERR_AttributeNotOnAccessor, "Obsolete").WithArguments("System.ObsoleteAttribute", "class, struct, enum, constructor, method, property, indexer, field, event, interface, delegate"),
@@ -14916,7 +14916,7 @@ public class A
 public class C1 {}
 public class C2 {}
 ";
-            var tree1 = SyntaxFactory.ParseCompilationUnit(text1);
+            Syntax.CompilationUnitSyntax tree1 = SyntaxFactory.ParseCompilationUnit(text1);
 
             // compile with: /target:library /out:cs1705.dll /keyfile:mykey.snk
             var text2 = @"using System.Reflection;
@@ -14932,7 +14932,7 @@ public class A
 public class C2 {}
 public class C1 {}
 ";
-            var tree2 = SyntaxFactory.ParseCompilationUnit(text2);
+            Syntax.CompilationUnitSyntax tree2 = SyntaxFactory.ParseCompilationUnit(text2);
 
             // compile with: /target:library /r:A2=c:\\CS1705.dll /r:A1=CS1705.dll
             var text3 = @"extern alias A1;
@@ -14951,7 +14951,7 @@ public class Ref
    public static n2 N2() { return new a2.N2(); }
 }
 ";
-            var tree3 = SyntaxFactory.ParseCompilationUnit(text3);
+            Syntax.CompilationUnitSyntax tree3 = SyntaxFactory.ParseCompilationUnit(text3);
 
             // compile with: /reference:c:\\CS1705.dll /reference:CS1705_c.dll
             var text = @"class Tester 
@@ -14963,7 +14963,7 @@ public class Ref
    }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_AssemblyMatchBadVersion, Line = 2, Column = 12 });
         }
 
@@ -14993,7 +14993,7 @@ public class Derived : Base
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 10, Column = 14 }, //Base.myProperty.get not impl
                 new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 10, Column = 14 }, //Base.myProperty.set not impl
                                                                                                                         // COMPARE: InheritanceBindingTests.TestNoPropertyToOverride
@@ -15041,7 +15041,7 @@ public class TestUnsafe
 }
 ";
 
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NoMultipleInheritance, Line = 6, Column = 31 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NoMultipleInheritance, Line = 7, Column = 32 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_NoMultipleInheritance, Line = 8, Column = 32 });
@@ -15065,7 +15065,7 @@ public class TestUnsafe
     }
 }";
 
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BaseClassMustBeFirst, Line = 7, Column = 31 },
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BaseClassMustBeFirst, Line = 12, Column = 30 });
         }
@@ -15138,7 +15138,7 @@ using System.Runtime.CompilerServices;
     { }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (4,33): error CS1736: Default parameter value for 'Para1' must be a compile-time constant
                 //     public void Goo(int Para1 = Age)
@@ -15202,7 +15202,7 @@ class NamedExample
     { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = 1737, Line = 3, Column = 45 });
         }
 
@@ -15219,7 +15219,7 @@ class NamedExample
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = 1741, Line = 3, Column = 21 },
                 new ErrorDescription { Code = 1741, Line = 5, Column = 22 });
         }
@@ -15234,7 +15234,7 @@ class NamedExample
     static void M2(this object o = null) { }
     static void M3(object o, this int i = 0) { }
 }";
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
                 // (4,20): error CS1743: Cannot specify a default value for the 'this' parameter
                 Diagnostic(ErrorCode.ERR_DefaultValueForExtensionParameter, "this").WithLocation(4, 20),
@@ -15272,7 +15272,7 @@ class A
         return 1;
     }
 }";
-            var ref1 = TestReferences.SymbolsTests.NoPia.Microsoft.VisualStudio.MissingPIAAttributes.WithEmbedInteropTypes(true);
+            PortableExecutableReference ref1 = TestReferences.SymbolsTests.NoPia.Microsoft.VisualStudio.MissingPIAAttributes.WithEmbedInteropTypes(true);
 
             CreateCompilation(text, references: new[] { ref1 }).VerifyDiagnostics(
                 // error CS1747: Cannot embed interop types from assembly 'MissingPIAAttribute, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' because it is missing the 'System.Runtime.InteropServices.GuidAttribute' attribute.
@@ -15310,7 +15310,7 @@ class Test
     public static void MyDelegate02(IMyInterface[] ary) { }
 }
 ";
-            var comp1 = CreateCompilation(textdll);
+            CSharpCompilation comp1 = CreateCompilation(textdll);
             var ref1 = new CSharpCompilationReference(comp1);
             CreateCompilation(text, references: new MetadataReference[] { ref1 }).VerifyDiagnostics(
                 // (7,37): error CS0246: The type or namespace name 'IMyInterface' could not be found (are you missing a using directive or an assembly reference?)
@@ -15329,7 +15329,7 @@ class Test
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = 1750, Line = 3, Column = 50 });
         }
 
@@ -15344,7 +15344,7 @@ class Test
     public void M7(int i = null, params string[] values = ""test"") { }
     static void Main() { }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 // 'i': A value of type '<null>' cannot be used as a default parameter because there are no standard conversions to type 'int'
                 new ErrorDescription { Code = 1750, Line = 3, Column = 24 },
                 // 'params': error CS1751: Cannot specify a default value for a parameter array
@@ -15378,7 +15378,7 @@ namespace NS
     }
 }
 ";
-            var comp = CreateCompilation(textdll);
+            CSharpCompilation comp = CreateCompilation(textdll);
             var ref1 = new CSharpCompilationReference(comp, embedInteropTypes: true);
             CreateCompilation(text, new[] { ref1 }).VerifyDiagnostics(
                Diagnostic(ErrorCode.ERR_NoPIANestedType, "NestedClass").WithArguments("NS.MyClass.NestedClass"));
@@ -15406,7 +15406,7 @@ public class Test
     }
 }
 ";
-            var comp = CreateCompilation(textdll);
+            CSharpCompilation comp = CreateCompilation(textdll);
             var ref1 = new CSharpCompilationReference(comp);
             CreateCompilation(text, new[] { ref1 }).VerifyDiagnostics(
                 // (4,14): error CS0234: The type or namespace name 'MyDel' does not exist in the namespace 'NS' (are you missing an assembly reference?)
@@ -15444,9 +15444,9 @@ namespace NS
     }
 }
 ";
-            var comp = CreateCompilation(textdll);
+            CSharpCompilation comp = CreateCompilation(textdll);
             var ref1 = new CSharpCompilationReference(comp, embedInteropTypes: true);
-            var comp1 = CreateCompilation(text, new[] { ref1 });
+            CSharpCompilation comp1 = CreateCompilation(text, new[] { ref1 });
             comp1.VerifyEmitDiagnostics(
                 // (5,24): error CS1757: Embedded interop struct 'NS.MyStruct' can contain only public instance fields.
                 //         NS.MyStruct S = new NS.MyStruct();
@@ -15542,7 +15542,7 @@ End Structure";
                 new[] { MscorlibRef_v4_0_30316_17626 },
                 new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-            var ref1 = vbcomp.EmitToImageReference(embedInteropTypes: true);
+            MetadataReference ref1 = vbcomp.EmitToImageReference(embedInteropTypes: true);
 
             CreateCompilation(text, new[] { ref1 }).VerifyDiagnostics(
                 // (5,26): error CS1754: Type 'INestedInterface.InnerInterface' cannot be embedded because it is a nested type. Consider setting the 'Embed Interop Types' property to false.
@@ -15588,7 +15588,7 @@ public static class ErrorCode
   // We do not allow boxing conversions to object in a default parameter initializer
   static void M2(System.ValueType y = 123) {}
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 // (5,25): error CS1763: 'x' is of type 'object'. A default parameter value of a reference type other than string can only be initialized with null
                 new ErrorDescription { Code = 1763, Line = 5, Column = 25 },
                 // (7,35): error CS1763: 'y' is of type 'System.ValueType'. A default parameter value of a reference type other than string can only be initialized with null
@@ -15647,7 +15647,7 @@ namespace ConsoleApplication1
   
 }
 ";
-            var comp = CreateCompilation(textdll);
+            CSharpCompilation comp = CreateCompilation(textdll);
             var ref1 = new CSharpCompilationReference(comp, embedInteropTypes: true);
             CreateCompilation(text, new[] { ref1 }).VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_GenericsUsedInNoPIAType));
@@ -15671,7 +15671,7 @@ class MyClass
     public void Goo11(DateTime? x = default(DateTime)) { }
     public void Goo12(DateTime? x = new DateTime()) { }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
 
             comp.VerifyDiagnostics(
     // (13,33): error CS1770: A value of type 'DateTime' cannot be used as default parameter for nullable parameter 'x' because 'DateTime' is not a simple type
@@ -15917,7 +15917,7 @@ namespace N1
    class A { public int Goo() { return 2; }}
 }
 ";
-            var expectedDiagnostics = new[]
+            DiagnosticDescription[] expectedDiagnostics = new[]
             {
                 // (2,1): error CS7021: You cannot declare namespace in script code
                 // namespace N1
@@ -15938,7 +15938,7 @@ class A {
             CSharpCompilation comp = CreateCompilation(text);
             var classA = (NamedTypeSymbol)comp.GlobalNamespace.GetTypeMembers("A").Single();
             var fieldSym = (FieldSymbol)classA.GetMembers("n").Single();
-            var fieldType = fieldSym.Type;
+            TypeSymbol fieldType = fieldSym.Type;
 
             Assert.Equal(SymbolKind.ErrorType, fieldType.Kind);
             Assert.Equal("B", fieldType.Name);
@@ -15965,7 +15965,7 @@ class A : C {
             var classC = (NamedTypeSymbol)comp.GlobalNamespace.GetTypeMembers("C").Single();
             var classB = (NamedTypeSymbol)classC.GetTypeMembers("B").Single();
             var fieldSym = (FieldSymbol)classA.GetMembers("n").Single();
-            var fieldType = fieldSym.Type;
+            TypeSymbol fieldType = fieldSym.Type;
 
             Assert.Equal(SymbolKind.ErrorType, fieldType.Kind);
             Assert.Equal("B", fieldType.Name);
@@ -16002,7 +16002,7 @@ class A : C {
             var classBinN1 = (NamedTypeSymbol)ns1.GetTypeMembers("B").Single();
             var classBinN2 = (NamedTypeSymbol)ns2.GetTypeMembers("B").Single();
             var fieldSym = (FieldSymbol)classA.GetMembers("n").Single();
-            var fieldType = fieldSym.Type;
+            TypeSymbol fieldType = fieldSym.Type;
 
             Assert.Equal(SymbolKind.ErrorType, fieldType.Kind);
             Assert.Equal("B", fieldType.Name);
@@ -16088,7 +16088,7 @@ namespace x
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewRequired, Line = 12, Column = 27, IsWarning = true });
         }
 
@@ -16578,7 +16578,7 @@ partial class AnotherChild : Parent
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NewNotRequired, Line = 11, Column = 24, IsWarning = true });
         }
 
@@ -16601,7 +16601,7 @@ public class cly : clx
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription[] {
                     new ErrorDescription { Code = (int)ErrorCode.WRN_NewOrOverrideExpected, Line = 8, Column = 17, IsWarning = true },
                     new ErrorDescription { Code = (int)ErrorCode.ERR_UnimplementedAbstractMethod, Line = 6, Column = 14 }
@@ -16621,7 +16621,7 @@ partial struct A
     int j;
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (1,16): warning CS0282: There is no defined ordering between fields in multiple declarations of partial struct 'A'. To specify an ordering, all instance fields must be in the same declaration.
                 // partial struct A
@@ -16655,7 +16655,7 @@ interface I
 {
     int A { get; set; }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             comp.VerifyDiagnostics();
         }
 
@@ -16681,9 +16681,9 @@ namespace SA
 }
 ";
             // class CSFields { class FFF {}}
-            var ref1 = TestReferences.SymbolsTests.Fields.CSFields.dll;
+            PortableExecutableReference ref1 = TestReferences.SymbolsTests.Fields.CSFields.dll;
 
-            var comp = CreateCompilation(new[] { text }, new List<MetadataReference> { ref1 });
+            CSharpCompilation comp = CreateCompilation(new[] { text }, new List<MetadataReference> { ref1 });
             comp.VerifyDiagnostics(
                 // (11,16): warning CS0435: The namespace 'CSFields' in '' conflicts with the imported type 'CSFields' in 'CSFields, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the namespace defined in ''.
                 //         void M(CSFields.FFF p) { }
@@ -16718,10 +16718,10 @@ namespace SA
 }
 ";
             // Class1
-            var ref1 = TestReferences.SymbolsTests.V1.MTTestLib1.dll;
+            PortableExecutableReference ref1 = TestReferences.SymbolsTests.V1.MTTestLib1.dll;
 
             // Roslyn gives CS1542 or CS0104
-            var comp = CreateCompilation(new[] { text }, new List<MetadataReference> { ref1 });
+            CSharpCompilation comp = CreateCompilation(new[] { text }, new List<MetadataReference> { ref1 });
             comp.VerifyDiagnostics(
                 // (8,16): warning CS0436: The type 'Class1' in '' conflicts with the imported type 'Class1' in 'MTTestLib1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         void M(Class1 p) { }
@@ -16784,12 +16784,12 @@ internal class D7 : NNC.X { }
 internal class D8 : NNN.X { }
 ";
 
-            var ref1 = CreateCompilation(sourceRef1, assemblyName: "Ref1").VerifyDiagnostics();
-            var ref2 = CreateCompilation(sourceRef2, assemblyName: "Ref2").VerifyDiagnostics();
+            CSharpCompilation ref1 = CreateCompilation(sourceRef1, assemblyName: "Ref1").VerifyDiagnostics();
+            CSharpCompilation ref2 = CreateCompilation(sourceRef2, assemblyName: "Ref2").VerifyDiagnostics();
 
-            var tree = Parse(sourceLib, filename: @"C:\lib.cs");
+            SyntaxTree tree = Parse(sourceLib, filename: @"C:\lib.cs");
 
-            var lib = CreateCompilation(tree, new MetadataReference[]
+            CSharpCompilation lib = CreateCompilation(tree, new MetadataReference[]
             {
                 new CSharpCompilationReference(ref1),
                 new CSharpCompilationReference(ref2),
@@ -16865,12 +16865,12 @@ namespace C { public class X { } }
 internal class D : C.X { }
 ";
 
-            var ref1 = CreateCompilation(sourceRef1, assemblyName: "Ref1").VerifyDiagnostics();
-            var ref2 = CreateCompilation(sourceRef2, assemblyName: "Ref2").VerifyDiagnostics();
+            CSharpCompilation ref1 = CreateCompilation(sourceRef1, assemblyName: "Ref1").VerifyDiagnostics();
+            CSharpCompilation ref2 = CreateCompilation(sourceRef2, assemblyName: "Ref2").VerifyDiagnostics();
 
-            var tree = Parse(sourceLib, filename: @"C:\lib.cs");
+            SyntaxTree tree = Parse(sourceLib, filename: @"C:\lib.cs");
 
-            var lib = CreateCompilation(tree, new MetadataReference[]
+            CSharpCompilation lib = CreateCompilation(tree, new MetadataReference[]
             {
                 new CSharpCompilationReference(ref1),
                 new CSharpCompilationReference(ref2),
@@ -16959,13 +16959,13 @@ namespace SA
 }
 ";
             // this is not related to this test, but need by lib2 (don't want to add a new dll resource)
-            var cs00 = TestReferences.MetadataTests.NetModule01.ModuleCS00;
-            var cs01 = TestReferences.MetadataTests.NetModule01.ModuleCS01;
-            var vb01 = TestReferences.MetadataTests.NetModule01.ModuleVB01;
-            var ref1 = TestReferences.MetadataTests.NetModule01.AppCS;
+            PortableExecutableReference cs00 = TestReferences.MetadataTests.NetModule01.ModuleCS00;
+            PortableExecutableReference cs01 = TestReferences.MetadataTests.NetModule01.ModuleCS01;
+            PortableExecutableReference vb01 = TestReferences.MetadataTests.NetModule01.ModuleVB01;
+            PortableExecutableReference ref1 = TestReferences.MetadataTests.NetModule01.AppCS;
 
             // Roslyn CS1542
-            var comp = CreateCompilation(new[] { text }, new List<MetadataReference> { ref1 });
+            CSharpCompilation comp = CreateCompilation(new[] { text }, new List<MetadataReference> { ref1 });
             comp.VerifyDiagnostics(
                 // (11,16): warning CS0437: The type 'AppCS' in '' conflicts with the imported namespace 'AppCS' in 'AppCS, Version=1.2.3.4, Culture=neutral, PublicKeyToken=null'. Using the type defined in ''.
                 //         void M(AppCS.App p) { }
@@ -16991,7 +16991,7 @@ class System { }
 ";
 
             // NOTE: both mscorlib.dll and System.Core.dll define types in the System namespace.
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
                 Parse(source, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5)));
 
             compilation.VerifyDiagnostics(
@@ -17068,7 +17068,7 @@ class T
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.WRN_ExplicitImplCollision, Line = 9, Column = 20, IsWarning = true });
         }
 
@@ -17146,7 +17146,7 @@ class C
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.WRN_ProtectedInSealed, Line = 5, Column = 23, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.WRN_ProtectedInSealed, Line = 6, Column = 33, IsWarning = true },
                 new ErrorDescription { Code = (int)ErrorCode.WRN_ProtectedInSealed, Line = 11, Column = 33, IsWarning = true },
@@ -17398,7 +17398,7 @@ class MainClass
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.WRN_NonObsoleteOverridingObsolete, Line = 11, Column = 26, IsWarning = true });
         }
 
@@ -17418,7 +17418,7 @@ class C
     static void Main() { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.WRN_CoClassWithoutComImport, Line = 4, Column = 2, IsWarning = true });
         }
 
@@ -17439,7 +17439,7 @@ public class C : Base
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.WRN_ObsoleteOverridingNonObsolete, Line = 10, Column = 26, IsWarning = true });
         }
 
@@ -17500,16 +17500,16 @@ public class B : A
   public extern B();
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
-            var verifier = CompileAndVerify(comp, verify: Verification.Skipped).
+            CompilationVerifier verifier = CompileAndVerify(comp, verify: Verification.Skipped).
                            VerifyDiagnostics(
     // (8,17): warning CS0824: Constructor 'B.B()' is marked external
     //   public extern B();
     Diagnostic(ErrorCode.WRN_ExternCtorNoImplementation, "B").WithArguments("B.B()").WithLocation(8, 17)
                                 );
 
-            var methods = verifier.TestData.GetMethodsByName().Keys;
+            IEnumerable<string> methods = verifier.TestData.GetMethodsByName().Keys;
             Assert.True(methods.Any(n => n.StartsWith("A..ctor", StringComparison.Ordinal)));
             Assert.False(methods.Any(n => n.StartsWith("B..ctor", StringComparison.Ordinal))); // Haven't tried to emit it
         }
@@ -17528,7 +17528,7 @@ public class B : A
 {
   public extern B() : base(); // error
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             // Dev12 :  error CS1514: { expected
             //          error CS1513: } expected
@@ -17553,7 +17553,7 @@ public class B : A
 {
   public extern B() : base(unknown); // error
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             // Dev12 :  error CS1514: { expected
             //          error CS1513: } expected
@@ -17578,7 +17578,7 @@ public class B : A
 {
   public extern B() : base(1) {}
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             comp.VerifyDiagnostics(
     // (8,17): error CS8091: 'B.B()' cannot be extern and have a constructor initializer
@@ -17604,7 +17604,7 @@ public class B : A
 {
   public extern B() {}
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             comp.VerifyDiagnostics(
     // (8,17): error CS0179: 'B.B()' cannot be extern and declare a body
@@ -17624,7 +17624,7 @@ public class B
   private int x = 1;
   public extern B();
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             comp.VerifyEmitDiagnostics(
     // (5,17): warning CS0824: Constructor 'B.B()' is marked external
@@ -17650,7 +17650,7 @@ public class B : A
 {
   static extern B() : base(); // error
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             comp.VerifyDiagnostics(
     // (8,23): error CS0514: 'B': static constructor cannot have an explicit 'this' or 'base' constructor call
@@ -17673,7 +17673,7 @@ public class B : A
 {
   static extern B() : base() {} // error
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugDll);
 
             comp.VerifyDiagnostics(
     // (8,23): error CS0514: 'B': static constructor cannot have an explicit 'this' or 'base' constructor call
@@ -17692,7 +17692,7 @@ public class B : A
             // This seems wrong; the error should either highlight the parameter "x" or the initializer " = 2".
             // I see no reason to highlight the "int". I've changed it to highlight the "x".
 
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"interface IFace
 {
     int Goo(int x = 1);
@@ -17712,7 +17712,7 @@ class B : IFace
         [Fact]
         public void CS1066WRN_DefaultValueForUnconsumedLocation02()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"interface I
 {
     object this[string index = null] { get; } //CS1066
@@ -17739,7 +17739,7 @@ class C : I
         [Fact]
         public void CS1066WRN_DefaultValueForUnconsumedLocation03()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"
 class C 
 {
@@ -17838,7 +17838,7 @@ class Derived : Base<int, int>, IFace
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeImplementationMatches, Line = 20, Column = 33, IsWarning = true });
         }
 
@@ -17860,7 +17860,7 @@ class Derived : Base<string>
     public override void Test(string s, ref int x) { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.WRN_MultipleRuntimeOverrideMatches, Line = 8, Column = 25, IsWarning = true });
         }
 
@@ -18118,7 +18118,7 @@ public class C
         [Fact]
         public void CS3013WRN_CLS_ModuleMissingCLS()
         {
-            var netModule = CreateEmptyCompilation("", options: TestOptions.ReleaseModule, assemblyName: "lib").EmitToImageReference(expectedWarnings: new[] { Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion) });
+            MetadataReference netModule = CreateEmptyCompilation("", options: TestOptions.ReleaseModule, assemblyName: "lib").EmitToImageReference(expectedWarnings: new[] { Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion) });
             CreateCompilation("[assembly: System.CLSCompliant(true)]", new[] { netModule }).VerifyDiagnostics(
                 // lib.netmodule: warning CS3013: Added modules must be marked with the CLSCompliant attribute to match the assembly
                 Diagnostic(ErrorCode.WRN_CLS_ModuleMissingCLS));
@@ -18365,7 +18365,7 @@ public class Test
 }
 
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.WRN_CLS_VolatileField, Line = 4, Column = 25, IsWarning = true });
         }
 
@@ -18392,7 +18392,7 @@ public class Goo
 {
     static void Main() { }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.WRN_CLS_BadInterface, Line = 13, Column = 18, IsWarning = true });
         }
 
@@ -18407,9 +18407,9 @@ public class Goo
 class Base<T>{}
 class Derived : Base<NotFound>{}";
 
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new ErrorDescription { Code = (int)ErrorCode.ERR_SingleTypeNameNotFound, Line = 3, Column = 22 });
-            var derived = comp.SourceModule.GlobalNamespace.GetTypeMembers("Derived").Single();
-            var Base = derived.BaseType();
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text, new ErrorDescription { Code = (int)ErrorCode.ERR_SingleTypeNameNotFound, Line = 3, Column = 22 });
+            NamedTypeSymbol derived = comp.SourceModule.GlobalNamespace.GetTypeMembers("Derived").Single();
+            NamedTypeSymbol Base = derived.BaseType();
             Assert.Equal(TypeKind.Class, Base.TypeKind);
         }
 
@@ -18439,7 +18439,7 @@ namespace B
         static NSA::Goo Xyzzy = null; // shouldn't error here
     }
 }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
 
             var b = comp.SourceModule.GlobalNamespace.GetMembers("B").Single() as NamespaceSymbol;
             var test = b.GetMembers("Test").Single() as NamedTypeSymbol;
@@ -18453,7 +18453,7 @@ namespace B
         {
             var text = @"interface A<T> { }
 interface B : A<B.Garbage> { }";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DottedTypeNameNotFoundInAgg, Line = 2, Column = 19 });
 
             var b = comp.SourceModule.GlobalNamespace.GetMembers("B").Single() as NamespaceSymbol;
@@ -18475,7 +18475,7 @@ namespace NS
     }
 }
 ";
-            var comp = CreateCompilation(text).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilation(text).VerifyDiagnostics(
                 // (8,21): error CS0102: The type 'NS.MyType' already contains a definition for 'MyMeth'
                 //         public void MyMeth() { }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "MyMeth").WithArguments("NS.MyType", "MyMeth"),
@@ -18570,7 +18570,7 @@ class A<T>
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateNameInClass, Line = 4, Column = 10 });
         }
 
@@ -18584,7 +18584,7 @@ class A<T>
     class T<S> { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_DuplicateNameInClass, Line = 4, Column = 11 });
         }
 
@@ -18602,7 +18602,7 @@ class A<T>
     struct F { }
     enum G { }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (3,12): error CS0102: The type 'C<A, B, D, E, F, G>' already contains a definition for 'A'
                 //     object A;
@@ -19123,7 +19123,7 @@ class Program
     static void Goo<T>(I<T> x) { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadAccess, Line = 15, Column = 9 });
         }
 
@@ -19152,7 +19152,7 @@ class Program
     static void Goo<T>(J<T> x) { }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text); // no errors
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text); // no errors
         }
 
         [Fact]
@@ -19191,7 +19191,7 @@ class Program
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text,
                 new ErrorDescription { Code = (int)ErrorCode.ERR_BadAccess, Line = 29, Column = 15 });
         }
 
@@ -19231,7 +19231,7 @@ class Program
     }
 }
 ";
-            var comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
+            CSharpCompilation comp = DiagnosticsUtils.VerifyErrorsAndGetCompilationWithMscorlib(text);
         }
 
         [WorkItem(3202, "DevDiv_Projects/Roslyn")]
@@ -19413,17 +19413,17 @@ class G<T> where T : C
         [Fact()]
         public void Bug783920()
         {
-            var comp1 = CreateCompilation(@"
+            CSharpCompilation comp1 = CreateCompilation(@"
 public class MyAttribute1 : System.Attribute
 {}
 ", options: TestOptions.ReleaseDll, assemblyName: "Bug783920_CS");
 
-            var comp2 = CreateCompilation(@"
+            CSharpCompilation comp2 = CreateCompilation(@"
 public class MyAttribute2 : MyAttribute1
 {}
 ", new[] { new CSharpCompilationReference(comp1) }, options: TestOptions.ReleaseDll);
 
-            var expected = new[] {
+            DiagnosticDescription[] expected = new[] {
                 // (2,2): error CS0012: The type 'MyAttribute1' is defined in an assembly that is not referenced. You must add a reference to assembly 'Bug783920_CS, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 // [MyAttribute2]
                 Diagnostic(ErrorCode.ERR_NoTypeDef, "MyAttribute2").WithArguments("MyAttribute1", "Bug783920_CS, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")
@@ -19435,11 +19435,11 @@ public class Test
 {}
 ";
 
-            var comp3 = CreateCompilation(source3, new[] { new CSharpCompilationReference(comp2) }, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp3 = CreateCompilation(source3, new[] { new CSharpCompilationReference(comp2) }, options: TestOptions.ReleaseDll);
 
             comp3.GetDiagnostics().Verify(expected);
 
-            var comp4 = CreateCompilation(source3, new[] { comp2.EmitToImageReference() }, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp4 = CreateCompilation(source3, new[] { comp2.EmitToImageReference() }, options: TestOptions.ReleaseDll);
 
             comp4.GetDiagnostics().Verify(expected);
         }
@@ -19493,7 +19493,7 @@ class C
 @"internal abstract void M();
 internal abstract object P { get; }
 internal abstract event System.EventHandler E;";
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (1,24): error CS0513: 'M()' is abstract but it is contained in non-abstract class 'Script'
                 // internal abstract void M();
@@ -19510,7 +19510,7 @@ internal abstract event System.EventHandler E;";
         [Fact]
         public void AbstractInSubmission()
         {
-            var references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
+            MetadataReference[] references = new[] { MscorlibRef_v4_0_30316_17626, SystemCoreRef };
             var source =
 @"internal abstract void M();
 internal abstract object P { get; }
@@ -19575,7 +19575,7 @@ internal abstract event System.EventHandler E;";
             IL_0007:  ret
         }
 }";
-            var ilReference = CompileIL(forwardingIL, prependDefaultHeader: false);
+            MetadataReference ilReference = CompileIL(forwardingIL, prependDefaultHeader: false);
 
             var code = @"
 using TestSpace;
@@ -19632,7 +19632,7 @@ namespace ForwardingNamespace
 {
 	.assembly extern Destination2
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(userCode, forwardingIL, appendDefaultHeader: false);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(userCode, forwardingIL, appendDefaultHeader: false);
 
             compilation.VerifyDiagnostics(
                 // (8,29): error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -19695,7 +19695,7 @@ namespace ForwardingNamespace
 	.assembly extern Destination2
 }";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(userCode, forwardingIL, appendDefaultHeader: false);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(userCode, forwardingIL, appendDefaultHeader: false);
 
             compilation.VerifyDiagnostics(
                 // (8,29): error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Destination.TestClass' to multiple assemblies: 'Destination1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'Destination2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -19718,7 +19718,7 @@ namespace C
 {
     public class ClassC {}
 }";
-            var referenceC = CreateCompilation(codeC, assemblyName: "C").EmitToImageReference();
+            MetadataReference referenceC = CreateCompilation(codeC, assemblyName: "C").EmitToImageReference();
 
             var codeB = @"
 using C;
@@ -19733,7 +19733,7 @@ namespace B
         }
     }
 }";
-            var referenceB = CreateCompilation(codeB, references: new MetadataReference[] { referenceC }, assemblyName: "B").EmitToImageReference();
+            MetadataReference referenceB = CreateCompilation(codeB, references: new MetadataReference[] { referenceC }, assemblyName: "B").EmitToImageReference();
 
             var codeA = @"
 using B;
@@ -19765,7 +19765,7 @@ namespace A
 	.assembly extern D2
 }";
 
-            var referenceC2 = CompileIL(codeC2, prependDefaultHeader: false);
+            MetadataReference referenceC2 = CompileIL(codeC2, prependDefaultHeader: false);
 
             CreateCompilation(codeA, references: new MetadataReference[] { referenceB, referenceC2 }, assemblyName: "A").VerifyDiagnostics(
                 // (10,13): error CS8329: Module 'CModule.dll' in assembly 'C, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'C.ClassC' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -19781,7 +19781,7 @@ namespace C
 {
     public class ClassC {}
 }";
-            var referenceC = CreateCompilation(codeC, assemblyName: "C").EmitToImageReference();
+            MetadataReference referenceC = CreateCompilation(codeC, assemblyName: "C").EmitToImageReference();
 
             var codeB = @"
 using C;
@@ -19796,7 +19796,7 @@ namespace B
         }
     }
 }";
-            var referenceB = CreateCompilation(codeB, references: new MetadataReference[] { referenceC }, assemblyName: "B").EmitToImageReference();
+            MetadataReference referenceB = CreateCompilation(codeB, references: new MetadataReference[] { referenceC }, assemblyName: "B").EmitToImageReference();
 
             var codeA = @"
 using B;
@@ -19832,7 +19832,7 @@ namespace A
 	.assembly extern D
 }";
 
-            var referenceC2 = CompileIL(codeC2, prependDefaultHeader: false);
+            MetadataReference referenceC2 = CompileIL(codeC2, prependDefaultHeader: false);
 
             CreateCompilation(codeA, references: new MetadataReference[] { referenceB, referenceC2 }).VerifyDiagnostics(
                 // (10,38): error CS0012: The type 'ClassC' is defined in an assembly that is not referenced. You must add a reference to assembly 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
@@ -19844,7 +19844,7 @@ namespace C
 {
     public class ClassC { }
 }";
-            var referenceD = CreateCompilation(codeD, assemblyName: "D").EmitToImageReference();
+            MetadataReference referenceD = CreateCompilation(codeD, assemblyName: "D").EmitToImageReference();
 
             CompileAndVerify(
                 source: codeA,
@@ -19868,7 +19868,7 @@ namespace C
 	.assembly extern D2
 }";
 
-            var ilModule = GetILModuleReference(ilSource, prependDefaultHeader: false);
+            MetadataReference ilModule = GetILModuleReference(ilSource, prependDefaultHeader: false);
             CreateCompilation(string.Empty, references: new MetadataReference[] { ilModule }, assemblyName: "Forwarder").VerifyDiagnostics(
                 // error CS8329: Module 'ForwarderModule.dll' in assembly 'Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' is forwarding the type 'Testspace.TestType' to multiple assemblies: 'D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' and 'D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 Diagnostic(ErrorCode.ERR_TypeForwardedToMultipleAssemblies).WithArguments("ForwarderModule.dll", "Forwarder, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "Testspace.TestType", "D1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null", "D2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
@@ -19888,7 +19888,7 @@ namespace C
 	.assembly extern D
 }";
 
-            var ilModule = GetILModuleReference(ilSource, prependDefaultHeader: false);
+            MetadataReference ilModule = GetILModuleReference(ilSource, prependDefaultHeader: false);
             CreateCompilation(string.Empty, references: new MetadataReference[] { ilModule }).VerifyDiagnostics(
                 // error CS0012: The type 'TestType' is defined in an assembly that is not referenced. You must add a reference to assembly 'D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 Diagnostic(ErrorCode.ERR_NoTypeDef).WithArguments("Testspace.TestType", "D, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1));
@@ -19898,7 +19898,7 @@ namespace Testspace
 {
     public class TestType { }
 }";
-            var dReference = CreateCompilation(dCode, assemblyName: "D").EmitToImageReference();
+            MetadataReference dReference = CreateCompilation(dCode, assemblyName: "D").EmitToImageReference();
 
             // Now compilation succeeds
             CreateCompilation(string.Empty, references: new MetadataReference[] { ilModule, dReference }).VerifyDiagnostics();
@@ -19922,8 +19922,8 @@ namespace Testspace
 	.assembly extern D2
 }";
 
-            var ilModuleReference = GetILModuleReference(ilSource, prependDefaultHeader: false);
-            var forwarderCompilation = CreateEmptyCompilation(
+            MetadataReference ilModuleReference = GetILModuleReference(ilSource, prependDefaultHeader: false);
+            CSharpCompilation forwarderCompilation = CreateEmptyCompilation(
                 source: string.Empty,
                 references: new MetadataReference[] { ilModuleReference },
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
@@ -19941,7 +19941,7 @@ namespace UserSpace
     }
 }";
 
-            var userCompilation = CreateCompilation(
+            CSharpCompilation userCompilation = CreateCompilation(
                 source: csSource,
                 references: new MetadataReference[] { forwarderCompilation.ToMetadataReference() },
                 assemblyName: "UserAssembly");
@@ -19971,7 +19971,7 @@ namespace UserSpace
 	.assembly extern D2
 }";
 
-            var module1Reference = GetILModuleReference(module1IL, prependDefaultHeader: false);
+            MetadataReference module1Reference = GetILModuleReference(module1IL, prependDefaultHeader: false);
 
             var module2IL = @"
 .module module12L.dll
@@ -19986,9 +19986,9 @@ namespace UserSpace
 	.assembly extern D4
 }";
 
-            var module2Reference = GetILModuleReference(module2IL, prependDefaultHeader: false);
+            MetadataReference module2Reference = GetILModuleReference(module2IL, prependDefaultHeader: false);
 
-            var forwarderCompilation = CreateEmptyCompilation(
+            CSharpCompilation forwarderCompilation = CreateEmptyCompilation(
                 source: string.Empty,
                 references: new MetadataReference[] { module1Reference, module2Reference },
                 options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary),
@@ -20006,7 +20006,7 @@ namespace UserSpace
     }
 }";
 
-            var userCompilation = CreateCompilation(
+            CSharpCompilation userCompilation = CreateCompilation(
                 source: csSource,
                 references: new MetadataReference[] { forwarderCompilation.ToMetadataReference() },
                 assemblyName: "UserAssembly");
@@ -20032,7 +20032,7 @@ namespace C
 {
     public class ClassC {}
 }";
-            var referenceC = CreateCompilation(codeC, assemblyName: "C").EmitToImageReference();
+            MetadataReference referenceC = CreateCompilation(codeC, assemblyName: "C").EmitToImageReference();
 
             var codeB = @"
 using C;
@@ -20047,7 +20047,7 @@ namespace B
         }
     }
 }";
-            var referenceB = CreateCompilation(codeB, references: new MetadataReference[] { referenceC }, assemblyName: "B").EmitToImageReference();
+            MetadataReference referenceB = CreateCompilation(codeB, references: new MetadataReference[] { referenceC }, assemblyName: "B").EmitToImageReference();
             
             var codeC2 = @"
 .assembly C { }
@@ -20063,7 +20063,7 @@ namespace B
 	.assembly extern E
 }";
 
-            var referenceC2 = CompileIL(codeC2, prependDefaultHeader: false);
+            MetadataReference referenceC2 = CompileIL(codeC2, prependDefaultHeader: false);
 
             var codeD = @"
 .assembly D { }
@@ -20073,8 +20073,8 @@ namespace B
 	.assembly extern E
 }";
 
-            var referenceD = CompileIL(codeD, prependDefaultHeader: false);
-            var referenceE = CreateCompilation(codeC, assemblyName: "E").EmitToImageReference();
+            MetadataReference referenceD = CompileIL(codeD, prependDefaultHeader: false);
+            MetadataReference referenceE = CreateCompilation(codeC, assemblyName: "E").EmitToImageReference();
 
             var codeA = @"
 using B;

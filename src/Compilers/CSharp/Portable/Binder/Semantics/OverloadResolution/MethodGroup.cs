@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             this.PopulateHelper(receiverOpt, resultKind, error);
             this.IsExtensionMethodGroup = true;
-            foreach (var member in members)
+            foreach (Symbol member in members)
             {
                 this.Methods.Add((MethodSymbol)member);
             }

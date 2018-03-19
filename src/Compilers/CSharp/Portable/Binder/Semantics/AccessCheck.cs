@@ -142,14 +142,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(within is NamedTypeSymbol || within is AssemblySymbol);
             Debug.Assert((object)type != null);
 
-            var compilation = within.DeclaringCompilation;
+            CSharpCompilation compilation = within.DeclaringCompilation;
 
             bool unused;
             if (!type.IsDefinition)
             {
                 // All type argument must be accessible.
-                var typeArgs = type.TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
-                foreach (var typeArg in typeArgs)
+                System.Collections.Immutable.ImmutableArray<TypeSymbol> typeArgs = type.TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+                foreach (TypeSymbol typeArg in typeArgs)
                 {
                     // type parameters are always accessible, so don't check those (so common it's
                     // worth optimizing this).
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var containingType = type.ContainingType;
+            NamedTypeSymbol containingType = type.ContainingType;
             return (object)containingType == null
                 ? IsNonNestedTypeAccessible(type.ContainingAssembly, type.DeclaredAccessibility, within)
                 : IsMemberAccessible(containingType, type.DeclaredAccessibility, within, null, out unused, compilation, ref useSiteDiagnostics, basesBeingResolved);
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // within is typically a type
                     var withinType = within as NamedTypeSymbol;
-                    var withinAssembly = (object)withinType != null ? withinType.ContainingAssembly : (AssemblySymbol)within;
+                    AssemblySymbol withinAssembly = (object)withinType != null ? withinType.ContainingAssembly : (AssemblySymbol)within;
 
                     // An internal type is accessible if we're in the same assembly or we have
                     // friend access to the assembly it was defined in.
@@ -268,9 +268,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             failedThroughTypeCheck = false;
 
-            var originalContainingType = containingType.OriginalDefinition;
+            NamedTypeSymbol originalContainingType = containingType.OriginalDefinition;
             var withinType = within as NamedTypeSymbol;
-            var withinAssembly = (object)withinType != null ? withinType.ContainingAssembly : (AssemblySymbol)within;
+            AssemblySymbol withinAssembly = (object)withinType != null ? withinType.ContainingAssembly : (AssemblySymbol)within;
 
             switch (declaredAccessibility)
             {
@@ -377,8 +377,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // for instance members" to see how it works.  I actually got the code for this from
             // LangCompiler::CheckAccessCore
             {
-                var current = withinType.OriginalDefinition;
-                var originalThroughTypeOpt = (object)throughTypeOpt == null ? null : throughTypeOpt.OriginalDefinition as TypeSymbol;
+                NamedTypeSymbol current = withinType.OriginalDefinition;
+                TypeSymbol originalThroughTypeOpt = (object)throughTypeOpt == null ? null : throughTypeOpt.OriginalDefinition as TypeSymbol;
                 while ((object)current != null)
                 {
                     Debug.Assert(current.IsDefinition);
@@ -439,7 +439,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Walk up my parent chain and see if I eventually hit the owner.  If so then I'm a
             // nested type of that owner and I'm allowed access to everything inside of it.
-            var current = withinType.OriginalDefinition;
+            NamedTypeSymbol current = withinType.OriginalDefinition;
             while ((object)current != null)
             {
                 Debug.Assert(current.IsDefinition);
@@ -468,7 +468,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(baseType.IsDefinition);
 
             PooledHashSet<NamedTypeSymbol> visited = null;
-            var current = type;
+            TypeSymbol current = type;
             bool result = false;
 
             while ((object)current != null)
@@ -482,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // NOTE(cyrusn): The base type of an 'original' type may not be 'original'. i.e. 
                 // "class Goo : IBar<int>".  We must map it back to the 'original' when as we walk up
                 // the base type hierarchy.
-                var next = current.GetNextBaseTypeNoUseSiteDiagnostics(basesBeingResolved, compilation, ref visited);
+                TypeSymbol next = current.GetNextBaseTypeNoUseSiteDiagnostics(basesBeingResolved, compilation, ref visited);
                 if ((object)next == null)
                 {
                     current = null;

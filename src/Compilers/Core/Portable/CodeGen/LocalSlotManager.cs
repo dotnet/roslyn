@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                var map = _localMap;
+                Dictionary<ILocalSymbol, LocalDefinition> map = _localMap;
                 if (map == null)
                 {
                     map = new Dictionary<ILocalSymbol, LocalDefinition>(ReferenceEqualityComparer.Instance);
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         {
             get
             {
-                var slots = _freeSlots;
+                KeyedStack<LocalSignature, LocalDefinition> slots = _freeSlots;
                 if (slots == null)
                 {
                     slots = new KeyedStack<LocalSignature, LocalDefinition>();
@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         internal void FreeLocal(ILocalSymbol symbol)
         {
-            var slot = GetLocal(symbol);
+            LocalDefinition slot = GetLocal(symbol);
             LocalMap.Remove(symbol);
             FreeSlot(slot);
         }

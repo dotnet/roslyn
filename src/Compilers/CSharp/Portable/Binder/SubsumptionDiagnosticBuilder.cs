@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // For purposes of subsumption, we do not take into consideration the value
                 // of the input expression. Therefore we consider null possible if the type permits.
                 var inputCouldBeNull = _subsumptionTree.Type.CanContainNull();
-                var subsumedErrorCode = CheckSubsumed(label.Pattern, _subsumptionTree, inputCouldBeNull: inputCouldBeNull);
+                ErrorCode subsumedErrorCode = CheckSubsumed(label.Pattern, _subsumptionTree, inputCouldBeNull: inputCouldBeNull);
                 if (subsumedErrorCode != 0)
                 {
                     if (!label.HasErrors && subsumedErrorCode != ErrorCode.ERR_NoImplicitConvCast)
@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     DecisionTree decision;
                                     if (byValue.ValueAndDecision.TryGetValue(constantPattern.Value.ConstantValue.Value, out decision))
                                     {
-                                        var error = CheckSubsumed(pattern, decision, inputCouldBeNull);
+                                        ErrorCode error = CheckSubsumed(pattern, decision, inputCouldBeNull);
                                         if (error != 0)
                                         {
                                             return error;
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         if (byType.WhenNull != null)
                                         {
-                                            var result = CheckSubsumed(pattern, byType.WhenNull, inputCouldBeNull);
+                                            ErrorCode result = CheckSubsumed(pattern, byType.WhenNull, inputCouldBeNull);
                                             if (result != 0)
                                             {
                                                 return result;
@@ -169,13 +169,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     }
                                     else
                                     {
-                                        foreach (var td in byType.TypeAndDecision)
+                                        foreach (System.Collections.Generic.KeyValuePair<TypeSymbol, DecisionTree> td in byType.TypeAndDecision)
                                         {
-                                            var type = td.Key;
-                                            var decision = td.Value;
+                                            TypeSymbol type = td.Key;
+                                            DecisionTree decision = td.Value;
                                             if (ExpressionOfTypeMatchesPatternType(constantPattern.Value.Type, type, ref _useSiteDiagnostics) == true)
                                             {
-                                                var error = CheckSubsumed(pattern, decision, false);
+                                                ErrorCode error = CheckSubsumed(pattern, decision, false);
                                                 if (error != 0)
                                                 {
                                                     return error;
@@ -233,10 +233,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     }
 
                                     inputCouldBeNull = false;
-                                    foreach (var td in byType.TypeAndDecision)
+                                    foreach (System.Collections.Generic.KeyValuePair<TypeSymbol, DecisionTree> td in byType.TypeAndDecision)
                                     {
-                                        var type = td.Key;
-                                        var decision = td.Value;
+                                        TypeSymbol type = td.Key;
+                                        DecisionTree decision = td.Value;
                                         // if the pattern's type is already handled by the previous pattern
                                         // or the previous pattern handles all of the (non-null) input data...
                                         if (ExpressionOfTypeMatchesPatternType(
@@ -244,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             ExpressionOfTypeMatchesPatternType(byType.Type, type, ref _useSiteDiagnostics) == true)
                                         {
                                             // then we check if the pattern is subsumed by the previous decision
-                                            var error = CheckSubsumed(pattern, decision, inputCouldBeNull);
+                                            ErrorCode error = CheckSubsumed(pattern, decision, inputCouldBeNull);
                                             if (error != 0)
                                             {
                                                 return error;

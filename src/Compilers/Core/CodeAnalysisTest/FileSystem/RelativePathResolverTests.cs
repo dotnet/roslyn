@@ -156,9 +156,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void ResolvePath_Order()
         {
-            var dir = Temp.CreateDirectory();
-            var dir1 = dir.CreateDirectory("dir1");
-            var dir2 = dir.CreateDirectory("dir2");
+            CodeAnalysis.Test.Utilities.TempDirectory dir = Temp.CreateDirectory();
+            CodeAnalysis.Test.Utilities.TempDirectory dir1 = dir.CreateDirectory("dir1");
+            CodeAnalysis.Test.Utilities.TempDirectory dir2 = dir.CreateDirectory("dir2");
 
             var f1 = dir1.CreateFile("f.dll").Path;
             var f2 = dir2.CreateFile("f.dll").Path;

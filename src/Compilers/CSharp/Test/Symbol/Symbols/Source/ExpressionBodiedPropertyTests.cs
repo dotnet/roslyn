@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
         public void Syntax01()
         {
             // Language feature enabled by default
-            var comp = CreateCompilation(@"
+            CSharpCompilation comp = CreateCompilation(@"
 class C
 {
     public int P => 1;
@@ -26,7 +26,7 @@ class C
         [Fact]
         public void Syntax02()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public int P { get; } => 1;
@@ -41,7 +41,7 @@ class C
         [Fact]
         public void Syntax03()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 interface C
 {
     int P => 1;
@@ -55,7 +55,7 @@ interface C
         [Fact]
         public void Syntax04()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 abstract class C
 {
   public abstract int P => 1;
@@ -69,7 +69,7 @@ abstract class C
         [Fact]
         public void Syntax05()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
    public abstract int P => 1;
@@ -86,7 +86,7 @@ class C
         [Fact]
         public void Syntax06()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 abstract class C
 {
    abstract int P => 1;
@@ -104,7 +104,7 @@ abstract class C
         public void Syntax07()
         {
             // The '=' here parses as part of the expression body, not the property
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public int P => 1 = 2;
@@ -228,7 +228,7 @@ class C
         [Fact]
         public void LambdaTest01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 using System;
 class C
 {
@@ -246,18 +246,18 @@ class C
     public int P => 2 * 2;
     public int this[int i, int j] => i * j * P;
 }";
-            var comp = CreateCompilationWithMscorlib45(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text);
             comp.VerifyDiagnostics();
-            var global = comp.GlobalNamespace;
-            var c = global.GetTypeMember("C");
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol c = global.GetTypeMember("C");
 
-            var p = c.GetMember<SourcePropertySymbol>("P");
+            SourcePropertySymbol p = c.GetMember<SourcePropertySymbol>("P");
             Assert.Null(p.SetMethod);
             Assert.NotNull(p.GetMethod);
             Assert.False(p.GetMethod.IsImplicitlyDeclared);
             Assert.True(p.IsExpressionBodied);
 
-            var indexer = c.GetMember<SourcePropertySymbol>("this[]");
+            SourcePropertySymbol indexer = c.GetMember<SourcePropertySymbol>("this[]");
             Assert.Null(indexer.SetMethod);
             Assert.NotNull(indexer.GetMethod);
             Assert.False(indexer.GetMethod.IsImplicitlyDeclared);
@@ -265,10 +265,10 @@ class C
             Assert.True(indexer.IsIndexer);
 
             Assert.Equal(2, indexer.ParameterCount);
-            var i = indexer.Parameters[0];
+            ParameterSymbol i = indexer.Parameters[0];
             Assert.Equal(SpecialType.System_Int32, i.Type.SpecialType);
             Assert.Equal("i", i.Name);
-            var j = indexer.Parameters[1];
+            ParameterSymbol j = indexer.Parameters[1];
             Assert.Equal(SpecialType.System_Int32, i.Type.SpecialType);
             Assert.Equal("j", j.Name);
         }
@@ -276,7 +276,7 @@ class C
         [Fact]
         public void Override01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class B
 {
     public virtual int P { get; set; }
@@ -328,7 +328,7 @@ class C : B
         [Fact]
         public void VoidExpression()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public void P => System.Console.WriteLine(""goo"");
@@ -341,7 +341,7 @@ class C
         [Fact]
         public void VoidExpression2()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     public int P => System.Console.WriteLine(""goo"");
@@ -354,7 +354,7 @@ class C
         [Fact]
         public void InterfaceImplementation01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 interface I 
 {
     int P { get; }
@@ -376,17 +376,17 @@ class C : I, J, K
     public decimal D { get { return P; } }
 }");
             comp.VerifyDiagnostics();
-            var global = comp.GlobalNamespace;
-            var i = global.GetTypeMember("I");
-            var j = global.GetTypeMember("J");
-            var k = global.GetTypeMember("K");
-            var c = global.GetTypeMember("C");
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol i = global.GetTypeMember("I");
+            NamedTypeSymbol j = global.GetTypeMember("J");
+            NamedTypeSymbol k = global.GetTypeMember("K");
+            NamedTypeSymbol c = global.GetTypeMember("C");
 
-            var iP = i.GetMember<SourcePropertySymbol>("P");
+            SourcePropertySymbol iP = i.GetMember<SourcePropertySymbol>("P");
 
-            var prop = c.GetMember<SourcePropertySymbol>("P");
+            SourcePropertySymbol prop = c.GetMember<SourcePropertySymbol>("P");
             Assert.True(prop.IsReadOnly);
-            var implements = prop.ContainingType.FindImplementationForInterfaceMember(iP);
+            Symbol implements = prop.ContainingType.FindImplementationForInterfaceMember(iP);
             Assert.Equal(prop, implements);
 
             prop = (SourcePropertySymbol)c.GetProperty("I.Q");
@@ -404,7 +404,7 @@ class C : I, J, K
         [ClrOnlyFact]
         public void Emit01()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 abstract class A
 {
     protected abstract string Z { get; }
@@ -437,7 +437,7 @@ class C : B
         System.Console.WriteLine(c[10]);
     }
 }", options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.Internal));
-            var verifier = CompileAndVerify(comp, expectedOutput:
+            CompilationVerifier verifier = CompileAndVerify(comp, expectedOutput:
 @"2
 4
 2
@@ -450,7 +450,7 @@ goo8
         [ClrOnlyFact]
         public void AccessorInheritsVisibility()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     private int P => 1;
@@ -459,21 +459,21 @@ class C
 
             Action<ModuleSymbol> srcValidator = m =>
             {
-                var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var p = c.GetMember<PropertySymbol>("P");
-                var indexer = c.Indexers[0];
+                NamedTypeSymbol c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                PropertySymbol p = c.GetMember<PropertySymbol>("P");
+                PropertySymbol indexer = c.Indexers[0];
 
                 Assert.Equal(Accessibility.Private, p.DeclaredAccessibility);
                 Assert.Equal(Accessibility.Private, indexer.DeclaredAccessibility);
             };
 
-            var verifier = CompileAndVerify(comp, sourceSymbolValidator: srcValidator);
+            CompilationVerifier verifier = CompileAndVerify(comp, sourceSymbolValidator: srcValidator);
         }
 
         [Fact]
         public void StaticIndexer()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     static int this[int i] => i;
@@ -487,7 +487,7 @@ class C
         [Fact]
         public void RefReturningExpressionBodiedProperty()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     int field = 0;
@@ -495,10 +495,10 @@ class C
 }");
             comp.VerifyDiagnostics();
 
-            var global = comp.GlobalNamespace;
-            var c = global.GetTypeMember("C");
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol c = global.GetTypeMember("C");
 
-            var p = c.GetMember<SourcePropertySymbol>("P");
+            SourcePropertySymbol p = c.GetMember<SourcePropertySymbol>("P");
             Assert.Null(p.SetMethod);
             Assert.NotNull(p.GetMethod);
             Assert.False(p.GetMethod.IsImplicitlyDeclared);
@@ -510,7 +510,7 @@ class C
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningExpressionBodiedProperty()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     int field = 0;
@@ -518,10 +518,10 @@ class C
 }");
             comp.VerifyDiagnostics();
 
-            var global = comp.GlobalNamespace;
-            var c = global.GetTypeMember("C");
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol c = global.GetTypeMember("C");
 
-            var p = c.GetMember<SourcePropertySymbol>("P");
+            SourcePropertySymbol p = c.GetMember<SourcePropertySymbol>("P");
             Assert.Null(p.SetMethod);
             Assert.NotNull(p.GetMethod);
             Assert.False(p.GetMethod.IsImplicitlyDeclared);
@@ -537,7 +537,7 @@ class C
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningExpressionBodiedIndexer()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     int field = 0;
@@ -545,10 +545,10 @@ class C
 }");
             comp.VerifyDiagnostics();
 
-            var global = comp.GlobalNamespace;
-            var c = global.GetTypeMember("C");
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol c = global.GetTypeMember("C");
 
-            var p = c.GetMember<SourcePropertySymbol>("this[]");
+            SourcePropertySymbol p = c.GetMember<SourcePropertySymbol>("this[]");
             Assert.Null(p.SetMethod);
             Assert.NotNull(p.GetMethod);
             Assert.False(p.GetMethod.IsImplicitlyDeclared);
@@ -565,7 +565,7 @@ class C
         [CompilerTrait(CompilerFeature.ReadOnlyReferences)]
         public void RefReadonlyReturningExpressionBodiedIndexer1()
         {
-            var comp = CreateCompilationWithMscorlib45(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(@"
 class C
 {
     int field = 0;
@@ -573,10 +573,10 @@ class C
 }");
             comp.VerifyDiagnostics();
 
-            var global = comp.GlobalNamespace;
-            var c = global.GetTypeMember("C");
+            NamespaceSymbol global = comp.GlobalNamespace;
+            NamedTypeSymbol c = global.GetTypeMember("C");
 
-            var p = c.GetMember<SourcePropertySymbol>("this[]");
+            SourcePropertySymbol p = c.GetMember<SourcePropertySymbol>("this[]");
             Assert.Null(p.SetMethod);
             Assert.NotNull(p.GetMethod);
             Assert.False(p.GetMethod.IsImplicitlyDeclared);

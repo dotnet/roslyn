@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis
         private static int HashFeatures(IReadOnlyDictionary<string, string> features)
         {
             int value = 0;
-            foreach (var kv in features)
+            foreach (KeyValuePair<string, string> kv in features)
             {
                 value = Hash.Combine(kv.Key.GetHashCode(),
                         Hash.Combine(kv.Value.GetHashCode(), value));

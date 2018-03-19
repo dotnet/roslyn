@@ -47,8 +47,8 @@ namespace B
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
 
             comp.GetMethodBodyDiagnostics().Verify();
@@ -69,8 +69,8 @@ public class MyClass
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
 
             comp.GetMethodBodyDiagnostics().Verify();
@@ -92,8 +92,8 @@ class Program
     {
     }
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -115,12 +115,12 @@ class Program
     {
     }
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
 
             int[] count = new int[4];
             Dictionary<int, int> errors = new Dictionary<int, int>();
-            foreach (var e in comp.GetDiagnostics())
+            foreach (Diagnostic e in comp.GetDiagnostics())
             {
                 count[(int)e.Severity]++;
                 if (!errors.ContainsKey(e.Code)) errors[e.Code] = 0;
@@ -155,8 +155,8 @@ class Program
         Console.WriteLine(x);
     } 
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -195,8 +195,8 @@ class Program
        x.test();
     }
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -235,8 +235,8 @@ class Program
        y.bar(i); // Fails to resolve
     }
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -258,8 +258,8 @@ class Program
         }
     }
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -286,8 +286,8 @@ public class MyClass
 }
 ";
 
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -317,7 +317,7 @@ class Test
             // In Roslyn we now do error recovery better and treat the initialization clause
             // as an initializer. We therefore expect one parse error, not four.
 
-            var tree = Parse(text);
+            SyntaxTree tree = Parse(text);
             Assert.Equal(1, tree.GetDiagnostics().Count());
             Assert.Equal(650, tree.GetDiagnostics().First().Code);
         }
@@ -362,8 +362,8 @@ public class Program
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -386,8 +386,8 @@ public class Program2
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -409,8 +409,8 @@ public class Program1
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             Assert.Equal(1, comp.GetDiagnostics().Count());
         }
 
@@ -433,8 +433,8 @@ public class Program1
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             Assert.Equal(1, comp.GetDiagnostics().Count());
         }
 
@@ -456,8 +456,8 @@ public class Program1
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             Assert.Equal(1, comp.GetDiagnostics().Count());
         }
 
@@ -479,8 +479,8 @@ public class Program1
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             Assert.Equal(1, comp.GetDiagnostics().Count());
         }
 
@@ -502,8 +502,8 @@ public class Program1
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             Assert.Equal(1, comp.GetDiagnostics().Count());
         }
 
@@ -525,8 +525,8 @@ public class Program
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -556,8 +556,8 @@ class C
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
                 // (19,19): error CS0229: Ambiguity between 'IA.Goo' and 'IB.Goo'
                 //         int y = x.Goo;
@@ -608,9 +608,9 @@ public class Program : I3
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var diags = comp.GetDiagnostics();
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            ImmutableArray<Diagnostic> diags = comp.GetDiagnostics();
             Assert.Equal(0, diags.Count(d => d.Severity == DiagnosticSeverity.Error));
             Assert.Equal(0, diags.Count(d => d.Severity == DiagnosticSeverity.Warning));
         }
@@ -632,8 +632,8 @@ public class Program
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
                 // (10,18): warning CS0219: The variable 'C' is assigned but its value is never used
                 //         const c1 C = null;
@@ -659,8 +659,8 @@ class A<T> : B
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -691,8 +691,8 @@ namespace ParenthesizedExpression
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -718,8 +718,8 @@ class C
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -743,8 +743,8 @@ class C
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -763,8 +763,8 @@ class F
   ProtectionLevel ProtectionLevel { get { return 0; } }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics(
                 // (8,19): warning CS0414: The field 'F.p' is assigned but its value is never used
                 //   ProtectionLevel p = ProtectionLevel.Privacy;
@@ -788,8 +788,8 @@ class F
   ProtectionLevel ProtectionLevel { get { return 0; } }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree,
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree,
                 references: new[] { TestReferences.NetFx.v4_0_30319.System });
             Assert.Equal(string.Empty, string.Join(Environment.NewLine, comp.GetDiagnostics()));
         }
@@ -826,8 +826,8 @@ namespace LevelOne.LevelTwo.LevelThree
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -853,8 +853,8 @@ public static int Main()
 }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -878,8 +878,8 @@ public class TestClass
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -905,8 +905,8 @@ class C
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -926,8 +926,8 @@ class Test
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
         }
 
@@ -947,8 +947,8 @@ struct Outer
         }
     }
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             Assert.Equal(0, comp.GetDeclarationDiagnostics().Count());
             comp.GetMethodBodyDiagnostics().Verify(
                 // (10,21): error CS0120: An object reference is required for the non-static field, method, or property 'Outer.f1'
@@ -986,8 +986,8 @@ class Program
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.GetMethodBodyDiagnostics().Verify(
                 // (23,15): error CS0457: Ambiguous user defined conversions 'D.explicit operator D(Goo)' and 'D.implicit operator D(Action)' when converting from 'method group' to 'D'
                 //          D d = (D) Main;

@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
                                                Symbol symbol,
                                                int expectedNumber)
         {
-            var declaringReferences = symbol.DeclaringSyntaxReferences;
+            ImmutableArray<SyntaxReference> declaringReferences = symbol.DeclaringSyntaxReferences;
             Assert.Equal(expectedNumber, declaringReferences.Length);
 
             if (expectedNumber == 0)
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
                 Assert.True(symbol.IsFromCompilation(compilation) || symbol is MergedNamespaceSymbol, "symbol with declaration should be in source, except for merged namespaces");
                 Assert.False(symbol.IsImplicitlyDeclared);
 
-                foreach (var node in declaringReferences.Select(d => d.GetSyntax()))
+                foreach (SyntaxNode node in declaringReferences.Select(d => d.GetSyntax()))
                 {
                     // Make sure GetDeclaredSymbol gets back to the symbol for each node.
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
                                                Symbol symbol,
                                                int expectedNumber)
         {
-            var nodes = CheckDeclaringSyntaxNodes(compilation, symbol, expectedNumber);
+            ImmutableArray<SyntaxReference> nodes = CheckDeclaringSyntaxNodes(compilation, symbol, expectedNumber);
 
             MethodSymbol meth = symbol as MethodSymbol;
             if (meth != null)
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
                                                int expectedNumber,
                                                SyntaxKind expectedSyntaxKind)
         {
-            var declaringReferences = symbol.DeclaringSyntaxReferences;
+            ImmutableArray<SyntaxReference> declaringReferences = symbol.DeclaringSyntaxReferences;
             Assert.Equal(expectedNumber, declaringReferences.Length);
 
             if (expectedNumber == 0)
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
                     Assert.False(symbol.IsImplicitlyDeclared);
                 }
 
-                foreach (var node in declaringReferences.Select(d => d.GetSyntax()))
+                foreach (SyntaxNode node in declaringReferences.Select(d => d.GetSyntax()))
                 {
                     // Make sure each node is of the expected kind.
                     Assert.Equal(expectedSyntaxKind, node.Kind());
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
         private void AssertDeclaringSyntaxNodes(Symbol symbol, CSharpCompilation compilation, params SyntaxNode[] expectedSyntaxNodes)
         {
             int expectedNumber = expectedSyntaxNodes.Length;
-            var declaringReferences = symbol.DeclaringSyntaxReferences;
+            ImmutableArray<SyntaxReference> declaringReferences = symbol.DeclaringSyntaxReferences;
             Assert.Equal(expectedNumber, declaringReferences.Length);
 
             if (expectedNumber == 0)
@@ -130,10 +130,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
         private void CheckDeclaringSyntax<TNode>(CSharpCompilation comp, SyntaxTree tree, string name, SymbolKind kind)
             where TNode : CSharpSyntaxNode
         {
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
             string code = tree.GetText().ToString();
             int position = code.IndexOf(name, StringComparison.Ordinal);
-            var node = tree.GetRoot().FindToken(position).Parent.FirstAncestorOrSelf<TNode>();
+            TNode node = tree.GetRoot().FindToken(position).Parent.FirstAncestorOrSelf<TNode>();
             var sym = (Symbol)model.GetDeclaredSymbol(node);
 
             Assert.Equal(kind, sym.Kind);
@@ -145,16 +145,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Source
         private void CheckLambdaDeclaringSyntax<TNode>(CSharpCompilation comp, SyntaxTree tree, string textToSearchFor)
             where TNode : ExpressionSyntax
         {
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
             string code = tree.GetText().ToString();
             int position = code.IndexOf(textToSearchFor, StringComparison.Ordinal);
-            var node = tree.GetCompilationUnitRoot().FindToken(position).Parent.FirstAncestorOrSelf<TNode>();
+            TNode node = tree.GetCompilationUnitRoot().FindToken(position).Parent.FirstAncestorOrSelf<TNode>();
             MethodSymbol sym = model.GetSymbolInfo(node).Symbol as MethodSymbol;
 
             Assert.NotNull(sym);
             Assert.Equal(MethodKind.AnonymousFunction, sym.MethodKind);
 
-            var nodes = CheckDeclaringSyntaxNodesWithoutGetDeclaredSymbol(comp, sym, 1, node.Kind());
+            ImmutableArray<SyntaxReference> nodes = CheckDeclaringSyntaxNodesWithoutGetDeclaredSymbol(comp, sym, 1, node.Kind());
             Assert.Equal(nodes[0].GetSyntax(), node);
 
             foreach (ParameterSymbol p in sym.Parameters)
@@ -182,14 +182,14 @@ namespace N1 {
 
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
 
             Assert.False(n1.IsImplicitlyDeclared);
             Assert.True(comp.SourceModule.GlobalNamespace.IsImplicitlyDeclared);
 
-            var types = n1.GetTypeMembers();
+            ImmutableArray<NamedTypeSymbol> types = n1.GetTypeMembers();
             foreach (Symbol s in types)
             {
                 CheckDeclaringSyntaxNodes(comp, s, 1);
@@ -226,8 +226,8 @@ namespace N1 {
     }
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var c1 = n1.GetTypeMembers("C1").Single() as NamedTypeSymbol;
 
@@ -251,15 +251,15 @@ class C1 {
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            var global = comp.GlobalNamespace;
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            NamespaceSymbol global = comp.GlobalNamespace;
             int posA1 = text.IndexOf("a1", StringComparison.Ordinal);
 
-            var declaratorA1 = tree.GetCompilationUnitRoot().FindToken(posA1).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
+            VariableDeclaratorSyntax declaratorA1 = tree.GetCompilationUnitRoot().FindToken(posA1).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             var localA1 = (LocalSymbol)model.GetDeclaredSymbol(declaratorA1);
-            var localA1Type = localA1.Type;
+            TypeSymbol localA1Type = localA1.Type;
             Assert.True(localA1Type.IsAnonymousType);
 
             // Anonymous types don't support GetDeclaredSymbol.
@@ -294,28 +294,28 @@ class C1 {
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            var global = comp.GlobalNamespace;
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            NamespaceSymbol global = comp.GlobalNamespace;
 
             // check 'q'
             int posQ = text.IndexOf('q');
-            var declaratorQ = tree.GetCompilationUnitRoot().FindToken(posQ).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
+            VariableDeclaratorSyntax declaratorQ = tree.GetCompilationUnitRoot().FindToken(posQ).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             CheckAnonymousType(model,
                 (LocalSymbol)model.GetDeclaredSymbol(declaratorQ),
                 (AnonymousObjectCreationExpressionSyntax)declaratorQ.Initializer.Value);
 
             // check 'x'
             int posX = text.IndexOf('x');
-            var declaratorX = tree.GetCompilationUnitRoot().FindToken(posX).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
+            VariableDeclaratorSyntax declaratorX = tree.GetCompilationUnitRoot().FindToken(posX).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             CheckAnonymousType(model,
                 (LocalSymbol)model.GetDeclaredSymbol(declaratorX),
                 (AnonymousObjectCreationExpressionSyntax)declaratorX.Initializer.Value);
 
             // check 'z' --> 'x'
             int posZ = text.IndexOf('z');
-            var declaratorZ = tree.GetCompilationUnitRoot().FindToken(posZ).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
+            VariableDeclaratorSyntax declaratorZ = tree.GetCompilationUnitRoot().FindToken(posZ).Parent.FirstAncestorOrSelf<VariableDeclaratorSyntax>();
             CheckAnonymousType(model,
                 (LocalSymbol)model.GetDeclaredSymbol(declaratorZ),
                 (AnonymousObjectCreationExpressionSyntax)declaratorX.Initializer.Value);
@@ -323,7 +323,7 @@ class C1 {
 
         private void CheckAnonymousType(SemanticModel model, LocalSymbol local, AnonymousObjectCreationExpressionSyntax anonObjectCreation)
         {
-            var localType = local.Type;
+            TypeSymbol localType = local.Type;
             Assert.True(localType.IsAnonymousType);
 
             // IsImplicitlyDeclared: Return false. The new { } clause 
@@ -336,7 +336,7 @@ class C1 {
 
             // SemanticModel.GetDeclaredSymbol: Return this symbol when applied to the 
             //                                  AnonymousObjectCreationExpression in the new { } declaration.
-            var symbol = model.GetDeclaredSymbol(anonObjectCreation);
+            INamedTypeSymbol symbol = model.GetDeclaredSymbol(anonObjectCreation);
             Assert.NotNull(symbol);
             Assert.Equal<ISymbol>(localType, symbol);
             Assert.Same(localType.DeclaringSyntaxReferences[0].GetSyntax(), symbol.DeclaringSyntaxReferences[0].GetSyntax());
@@ -348,13 +348,13 @@ class C1 {
 
             // Members check
             int propIndex = 0;
-            foreach (var member in localType.GetMembers())
+            foreach (Symbol member in localType.GetMembers())
             {
                 if (member.Kind == SymbolKind.Property)
                 {
                     // Equals: Return true when comparing same-named members of 
                     //         structurally-equivalent anonymous type symbols.
-                    var members = symbol.GetMembers(member.Name);
+                    ImmutableArray<ISymbol> members = symbol.GetMembers(member.Name);
                     Assert.Equal(1, members.Length);
                     Assert.Equal(member, members[0]);
 
@@ -364,13 +364,13 @@ class C1 {
 
                     // DeclaringSyntaxNodes: Return the AnonymousObjectMemberDeclarator from the 
                     //                       particular property definition that flowed to this usage.
-                    var propertyInitializer = anonObjectCreation.Initializers[propIndex];
+                    AnonymousObjectMemberDeclaratorSyntax propertyInitializer = anonObjectCreation.Initializers[propIndex];
                     Assert.Equal(1, member.DeclaringSyntaxReferences.Length);
                     Assert.Same(propertyInitializer, member.DeclaringSyntaxReferences[0].GetSyntax());
 
                     // SemanticModel.GetDeclaredSymbol: Return this symbol when applied to its new { } 
                     //                                  declaration's AnonymousObjectMemberDeclarator.
-                    var propSymbol = model.GetDeclaredSymbol(propertyInitializer);
+                    IPropertySymbol propSymbol = model.GetDeclaredSymbol(propertyInitializer);
                     Assert.Equal<ISymbol>(member, propSymbol);
                     Assert.Same(propertyInitializer, propSymbol.DeclaringSyntaxReferences[0].GetSyntax());
 
@@ -401,8 +401,8 @@ namespace N1.N2 {
 
 namespace System {}
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
             var system = global.GetMembers("System").Single() as NamespaceSymbol;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var n2 = n1.GetMembers("N2").Single() as NamespaceSymbol;
@@ -441,8 +441,8 @@ namespace N1 {
     }
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var c1 = n1.GetTypeMembers("C1").Single() as NamedTypeSymbol;
             var c2 = c1.GetTypeMembers("C2").Single() as NamedTypeSymbol;
@@ -508,8 +508,8 @@ namespace N1 {
     }
 }
 ";
-            var comp = CreateCompilation(text);
-            var global = comp.GlobalNamespace;
+            CSharpCompilation comp = CreateCompilation(text);
+            NamespaceSymbol global = comp.GlobalNamespace;
             var n1 = global.GetMembers("N1").Single() as NamespaceSymbol;
             var c1 = n1.GetTypeMembers("C1").Single() as NamedTypeSymbol;
             var c2 = n1.GetTypeMembers("C2").Single() as NamedTypeSymbol;
@@ -547,7 +547,7 @@ namespace N1 {
             }
 
             var fieldT = c1.GetMembers("t").Single() as FieldSymbol;
-            var constructedC1 = fieldT.Type;
+            TypeSymbol constructedC1 = fieldT.Type;
 
             foreach (Symbol memb in constructedC1.GetMembers())
             {
@@ -596,8 +596,8 @@ class C1
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             CheckDeclaringSyntax<VariableDeclaratorSyntax>(comp, tree, "loc1", SymbolKind.Local);
             CheckDeclaringSyntax<VariableDeclaratorSyntax>(comp, tree, "loc2", SymbolKind.Local);
             CheckDeclaringSyntax<VariableDeclaratorSyntax>(comp, tree, "loc3", SymbolKind.Local);
@@ -631,8 +631,8 @@ class C1
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             CheckDeclaringSyntax<LabeledStatementSyntax>(comp, tree, "lab1", SymbolKind.Label);
             CheckDeclaringSyntax<LabeledStatementSyntax>(comp, tree, "lab2", SymbolKind.Label);
             CheckDeclaringSyntax<LabeledStatementSyntax>(comp, tree, "lab3", SymbolKind.Label);
@@ -657,8 +657,8 @@ namespace N1
     using GooAlias=Con;
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             CheckDeclaringSyntax<UsingDirectiveSyntax>(comp, tree, "ConsoleAlias", SymbolKind.Alias);
             CheckDeclaringSyntax<UsingDirectiveSyntax>(comp, tree, "ListOfIntAlias", SymbolKind.Alias);
             CheckDeclaringSyntax<UsingDirectiveSyntax>(comp, tree, "GooAlias", SymbolKind.Alias);
@@ -683,8 +683,8 @@ class C
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             CheckDeclaringSyntax<QueryClauseSyntax>(comp, tree, "range1", SymbolKind.RangeVariable);
             CheckDeclaringSyntax<QueryClauseSyntax>(comp, tree, "range2", SymbolKind.RangeVariable);
             CheckDeclaringSyntax<QueryContinuationSyntax>(comp, tree, "range3", SymbolKind.RangeVariable);
@@ -712,8 +712,8 @@ class C
     }
 }
 ";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
             CheckLambdaDeclaringSyntax<ParenthesizedLambdaExpressionSyntax>(comp, tree, "/*1*/");
             CheckLambdaDeclaringSyntax<SimpleLambdaExpressionSyntax>(comp, tree, "/*2*/");
             CheckLambdaDeclaringSyntax<AnonymousMethodExpressionSyntax>(comp, tree, "/*3*/");
@@ -727,26 +727,26 @@ class C
         [Fact]
         public void PreserveLocationOrderOnReplaceSyntaxTree()
         {
-            var source0 = Parse("namespace N { partial class C { } } namespace N0 { } class C0 { }");
-            var source1 = Parse("namespace N { partial class C { } } namespace N1 { } class C1 { }");
-            var source2 = Parse("namespace N { struct S { } }");
-            var source3 = Parse("namespace N { partial class C { } } namespace N3 { } class C3 { }");
-            var comp0 = CreateCompilation(new[] { source0, source1, source2, source3 });
+            SyntaxTree source0 = Parse("namespace N { partial class C { } } namespace N0 { } class C0 { }");
+            SyntaxTree source1 = Parse("namespace N { partial class C { } } namespace N1 { } class C1 { }");
+            SyntaxTree source2 = Parse("namespace N { struct S { } }");
+            SyntaxTree source3 = Parse("namespace N { partial class C { } } namespace N3 { } class C3 { }");
+            CSharpCompilation comp0 = CreateCompilation(new[] { source0, source1, source2, source3 });
             comp0.VerifyDiagnostics();
             Assert.Equal(new[] { source0, source1, source2, source3 }, comp0.SyntaxTrees);
 
             // Location order of partial class should match SyntaxTrees order.
-            var locations = comp0.GetMember<NamedTypeSymbol>("N.C").Locations;
+            ImmutableArray<Location> locations = comp0.GetMember<NamedTypeSymbol>("N.C").Locations;
             Assert.Equal(new[] { source0, source1, source3 }, locations.Select(l => l.SourceTree));
 
             // AddSyntaxTrees will add to the end.
-            var source4 = Parse("namespace N { partial class C { } } namespace N4 { } class C4 { }");
-            var comp1 = comp0.AddSyntaxTrees(source4);
+            SyntaxTree source4 = Parse("namespace N { partial class C { } } namespace N4 { } class C4 { }");
+            CSharpCompilation comp1 = comp0.AddSyntaxTrees(source4);
             locations = comp1.GetMember<NamedTypeSymbol>("N.C").Locations;
             Assert.Equal(new[] { source0, source1, source3, source4 }, locations.Select(l => l.SourceTree));
 
             // ReplaceSyntaxTree should preserve location order.
-            var comp2 = comp0.ReplaceSyntaxTree(source1, source4);
+            CSharpCompilation comp2 = comp0.ReplaceSyntaxTree(source1, source4);
             locations = comp2.GetMember<NamedTypeSymbol>("N.C").Locations;
             Assert.Equal(new[] { source0, source4, source3 }, locations.Select(l => l.SourceTree));
 
@@ -756,7 +756,7 @@ class C
             Assert.Equal(new[] { "C3", "C0", "S", "C", "C4", "C" }, comp2.Declarations.TypeNames.ToArray());
 
             // RemoveSyntaxTrees should preserve order of remaining trees.
-            var comp3 = comp2.RemoveSyntaxTrees(source0);
+            CSharpCompilation comp3 = comp2.RemoveSyntaxTrees(source0);
             locations = comp3.GetMember<NamedTypeSymbol>("N.C").Locations;
             Assert.Equal(new[] { source4, source3 }, locations.Select(l => l.SourceTree));
         }

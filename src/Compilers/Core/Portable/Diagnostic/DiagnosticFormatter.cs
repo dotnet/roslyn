@@ -32,8 +32,8 @@ namespace Microsoft.CodeAnalysis
                 case LocationKind.SourceFile:
                 case LocationKind.XmlFile:
                 case LocationKind.ExternalFile:
-                    var span = diagnostic.Location.GetLineSpan();
-                    var mappedSpan = diagnostic.Location.GetMappedLineSpan();
+                    FileLinePositionSpan span = diagnostic.Location.GetLineSpan();
+                    FileLinePositionSpan mappedSpan = diagnostic.Location.GetMappedLineSpan();
                     if (!span.IsValid || !mappedSpan.IsValid)
                     {
                         goto default;

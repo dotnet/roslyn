@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(rewrittenReceiver != null || _inExpressionLambda);
 
-            foreach (var initializer in initializers)
+            foreach (BoundExpression initializer in initializers)
             {
                 // In general bound initializers may contain bad expressions or element initializers.
                 // We don't lower them if they contain errors, so it's safe to assume an element initializer.
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakeDynamicCollectionInitializer(BoundExpression rewrittenReceiver, BoundDynamicCollectionElementInitializer initializer)
         {
-            var rewrittenArguments = VisitList(initializer.Arguments);
+            ImmutableArray<BoundExpression> rewrittenArguments = VisitList(initializer.Arguments);
 
             // If we are calling a method on a NoPIA type, we need to embed all methods/properties
             // with the matching name of this dynamic invocation.
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(initializer.Arguments.Any());
             Debug.Assert(rewrittenReceiver != null || _inExpressionLambda);
 
-            var syntax = initializer.Syntax;
+            SyntaxNode syntax = initializer.Syntax;
             MethodSymbol addMethod = initializer.AddMethod;
 
             if (_allowOmissionOfConditionalCalls)
@@ -149,8 +149,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var rewrittenArguments = VisitList(initializer.Arguments);
-            var rewrittenType = VisitType(initializer.Type);
+            ImmutableArray<BoundExpression> rewrittenArguments = VisitList(initializer.Arguments);
+            TypeSymbol rewrittenType = VisitType(initializer.Type);
 
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_inExpressionLambda);
 
-            foreach (var initializer in initializers)
+            foreach (BoundExpression initializer in initializers)
             {
                 // In general bound initializers may contain bad expressions or assignments.
                 // We don't lower them if they contain errors, so it's safe to assume an assignment.
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!memberInit.Arguments.IsDefaultOrEmpty)
                         {
-                            var args = EvaluateSideEffectingArgumentsToTemps(memberInit.Arguments, result, ref temps);
+                            ImmutableArray<BoundExpression> args = EvaluateSideEffectingArgumentsToTemps(memberInit.Arguments, result, ref temps);
                             memberInit = memberInit.Update(
                                 memberInit.MemberSymbol,
                                 args,
@@ -253,8 +253,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (!isRhsNestedInitializer)
                             {
-                                var rewrittenRight = VisitExpression(assignment.Right);
-                                var setMember = _dynamicFactory.MakeDynamicSetIndex(
+                                BoundExpression rewrittenRight = VisitExpression(assignment.Right);
+                                LoweredDynamicOperation setMember = _dynamicFactory.MakeDynamicSetIndex(
                                     rewrittenReceiver,
                                     memberInit.Arguments,
                                     memberInit.ArgumentNamesOpt,
@@ -266,7 +266,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 return;
                             }
 
-                            var getMember = _dynamicFactory.MakeDynamicGetIndex(
+                            LoweredDynamicOperation getMember = _dynamicFactory.MakeDynamicGetIndex(
                                 rewrittenReceiver,
                                 memberInit.Arguments,
                                 memberInit.ArgumentNamesOpt,
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (!isRhsNestedInitializer)
                             {
                                 // Rewrite simple assignment to field/property.
-                                var rewrittenRight = VisitExpression(assignment.Right);
+                                BoundExpression rewrittenRight = VisitExpression(assignment.Right);
                                 result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, assignment.Type, used: false));
                                 return;
                             }
@@ -300,14 +300,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (!isRhsNestedInitializer)
                         {
-                            var rewrittenRight = VisitExpression(assignment.Right);
-                            var setMember = _dynamicFactory.MakeDynamicSetMember(rewrittenReceiver, initializerMember.MemberName, rewrittenRight);
+                            BoundExpression rewrittenRight = VisitExpression(assignment.Right);
+                            LoweredDynamicOperation setMember = _dynamicFactory.MakeDynamicSetMember(rewrittenReceiver, initializerMember.MemberName, rewrittenRight);
                             dynamicSiteInitializers.Add(setMember.SiteInitialization);
                             result.Add(setMember.SiteInvocation);
                             return;
                         }
 
-                        var getMember = _dynamicFactory.MakeDynamicGetMember(rewrittenReceiver, initializerMember.MemberName, resultIndexed: false);
+                        LoweredDynamicOperation getMember = _dynamicFactory.MakeDynamicGetMember(rewrittenReceiver, initializerMember.MemberName, resultIndexed: false);
                         dynamicSiteInitializers.Add(getMember.SiteInitialization);
                         rewrittenAccess = getMember.SiteInvocation;
                         break;
@@ -316,13 +316,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.ArrayAccess:
                     {
                         var arrayAccess = (BoundArrayAccess)rewrittenLeft;
-                        var indices = EvaluateSideEffectingArgumentsToTemps(arrayAccess.Indices, result, ref temps);
+                        ImmutableArray<BoundExpression> indices = EvaluateSideEffectingArgumentsToTemps(arrayAccess.Indices, result, ref temps);
                         rewrittenAccess = arrayAccess.Update(rewrittenReceiver, indices, arrayAccess.Type);
 
                         if (!isRhsNestedInitializer)
                         {
                             // Rewrite simple assignment to field/property.
-                            var rewrittenRight = VisitExpression(assignment.Right);
+                            BoundExpression rewrittenRight = VisitExpression(assignment.Right);
                             result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, assignment.Type, used: false));
                             return;
                         }
@@ -334,12 +334,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // Remember we haven't lowered this node yet.
                         var pointerAccess = (BoundPointerElementAccess)assignment.Left;
-                        var rewrittenIndex = VisitExpression(pointerAccess.Index);
+                        BoundExpression rewrittenIndex = VisitExpression(pointerAccess.Index);
 
                         if (CanChangeValueBetweenReads(rewrittenIndex))
                         {
                             BoundAssignmentOperator store;
-                            var temp = _factory.StoreToTemp(rewrittenIndex, out store);
+                            BoundLocal temp = _factory.StoreToTemp(rewrittenIndex, out store);
                             rewrittenIndex = temp;
 
                             if (temps == null)
@@ -355,7 +355,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if (!isRhsNestedInitializer)
                         {
                             // Rewrite as simple assignment.
-                            var rewrittenRight = VisitExpression(assignment.Right);
+                            BoundExpression rewrittenRight = VisitExpression(assignment.Right);
                             result.Add(MakeStaticAssignmentOperator(assignment.Syntax, rewrittenAccess, rewrittenRight, false, assignment.Type, used: false));
                             return;
                         }
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             for (int i = 0; i < args.Length; i++)
             {
-                var arg = args[i];
+                BoundExpression arg = args[i];
 
                 if (CanChangeValueBetweenReads(arg))
                 {
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     BoundAssignmentOperator store;
-                    var temp = _factory.StoreToTemp(arg, out store);
+                    BoundLocal temp = _factory.StoreToTemp(arg, out store);
                     newArgs.Add(temp);
 
                     if (temps == null)
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundObjectInitializerMember rewrittenLeft,
             bool isRhsNestedInitializer)
         {
-            var memberSymbol = rewrittenLeft.MemberSymbol;
+            Symbol memberSymbol = rewrittenLeft.MemberSymbol;
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             Debug.Assert(memberSymbol != null && _compilation.Conversions.ClassifyConversionFromType(rewrittenReceiver.Type, memberSymbol.ContainingType, ref useSiteDiagnostics).IsImplicit);
             // It is possible there are use site diagnostics from the above, but none that we need report as we aren't generating code for the conversion
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SymbolKind.Property:
                     var propertySymbol = (PropertySymbol)memberSymbol;
-                    var arguments = rewrittenLeft.Arguments;
+                    ImmutableArray<BoundExpression> arguments = rewrittenLeft.Arguments;
                     if (!arguments.IsEmpty || propertySymbol.IsIndexedProperty)
                     {
                         return MakeIndexerAccess(

@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis
         // internal for testing
         internal static ImmutableArray<byte> CalculatePublicKeyToken(ImmutableArray<byte> publicKey)
         {
-            var hash = CryptographicHashProvider.ComputeSha1(publicKey);
+            ImmutableArray<byte> hash = CryptographicHashProvider.ComputeSha1(publicKey);
 
             // SHA1 hash is always 160 bits:
             Debug.Assert(hash.Length == CryptographicHashProvider.Sha1HashSize);
@@ -479,8 +479,8 @@ namespace Microsoft.CodeAnalysis
 
         internal static bool KeysEqual(AssemblyIdentity x, AssemblyIdentity y)
         {
-            var xToken = x._lazyPublicKeyToken;
-            var yToken = y._lazyPublicKeyToken;
+            ImmutableArray<byte> xToken = x._lazyPublicKeyToken;
+            ImmutableArray<byte> yToken = y._lazyPublicKeyToken;
 
             // weak names or both strong names with initialized PKT - compare tokens:
             if (!xToken.IsDefault && !yToken.IsDefault)

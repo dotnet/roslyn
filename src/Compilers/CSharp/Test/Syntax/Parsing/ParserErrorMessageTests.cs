@@ -1612,8 +1612,8 @@ public class b
             // (6,9): error CS1003: Syntax error, 'foreach' expected
             // don't care about any others.
 
-            var parsedTree = ParseWithRoundTripCheck(test);
-            var firstDiag = parsedTree.GetDiagnostics().Take(1);
+            SyntaxTree parsedTree = ParseWithRoundTripCheck(test);
+            System.Collections.Generic.IEnumerable<Diagnostic> firstDiag = parsedTree.GetDiagnostics().Take(1);
             firstDiag.Verify(Diagnostic(ErrorCode.ERR_SyntaxError, "for").WithArguments("foreach", "for"));
         }
 
@@ -2580,8 +2580,8 @@ public class Test
         public void CS1029ERR_ErrorDirectiveppNonLatin()
         {
             var test = "public class Test\r\n{\r\n# error \u0444\u0430\u0439\u043B\r\n}";
-            var parsedTree = ParseWithRoundTripCheck(test);
-            var error = parsedTree.GetDiagnostics().Single();
+            SyntaxTree parsedTree = ParseWithRoundTripCheck(test);
+            Diagnostic error = parsedTree.GetDiagnostics().Single();
             Assert.Equal((int)ErrorCode.ERR_ErrorDirective, error.Code);
             Assert.Equal("error CS1029: #error: '\u0444\u0430\u0439\u043B'", CSharpDiagnosticFormatter.Instance.Format(error.WithLocation(Location.None), EnsureEnglishUICulture.PreferredOrNull));
         }
@@ -3795,7 +3795,7 @@ public class Test
 }
 ";
 
-            var tree = ParseTree(test, TestOptions.Regular);
+            SyntaxTree tree = ParseTree(test, TestOptions.Regular);
             tree.GetDiagnostics().Verify();
 
             var methodDeclaration = (MethodDeclarationSyntax)tree.GetRoot().DescendantNodes().Single(node => node is MethodDeclarationSyntax);
@@ -5482,7 +5482,7 @@ partial class C
 {
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp1));
@@ -5501,7 +5501,7 @@ class C
     partial int Goo() { }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
@@ -5524,7 +5524,7 @@ class C
     }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
@@ -5549,7 +5549,7 @@ class C
     }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
@@ -5571,7 +5571,7 @@ class C
     }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
@@ -5593,7 +5593,7 @@ class C
     }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
@@ -5615,7 +5615,7 @@ class C
     }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp2));
@@ -5654,7 +5654,7 @@ public class C
     }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp6));
             tree.GetDiagnostics().Verify();
 
             tree = Parse(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
@@ -5671,7 +5671,7 @@ public class C
             var text =
 @"[One Two] // error: missing comma
 class TestClass { }";
-            var tree = UsingTree(text);
+            SyntaxTree tree = UsingTree(text);
             tree.GetDiagnostics().Verify(
                 // (1,6): error CS1003: Syntax error, ',' expected
                 // [One Two] // error: missing comma
@@ -5968,7 +5968,7 @@ class C
     }
 }";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
                 // (6,16): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
                 //         return $"hello";
@@ -5988,7 +5988,7 @@ class C
     }
 }";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
             // (7,16): error CS8026: Feature 'interpolated strings' is not available in C# 5. Please use language version 6 or greater.
             //         return $"hello + {other}";
@@ -6005,7 +6005,7 @@ class C
     async void M() { }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3));
@@ -6025,7 +6025,7 @@ class C
     async static void M() { }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp3));
@@ -6047,7 +6047,7 @@ class C
     }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4));
@@ -6069,7 +6069,7 @@ class C
     }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify();
 
             tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp4));
@@ -6262,7 +6262,7 @@ class C
 }
 ";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text, options: CSharpParseOptions.Default.WithLanguageVersion(LanguageVersion.CSharp5));
             tree.GetCompilationUnitRoot().GetDiagnostics().Verify(
                 // (6,13): error CS4003: 'await' cannot be used as an identifier within an async method or lambda expression
                 //         int await;
@@ -6384,8 +6384,8 @@ class Test
 
 ");
 
-            var parsedTree = Parse(builder.ToString());
-            var actualErrors = parsedTree.GetDiagnostics().ToArray();
+            SyntaxTree parsedTree = Parse(builder.ToString());
+            Diagnostic[] actualErrors = parsedTree.GetDiagnostics().ToArray();
             Assert.Equal(1, actualErrors.Length);
             Assert.Equal((int)ErrorCode.ERR_InsufficientStack, actualErrors[0].Code);
         }
@@ -6417,8 +6417,8 @@ class Program
 
             builder.Append(@"} }");
 
-            var parsedTree = Parse(builder.ToString());
-            var actualErrors = parsedTree.GetDiagnostics().ToArray();
+            SyntaxTree parsedTree = Parse(builder.ToString());
+            Diagnostic[] actualErrors = parsedTree.GetDiagnostics().ToArray();
             Assert.Equal(1, actualErrors.Length);
             Assert.Equal((int)ErrorCode.ERR_InsufficientStack, actualErrors[0].Code);
         }
@@ -6444,8 +6444,8 @@ class Program
 
             builder.Append(@"}");
 
-            var expr = SyntaxFactory.ParseExpression(builder.ToString());
-            var actualErrors = expr.GetDiagnostics().ToArray();
+            ExpressionSyntax expr = SyntaxFactory.ParseExpression(builder.ToString());
+            Diagnostic[] actualErrors = expr.GetDiagnostics().ToArray();
             Assert.Equal(1, actualErrors.Length);
             Assert.Equal((int)ErrorCode.ERR_InsufficientStack, actualErrors[0].Code);
         }
@@ -6471,8 +6471,8 @@ class Program
 
             builder.Append(@"}");
 
-            var stmt = SyntaxFactory.ParseStatement(builder.ToString());
-            var actualErrors = stmt.GetDiagnostics().ToArray();
+            StatementSyntax stmt = SyntaxFactory.ParseStatement(builder.ToString());
+            Diagnostic[] actualErrors = stmt.GetDiagnostics().ToArray();
             Assert.Equal(1, actualErrors.Length);
             Assert.Equal((int)ErrorCode.ERR_InsufficientStack, actualErrors[0].Code);
         }

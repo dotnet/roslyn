@@ -198,8 +198,8 @@ namespace Microsoft.CodeAnalysis.Text
 
             // We must compute the checksum and embedded text blob now while we still have the original bytes in hand.
             // We cannot re-encode to obtain checksum and blob as the encoding is not guaranteed to round-trip.
-            var checksum = CalculateChecksum(stream, checksumAlgorithm);
-            var embeddedTextBlob = canBeEmbedded ? EmbeddedText.CreateBlob(stream) : default(ImmutableArray<byte>);
+            ImmutableArray<byte> checksum = CalculateChecksum(stream, checksumAlgorithm);
+            ImmutableArray<byte> embeddedTextBlob = canBeEmbedded ? EmbeddedText.CreateBlob(stream) : default(ImmutableArray<byte>);
             return new StringText(text, encoding, checksum, checksumAlgorithm, embeddedTextBlob);
         }
 
@@ -257,8 +257,8 @@ namespace Microsoft.CodeAnalysis.Text
 
             // We must compute the checksum and embedded text blob now while we still have the original bytes in hand.
             // We cannot re-encode to obtain checksum and blob as the encoding is not guaranteed to round-trip.
-            var checksum = CalculateChecksum(buffer, 0, length, checksumAlgorithm);
-            var embeddedTextBlob = canBeEmbedded ? EmbeddedText.CreateBlob(new ArraySegment<byte>(buffer, 0, length)) : default(ImmutableArray<byte>);
+            ImmutableArray<byte> checksum = CalculateChecksum(buffer, 0, length, checksumAlgorithm);
+            ImmutableArray<byte> embeddedTextBlob = canBeEmbedded ? EmbeddedText.CreateBlob(new ArraySegment<byte>(buffer, 0, length)) : default(ImmutableArray<byte>);
             return new StringText(text, encoding, checksum, checksumAlgorithm, embeddedTextBlob);
         }
 
@@ -552,7 +552,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         internal static ImmutableArray<byte> CalculateChecksum(byte[] buffer, int offset, int count, SourceHashAlgorithm algorithmId)
         {
-            using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
+            using (System.Security.Cryptography.HashAlgorithm algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
             {
                 Debug.Assert(algorithm != null);
                 return ImmutableArray.Create(algorithm.ComputeHash(buffer, offset, count));
@@ -561,7 +561,7 @@ namespace Microsoft.CodeAnalysis.Text
 
         internal static ImmutableArray<byte> CalculateChecksum(Stream stream, SourceHashAlgorithm algorithmId)
         {
-            using (var algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
+            using (System.Security.Cryptography.HashAlgorithm algorithm = CryptographicHashProvider.TryGetAlgorithm(algorithmId))
             {
                 Debug.Assert(algorithm != null);
                 if (stream.CanSeek)
@@ -628,7 +628,7 @@ namespace Microsoft.CodeAnalysis.Text
             var changeRanges = ArrayBuilder<TextChangeRange>.GetInstance();
             int position = 0;
 
-            foreach (var change in changes)
+            foreach (TextChange change in changes)
             {
                 // there can be no overlapping changes
                 if (change.Span.Start < position)
@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.Text
                 // if we've skipped a range, add
                 if (change.Span.Start > position)
                 {
-                    var subText = this.GetSubText(new TextSpan(position, change.Span.Start - position));
+                    SourceText subText = this.GetSubText(new TextSpan(position, change.Span.Start - position));
                     CompositeText.AddSegments(segments, subText);
                 }
 
@@ -669,11 +669,11 @@ namespace Microsoft.CodeAnalysis.Text
 
             if (position < this.Length)
             {
-                var subText = this.GetSubText(new TextSpan(position, this.Length - position));
+                SourceText subText = this.GetSubText(new TextSpan(position, this.Length - position));
                 CompositeText.AddSegments(segments, subText);
             }
 
-            var newText = CompositeText.ToSourceTextAndFree(segments, this, adjustSegments: true);
+            SourceText newText = CompositeText.ToSourceTextAndFree(segments, this, adjustSegments: true);
             if (newText != this)
             {
                 return new ChangedText(this, newText, changeRanges.ToImmutableAndFree());
@@ -742,7 +742,7 @@ namespace Microsoft.CodeAnalysis.Text
             var ranges = this.GetChangeRanges(oldText).ToList();
             var textChanges = new List<TextChange>(ranges.Count);
 
-            foreach (var range in ranges)
+            foreach (TextChangeRange range in ranges)
             {
                 var newPos = range.Span.Start + newPosDelta;
 
@@ -777,7 +777,7 @@ namespace Microsoft.CodeAnalysis.Text
         {
             get
             {
-                var info = _lazyLineInfo;
+                TextLineCollection info = _lazyLineInfo;
                 return info ?? Interlocked.CompareExchange(ref _lazyLineInfo, info = GetLinesCore(), null) ?? info;
             }
         }

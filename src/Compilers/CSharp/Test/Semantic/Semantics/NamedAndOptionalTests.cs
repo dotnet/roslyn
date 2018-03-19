@@ -31,7 +31,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,33): error CS1736: Default parameter value for 'da' must be a compile-time constant
                 //     static void M(DateTime da = new DateTime(2012, 6, 22),
@@ -765,7 +765,7 @@ unsafe class C
             // default(IntPtr) as "load zero, convert to type", rather than making a stack slot and calling
             // init on it.
 
-            var c = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
+            CompilationVerifier c = CompileAndVerify(source, options: TestOptions.UnsafeReleaseDll, verify: Verification.Fails);
 
             c.VerifyIL("C.Main", @"{
   // Code size       13 (0xd)
@@ -801,14 +801,14 @@ namespace NS
     }
 }
 ";
-            var comp = CreateCompilation(text);
-            var nodeAndModel = GetBindingNodeAndModel<IdentifierNameSyntax>(comp);
+            CSharpCompilation comp = CreateCompilation(text);
+            Tuple<IdentifierNameSyntax, SemanticModel> nodeAndModel = GetBindingNodeAndModel<IdentifierNameSyntax>(comp);
 
-            var typeInfo = nodeAndModel.Item2.GetTypeInfo(nodeAndModel.Item1);
+            TypeInfo typeInfo = nodeAndModel.Item2.GetTypeInfo(nodeAndModel.Item1);
             // parameter name has no type
             Assert.Null(typeInfo.Type);
 
-            var symInfo = nodeAndModel.Item2.GetSymbolInfo(nodeAndModel.Item1);
+            SymbolInfo symInfo = nodeAndModel.Item2.GetSymbolInfo(nodeAndModel.Item1);
             Assert.NotNull(symInfo.Symbol);
             Assert.Equal(SymbolKind.Parameter, symInfo.Symbol.Kind);
             Assert.Equal("ss", symInfo.Symbol.Name);
@@ -1004,7 +1004,7 @@ public class Parent
      }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemRef });
+            CSharpCompilation comp = CreateCompilation(source, new[] { SystemRef });
             comp.VerifyDiagnostics(
  // (8,10): error CS7036: There is no argument given that corresponds to the required formal parameter 'x' of 'Parent.Goo(ref int)'
  //          Goo();
@@ -1337,7 +1337,7 @@ System.Runtime.InteropServices.UnknownWrapper
 17
 18";
             // definitions in source:
-            var verifier = CompileAndVerify(new[] { sourceDefinitions, sourceCalls }, new[] { SystemRef }, expectedOutput: expected);
+            CompilationVerifier verifier = CompileAndVerify(new[] { sourceDefinitions, sourceCalls }, new[] { SystemRef }, expectedOutput: expected);
 
             // definitions in metadata:
             using (var assembly = AssemblyMetadata.CreateFromImage(verifier.EmittedAssemblyData))
@@ -1516,15 +1516,15 @@ True";
   IL_00b4:  ret
 }";
 
-            var vbCompilation = CreateVisualBasicCompilation("VB", vb,
+            VisualBasic.VisualBasicCompilation vbCompilation = CreateVisualBasicCompilation("VB", vb,
                 compilationOptions: new VisualBasic.VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
             vbCompilation.VerifyDiagnostics();
 
-            var csharpCompilation = CreateCSharpCompilation("CS", csharp,
+            CSharpCompilation csharpCompilation = CreateCSharpCompilation("CS", csharp,
                 compilationOptions: TestOptions.ReleaseExe,
                 referencedCompilations: new[] { vbCompilation });
 
-            var verifier = CompileAndVerify(csharpCompilation, expectedOutput: expected);
+            CompilationVerifier verifier = CompileAndVerify(csharpCompilation, expectedOutput: expected);
             verifier.VerifyIL("D.Main", il);
         }
 
@@ -1627,12 +1627,12 @@ public class D
 }
 ";
 
-            var libComp = CreateCompilation(library, options: TestOptions.ReleaseDll, assemblyName: "Library");
+            CSharpCompilation libComp = CreateCompilation(library, options: TestOptions.ReleaseDll, assemblyName: "Library");
             libComp.VerifyDiagnostics();
 
-            var exeComp = CreateCompilation(main, new[] { new CSharpCompilationReference(libComp) }, options: TestOptions.ReleaseExe, assemblyName: "Main");
+            CSharpCompilation exeComp = CreateCompilation(main, new[] { new CSharpCompilationReference(libComp) }, options: TestOptions.ReleaseExe, assemblyName: "Main");
 
-            var verifier = CompileAndVerify(exeComp, expectedOutput: @"DatesMatch
+            CompilationVerifier verifier = CompileAndVerify(exeComp, expectedOutput: @"DatesMatch
 12345678901234567890
 0
 null
@@ -1698,7 +1698,7 @@ class P
 ";
             // Note that the native compiler gives a slightly less informative error message here.
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
 // (11,26): error CS7036: There is no argument given that corresponds to the required formal parameter 'o' of 'I.M(out object)'
 //     static void Q(I i) { i.M(); }
@@ -1745,7 +1745,7 @@ class Com : ICom
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: @"
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: @"
 100
 System.Reflection.Missing
 10
@@ -1819,7 +1819,7 @@ class B
         i = new[] { 0 };
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput:
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput:
 @"F()
 0
 F()
@@ -1896,7 +1896,7 @@ class B
         Console.WriteLine(""{0}, {1}"", i1[0], i2[0]);
     }
 }";
-            var verifier = CompileAndVerify(source, expectedOutput:
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput:
 @"F2()
 F1()
 2, 3
@@ -1965,7 +1965,7 @@ public class D : B
     }
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: "2");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "2");
             verifier.VerifyIL("D.M()",
 @"{
   // Code size       11 (0xb)
@@ -1999,10 +1999,10 @@ public class C
 
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
+                MethodSymbol[] methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
                 Assert.Equal(8, methods.Length);
 
-                var parameters = methods.Select(m => m.Parameters.Single()).ToArray();
+                ParameterSymbol[] parameters = methods.Select(m => m.Parameters.Single()).ToArray();
 
                 Assert.False(parameters[0].IsOptional);
                 Assert.False(parameters[0].HasExplicitDefaultValue);
@@ -2081,10 +2081,10 @@ public struct S
 
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
+                MethodSymbol[] methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
                 Assert.Equal(3, methods.Length);
 
-                var parameters = methods.Select(m => m.Parameters.Single()).ToArray();
+                ParameterSymbol[] parameters = methods.Select(m => m.Parameters.Single()).ToArray();
 
                 Assert.False(parameters[0].IsOptional);
                 Assert.False(parameters[0].HasExplicitDefaultValue);
@@ -2132,10 +2132,10 @@ public class C
 
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
+                MethodSymbol[] methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
                 Assert.Equal(8, methods.Length);
 
-                var parameters = methods.Select(m => m.Parameters.Single()).ToArray();
+                ParameterSymbol[] parameters = methods.Select(m => m.Parameters.Single()).ToArray();
 
                 Assert.False(parameters[0].IsOptional);
                 Assert.False(parameters[0].HasExplicitDefaultValue);
@@ -2215,10 +2215,10 @@ public class C
 
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
+                MethodSymbol[] methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
                 Assert.Equal(8, methods.Length);
 
-                var parameters = methods.Select(m => m.Parameters.Single()).ToArray();
+                ParameterSymbol[] parameters = methods.Select(m => m.Parameters.Single()).ToArray();
 
                 Assert.False(parameters[0].IsOptional);
                 Assert.False(parameters[0].HasExplicitDefaultValue);
@@ -2297,10 +2297,10 @@ public class C
 
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
+                MethodSymbol[] methods = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMembers().OfType<MethodSymbol>().Where(m => m.MethodKind == MethodKind.Ordinary).ToArray();
                 Assert.Equal(7, methods.Length);
 
-                var parameters = methods.Select(m => m.Parameters.Single()).ToArray();
+                ParameterSymbol[] parameters = methods.Select(m => m.Parameters.Single()).ToArray();
 
                 Assert.False(parameters[0].IsOptional);
                 Assert.False(parameters[0].HasExplicitDefaultValue);

@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
-            var loweredArguments = VisitList(node.Arguments);
-            var constructorInvocation = _dynamicFactory.MakeDynamicConstructorInvocation(node.Syntax, node.Type, loweredArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt).ToExpression();
+            ImmutableArray<BoundExpression> loweredArguments = VisitList(node.Arguments);
+            BoundExpression constructorInvocation = _dynamicFactory.MakeDynamicConstructorInvocation(node.Syntax, node.Type, loweredArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt).ToExpression();
 
             if (node.InitializerExpressionOpt == null || node.InitializerExpressionOpt.HasErrors)
             {
@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: We may need additional argument rewriting such as generating a params array,
             //       re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
             // NOTE: This is done later by MakeArguments, for now we just lower each argument.
-            var rewrittenArguments = VisitList(node.Arguments);
+            ImmutableArray<BoundExpression> rewrittenArguments = VisitList(node.Arguments);
 
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (initializerExpressionOpt != null && !initializerExpressionOpt.HasErrors)
             {
                 // We may need to MakeArguments for collection initializer add method call if the method has a param array parameter.
-                var rewrittenInitializers = MakeObjectOrCollectionInitializersForExpressionTree(initializerExpressionOpt);
+                ImmutableArray<BoundExpression> rewrittenInitializers = MakeObjectOrCollectionInitializersForExpressionTree(initializerExpressionOpt);
                 return UpdateInitializers(initializerExpressionOpt, rewrittenInitializers);
             }
 
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return node.Update(MakeObjectCreationInitializerForExpressionTree(node.InitializerExpressionOpt), node.Type);
             }
 
-            var rewrittenNewT = MakeNewT(node.Syntax, (TypeParameterSymbol)node.Type);
+            BoundExpression rewrittenNewT = MakeNewT(node.Syntax, (TypeParameterSymbol)node.Type);
             if (node.InitializerExpressionOpt == null || node.InitializerExpressionOpt.HasErrors)
             {
                 return rewrittenNewT;
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SyntaxNode oldSyntax = _factory.Syntax;
             _factory.Syntax = node.Syntax;
 
-            var ctor = _factory.WellKnownMethod(WellKnownMember.System_Guid__ctor);
+            MethodSymbol ctor = _factory.WellKnownMethod(WellKnownMember.System_Guid__ctor);
             BoundExpression newGuid;
 
             if ((object)ctor != null)
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 newGuid = new BoundBadExpression(node.Syntax, LookupResultKind.NotCreatable, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundExpression>.Empty, ErrorTypeSymbol.UnknownResultType);
             }
 
-            var getTypeFromCLSID = _factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_Marshal__GetTypeFromCLSID, isOptional: true);
+            MethodSymbol getTypeFromCLSID = _factory.WellKnownMethod(WellKnownMember.System_Runtime_InteropServices_Marshal__GetTypeFromCLSID, isOptional: true);
 
             if ((object)getTypeFromCLSID == null)
             {
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 callGetTypeFromCLSID = new BoundBadExpression(node.Syntax, LookupResultKind.OverloadResolutionFailure, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundExpression>.Empty, ErrorTypeSymbol.UnknownResultType);
             }
 
-            var createInstance = _factory.WellKnownMethod(WellKnownMember.System_Activator__CreateInstance);
+            MethodSymbol createInstance = _factory.WellKnownMethod(WellKnownMember.System_Activator__CreateInstance);
             BoundExpression rewrittenObjectCreation;
 
             if ((object)createInstance != null)

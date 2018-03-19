@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
 
             public override ImmutableArray<PortableExecutableReference> ResolveReference(string reference, string baseFilePath, MetadataReferenceProperties properties)
             {
-                var resolvedReferences = _resolver.ResolveReference(reference, baseFilePath, properties);
+                ImmutableArray<PortableExecutableReference> resolvedReferences = _resolver.ResolveReference(reference, baseFilePath, properties);
                 return resolvedReferences.WhereAsArray(r => _lazyAvailableReferences.Value.Contains(TryGetIdentity(r)));
             }
 

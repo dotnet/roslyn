@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestName()
         {
             var text = "a();";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDottedName()
         {
             var text = "a.b();";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGenericName()
         {
             var text = "a<b>();";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGenericDotName()
         {
             var text = "a<b>.c();";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDotGenericName()
         {
             var text = "a.b<c>();";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void TestPostfixUnaryOperator(SyntaxKind kind)
         {
             var text = "a" + SyntaxFacts.GetText(kind) + ";";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(es.SemicolonToken);
             Assert.False(es.SemicolonToken.IsMissing);
 
-            var opKind = SyntaxFacts.GetPostfixUnaryExpression(kind);
+            SyntaxKind opKind = SyntaxFacts.GetPostfixUnaryExpression(kind);
             Assert.Equal(opKind, es.Expression.Kind());
             var us = (PostfixUnaryExpressionSyntax)es.Expression;
             Assert.Equal("a", us.Operand.ToString());
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatement()
         {
             var text = "T a;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // note: semantically this would require an initializer, but we don't know 
             // about var being special until we bind.
             var text = "var a;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -233,7 +233,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatementWithTuple()
         {
             var text = "(int, int) a;";
-            var statement = this.ParseStatement(text, options: TestOptions.Regular);
+            StatementSyntax statement = this.ParseStatement(text, options: TestOptions.Regular);
 
             (text).ToString();
 
@@ -267,7 +267,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatementWithNamedTuple()
         {
             var text = "(T x, (U k, V l, W m) y) a;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             (text).ToString();
 
@@ -311,7 +311,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // note: semantically this would require an initializer, but we don't know 
             // about dynamic being special until we bind.
             var text = "dynamic a;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -339,7 +339,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatementWithGenericType()
         {
             var text = "T<a> b;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -365,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatementWithDottedType()
         {
             var text = "T.X.Y a;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -391,7 +391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatementWithMixedType()
         {
             var text = "T<t>.X<x>.Y<y> a;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatementWithArrayType()
         {
             var text = "T[][,][,,] a;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatementWithPointerType()
         {
             var text = "T* a;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatementWithNullableType()
         {
             var text = "T? a;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -495,7 +495,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatementWithMultipleVariables()
         {
             var text = "T a, b, c;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatementWithInitializer()
         {
             var text = "T a = b;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -560,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatementWithMultipleVariablesAndInitializers()
         {
             var text = "T a = va, b = vb, c = vc;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLocalDeclarationStatementWithArrayInitializer()
         {
             var text = "T a = {b, c};";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestConstLocalDeclarationStatement()
         {
             var text = "const T a = b;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -667,7 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestStaticLocalDeclarationStatement()
         {
             var text = "static T a = b;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestReadOnlyLocalDeclarationStatement()
         {
             var text = "readonly T a = b;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -731,7 +731,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestVolatileLocalDeclarationStatement()
         {
             var text = "volatile T a = b;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -763,7 +763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefLocalDeclarationStatement()
         {
             var text = "ref T a;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -789,7 +789,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefLocalDeclarationStatementWithInitializer()
         {
             var text = "ref T a = ref b;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -820,7 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefLocalDeclarationStatementWithMultipleInitializers()
         {
             var text = "ref T a = ref b, c = ref d;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -861,7 +861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFixedStatement()
         {
             var text = "fixed(T a = b) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.FixedStatement, statement.Kind());
@@ -888,7 +888,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFixedVarStatement()
         {
             var text = "fixed(var a = b) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.FixedStatement, statement.Kind());
@@ -918,7 +918,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFixedStatementWithMultipleVariables()
         {
             var text = "fixed(T a = b, c = d) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.FixedStatement, statement.Kind());
@@ -946,7 +946,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestEmptyStatement()
         {
             var text = ";";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.EmptyStatement, statement.Kind());
@@ -962,7 +962,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLabeledStatement()
         {
             var text = "label: ;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LabeledStatement, statement.Kind());
@@ -983,7 +983,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestBreakStatement()
         {
             var text = "break;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.BreakStatement, statement.Kind());
@@ -1002,7 +1002,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestContinueStatement()
         {
             var text = "continue;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ContinueStatement, statement.Kind());
@@ -1021,7 +1021,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGotoStatement()
         {
             var text = "goto label;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.GotoStatement, statement.Kind());
@@ -1043,7 +1043,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGotoCaseStatement()
         {
             var text = "goto case label;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.GotoCaseStatement, statement.Kind());
@@ -1067,7 +1067,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGotoDefault()
         {
             var text = "goto default;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.GotoDefaultStatement, statement.Kind());
@@ -1090,7 +1090,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestReturn()
         {
             var text = "return;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ReturnStatement, statement.Kind());
@@ -1110,7 +1110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestReturnExpression()
         {
             var text = "return a;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ReturnStatement, statement.Kind());
@@ -1131,7 +1131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestYieldReturnExpression()
         {
             var text = "yield return a;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.YieldReturnStatement, statement.Kind());
@@ -1155,7 +1155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestYieldBreakExpression()
         {
             var text = "yield break;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.YieldBreakStatement, statement.Kind());
@@ -1178,7 +1178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestThrow()
         {
             var text = "throw;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ThrowStatement, statement.Kind());
@@ -1198,7 +1198,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestThrowExpression()
         {
             var text = "throw a;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ThrowStatement, statement.Kind());
@@ -1219,7 +1219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestTryCatch()
         {
             var text = "try { } catch(T e) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.TryStatement, statement.Kind());
@@ -1249,7 +1249,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestTryCatchWithNoExceptionName()
         {
             var text = "try { } catch(T) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.TryStatement, statement.Kind());
@@ -1278,7 +1278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestTryCatchWithNoExceptionDeclaration()
         {
             var text = "try { } catch { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.TryStatement, statement.Kind());
@@ -1302,7 +1302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestTryCatchWithMultipleCatches()
         {
             var text = "try { } catch(T e) { } catch(T2) { } catch { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.TryStatement, statement.Kind());
@@ -1345,7 +1345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestTryFinally()
         {
             var text = "try { } finally { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.TryStatement, statement.Kind());
@@ -1368,7 +1368,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestTryCatchWithMultipleCatchesAndFinally()
         {
             var text = "try { } catch(T e) { } catch(T2) { } catch { } finally { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.TryStatement, statement.Kind());
@@ -1413,7 +1413,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestChecked()
         {
             var text = "checked { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.CheckedStatement, statement.Kind());
@@ -1430,7 +1430,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUnchecked()
         {
             var text = "unchecked { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.UncheckedStatement, statement.Kind());
@@ -1447,7 +1447,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUnsafe()
         {
             var text = "unsafe { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.UnsafeStatement, statement.Kind());
@@ -1464,7 +1464,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestWhile()
         {
             var text = "while(a) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.WhileStatement, statement.Kind());
@@ -1486,7 +1486,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDoWhile()
         {
             var text = "do { } while (a);";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.DoStatement, statement.Kind());
@@ -1511,7 +1511,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestFor()
         {
             var text = "for(;;) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
@@ -1537,7 +1537,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForWithVariableDeclaration()
         {
             var text = "for(T a = 0;;) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
@@ -1574,7 +1574,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForWithVarDeclaration()
         {
             var text = "for(var a = 0;;) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
@@ -1613,7 +1613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForWithMultipleVariableDeclarations()
         {
             var text = "for(T a = 0, b = 1;;) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
@@ -1658,7 +1658,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForWithRefVariableDeclaration()
         {
             var text = "for(ref T a = ref b, c = ref d;;) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             UsingNode(statement);
             N(SyntaxKind.ForStatement);
@@ -1722,7 +1722,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForWithVariableInitializer()
         {
             var text = "for(a = 0;;) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
@@ -1751,7 +1751,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForWithMultipleVariableInitializers()
         {
             var text = "for(a = 0, b = 1;;) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
@@ -1781,7 +1781,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForWithCondition()
         {
             var text = "for(; a;) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
@@ -1811,7 +1811,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForWithIncrementor()
         {
             var text = "for(; ; a++) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
@@ -1841,7 +1841,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForWithMultipleIncrementors()
         {
             var text = "for(; ; a++, b++) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
@@ -1872,7 +1872,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForWithDeclarationConditionAndIncrementor()
         {
             var text = "for(T a = 0; a < 10; a++) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForStatement, statement.Kind());
@@ -1915,7 +1915,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForEach()
         {
             var text = "foreach(T a in b) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForEachStatement, statement.Kind());
@@ -1944,7 +1944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForAsForEach()
         {
             var text = "for(T a in b) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForEachStatement, statement.Kind());
@@ -1977,7 +1977,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForEachWithVar()
         {
             var text = "foreach(var a in b) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForEachStatement, statement.Kind());
@@ -2008,7 +2008,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestIf()
         {
             var text = "if (a) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.IfStatement, statement.Kind());
@@ -2031,7 +2031,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestIfElse()
         {
             var text = "if (a) { } else { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.IfStatement, statement.Kind());
@@ -2057,7 +2057,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLock()
         {
             var text = "lock (a) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LockStatement, statement.Kind());
@@ -2078,13 +2078,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSwitch()
         {
             var text = "switch (a) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.SwitchStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
             Assert.Equal(0, statement.Errors().Length);
-            var diags = statement.ErrorsAndWarnings();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> diags = statement.ErrorsAndWarnings();
             Assert.Equal(1, diags.Length);
             Assert.Equal((int)ErrorCode.WRN_EmptySwitch, diags[0].Code);
 
@@ -2104,7 +2104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSwitchWithCase()
         {
             var text = "switch (a) { case b:; }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.SwitchStatement, statement.Kind());
@@ -2139,7 +2139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSwitchWithMultipleCases()
         {
             var text = "switch (a) { case b:; case c:; }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.SwitchStatement, statement.Kind());
@@ -2186,7 +2186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSwitchWithDefaultCase()
         {
             var text = "switch (a) { default:; }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.SwitchStatement, statement.Kind());
@@ -2219,7 +2219,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSwitchWithMultipleLabelsOnOneCase()
         {
             var text = "switch (a) { case b: case c:; }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.SwitchStatement, statement.Kind());
@@ -2261,7 +2261,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSwitchWithMultipleStatementsOnOneCase()
         {
             var text = "switch (a) { case b: s1(); s2(); }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.SwitchStatement, statement.Kind());
@@ -2297,7 +2297,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingWithExpression()
         {
             var text = "using (a) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.UsingStatement, statement.Kind());
@@ -2319,7 +2319,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingWithDeclaration()
         {
             var text = "using (T a = b) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.UsingStatement, statement.Kind());
@@ -2353,7 +2353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingWithVarDeclaration()
         {
             var text = "using (var a = b) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.UsingStatement, statement.Kind());
@@ -2389,7 +2389,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingWithDeclarationWithMultipleVariables()
         {
             var text = "using (T a = b, c = d) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.UsingStatement, statement.Kind());
@@ -2433,7 +2433,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingSpecialCase1()
         {
             var text = "using (f ? x = a : x = b) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.UsingStatement, statement.Kind());
@@ -2455,7 +2455,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingSpecialCase2()
         {
             var text = "using (f ? x = a) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.UsingStatement, statement.Kind());
@@ -2477,7 +2477,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingSpecialCase3()
         {
             var text = "using (f ? x, y) { }";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.UsingStatement, statement.Kind());
@@ -2507,7 +2507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var keywordText = SyntaxFacts.GetText(kind);
             var text = keywordText + " o = null;";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
@@ -2524,7 +2524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void Bug862649()
         {
             var text = @"static char[] delimiter;";
-            var tree = SyntaxFactory.ParseStatement(text);
+            StatementSyntax tree = SyntaxFactory.ParseStatement(text);
             var toText = tree.ToFullString();
             Assert.Equal(text, toText);
         }
@@ -2534,7 +2534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             const string prefix = "GARBAGE";
             var text = "foreach(T a in b) { }";
-            var statement = this.ParseStatement(prefix + text, offset: prefix.Length);
+            StatementSyntax statement = this.ParseStatement(prefix + text, offset: prefix.Length);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForEachStatement, statement.Kind());
@@ -2574,13 +2574,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             builder.AppendLine();
             var text = builder.ToString();
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
-            var root = tree.GetRoot();
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text);
+            SyntaxNode root = tree.GetRoot();
             var walker = new TokenAndTriviaWalker();
             walker.Visit(root);
             Assert.True(walker.Tokens > n);
-            var tokens1 = root.DescendantTokens(descendIntoTrivia: false).ToArray();
-            var tokens2 = root.DescendantTokens(descendIntoTrivia: true).ToArray();
+            SyntaxToken[] tokens1 = root.DescendantTokens(descendIntoTrivia: false).ToArray();
+            SyntaxToken[] tokens2 = root.DescendantTokens(descendIntoTrivia: true).ToArray();
             Assert.True((tokens2.Length - tokens1.Length) > n);
         }
 
@@ -2601,12 +2601,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             builder.AppendLine("\"/>");
             builder.AppendLine("class C { }");
             var text = builder.ToString();
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: new CSharpParseOptions(documentationMode: DocumentationMode.Parse));
-            var root = tree.GetRoot();
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(text, options: new CSharpParseOptions(documentationMode: DocumentationMode.Parse));
+            SyntaxNode root = tree.GetRoot();
             var walker = new TokenAndTriviaWalker();
             walker.Visit(root);
             Assert.True(walker.Tokens > n);
-            var tokens = root.DescendantTokens(descendIntoTrivia: true).ToArray();
+            SyntaxToken[] tokens = root.DescendantTokens(descendIntoTrivia: true).ToArray();
             Assert.True(tokens.Length > n);
         }
 
@@ -2624,14 +2624,14 @@ class C
 }
 ";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(source);
-            var root = tree.GetRoot();
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source);
+            SyntaxNode root = tree.GetRoot();
             tree.GetDiagnostics(root).Verify(
                 // (7,36): error CS1003: Syntax error, 'when' expected
                 //         catch (System.Exception e) if (true) { }
                 CSharpTestBase.Diagnostic(ErrorCode.ERR_SyntaxError, "if").WithArguments("when", "if").WithLocation(7, 36));
 
-            var filterClause = root.DescendantNodes().OfType<CatchFilterClauseSyntax>().Single();
+            CatchFilterClauseSyntax filterClause = root.DescendantNodes().OfType<CatchFilterClauseSyntax>().Single();
             Assert.Equal(SyntaxKind.WhenKeyword, filterClause.WhenKeyword.Kind());
             Assert.True(filterClause.WhenKeyword.HasStructuredTrivia);
         }
@@ -2670,7 +2670,7 @@ class C1
     }
 }
 ";
-            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
             Assert.Equal(false, tree.GetRoot().ContainsDiagnostics);
         }
 
@@ -2695,7 +2695,7 @@ class Program
 }
 ";
 
-            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular);
             tree.GetDiagnostics(tree.GetRoot()).Verify(
                 // (9,10): error CS1026: ) expected
                 //         }
@@ -2714,7 +2714,7 @@ class Program
         {
             var text = @"if (true)
 System.Console.WriteLine(true)";
-            var statement = this.ParseStatement(text);
+            StatementSyntax statement = this.ParseStatement(text);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.IfStatement, statement.Kind());

@@ -112,7 +112,7 @@ namespace Roslyn.Utilities
             var hashCode = Hash.GetFNVHashCode(chars, start, len);
 
             // capture array to avoid extra range checks
-            var arr = _localTable;
+            Entry[] arr = _localTable;
             var idx = LocalIdxFromHash(hashCode);
 
             var text = arr[idx].Text;
@@ -146,7 +146,7 @@ namespace Roslyn.Utilities
             var hashCode = Hash.GetFNVHashCode(chars, start, len);
 
             // capture array to avoid extra range checks
-            var arr = _localTable;
+            Entry[] arr = _localTable;
             var idx = LocalIdxFromHash(hashCode);
 
             var text = arr[idx].Text;
@@ -180,7 +180,7 @@ namespace Roslyn.Utilities
             var hashCode = Hash.GetFNVHashCode(chars);
 
             // capture array to avoid extra range checks
-            var arr = _localTable;
+            Entry[] arr = _localTable;
             var idx = LocalIdxFromHash(hashCode);
 
             var text = arr[idx].Text;
@@ -214,7 +214,7 @@ namespace Roslyn.Utilities
             var hashCode = Hash.GetFNVHashCode(chars);
 
             // capture array to avoid extra range checks
-            var arr = _localTable;
+            Entry[] arr = _localTable;
             var idx = LocalIdxFromHash(hashCode);
 
             var text = arr[idx].Text;
@@ -248,7 +248,7 @@ namespace Roslyn.Utilities
             var hashCode = Hash.GetFNVHashCode(chars);
 
             // capture array to avoid extra range checks
-            var arr = _localTable;
+            Entry[] arr = _localTable;
             var idx = LocalIdxFromHash(hashCode);
 
             var text = arr[idx].Text;
@@ -281,7 +281,7 @@ namespace Roslyn.Utilities
 
         private static string FindSharedEntry(char[] chars, int start, int len, int hashCode)
         {
-            var arr = s_sharedTable;
+            Entry[] arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
             string e = null;
@@ -316,7 +316,7 @@ namespace Roslyn.Utilities
 
         private static string FindSharedEntry(string chars, int start, int len, int hashCode)
         {
-            var arr = s_sharedTable;
+            Entry[] arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
             string e = null;
@@ -351,7 +351,7 @@ namespace Roslyn.Utilities
 
         private static unsafe string FindSharedEntryASCII(int hashCode, byte* asciiChars, int length)
         {
-            var arr = s_sharedTable;
+            Entry[] arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
             string e = null;
@@ -386,7 +386,7 @@ namespace Roslyn.Utilities
 
         private static string FindSharedEntry(char chars, int hashCode)
         {
-            var arr = s_sharedTable;
+            Entry[] arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
             string e = null;
@@ -420,7 +420,7 @@ namespace Roslyn.Utilities
 
         private static string FindSharedEntry(StringBuilder chars, int hashCode)
         {
-            var arr = s_sharedTable;
+            Entry[] arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
             string e = null;
@@ -455,7 +455,7 @@ namespace Roslyn.Utilities
 
         private static string FindSharedEntry(string chars, int hashCode)
         {
-            var arr = s_sharedTable;
+            Entry[] arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
             string e = null;
@@ -524,7 +524,7 @@ namespace Roslyn.Utilities
             AddSharedEntry(hashCode, chars);
 
             // add to the local table too
-            var arr = _localTable;
+            Entry[] arr = _localTable;
             var idx = LocalIdxFromHash(hashCode);
             arr[idx].HashCode = hashCode;
             arr[idx].Text = chars;
@@ -532,7 +532,7 @@ namespace Roslyn.Utilities
 
         private void AddSharedEntry(int hashCode, string text)
         {
-            var arr = s_sharedTable;
+            Entry[] arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
             // try finding an empty spot in the bucket
@@ -617,7 +617,7 @@ namespace Roslyn.Utilities
 
         private static void AddSharedSlow(int hashCode, string text)
         {
-            var arr = s_sharedTable;
+            Entry[] arr = s_sharedTable;
             int idx = SharedIdxFromHash(hashCode);
 
             // try finding an empty spot in the bucket

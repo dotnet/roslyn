@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     // then MergedNamespaceSymbol.Create will just return that one.
 
                     IEnumerable<NamespaceSymbol> allGlobalNamespaces = from m in Modules select m.GlobalNamespace;
-                    var result = MergedNamespaceSymbol.Create(new NamespaceExtent(this),
+                    NamespaceSymbol result = MergedNamespaceSymbol.Create(new NamespaceExtent(this),
                                                         null,
                                                         allGlobalNamespaces.AsImmutable());
                     Interlocked.CompareExchange(ref _globalNamespace, result, null);
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Now we will look for the type in each module of the assembly and pick the first type
                 // we find, this is what native VB compiler does.
 
-                var modules = this.Modules;
+                System.Collections.Immutable.ImmutableArray<ModuleSymbol> modules = this.Modules;
                 var count = modules.Length;
                 var i = 0;
 
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     for (i = 1; i < count; i++)
                     {
-                        var newResult = modules[i].LookupTopLevelMetadataType(ref emittedName);
+                        NamedTypeSymbol newResult = modules[i].LookupTopLevelMetadataType(ref emittedName);
 
                         // Hold on to the first missing type result, unless we found the type.
                         if (!(newResult is MissingMetadataTypeSymbol))

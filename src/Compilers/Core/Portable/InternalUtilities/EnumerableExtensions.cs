@@ -36,7 +36,7 @@ namespace Roslyn.Utilities
             }
             else
             {
-                foreach (var value in source)
+                foreach (T value in source)
                 {
                     action(value);
                 }
@@ -67,7 +67,7 @@ namespace Roslyn.Utilities
 
         private static IEnumerable<T> ConcatWorker<T>(this IEnumerable<T> source, T value)
         {
-            foreach (var v in source)
+            foreach (T v in source)
             {
                 yield return v;
             }
@@ -160,7 +160,7 @@ namespace Roslyn.Utilities
 
         public static bool IsSingle<T>(this IEnumerable<T> list)
         {
-            using (var enumerator = list.GetEnumerator())
+            using (IEnumerator<T> enumerator = list.GetEnumerator())
             {
                 return enumerator.MoveNext() && !enumerator.MoveNext();
             }
@@ -192,7 +192,7 @@ namespace Roslyn.Utilities
                 return str.Length == 0;
             }
 
-            foreach (var t in source)
+            foreach (T t in source)
             {
                 return false;
             }
@@ -324,14 +324,14 @@ namespace Roslyn.Utilities
 
         public static bool IsSorted<T>(this IEnumerable<T> enumerable, IComparer<T> comparer)
         {
-            using (var e = enumerable.GetEnumerator())
+            using (IEnumerator<T> e = enumerable.GetEnumerator())
             {
                 if (!e.MoveNext())
                 {
                     return true;
                 }
 
-                var previous = e.Current;
+                T previous = e.Current;
                 while (e.MoveNext())
                 {
                     if (comparer.Compare(previous, e.Current) > 0)
@@ -404,8 +404,8 @@ namespace System.Linq
                 return false;
             }
 
-            using (var enumerator = first.GetEnumerator())
-            using (var enumerator2 = second.GetEnumerator())
+            using (IEnumerator<T> enumerator = first.GetEnumerator())
+            using (IEnumerator<T> enumerator2 = second.GetEnumerator())
             {
                 while (enumerator.MoveNext())
                 {

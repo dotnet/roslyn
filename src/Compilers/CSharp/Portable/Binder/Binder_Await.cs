@@ -58,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var type = expression.Type;
+            TypeSymbol type = expression.Type;
             if (((object)type == null) ||
                 type.IsDynamic() ||
                 (type.SpecialType == SpecialType.System_Void))
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var fakeDiagnostics = DiagnosticBag.GetInstance();
-            var boundAwait = BindAwait(expression, expression.Syntax, fakeDiagnostics);
+            BoundExpression boundAwait = BindAwait(expression, expression.Syntax, fakeDiagnostics);
             fakeDiagnostics.Free();
             return !boundAwait.HasAnyErrors;
         }
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool ReportBadAwaitWithoutAsync(SyntaxNode node, DiagnosticBag diagnostics)
         {
             DiagnosticInfo info = null;
-            var containingMemberOrLambda = this.ContainingMemberOrLambda;
+            Symbol containingMemberOrLambda = this.ContainingMemberOrLambda;
             if ((object)containingMemberOrLambda != null)
             {
                 switch (containingMemberOrLambda.Kind)
@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var receiver = new BoundLiteral(node, ConstantValue.Null, awaiterType);
             var name = WellKnownMemberNames.IsCompleted;
-            var qualified = BindInstanceMemberAccess(node, node, receiver, name, 0, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeSymbol>), false, diagnostics);
+            BoundExpression qualified = BindInstanceMemberAccess(node, node, receiver, name, 0, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeSymbol>), false, diagnostics);
             if (qualified.HasAnyErrors)
             {
                 isCompletedProperty = null;
@@ -368,10 +368,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private bool AwaiterImplementsINotifyCompletion(TypeSymbol awaiterType, SyntaxNode node, DiagnosticBag diagnostics)
         {
-            var INotifyCompletion = GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_INotifyCompletion, diagnostics, node);
+            NamedTypeSymbol INotifyCompletion = GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_INotifyCompletion, diagnostics, node);
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            var conversion = this.Conversions.ClassifyImplicitConversionFromType(awaiterType, INotifyCompletion, ref useSiteDiagnostics);
+            Conversion conversion = this.Conversions.ClassifyImplicitConversionFromType(awaiterType, INotifyCompletion, ref useSiteDiagnostics);
             if (!conversion.IsImplicit)
             {
                 diagnostics.Add(node, useSiteDiagnostics);
@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </remarks>
         private bool GetGetResultMethod(BoundExpression awaiterExpression, SyntaxNode node, TypeSymbol awaitedExpressionType, DiagnosticBag diagnostics, out MethodSymbol getResultMethod, out BoundExpression getAwaiterGetResultCall)
         {
-            var awaiterType = awaiterExpression.Type;
+            TypeSymbol awaiterType = awaiterExpression.Type;
             getAwaiterGetResultCall = MakeInvocationExpression(node, awaiterExpression, WellKnownMemberNames.GetResult, ImmutableArray<BoundExpression>.Empty, diagnostics);
             if (getAwaiterGetResultCall.HasAnyErrors)
             {
@@ -436,7 +436,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (method.ParameterCount != 0)
             {
-                var parameter = method.Parameters[method.ParameterCount - 1];
+                ParameterSymbol parameter = method.Parameters[method.ParameterCount - 1];
                 return parameter.IsOptional || parameter.IsParams;
             }
 

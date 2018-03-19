@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestSubTextStart()
         {
             var text = SourceText.From("Hello World");
-            var subText = text.GetSubText(6);
+            SourceText subText = text.GetSubText(6);
             Assert.Equal("World", subText.ToString());
         }
 
@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestSubTextSpanFirst()
         {
             var text = SourceText.From("Hello World");
-            var subText = text.GetSubText(new TextSpan(0, 5));
+            SourceText subText = text.GetSubText(new TextSpan(0, 5));
             Assert.Equal("Hello", subText.ToString());
         }
 
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestSubTextSpanLast()
         {
             var text = SourceText.From("Hello World");
-            var subText = text.GetSubText(new TextSpan(6, 5));
+            SourceText subText = text.GetSubText(new TextSpan(6, 5));
             Assert.Equal("World", subText.ToString());
         }
 
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestSubTextSpanMid()
         {
             var text = SourceText.From("Hello World");
-            var subText = text.GetSubText(new TextSpan(4, 3));
+            SourceText subText = text.GetSubText(new TextSpan(4, 3));
             Assert.Equal("o W", subText.ToString());
         }
 
@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestChangedText()
         {
             var text = SourceText.From("Hello World");
-            var newText = text.Replace(6, 0, "Beautiful ");
+            SourceText newText = text.Replace(6, 0, "Beautiful ");
             Assert.Equal("Hello Beautiful World", newText.ToString());
         }
 
@@ -57,9 +57,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestChangedTextChanges()
         {
             var text = SourceText.From("Hello World");
-            var newText = text.Replace(6, 0, "Beautiful ");
+            SourceText newText = text.Replace(6, 0, "Beautiful ");
 
-            var changes = newText.GetChangeRanges(text);
+            IReadOnlyList<TextChangeRange> changes = newText.GetChangeRanges(text);
             Assert.NotNull(changes);
             Assert.Equal(1, changes.Count);
             Assert.Equal(6, changes[0].Span.Start);
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestChangedTextWithMultipleChanges()
         {
             var text = SourceText.From("Hello World");
-            var newText = text.WithChanges(
+            SourceText newText = text.WithChanges(
                 new TextChange(new TextSpan(0, 5), "Halo"),
                 new TextChange(new TextSpan(6, 5), "Universe"));
 
@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestChangedTextWithMultipleOverlappingChanges()
         {
             var text = SourceText.From("Hello World");
-            var changes = new[]
+            TextChange[] changes = new[]
             {
                 new TextChange(new TextSpan(0, 5), "Halo"),
                 new TextChange(new TextSpan(3, 5), "Universe")
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestChangedTextWithMultipleUnorderedChanges()
         {
             var text = SourceText.From("Hello World");
-            var changes = new[]
+            TextChange[] changes = new[]
             {
                 new TextChange(new TextSpan(6, 7), "Universe"),
                 new TextChange(new TextSpan(0, 5), "Halo")
@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var text = SourceText.From("Hello World");
 
-            var newText = text.WithChanges(
+            SourceText newText = text.WithChanges(
                 new TextChange(new TextSpan(6, 0), "Super "),
                 new TextChange(new TextSpan(6, 0), "Spectacular "));
 
@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var text = SourceText.From("Hello World");
 
-            var newText = text.WithChanges(
+            SourceText newText = text.WithChanges(
                 new TextChange(new TextSpan(6, 0), "Super "),
                 new TextChange(new TextSpan(6, 2), "Vu"));
 
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestChangedTextWithReplaceBeforeInsertSamePosition()
         {
             var text = SourceText.From("Hello World");
-            var changes = new[]
+            TextChange[] changes = new[]
             {
                 new TextChange(new TextSpan(6, 2), "Vu"),
                 new TextChange(new TextSpan(6, 0), "Super ")
@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var text = SourceText.From("Hello World");
 
-            var newText = text.WithChanges(
+            SourceText newText = text.WithChanges(
                 new TextChange(new TextSpan(4, 1), string.Empty),
                 new TextChange(new TextSpan(5, 1), string.Empty));
 
@@ -158,11 +158,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestSubTextAfterMultipleChanges()
         {
             var text = SourceText.From("Hello World", Encoding.UTF7, SourceHashAlgorithm.Sha256);
-            var newText = text.WithChanges(
+            SourceText newText = text.WithChanges(
                 new TextChange(new TextSpan(4, 1), string.Empty),
                 new TextChange(new TextSpan(6, 5), "Universe"));
 
-            var subText = newText.GetSubText(new TextSpan(3, 4));
+            SourceText subText = newText.GetSubText(new TextSpan(3, 4));
             Assert.Equal("l Un", subText.ToString());
 
             Assert.Equal(SourceHashAlgorithm.Sha256, subText.ChecksumAlgorithm);
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestLinesInChangedText()
         {
             var text = SourceText.From("Hello World");
-            var newText = text.WithChanges(
+            SourceText newText = text.WithChanges(
                 new TextChange(new TextSpan(4, 1), string.Empty));
 
             Assert.Equal(1, newText.Lines.Count);
@@ -183,7 +183,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestCopyTo()
         {
             var text = SourceText.From("Hello World");
-            var newText = text.WithChanges(
+            SourceText newText = text.WithChanges(
                 new TextChange(new TextSpan(6, 5), "Universe"));
 
             var destination = new char[32];
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 new TextChange(new TextSpan(25, 2), "[4]")
             };
 
-            var newText = text.WithChanges(changes);
+            SourceText newText = text.WithChanges(changes);
             Assert.Equal(SourceHashAlgorithm.Sha256, newText.ChecksumAlgorithm);
             Assert.Same(Encoding.UTF7, newText.Encoding);
 
@@ -216,8 +216,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(changes.Length, result.Count);
             for (int i = 0; i < changes.Length; i++)
             {
-                var expected = changes[i];
-                var actual = result[i];
+                TextChange expected = changes[i];
+                TextChange actual = result[i];
                 Assert.Equal(expected.Span, actual.Span);
                 Assert.Equal(expected.NewText, actual.NewText);
             }
@@ -238,7 +238,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         private static void AssertChangedTextLinesHelper(string originalText, params TextChange[] changes)
         {
-            var changedText = SourceText.From(originalText).WithChanges(changes);
+            SourceText changedText = SourceText.From(originalText).WithChanges(changes);
             Assert.Equal(SourceText.From(changedText.ToString()).Lines, changedText.Lines, new TextLineEqualityComparer());
         }
 
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var str = new String('.', 1024);
             var text = SourceText.From(str);
 
-            var lines = text.Lines;
+            TextLineCollection lines = text.Lines;
             int n = 20000;
             var expected = str;
             for (int i = 0; i < n; i++)
@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var str = new String('.', 1024);
             var text = SourceText.From(str);
 
-            var lines = text.Lines;
+            TextLineCollection lines = text.Lines;
             var expected = str;
             for (int i = 0; i < str.Length; i++)
             {
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.Equal(26, text.Length);
             Assert.Equal(26, text.StorageSize);
 
-            var subtext = text.GetSubText(new TextSpan(5, 10));
+            SourceText subtext = text.GetSubText(new TextSpan(5, 10));
             Assert.Equal(10, subtext.Length);
             Assert.Equal("fghijklmno", subtext.ToString());
             Assert.Equal(26, subtext.StorageSize);
@@ -371,7 +371,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var text = SourceText.From("abcdefghijklmnopqrstuvwxyz");
 
-            var newText = text.Replace(new TextSpan(0, 20), "");
+            SourceText newText = text.Replace(new TextSpan(0, 20), "");
 
             Assert.Equal(6, newText.Length);
             Assert.Equal(6, newText.StorageSize);
@@ -382,7 +382,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var text = SourceText.From("abcdefghijklmnopqrstuvwxyz");
 
-            var newText = text.Replace(new TextSpan(10, 6), "");
+            SourceText newText = text.Replace(new TextSpan(10, 6), "");
 
             Assert.Equal(20, newText.Length);
             Assert.Equal(26, newText.StorageSize);
@@ -394,7 +394,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var text = SourceText.From("abcdefghijklmnopqrstuvwxyz");
 
             Assert.Equal(0, text.Segments.Length);
-            var newText = text.Replace(new TextSpan(10, 1), "");
+            SourceText newText = text.Replace(new TextSpan(10, 1), "");
 
             Assert.Equal(25, newText.Length);
             Assert.Equal(26, newText.StorageSize);
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var text = SourceText.From("abcdefghijklmnopqrstuvwxyz");
 
             Assert.Equal(0, text.Segments.Length);
-            var textWithSegments = text.Replace(new TextSpan(10, 0), "*");
+            SourceText textWithSegments = text.Replace(new TextSpan(10, 0), "*");
 
             Assert.Equal(27, textWithSegments.Length);
             Assert.Equal("abcdefghij*klmnopqrstuvwxyz", textWithSegments.ToString());
@@ -427,11 +427,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var text = SourceText.From("abcdefghijklmnopqrstuvwxyz");
 
             Assert.Equal(0, text.Segments.Length);
-            var textWithSegments = text.Replace(new TextSpan(10, 0), "*");
+            SourceText textWithSegments = text.Replace(new TextSpan(10, 0), "*");
             Assert.Equal(27, textWithSegments.Length);
             Assert.Equal(27, textWithSegments.StorageSize);
 
-            var textWithFewerSegments = textWithSegments.Replace(new TextSpan(9, 3), "");
+            SourceText textWithFewerSegments = textWithSegments.Replace(new TextSpan(9, 3), "");
             Assert.Equal("abcdefghilmnopqrstuvwxyz", textWithFewerSegments.ToString());
             Assert.Equal(24, textWithFewerSegments.Length);
             Assert.Equal(26, textWithFewerSegments.StorageSize);
@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var text = SourceText.From("abcdefghijklmnopqrstuvwxyz");
 
             Assert.Equal(0, text.Segments.Length);
-            var textWithSegments = text.Replace(new TextSpan(0, text.Length), "");
+            SourceText textWithSegments = text.Replace(new TextSpan(0, text.Length), "");
             Assert.Equal(0, textWithSegments.Length);
             Assert.Equal(0, textWithSegments.StorageSize);
         }
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         private void CreateEdits(out WeakReference weakFirstEdit, out SourceText secondEdit)
         {
             var text = SourceText.From("This is the old text");
-            var firstEdit = text.Replace(11, 3, "new");
+            SourceText firstEdit = text.Replace(11, 3, "new");
             secondEdit = firstEdit.Replace(11, 3, "newer");
 
             weakFirstEdit = new WeakReference(firstEdit);
@@ -543,7 +543,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestLargeTextWriterReusesLargeChunks()
         {
             var chunk1 = "this is the large text".ToArray();
-            var largeText = CreateLargeText(chunk1);
+            SourceText largeText = CreateLargeText(chunk1);
 
             // chunks are considered large because they are bigger than the expected size
             var writer = new LargeTextWriter(largeText.Encoding, largeText.ChecksumAlgorithm, 10);
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var largeText = text as LargeText;
             if (largeText != null)
             {
-                var chunkField = text.GetType().GetField("_chunks", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
+                System.Reflection.FieldInfo chunkField = text.GetType().GetField("_chunks", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic);
                 return (ImmutableArray<char[]>)chunkField.GetValue(text);
             }
             else
@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var text = SourceText.From("small preamble");
             var chunk1 = "this is the large text".ToArray();
-            var largeText = CreateLargeText(chunk1);
+            SourceText largeText = CreateLargeText(chunk1);
 
             // chunks are considered small because they fit within the buffer (which is the expected length for this test)
             var writer = new LargeTextWriter(largeText.Encoding, largeText.ChecksumAlgorithm, chunk1.Length * 4);
@@ -604,8 +604,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestEmptyChangeAfterChange()
         {
             var original = SourceText.From("Hello World");
-            var change1 = original.WithChanges(new TextChange(new TextSpan(5, 6), string.Empty)); // prepare a ChangedText instance
-            var change2 = change1.WithChanges(); // this should not cause exception
+            SourceText change1 = original.WithChanges(new TextChange(new TextSpan(5, 6), string.Empty)); // prepare a ChangedText instance
+            SourceText change2 = change1.WithChanges(); // this should not cause exception
 
             Assert.Same(change1, change2); // this was a no-op and returned the same instance
         }
@@ -615,8 +615,8 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestEmptyChangeAfterChange2()
         {
             var original = SourceText.From("Hello World");
-            var change1 = original.WithChanges(new TextChange(new TextSpan(5, 6), string.Empty)); // prepare a ChangedText instance
-            var change2 = change1.WithChanges(new TextChange(new TextSpan(2, 0), string.Empty)); // this should not cause exception
+            SourceText change1 = original.WithChanges(new TextChange(new TextSpan(5, 6), string.Empty)); // prepare a ChangedText instance
+            SourceText change2 = change1.WithChanges(new TextChange(new TextSpan(2, 0), string.Empty)); // this should not cause exception
 
             Assert.Same(change1, change2); // this was a no-op and returned the same instance
         }
@@ -625,11 +625,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestMergeChanges_Overlapping_NewInsideOld()
         {
             var original = SourceText.From("Hello World");
-            var change1 = original.WithChanges(new TextChange(new TextSpan(6, 0), "Cruel "));
-            var change2 = change1.WithChanges(new TextChange(new TextSpan(7, 3), "oo"));
+            SourceText change1 = original.WithChanges(new TextChange(new TextSpan(6, 0), "Cruel "));
+            SourceText change2 = change1.WithChanges(new TextChange(new TextSpan(7, 3), "oo"));
             Assert.Equal("Hello Cool World", change2.ToString());
 
-            var changes = change2.GetTextChanges(original);
+            IReadOnlyList<TextChange> changes = change2.GetTextChanges(original);
             Assert.Equal(1, changes.Count);
             Assert.Equal(new TextSpan(6, 0), changes[0].Span);
             Assert.Equal("Cool ", changes[0].NewText);
@@ -639,11 +639,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestMergeChanges_Overlapping_OldInsideNew()
         {
             var original = SourceText.From("Hello World");
-            var change1 = original.WithChanges(new TextChange(new TextSpan(6, 0), "Cruel "));
-            var change2 = change1.WithChanges(new TextChange(new TextSpan(2, 14), "ar"));
+            SourceText change1 = original.WithChanges(new TextChange(new TextSpan(6, 0), "Cruel "));
+            SourceText change2 = change1.WithChanges(new TextChange(new TextSpan(2, 14), "ar"));
             Assert.Equal("Heard", change2.ToString());
 
-            var changes = change2.GetTextChanges(original);
+            IReadOnlyList<TextChange> changes = change2.GetTextChanges(original);
             Assert.Equal(1, changes.Count);
             Assert.Equal(new TextSpan(2, 8), changes[0].Span);
             Assert.Equal("ar", changes[0].NewText);
@@ -653,11 +653,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestMergeChanges_Overlapping_NewBeforeOld()
         {
             var original = SourceText.From("Hello World");
-            var change1 = original.WithChanges(new TextChange(new TextSpan(6, 0), "Cruel "));
-            var change2 = change1.WithChanges(new TextChange(new TextSpan(4, 6), " Bel"));
+            SourceText change1 = original.WithChanges(new TextChange(new TextSpan(6, 0), "Cruel "));
+            SourceText change2 = change1.WithChanges(new TextChange(new TextSpan(4, 6), " Bel"));
             Assert.Equal("Hell Bell World", change2.ToString());
 
-            var changes = change2.GetTextChanges(original);
+            IReadOnlyList<TextChange> changes = change2.GetTextChanges(original);
             Assert.Equal(1, changes.Count);
             Assert.Equal(new TextSpan(4, 2), changes[0].Span);
             Assert.Equal(" Bell ", changes[0].NewText);
@@ -667,11 +667,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestMergeChanges_Overlapping_OldBeforeNew()
         {
             var original = SourceText.From("Hello World");
-            var change1 = original.WithChanges(new TextChange(new TextSpan(6, 0), "Cruel "));
-            var change2 = change1.WithChanges(new TextChange(new TextSpan(7, 6), "wazy V"));
+            SourceText change1 = original.WithChanges(new TextChange(new TextSpan(6, 0), "Cruel "));
+            SourceText change2 = change1.WithChanges(new TextChange(new TextSpan(7, 6), "wazy V"));
             Assert.Equal("Hello Cwazy Vorld", change2.ToString());
 
-            var changes = change2.GetTextChanges(original);
+            IReadOnlyList<TextChange> changes = change2.GetTextChanges(original);
             Assert.Equal(1, changes.Count);
             Assert.Equal(new TextSpan(6, 1), changes[0].Span);
             Assert.Equal("Cwazy V", changes[0].NewText);
@@ -681,11 +681,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestMergeChanges_AfterAdjacent()
         {
             var original = SourceText.From("Hell");
-            var change1 = original.WithChanges(new TextChange(new TextSpan(4, 0), "o "));
-            var change2 = change1.WithChanges(new TextChange(new TextSpan(6, 0), "World"));
+            SourceText change1 = original.WithChanges(new TextChange(new TextSpan(4, 0), "o "));
+            SourceText change2 = change1.WithChanges(new TextChange(new TextSpan(6, 0), "World"));
             Assert.Equal("Hello World", change2.ToString());
 
-            var changes = change2.GetTextChanges(original);
+            IReadOnlyList<TextChange> changes = change2.GetTextChanges(original);
             Assert.Equal(1, changes.Count);
             Assert.Equal(new TextSpan(4, 0), changes[0].Span);
             Assert.Equal("o World", changes[0].NewText);
@@ -695,11 +695,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestMergeChanges_AfterSeparated()
         {
             var original = SourceText.From("Hell ");
-            var change1 = original.WithChanges(new TextChange(new TextSpan(4, 0), "o"));
-            var change2 = change1.WithChanges(new TextChange(new TextSpan(6, 0), "World"));
+            SourceText change1 = original.WithChanges(new TextChange(new TextSpan(4, 0), "o"));
+            SourceText change2 = change1.WithChanges(new TextChange(new TextSpan(6, 0), "World"));
             Assert.Equal("Hello World", change2.ToString());
 
-            var changes = change2.GetTextChanges(original);
+            IReadOnlyList<TextChange> changes = change2.GetTextChanges(original);
             Assert.Equal(2, changes.Count);
             Assert.Equal(new TextSpan(4, 0), changes[0].Span);
             Assert.Equal("o", changes[0].NewText);
@@ -711,11 +711,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestMergeChanges_BeforeSeparated()
         {
             var original = SourceText.From("Hell Word");
-            var change1 = original.WithChanges(new TextChange(new TextSpan(8, 0), "l"));
-            var change2 = change1.WithChanges(new TextChange(new TextSpan(4, 0), "o"));
+            SourceText change1 = original.WithChanges(new TextChange(new TextSpan(8, 0), "l"));
+            SourceText change2 = change1.WithChanges(new TextChange(new TextSpan(4, 0), "o"));
             Assert.Equal("Hello World", change2.ToString());
 
-            var changes = change2.GetTextChanges(original);
+            IReadOnlyList<TextChange> changes = change2.GetTextChanges(original);
             Assert.Equal(2, changes.Count);
             Assert.Equal(new TextSpan(4, 0), changes[0].Span);
             Assert.Equal("o", changes[0].NewText);
@@ -727,12 +727,12 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestMergeChanges_BeforeAdjacent()
         {
             var original = SourceText.From("Hell");
-            var change1 = original.WithChanges(new TextChange(new TextSpan(4, 0), " World"));
+            SourceText change1 = original.WithChanges(new TextChange(new TextSpan(4, 0), " World"));
             Assert.Equal("Hell World", change1.ToString());
-            var change2 = change1.WithChanges(new TextChange(new TextSpan(4, 0), "o"));
+            SourceText change2 = change1.WithChanges(new TextChange(new TextSpan(4, 0), "o"));
             Assert.Equal("Hello World", change2.ToString());
 
-            var changes = change2.GetTextChanges(original);
+            IReadOnlyList<TextChange> changes = change2.GetTextChanges(original);
             Assert.Equal(1, changes.Count);
             Assert.Equal(new TextSpan(4, 0), changes[0].Span);
             Assert.Equal("o World", changes[0].NewText);
@@ -743,14 +743,14 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var original = SourceText.From("Hell");
 
-            var final = GetChangesWithoutMiddle(
+            SourceText final = GetChangesWithoutMiddle(
                 original,
                 c => c.WithChanges(new TextChange(new TextSpan(4, 0), "o ")),
                 c => c.WithChanges(new TextChange(new TextSpan(6, 0), "World")));
 
             Assert.Equal("Hello World", final.ToString());
 
-            var changes = final.GetTextChanges(original);
+            IReadOnlyList<TextChange> changes = final.GetTextChanges(original);
             Assert.Equal(1, changes.Count);
             Assert.Equal(new TextSpan(4, 0), changes[0].Span);
             Assert.Equal("o World", changes[0].NewText);
@@ -781,7 +781,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             out WeakReference change1,
             out SourceText change2)
         {
-            var c1 = fnChange1(original);
+            SourceText c1 = fnChange1(original);
             change1 = new WeakReference(c1);
             change2 = fnChange2(c1);
         }

@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis
         [Conditional("DEBUG")]
         internal static void VerifySource(this SyntaxTree tree, IEnumerable<TextChangeRange> changes = null)
         {
-            var root = tree.GetRoot();
-            var text = tree.GetText();
+            SyntaxNode root = tree.GetRoot();
+            SourceText text = tree.GetText();
             var fullSpan = new TextSpan(0, text.Length);
             SyntaxNode node = null;
 
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis
             // just check that subset to reduce verification cost.
             if (changes != null)
             {
-                var change = TextChangeRange.Collapse(changes).Span;
+                TextSpan change = TextChangeRange.Collapse(changes).Span;
                 if (change != fullSpan)
                 {
                     // Find the lowest node in the tree that contains the changed region.
@@ -39,8 +39,8 @@ namespace Microsoft.CodeAnalysis
                 node = root;
             }
 
-            var span = node.FullSpan;
-            var textSpanOpt = span.Intersection(fullSpan);
+            TextSpan span = node.FullSpan;
+            TextSpan? textSpanOpt = span.Intersection(fullSpan);
             int index;
 
             if (textSpanOpt == null)
@@ -60,8 +60,8 @@ namespace Microsoft.CodeAnalysis
                 string message;
                 if (index < text.Length)
                 {
-                    var position = text.Lines.GetLinePosition(index);
-                    var line = text.Lines[position.Line];
+                    LinePosition position = text.Lines.GetLinePosition(index);
+                    TextLine line = text.Lines[position.Line];
                     var allText = text.ToString(); // Entire document as string to allow inspecting the text in the debugger.
                     message = string.Format("Unexpected difference at offset {0}: Line {1}, Column {2} \"{3}\"",
                         index,
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis
                 return false;
             }
 
-            var lineVisibility = tree.GetLineVisibility(position, cancellationToken);
+            LineVisibility lineVisibility = tree.GetLineVisibility(position, cancellationToken);
             return lineVisibility == LineVisibility.Hidden || lineVisibility == LineVisibility.BeforeFirstLineDirective;
         }
     }

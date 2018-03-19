@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private static Dictionary<DiagnosticAnalyzer, TimeSpan> CreateAnalyzerExecutionTimeMap(ImmutableArray<DiagnosticAnalyzer> analyzers)
         {
             var map = new Dictionary<DiagnosticAnalyzer, TimeSpan>(analyzers.Length);
-            foreach (var analyzer in analyzers)
+            foreach (DiagnosticAnalyzer analyzer in analyzers)
             {
                 map[analyzer] = default(TimeSpan);
             }
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             lock (_gate)
             {
                 ArrayBuilder<DiagnosticAnalyzer> builder = null;
-                foreach (var analyzer in analyzers)
+                foreach (DiagnosticAnalyzer analyzer in analyzers)
                 {
                     if (!_completedAnalyzers.Contains(analyzer))
                     {
@@ -77,12 +77,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(!fullAnalysisResultForAnalyzersInScope || analysisScope.FilterTreeOpt == null, "Full analysis result cannot come from partial (tree) analysis.");
 
-            foreach (var analyzer in analysisScope.Analyzers)
+            foreach (DiagnosticAnalyzer analyzer in analysisScope.Analyzers)
             {
                 // Dequeue reported analyzer diagnostics from the driver and store them in our maps.
-                var syntaxDiagnostics = driver.DequeueLocalDiagnostics(analyzer, syntax: true, compilation: compilation);
-                var semanticDiagnostics = driver.DequeueLocalDiagnostics(analyzer, syntax: false, compilation: compilation);
-                var compilationDiagnostics = driver.DequeueNonLocalDiagnostics(analyzer, compilation);
+                ImmutableArray<Diagnostic> syntaxDiagnostics = driver.DequeueLocalDiagnostics(analyzer, syntax: true, compilation: compilation);
+                ImmutableArray<Diagnostic> semanticDiagnostics = driver.DequeueLocalDiagnostics(analyzer, syntax: false, compilation: compilation);
+                ImmutableArray<Diagnostic> compilationDiagnostics = driver.DequeueNonLocalDiagnostics(analyzer, compilation);
 
                 lock (_gate)
                 {
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                     if (_analyzerExecutionTimeOpt != null)
                     {
-                        var timeSpan = driver.ResetAnalyzerExecutionTime(analyzer);
+                        TimeSpan timeSpan = driver.ResetAnalyzerExecutionTime(analyzer);
                         _analyzerExecutionTimeOpt[analyzer] = fullAnalysisResultForAnalyzersInScope ?
                             timeSpan :
                             _analyzerExecutionTimeOpt[analyzer] + timeSpan;
@@ -133,9 +133,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             lazyLocalDiagnostics = lazyLocalDiagnostics ?? new Dictionary<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>>();
 
-            foreach (var diagsByTree in diagnostics.GroupBy(d => d.Location.SourceTree))
+            foreach (IGrouping<SyntaxTree, Diagnostic> diagsByTree in diagnostics.GroupBy(d => d.Location.SourceTree))
             {
-                var tree = diagsByTree.Key;
+                SyntaxTree tree = diagsByTree.Key;
 
                 Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder> allDiagnostics;
                 if (!lazyLocalDiagnostics.TryGetValue(tree, out allDiagnostics))
@@ -196,7 +196,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(getLocalDiagnostics || getNonLocalDiagnostics);
 
-            var builder = ImmutableArray.CreateBuilder<Diagnostic>();
+            ImmutableArray<Diagnostic>.Builder builder = ImmutableArray.CreateBuilder<Diagnostic>();
             if (getLocalDiagnostics)
             {
                 if (!analysisScope.IsTreeAnalysis)
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             if (localDiagnostics != null)
             {
-                foreach (var localDiagsByTree in localDiagnostics.Values)
+                foreach (Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder> localDiagsByTree in localDiagnostics.Values)
                 {
                     AddDiagnostics_NoLock(localDiagsByTree, analysisScope, builder);
                 }
@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(diagnostics != null);
 
-            foreach (var analyzer in analysisScope.Analyzers)
+            foreach (DiagnosticAnalyzer analyzer in analysisScope.Analyzers)
             {
                 ImmutableArray<Diagnostic>.Builder diagnosticsByAnalyzer;
                 if (diagnostics.TryGetValue(analyzer, out diagnosticsByAnalyzer))
@@ -282,7 +282,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-            var analyzerTelemetryInfo = GetTelemetryInfo(analyzers, cancellationToken);
+            ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo> analyzerTelemetryInfo = GetTelemetryInfo(analyzers, cancellationToken);
             return new AnalysisResult(analyzers, localSyntaxDiagnostics, localSemanticDiagnostics, nonLocalDiagnostics, analyzerTelemetryInfo);
         }
 
@@ -295,13 +295,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>>.Empty;
             }
 
-            var builder = ImmutableDictionary.CreateBuilder<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>>();
-            var perTreeBuilder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>();
+            ImmutableDictionary<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>>.Builder builder = ImmutableDictionary.CreateBuilder<SyntaxTree, ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>>();
+            ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>.Builder perTreeBuilder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>();
 
-            foreach (var diagnosticsByTree in localDiagnosticsOpt)
+            foreach (KeyValuePair<SyntaxTree, Dictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder>> diagnosticsByTree in localDiagnosticsOpt)
             {
-                var tree = diagnosticsByTree.Key;
-                foreach (var diagnosticsByAnalyzer in diagnosticsByTree.Value)
+                SyntaxTree tree = diagnosticsByTree.Key;
+                foreach (KeyValuePair<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder> diagnosticsByAnalyzer in diagnosticsByTree.Value)
                 {
                     if (analyzers.Contains(diagnosticsByAnalyzer.Key))
                     {
@@ -325,8 +325,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>.Empty;
             }
 
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>();
-            foreach (var diagnosticsByAnalyzer in nonLocalDiagnosticsOpt)
+            ImmutableDictionary<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>.Builder builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, ImmutableArray<Diagnostic>>();
+            foreach (KeyValuePair<DiagnosticAnalyzer, ImmutableArray<Diagnostic>.Builder> diagnosticsByAnalyzer in nonLocalDiagnosticsOpt)
             {
                 if (analyzers.Contains(diagnosticsByAnalyzer.Key))
                 {
@@ -341,14 +341,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             ImmutableArray<DiagnosticAnalyzer> analyzers,
             CancellationToken cancellationToken)
         {
-            var builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerTelemetryInfo>();
+            ImmutableDictionary<DiagnosticAnalyzer, AnalyzerTelemetryInfo>.Builder builder = ImmutableDictionary.CreateBuilder<DiagnosticAnalyzer, AnalyzerTelemetryInfo>();
 
             lock (_gate)
             {
-                foreach (var analyzer in analyzers)
+                foreach (DiagnosticAnalyzer analyzer in analyzers)
                 {
-                    var actionCounts = _analyzerActionCounts[analyzer];
-                    var executionTime = _analyzerExecutionTimeOpt != null ? _analyzerExecutionTimeOpt[analyzer] : default(TimeSpan);
+                    AnalyzerActionCounts actionCounts = _analyzerActionCounts[analyzer];
+                    TimeSpan executionTime = _analyzerExecutionTimeOpt != null ? _analyzerExecutionTimeOpt[analyzer] : default(TimeSpan);
                     var telemetryInfo = new AnalyzerTelemetryInfo(actionCounts, executionTime);
                     builder.Add(analyzer, telemetryInfo);
                 }

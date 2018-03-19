@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void Equality()
         {
-            var node1 = SyntaxFactory.Parameter(SyntaxFactory.Identifier("a"));
-            var node2 = SyntaxFactory.Parameter(SyntaxFactory.Identifier("b"));
+            ParameterSyntax node1 = SyntaxFactory.Parameter(SyntaxFactory.Identifier("a"));
+            ParameterSyntax node2 = SyntaxFactory.Parameter(SyntaxFactory.Identifier("b"));
 
             EqualityTesting.AssertEqual(default(SeparatedSyntaxList<CSharpSyntaxNode>), default(SeparatedSyntaxList<CSharpSyntaxNode>));
 
@@ -44,45 +44,45 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestSeparatedListInsert()
         {
-            var list = SyntaxFactory.SeparatedList<ExpressionSyntax>();
-            var addList = list.Insert(0, SyntaxFactory.ParseExpression("x"));
+            SeparatedSyntaxList<ExpressionSyntax> list = SyntaxFactory.SeparatedList<ExpressionSyntax>();
+            SeparatedSyntaxList<ExpressionSyntax> addList = list.Insert(0, SyntaxFactory.ParseExpression("x"));
             Assert.Equal("x", addList.ToFullString());
 
-            var insertBefore = addList.Insert(0, SyntaxFactory.ParseExpression("y"));
+            SeparatedSyntaxList<ExpressionSyntax> insertBefore = addList.Insert(0, SyntaxFactory.ParseExpression("y"));
             Assert.Equal("y,x", insertBefore.ToFullString());
 
-            var insertAfter = addList.Insert(1, SyntaxFactory.ParseExpression("y"));
+            SeparatedSyntaxList<ExpressionSyntax> insertAfter = addList.Insert(1, SyntaxFactory.ParseExpression("y"));
             Assert.Equal("x,y", insertAfter.ToFullString());
 
-            var insertBetween = insertAfter.InsertRange(1, new[] { SyntaxFactory.ParseExpression("a"), SyntaxFactory.ParseExpression("b"), SyntaxFactory.ParseExpression("c") });
+            SeparatedSyntaxList<ExpressionSyntax> insertBetween = insertAfter.InsertRange(1, new[] { SyntaxFactory.ParseExpression("a"), SyntaxFactory.ParseExpression("b"), SyntaxFactory.ParseExpression("c") });
             Assert.Equal("x,a,b,c,y", insertBetween.ToFullString());
 
             // inserting after a single line comment keeps separator with previous item
-            var argsWithComment = SyntaxFactory.ParseArgumentList(@"(a, // a is good
+            SeparatedSyntaxList<ArgumentSyntax> argsWithComment = SyntaxFactory.ParseArgumentList(@"(a, // a is good
 b // b is better
 )").Arguments;
-            var insertAfterComment = argsWithComment.Insert(1, SyntaxFactory.Argument(SyntaxFactory.ParseExpression("c")));
+            SeparatedSyntaxList<ArgumentSyntax> insertAfterComment = argsWithComment.Insert(1, SyntaxFactory.Argument(SyntaxFactory.ParseExpression("c")));
             Assert.Equal(@"a, // a is good
 c,b // b is better
 ", insertAfterComment.ToFullString());
 
             // inserting after a end of line trivia keeps separator with previous item
-            var argsWithEOL = SyntaxFactory.ParseArgumentList(@"(a,
+            SeparatedSyntaxList<ArgumentSyntax> argsWithEOL = SyntaxFactory.ParseArgumentList(@"(a,
 b)").Arguments;
-            var insertAfterEOL = argsWithEOL.Insert(1, SyntaxFactory.Argument(SyntaxFactory.ParseExpression("c")));
+            SeparatedSyntaxList<ArgumentSyntax> insertAfterEOL = argsWithEOL.Insert(1, SyntaxFactory.Argument(SyntaxFactory.ParseExpression("c")));
             Assert.Equal(@"a,
 c,b", insertAfterEOL.ToFullString());
 
             // inserting after any other trivia keeps separator with following item
-            var argsWithMultiLineComment = SyntaxFactory.ParseArgumentList("(a, /* b is best */ b)").Arguments;
-            var insertBeforeMultiLineComment = argsWithMultiLineComment.Insert(1, SyntaxFactory.Argument(SyntaxFactory.ParseExpression("c")));
+            SeparatedSyntaxList<ArgumentSyntax> argsWithMultiLineComment = SyntaxFactory.ParseArgumentList("(a, /* b is best */ b)").Arguments;
+            SeparatedSyntaxList<ArgumentSyntax> insertBeforeMultiLineComment = argsWithMultiLineComment.Insert(1, SyntaxFactory.Argument(SyntaxFactory.ParseExpression("c")));
             Assert.Equal("a,c, /* b is best */ b", insertBeforeMultiLineComment.ToFullString());
         }
 
         [Fact]
         public void TestAddInsertRemove()
         {
-            var list = SyntaxFactory.SeparatedList<SyntaxNode>(
+            SeparatedSyntaxList<SyntaxNode> list = SyntaxFactory.SeparatedList<SyntaxNode>(
                 new[] {
                     SyntaxFactory.ParseExpression("A"),
                     SyntaxFactory.ParseExpression("B"),
@@ -94,9 +94,9 @@ c,b", insertAfterEOL.ToFullString());
             Assert.Equal("C", list[2].ToString());
             Assert.Equal("A,B,C", list.ToFullString());
 
-            var elementA = list[0];
-            var elementB = list[1];
-            var elementC = list[2];
+            SyntaxNode elementA = list[0];
+            SyntaxNode elementB = list[1];
+            SyntaxNode elementC = list[2];
 
             Assert.Equal(0, list.IndexOf(elementA));
             Assert.Equal(1, list.IndexOf(elementB));
@@ -105,7 +105,7 @@ c,b", insertAfterEOL.ToFullString());
             SyntaxNode nodeD = SyntaxFactory.ParseExpression("D");
             SyntaxNode nodeE = SyntaxFactory.ParseExpression("E");
 
-            var newList = list.Add(nodeD);
+            SeparatedSyntaxList<SyntaxNode> newList = list.Add(nodeD);
             Assert.Equal(4, newList.Count);
             Assert.Equal("A,B,C,D", newList.ToFullString());
 
@@ -233,7 +233,7 @@ c,b", insertAfterEOL.ToFullString());
             SyntaxNode nodeD = SyntaxFactory.ParseExpression("D");
             SyntaxNode nodeE = SyntaxFactory.ParseExpression("E");
 
-            var newList = list.Add(nodeD);
+            SeparatedSyntaxList<SyntaxNode> newList = list.Add(nodeD);
             Assert.Equal(1, newList.Count);
             Assert.Equal("D", newList.ToFullString());
 
@@ -267,7 +267,7 @@ c,b", insertAfterEOL.ToFullString());
         [Fact]
         public void Extensions()
         {
-            var list = SyntaxFactory.SeparatedList<SyntaxNode>(
+            SeparatedSyntaxList<SyntaxNode> list = SyntaxFactory.SeparatedList<SyntaxNode>(
                 new[] {
                     SyntaxFactory.ParseExpression("A+B"),
                     SyntaxFactory.IdentifierName("B"),
@@ -290,18 +290,18 @@ c,b", insertAfterEOL.ToFullString());
         [WorkItem(2630, "https://github.com/dotnet/roslyn/issues/2630")]
         public void ReplaceSeparator()
         {
-            var list = SyntaxFactory.SeparatedList<SyntaxNode>(
+            SeparatedSyntaxList<SyntaxNode> list = SyntaxFactory.SeparatedList<SyntaxNode>(
                 new[] {
                     SyntaxFactory.IdentifierName("A"),
                     SyntaxFactory.IdentifierName("B"),
                     SyntaxFactory.IdentifierName("C"),
                 });
 
-            var newComma = SyntaxFactory.Token(
+            SyntaxToken newComma = SyntaxFactory.Token(
                 SyntaxFactory.TriviaList(SyntaxFactory.Space),
                 SyntaxKind.CommaToken,
                 SyntaxFactory.TriviaList());
-            var newList = list.ReplaceSeparator(
+            SeparatedSyntaxList<SyntaxNode> newList = list.ReplaceSeparator(
                 list.GetSeparator(1),
                 newComma);
             Assert.Equal(3, newList.Count);

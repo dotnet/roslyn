@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitTryStatement(BoundTryStatement node)
         {
-            var tryStatementSyntax = node.Syntax;
+            SyntaxNode tryStatementSyntax = node.Syntax;
             // If you add a syntax kind to the assertion below, please also ensure
             // that the scenario has been tested with Edit-and-Continue.
             Debug.Assert(
@@ -169,19 +169,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // rewrite finalized region (try and catches) in the current frame
-            var frame = PushFrame(node);
+            AwaitFinallyFrame frame = PushFrame(node);
             finalizedRegion = RewriteFinalizedRegion(node);
             rewrittenFinally = (BoundBlock)this.VisitBlock(node.FinallyBlockOpt);
             PopFrame();
 
-            var exceptionType = _F.SpecialType(SpecialType.System_Object);
+            NamedTypeSymbol exceptionType = _F.SpecialType(SpecialType.System_Object);
             var pendingExceptionLocal = new SynthesizedLocal(_F.CurrentMethod, exceptionType, SynthesizedLocalKind.TryAwaitPendingException, tryStatementSyntax);
-            var finallyLabel = _F.GenerateLabel("finallyLabel");
+            GeneratedLabelSymbol finallyLabel = _F.GenerateLabel("finallyLabel");
             var pendingBranchVar = new SynthesizedLocal(_F.CurrentMethod, _F.SpecialType(SpecialType.System_Int32), SynthesizedLocalKind.TryAwaitPendingBranch, tryStatementSyntax);
 
-            var catchAll = _F.Catch(_F.Local(pendingExceptionLocal), _F.Block());
+            BoundCatchBlock catchAll = _F.Catch(_F.Local(pendingExceptionLocal), _F.Block());
 
-            var catchAndPendException = _F.Try(
+            BoundStatement catchAndPendException = _F.Try(
                 _F.Block(
                     finalizedRegion,
                     _F.HiddenSequencePoint(),
@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     PendBranches(frame, pendingBranchVar, finallyLabel)),
                 ImmutableArray.Create(catchAll));
 
-            var syntheticFinally = _F.Block(
+            BoundBlock syntheticFinally = _F.Block(
                 _F.HiddenSequencePoint(),
                 _F.Label(finallyLabel),
                 rewrittenFinally,
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             statements.Add(catchAndPendException);
             statements.Add(syntheticFinally);
 
-            var completeTry = _F.Block(
+            BoundBlock completeTry = _F.Block(
                 locals.ToImmutableAndFree(),
                 statements.ToImmutableAndFree());
 
@@ -235,8 +235,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var bodyStatements = ArrayBuilder<BoundStatement>.GetInstance();
 
             // handle proxy labels if have any
-            var proxiedLabels = frame.proxiedLabels;
-            var proxyLabels = frame.proxyLabels;
+            List<LabelSymbol> proxiedLabels = frame.proxiedLabels;
+            Dictionary<LabelSymbol, LabelSymbol> proxyLabels = frame.proxyLabels;
 
             // skip 0 - it means we took no explicit branches
             int i = 1;
@@ -244,14 +244,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int cnt = proxiedLabels.Count; i <= cnt; i++)
                 {
-                    var proxied = proxiedLabels[i - 1];
-                    var proxy = proxyLabels[proxied];
+                    LabelSymbol proxied = proxiedLabels[i - 1];
+                    LabelSymbol proxy = proxyLabels[proxied];
 
                     PendBranch(bodyStatements, proxy, i, pendingBranchVar, finallyLabel);
                 }
             }
 
-            var returnProxy = frame.returnProxyLabel;
+            GeneratedLabelSymbol returnProxy = frame.returnProxyLabel;
             if (returnProxy != null)
             {
                 PendBranch(bodyStatements, returnProxy, i, pendingBranchVar, finallyLabel);
@@ -282,10 +282,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedLocal pendingBranchVar,
             SynthesizedLocal pendingException)
         {
-            var parent = frame.ParentOpt;
+            AwaitFinallyFrame parent = frame.ParentOpt;
 
             // handle proxy labels if have any
-            var proxiedLabels = frame.proxiedLabels;
+            List<LabelSymbol> proxiedLabels = frame.proxiedLabels;
 
             // skip 0 - it means we took no explicit branches
             int i = 1;
@@ -295,9 +295,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 for (int cnt = proxiedLabels.Count; i <= cnt; i++)
                 {
-                    var target = proxiedLabels[i - 1];
-                    var parentProxy = parent.ProxyLabelIfNeeded(target);
-                    var caseStatement = _F.SwitchSection(i, _F.Goto(parentProxy));
+                    LabelSymbol target = proxiedLabels[i - 1];
+                    LabelSymbol parentProxy = parent.ProxyLabelIfNeeded(target);
+                    BoundSwitchSection caseStatement = _F.SwitchSection(i, _F.Goto(parentProxy));
                     cases.Add(caseStatement);
                 }
             }
@@ -313,7 +313,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 SynthesizedLocal returnValue;
                 BoundStatement unpendReturn;
 
-                var returnLabel = parent.ProxyReturnIfNeeded(_F.CurrentMethod, pendingValue, out returnValue);
+                LabelSymbol returnLabel = parent.ProxyReturnIfNeeded(_F.CurrentMethod, pendingValue, out returnValue);
 
                 if (returnLabel == null)
                 {
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
 
-                var caseStatement = _F.SwitchSection(i, unpendReturn);
+                BoundSwitchSection caseStatement = _F.SwitchSection(i, unpendReturn);
                 cases.Add(caseStatement);
             }
 
@@ -346,7 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression caseExpressionOpt = (BoundExpression)this.Visit(node.CaseExpressionOpt);
             BoundLabel labelExpressionOpt = (BoundLabel)this.Visit(node.LabelExpressionOpt);
-            var proxyLabel = _currentAwaitFinallyFrame.ProxyLabelIfNeeded(node.Label);
+            LabelSymbol proxyLabel = _currentAwaitFinallyFrame.ProxyLabelIfNeeded(node.Label);
             return node.Update(proxyLabel, caseExpressionOpt, labelExpressionOpt);
         }
 
@@ -359,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override BoundNode VisitReturnStatement(BoundReturnStatement node)
         {
             SynthesizedLocal returnValue;
-            var returnLabel = _currentAwaitFinallyFrame.ProxyReturnIfNeeded(
+            LabelSymbol returnLabel = _currentAwaitFinallyFrame.ProxyReturnIfNeeded(
                 _F.CurrentMethod,
                 node.ExpressionOpt,
                 out returnValue);
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // create a temp. 
             // pendingExceptionLocal will certainly be captured, no need to access it over and over.
             LocalSymbol obj = _F.SynthesizedLocal(_F.SpecialType(SpecialType.System_Object));
-            var objInit = _F.Assignment(_F.Local(obj), _F.Local(pendingExceptionLocal));
+            BoundExpressionStatement objInit = _F.Assignment(_F.Local(obj), _F.Local(pendingExceptionLocal));
 
             // throw pendingExceptionLocal;
             BoundStatement rethrow = Rethrow(obj);
@@ -410,15 +410,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             // conservative rethrow 
             BoundStatement rethrow = _F.Throw(_F.Local(obj));
 
-            var exceptionDispatchInfoCapture = _F.WellKnownMethod(WellKnownMember.System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture, isOptional: true);
-            var exceptionDispatchInfoThrow = _F.WellKnownMethod(WellKnownMember.System_Runtime_ExceptionServices_ExceptionDispatchInfo__Throw, isOptional: true);
+            MethodSymbol exceptionDispatchInfoCapture = _F.WellKnownMethod(WellKnownMember.System_Runtime_ExceptionServices_ExceptionDispatchInfo__Capture, isOptional: true);
+            MethodSymbol exceptionDispatchInfoThrow = _F.WellKnownMethod(WellKnownMember.System_Runtime_ExceptionServices_ExceptionDispatchInfo__Throw, isOptional: true);
 
             // if these helpers are available, we can rethrow with original stack info
             // as long as it derives from Exception
             if (exceptionDispatchInfoCapture != null && exceptionDispatchInfoThrow != null)
             {
-                var ex = _F.SynthesizedLocal(_F.WellKnownType(WellKnownType.System_Exception));
-                var assignment = _F.Assignment(
+                LocalSymbol ex = _F.SynthesizedLocal(_F.WellKnownType(WellKnownType.System_Exception));
+                BoundExpressionStatement assignment = _F.Assignment(
                     _F.Local(ex),
                     _F.As(_F.Local(obj), ex.Type));
 
@@ -447,23 +447,23 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var rewrittenTry = (BoundBlock)this.VisitBlock(node.TryBlock);
 
-            var catches = node.CatchBlocks;
+            ImmutableArray<BoundCatchBlock> catches = node.CatchBlocks;
             if (catches.IsDefaultOrEmpty)
             {
                 return rewrittenTry;
             }
 
-            var origAwaitCatchFrame = _currentAwaitCatchFrame;
+            AwaitCatchFrame origAwaitCatchFrame = _currentAwaitCatchFrame;
             _currentAwaitCatchFrame = null;
 
-            var rewrittenCatches = this.VisitList(node.CatchBlocks);
+            ImmutableArray<BoundCatchBlock> rewrittenCatches = this.VisitList(node.CatchBlocks);
             BoundStatement tryWithCatches = _F.Try(rewrittenTry, rewrittenCatches);
 
-            var currentAwaitCatchFrame = _currentAwaitCatchFrame;
+            AwaitCatchFrame currentAwaitCatchFrame = _currentAwaitCatchFrame;
             if (currentAwaitCatchFrame != null)
             {
-                var handledLabel = _F.GenerateLabel("handled");
-                var handlersList = currentAwaitCatchFrame.handlers;
+                GeneratedLabelSymbol handledLabel = _F.GenerateLabel("handled");
+                List<BoundBlock> handlersList = currentAwaitCatchFrame.handlers;
                 var handlers = ArrayBuilder<BoundSwitchSection>.GetInstance(handlersList.Count);
                 for (int i = 0, l = handlersList.Count; i < l; i++)
                 {
@@ -501,15 +501,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (!_analysis.CatchContainsAwait(node))
             {
-                var origCurrentAwaitCatchFrame = _currentAwaitCatchFrame;
+                AwaitCatchFrame origCurrentAwaitCatchFrame = _currentAwaitCatchFrame;
                 _currentAwaitCatchFrame = null;
 
-                var result = base.VisitCatchBlock(node);
+                BoundNode result = base.VisitCatchBlock(node);
                 _currentAwaitCatchFrame = origCurrentAwaitCatchFrame;
                 return result;
             }
 
-            var currentAwaitCatchFrame = _currentAwaitCatchFrame;
+            AwaitCatchFrame currentAwaitCatchFrame = _currentAwaitCatchFrame;
             if (currentAwaitCatchFrame == null)
             {
                 Debug.Assert(node.Syntax.IsKind(SyntaxKind.CatchClause));
@@ -518,15 +518,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 currentAwaitCatchFrame = _currentAwaitCatchFrame = new AwaitCatchFrame(_F, tryStatementSyntax);
             }
 
-            var catchType = node.ExceptionTypeOpt ?? _F.SpecialType(SpecialType.System_Object);
-            var catchTemp = _F.SynthesizedLocal(catchType);
+            TypeSymbol catchType = node.ExceptionTypeOpt ?? _F.SpecialType(SpecialType.System_Object);
+            LocalSymbol catchTemp = _F.SynthesizedLocal(catchType);
 
-            var storePending = _F.AssignmentExpression(
+            BoundAssignmentOperator storePending = _F.AssignmentExpression(
                         _F.Local(currentAwaitCatchFrame.pendingCaughtException),
                         _F.Convert(currentAwaitCatchFrame.pendingCaughtException.Type,
                             _F.Local(catchTemp)));
 
-            var setPendingCatchNum = _F.Assignment(
+            BoundExpressionStatement setPendingCatchNum = _F.Assignment(
                             _F.Local(currentAwaitCatchFrame.pendingCatch),
                             _F.Literal(currentAwaitCatchFrame.handlers.Count + 1));
 
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundCatchBlock catchAndPend;
             ImmutableArray<LocalSymbol> handlerLocals;
 
-            var filterOpt = node.ExceptionFilterOpt;
+            BoundExpression filterOpt = node.ExceptionFilterOpt;
             if (filterOpt == null)
             {
                 // store pending exception 
@@ -563,16 +563,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // catch locals move up into hoisted locals
                 // since we might need to access them from both the filter and the catch
-                foreach (var local in node.Locals)
+                foreach (LocalSymbol local in node.Locals)
                 {
                     currentAwaitCatchFrame.HoistLocal(local, _F);
                 }
 
                 // store pending exception 
                 // as the first expression in a filter
-                var sourceOpt = node.ExceptionSourceOpt;
+                BoundExpression sourceOpt = node.ExceptionSourceOpt;
                 var rewrittenFilter = (BoundExpression)this.Visit(filterOpt);
-                var newFilter = sourceOpt == null ?
+                BoundExpression newFilter = sourceOpt == null ?
                                 _F.MakeSequence(
                                     storePending,
                                     rewrittenFilter) :
@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (filterOpt == null)
             {
-                var sourceOpt = node.ExceptionSourceOpt;
+                BoundExpression sourceOpt = node.ExceptionSourceOpt;
                 if (sourceOpt != null)
                 {
                     BoundExpression assignSource = AssignCatchSource((BoundExpression)this.Visit(sourceOpt), currentAwaitCatchFrame);
@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             handlerStatements.Add((BoundStatement)this.Visit(node.Body));
 
-            var handler = _F.Block(
+            BoundBlock handler = _F.Block(
                     handlerLocals,
                     handlerStatements.ToImmutableAndFree()
                 );
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocal(BoundLocal node)
         {
-            var catchFrame = _currentAwaitCatchFrame;
+            AwaitCatchFrame catchFrame = _currentAwaitCatchFrame;
             LocalSymbol hoistedLocal;
             if (catchFrame == null || !catchFrame.TryGetHoistedLocal(node.LocalSymbol, out hoistedLocal))
             {
@@ -658,13 +658,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLambda(BoundLambda node)
         {
-            var oldContainingSymbol = _F.CurrentMethod;
-            var oldAwaitFinallyFrame = _currentAwaitFinallyFrame;
+            MethodSymbol oldContainingSymbol = _F.CurrentMethod;
+            AwaitFinallyFrame oldAwaitFinallyFrame = _currentAwaitFinallyFrame;
 
             _F.CurrentMethod = node.Symbol;
             _currentAwaitFinallyFrame = new AwaitFinallyFrame();
 
-            var result = base.VisitLambda(node);
+            BoundNode result = base.VisitLambda(node);
 
             _F.CurrentMethod = oldContainingSymbol;
             _currentAwaitFinallyFrame = oldAwaitFinallyFrame;
@@ -674,13 +674,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
         {
-            var oldContainingSymbol = _F.CurrentMethod;
-            var oldAwaitFinallyFrame = _currentAwaitFinallyFrame;
+            MethodSymbol oldContainingSymbol = _F.CurrentMethod;
+            AwaitFinallyFrame oldAwaitFinallyFrame = _currentAwaitFinallyFrame;
 
             _F.CurrentMethod = node.Symbol;
             _currentAwaitFinallyFrame = new AwaitFinallyFrame();
 
-            var result = base.VisitLocalFunctionStatement(node);
+            BoundNode result = base.VisitLocalFunctionStatement(node);
 
             _F.CurrentMethod = oldContainingSymbol;
             _currentAwaitFinallyFrame = oldAwaitFinallyFrame;
@@ -697,7 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void PopFrame()
         {
-            var result = _currentAwaitFinallyFrame;
+            AwaitFinallyFrame result = _currentAwaitFinallyFrame;
             _currentAwaitFinallyFrame = result.ParentOpt;
         }
 
@@ -758,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitTryStatement(BoundTryStatement node)
             {
-                var origLabels = this.currentLabels;
+                HashSet<LabelSymbol> origLabels = this.currentLabels;
                 this.currentLabels = null;
                 Visit(node.TryBlock);
                 VisitList(node.CatchBlocks);
@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (_seenAwait)
                 {
                     // this try has awaits in the finally !
-                    var labelsInInterestingTry = _labelsInInterestingTry;
+                    Dictionary<BoundTryStatement, HashSet<LabelSymbol>> labelsInInterestingTry = _labelsInInterestingTry;
                     if (labelsInInterestingTry == null)
                     {
                         _labelsInInterestingTry = labelsInInterestingTry = new Dictionary<BoundTryStatement, HashSet<LabelSymbol>>();
@@ -803,11 +803,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var origSeenAwait = _seenAwait;
                 _seenAwait = false;
 
-                var result = base.VisitCatchBlock(node);
+                BoundNode result = base.VisitCatchBlock(node);
 
                 if (_seenAwait)
                 {
-                    var awaitContainingCatches = _awaitContainingCatches;
+                    HashSet<BoundCatchBlock> awaitContainingCatches = _awaitContainingCatches;
                     if (awaitContainingCatches == null)
                     {
                         _awaitContainingCatches = awaitContainingCatches = new HashSet<BoundCatchBlock>();
@@ -828,7 +828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitLambda(BoundLambda node)
             {
-                var origLabels = this.currentLabels;
+                HashSet<LabelSymbol> origLabels = this.currentLabels;
                 var origSeenAwait = _seenAwait;
 
                 this.currentLabels = null;
@@ -844,7 +844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
             {
-                var origLabels = this.currentLabels;
+                HashSet<LabelSymbol> origLabels = this.currentLabels;
                 var origSeenAwait = _seenAwait;
 
                 this.currentLabels = null;
@@ -913,8 +913,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return label;
                 }
 
-                var proxyLabels = this.proxyLabels;
-                var proxiedLabels = this.proxiedLabels;
+                Dictionary<LabelSymbol, LabelSymbol> proxyLabels = this.proxyLabels;
+                List<LabelSymbol> proxiedLabels = this.proxiedLabels;
                 if (proxyLabels == null)
                 {
                     this.proxyLabels = proxyLabels = new Dictionary<LabelSymbol, LabelSymbol>();
@@ -945,7 +945,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return null;
                 }
 
-                var returnProxy = this.returnProxyLabel;
+                GeneratedLabelSymbol returnProxy = this.returnProxyLabel;
                 if (returnProxy == null)
                 {
                     this.returnProxyLabel = returnProxy = new GeneratedLabelSymbol("returnProxy");
@@ -1014,7 +1014,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // To avoid such problems we will mangle the name of the second local.
                 // This will only affect debugging of this extremely rare case.
                 Debug.Assert(pendingCatch.SyntaxOpt.IsKind(SyntaxKind.TryStatement));
-                var newLocal = F.SynthesizedLocal(local.Type, pendingCatch.SyntaxOpt, kind: SynthesizedLocalKind.ExceptionFilterAwaitHoistedExceptionLocal);
+                LocalSymbol newLocal = F.SynthesizedLocal(local.Type, pendingCatch.SyntaxOpt, kind: SynthesizedLocalKind.ExceptionFilterAwaitHoistedExceptionLocal);
 
                 _hoistedLocals.Add(local, newLocal);
                 _orderedHoistedLocals.Add(newLocal);

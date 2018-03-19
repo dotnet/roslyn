@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 // extend the change to its affected range. This will make it easier 
                 // to filter out affected nodes since we will be able simply check 
                 // if node intersects with a change.
-                var affectedRange = ExtendToAffectedRange(oldTree, collapsed);
+                TextChangeRange affectedRange = ExtendToAffectedRange(oldTree, collapsed);
                 _changes = _changes.Push(affectedRange);
             }
 
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             // need to keep on looking backward.
             for (var i = 0; start > 0 && i <= maxLookahead;)
             {
-                var token = oldTree.FindToken(start, findInsideTrivia: false);
+                CodeAnalysis.SyntaxToken token = oldTree.FindToken(start, findInsideTrivia: false);
                 Debug.Assert(token.Kind() != SyntaxKind.None, "how could we not get a real token back?");
 
                 start = Math.Max(0, token.Position - 1);
@@ -158,8 +158,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 
         private static bool IsInsideInterpolation(CSharp.CSharpSyntaxNode oldTree, int start)
         {
-            var token = oldTree.FindToken(start, findInsideTrivia: false);
-            for (var parent = token.Parent; // for each parent
+            CodeAnalysis.SyntaxToken token = oldTree.FindToken(start, findInsideTrivia: false);
+            for (SyntaxNode parent = token.Parent; // for each parent
                 parent != null;
                 parent = parent.Parent)
             {

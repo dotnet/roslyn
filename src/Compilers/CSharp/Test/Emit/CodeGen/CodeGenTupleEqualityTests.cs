@@ -24,7 +24,7 @@ class C
         System.Console.Write(t == (1, 2));
     }
 }";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
             comp.VerifyDiagnostics(
                 // (7,30): error CS8320: Feature 'tuple equality' is not available in C# 7.2. Please use language version 7.3 or greater.
                 //         System.Console.Write(t == (1, 2));
@@ -59,7 +59,7 @@ class C
                 .Replace("CHANGE2", change2)
                 .Replace("EXPECTED", expectedMatch ? "true" : "false");
             string name = GetUniqueName();
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe, assemblyName: name);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe, assemblyName: name);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True True");
         }
@@ -75,7 +75,7 @@ class C
         return (1, 1) == (2, 2, 2);
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,16): error CS8373: Tuple types used as operands of an == or != operator must have matching cardinalities. But this operator has tuple types of cardinality 2 on the left and 3 on the right.
                 //         return (1, 1) == (2, 2, 2);
@@ -96,7 +96,7 @@ class C
         return t1 == t2;
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,16): error CS8355: Tuple types used as operands of a binary operator must have matching cardinalities. But this operator has tuple types of cardinality 2 on the left and 3 on the right.
                 //         return t1 == t2;
@@ -117,7 +117,7 @@ class C
         return t1 == t2;
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,16): error CS8355: Tuple types used as operands of a binary operator must have matching cardinalities. But this operator has tuple types of cardinality 2 on the left and 3 on the right.
                 //         return t1 == t2;
@@ -136,7 +136,7 @@ class C
         return (1, 2) == (3, 4);
     }
 }";
-            var comp = CreateCompilationWithMscorlib40(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(source);
 
             // https://github.com/dotnet/roslyn/issues/25295
             // Can we relax the requirement on ValueTuple types being found?
@@ -171,7 +171,7 @@ class C
         return t1 == t2;
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,16): error CS8373: Tuple types used as operands of a binary operator must have matching cardinalities. But this operator has tuple types of cardinality 2 on the left and 3 on the right.
                 //         return t1 == t2;
@@ -192,7 +192,7 @@ class C
         return t1 == t2;
     }
 }";
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.M", @"{
@@ -238,7 +238,7 @@ class C
         return t1 != t2;
     }
 }";
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.M", @"{
@@ -279,7 +279,7 @@ class C
         return t1 == t2;
     }
 }";
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
 
             // note: the logic to save variables and side-effects results in copying the inputs
@@ -327,7 +327,7 @@ class C
         System.Console.Write($""{(x, x) == (y, y)} "");
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "True False False");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "True False False");
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.M", @"{
@@ -357,42 +357,42 @@ class C
   IL_0025:  ret
 }");
 
-            var tree = comp.Compilation.SyntaxTrees.First();
-            var model = comp.Compilation.GetSemanticModel(tree);
+            SyntaxTree tree = comp.Compilation.SyntaxTrees.First();
+            SemanticModel model = comp.Compilation.GetSemanticModel(tree);
 
             // check x
-            var tupleX = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
+            TupleExpressionSyntax tupleX = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().First();
             Assert.Equal("(x, x)", tupleX.ToString());
             Assert.Equal(Conversion.Identity, model.GetConversion(tupleX));
             Assert.Null(model.GetSymbolInfo(tupleX).Symbol);
 
-            var lastX = tupleX.Arguments[1].Expression;
+            ExpressionSyntax lastX = tupleX.Arguments[1].Expression;
             Assert.Equal("x", lastX.ToString());
             Assert.Equal(Conversion.Identity, model.GetConversion(lastX));
             Assert.Equal("System.Int32 x", model.GetSymbolInfo(lastX).Symbol.ToTestDisplayString());
 
-            var xSymbol = model.GetTypeInfo(lastX);
+            TypeInfo xSymbol = model.GetTypeInfo(lastX);
             Assert.Equal("System.Int32", xSymbol.Type.ToTestDisplayString());
             Assert.Equal("System.Int32", xSymbol.ConvertedType.ToTestDisplayString());
 
-            var tupleXSymbol = model.GetTypeInfo(tupleX);
+            TypeInfo tupleXSymbol = model.GetTypeInfo(tupleX);
             Assert.Equal("(System.Int32, System.Int32)", tupleXSymbol.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32)", tupleXSymbol.ConvertedType.ToTestDisplayString());
 
             // check y
-            var tupleY = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Last();
+            TupleExpressionSyntax tupleY = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Last();
             Assert.Equal("(y, y)", tupleY.ToString());
             Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(tupleY).Kind);
 
-            var lastY = tupleY.Arguments[1].Expression;
+            ExpressionSyntax lastY = tupleY.Arguments[1].Expression;
             Assert.Equal("y", lastY.ToString());
             Assert.Equal(Conversion.ImplicitNumeric, model.GetConversion(lastY));
 
-            var ySymbol = model.GetTypeInfo(lastY);
+            TypeInfo ySymbol = model.GetTypeInfo(lastY);
             Assert.Equal("System.Byte", ySymbol.Type.ToTestDisplayString());
             Assert.Equal("System.Int32", ySymbol.ConvertedType.ToTestDisplayString());
 
-            var tupleYSymbol = model.GetTypeInfo(tupleY);
+            TypeInfo tupleYSymbol = model.GetTypeInfo(tupleY);
             Assert.Equal("(System.Byte, System.Byte)", tupleYSymbol.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32)", tupleYSymbol.ConvertedType.ToTestDisplayString());
         }
@@ -414,7 +414,7 @@ class C
         return t1 == (null, null);
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "TrueFalse");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "TrueFalse");
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.M", @"{
@@ -457,7 +457,7 @@ class C
         return t1 != (null, null);
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "FalseTrue");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "FalseTrue");
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.M", @"{
@@ -497,7 +497,7 @@ class C
         return t1 == (2, true);
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "FalseTrue");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "FalseTrue");
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("C.M", @"{
@@ -556,7 +556,7 @@ struct S
         System.Console.Write((s, null) == (null, s));
     }
 }";
-            var comp = CompileAndVerify(source, expectedOutput: "True");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "True");
             comp.VerifyDiagnostics();
 
             comp.VerifyIL("S.Main", @"{
@@ -618,7 +618,7 @@ public struct S
             // https://github.com/dotnet/roslyn/issues/25488
             // We need to create a temp for `this`, otherwise it gets mutated
 
-            var comp = CompileAndVerify(source, expectedOutput: "2 == 1, False");
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "2 == 1, False");
             //comp.VerifyDiagnostics();
         }
 
@@ -633,20 +633,20 @@ class C
         return t == (null, 1) && t == (""hello"", 1);
     }
 }";
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.Compilation.SyntaxTrees.First();
-            var model = comp.Compilation.GetSemanticModel(tree);
+            SyntaxTree tree = comp.Compilation.SyntaxTrees.First();
+            SemanticModel model = comp.Compilation.GetSemanticModel(tree);
 
-            var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
-            var symbol1 = model.GetTypeInfo(tuple1);
+            TupleExpressionSyntax tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
+            TypeInfo symbol1 = model.GetTypeInfo(tuple1);
             Assert.Null(symbol1.Type);
             Assert.Equal("(System.String, System.Int64)", symbol1.ConvertedType.ToTestDisplayString());
             Assert.Equal("(System.String, System.Int64)", model.GetDeclaredSymbol(tuple1).ToTestDisplayString());
 
-            var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
-            var symbol2 = model.GetTypeInfo(tuple2);
+            TupleExpressionSyntax tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+            TypeInfo symbol2 = model.GetTypeInfo(tuple2);
             Assert.Equal("(System.String, System.Int32)", symbol2.Type.ToTestDisplayString());
             Assert.Equal("(System.String, System.Int64)", symbol2.ConvertedType.ToTestDisplayString());
             Assert.False(model.GetConstantValue(tuple2).HasValue);
@@ -664,31 +664,31 @@ class C
         return t == (1L, 2);
     }
 }";
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.Compilation.SyntaxTrees.First();
-            var model = comp.Compilation.GetSemanticModel(tree);
+            SyntaxTree tree = comp.Compilation.SyntaxTrees.First();
+            SemanticModel model = comp.Compilation.GetSemanticModel(tree);
 
-            var equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+            BinaryExpressionSyntax equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
 
             // check t
-            var t = equals.Left;
+            ExpressionSyntax t = equals.Left;
             Assert.Equal("t", t.ToString());
             Assert.Equal("(System.Int32, System.Byte) t", model.GetSymbolInfo(t).Symbol.ToTestDisplayString());
             Assert.Equal(ConversionKind.ImplicitTuple, model.GetConversion(t).Kind);
 
-            var tTypeInfo = model.GetTypeInfo(t);
+            TypeInfo tTypeInfo = model.GetTypeInfo(t);
             Assert.Equal("(System.Int32, System.Byte)", tTypeInfo.Type.ToTestDisplayString());
             Assert.Equal("(System.Int64, System.Int32)", tTypeInfo.ConvertedType.ToTestDisplayString());
 
             // check tuple
-            var tuple = equals.Right;
+            ExpressionSyntax tuple = equals.Right;
             Assert.Equal("(1L, 2)", tuple.ToString());
             Assert.Null(model.GetSymbolInfo(tuple).Symbol);
             Assert.Equal(Conversion.Identity, model.GetConversion(tuple));
 
-            var tupleTypeInfo = model.GetTypeInfo(tuple);
+            TypeInfo tupleTypeInfo = model.GetTypeInfo(tuple);
             Assert.Equal("(System.Int64, System.Int32)", tupleTypeInfo.Type.ToTestDisplayString());
             Assert.Equal("(System.Int64, System.Int32)", tupleTypeInfo.ConvertedType.ToTestDisplayString());
         }
@@ -708,7 +708,7 @@ class C
         _ = !t1; // error 4
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0019: Operator '+' cannot be applied to operands of type '(int, int)' and '(int, int)'
                 //         _ = t1 + t1; // error 1
@@ -724,9 +724,9 @@ class C
                 Diagnostic(ErrorCode.ERR_BadUnaryOp, "!t1").WithArguments("!", "(int, int)").WithLocation(10, 13)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            TupleExpressionSyntax tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Single();
             Assert.Equal("(System.Int32, System.Int32)", model.GetDeclaredSymbol(tuple).ToTestDisplayString());
         }
 
@@ -742,35 +742,35 @@ class C
         System.Console.Write((s, null) == (null, s));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             // check first tuple and its null
-            var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
+            TupleExpressionSyntax tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
             Assert.Equal("(s, null)", tuple1.ToString());
-            var tupleType1 = model.GetTypeInfo(tuple1);
+            TypeInfo tupleType1 = model.GetTypeInfo(tuple1);
             Assert.Null(tupleType1.Type);
             Assert.Equal("(System.String s, System.String)", tupleType1.ConvertedType.ToTestDisplayString());
 
-            var tuple1Null = tuple1.Arguments[1].Expression;
-            var tuple1NullTypeInfo = model.GetTypeInfo(tuple1Null);
+            ExpressionSyntax tuple1Null = tuple1.Arguments[1].Expression;
+            TypeInfo tuple1NullTypeInfo = model.GetTypeInfo(tuple1Null);
             Assert.Null(tuple1NullTypeInfo.Type);
             Assert.Equal("System.String", tuple1NullTypeInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ImplicitReference, model.GetConversion(tuple1Null).Kind);
 
             // check second tuple and its null
-            var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+            TupleExpressionSyntax tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
             Assert.Equal("(null, s)", tuple2.ToString());
-            var tupleType2 = model.GetTypeInfo(tuple2);
+            TypeInfo tupleType2 = model.GetTypeInfo(tuple2);
             Assert.Null(tupleType2.Type);
             Assert.Equal("(System.String, System.String s)", tupleType2.ConvertedType.ToTestDisplayString());
 
-            var tuple2Null = tuple2.Arguments[0].Expression;
-            var tuple2NullTypeInfo = model.GetTypeInfo(tuple2Null);
+            ExpressionSyntax tuple2Null = tuple2.Arguments[0].Expression;
+            TypeInfo tuple2NullTypeInfo = model.GetTypeInfo(tuple2Null);
             Assert.Null(tuple2NullTypeInfo.Type);
             Assert.Equal("System.String", tuple2NullTypeInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ImplicitReference, model.GetConversion(tuple2Null).Kind);
@@ -787,7 +787,7 @@ class C
         System.Console.Write((1, 2) == (1, 3));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "False");
         }
@@ -804,20 +804,20 @@ class C
         System.Console.Write(t1 == (1L, 2));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+            BinaryExpressionSyntax equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
 
             // check t1
-            var t1 = equals.Left;
+            ExpressionSyntax t1 = equals.Left;
             Assert.Equal("t1", t1.ToString());
 
-            var t1TypeInfo = model.GetTypeInfo(t1);
+            TypeInfo t1TypeInfo = model.GetTypeInfo(t1);
             Assert.Equal("(System.Int32, System.Int64)", t1TypeInfo.Type.ToTestDisplayString());
             Assert.Equal("(System.Int64, System.Int64)", t1TypeInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ImplicitTuple, model.GetConversion(t1).Kind);
@@ -826,11 +826,11 @@ class C
             var tuple = (TupleExpressionSyntax)equals.Right;
             Assert.Equal("(1L, 2)", tuple.ToString());
 
-            var tupleType = model.GetTypeInfo(tuple);
+            TypeInfo tupleType = model.GetTypeInfo(tuple);
             Assert.Equal("(System.Int64, System.Int32)", tupleType.Type.ToTestDisplayString());
             Assert.Equal("(System.Int64, System.Int64)", tupleType.ConvertedType.ToTestDisplayString());
 
-            var two = tuple.Arguments[1].Expression;
+            ExpressionSyntax two = tuple.Arguments[1].Expression;
             Assert.Equal(ConversionKind.ImplicitNumeric, model.GetConversion(two).Kind);
         }
 
@@ -847,20 +847,20 @@ class C
         System.Console.Write(t1 == (1L, t2));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+            BinaryExpressionSyntax equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
 
             // check t1
-            var t1 = equals.Left;
+            ExpressionSyntax t1 = equals.Left;
             Assert.Equal("t1", t1.ToString());
 
-            var t1TypeInfo = model.GetTypeInfo(t1);
+            TypeInfo t1TypeInfo = model.GetTypeInfo(t1);
             Assert.Equal("(System.Int32, (System.Int64, System.String))", t1TypeInfo.Type.ToTestDisplayString());
             Assert.Equal("(System.Int64, (System.Int64, System.String))", t1TypeInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ImplicitTuple, model.GetConversion(t1).Kind);
@@ -869,14 +869,14 @@ class C
             // check tuple and its t2
             var tuple = (TupleExpressionSyntax)equals.Right;
             Assert.Equal("(1L, t2)", tuple.ToString());
-            var tupleType = model.GetTypeInfo(tuple);
+            TypeInfo tupleType = model.GetTypeInfo(tuple);
             Assert.Equal("(System.Int64, (System.Int32, System.String) t2)", tupleType.Type.ToTestDisplayString());
             Assert.Equal("(System.Int64, (System.Int64, System.String) t2)", tupleType.ConvertedType.ToTestDisplayString());
 
-            var t2 = tuple.Arguments[1].Expression;
+            ExpressionSyntax t2 = tuple.Arguments[1].Expression;
             Assert.Equal("t2", t2.ToString());
 
-            var t2TypeInfo = model.GetTypeInfo(t2);
+            TypeInfo t2TypeInfo = model.GetTypeInfo(t2);
             Assert.Equal("(System.Int32, System.String)", t2TypeInfo.Type.ToTestDisplayString());
             Assert.Equal("(System.Int64, System.String)", t2TypeInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ImplicitTuple, model.GetConversion(t2).Kind);
@@ -897,21 +897,21 @@ class C
         System.Console.Write((1, t) == (1, (null, null)));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueFalseTrue");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+            TupleExpressionSyntax tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
             Assert.Equal("(null, null)", tuple.ToString());
-            var tupleType = model.GetTypeInfo(tuple);
+            TypeInfo tupleType = model.GetTypeInfo(tuple);
             Assert.Null(tupleType.Type);
             Assert.Equal("(System.String, System.String)", tupleType.ConvertedType.ToTestDisplayString());
 
             // check last tuple ...
-            var lastEquals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
+            BinaryExpressionSyntax lastEquals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
             var lastTuple = (TupleExpressionSyntax)lastEquals.Right;
             Assert.Equal("(1, (null, null))", lastTuple.ToString());
             TypeInfo lastTupleTypeInfo = model.GetTypeInfo(lastTuple);
@@ -927,7 +927,7 @@ class C
             Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(nullNull).Kind);
 
             // ... and its last null.
-            var lastNull = nullNull.Arguments[1].Expression;
+            ExpressionSyntax lastNull = nullNull.Arguments[1].Expression;
             TypeInfo lastNullTypeInfo = model.GetTypeInfo(lastNull);
             Assert.Null(lastNullTypeInfo.Type);
             Assert.Equal("System.String", lastNullTypeInfo.ConvertedType.ToTestDisplayString());
@@ -951,20 +951,20 @@ class C
         System.Console.Write(t2 != default);
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueFalseFalseTrue");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var defaultLiterals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
+            System.Collections.Generic.IEnumerable<LiteralExpressionSyntax> defaultLiterals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
                 .Where(e => e.Kind() == SyntaxKind.DefaultLiteralExpression);
 
-            foreach (var literal in defaultLiterals)
+            foreach (LiteralExpressionSyntax literal in defaultLiterals)
             {
                 Assert.Equal("default", literal.ToString());
-                var info = model.GetTypeInfo(literal);
+                TypeInfo info = model.GetTypeInfo(literal);
                 Assert.Equal("(System.String, System.String)", info.Type.ToTestDisplayString());
                 Assert.Equal("(System.String, System.String)", info.ConvertedType.ToTestDisplayString());
             }
@@ -985,20 +985,20 @@ class C
         System.Console.Write(default != t);
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "FalseTrueFalseTrue");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var defaultLiterals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
+            System.Collections.Generic.IEnumerable<LiteralExpressionSyntax> defaultLiterals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
                 .Where(e => e.Kind() == SyntaxKind.DefaultLiteralExpression);
 
-            foreach (var literal in defaultLiterals)
+            foreach (LiteralExpressionSyntax literal in defaultLiterals)
             {
                 Assert.Equal("default", literal.ToString());
-                var info = model.GetTypeInfo(literal);
+                TypeInfo info = model.GetTypeInfo(literal);
                 Assert.Equal("(System.String, System.String)?", info.Type.ToTestDisplayString());
                 Assert.Equal("(System.String, System.String)?", info.ConvertedType.ToTestDisplayString());
             }
@@ -1017,20 +1017,20 @@ class C
         System.Console.Write((t, null) != (default, null));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "FalseTrue");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var defaultLiterals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
+            System.Collections.Generic.IEnumerable<LiteralExpressionSyntax> defaultLiterals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
                 .Where(e => e.Kind() == SyntaxKind.DefaultLiteralExpression);
 
-            foreach (var literal in defaultLiterals)
+            foreach (LiteralExpressionSyntax literal in defaultLiterals)
             {
                 Assert.Equal("default", literal.ToString());
-                var info = model.GetTypeInfo(literal);
+                TypeInfo info = model.GetTypeInfo(literal);
                 Assert.Equal("(System.String, System.String)?", info.Type.ToTestDisplayString());
                 Assert.Equal("(System.String, System.String)?", info.ConvertedType.ToTestDisplayString());
             }
@@ -1048,20 +1048,20 @@ class C
         System.Console.Write((0, null) != (default, null));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "FalseFalse");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var defaultLiterals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
+            System.Collections.Generic.IEnumerable<LiteralExpressionSyntax> defaultLiterals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
                 .Where(e => e.Kind() == SyntaxKind.DefaultLiteralExpression);
 
-            foreach (var literal in defaultLiterals)
+            foreach (LiteralExpressionSyntax literal in defaultLiterals)
             {
                 Assert.Equal("default", literal.ToString());
-                var info = model.GetTypeInfo(literal);
+                TypeInfo info = model.GetTypeInfo(literal);
                 Assert.Equal("System.Int32", info.Type.ToTestDisplayString());
                 Assert.Equal("System.Int32", info.ConvertedType.ToTestDisplayString());
             }
@@ -1080,7 +1080,7 @@ struct S
         _ = (ns, null) != (default, null);
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0019: Operator '==' cannot be applied to operands of type 'S?' and 'default'
                 //         _ = (null, ns) == (null, default);
@@ -1108,18 +1108,18 @@ public struct S
     public override int GetHashCode() => throw null;
     public override bool Equals(object o) => throw null;
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "FalseTrue");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var defaults = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<LiteralExpressionSyntax> defaults = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
                 .Where(e => e.Kind() == SyntaxKind.DefaultLiteralExpression);
 
-            foreach (var literal in defaults)
+            foreach (LiteralExpressionSyntax literal in defaults)
             {
-                var type = model.GetTypeInfo(literal);
+                TypeInfo type = model.GetTypeInfo(literal);
                 Assert.Equal("S?", type.Type.ToTestDisplayString());
                 Assert.Equal("S?", type.ConvertedType.ToTestDisplayString());
             }
@@ -1137,7 +1137,7 @@ class C
         System.Console.Write(default == (default, default));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,30): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write((default, default) == (default, default));
@@ -1162,7 +1162,7 @@ class C
         _ = (null, default) != (default, null);
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0034: Operator '!=' is ambiguous on operands of type '<null>' and 'default'
                 //         _ = (null, default) != (default, null);
@@ -1184,7 +1184,7 @@ class C
         System.Console.Write((null, (default, default)) == (null, (default, default)));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (6,30): error CS8315: Operator '==' is ambiguous on operands 'default' and 'default'
                 //         System.Console.Write((null, (default, default)) == (null, (default, default)));
@@ -1208,19 +1208,19 @@ class C
         System.Console.Write(t != (default, default));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueFalse");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var lastTuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Last();
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
+            TupleExpressionSyntax lastTuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().Last();
 
             Assert.Equal("(default, default)", lastTuple.ToString());
             Assert.Null(model.GetTypeInfo(lastTuple).Type);
             Assert.Equal("(System.String, System.String)?", model.GetTypeInfo(lastTuple).ConvertedType.ToTestDisplayString());
 
-            var lastDefault = lastTuple.Arguments[1].Expression;
+            ExpressionSyntax lastDefault = lastTuple.Arguments[1].Expression;
             Assert.Equal("default", lastDefault.ToString());
             Assert.Equal("System.String", model.GetTypeInfo(lastDefault).Type.ToTestDisplayString());
             Assert.Equal("System.String", model.GetTypeInfo(lastDefault).ConvertedType.ToTestDisplayString());
@@ -1238,7 +1238,7 @@ class C
         System.Console.Write((null, () => 2) == default);
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0034: Operator '==' is ambiguous on operands of type '<null>' and 'default'
                 //         System.Console.Write((null, () => 1) == (default, default));
@@ -1269,7 +1269,7 @@ struct S
         _ = (ns, ns) == default; // error 4
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,13): error CS0019: Operator '==' cannot be applied to operands of type 'S?' and 'default'
                 //         _ = ns == default; // error 1
@@ -1288,23 +1288,23 @@ struct S
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(ns, ns) == default").WithArguments("==", "S?", "S?").WithLocation(12, 13)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
-            var literals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>();
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
+            System.Collections.Generic.IEnumerable<LiteralExpressionSyntax> literals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>();
 
-            var nullLiteral = literals.ElementAt(0);
+            LiteralExpressionSyntax nullLiteral = literals.ElementAt(0);
             Assert.Equal("null", nullLiteral.ToString());
             Assert.Null(model.GetTypeInfo(nullLiteral).ConvertedType);
 
-            var nullLiteral2 = literals.ElementAt(1);
+            LiteralExpressionSyntax nullLiteral2 = literals.ElementAt(1);
             Assert.Equal("null", nullLiteral2.ToString());
             Assert.Null(model.GetTypeInfo(nullLiteral2).Type);
             Assert.Equal("System.String", model.GetTypeInfo(nullLiteral2).ConvertedType.ToTestDisplayString());
 
-            var defaultLiterals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
+            System.Collections.Generic.IEnumerable<LiteralExpressionSyntax> defaultLiterals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
                 .Where(e => e.Kind() == SyntaxKind.DelegateDeclaration);
 
-            foreach (var defaultLiteral in defaultLiterals)
+            foreach (LiteralExpressionSyntax defaultLiteral in defaultLiterals)
             {
                 Assert.Equal("default", defaultLiteral.ToString());
                 Assert.Null(model.GetTypeInfo(defaultLiteral).Type);
@@ -1330,7 +1330,7 @@ public struct S
     public override bool Equals(object other) => throw null;
     public override int GetHashCode() => throw null;
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
 
             // https://github.com/dotnet/roslyn/issues/25318
             // This should be allowed
@@ -1353,14 +1353,14 @@ public struct S
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(ns, ns) == default").WithArguments("==", "S?", "S?").WithLocation(9, 13)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var defaultLiterals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
+            System.Collections.Generic.IEnumerable<LiteralExpressionSyntax> defaultLiterals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>()
                 .Where(e => e.Kind() == SyntaxKind.DelegateDeclaration);
 
             // Should have types
-            foreach (var defaultLiteral in defaultLiterals)
+            foreach (LiteralExpressionSyntax defaultLiteral in defaultLiterals)
             {
                 Assert.Equal("default", defaultLiteral.ToString());
                 Assert.Null(model.GetTypeInfo(defaultLiteral).Type);
@@ -1382,27 +1382,27 @@ class C
         System.Console.Write((t, (null, null)) == ((null, null), t));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             // check last tuple ...
-            var tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(3);
+            TupleExpressionSyntax tuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(3);
             Assert.Equal("((null, null), t)", tuple.ToString());
 
-            var tupleType = model.GetTypeInfo(tuple);
+            TypeInfo tupleType = model.GetTypeInfo(tuple);
             Assert.Null(tupleType.Type);
             Assert.Equal("((System.String, System.String), (System.String, System.String) t)",
                 tupleType.ConvertedType.ToTestDisplayString());
 
             // ... its t ...
-            var t = tuple.Arguments[1].Expression;
+            ExpressionSyntax t = tuple.Arguments[1].Expression;
             Assert.Equal("t", t.ToString());
 
-            var tType = model.GetTypeInfo(t);
+            TypeInfo tType = model.GetTypeInfo(t);
             Assert.Equal("(System.String, System.String)", tType.Type.ToTestDisplayString());
             Assert.Equal("(System.String, System.String)", tType.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, model.GetConversion(t).Kind);
@@ -1413,7 +1413,7 @@ class C
             var nestedTuple = (TupleExpressionSyntax)tuple.Arguments[0].Expression;
             Assert.Equal("(null, null)", nestedTuple.ToString());
 
-            var nestedTupleType = model.GetTypeInfo(nestedTuple);
+            TypeInfo nestedTupleType = model.GetTypeInfo(nestedTuple);
             Assert.Null(nestedTupleType.Type);
             Assert.Equal("(System.String, System.String)", nestedTupleType.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(nestedTuple).Kind);
@@ -1421,10 +1421,10 @@ class C
             Assert.Equal("(System.String, System.String)", model.GetDeclaredSymbol(nestedTuple).ToTestDisplayString());
 
             // ... a nested null.
-            var nestedNull = nestedTuple.Arguments[0].Expression;
+            ExpressionSyntax nestedNull = nestedTuple.Arguments[0].Expression;
             Assert.Equal("null", nestedNull.ToString());
 
-            var nestedNullType = model.GetTypeInfo(nestedNull);
+            TypeInfo nestedNullType = model.GetTypeInfo(nestedNull);
             Assert.Null(nestedNullType.Type);
             Assert.Equal("System.String", nestedNullType.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ImplicitReference, model.GetConversion(nestedNull).Kind);
@@ -1443,27 +1443,27 @@ class C
         System.Console.Write((null, null) != (null, null));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueTrueFalse");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var nulls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>();
-            foreach (var literal in nulls)
+            System.Collections.Generic.IEnumerable<LiteralExpressionSyntax> nulls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>();
+            foreach (LiteralExpressionSyntax literal in nulls)
             {
                 Assert.Equal("null", literal.ToString());
-                var symbol = model.GetTypeInfo(literal);
+                TypeInfo symbol = model.GetTypeInfo(literal);
                 Assert.Null(symbol.Type);
                 Assert.Null(symbol.ConvertedType);
             }
 
-            var tuples = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>();
-            foreach (var tuple in tuples)
+            System.Collections.Generic.IEnumerable<TupleExpressionSyntax> tuples = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>();
+            foreach (TupleExpressionSyntax tuple in tuples)
             {
                 Assert.Equal("(null, null)", tuple.ToString());
-                var symbol = model.GetTypeInfo(tuple);
+                TypeInfo symbol = model.GetTypeInfo(tuple);
                 Assert.Null(symbol.Type);
                 Assert.Null(symbol.ConvertedType);
             }
@@ -1480,16 +1480,16 @@ class C
         System.Console.Write((null, 1L) == (null, 2));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "False");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var lastLiteral = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Last();
+            LiteralExpressionSyntax lastLiteral = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Last();
             Assert.Equal("2", lastLiteral.ToString());
-            var literalInfo = model.GetTypeInfo(lastLiteral);
+            TypeInfo literalInfo = model.GetTypeInfo(lastLiteral);
             Assert.Equal("System.Int32", literalInfo.Type.ToTestDisplayString());
             Assert.Equal("System.Int64", literalInfo.ConvertedType.ToTestDisplayString());
         }
@@ -1505,28 +1505,28 @@ class C
         System.Console.Write(((null, 1L), null) == ((null, 2), null));
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "False");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var rightTuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(2);
+            TupleExpressionSyntax rightTuple = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(2);
             Assert.Equal("((null, 2), null)", rightTuple.ToString());
-            var literalInfo = model.GetTypeInfo(rightTuple);
+            TypeInfo literalInfo = model.GetTypeInfo(rightTuple);
             Assert.Null(literalInfo.Type);
             Assert.Null(literalInfo.ConvertedType);
 
             var nestedTuple = (TupleExpressionSyntax)rightTuple.Arguments[0].Expression;
             Assert.Equal("(null, 2)", nestedTuple.ToString());
-            var nestedLiteralInfo = model.GetTypeInfo(rightTuple);
+            TypeInfo nestedLiteralInfo = model.GetTypeInfo(rightTuple);
             Assert.Null(nestedLiteralInfo.Type);
             Assert.Null(nestedLiteralInfo.ConvertedType);
 
-            var two = nestedTuple.Arguments[1].Expression;
+            ExpressionSyntax two = nestedTuple.Arguments[1].Expression;
             Assert.Equal("2", two.ToString());
-            var twoInfo = model.GetTypeInfo(two);
+            TypeInfo twoInfo = model.GetTypeInfo(two);
             Assert.Equal("System.Int32", twoInfo.Type.ToTestDisplayString());
             Assert.Equal("System.Int64", twoInfo.ConvertedType.ToTestDisplayString());
         }
@@ -1542,7 +1542,7 @@ class C
         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0019: Operator '==' cannot be applied to operands of type '<null>' and 'lambda expression'
                 //         System.Console.Write((null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; }));
@@ -1555,49 +1555,49 @@ class C
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(null, null, null, null) == (null, () => { }, Main, (int i) => { int j = 0; return i + j; })").WithArguments("==", "<null>", "lambda expression").WithLocation(6, 30)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             // check tuple on the left
-            var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
+            TupleExpressionSyntax tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
             Assert.Equal("(null, null, null, null)", tuple1.ToString());
 
-            var tupleType1 = model.GetTypeInfo(tuple1);
+            TypeInfo tupleType1 = model.GetTypeInfo(tuple1);
             Assert.Null(tupleType1.Type);
             Assert.Null(tupleType1.ConvertedType);
 
             // check tuple on the right ...
-            var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+            TupleExpressionSyntax tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
             Assert.Equal("(null, () => { }, Main, (int i) => { int j = 0; return i + j; })", tuple2.ToString());
 
-            var tupleType2 = model.GetTypeInfo(tuple2);
+            TypeInfo tupleType2 = model.GetTypeInfo(tuple2);
             Assert.Null(tupleType2.Type);
             Assert.Null(tupleType2.ConvertedType);
 
             // ... its first lambda ...
-            var firstLambda = tuple2.Arguments[1].Expression;
+            ExpressionSyntax firstLambda = tuple2.Arguments[1].Expression;
             Assert.Null(model.GetTypeInfo(firstLambda).Type);
             Assert.Null(model.GetTypeInfo(firstLambda).ConvertedType);
 
             // ... its method group ...
-            var methodGroup = tuple2.Arguments[2].Expression;
+            ExpressionSyntax methodGroup = tuple2.Arguments[2].Expression;
             Assert.Null(model.GetTypeInfo(methodGroup).Type);
             Assert.Null(model.GetTypeInfo(methodGroup).ConvertedType);
             Assert.Null(model.GetSymbolInfo(methodGroup).Symbol);
             Assert.Equal(new[] { "void C.Main()" }, model.GetSymbolInfo(methodGroup).CandidateSymbols.Select(s => s.ToTestDisplayString()));
 
             // ... its second lambda and the symbols it uses
-            var secondLambda = tuple2.Arguments[3].Expression;
+            ExpressionSyntax secondLambda = tuple2.Arguments[3].Expression;
             Assert.Null(model.GetTypeInfo(secondLambda).Type);
             Assert.Null(model.GetTypeInfo(secondLambda).ConvertedType);
 
-            var addition = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
+            BinaryExpressionSyntax addition = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
             Assert.Equal("i + j", addition.ToString());
 
-            var i = addition.Left;
+            ExpressionSyntax i = addition.Left;
             Assert.Equal("System.Int32 i", model.GetSymbolInfo(i).Symbol.ToTestDisplayString());
 
-            var j = addition.Right;
+            ExpressionSyntax j = addition.Right;
             Assert.Equal("System.Int32 j", model.GetSymbolInfo(j).Symbol.ToTestDisplayString());
         }
 
@@ -1612,7 +1612,7 @@ class C
         System.Console.Write((Main(), null) != (null, Main()));
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,31): error CS8210: A tuple may not contain a value of type 'void'.
                 //         System.Console.Write((Main(), null) != (null, Main()));
@@ -1634,7 +1634,7 @@ class C
         System.Console.Write((s, s) == (1, () => { }));
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0019: Operator '==' cannot be applied to operands of type 'string' and 'int'
                 //         System.Console.Write((s, s) == (1, () => { }));
@@ -1644,18 +1644,18 @@ class C
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "(s, s) == (1, () => { })").WithArguments("==", "string", "lambda expression").WithLocation(6, 30)
                 );
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
+            TupleExpressionSyntax tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
             Assert.Equal("(s, s)", tuple1.ToString());
-            var tupleType1 = model.GetTypeInfo(tuple1);
+            TypeInfo tupleType1 = model.GetTypeInfo(tuple1);
             Assert.Equal("(System.String, System.String)", tupleType1.Type.ToTestDisplayString());
             Assert.Equal("(System.String, System.String)", tupleType1.ConvertedType.ToTestDisplayString());
 
-            var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+            TupleExpressionSyntax tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
             Assert.Equal("(1, () => { })", tuple2.ToString());
-            var tupleType2 = model.GetTypeInfo(tuple2);
+            TypeInfo tupleType2 = model.GetTypeInfo(tuple2);
             Assert.Null(tupleType2.Type);
             Assert.Null(tupleType2.ConvertedType);
         }
@@ -1677,7 +1677,7 @@ public class C
         System.Console.Write($""{(d1, 20) != (10, d2)} "");
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True False False True");
         }
@@ -1693,7 +1693,7 @@ public class C
         System.Console.Write($""{((dynamic)true, (dynamic)false) == ((dynamic)true, (dynamic)false)} "");
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
         }
@@ -1711,7 +1711,7 @@ public class C
         System.Console.Write((d1, 2) == (() => 1, d2));
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (8,30): error CS0019: Operator '==' cannot be applied to operands of type 'dynamic' and 'lambda expression'
                 //         System.Console.Write((d1, 2) == (() => 1, d2));
@@ -1731,7 +1731,7 @@ public class C
         System.Console.Write(((dynamic)true, (dynamic)false) != (true, false));
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueFalse");
         }
@@ -1764,7 +1764,7 @@ public class C
         }
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Operator '==' cannot be applied to operands of type 'int' and 'string'");
         }
@@ -1782,22 +1782,22 @@ public class C
         System.Console.Write((d1, null) == (null, d2));
     }
 }";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
+            TupleExpressionSyntax tuple1 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(0);
             Assert.Equal("(d1, null)", tuple1.ToString());
-            var tupleType1 = model.GetTypeInfo(tuple1);
+            TypeInfo tupleType1 = model.GetTypeInfo(tuple1);
             Assert.Null(tupleType1.Type);
             Assert.Equal("(dynamic d1, dynamic)", tupleType1.ConvertedType.ToTestDisplayString());
 
-            var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
+            TupleExpressionSyntax tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(1);
             Assert.Equal("(null, d2)", tuple2.ToString());
-            var tupleType2 = model.GetTypeInfo(tuple2);
+            TypeInfo tupleType2 = model.GetTypeInfo(tuple2);
             Assert.Null(tupleType2.Type);
             Assert.Equal("(dynamic, dynamic d2)", tupleType2.ConvertedType.ToTestDisplayString());
         }
@@ -1813,7 +1813,7 @@ ref struct S
         System.Console.Write(("""", s1) == (null, s2));
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,35): error CS0306: The type 'S' may not be used as a type argument
                 //         System.Console.Write(("", s1) == (null, s2));
@@ -1835,7 +1835,7 @@ public class C
         if (error1 == (error2, 3)) { }
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0103: The name 'error1' does not exist in the current context
                 //         if (error1 == (error2, 3)) { }
@@ -1859,7 +1859,7 @@ public class C
         if ("""" == 1) {}
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0815: Cannot assign (<null>, <null>) to an implicitly-typed variable
                 //         var t = (null, null);
@@ -1912,7 +1912,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             // Note: tuple equality picked ahead of custom operator== (small compat break)
             CompileAndVerify(comp, expectedOutput: "FalseTrue");
@@ -1952,7 +1952,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "(0, 0)");
         }
@@ -2008,7 +2008,7 @@ namespace System
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             // Note: tuple equality picked ahead of custom operator==
@@ -2029,7 +2029,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "False True True False");
         }
@@ -2073,7 +2073,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput:
@@ -2120,7 +2120,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput:
@@ -2151,7 +2151,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: @"True True False True True False");
@@ -2174,7 +2174,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,18): error CS0019: Operator '==' cannot be applied to operands of type '(int, int)' and 'C'
                 //         var b1 = (1, 2) == new C();
@@ -2268,7 +2268,7 @@ public class Y : Base
 
             void validate(string expression, string expected)
             {
-                var comp = CreateCompilation(source.Replace("EXPRESSION", expression), options: TestOptions.DebugExe);
+                CSharpCompilation comp = CreateCompilation(source.Replace("EXPRESSION", expression), options: TestOptions.DebugExe);
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: expected);
             }
@@ -2356,7 +2356,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "A:1, GetTuple, A:30, A:40, ValueTuple2, A:4, X:5, X:6, Y:7, Y:8, X -> Y:5, A(1) == Y(5), X -> Y:6, A(30) == Y(6), A(40) == Y(7), A(4) == Y(8), True");
         }
@@ -2402,7 +2402,7 @@ namespace System
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,30): error CS0452: The type 'int' must be a reference type in order to use it as parameter 'T1' in the generic type or method 'ValueTuple<T1, T2>'
                 //         _ = (this, this) == (0, 1); // constraint violated by tuple in source
@@ -2424,22 +2424,22 @@ namespace System
                 Diagnostic(ErrorCode.ERR_RefConstraintNotSatisfied, "this").WithArguments("System.ValueTuple<T1, T2>", "T2", "int").WithLocation(7, 36)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             // check the int tuple
-            var firstEquals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
-            var intTuple = firstEquals.Right;
+            BinaryExpressionSyntax firstEquals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+            ExpressionSyntax intTuple = firstEquals.Right;
             Assert.Equal("(0, 1)", intTuple.ToString());
-            var intTupleType = model.GetTypeInfo(intTuple);
+            TypeInfo intTupleType = model.GetTypeInfo(intTuple);
             Assert.Equal("(System.Int32, System.Int32)", intTupleType.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32)", intTupleType.ConvertedType.ToTestDisplayString());
 
             // check the last tuple
-            var secondEquals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
-            var lastTuple = secondEquals.Right;
+            BinaryExpressionSyntax secondEquals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
+            ExpressionSyntax lastTuple = secondEquals.Right;
             Assert.Equal("(this, this)", lastTuple.ToString());
-            var lastTupleType = model.GetTypeInfo(lastTuple);
+            TypeInfo lastTupleType = model.GetTypeInfo(lastTuple);
             Assert.Equal("(C, C)", lastTupleType.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32)", lastTupleType.ConvertedType.ToTestDisplayString());
         }
@@ -2481,7 +2481,7 @@ namespace System
 }
 ";
 
-            var comp = CreateEmptyCompilation(source);
+            CSharpCompilation comp = CreateEmptyCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,24): error CS0315: The type '(int, int)' cannot be used as type parameter 'T' in the generic type or method 'Nullable<T>'. There is no boxing conversion from '(int, int)' to 'IInterface'.
                 //     void M((int, int)? t1, (long, long)? t2)
@@ -2491,14 +2491,14 @@ namespace System
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedValType, "t2").WithArguments("System.Nullable<T>", "IInterface", "T", "(long, long)").WithLocation(4, 42)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             // check t1
-            var equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
-            var t1 = equals.Left;
+            BinaryExpressionSyntax equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
+            ExpressionSyntax t1 = equals.Left;
             Assert.Equal("t1", t1.ToString());
-            var t1Type = model.GetTypeInfo(t1);
+            TypeInfo t1Type = model.GetTypeInfo(t1);
             Assert.Equal("(System.Int32, System.Int32)?", t1Type.Type.ToTestDisplayString());
             Assert.Equal("(System.Int64, System.Int64)?", t1Type.ConvertedType.ToTestDisplayString());
         }
@@ -2585,7 +2585,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: @"A:1, A:2, A:3, A:4, X:5, GetTuple, X:6, Y:7, ValueTuple2, Y:8, X:5 -> Y:5, A(1) == Y(5), X:6 -> Y:6, A(2) == Y(6), A(3) == Y(7), A(4) == Y(8), True");
         }
@@ -2672,7 +2672,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "GetTuple, A:30, A:40, ValueTuple2, X:6, Y:7, X -> Y:6, A(30) == Y(6), A(40) == Y(7), True");
         }
@@ -2711,7 +2711,7 @@ public class Y
         => throw null;
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,37): error CS0619: 'A.operator ==(A, Y)' is obsolete: 'obsolete'
                 //         System.Console.WriteLine($"{(new A(), new A()) == (new X(), new Y())}");
@@ -2744,7 +2744,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,41): error CS0165: Use of unassigned local variable 'error1'
                 //         System.Console.Write((1, 2) == (error1, 2));
@@ -2770,7 +2770,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,14): error CS0841: Cannot use local variable 'z' before it is declared
                 //         _ = (z, M(out int z)) == (1, 2); // error
@@ -2800,7 +2800,7 @@ class C
     C(int i) { this.i = i; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,30): error CS0019: Operator '==' cannot be applied to operands of type 'C' and '(int, int)'
                 //         System.Console.Write(this == (1, 1));
@@ -2839,7 +2839,7 @@ class C
     C(int i) { this.i = i; }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueTrue");
         }
@@ -2869,7 +2869,7 @@ class C
         => throw null;
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueFalse");
         }
@@ -2888,7 +2888,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,30): error CS0019: Operator '==' cannot be applied to operands of type 'C' and 'A'
                 //         System.Console.Write(new C() == new A());
@@ -2913,7 +2913,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,30): error CS0019: Operator '==' cannot be applied to operands of type 'string' and 'int'
                 //         System.Console.Write(s == 3);
@@ -2941,7 +2941,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,18): warning CS0252: Possible unintended reference comparison; to get a value comparison, cast the left hand side to type 'string'
                 //         bool b = o == s;
@@ -2969,22 +2969,22 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "True False False True False");
+            CompilationVerifier verifier = CompileAndVerify(comp, expectedOutput: "True False False True False");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
-            var nt1 = comparison.Left;
-            var nt1Type = model.GetTypeInfo(nt1);
+            BinaryExpressionSyntax comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+            ExpressionSyntax nt1 = comparison.Left;
+            TypeInfo nt1Type = model.GetTypeInfo(nt1);
             Assert.Equal("nt1", nt1.ToString());
             Assert.Equal("(System.Int32, System.Int32)?", nt1Type.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32)?", nt1Type.ConvertedType.ToTestDisplayString());
 
-            var nt2 = comparison.Right;
-            var nt2Type = model.GetTypeInfo(nt2);
+            ExpressionSyntax nt2 = comparison.Right;
+            TypeInfo nt2Type = model.GetTypeInfo(nt2);
             Assert.Equal("nt2", nt2.ToString());
             Assert.Equal("(System.Int32, System.Int32)?", nt2Type.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32)?", nt2Type.ConvertedType.ToTestDisplayString());
@@ -3054,7 +3054,7 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
         }
@@ -3079,22 +3079,22 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "False True True False True");
+            CompilationVerifier verifier = CompileAndVerify(comp, expectedOutput: "False True True False True");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
-            var nt1 = comparison.Left;
-            var nt1Type = model.GetTypeInfo(nt1);
+            BinaryExpressionSyntax comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+            ExpressionSyntax nt1 = comparison.Left;
+            TypeInfo nt1Type = model.GetTypeInfo(nt1);
             Assert.Equal("nt1", nt1.ToString());
             Assert.Equal("(System.Int32, System.Int32)?", nt1Type.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32)?", nt1Type.ConvertedType.ToTestDisplayString());
 
-            var nt2 = comparison.Right;
-            var nt2Type = model.GetTypeInfo(nt2);
+            ExpressionSyntax nt2 = comparison.Right;
+            TypeInfo nt2Type = model.GetTypeInfo(nt2);
             Assert.Equal("nt2", nt2.ToString());
             Assert.Equal("(System.Int32, System.Int32)?", nt2Type.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32)?", nt2Type.ConvertedType.ToTestDisplayString());
@@ -3178,7 +3178,7 @@ class C
      }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Success");
         }
@@ -3203,22 +3203,22 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "True False False True False");
+            CompilationVerifier verifier = CompileAndVerify(comp, expectedOutput: "True False False True False");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
-            var nt1 = comparison.Left;
-            var nt1Type = model.GetTypeInfo(nt1);
+            BinaryExpressionSyntax comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+            ExpressionSyntax nt1 = comparison.Left;
+            TypeInfo nt1Type = model.GetTypeInfo(nt1);
             Assert.Equal("nt1", nt1.ToString());
             Assert.Equal("(System.Int32, System.Int32)?", nt1Type.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int64)?", nt1Type.ConvertedType.ToTestDisplayString());
 
-            var nt2 = comparison.Right;
-            var nt2Type = model.GetTypeInfo(nt2);
+            ExpressionSyntax nt2 = comparison.Right;
+            TypeInfo nt2Type = model.GetTypeInfo(nt2);
             Assert.Equal("nt2", nt2.ToString());
             Assert.Equal("(System.Byte, System.Int64)?", nt2Type.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int64)?", nt2Type.ConvertedType.ToTestDisplayString());
@@ -3306,22 +3306,22 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "True False False Convert4 Convert4 True Convert5 False Convert6 Convert20 False ");
+            CompilationVerifier verifier = CompileAndVerify(comp, expectedOutput: "True False False Convert4 Convert4 True Convert5 False Convert6 Convert20 False ");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
-            var nt1 = comparison.Left;
-            var nt1Type = model.GetTypeInfo(nt1);
+            BinaryExpressionSyntax comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+            ExpressionSyntax nt1 = comparison.Left;
+            TypeInfo nt1Type = model.GetTypeInfo(nt1);
             Assert.Equal("nt1", nt1.ToString());
             Assert.Equal("(C, System.Int32)?", nt1Type.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32)?", nt1Type.ConvertedType.ToTestDisplayString());
 
-            var nt2 = comparison.Right;
-            var nt2Type = model.GetTypeInfo(nt2);
+            ExpressionSyntax nt2 = comparison.Right;
+            TypeInfo nt2Type = model.GetTypeInfo(nt2);
             Assert.Equal("nt2", nt2.ToString());
             Assert.Equal("(System.Int32, C)?", nt2Type.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32)?", nt2Type.ConvertedType.ToTestDisplayString());
@@ -3399,10 +3399,10 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalse");
+            CompilationVerifier verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalse");
             verifier.VerifyIL("C.M", @"{
   // Code size       53 (0x35)
   .maxstack  2
@@ -3435,18 +3435,18 @@ class C
   IL_0034:  ret
 }");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
-            var tuple = comparison.Left;
-            var tupleType = model.GetTypeInfo(tuple);
+            BinaryExpressionSyntax comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+            ExpressionSyntax tuple = comparison.Left;
+            TypeInfo tupleType = model.GetTypeInfo(tuple);
             Assert.Equal("(1, 2)", tuple.ToString());
             Assert.Equal("(System.Int32, System.Int32)", tupleType.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32)?", tupleType.ConvertedType.ToTestDisplayString());
 
-            var nt = comparison.Right;
-            var ntType = model.GetTypeInfo(nt);
+            ExpressionSyntax nt = comparison.Right;
+            TypeInfo ntType = model.GetTypeInfo(nt);
             Assert.Equal("nt", nt.ToString());
             Assert.Equal("(System.Byte, System.Int32)?", ntType.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32)?", ntType.ConvertedType.ToTestDisplayString());
@@ -3477,24 +3477,24 @@ class C
         return c._value;
     }
 }";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(comp, expectedOutput: "False False Convert1 True Convert1 True Convert10 False Convert10 False");
+            CompilationVerifier verifier = CompileAndVerify(comp, expectedOutput: "False False Convert1 True Convert1 True Convert10 False Convert10 False");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+            BinaryExpressionSyntax comparison = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
             Assert.Equal("(1, 2) == nt", comparison.ToString());
-            var tuple = comparison.Left;
-            var tupleType = model.GetTypeInfo(tuple);
+            ExpressionSyntax tuple = comparison.Left;
+            TypeInfo tupleType = model.GetTypeInfo(tuple);
             Assert.Equal("(1, 2)", tuple.ToString());
             Assert.Equal("(System.Int32, System.Int32)", tupleType.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32)?", tupleType.ConvertedType.ToTestDisplayString());
 
-            var nt = comparison.Right;
-            var ntType = model.GetTypeInfo(nt);
+            ExpressionSyntax nt = comparison.Right;
+            TypeInfo ntType = model.GetTypeInfo(nt);
             Assert.Equal("nt", nt.ToString());
             Assert.Equal("(C, System.Int32)?", ntType.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32, System.Int32)?", ntType.ConvertedType.ToTestDisplayString());
@@ -3518,10 +3518,10 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
-            var verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalse");
+            CompilationVerifier verifier = CompileAndVerify(comp, expectedOutput: "FalseTrueFalse");
             verifier.VerifyIL("C.M", @"{
   // Code size       59 (0x3b)
   .maxstack  2
@@ -3579,16 +3579,16 @@ class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True False False True");
 
-            var tree = comp.SyntaxTrees[0];
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees[0];
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var lastNull = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Last();
+            LiteralExpressionSyntax lastNull = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Last();
             Assert.Equal("null", lastNull.ToString());
-            var nullType = model.GetTypeInfo(lastNull);
+            TypeInfo nullType = model.GetTypeInfo(lastNull);
             Assert.Null(nullType.Type);
             Assert.Null(nullType.ConvertedType); // In nullable-null comparison, the null literal remains typeless
         }
@@ -3633,7 +3633,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "Success");
         }
@@ -3663,7 +3663,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,19): error CS0019: Operator '==' cannot be applied to operands of type 'ValueTuple<int?>' and 'ValueTuple<int?>'
                 //         bool b1 = x1 == x1;
@@ -3676,12 +3676,12 @@ class C
                 Diagnostic(ErrorCode.ERR_BadBinaryOps, "t.Rest == t.Rest").WithArguments("==", "ValueTuple<int?>", "ValueTuple<int?>").WithLocation(18, 16)
                 );
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
-            var comparison = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
+            BinaryExpressionSyntax comparison = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Last();
             Assert.Equal("t.Rest == t.Rest", comparison.ToString());
 
-            var left = model.GetTypeInfo(comparison.Left);
+            TypeInfo left = model.GetTypeInfo(comparison.Left);
             Assert.Equal("ValueTuple<System.Int32?>", left.Type.ToTestDisplayString());
             Assert.Equal("ValueTuple<System.Int32?>", left.ConvertedType.ToTestDisplayString());
             Assert.True(left.Type.IsTupleType);
@@ -3706,7 +3706,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,19): error CS0019: Operator '==' cannot be applied to operands of type 'ValueTuple<int?>' and 'ValueTuple<int?>'
                 //         bool b1 = x1 == x1;
@@ -3735,9 +3735,9 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse");
+            CompilationVerifier verifier = CompileAndVerify(comp, expectedOutput: "TrueFalse");
             verifier.VerifyIL("C.Compare", @"{
   // Code size       49 (0x31)
   .maxstack  2
@@ -3783,9 +3783,9 @@ class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
-            var verifier = CompileAndVerify(comp, expectedOutput: "True");
+            CompilationVerifier verifier = CompileAndVerify(comp, expectedOutput: "True");
         }
 
         [Fact]
@@ -3879,7 +3879,7 @@ public class NotBool
 
             void validate(string expression, string expected)
             {
-                var comp = CreateCompilation(source.Replace("REPLACE", expression),
+                CSharpCompilation comp = CreateCompilation(source.Replace("REPLACE", expression),
                     targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
 
                 comp.VerifyDiagnostics();
@@ -3983,7 +3983,7 @@ public class NotBool : NotBoolBase
 
             void validate(string expression, string expected)
             {
-                var comp = CreateCompilation(source.Replace("REPLACE", expression),
+                CSharpCompilation comp = CreateCompilation(source.Replace("REPLACE", expression),
                     targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
 
                 comp.VerifyDiagnostics();
@@ -4073,7 +4073,7 @@ public class NotBool
 
             void validate(string expression, string expected)
             {
-                var comp = CreateCompilation(source.Replace("REPLACE", expression), options: TestOptions.DebugExe);
+                CSharpCompilation comp = CreateCompilation(source.Replace("REPLACE", expression), options: TestOptions.DebugExe);
 
                 comp.VerifyDiagnostics();
                 CompileAndVerify(comp, expectedOutput: expected);
@@ -4143,7 +4143,7 @@ public class NotBool
 
             void validate(string expression, params DiagnosticDescription[] expected)
             {
-                var comp = CreateCompilation(source.Replace("REPLACE", expression));
+                CSharpCompilation comp = CreateCompilation(source.Replace("REPLACE", expression));
                 comp.VerifyDiagnostics(expected);
             }
         }
@@ -4199,7 +4199,7 @@ public class NotBool
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,18): error CS0029: Cannot implicitly convert type 'NotBool' to 'bool'
                 //         Write($"{(new A(1), new A(2)) == (new X(1), new Y(2))}");
@@ -4237,7 +4237,7 @@ public class A
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0029: Cannot implicitly convert type 'bool?' to 'bool'
                 //         _ = (a, a) == (a, a);
@@ -4335,7 +4335,7 @@ public class C
 
             void validate(string expression, params DiagnosticDescription[] diagnostics)
             {
-                var comp = CreateCompilation(source.Replace("REPLACE", expression));
+                CSharpCompilation comp = CreateCompilation(source.Replace("REPLACE", expression));
                 comp.VerifyDiagnostics(diagnostics);
             }
         }
@@ -4380,7 +4380,7 @@ namespace System
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             // Note: tuple equality picked ahead of custom operator==
@@ -4401,7 +4401,7 @@ public class C
         Expression<Func<(int, int), bool>> expr2 = t => t != t;
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,49): error CS8374: An expression tree may not contain a tuple == or != operator
                 //         Expression<Func<int, bool>> expr = i => (i, i) == (i, i);
@@ -4447,7 +4447,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True False False True");
         }
@@ -4487,7 +4487,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, targetFramework: TargetFramework.StandardAndCSharp, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput:
@@ -4509,7 +4509,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics(
                 // (7,55): warning CS8375: The tuple element name 'Bob' is ignored because a different name or no name is specified on the other side of the tuple == or != operator.
                 //         System.Console.Write((Alice: 0, (Bob, 2)) == (Bob: 0, (1, Other: 2)));
@@ -4521,20 +4521,20 @@ public class C
 
             CompileAndVerify(comp, expectedOutput: "True");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+            BinaryExpressionSyntax equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
 
             // check left tuple
-            var leftTuple = equals.Left;
-            var leftInfo = model.GetTypeInfo(leftTuple);
+            ExpressionSyntax leftTuple = equals.Left;
+            TypeInfo leftInfo = model.GetTypeInfo(leftTuple);
             Assert.Equal("(System.Int32 Alice, (System.Int32 Bob, System.Int32))", leftInfo.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32 Alice, (System.Int32 Bob, System.Int32))", leftInfo.ConvertedType.ToTestDisplayString());
 
             // check right tuple
-            var rightTuple = equals.Right;
-            var rightInfo = model.GetTypeInfo(rightTuple);
+            ExpressionSyntax rightTuple = equals.Right;
+            TypeInfo rightInfo = model.GetTypeInfo(rightTuple);
             Assert.Equal("(System.Int32 Bob, (System.Int32, System.Int32 Other))", rightInfo.Type.ToTestDisplayString());
             Assert.Equal("(System.Int32 Bob, (System.Int32, System.Int32 Other))", rightInfo.ConvertedType.ToTestDisplayString());
         }
@@ -4552,20 +4552,20 @@ public class C
 }
 ";
 
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
 
             CompileAndVerify(comp, expectedOutput: "True");
 
-            var tree = comp.SyntaxTrees.First();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.First();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
+            BinaryExpressionSyntax equals = tree.GetCompilationUnitRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().First();
 
             // check left cast ...
             var leftCast = (CastExpressionSyntax)equals.Left;
             Assert.Equal("((string, (byte, long))) (null, (1, 2L))", leftCast.ToString());
-            var leftCastInfo = model.GetTypeInfo(leftCast);
+            TypeInfo leftCastInfo = model.GetTypeInfo(leftCast);
             Assert.Equal("(System.String, (System.Byte, System.Int64))", leftCastInfo.Type.ToTestDisplayString());
             Assert.Equal("(System.String, (System.Int64, System.Int64))", leftCastInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ImplicitTuple, model.GetConversion(leftCast).Kind);
@@ -4573,37 +4573,37 @@ public class C
             // ... its tuple ...
             var leftTuple = (TupleExpressionSyntax)leftCast.Expression;
             Assert.Equal("(null, (1, 2L))", leftTuple.ToString());
-            var leftTupleInfo = model.GetTypeInfo(leftTuple);
+            TypeInfo leftTupleInfo = model.GetTypeInfo(leftTuple);
             Assert.Null(leftTupleInfo.Type);
             Assert.Equal("(System.String, (System.Byte, System.Int64))", leftTupleInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(leftTuple).Kind);
 
             // ... its null ...
-            var leftNull = leftTuple.Arguments[0].Expression;
+            ExpressionSyntax leftNull = leftTuple.Arguments[0].Expression;
             Assert.Equal("null", leftNull.ToString());
-            var leftNullInfo = model.GetTypeInfo(leftNull);
+            TypeInfo leftNullInfo = model.GetTypeInfo(leftNull);
             Assert.Null(leftNullInfo.Type);
             Assert.Equal("System.String", leftNullInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ImplicitReference, model.GetConversion(leftNull).Kind);
 
             // ... its nested tuple
-            var leftNestedTuple = leftTuple.Arguments[1].Expression;
+            ExpressionSyntax leftNestedTuple = leftTuple.Arguments[1].Expression;
             Assert.Equal("(1, 2L)", leftNestedTuple.ToString());
-            var leftNestedTupleInfo = model.GetTypeInfo(leftNestedTuple);
+            TypeInfo leftNestedTupleInfo = model.GetTypeInfo(leftNestedTuple);
             Assert.Equal("(System.Int32, System.Int64)", leftNestedTupleInfo.Type.ToTestDisplayString());
             Assert.Equal("(System.Byte, System.Int64)", leftNestedTupleInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.Identity, model.GetConversion(leftNestedTuple).Kind);
 
             // check right cast ...
             var rightCast = (CastExpressionSyntax)equals.Right;
-            var rightCastInfo = model.GetTypeInfo(rightCast);
+            TypeInfo rightCastInfo = model.GetTypeInfo(rightCast);
             Assert.Equal("(System.String, (System.Int64, System.Byte))", rightCastInfo.Type.ToTestDisplayString());
             Assert.Equal("(System.String, (System.Int64, System.Int64))", rightCastInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ImplicitTuple, model.GetConversion(rightCast).Kind);
 
             // ... its tuple
-            var rightTuple = rightCast.Expression;
-            var rightTupleInfo = model.GetTypeInfo(rightTuple);
+            ExpressionSyntax rightTuple = rightCast.Expression;
+            TypeInfo rightTupleInfo = model.GetTypeInfo(rightTuple);
             Assert.Null(rightTupleInfo.Type);
             Assert.Equal("(System.String, (System.Int64, System.Byte))", rightTupleInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.ExplicitTupleLiteral, model.GetConversion(rightTuple).Kind);
@@ -4622,7 +4622,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0019: Operator '==' cannot be applied to operands of type 'T' and 'T'
                 //         _ = (t, t) == (t, t);
@@ -4646,7 +4646,7 @@ public class C
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,20): error CS8081: Expression does not have a name.
                 //         _ = nameof((1, 2) == (3, 4));
@@ -4668,7 +4668,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,15): error CS1510: A ref or out value must be an assignable variable
                 //         M(ref (1, 2) == (3, 4), out (1, 2) == (3, 4));
@@ -4698,7 +4698,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "TrueFalseTrue");
         }
@@ -4718,7 +4718,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,30): error CS0019: Operator '==' cannot be applied to operands of type '<anonymous type: int A>' and '<anonymous type: int B>'
                 //         System.Console.Write((a, b) == (b, a));
@@ -4745,7 +4745,7 @@ public class C
     public static ref string S() => ref s;
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
         }
@@ -4773,7 +4773,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "overflow");
         }
@@ -4794,7 +4794,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "True");
         }
@@ -4820,7 +4820,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.DebugExe);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.DebugExe);
             comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "22");
         }
@@ -4841,7 +4841,7 @@ public class C
     }
 }
 ";
-            var comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.UnsafeDebugDll);
             comp.VerifyDiagnostics(
                 // (10,14): error CS0306: The type 'int*' may not be used as a type argument
                 //         _ = (p1, p2) == (p1, p2);

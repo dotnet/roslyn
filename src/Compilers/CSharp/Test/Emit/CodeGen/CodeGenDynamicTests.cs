@@ -34,11 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
             references = references ?? new[] { SystemCoreRef, CSharpRef };
 
             // verify that we emit correct optimized and unoptimized IL:
-            var unoptimizedCompilation = CreateCompilationWithMscorlib45(source, references, parseOptions: parseOptions, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
-            var optimizedCompilation = CreateCompilationWithMscorlib45(source, references, parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
+            CSharpCompilation unoptimizedCompilation = CreateCompilationWithMscorlib45(source, references, parseOptions: parseOptions, options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
+            CSharpCompilation optimizedCompilation = CreateCompilationWithMscorlib45(source, references, parseOptions: parseOptions, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All).WithAllowUnsafe(allowUnsafe));
 
-            var unoptimizedVerifier = CompileAndVerify(unoptimizedCompilation, verify: verify);
-            var optimizedVerifier = CompileAndVerify(optimizedCompilation, verify: verify);
+            CompilationVerifier unoptimizedVerifier = CompileAndVerify(unoptimizedCompilation, verify: verify);
+            CompilationVerifier optimizedVerifier = CompileAndVerify(optimizedCompilation, verify: verify);
 
             // check what IL we emit exactly:
             if (expectedUnoptimizedIL != null)
@@ -227,7 +227,7 @@ class C
         [Fact]
         public void Missing_Binder()
         {
-            var csrtRef = MakeCSharpRuntime(excludeBinder: "InvokeConstructor");
+            MetadataReference csrtRef = MakeCSharpRuntime(excludeBinder: "InvokeConstructor");
 
             string source = @"
 class C
@@ -250,7 +250,7 @@ class C
         [Fact]
         public void Missing_Flags()
         {
-            var csrtRef = MakeCSharpRuntime(excludeBinderFlags: true, excludeArgumentInfoFlags: true);
+            MetadataReference csrtRef = MakeCSharpRuntime(excludeBinderFlags: true, excludeArgumentInfoFlags: true);
 
             string source = @"
 class C
@@ -271,8 +271,8 @@ class C
         [Fact]
         public void Missing_Func()
         {
-            var systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
-            var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
+            MetadataReference systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            MetadataReference csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
             string source = @"
 class C
@@ -290,9 +290,9 @@ class C
         [Fact]
         public void InvalidFunc_Arity()
         {
-            var systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
-            var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
-            var funcRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.InvalidFuncDelegateName.AsImmutableOrNull());
+            MetadataReference systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            MetadataReference csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
+            PortableExecutableReference funcRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Invalid.InvalidFuncDelegateName.AsImmutableOrNull());
 
             string source = @"
 class C
@@ -304,15 +304,15 @@ class C
 }
 ";
             // the delegate is generated, no error is reported
-            var c = CompileAndVerifyWithMscorlib40(source, new[] { systemCoreRef, csrtRef, funcRef });
+            CompilationVerifier c = CompileAndVerifyWithMscorlib40(source, new[] { systemCoreRef, csrtRef, funcRef });
             Assert.Equal(1, ((CSharpCompilation)c.Compilation).GlobalNamespace.GetMember<NamespaceSymbol>("System").GetMember<NamedTypeSymbol>("Func`13").Arity);
         }
 
         [Fact, WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void InvalidFunc_Constraints()
         {
-            var systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
-            var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
+            MetadataReference systemCoreRef = CreateCompilationWithMscorlib40(SystemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            MetadataReference csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
             string source = @"
 namespace System
@@ -450,8 +450,8 @@ namespace System.Runtime.CompilerServices
     public abstract class CallSiteBinder { }
 }";
 
-            var systemCoreRef = CreateCompilationWithMscorlib40(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
-            var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
+            MetadataReference systemCoreRef = CreateCompilationWithMscorlib40(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            MetadataReference csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
             string source = @"
 class C 
@@ -479,8 +479,8 @@ namespace System.Runtime.CompilerServices
     public class CallSiteBinder {}
 }";
 
-            var systemCoreRef = CreateCompilationWithMscorlib40(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
-            var csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
+            MetadataReference systemCoreRef = CreateCompilationWithMscorlib40(systemCoreSource, assemblyName: GetUniqueName()).EmitToImageReference();
+            MetadataReference csrtRef = MakeCSharpRuntime(systemCore: systemCoreRef);
 
             string source = @"
 class C 
@@ -578,20 +578,20 @@ public class C
         d.m(1,2,3);
     }
 }";
-            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            CompilationVerifier verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
-                var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var containers = c.GetMembers().OfType<NamedTypeSymbol>().ToArray();
+                NamedTypeSymbol c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol[] containers = c.GetMembers().OfType<NamedTypeSymbol>().ToArray();
                 Assert.Equal(2, containers.Length);
 
-                foreach (var container in containers)
+                foreach (NamedTypeSymbol container in containers)
                 {
                     Assert.Equal(Accessibility.Private, container.DeclaredAccessibility);
                     Assert.True(container.IsStatic);
                     Assert.Equal(SpecialType.System_Object, container.BaseType().SpecialType);
                     AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(container.GetAttributes()));
 
-                    var members = container.GetMembers();
+                    System.Collections.Immutable.ImmutableArray<Symbol> members = container.GetMembers();
                     Assert.Equal(1, members.Length);
                     var field = (FieldSymbol)members[0];
 
@@ -634,20 +634,20 @@ public class C
         var x = new System.Action(() => d.m());
     }
 }";
-            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            CompilationVerifier verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
-                var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 Assert.Equal(2, c.GetMembers().OfType<NamedTypeSymbol>().Count());
 
-                var container = c.GetMember<NamedTypeSymbol>("<>o__0");
+                NamedTypeSymbol container = c.GetMember<NamedTypeSymbol>("<>o__0");
 
                 // all call-site storage fields of the method are added to a single container:
-                var memberNames = container.GetMembers().Select(m => m.Name);
+                System.Collections.Generic.IEnumerable<string> memberNames = container.GetMembers().Select(m => m.Name);
                 AssertEx.SetEqual(new[] { "<>p__0", "<>p__1", "<>p__2" }, memberNames);
 
-                var displayClass = c.GetMember<NamedTypeSymbol>("<>c__DisplayClass0_0");
-                var d = displayClass.GetMember<FieldSymbol>("d");
-                var attributes = d.GetAttributes();
+                NamedTypeSymbol displayClass = c.GetMember<NamedTypeSymbol>("<>c__DisplayClass0_0");
+                FieldSymbol d = displayClass.GetMember<FieldSymbol>("d");
+                System.Collections.Immutable.ImmutableArray<CSharpAttributeData> attributes = d.GetAttributes();
                 Assert.Equal(1, attributes.Length);
                 Assert.Equal("System.Runtime.CompilerServices.DynamicAttribute", attributes[0].AttributeClass.ToDisplayString());
             });
@@ -669,12 +669,12 @@ public class C
         yield return d;        
     }
 }";
-            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            CompilationVerifier verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
-                var c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var iteratorClass = c.GetMember<NamedTypeSymbol>("<M1>d__0");
+                NamedTypeSymbol c = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol iteratorClass = c.GetMember<NamedTypeSymbol>("<M1>d__0");
 
-                foreach (var member in iteratorClass.GetMembers())
+                foreach (Symbol member in iteratorClass.GetMembers())
                 {
                     switch (member.Kind)
                     {
@@ -684,7 +684,7 @@ public class C
                             break;
 
                         case SymbolKind.Method:
-                            var attributes = ((MethodSymbol)member).GetReturnTypeAttributes();
+                            System.Collections.Immutable.ImmutableArray<CSharpAttributeData> attributes = ((MethodSymbol)member).GetReturnTypeAttributes();
                             switch (member.MetadataName)
                             {
                                 case "System.Collections.Generic.IEnumerator<dynamic>.get_Current":
@@ -706,7 +706,7 @@ public class C
                     }
                 }
 
-                var container = c.GetMember<NamedTypeSymbol>("<>o__0");
+                NamedTypeSymbol container = c.GetMember<NamedTypeSymbol>("<>o__0");
                 Assert.Equal(1, container.GetMembers().Length);
             });
         }
@@ -795,9 +795,9 @@ public class C
         return d(a, b);
     }
 }";
-            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            CompilationVerifier verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
-                var container = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("<>o__0");
+                NamedTypeSymbol container = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("C").GetMember<NamedTypeSymbol>("<>o__0");
                 Assert.Equal(0, container.GetMembers().Single().GetAttributes().Length);
             });
         }
@@ -815,9 +815,9 @@ public class C
         return d(ref d);
     }
 }";
-            var verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
+            CompilationVerifier verifier = CompileAndVerifyWithCSharp(source, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: peModule =>
             {
-                var d = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("<>F{00000004}");
+                NamedTypeSymbol d = peModule.GlobalNamespace.GetMember<NamedTypeSymbol>("<>F{00000004}");
 
                 // the type:
                 Assert.Equal(Accessibility.Internal, d.DeclaredAccessibility);
@@ -829,9 +829,9 @@ public class C
                 AssertEx.SetEqual(new[] { "CompilerGeneratedAttribute" }, GetAttributeNames(d.GetAttributes()));
 
                 // members:
-                var members = d.GetMembers();
+                System.Collections.Immutable.ImmutableArray<Symbol> members = d.GetMembers();
                 Assert.Equal(2, members.Length);
-                foreach (var member in members)
+                foreach (Symbol member in members)
                 {
                     Assert.Equal(Accessibility.Public, member.DeclaredAccessibility);
 
@@ -2267,7 +2267,7 @@ public class C
     }
 }";
             // TODO: Why does RefEmit use fat header with maxstack = 2?
-            var verifier = CompileAndVerifyWithCSharp(source, symbolValidator: module =>
+            CompilationVerifier verifier = CompileAndVerifyWithCSharp(source, symbolValidator: module =>
             {
                 var pe = (PEModuleSymbol)module;
 
@@ -3330,7 +3330,7 @@ class C
         }
     }
 }";
-            var verifier = CompileAndVerifyIL(source, "C.M", expectedUnoptimizedIL: @"
+            CompilationVerifier verifier = CompileAndVerifyIL(source, "C.M", expectedUnoptimizedIL: @"
 {
   // Code size      169 (0xa9)
   .maxstack  10
@@ -7411,17 +7411,17 @@ public class Color
 	public int F(int a) { return 1; } 
 }
 ";
-            var lib = CreateCompilation(sourceLib);
+            CSharpCompilation lib = CreateCompilation(sourceLib);
 
             string sourceScript = @"
 Color Color;
 dynamic x = Color.F((dynamic)1);
 ";
-            var script = CreateCompilationWithMscorlib45(
+            CSharpCompilation script = CreateCompilationWithMscorlib45(
                 new[] { Parse(sourceScript, options: TestOptions.Script) },
                 new[] { new CSharpCompilationReference(lib), SystemCoreRef, CSharpRef });
 
-            var verifier = CompileAndVerify(script);
+            CompilationVerifier verifier = CompileAndVerify(script);
             verifier.VerifyIL("<<Initialize>>d__0.System.Runtime.CompilerServices.IAsyncStateMachine.MoveNext()",
 @"{
   // Code size      158 (0x9e)
@@ -7504,7 +7504,7 @@ public class Color
 	public int F(int a) { return 1; } 
 }
 ";
-            var lib = CreateCompilation(sourceLib);
+            CSharpCompilation lib = CreateCompilation(sourceLib);
 
             string sourceScript = @"
 Color Color;
@@ -7514,7 +7514,7 @@ void Goo()
     dynamic x = Color.F((dynamic)1);
 }
 ";
-            var script = CreateCompilationWithMscorlib45(
+            CSharpCompilation script = CreateCompilationWithMscorlib45(
                 new[] { Parse(sourceScript, options: TestOptions.Script) },
                 new[] { new CSharpCompilationReference(lib), SystemCoreRef, CSharpRef },
                 TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
@@ -11146,8 +11146,8 @@ Public Class B
     End Property
 End Class
 ";
-            var vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource);
-            var vbRef = vb.EmitToImageReference();
+            VisualBasic.VisualBasicCompilation vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource);
+            MetadataReference vbRef = vb.EmitToImageReference();
 
             string source = @"
 class C
@@ -11241,8 +11241,8 @@ Public Class B
     End Property
 End Class
 ";
-            var vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource);
-            var vbRef = vb.EmitToImageReference();
+            VisualBasic.VisualBasicCompilation vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource);
+            MetadataReference vbRef = vb.EmitToImageReference();
 
             string source = @"
 class C
@@ -11343,8 +11343,8 @@ Public Class B
     End Property
 End Class
 ";
-            var vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource);
-            var vbRef = vb.EmitToImageReference();
+            VisualBasic.VisualBasicCompilation vb = CreateVisualBasicCompilation(GetUniqueName(), vbSource);
+            MetadataReference vbRef = vb.EmitToImageReference();
 
             string source = @"
 class C
@@ -11514,7 +11514,7 @@ class C
         [Fact]
         public void GetIndex_IndexerWithByRefParam()
         {
-            var ilRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Interop.IndexerWithByRefParam.AsImmutableOrNull());
+            PortableExecutableReference ilRef = MetadataReference.CreateFromImage(TestResources.MetadataTests.Interop.IndexerWithByRefParam.AsImmutableOrNull());
 
             string source = @"
 class C
@@ -13991,7 +13991,7 @@ class C
     }
 }
 ";
-            var comp = CompileAndVerifyWithMscorlib40(source, expectedOutput: "hello!", references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
+            CompilationVerifier comp = CompileAndVerifyWithMscorlib40(source, expectedOutput: "hello!", references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, CSharpRef, SystemCoreRef });
             comp.VerifyDiagnostics();
             // No runtime failure (System.ArrayTypeMismatchException: Attempted to access an element as a type incompatible with the array.)
             // because of the special handling for dynamic in LocalRewriter.TransformCompoundAssignmentLHS
@@ -14901,7 +14901,7 @@ class Program
             return Task.FromResult(1);
     }
 }";
-            var comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
 
@@ -14946,7 +14946,7 @@ class Program
             return Task.FromResult(1);
     }
 }";
-            var comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithCSharp(source, options: TestOptions.ReleaseExe);
 
             CompileAndVerify(comp, expectedOutput: @"System.Threading.Tasks.Task`1[System.Int32]");
 
@@ -15352,7 +15352,7 @@ class C
         d.F();
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(
                 new[] { DynamicAttributeSource, source },
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
             comp.VerifyEmitDiagnostics(
@@ -15374,7 +15374,7 @@ class C
         await d;
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(
                 new[] { DynamicAttributeSource, source },
                 references: new[] { SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 });
             comp.VerifyEmitDiagnostics(
@@ -15419,7 +15419,7 @@ class C
         public int Length = 123;
     }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: "321 123", references: new[] { SystemCoreRef, CSharpRef });
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: "321 123", references: new[] { SystemCoreRef, CSharpRef });
         }
 
         #endregion

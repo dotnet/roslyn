@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             {
                 var baseDirectory = Path.Combine(Path.GetTempPath(), TestBase.GetUniqueName());
                 var loader = new ShadowCopyAnalyzerAssemblyLoader(baseDirectory);
-                var task = loader.DeleteLeftoverDirectoriesTask;
+                Task task = loader.DeleteLeftoverDirectoriesTask;
                 await task;
                 Assert.False(task.IsFaulted);
             }
@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             [Fact]
             public async Task Standard()
             {
-                using (var serverData = ServerUtil.CreateServer())
+                using (ServerData serverData = ServerUtil.CreateServer())
                 {
                     // Make sure the server is listening for this particular test. 
                     await serverData.ListenTask;

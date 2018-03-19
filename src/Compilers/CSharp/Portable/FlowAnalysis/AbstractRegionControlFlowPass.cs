@@ -41,10 +41,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundNode VisitLocalFunctionOrLambda(BoundBlock body)
         {
-            var oldPending = SavePending(); // We do not support branches *into* a lambda.
+            SavedPending oldPending = SavePending(); // We do not support branches *into* a lambda.
             LocalState finalState = this.State;
             this.State = ReachableState();
-            var oldPending2 = SavePending();
+            SavedPending oldPending2 = SavePending();
             VisitAlways(body);
             RestorePending(oldPending2); // process any forward branches within the lambda body
             ImmutableArray<PendingBranch> pendingReturns = RemoveReturns();

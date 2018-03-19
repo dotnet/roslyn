@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Operations
             }
 
             // if wrong compilation is given, GetSemanticModel will throw due to tree not belong to the given compilation.
-            var model = compilation.GetSemanticModel(operation.Syntax.SyntaxTree);
+            SemanticModel model = compilation.GetSemanticModel(operation.Syntax.SyntaxTree);
             return model.GetDiagnostics(operation.Syntax.Span, cancellationToken).Any(d => d.DefaultSeverity == DiagnosticSeverity.Error);
         }
 
@@ -72,14 +72,14 @@ namespace Microsoft.CodeAnalysis.Operations
 
             while (stack.Any())
             {
-                var iterator = stack.Pop();
+                IEnumerator<IOperation> iterator = stack.Pop();
 
                 if (!iterator.MoveNext())
                 {
                     continue;
                 }
 
-                var current = iterator.Current;
+                IOperation current = iterator.Current;
 
                 // push current iterator back in to the stack
                 stack.Push(iterator);
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Operations
 
         private static void GetDeclaredVariables(this IVariableDeclarationOperation declaration, ArrayBuilder<ILocalSymbol> arrayBuilder)
         {
-            foreach (var decl in declaration.Declarators)
+            foreach (IVariableDeclaratorOperation decl in declaration.Declarators)
             {
                 arrayBuilder.Add(decl.Symbol);
             }
@@ -216,7 +216,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            var argumentNames = dynamicOperation.ArgumentNames;
+            ImmutableArray<string> argumentNames = dynamicOperation.ArgumentNames;
             return argumentNames.IsDefaultOrEmpty ? null : argumentNames[index];
         }
 
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.Operations
                 throw new ArgumentOutOfRangeException(nameof(index));
             }
 
-            var argumentRefKinds = dynamicOperation.ArgumentRefKinds;
+            ImmutableArray<RefKind> argumentRefKinds = dynamicOperation.ArgumentRefKinds;
             if (argumentRefKinds.IsDefault)
             {
                 // VB case, arguments cannot have RefKind.

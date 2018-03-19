@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void LookupExtensionMethods(LookupResult result, string name, int arity, LookupOptions options, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            foreach (var scope in new ExtensionMethodScopes(this))
+            foreach (ExtensionMethodScope scope in new ExtensionMethodScopes(this))
             {
                 this.LookupExtensionMethodsInSingleBinder(scope, result, name, arity, options, ref useSiteDiagnostics);
             }
@@ -59,14 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(options.AreValid());
 
             // don't create diagnosis instances unless lookup fails
-            var binder = this.LookupSymbolsInternal(result, name, arity, basesBeingResolved, options, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics);
+            Binder binder = this.LookupSymbolsInternal(result, name, arity, basesBeingResolved, options, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics);
             Debug.Assert((binder != null) || result.IsClear);
 
             if (result.Kind != LookupResultKind.Viable && result.Kind != LookupResultKind.Empty)
             {
                 result.Clear();
                 // retry to get diagnosis
-                var otherBinder = this.LookupSymbolsInternal(result, name, arity, basesBeingResolved, options, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
+                Binder otherBinder = this.LookupSymbolsInternal(result, name, arity, basesBeingResolved, options, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
                 Debug.Assert(binder == otherBinder);
             }
 
@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(options.AreValid());
 
             Binder binder = null;
-            for (var scope = this; scope != null && !result.IsMultiViable; scope = scope.Next)
+            for (Binder scope = this; scope != null && !result.IsMultiViable; scope = scope.Next)
             {
                 if (binder != null)
                 {
@@ -361,7 +361,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void LookupMembersInNamespace(LookupResult result, NamespaceSymbol ns, string name, int arity, LookupOptions options, Binder originalBinder, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var members = GetCandidateMembers(ns, name, options, originalBinder);
+            ImmutableArray<Symbol> members = GetCandidateMembers(ns, name, options, originalBinder);
 
             foreach (Symbol member in members)
             {
@@ -379,10 +379,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void LookupExtensionMethodsInSingleBinder(ExtensionMethodScope scope, LookupResult result, string name, int arity, LookupOptions options, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var methods = ArrayBuilder<MethodSymbol>.GetInstance();
-            var binder = scope.Binder;
+            Binder binder = scope.Binder;
             binder.GetCandidateExtensionMethods(scope.SearchUsingsNotNamespace, methods, name, arity, options, this);
 
-            foreach (var method in methods)
+            foreach (MethodSymbol method in methods)
             {
                 SingleLookupResult resultOfThisMember = this.CheckViability(method, arity, options, null, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
                 result.MergeEqual(resultOfThisMember);
@@ -506,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool IsAmbiguousResult(LookupResult result, out Symbol resultSymbol)
         {
             resultSymbol = null;
-            var symbols = result.Symbols;
+            ArrayBuilder<Symbol> symbols = result.Symbols;
 
             switch (symbols.Count)
             {
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(symbols.Count >= 2);
 
-            var originalSymbols = symbols.ToImmutable();
+            ImmutableArray<Symbol> originalSymbols = symbols.ToImmutable();
 
             for (int i = 0; i < symbols.Count; i++)
             {
@@ -548,8 +548,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (best.IsFromCompilation && !secondBest.IsFromCompilation)
             {
-                var srcSymbol = symbols[best.Index];
-                var mdSymbol = symbols[secondBest.Index];
+                Symbol srcSymbol = symbols[best.Index];
+                Symbol mdSymbol = symbols[secondBest.Index];
 
                 //if names match, arities match, and containing symbols match (recursively), ...
                 if (srcSymbol.ToDisplayString(SymbolDisplayFormat.QualifiedNameArityFormat) ==
@@ -618,7 +618,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (diagnose && !useSiteDiagnostics.IsNullOrEmpty())
                     {
-                        foreach (var info in useSiteDiagnostics)
+                        foreach (DiagnosticInfo info in useSiteDiagnostics)
                         {
                             if (info.Severity == DiagnosticSeverity.Error)
                             {
@@ -662,7 +662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected static void LookupMembersWithoutInheritance(LookupResult result, TypeSymbol type, string name, int arity,
             LookupOptions options, Binder originalBinder, TypeSymbol accessThroughType, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
         {
-            var members = GetCandidateMembers(type, name, options, originalBinder);
+            ImmutableArray<Symbol> members = GetCandidateMembers(type, name, options, originalBinder);
 
             foreach (Symbol member in members)
             {
@@ -718,7 +718,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (basesBeingResolved != null && basesBeingResolved.ContainsReference(type.OriginalDefinition))
                 {
-                    var other = GetNearestOtherSymbol(basesBeingResolved, type);
+                    Symbol other = GetNearestOtherSymbol(basesBeingResolved, type);
                     var diagInfo = new CSDiagnosticInfo(ErrorCode.ERR_CircularBase, type, other);
                     var error = new ExtendedErrorTypeSymbol(this.Compilation, name, arity, diagInfo, unreported: true);
                     result.SetFrom(LookupResult.Good(error)); // force lookup to be done w/ error symbol as result
@@ -771,7 +771,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // interface. Thus, we don't know which method to choose. The solution?
             // Don't add any GetEnumerator method.
 
-            var comparer = MemberSignatureComparer.CSharpOverrideComparer;
+            MemberSignatureComparer comparer = MemberSignatureComparer.CSharpOverrideComparer;
 
             var allMembers = new HashSet<Symbol>(comparer);
             var conflictingMembers = new HashSet<Symbol>(comparer);
@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Add all viable members from type lookup
             if (result.IsMultiViable)
             {
-                foreach (var sym in result.Symbols)
+                foreach (Symbol sym in result.Symbols)
                 {
                     // Fields can't be present in the HashSet because they can't be compared
                     // with a MemberSignatureComparer
@@ -796,7 +796,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetWellKnownWinRTMemberInterfaces(out idictSymbol, out iroDictSymbol, out iListSymbol, out iCollectionSymbol, out inccSymbol, out inpcSymbol);
 
             // Dev11 searches all declared and undeclared base interfaces
-            foreach (var iface in type.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
+            foreach (NamedTypeSymbol iface in type.AllInterfacesWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
             {
                 if (ShouldAddWinRTMembersForInterface(iface, idictSymbol, iroDictSymbol, iListSymbol, iCollectionSymbol, inccSymbol, inpcSymbol))
                 {
@@ -804,7 +804,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // only add viable members
                     if (tmp.IsMultiViable)
                     {
-                        foreach (var sym in tmp.Symbols)
+                        foreach (Symbol sym in tmp.Symbols)
                         {
                             if (!allMembers.Add(sym))
                             {
@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             tmp.Free();
             if (result.IsMultiViable)
             {
-                foreach (var sym in result.Symbols)
+                foreach (Symbol sym in result.Symbols)
                 {
                     if (sym.Kind == SymbolKind.Method || sym.Kind == SymbolKind.Property)
                     {
@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
             }
-            foreach (var sym in allMembers)
+            foreach (Symbol sym in allMembers)
             {
                 if (!conflictingMembers.Contains(sym))
                 {
@@ -849,8 +849,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool ShouldAddWinRTMembersForInterface(NamedTypeSymbol iface, NamedTypeSymbol idictSymbol, NamedTypeSymbol iroDictSymbol, NamedTypeSymbol iListSymbol, NamedTypeSymbol iCollectionSymbol, NamedTypeSymbol inccSymbol, NamedTypeSymbol inpcSymbol)
         {
-            var iFaceOriginal = iface.OriginalDefinition;
-            var iFaceSpecial = iFaceOriginal.SpecialType;
+            NamedTypeSymbol iFaceOriginal = iface.OriginalDefinition;
+            SpecialType iFaceSpecial = iFaceOriginal.SpecialType;
 
             // Types match the list given in dev11 IMPORTER::GetWindowsRuntimeInterfacesToFake
             return iFaceSpecial == SpecialType.System_Collections_Generic_IEnumerable_T ||
@@ -996,20 +996,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (resultHiding.IsMultiViable && resultHidden.IsMultiViable)
             {
                 // Check if resultHiding has any non-methods. If so, it hides everything in resultHidden.
-                var hidingSymbols = resultHiding.Symbols;
+                ArrayBuilder<Symbol> hidingSymbols = resultHiding.Symbols;
                 var hidingCount = hidingSymbols.Count;
-                var hiddenSymbols = resultHidden.Symbols;
+                ArrayBuilder<Symbol> hiddenSymbols = resultHidden.Symbols;
                 var hiddenCount = hiddenSymbols.Count;
                 for (int i = 0; i < hiddenCount; i++)
                 {
-                    var sym = hiddenSymbols[i];
-                    var hiddenContainer = sym.ContainingType;
+                    Symbol sym = hiddenSymbols[i];
+                    NamedTypeSymbol hiddenContainer = sym.ContainingType;
 
                     // see if sym is hidden
                     for (int j = 0; j < hidingCount; j++)
                     {
-                        var hidingSym = hidingSymbols[j];
-                        var hidingContainer = hidingSym.ContainingType;
+                        Symbol hidingSym = hidingSymbols[j];
+                        NamedTypeSymbol hidingContainer = hidingSym.ContainingType;
                         var hidingContainerIsInterface = hidingContainer.IsInterface;
 
                         if (hidingContainerIsInterface)
@@ -1109,7 +1109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // General pattern: checks and diagnostics refer to unwrapped symbol,
             // but lookup results refer to symbol.
 
-            var unwrappedSymbol = symbol.Kind == SymbolKind.Alias
+            Symbol unwrappedSymbol = symbol.Kind == SymbolKind.Alias
                 ? ((AliasSymbol)symbol).GetAliasTarget(basesBeingResolved)
                 : symbol;
 
@@ -1208,14 +1208,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SymbolKind.Property:
                     {
-                        var property = ((PropertySymbol)symbol).GetLeastOverriddenProperty(this.ContainingType);
+                        PropertySymbol property = ((PropertySymbol)symbol).GetLeastOverriddenProperty(this.ContainingType);
                         method1 = property.GetMethod;
                         method2 = property.SetMethod;
                     }
                     break;
                 case SymbolKind.Event:
                     {
-                        var @event = ((EventSymbol)symbol).GetLeastOverriddenEvent(this.ContainingType);
+                        EventSymbol @event = ((EventSymbol)symbol).GetLeastOverriddenEvent(this.ContainingType);
                         method1 = @event.AddMethod;
                         method2 = @event.RemoveMethod;
                     }
@@ -1231,9 +1231,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void CheckViability<TSymbol>(LookupResult result, ImmutableArray<TSymbol> symbols, int arity, LookupOptions options, TypeSymbol accessThroughType, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved) where TSymbol : Symbol
         {
-            foreach (var symbol in symbols)
+            foreach (TSymbol symbol in symbols)
             {
-                var res = this.CheckViability(symbol, arity, options, accessThroughType, diagnose, ref useSiteDiagnostics, basesBeingResolved);
+                SingleLookupResult res = this.CheckViability(symbol, arity, options, accessThroughType, diagnose, ref useSiteDiagnostics, basesBeingResolved);
                 result.MergeEqual(res);
             }
         }
@@ -1485,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal void AddLookupSymbolsInfo(LookupSymbolsInfo result, LookupOptions options = LookupOptions.Default)
         {
-            for (var scope = this; scope != null; scope = scope.Next)
+            for (Binder scope = this; scope != null; scope = scope.Next)
             {
                 scope.AddLookupSymbolsInfoInSingleBinder(result, options, originalBinder: this);
             }
@@ -1554,7 +1554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If we are looking only for labels we do not need to search through the imports.
                 if ((options & LookupOptions.LabelsOnly) == 0 && !(isCurrentSubmission && this.Flags.Includes(BinderFlags.InScriptUsing)))
                 {
-                    var submissionImports = submission.GetSubmissionImports();
+                    Imports submissionImports = submission.GetSubmissionImports();
                     if (!isCurrentSubmission)
                     {
                         submissionImports = Imports.ExpandPreviousSubmissionImports(submissionImports, Compilation);
@@ -1569,8 +1569,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void AddMemberLookupSymbolsInfoInNamespace(LookupSymbolsInfo result, NamespaceSymbol ns, LookupOptions options, Binder originalBinder)
         {
-            var candidateMembers = result.FilterName != null ? GetCandidateMembers(ns, result.FilterName, options, originalBinder) : GetCandidateMembers(ns, options, originalBinder);
-            foreach (var symbol in candidateMembers)
+            ImmutableArray<Symbol> candidateMembers = result.FilterName != null ? GetCandidateMembers(ns, result.FilterName, options, originalBinder) : GetCandidateMembers(ns, options, originalBinder);
+            foreach (Symbol symbol in candidateMembers)
             {
                 if (originalBinder.CanAddLookupSymbolInfo(symbol, options, result, null))
                 {
@@ -1581,8 +1581,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static void AddMemberLookupSymbolsInfoWithoutInheritance(LookupSymbolsInfo result, TypeSymbol type, LookupOptions options, Binder originalBinder, TypeSymbol accessThroughType)
         {
-            var candidateMembers = result.FilterName != null ? GetCandidateMembers(type, result.FilterName, options, originalBinder) : GetCandidateMembers(type, options, originalBinder);
-            foreach (var symbol in candidateMembers)
+            ImmutableArray<Symbol> candidateMembers = result.FilterName != null ? GetCandidateMembers(type, result.FilterName, options, originalBinder) : GetCandidateMembers(type, options, originalBinder);
+            foreach (Symbol symbol in candidateMembers)
             {
                 if (originalBinder.CanAddLookupSymbolInfo(symbol, options, result, accessThroughType))
                 {
@@ -1597,7 +1597,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             GetWellKnownWinRTMemberInterfaces(out idictSymbol, out iroDictSymbol, out iListSymbol, out iCollectionSymbol, out inccSymbol, out inpcSymbol);
 
             // Dev11 searches all declared and undeclared base interfaces
-            foreach (var iface in type.AllInterfacesNoUseSiteDiagnostics)
+            foreach (NamedTypeSymbol iface in type.AllInterfacesNoUseSiteDiagnostics)
             {
                 if (ShouldAddWinRTMembersForInterface(iface, idictSymbol, iroDictSymbol, iListSymbol, iCollectionSymbol, inccSymbol, inpcSymbol))
                 {
@@ -1643,7 +1643,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!originalBinder.InCrefButNotParameterOrReturnType)
             {
-                foreach (var baseInterface in type.AllInterfacesNoUseSiteDiagnostics)
+                foreach (NamedTypeSymbol baseInterface in type.AllInterfacesNoUseSiteDiagnostics)
                 {
                     AddMemberLookupSymbolsInfoWithoutInheritance(result, baseInterface, options, originalBinder, accessThroughType);
                 }
@@ -1662,7 +1662,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             NamedTypeSymbol effectiveBaseClass = type.EffectiveBaseClassNoUseSiteDiagnostics;
             this.AddMemberLookupSymbolsInfoInClass(result, effectiveBaseClass, options, originalBinder, effectiveBaseClass);
 
-            foreach (var baseInterface in type.AllEffectiveInterfacesNoUseSiteDiagnostics)
+            foreach (NamedTypeSymbol baseInterface in type.AllEffectiveInterfacesNoUseSiteDiagnostics)
             {
                 // accessThroughType matches LookupMembersInTypeParameter.
                 AddMemberLookupSymbolsInfoWithoutInheritance(result, baseInterface, options, originalBinder, accessThroughType: type);

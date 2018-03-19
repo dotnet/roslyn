@@ -206,7 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (_namespaceName.Length > 0)
                         {
-                            var namespaces = MetadataHelpers.SplitQualifiedName(_namespaceName);
+                            System.Collections.Immutable.ImmutableArray<string> namespaces = MetadataHelpers.SplitQualifiedName(_namespaceName);
                             int i;
 
                             for (i = 0; i < namespaces.Length; i++)

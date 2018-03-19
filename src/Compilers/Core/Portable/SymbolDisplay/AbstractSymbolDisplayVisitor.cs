@@ -131,15 +131,15 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
                 return false;
             }
 
-            foreach (var attribute in typeSymbol.GetAttributes())
+            foreach (AttributeData attribute in typeSymbol.GetAttributes())
             {
-                var ctor = attribute.AttributeConstructor;
+                IMethodSymbol ctor = attribute.AttributeConstructor;
                 if (ctor != null)
                 {
-                    var type = ctor.ContainingType;
+                    INamedTypeSymbol type = ctor.ContainingType;
                     if (!ctor.Parameters.Any() && type.Name == "FlagsAttribute")
                     {
-                        var containingSymbol = type.ContainingSymbol;
+                        ISymbol containingSymbol = type.ContainingSymbol;
                         if (containingSymbol.Kind == SymbolKind.Namespace &&
                             containingSymbol.Name == "System" &&
                             ((INamespaceSymbol)containingSymbol.ContainingSymbol).IsGlobalNamespace)
@@ -177,7 +177,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             ArrayBuilder<EnumField> usedFieldsAndValues,
             bool preferNumericValueOrExpandedFlags)
         {
-            var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
+            SpecialType underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
             var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
 
             var result = constantValueULong;
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
                 }
 
                 // If we had 0 as the value, and there's an enum value equal to 0, then use that.
-                var zeroField = constantValueULong == 0
+                EnumField zeroField = constantValueULong == 0
                     ? EnumField.FindValue(allFieldsAndValues, 0)
                     : default(EnumField);
                 if (!zeroField.IsDefault)
@@ -254,8 +254,8 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
             INamedTypeSymbol enumType,
             ArrayBuilder<EnumField> enumFields)
         {
-            var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
-            foreach (var member in enumType.GetMembers())
+            SpecialType underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
+            foreach (ISymbol member in enumType.GetMembers())
             {
                 if (member.Kind == SymbolKind.Field)
                 {
@@ -273,7 +273,7 @@ namespace Microsoft.CodeAnalysis.SymbolDisplay
 
         private void AddNonFlagsEnumConstantValue(INamedTypeSymbol enumType, object constantValue)
         {
-            var underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
+            SpecialType underlyingSpecialType = enumType.EnumUnderlyingType.SpecialType;
             var constantValueULong = EnumUtilities.ConvertEnumUnderlyingTypeToUInt64(constantValue, underlyingSpecialType);
 
             var enumFields = ArrayBuilder<EnumField>.GetInstance();

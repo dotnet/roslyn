@@ -91,8 +91,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (_node != null)
             {
-                var text = _tree?.GetText();
-                var lineSpan = text?.Lines?.GetLinePositionSpan(_node.Span);
+                Text.SourceText text = _tree?.GetText();
+                Text.LinePositionSpan? lineSpan = text?.Lines?.GetLinePositionSpan(_node.Span);
 
                 // can't use Kind since that is language specific. instead will output typename.
                 sb.AppendLine($"{nameof(SyntaxNode)}: {GetFlattenedNodeText(_node)} [{_node.GetType().Name}]@{_node.Span.ToString()} {(lineSpan.HasValue ? lineSpan.Value.ToString() : string.Empty)}");
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             var lastEnd = node.Span.Start;
             var sb = new StringBuilder();
-            foreach (var token in node.DescendantTokens(descendIntoTrivia: false))
+            foreach (SyntaxToken token in node.DescendantTokens(descendIntoTrivia: false))
             {
                 if (token.Span.Start - lastEnd > 0)
                 {

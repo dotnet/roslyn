@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _methodBodyFactory = methodBodyFactory;
 
             // Set the factory context to generate nodes for the current method
-            var oldMethod = methodBodyFactory.CurrentMethod;
+            MethodSymbol oldMethod = methodBodyFactory.CurrentMethod;
             methodBodyFactory.CurrentMethod = method;
 
             _methodPayload = methodBodyFactory.SynthesizedLocal(_payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static bool IsExcludedFromCodeCoverage(MethodSymbol method)
         {
-            var containingType = method.ContainingType;
+            NamedTypeSymbol containingType = method.ContainingType;
             while ((object)containingType != null)
             {
                 if (containingType.IsDirectlyExcludedFromCodeCoverage)
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // Skip lambdas and local functions. They can't have custom attributes.
-            var nonLambda = method.ContainingNonLambdaMember();
+            Symbol nonLambda = method.ContainingNonLambdaMember();
             if (nonLambda?.Kind == SymbolKind.Method)
             {
                 method = (MethodSymbol)nonLambda;
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return true;
                 }
 
-                var associatedSymbol = method.AssociatedSymbol;
+                Symbol associatedSymbol = method.AssociatedSymbol;
                 switch (associatedSymbol?.Kind)
                 {
                     case SymbolKind.Property:
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // For a compiler generated method that has no 'real' spans, we emit the index for
                 // the document corresponding to the syntax node that is associated with its bound node.
-                var document = GetSourceDocument(debugDocumentProvider, methodBodySyntax);
+                DebugSourceDocument document = GetSourceDocument(debugDocumentProvider, methodBodySyntax);
                 fileIndexOrIndicesArgument = methodBodyFactory.SourceDocumentIndex(document);
             }
             else
@@ -200,9 +200,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var documents = PooledHashSet<DebugSourceDocument>.GetInstance();
                 var fileIndices = ArrayBuilder<BoundExpression>.GetInstance();
 
-                foreach (var span in dynamicAnalysisSpans)
+                foreach (SourceSpan span in dynamicAnalysisSpans)
                 {
-                    var document = span.Document;
+                    DebugSourceDocument document = span.Document;
                     if (documents.Add(document))
                     {
                         fileIndices.Add(methodBodyFactory.SourceDocumentIndex(document));

@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             int offset = 0;
             for (int i = 0; i < index; i++)
             {
-                var child = this.GetSlot(i);
+                GreenNode child = this.GetSlot(i);
                 if (child != null)
                 {
                     offset += child.FullWidth;
@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             {
                 for (int i = 0, n = node.SlotCount; i < n; i++)
                 {
-                    var child = node.GetSlot(i);
+                    GreenNode child = node.GetSlot(i);
                     if (child != null)
                     {
                         stack = ApplyDirectivesToListOrNode(child, stack);
@@ -297,11 +297,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         {
             if (trivia.HasStructure)
             {
-                var parent = trivia.Token.Parent;
+                SyntaxNode parent = trivia.Token.Parent;
                 if (parent != null)
                 {
                     SyntaxNode structure;
-                    var structsInParent = s_structuresTable.GetOrCreateValue(parent);
+                    Dictionary<CodeAnalysis.SyntaxTrivia, SyntaxNode> structsInParent = s_structuresTable.GetOrCreateValue(parent);
                     lock (structsInParent)
                     {
                         if (!structsInParent.TryGetValue(trivia, out structure))

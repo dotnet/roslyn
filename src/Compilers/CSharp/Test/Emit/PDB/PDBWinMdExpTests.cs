@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.PDB
 <token-map>
 </token-map>";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 text,
                 options: TestOptions.ReleaseWinMD,
                 sourceFileName: "source.cs").VerifyDiagnostics();
@@ -102,7 +102,7 @@ namespace X
     <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""39"" start-column=""14"" end-line=""39"" end-column=""18""/>
 </token-map>";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 text,
                 options: TestOptions.ReleaseWinMD,
                 sourceFileName: "source.cs").VerifyDiagnostics();
@@ -149,7 +149,7 @@ namespace X
   <token-location token=""0x04xxxxxx"" file=""source.cs"" start-line=""14"" start-column=""13"" end-line=""14"" end-column=""28"" />
 </token-map>";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 text,
                 options: TestOptions.ReleaseWinMD,
                 sourceFileName: "source.cs").VerifyDiagnostics();
@@ -228,7 +228,7 @@ namespace X
   <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""33"" start-column=""4"" end-line=""33"" end-column=""7"" />
 </token-map>";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 text,
                 options: TestOptions.ReleaseWinMD,
                 sourceFileName: "source.cs").VerifyDiagnostics(
@@ -264,7 +264,7 @@ namespace X
   <token-location token=""0x06xxxxxx"" file=""source.cs"" start-line=""6"" start-column=""15"" end-line=""6"" end-column=""16"" />
 </token-map>";
 
-            var compilation = CreateCompilationWithMscorlib45(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(
                 text,
                 options: TestOptions.ReleaseWinMD,
                 sourceFileName: "source.cs").VerifyDiagnostics();

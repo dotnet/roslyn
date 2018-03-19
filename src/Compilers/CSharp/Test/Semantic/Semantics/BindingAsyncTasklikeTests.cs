@@ -26,9 +26,9 @@ struct ValueTask<T> { }
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
 
-            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
-            var methodf = compilation.GetMember<MethodSymbol>("C.f");
-            var methodg = compilation.GetMember<MethodSymbol>("C.g");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            MethodSymbol methodf = compilation.GetMember<MethodSymbol>("C.f");
+            MethodSymbol methodg = compilation.GetMember<MethodSymbol>("C.g");
             Assert.True(methodf.IsAsync);
             Assert.True(methodg.IsAsync);
         }
@@ -179,8 +179,8 @@ namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : 
             source = source.Replace("<<implicitConversionToTaskT>>", implicitConversionToTask ? "public static implicit operator Task<T>(ValueTask<T> t) => Task.FromResult<T>(t._result);" : "");
             if (isError)
             {
-                var compilation = CreateCompilationWithMscorlib45(source);
-                var diagnostics = compilation.GetDiagnostics();
+                CSharpCompilation compilation = CreateCompilationWithMscorlib45(source);
+                System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = compilation.GetDiagnostics();
                 Assert.True(diagnostics.Length == 1);
                 Assert.True(diagnostics.First().Code == (int)ErrorCode.ERR_AmbigCall);
             }
@@ -301,9 +301,9 @@ class ValueTaskMethodBuilder<T> {}
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
-            var methodf = compilation.GetMember<MethodSymbol>("C.f");
-            var methodg = compilation.GetMember<MethodSymbol>("C.g");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
+            MethodSymbol methodf = compilation.GetMember<MethodSymbol>("C.f");
+            MethodSymbol methodg = compilation.GetMember<MethodSymbol>("C.g");
             Assert.True(methodf.IsAsync);
             Assert.True(methodg.IsAsync);
         }
@@ -438,7 +438,7 @@ class Mismatch2MethodBuilder<T> {}
 
 namespace System.Runtime.CompilerServices { class AsyncMethodBuilderAttribute : System.Attribute { public AsyncMethodBuilderAttribute(System.Type t) { } } }
 ";
-            var comp = CreateCompilationWithMscorlib45(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyEmitDiagnostics(
                 // (5,30): error CS1983: The return type of an async method must be void, Task or Task<T>
                 //     async Mismatch2<int,int> g() { await Task.Delay(0); return 1; }

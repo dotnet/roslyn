@@ -25,10 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         /// </remarks>
         internal void AssertTokens(string text, params TokenDescription[] expected)
         {
-            var actual = GetTokens(text);
+            IEnumerable<InternalSyntax.SyntaxToken> actual = GetTokens(text);
 
-            var actualEnumerator = actual.GetEnumerator();
-            var expectedEnumerator = expected.GetEnumerator();
+            IEnumerator<InternalSyntax.SyntaxToken> actualEnumerator = actual.GetEnumerator();
+            System.Collections.IEnumerator expectedEnumerator = expected.GetEnumerator();
 
             try
             {
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                         AssertEx.Fail("Unmatched actual: " + expectedEnumerator.Current);
                     }
 
-                    var actualToken = actualEnumerator.Current;
+                    InternalSyntax.SyntaxToken actualToken = actualEnumerator.Current;
                     var expectedToken = (TokenDescription)expectedEnumerator.Current;
 
                     Assert.Equal(expectedToken.Text, actualToken.Text); //This first, since it's easiest to debug.
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
             catch
             {
-                var baseline = actual.Select(ToExpectedTokenString);
+                IEnumerable<string> baseline = actual.Select(ToExpectedTokenString);
                 Console.WriteLine(string.Join("," + Environment.NewLine, baseline));
                 throw;
             }

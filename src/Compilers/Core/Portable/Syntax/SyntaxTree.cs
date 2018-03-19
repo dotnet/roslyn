@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         internal string GetDisplayPath(TextSpan span, SourceReferenceResolver resolver)
         {
-            var mappedSpan = GetMappedLineSpan(span);
+            FileLinePositionSpan mappedSpan = GetMappedLineSpan(span);
             if (resolver == null || mappedSpan.Path.IsEmpty())
             {
                 return mappedSpan.Path;
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (_lazyChecksum.IsDefault)
             {
-                var text = this.GetText();
+                SourceText text = this.GetText();
                 _lazyChecksum = text.GetChecksum();
                 _lazyHashAlgorithm = text.ChecksumAlgorithm;
             }

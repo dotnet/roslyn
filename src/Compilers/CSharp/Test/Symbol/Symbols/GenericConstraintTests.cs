@@ -28,7 +28,7 @@ class D<T> where T : A<int>, new() { }";
 
             Action<ModuleSymbol> validator = module =>
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
                 CheckConstraints(type.TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
 
                 type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
@@ -72,8 +72,8 @@ class B1 : A<int>
 
             Action<ModuleSymbol> validator = module =>
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-                var method = type.GetMember<MethodSymbol>("M");
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+                MethodSymbol method = type.GetMember<MethodSymbol>("M");
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "T");
 
                 type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("B0");
@@ -106,8 +106,8 @@ class C : I<C, object>
 
             Action<ModuleSymbol> validator = module =>
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var method = type.GetMethod("I<C,System.Object>.M");
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                MethodSymbol method = type.GetMethod("I<C,System.Object>.M");
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C");
             };
 
@@ -146,8 +146,8 @@ partial class B<T> : A<T>
 
             Action<ModuleSymbol> validator = module =>
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-                var method = type.GetMember<MethodSymbol>("M1");
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+                MethodSymbol method = type.GetMember<MethodSymbol>("M1");
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "T");
                 Utils.CheckSymbol(method, "void A<T>.M1<U>(T t)");
 
@@ -281,8 +281,8 @@ class C1 : A1<C1.C2> // invalid
 
 public class Gen<T> where T : new() { public T t;}
 ";
-            var comp1 = CreateCompilation(metadatasrc);
-            var comp2 = CreateCompilation(source, new MetadataReference[] { comp1.EmitToImageReference() });
+            CSharpCompilation comp1 = CreateCompilation(metadatasrc);
+            CSharpCompilation comp2 = CreateCompilation(source, new MetadataReference[] { comp1.EmitToImageReference() });
 
             comp2.VerifyDiagnostics(
                 // (5,26): error CS0310: 'PrivateCtorClass' must be a non-abstract type with a public parameterless constructor in order to use it as parameter 'T' in the generic type or method 'Gen<T>'
@@ -1121,7 +1121,7 @@ class C
         M(F3<S>());
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput:
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput:
 @"null
 S
 null
@@ -1184,7 +1184,7 @@ S");
         b = (null is T);
     }
 }";
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
             var expectedIL =
 @"{
   // Code size       10 (0xa)
@@ -1224,7 +1224,7 @@ class B2<T>
     static T F3<U>(U u) where U : class { return u as T; }
     static T F4<U>(U u) where U : struct { return u as T; }
 }";
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
             var expectedIL =
 @"{
   // Code size       17 (0x11)
@@ -1276,7 +1276,7 @@ class C
         M(F3<S>());
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput:
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput:
 @"C
 S
 C
@@ -1332,7 +1332,7 @@ class C
         new V();
     }
 }";
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
             compilation.VerifyIL("C.M<T, U, V>()",
 @"
 {
@@ -1448,7 +1448,7 @@ class C
         C<I, A>.M(s, b, s, b);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput:
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput:
 @"S.get_P
 S.set_P
 S.M
@@ -1549,7 +1549,7 @@ class C
         M(new S(), new A());
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput:
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput:
 @"A[1]
 S[0]");
             compilation.VerifyIL("C.M<T, U>(T, U)",
@@ -1607,7 +1607,7 @@ class C
         System.Console.WriteLine(""{0}, {1}"", a1.F, a2.F);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "2, 1");
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "2, 1");
             compilation.VerifyIL("B<T>.Swap<U>(T, U)",
 @"{
   // Code size       49 (0x31)
@@ -1667,7 +1667,7 @@ class A
         System.Console.WriteLine(""{0}, {1}"", a1.E.GetInvocationList().Length, a2.E.GetInvocationList().Length);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput: "1, 2");
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "1, 2");
             compilation.VerifyIL("A.Swap<T, U>(T, U)",
 @"{
   // Code size       49 (0x31)
@@ -2331,7 +2331,7 @@ class C
         M(b, b, b, b, b, b);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput:
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput:
 @"B.M
 A.M
 A.M
@@ -2392,7 +2392,7 @@ class C
         }
     }
 }";
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
             compilation.VerifyIL("C<T>.ThrowT(T)",
 @"{
   // Code size        7 (0x7)
@@ -2754,7 +2754,7 @@ class C<T> where T : IA, IB
             var source1 =
 @"public interface IA { }
 public class A { }";
-            var compilation1 = CreateCompilation(source1, assemblyName: "d521fe98-c881-45cf-0788-249e00d004ea");
+            CSharpCompilation compilation1 = CreateCompilation(source1, assemblyName: "d521fe98-c881-45cf-0788-249e00d004ea");
             compilation1.VerifyDiagnostics();
             var source2 =
 @"public interface IB : IA { }
@@ -2799,7 +2799,7 @@ public abstract class B4<T, U>
 public abstract class B5 : B4<A, IA>
 {
 }";
-            var compilation2 = CreateCompilation(source2, references: new MetadataReference[] { MetadataReference.CreateFromImage(compilation1.EmitToArray()) });
+            CSharpCompilation compilation2 = CreateCompilation(source2, references: new MetadataReference[] { MetadataReference.CreateFromImage(compilation1.EmitToArray()) });
             compilation2.VerifyDiagnostics();
             var source3 =
 @"class C1A : IB1
@@ -2830,7 +2830,7 @@ class C5B : B5
 {
     public override void M4<T4B, U4B>() { }
 }";
-            var compilation3 = CreateCompilation(source3, references: new MetadataReference[] { MetadataReference.CreateFromImage(compilation2.EmitToArray()) });
+            CSharpCompilation compilation3 = CreateCompilation(source3, references: new MetadataReference[] { MetadataReference.CreateFromImage(compilation2.EmitToArray()) });
             compilation3.VerifyDiagnostics(
                 // (3,17): error CS0012: The type 'IA' is defined in an assembly that is not referenced. You must add a reference to assembly 'd521fe98-c881-45cf-0788-249e00d004ea, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 //     void IB1.M1<T1A, U1A>() { }
@@ -2937,7 +2937,7 @@ class C5B : B5
 public class B2 { }
 public class B3 { }
 public interface I { }";
-            var compilation1 = CreateCompilation(source1, assemblyName: "d521fe98-c881-45cf-8870-249e00ae400d");
+            CSharpCompilation compilation1 = CreateCompilation(source1, assemblyName: "d521fe98-c881-45cf-8870-249e00ae400d");
             compilation1.VerifyDiagnostics();
             var source2 =
 @"public class A1<T> where T : B1, T { }
@@ -2946,7 +2946,7 @@ public class A3
 {
     public static void M<T>() where T : B3, T { }
 }";
-            var compilation2 = CreateCompilation(source2, assemblyName: "d03a3229-eb22-4682-88df-77efaa348e3b", references: new MetadataReference[] { new CSharpCompilationReference(compilation1) });
+            CSharpCompilation compilation2 = CreateCompilation(source2, assemblyName: "d03a3229-eb22-4682-88df-77efaa348e3b", references: new MetadataReference[] { new CSharpCompilationReference(compilation1) });
             compilation2.VerifyDiagnostics(
                 // (1,17): error CS0454: Circular constraint dependency involving 'T' and 'T'
                 Diagnostic(ErrorCode.ERR_CircularConstraint, "T").WithArguments("T", "T").WithLocation(1, 17),
@@ -2962,7 +2962,7 @@ public class A3
         A3.M<object>();
     }
 }";
-            var compilation3 = CreateCompilation(source3, references: new MetadataReference[] { new CSharpCompilationReference(compilation2) });
+            CSharpCompilation compilation3 = CreateCompilation(source3, references: new MetadataReference[] { new CSharpCompilationReference(compilation2) });
             compilation3.VerifyDiagnostics(
                 // (4,30): error CS0311: The type 'object' cannot be used as type parameter 'T' in the generic type or method 'A2<T>'. There is no implicit reference conversion from 'object' to 'B2'.
                 //     static void M(A2<object> a) { }
@@ -3198,7 +3198,7 @@ class D
         M1(new C2());
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             compilation.VerifyDiagnostics(
                 // (1,15): error CS0425: The constraints for type parameter 'T' of method 'B.M<T>()' must match the constraints for type parameter 'T' of interface method 'I.M<T>()'. Consider using an explicit interface implementation instead.
                 // class C2 : B, I { }
@@ -3207,11 +3207,11 @@ class D
             // Arguably, B.M<T> should not be considered an implementation of
             // I.M<T> since the CLR does not consider it so. For now, however,
             // FindImplementationForInterfaceMember returns B.M<T>.
-            var globalNamespace = compilation.GlobalNamespace;
-            var im = globalNamespace.GetMember<NamedTypeSymbol>("I").GetMember<MethodSymbol>("M");
-            var bx = globalNamespace.GetMember<NamedTypeSymbol>("B").GetMember<MethodSymbol>("M");
-            var c1 = globalNamespace.GetMember<NamedTypeSymbol>("C1");
-            var impl = c1.FindImplementationForInterfaceMember(im);
+            NamespaceSymbol globalNamespace = compilation.GlobalNamespace;
+            MethodSymbol im = globalNamespace.GetMember<NamedTypeSymbol>("I").GetMember<MethodSymbol>("M");
+            MethodSymbol bx = globalNamespace.GetMember<NamedTypeSymbol>("B").GetMember<MethodSymbol>("M");
+            NamedTypeSymbol c1 = globalNamespace.GetMember<NamedTypeSymbol>("C1");
+            Symbol impl = c1.FindImplementationForInterfaceMember(im);
             Assert.Equal(bx, impl);
         }
 
@@ -3242,7 +3242,7 @@ class C<T> : IT<T>
 {
     void M<U>() where U : T { }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             compilation.VerifyDiagnostics(
                 // (3,14): error CS0648: '' is a type not supported by the language
                 //     void I.M<T>() { }
@@ -3260,8 +3260,8 @@ class C<T> : IT<T>
                 // class C<T> : IT<T>
                 Diagnostic(ErrorCode.ERR_BogusType, "C").WithArguments("").WithLocation(8, 7));
 
-            var m = ((NamedTypeSymbol)compilation.GetMember("C1")).GetMember("I.M");
-            var constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0];
+            Symbol m = ((NamedTypeSymbol)compilation.GetMember("C1")).GetMember("I.M");
+            TypeSymbol constraintType = ((SourceOrdinaryMethodSymbol)m).TypeParameters[0].ConstraintTypesNoUseSiteDiagnostics[0];
             Assert.IsType<UnsupportedMetadataTypeSymbol>(constraintType);
             Assert.False(((INamedTypeSymbol)constraintType).IsSerializable);
         }
@@ -3304,7 +3304,7 @@ class P
         ((I<A>)new C()).M<A>();
     }
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             compilation.VerifyDiagnostics(
                 // (5,7): error CS0311: The type 'A' cannot be used as type parameter 'T' in the generic type or method 'I<T>'. There is no implicit reference conversion from 'A' to '?'.
                 // class C : I<A>
@@ -3435,7 +3435,7 @@ class P
         o = typeof(IIn<object>.IOut); // CS0648 (not reported by Dev11)
     }
 }";
-            var compilation1 = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
+            CSharpCompilation compilation1 = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             compilation1.VerifyDiagnostics(
                 // (10,31): error CS0648: 'IT<T>.ITU2<U>' is a type not supported by the language
                 //         o = typeof(IT<object>.ITU2<object>); // CS0648
@@ -3536,7 +3536,7 @@ class C2 : IC2<I, A, object> { }
 class C3 : B3<I, A, object>, IC3_1 { }
 class C4 : B4<I, A, object> { }
 ";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
             compilation.VerifyDiagnostics(
                 // (1,11): error CS0453: The type 'I' must be a non-nullable value type in order to use it as parameter 'T' in the generic type or method 'IA1_1<T>'
                 // interface IC1 : IB1<I, A, object> { }
@@ -4419,7 +4419,7 @@ class B
         M3(s);
     }
 }";
-            var compilation = CompileAndVerify(source, expectedOutput:
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput:
 @"3, 3
 3, 3
 6, 6
@@ -4697,10 +4697,10 @@ abstract class E : D, IB
 }";
             Action<ModuleSymbol> validator = module =>
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
 
-                var method = type.GetMember<MethodSymbol>("M1");
-                var typeParameter = method.TypeParameters[0];
+                MethodSymbol method = type.GetMember<MethodSymbol>("M1");
+                TypeParameterSymbol typeParameter = method.TypeParameters[0];
                 Assert.Equal("IA<A<T1>.B<object>>", typeParameter.ConstraintTypes()[0].ToDisplayString());
                 CheckTypeParameterContainingSymbols(method, typeParameter.EffectiveBaseClassNoUseSiteDiagnostics, 0);
                 CheckTypeParameterContainingSymbols(method, typeParameter.EffectiveInterfacesNoUseSiteDiagnostics[0], 1);
@@ -4946,7 +4946,7 @@ class B<T>
         return x;
     }
 }";
-            var compilation = CompileAndVerify(source);
+            CompilationVerifier compilation = CompileAndVerify(source);
             compilation.VerifyIL("C<T, U>.F1(T)",
 @"{
   // Code size       12 (0xc)
@@ -4990,7 +4990,7 @@ interface I5<T> : I2<I<object>, T> { }
 interface I6<U> : I3<I<U>, I<U>> { }";
             Action<ModuleSymbol> validator = module =>
             {
-                var method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I1").GetMember<MethodSymbol>("M");
+                MethodSymbol method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I1").GetMember<MethodSymbol>("M");
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object", "T", "U");
 
                 method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I2").GetMember<MethodSymbol>("M");
@@ -5101,8 +5101,8 @@ class C
 .class public R1<(A) T> { }
 .class public R2<class (A) T> { }";
             var csharpSource = "";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
-            var @namespace = compilation.GlobalNamespace;
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
+            NamespaceSymbol @namespace = compilation.GlobalNamespace;
             CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("O1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("O2").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             CheckConstraints(@namespace.GetMember<NamedTypeSymbol>("V1").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
@@ -5144,9 +5144,9 @@ class C
   .method public virtual instance void M2<valuetype (class [mscorlib]System.ValueType)U>() { ret }
 }";
             var csharpSource = "";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
-            var @namespace = compilation.GlobalNamespace;
-            var type = @namespace.GetMember<NamedTypeSymbol>("B0");
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
+            NamespaceSymbol @namespace = compilation.GlobalNamespace;
+            NamedTypeSymbol type = @namespace.GetMember<NamedTypeSymbol>("B0");
             CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
             type = @namespace.GetMember<NamedTypeSymbol>("B1");
@@ -5325,9 +5325,9 @@ class D<T>
 class D0 : D<object>
 {
 }";
-            var compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics();
-            var @namespace = compilation.GlobalNamespace;
-            var type = @namespace.GetMember<NamedTypeSymbol>("I0");
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource).VerifyDiagnostics();
+            NamespaceSymbol @namespace = compilation.GlobalNamespace;
+            NamedTypeSymbol type = @namespace.GetMember<NamedTypeSymbol>("I0");
             CheckConstraints(type.Interfaces()[0].GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             type = @namespace.GetMember<NamedTypeSymbol>("A1");
             CheckConstraints(type.GetMember<MethodSymbol>("M").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
@@ -5378,11 +5378,11 @@ class A1 : A<C>
 }";
             Action<ModuleSymbol> validator = module =>
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I0");
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I0");
                 CheckConstraints(type.TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
                 type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
                 CheckConstraints(type.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C");
-                var method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A0").GetMember<MethodSymbol>("M");
+                MethodSymbol method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A0").GetMember<MethodSymbol>("M");
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
                 method = module.GlobalNamespace.GetMember<NamedTypeSymbol>("A1").GetMember<MethodSymbol>("M");
                 CheckConstraints(method.TypeParameters[0], TypeParameterConstraintKind.None, false, true, "C", "C", "C");
@@ -5444,9 +5444,9 @@ class D2 : D<A>
     public override void M3<U>() { }
     public override void M4<U>() { }
 }";
-            var compilation = CreateCompilation(source);
-            var @namespace = compilation.GlobalNamespace;
-            var type = @namespace.GetMember<NamedTypeSymbol>("C0");
+            CSharpCompilation compilation = CreateCompilation(source);
+            NamespaceSymbol @namespace = compilation.GlobalNamespace;
+            NamedTypeSymbol type = @namespace.GetMember<NamedTypeSymbol>("C0");
             CheckConstraints(type.GetMember<MethodSymbol>("M1").TypeParameters[0], TypeParameterConstraintKind.None, false, false, "object", "object");
             CheckConstraints(type.GetMember<MethodSymbol>("M2").TypeParameters[0], TypeParameterConstraintKind.ValueType, true, false, "ValueType", "ValueType");
             type = @namespace.GetMember<NamedTypeSymbol>("C1");
@@ -5527,7 +5527,7 @@ class B : A
         [ClrOnlyFact]
         public void InheritedObjectConstraint2()
         {
-            var csCompilation = CreateCSharpCompilation("InheritedObjectConstraint2CS",
+            CSharpCompilation csCompilation = CreateCSharpCompilation("InheritedObjectConstraint2CS",
 @"using System;
 public abstract class Base1<T>
 {
@@ -5538,10 +5538,10 @@ public class Base2 : Base1<Object>
     public override void Goo<G>(G d) { Console.WriteLine(""Base2""); }
 }",
                 compilationOptions: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
-            var csVerifier = CompileAndVerify(csCompilation);
+            CompilationVerifier csVerifier = CompileAndVerify(csCompilation);
             csVerifier.VerifyDiagnostics();
 
-            var vbCompilation = CreateVisualBasicCompilation("InheritedObjectConstraint2VB",
+            VisualBasic.VisualBasicCompilation vbCompilation = CreateVisualBasicCompilation("InheritedObjectConstraint2VB",
 @"Imports System
 Class Derived : Inherits Base2
     Public Overrides Sub Goo(Of G As Structure)(ByVal d As G)
@@ -5679,7 +5679,7 @@ class B : A<int>
 {
     public override void M<U>(U u) { }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
@@ -6154,8 +6154,8 @@ public class Derived : Base<Derived>
 }
 ";
 
-            var comp = CreateCompilation(text);
-            var derivedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            CSharpCompilation comp = CreateCompilation(text);
+            NamedTypeSymbol derivedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
             derivedType.GetMembers();
         }
 
@@ -6175,8 +6175,8 @@ public class Implementation : Interface<Implementation>
 }
 ";
 
-            var comp = CreateCompilation(text);
-            var implementingType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Implementation");
+            CSharpCompilation comp = CreateCompilation(text);
+            NamedTypeSymbol implementingType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Implementation");
             implementingType.GetMembers();
         }
 
@@ -6258,18 +6258,18 @@ public class E { }
             var source1 =
 @"public class A { }
 public interface IA { }";
-            var compilation1 = CreateCompilation(source1, assemblyName: "e521fe98-c881-45cf-8870-249e00ae400d");
+            CSharpCompilation compilation1 = CreateCompilation(source1, assemblyName: "e521fe98-c881-45cf-8870-249e00ae400d");
             compilation1.VerifyDiagnostics();
             var source2 =
 @"public class B : A { }
 public class C<T> : B where T : B { }
 public interface IB : IA { }
 public interface IC<T> : IB where T : IB { }";
-            var compilation2 = CreateCompilation(source2, references: new MetadataReference[] { new CSharpCompilationReference(compilation1) });
+            CSharpCompilation compilation2 = CreateCompilation(source2, references: new MetadataReference[] { new CSharpCompilationReference(compilation1) });
             compilation2.VerifyDiagnostics();
             var source3 =
 @"class D : C<D>, IC<D> { }";
-            var compilation3 = CreateCompilation(source3, references: new MetadataReference[] { new CSharpCompilationReference(compilation2) });
+            CSharpCompilation compilation3 = CreateCompilation(source3, references: new MetadataReference[] { new CSharpCompilationReference(compilation2) });
             compilation3.VerifyDiagnostics(
                 // (1,11): error CS0012: The type 'A' is defined in an assembly that is not referenced. You must add a reference to assembly 'e521fe98-c881-45cf-8870-249e00ae400d, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
                 // class D : C<D>, IC<D> { }
@@ -6350,12 +6350,12 @@ class B2 : A<dynamic>, I
         [ClrOnlyFact]
         public void Bug654522()
         {
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore("public interface I<W> where W : struct {}").VerifyDiagnostics();
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore("public interface I<W> where W : struct {}").VerifyDiagnostics();
 
             Action<ModuleSymbol> metadataValidator =
                 delegate (ModuleSymbol module)
                 {
-                    var metadata = ((PEModuleSymbol)module).Module;
+                    PEModule metadata = ((PEModuleSymbol)module).Module;
 
                     var typeI = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("I").Single();
                     Assert.Equal(1, typeI.TypeParameters.Length);
@@ -6367,12 +6367,12 @@ class B2 : A<dynamic>, I
                     metadata.GetGenericParamPropsOrThrow(tp.Handle, out name, out flags);
                     Assert.Equal(GenericParameterAttributes.DefaultConstructorConstraint, flags & GenericParameterAttributes.DefaultConstructorConstraint);
 
-                    var metadataReader = metadata.MetadataReader;
-                    var constraints = metadataReader.GetGenericParameter(tp.Handle).GetConstraints();
+                    System.Reflection.Metadata.MetadataReader metadataReader = metadata.MetadataReader;
+                    System.Reflection.Metadata.GenericParameterConstraintHandleCollection constraints = metadataReader.GetGenericParameter(tp.Handle).GetConstraints();
                     Assert.Equal(1, constraints.Count);
 
                     var tokenDecoder = new MetadataDecoder((PEModuleSymbol)module, typeI);
-                    var constraintTypeHandle = metadataReader.GetGenericParameterConstraint(constraints[0]).Type;
+                    System.Reflection.Metadata.EntityHandle constraintTypeHandle = metadataReader.GetGenericParameterConstraint(constraints[0]).Type;
                     TypeSymbol typeSymbol = tokenDecoder.GetTypeOfToken(constraintTypeHandle);
                     Assert.Equal(SpecialType.System_ValueType, typeSymbol.SpecialType);
                 };
@@ -6613,7 +6613,7 @@ public class B<T>
         void M<V>() where V : T, U;
     }
 }";
-            var compilation1 = CreateCompilation(source1);
+            CSharpCompilation compilation1 = CreateCompilation(source1);
             compilation1.VerifyDiagnostics();
             var source2 =
 @"class C0 : B0, I1<object> { }
@@ -6634,7 +6634,7 @@ class P
         System.Console.WriteLine(new C<A>());
     }
 }";
-            var compilation2 = CreateCompilation(
+            CSharpCompilation compilation2 = CreateCompilation(
                 source2,
                 references: new MetadataReference[] { MetadataReference.CreateFromImage(compilation1.EmitToArray()) },
                 options: TestOptions.ReleaseExe);
@@ -6742,7 +6742,7 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,7): error CS0306: The type 'int*' may not be used as a type argument
                 // class R2 : R1<int *>

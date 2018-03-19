@@ -75,7 +75,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -158,7 +158,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -226,7 +226,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -294,7 +294,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -381,7 +381,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -455,7 +455,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -560,7 +560,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -654,7 +654,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Linq.IOrd
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -771,7 +771,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -854,7 +854,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -1032,7 +1032,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -1318,7 +1318,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -1422,38 +1422,38 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateCompilation(csSource);
+            CSharpCompilation compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "Query").Single();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            TypeDeclarationSyntax classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "Query").Single();
             dynamic methodM = (MethodDeclarationSyntax)classC.Members[0];
             QueryExpressionSyntax q = methodM.Body.Statements[3].Declaration.Variables[0].Initializer.Value;
 
-            var info0 = model.GetQueryClauseInfo(q.FromClause);
-            var x = model.GetDeclaredSymbol(q.FromClause);
+            QueryClauseInfo info0 = model.GetQueryClauseInfo(q.FromClause);
+            IRangeVariableSymbol x = model.GetDeclaredSymbol(q.FromClause);
             Assert.Equal(SymbolKind.RangeVariable, x.Kind);
             Assert.Equal("x", x.Name);
             Assert.Equal("Cast", info0.CastInfo.Symbol.Name);
             Assert.NotEqual(MethodKind.ReducedExtension, ((IMethodSymbol)info0.CastInfo.Symbol).MethodKind);
             Assert.Null(info0.OperationInfo.Symbol);
 
-            var info1 = model.GetQueryClauseInfo(q.Body.Clauses[0]);
-            var y = model.GetDeclaredSymbol(q.Body.Clauses[0]);
+            QueryClauseInfo info1 = model.GetQueryClauseInfo(q.Body.Clauses[0]);
+            IRangeVariableSymbol y = model.GetDeclaredSymbol(q.Body.Clauses[0]);
             Assert.Equal(SymbolKind.RangeVariable, y.Kind);
             Assert.Equal("y", y.Name);
             Assert.Equal("Cast", info1.CastInfo.Symbol.Name);
             Assert.Equal("SelectMany", info1.OperationInfo.Symbol.Name);
             Assert.NotEqual(MethodKind.ReducedExtension, ((IMethodSymbol)info1.OperationInfo.Symbol).MethodKind);
 
-            var info2 = model.GetQueryClauseInfo(q.Body.Clauses[1]);
-            var z = model.GetDeclaredSymbol(q.Body.Clauses[1]);
+            QueryClauseInfo info2 = model.GetQueryClauseInfo(q.Body.Clauses[1]);
+            IRangeVariableSymbol z = model.GetDeclaredSymbol(q.Body.Clauses[1]);
             Assert.Equal(SymbolKind.RangeVariable, z.Kind);
             Assert.Equal("z", z.Name);
             Assert.Equal("Cast", info2.CastInfo.Symbol.Name);
             Assert.Equal("SelectMany", info2.OperationInfo.Symbol.Name);
 
-            var info3 = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
+            CompilationUtils.SemanticInfoSummary info3 = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
             Assert.NotNull(info3);
             // what about info3's contents ???
 
@@ -1600,7 +1600,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -1626,39 +1626,39 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateCompilation(csSource, new[] { LinqAssemblyRef });
-            foreach (var dd in compilation.GetDiagnostics()) Console.WriteLine(dd);
+            CSharpCompilation compilation = CreateCompilation(csSource, new[] { LinqAssemblyRef });
+            foreach (Diagnostic dd in compilation.GetDiagnostics()) Console.WriteLine(dd);
             compilation.VerifyDiagnostics();
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "Query").Single();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            TypeDeclarationSyntax classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "Query").Single();
             dynamic methodM = (MethodDeclarationSyntax)classC.Members[0];
             QueryExpressionSyntax q = methodM.Body.Statements[3].Declaration.Variables[0].Initializer.Value;
 
-            var info0 = model.GetQueryClauseInfo(q.FromClause);
-            var x = model.GetDeclaredSymbol(q.FromClause);
+            QueryClauseInfo info0 = model.GetQueryClauseInfo(q.FromClause);
+            IRangeVariableSymbol x = model.GetDeclaredSymbol(q.FromClause);
             Assert.Equal(SymbolKind.RangeVariable, x.Kind);
             Assert.Equal("x", x.Name);
             Assert.Equal("Cast", info0.CastInfo.Symbol.Name);
             Assert.Equal(MethodKind.ReducedExtension, ((IMethodSymbol)info0.CastInfo.Symbol).MethodKind);
             Assert.Null(info0.OperationInfo.Symbol);
 
-            var info1 = model.GetQueryClauseInfo(q.Body.Clauses[0]);
-            var y = model.GetDeclaredSymbol(q.Body.Clauses[0]);
+            QueryClauseInfo info1 = model.GetQueryClauseInfo(q.Body.Clauses[0]);
+            IRangeVariableSymbol y = model.GetDeclaredSymbol(q.Body.Clauses[0]);
             Assert.Equal(SymbolKind.RangeVariable, y.Kind);
             Assert.Equal("y", y.Name);
             Assert.Equal("Cast", info1.CastInfo.Symbol.Name);
             Assert.Equal("SelectMany", info1.OperationInfo.Symbol.Name);
             Assert.Equal(MethodKind.ReducedExtension, ((IMethodSymbol)info1.OperationInfo.Symbol).MethodKind);
 
-            var info2 = model.GetQueryClauseInfo(q.Body.Clauses[1]);
-            var z = model.GetDeclaredSymbol(q.Body.Clauses[1]);
+            QueryClauseInfo info2 = model.GetQueryClauseInfo(q.Body.Clauses[1]);
+            IRangeVariableSymbol z = model.GetDeclaredSymbol(q.Body.Clauses[1]);
             Assert.Equal(SymbolKind.RangeVariable, z.Kind);
             Assert.Equal("z", z.Name);
             Assert.Equal("Cast", info2.CastInfo.Symbol.Name);
             Assert.Equal("SelectMany", info2.OperationInfo.Symbol.Name);
 
-            var info3 = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
+            CompilationUtils.SemanticInfoSummary info3 = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
             Assert.NotNull(info3);
             // what about info3's contents ???
 
@@ -1687,25 +1687,25 @@ class Query
        Console.WriteLine(r1);
     }
 }";
-            var compilation = CreateCompilation(csSource);
+            CSharpCompilation compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "Query").Single();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            TypeDeclarationSyntax classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "Query").Single();
             dynamic methodM = (MethodDeclarationSyntax)classC.Members[0];
             QueryExpressionSyntax q = methodM.Body.Statements[2].Declaration.Variables[0].Initializer.Value;
 
-            var info0 = model.GetQueryClauseInfo(q.FromClause);
+            QueryClauseInfo info0 = model.GetQueryClauseInfo(q.FromClause);
             Assert.Equal("Cast", info0.CastInfo.Symbol.Name);
             Assert.Null(info0.OperationInfo.Symbol);
             Assert.Equal("x", model.GetDeclaredSymbol(q.FromClause).Name);
 
-            var info1 = model.GetQueryClauseInfo(q.Body.Clauses[0]);
+            QueryClauseInfo info1 = model.GetQueryClauseInfo(q.Body.Clauses[0]);
             Assert.Equal("Cast", info1.CastInfo.Symbol.Name);
             Assert.Equal("SelectMany", info1.OperationInfo.Symbol.Name);
             Assert.Equal("y", model.GetDeclaredSymbol(q.Body.Clauses[0]).Name);
 
-            var info2 = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
+            CompilationUtils.SemanticInfoSummary info2 = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
             // what about info2's contents?
         }
 
@@ -1725,30 +1725,30 @@ class Query
         Console.WriteLine(r);
     }
 }";
-            var compilation = CreateCompilation(csSource);
+            CSharpCompilation compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "Query").Single();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            TypeDeclarationSyntax classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "Query").Single();
             dynamic methodM = (MethodDeclarationSyntax)classC.Members[0];
             QueryExpressionSyntax q = methodM.Body.Statements[1].Declaration.Variables[0].Initializer.Value;
 
-            var info0 = model.GetQueryClauseInfo(q.FromClause);
+            QueryClauseInfo info0 = model.GetQueryClauseInfo(q.FromClause);
             Assert.Null(info0.CastInfo.Symbol);
             Assert.Null(info0.OperationInfo.Symbol);
             Assert.Equal("i", model.GetDeclaredSymbol(q.FromClause).Name);
-            var i = model.GetDeclaredSymbol(q.FromClause);
+            IRangeVariableSymbol i = model.GetDeclaredSymbol(q.FromClause);
 
-            var info1 = model.GetQueryClauseInfo(q.Body.Clauses[0]);
+            QueryClauseInfo info1 = model.GetQueryClauseInfo(q.Body.Clauses[0]);
             Assert.Null(info1.CastInfo.Symbol);
             Assert.Null(info1.OperationInfo.Symbol);
             Assert.Null(model.GetDeclaredSymbol(q.Body.Clauses[0]));
 
             var order = q.Body.Clauses[0] as OrderByClauseSyntax;
-            var oinfo0 = model.GetSemanticInfoSummary(order.Orderings[0]);
+            CompilationUtils.SemanticInfoSummary oinfo0 = model.GetSemanticInfoSummary(order.Orderings[0]);
             Assert.Equal("OrderByDescending", oinfo0.Symbol.Name);
 
-            var oinfo1 = model.GetSemanticInfoSummary(order.Orderings[1]);
+            CompilationUtils.SemanticInfoSummary oinfo1 = model.GetSemanticInfoSummary(order.Orderings[1]);
             Assert.Equal("ThenBy", oinfo1.Symbol.Name);
         }
 
@@ -2060,7 +2060,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -2143,15 +2143,15 @@ public class Test2
                  select x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
-            var tree = compilation.SyntaxTrees[0];
-            var semanticModel = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
             SelectClauseSyntax selectClause = (SelectClauseSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("select", StringComparison.Ordinal)).Parent;
-            var info = semanticModel.GetSemanticInfoSummary(selectClause.Expression);
+            CompilationUtils.SemanticInfoSummary info = semanticModel.GetSemanticInfoSummary(selectClause.Expression);
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
             Assert.Equal(SymbolKind.RangeVariable, info.Symbol.Kind);
-            var info2 = semanticModel.GetSemanticInfoSummary(selectClause);
+            CompilationUtils.SemanticInfoSummary info2 = semanticModel.GetSemanticInfoSummary(selectClause);
             var m = (MethodSymbol)info2.Symbol;
             Assert.Equal("Select", m.ReducedFrom.Name);
         }
@@ -2173,12 +2173,12 @@ public class Test2
                  select w;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
-            var tree = compilation.SyntaxTrees[0];
-            var semanticModel = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
             SelectClauseSyntax selectClause = (SelectClauseSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("select w", StringComparison.Ordinal)).Parent;
-            var info = semanticModel.GetSemanticInfoSummary(selectClause.Expression);
+            CompilationUtils.SemanticInfoSummary info = semanticModel.GetSemanticInfoSummary(selectClause.Expression);
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
             Assert.Equal(SymbolKind.RangeVariable, info.Symbol.Kind);
         }
@@ -2199,13 +2199,13 @@ public class Test2
                  select w+1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
-            var tree = compilation.SyntaxTrees[0];
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
             compilation.VerifyDiagnostics();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
             var e = (IdentifierNameSyntax)tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf("x+1", StringComparison.Ordinal)).Parent;
-            var info = semanticModel.GetSemanticInfoSummary(e);
+            CompilationUtils.SemanticInfoSummary info = semanticModel.GetSemanticInfoSummary(e);
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
             Assert.Equal(SymbolKind.RangeVariable, info.Symbol.Kind);
             Assert.Equal("x", info.Symbol.Name);
@@ -2217,7 +2217,7 @@ public class Test2
             Assert.Equal("w", info.Symbol.Name);
 
             var e2 = e.Parent as ExpressionSyntax; // w+1
-            var info2 = semanticModel.GetSemanticInfoSummary(e2);
+            CompilationUtils.SemanticInfoSummary info2 = semanticModel.GetSemanticInfoSummary(e2);
             Assert.Equal(SpecialType.System_Int32, info2.Type.SpecialType);
             Assert.Equal("System.Int32 System.Int32.op_Addition(System.Int32 left, System.Int32 right)", info2.Symbol.ToTestDisplayString());
         }
@@ -2238,12 +2238,12 @@ public class Test2
                  select w;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
-            var tree = compilation.SyntaxTrees[0];
-            var semanticModel = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var queryContinuation = tree.GetRoot().FindToken(sourceCode.IndexOf("into w", StringComparison.Ordinal)).Parent;
-            var symbol = semanticModel.GetDeclaredSymbol(queryContinuation);
+            SyntaxNode queryContinuation = tree.GetRoot().FindToken(sourceCode.IndexOf("into w", StringComparison.Ordinal)).Parent;
+            ISymbol symbol = semanticModel.GetDeclaredSymbol(queryContinuation);
 
             Assert.NotNull(symbol);
             Assert.Equal("w", symbol.Name);
@@ -2266,11 +2266,11 @@ public class Test2
                  select 5;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
-            var tree = compilation.SyntaxTrees[0];
-            var semanticModel = compilation.GetSemanticModel(tree);
-            var selectExpression = tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf('5'));
-            var info = semanticModel.GetSpeculativeTypeInfo(selectExpression.SpanStart, SyntaxFactory.ParseExpression("x"), SpeculativeBindingOption.BindAsExpression);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxToken selectExpression = tree.GetCompilationUnitRoot().FindToken(sourceCode.IndexOf('5'));
+            TypeInfo info = semanticModel.GetSpeculativeTypeInfo(selectExpression.SpanStart, SyntaxFactory.ParseExpression("x"), SpeculativeBindingOption.BindAsExpression);
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
         }
 
@@ -2291,12 +2291,12 @@ static class Test
                       select x8;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
-            var tree = compilation.SyntaxTrees[0];
-            var semanticModel = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var joinInto = tree.GetRoot().FindToken(sourceCode.IndexOf("into x8", StringComparison.Ordinal)).Parent;
-            var symbol = semanticModel.GetDeclaredSymbol(joinInto);
+            SyntaxNode joinInto = tree.GetRoot().FindToken(sourceCode.IndexOf("into x8", StringComparison.Ordinal)).Parent;
+            ISymbol symbol = semanticModel.GetDeclaredSymbol(joinInto);
 
             Assert.NotNull(symbol);
             Assert.Equal("x8", symbol.Name);
@@ -2323,12 +2323,12 @@ public class QueryExpressionTest
         var query2 = from int
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
-            var tree = compilation.SyntaxTrees[0];
-            var semanticModel = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var unknownAccessorDecls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>();
-            var symbols = unknownAccessorDecls.Select(decl => semanticModel.GetDeclaredSymbol(decl));
+            System.Collections.Generic.IEnumerable<AccessorDeclarationSyntax> unknownAccessorDecls = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AccessorDeclarationSyntax>();
+            System.Collections.Generic.IEnumerable<IMethodSymbol> symbols = unknownAccessorDecls.Select(decl => semanticModel.GetDeclaredSymbol(decl));
 
             Assert.True(symbols.All(s => ReferenceEquals(s, null)));
         }
@@ -2350,17 +2350,17 @@ class Test
                  select num1;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
-            var tree = compilation.SyntaxTrees[0];
-            var semanticModel = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
             var selectClause = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.SelectClause)).Single() as SelectClauseSyntax;
             var fromClause1 = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => (n.IsKind(SyntaxKind.FromClause)) && (n.ToString().Contains("num1"))).Single() as FromClauseSyntax;
             var fromClause2 = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => (n.IsKind(SyntaxKind.FromClause)) && (n.ToString().Contains("num2"))).Single() as FromClauseSyntax;
 
-            var symbolInfoForSelect = semanticModel.GetSemanticInfoSummary(selectClause);
-            var queryInfoForFrom1 = semanticModel.GetQueryClauseInfo(fromClause1);
-            var queryInfoForFrom2 = semanticModel.GetQueryClauseInfo(fromClause2);
+            CompilationUtils.SemanticInfoSummary symbolInfoForSelect = semanticModel.GetSemanticInfoSummary(selectClause);
+            QueryClauseInfo queryInfoForFrom1 = semanticModel.GetQueryClauseInfo(fromClause1);
+            QueryClauseInfo queryInfoForFrom2 = semanticModel.GetQueryClauseInfo(fromClause2);
 
             Assert.Null(queryInfoForFrom1.CastInfo.Symbol);
             Assert.Null(queryInfoForFrom1.OperationInfo.Symbol);
@@ -2394,14 +2394,14 @@ public class QueryExpressionTest
             select x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
             int count = 0;
             string[] names = { "OrderByDescending", "ThenBy", "ThenByDescending" };
-            foreach (var ordering in tree.GetCompilationUnitRoot().DescendantNodes().OfType<OrderingSyntax>())
+            foreach (OrderingSyntax ordering in tree.GetCompilationUnitRoot().DescendantNodes().OfType<OrderingSyntax>())
             {
-                var symbolInfo = model.GetSemanticInfoSummary(ordering);
+                CompilationUtils.SemanticInfoSummary symbolInfo = model.GetSemanticInfoSummary(ordering);
                 Assert.Equal(names[count++], symbolInfo.Symbol.Name);
             }
             Assert.Equal(3, count);
@@ -2450,12 +2450,12 @@ class Program
                  select num;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
-            var tree = compilation.SyntaxTrees[0];
-            var semanticModel = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
             var selectClause = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.SelectClause)).Single() as SelectClauseSyntax;
-            var symbolInfoForSelect = semanticModel.GetSemanticInfoSummary(selectClause);
+            CompilationUtils.SemanticInfoSummary symbolInfoForSelect = semanticModel.GetSemanticInfoSummary(selectClause);
 
             Assert.Null(symbolInfoForSelect.Symbol);
         }
@@ -2488,9 +2488,9 @@ class Program
                  select num;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
-            var tree = compilation.SyntaxTrees[0];
-            var semanticModel = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
             semanticModel.GetDiagnostics().Verify(
                 // (21,30): error CS1935: Could not find an implementation of the query pattern for source type 'System.Collections.Generic.IEnumerable<int>'.  'Select' not found.  Are you missing a reference to 'System.Core.dll' or a using directive for 'System.Linq'?
@@ -2514,12 +2514,12 @@ class Program
                  select x1 + 5;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
-            var tree = compilation.SyntaxTrees[0];
-            var semanticModel = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
             var selectClause = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.SelectClause)).Single() as SelectClauseSyntax;
-            var symbolInfoForSelect = semanticModel.GetSemanticInfoSummary(selectClause);
+            CompilationUtils.SemanticInfoSummary symbolInfoForSelect = semanticModel.GetSemanticInfoSummary(selectClause);
 
             Assert.Null(symbolInfoForSelect.Symbol);
         }
@@ -2544,17 +2544,17 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics(
                 // (10,30): error CS1936: Could not find an implementation of the query pattern for source type 'int'.  'OrderBy' not found.
                 //         var q1 = from num in numbers.Single()
                 Diagnostic(ErrorCode.ERR_QueryNoProvider, "numbers.Single()").WithArguments("int", "OrderBy")
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
             var orderingClause = tree.GetCompilationUnitRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.AscendingOrdering)).Single() as OrderingSyntax;
-            var symbolInfoForOrdering = semanticModel.GetSemanticInfoSummary(orderingClause);
+            CompilationUtils.SemanticInfoSummary symbolInfoForOrdering = semanticModel.GetSemanticInfoSummary(orderingClause);
 
             Assert.Null(symbolInfoForOrdering.Symbol);
         }
@@ -2629,11 +2629,11 @@ class C<T>
 {
     public C<V> SelectMany";
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
-            var tree = compilation.SyntaxTrees[0];
-            var semanticModel = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var diags = semanticModel.GetDiagnostics();
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diags = semanticModel.GetDiagnostics();
 
             Assert.NotEmpty(diags);
         }
@@ -2657,10 +2657,10 @@ class Program
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
-            var tree = compilation.SyntaxTrees[0];
-            var semanticModel = compilation.GetSemanticModel(tree);
-            var diags = semanticModel.GetDiagnostics();
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diags = semanticModel.GetDiagnostics();
             Assert.NotEmpty(diags);
         }
 
@@ -2683,11 +2683,11 @@ public class QueryExpressionTest
     }
 }";
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode, parseOptions: TestOptions.Script);
-            var tree = compilation.SyntaxTrees[0];
-            var semanticModel = compilation.GetSemanticModel(tree);
-            var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Where(x => x.ToFullString() == "from i in expr1 let ").Single();
-            var symbolInfo = semanticModel.GetSemanticInfoSummary(queryExpr);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode, parseOptions: TestOptions.Script);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
+            QueryExpressionSyntax queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Where(x => x.ToFullString() == "from i in expr1 let ").Single();
+            CompilationUtils.SemanticInfoSummary symbolInfo = semanticModel.GetSemanticInfoSummary(queryExpr);
 
             Assert.Null(symbolInfo.Symbol);
         }
@@ -2709,11 +2709,11 @@ class P
                select x + one;
 }";
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode, parseOptions: TestOptions.Script);
-            var tree = compilation.SyntaxTrees[0];
-            var semanticModel = compilation.GetSemanticModel(tree);
-            var queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Single();
-            var symbolInfo = semanticModel.GetSemanticInfoSummary(queryExpr);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode, parseOptions: TestOptions.Script);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
+            QueryExpressionSyntax queryExpr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<QueryExpressionSyntax>().Single();
+            CompilationUtils.SemanticInfoSummary symbolInfo = semanticModel.GetSemanticInfoSummary(queryExpr);
 
             Assert.Null(symbolInfo.Symbol);
         }
@@ -2863,20 +2863,20 @@ class C
 
     static IEnumerable<T> Select<T>(Func<int, T> f) { return null; }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics();
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "C").Single();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            TypeDeclarationSyntax classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "C").Single();
             dynamic main = (MethodDeclarationSyntax)classC.Members[0];
             QueryExpressionSyntax q = main.Body.Statements[0].Declaration.Variables[0].Initializer.Value;
-            var info0 = model.GetQueryClauseInfo(q.FromClause);
-            var x = model.GetDeclaredSymbol(q.FromClause);
+            QueryClauseInfo info0 = model.GetQueryClauseInfo(q.FromClause);
+            IRangeVariableSymbol x = model.GetDeclaredSymbol(q.FromClause);
             Assert.Equal(SymbolKind.RangeVariable, x.Kind);
             Assert.Equal("x", x.Name);
             Assert.Equal(null, info0.CastInfo.Symbol);
             Assert.Null(info0.OperationInfo.Symbol);
-            var infoSelect = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
+            CompilationUtils.SemanticInfoSummary infoSelect = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
             Assert.Equal("Select", infoSelect.Symbol.Name);
         }
 
@@ -2896,20 +2896,20 @@ class C
 
     static Func<Func<int, object>, IEnumerable<object>> Select = null;
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics();
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "C").Single();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            TypeDeclarationSyntax classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "C").Single();
             dynamic main = (MethodDeclarationSyntax)classC.Members[0];
             QueryExpressionSyntax q = main.Body.Statements[0].Declaration.Variables[0].Initializer.Value;
-            var info0 = model.GetQueryClauseInfo(q.FromClause);
-            var x = model.GetDeclaredSymbol(q.FromClause);
+            QueryClauseInfo info0 = model.GetQueryClauseInfo(q.FromClause);
+            IRangeVariableSymbol x = model.GetDeclaredSymbol(q.FromClause);
             Assert.Equal(SymbolKind.RangeVariable, x.Kind);
             Assert.Equal("x", x.Name);
             Assert.Equal(null, info0.CastInfo.Symbol);
             Assert.Null(info0.OperationInfo.Symbol);
-            var infoSelect = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
+            CompilationUtils.SemanticInfoSummary infoSelect = model.GetSemanticInfoSummary(q.Body.SelectOrGroup);
             Assert.Equal("Select", infoSelect.Symbol.Name);
         }
 
@@ -2941,7 +2941,7 @@ class Program
         var q2 = from x in Flavor select x;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics(
                 // (17,11): warning CS0169: The field 'Program.Color' is never used
                 //     Color Color;
@@ -2984,7 +2984,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -3053,7 +3053,7 @@ public class QueryExpressionTest
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
 
@@ -3076,15 +3076,15 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
-            var tree = compilation.SyntaxTrees.First();
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            SyntaxTree tree = compilation.SyntaxTrees.First();
             var index = source.IndexOf("select i", StringComparison.Ordinal);
             var selectNode = tree.GetCompilationUnitRoot().FindToken(index).Parent as SelectClauseSyntax;
-            var model = compilation.GetSemanticModel(tree);
-            var symbolInfo = model.GetSymbolInfo(selectNode);
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(selectNode);
             Assert.NotNull(symbolInfo);
             Assert.Null(symbolInfo.Symbol); // there is no select method to call because the receiver is bad
-            var typeInfo = model.GetTypeInfo(selectNode);
+            TypeInfo typeInfo = model.GetTypeInfo(selectNode);
             Assert.Equal(SymbolKind.ErrorType, typeInfo.Type.Kind);
         }
 
@@ -3103,12 +3103,12 @@ class Test
 	}
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
-            var tree = compilation.SyntaxTrees.First();
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            SyntaxTree tree = compilation.SyntaxTrees.First();
             var index = source.IndexOf("join int delegate in expr2 on i equals delegate", StringComparison.Ordinal);
             var joinNode = tree.GetCompilationUnitRoot().FindToken(index).Parent as JoinClauseSyntax;
-            var model = compilation.GetSemanticModel(tree);
-            var queryInfo = model.GetQueryClauseInfo(joinNode);
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            QueryClauseInfo queryInfo = model.GetQueryClauseInfo(joinNode);
 
             Assert.NotNull(queryInfo);
         }
@@ -3231,7 +3231,7 @@ class Test
        Expression<Func<int, int, int>> F = (x, y) => ref1.M(x, y);
    }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (22,54): error CS2037: An expression tree lambda may not contain a COM call with ref omitted on arguments
                 //        Expression<Func<int, int, int>> F = (x, y) => ref1.M(x, y);
@@ -3278,7 +3278,7 @@ class Test1
         Test(ref1 => ref1.M(1, ));
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
     // (34,32): error CS1525: Invalid expression term ')'
     //         Test(ref1 => ref1.M(1, ));
@@ -3308,7 +3308,7 @@ class A
                  select t;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
             compilation.VerifyDiagnostics(
                 // (10,48): error CS1061: 'System.Reflection.Assembly' does not contain a definition for 'UNDEFINED' and no extension method 'UNDEFINED' accepting a first argument of type 'System.Reflection.Assembly' could be found (are you missing a using directive or an assembly reference?)
                 //         var q2 = a.SelectMany(assem2 => assem2.UNDEFINED, (assem2, t) => t);
@@ -3317,24 +3317,24 @@ class A
                 //                  from t in assem1.UNDEFINED
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "UNDEFINED").WithArguments("System.Reflection.Assembly", "UNDEFINED")
                 );
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var assem2 =
+            ExpressionSyntax assem2 =
                 tree.GetCompilationUnitRoot().DescendantNodes(n => n.ToString().Contains("assem2"))
                 .Where(e => e.ToString() == "assem2")
                 .OfType<ExpressionSyntax>()
                 .Single();
-            var typeInfo2 = model.GetTypeInfo(assem2);
+            TypeInfo typeInfo2 = model.GetTypeInfo(assem2);
             Assert.NotEqual(TypeKind.Error, typeInfo2.Type.TypeKind);
             Assert.Equal("Assembly", typeInfo2.Type.Name);
 
-            var assem1 =
+            ExpressionSyntax assem1 =
                 tree.GetCompilationUnitRoot().DescendantNodes(n => n.ToString().Contains("assem1"))
                 .Where(e => e.ToString() == "assem1")
                 .OfType<ExpressionSyntax>()
                 .Single();
-            var typeInfo1 = model.GetTypeInfo(assem1);
+            TypeInfo typeInfo1 = model.GetTypeInfo(assem1);
             Assert.NotEqual(TypeKind.Error, typeInfo1.Type.TypeKind);
             Assert.Equal("Assembly", typeInfo1.Type.Name);
         }
@@ -3360,11 +3360,11 @@ class Query
 ";
             var queryStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateCompilation(csSource);
+            CSharpCompilation compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "Query").Single();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            TypeDeclarationSyntax classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "Query").Single();
             var methodM = (MethodDeclarationSyntax)classC.Members[0];
 
             SemanticModel speculativeModel;
@@ -3372,12 +3372,12 @@ class Query
             Assert.True(success);
             var q = (QueryExpressionSyntax)queryStatement.Declaration.Variables[0].Initializer.Value;
 
-            var info0 = speculativeModel.GetQueryClauseInfo(q.FromClause);
+            QueryClauseInfo info0 = speculativeModel.GetQueryClauseInfo(q.FromClause);
             Assert.Equal("Cast", info0.CastInfo.Symbol.Name);
             Assert.Null(info0.OperationInfo.Symbol);
             Assert.Equal("x", speculativeModel.GetDeclaredSymbol(q.FromClause).Name);
 
-            var info1 = speculativeModel.GetQueryClauseInfo(q.Body.Clauses[0]);
+            QueryClauseInfo info1 = speculativeModel.GetQueryClauseInfo(q.Body.Clauses[0]);
             Assert.Equal("Cast", info1.CastInfo.Symbol.Name);
             Assert.Equal("SelectMany", info1.OperationInfo.Symbol.Name);
             Assert.Equal("y", speculativeModel.GetDeclaredSymbol(q.Body.Clauses[0]).Name);
@@ -3404,11 +3404,11 @@ class Query
 
             var queryStatement = (LocalDeclarationStatementSyntax)SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateCompilation(csSource);
+            CSharpCompilation compilation = CreateCompilation(csSource);
             compilation.VerifyDiagnostics();
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "Query").Single();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            TypeDeclarationSyntax classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "Query").Single();
             var methodM = (MethodDeclarationSyntax)classC.Members[0];
 
             SemanticModel speculativeModel;
@@ -3416,18 +3416,18 @@ class Query
             Assert.True(success);
             var q = (QueryExpressionSyntax)queryStatement.Declaration.Variables[0].Initializer.Value;
 
-            var x = speculativeModel.GetDeclaredSymbol(q.FromClause);
+            IRangeVariableSymbol x = speculativeModel.GetDeclaredSymbol(q.FromClause);
             Assert.Equal(SymbolKind.RangeVariable, x.Kind);
             Assert.Equal("x", x.Name);
 
-            var selectExpression = (q.Body.SelectOrGroup as SelectClauseSyntax).Expression;
+            ExpressionSyntax selectExpression = (q.Body.SelectOrGroup as SelectClauseSyntax).Expression;
             Assert.Equal(x, speculativeModel.GetSemanticInfoSummary(selectExpression).Symbol);
 
-            var selectClauseSymbolInfo = speculativeModel.GetSymbolInfo(q.Body.SelectOrGroup);
+            SymbolInfo selectClauseSymbolInfo = speculativeModel.GetSymbolInfo(q.Body.SelectOrGroup);
             Assert.NotNull(selectClauseSymbolInfo.Symbol);
             Assert.Equal("Select", selectClauseSymbolInfo.Symbol.Name);
 
-            var selectClauseTypeInfo = speculativeModel.GetTypeInfo(q.Body.SelectOrGroup);
+            TypeInfo selectClauseTypeInfo = speculativeModel.GetTypeInfo(q.Body.SelectOrGroup);
             Assert.NotNull(selectClauseTypeInfo.Type);
             Assert.Equal("List1", selectClauseTypeInfo.Type.Name);
         }
@@ -3449,13 +3449,13 @@ public class Test
                             select x8;
 ";
 
-            var queryStatement = SyntaxFactory.ParseStatement(speculatedSource);
+            StatementSyntax queryStatement = SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics();
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "Test").Single();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            TypeDeclarationSyntax classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "Test").Single();
             var methodM = (MethodDeclarationSyntax)classC.Members[0];
 
             SemanticModel speculativeModel;
@@ -3463,7 +3463,7 @@ public class Test
 
             var queryExpression = (QueryExpressionSyntax)((LocalDeclarationStatementSyntax)queryStatement).Declaration.Variables[0].Initializer.Value;
             JoinIntoClauseSyntax joinInto = ((JoinClauseSyntax)queryExpression.Body.Clauses[0]).Into;
-            var symbol = speculativeModel.GetDeclaredSymbol(joinInto);
+            IRangeVariableSymbol symbol = speculativeModel.GetDeclaredSymbol(joinInto);
 
             Assert.NotNull(symbol);
             Assert.Equal("x8", symbol.Name);
@@ -3488,13 +3488,13 @@ public class Test2
                          select w;
 ";
 
-            var queryStatement = SyntaxFactory.ParseStatement(speculatedSource);
+            StatementSyntax queryStatement = SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics();
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "Test2").Single();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            TypeDeclarationSyntax classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "Test2").Single();
             var methodM = (MethodDeclarationSyntax)classC.Members[0];
 
             SemanticModel speculativeModel;
@@ -3502,8 +3502,8 @@ public class Test2
             Assert.True(success);
 
             var queryExpression = (QueryExpressionSyntax)((LocalDeclarationStatementSyntax)queryStatement).Declaration.Variables[0].Initializer.Value;
-            var queryContinuation = queryExpression.Body.Continuation;
-            var symbol = speculativeModel.GetDeclaredSymbol(queryContinuation);
+            QueryContinuationSyntax queryContinuation = queryExpression.Body.Continuation;
+            IRangeVariableSymbol symbol = speculativeModel.GetDeclaredSymbol(queryContinuation);
 
             Assert.NotNull(symbol);
             Assert.Equal("w", symbol.Name);
@@ -3532,17 +3532,17 @@ public class QueryExpressionTest
             select x;
 ";
 
-            var queryStatement = SyntaxFactory.ParseStatement(speculatedSource);
+            StatementSyntax queryStatement = SyntaxFactory.ParseStatement(speculatedSource);
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
             compilation.VerifyDiagnostics(
                 // (2,1): info CS8019: Unnecessary using directive.
                 // using System.Linq; // Needed for speculative code.
                 Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using System.Linq;"));
 
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "QueryExpressionTest").Single();
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            TypeDeclarationSyntax classC = tree.GetCompilationUnitRoot().ChildNodes().OfType<TypeDeclarationSyntax>().Where(t => t.Identifier.ValueText == "QueryExpressionTest").Single();
             var methodM = (MethodDeclarationSyntax)classC.Members[0];
 
             SemanticModel speculativeModel;
@@ -3551,9 +3551,9 @@ public class QueryExpressionTest
 
             int count = 0;
             string[] names = { "OrderByDescending", "ThenBy", "ThenByDescending" };
-            foreach (var ordering in queryStatement.DescendantNodes().OfType<OrderingSyntax>())
+            foreach (OrderingSyntax ordering in queryStatement.DescendantNodes().OfType<OrderingSyntax>())
             {
-                var symbolInfo = speculativeModel.GetSemanticInfoSummary(ordering);
+                CompilationUtils.SemanticInfoSummary symbolInfo = speculativeModel.GetSemanticInfoSummary(ordering);
                 Assert.Equal(names[count++], symbolInfo.Symbol.Name);
             }
             Assert.Equal(3, count);
@@ -3707,7 +3707,7 @@ public static class TestExtensions
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
                 
             compilation.VerifyDiagnostics(
                 // (6,34): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Select' not found.
@@ -3746,7 +3746,7 @@ static class TestExtensions
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
 
             compilation.VerifyDiagnostics(
                 // (7,34): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Where' not found.
@@ -3789,7 +3789,7 @@ static class TestExtensions
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode);
 
             compilation.VerifyDiagnostics(
                 // (6,34): error CS1936: Could not find an implementation of the query pattern for source type 'Test'.  'Select' not found.
@@ -3823,7 +3823,7 @@ class Test
         return null;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(sourceCode, options: TestOptions.DebugExe);
 
             CompileAndVerify(compilation, expectedOutput: "Select");
         }
@@ -4223,7 +4223,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4275,7 +4275,7 @@ ITranslatedQueryOperation (OperationKind.TranslatedQuery, Type: System.Collectio
             InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
             OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<QueryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4300,7 +4300,7 @@ class Query
             string expectedOperationTree = @"
 IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<IdentifierNameSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4328,7 +4328,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(code);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(code);
             comp.VerifyDiagnostics(
                 // (10,22): error CS0120: An object reference is required for the non-static field, method, or property 'Enumerable.Cast<object>(IEnumerable)'
                 //         var query1 = from object a in IEnumerable select 1;

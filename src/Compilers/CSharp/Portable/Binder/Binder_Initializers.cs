@@ -144,8 +144,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 for (int j = 0; j < siblingInitializers.Length; j++)
                 {
-                    var initializer = siblingInitializers[j];
-                    var fieldSymbol = initializer.FieldOpt;
+                    FieldOrPropertyInitializer initializer = siblingInitializers[j];
+                    FieldSymbol fieldSymbol = initializer.FieldOpt;
 
                     if ((object)fieldSymbol != null && fieldSymbol.IsConst)
                     {
@@ -153,12 +153,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var syntaxRef = initializer.Syntax;
-                    var syntaxTree = syntaxRef.SyntaxTree;
+                    SyntaxReference syntaxRef = initializer.Syntax;
+                    SyntaxTree syntaxTree = syntaxRef.SyntaxTree;
                     Debug.Assert(syntaxTree.Options.Kind != SourceCodeKind.Regular);
 
                     var syntax = (CSharpSyntaxNode)syntaxRef.GetSyntax();
-                    var syntaxRoot = syntaxTree.GetCompilationUnitRoot();
+                    CompilationUnitSyntax syntaxRoot = syntaxTree.GetCompilationUnitRoot();
 
                     if (binderFactory == null)
                     {
@@ -210,18 +210,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool isLast)
         {
-            var statement = binder.BindStatement(statementNode, diagnostics);
+            BoundStatement statement = binder.BindStatement(statementNode, diagnostics);
             if (isLast && !statement.HasAnyErrors)
             {
                 // the result of the last global expression is assigned to the result storage for submission result:
                 if (binder.Compilation.IsSubmission)
                 {
                     // insert an implicit conversion for the submission return type (if needed):
-                    var expression = InitializerRewriter.GetTrailingScriptExpression(statement);
+                    BoundExpression expression = InitializerRewriter.GetTrailingScriptExpression(statement);
                     if (expression != null &&
                         ((object)expression.Type == null || expression.Type.SpecialType != SpecialType.System_Void))
                     {
-                        var submissionResultType = scriptInitializer.ResultType;
+                        TypeSymbol submissionResultType = scriptInitializer.ResultType;
                         expression = binder.GenerateConversionForAssignment(submissionResultType, expression, diagnostics);
                         statement = new BoundExpressionStatement(statement.Syntax, expression, expression.HasErrors);
                     }
@@ -230,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // don't allow trailing expressions after labels (as in regular C#, labels must be followed by a statement):
                 if (statement.Kind == BoundKind.LabeledStatement)
                 {
-                    var labeledStatementBody = ((BoundLabeledStatement)statement).Body;
+                    BoundStatement labeledStatementBody = ((BoundLabeledStatement)statement).Body;
                     while (labeledStatementBody.Kind == BoundKind.LabeledStatement)
                     {
                         labeledStatementBody = ((BoundLabeledStatement)labeledStatementBody).Body;
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!fieldSymbol.IsMetadataConstant);
 
-            var fieldsBeingBound = binder.FieldsBeingBound;
+            Roslyn.Utilities.ConsList<FieldSymbol> fieldsBeingBound = binder.FieldsBeingBound;
 
             var sourceField = fieldSymbol as SourceMemberFieldSymbolFromDeclarator;
             bool isImplicitlyTypedField = (object)sourceField != null && sourceField.FieldTypeInferred(fieldsBeingBound);

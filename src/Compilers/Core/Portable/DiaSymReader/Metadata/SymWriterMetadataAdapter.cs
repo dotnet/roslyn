@@ -38,7 +38,7 @@ namespace Microsoft.DiaSymReader
         {
             Debug.Assert(baseType == null);
 
-            if (!_metadataProvider.TryGetTypeDefinitionInfo(typeDef, out var namespaceName, out var typeName, out var attrib))
+            if (!_metadataProvider.TryGetTypeDefinitionInfo(typeDef, out var namespaceName, out var typeName, out TypeAttributes attrib))
             {
                 return HResult.E_INVALIDARG;
             }

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
             }
 
 
-            foreach (var member in container.GetMembers().OrderBy(m => m.Name, System.StringComparer.InvariantCulture))
+            foreach (Symbol member in container.GetMembers().OrderBy(m => m.Name, System.StringComparer.InvariantCulture))
             {
                 switch (member.Kind)
                 {
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
 
         private static void AppendCustomAttributes(StringBuilder result, Symbol symbol, string indent, bool inBlock)
         {
-            var attributes = symbol.GetAttributes();
+            System.Collections.Immutable.ImmutableArray<CSharpAttributeData> attributes = symbol.GetAttributes();
             if (attributes.Length == 0)
             {
                 return;
@@ -228,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
 
             string memberIndent = indent + "  ";
 
-            foreach (var attribute in attributes)
+            foreach (CSharpAttributeData attribute in attributes)
             {
                 result.Append(memberIndent);
                 result.Append(".custom ");
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                 result.Append(" = (");
 
                 int i = 0;
-                foreach (var arg in attribute.ConstructorArguments)
+                foreach (TypedConstant arg in attribute.ConstructorArguments)
                 {
                     if (i > 0)
                     {
@@ -257,7 +257,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                     i++;
                 }
 
-                foreach (var arg in attribute.NamedArguments)
+                foreach (KeyValuePair<string, TypedConstant> arg in attribute.NamedArguments)
                 {
                     if (i > 0)
                     {
@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                     result.Append("{");
                     int i = 0;
 
-                    foreach (var item in constant.Values)
+                    foreach (TypedConstant item in constant.Values)
                     {
                         if (i > 0)
                         {
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
 
         private void AppendAssemblyRefs(StringBuilder result, PEAssemblySymbol assembly)
         {
-            foreach (var a in assembly.PrimaryModule.GetReferencedAssemblies())
+            foreach (AssemblyIdentity a in assembly.PrimaryModule.GetReferencedAssemblies())
             {
                 result.Append(".assembly extern ");
                 result.AppendLine(a.GetDisplayName(fullKey: true));
@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
                 references = references.Concat(additionalRefs);
             }
 
-            var comp = CreateEmptyCompilation("", references, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
+            CSharpCompilation comp = CreateEmptyCompilation("", references, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All));
 
             var writer = new StringBuilder();
             AppendAssemblyRefs(writer, (PEAssemblySymbol)comp.GetReferencedAssemblySymbol(winmd));
@@ -469,7 +469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata
         [Fact]
         public void DumpWinMDPrefixing()
         {
-            var winmd = MetadataReference.CreateFromImage(TestResources.WinRt.WinMDPrefixing.AsImmutableOrNull());
+            PortableExecutableReference winmd = MetadataReference.CreateFromImage(TestResources.WinRt.WinMDPrefixing.AsImmutableOrNull());
             var actual = Dump(winmd, new[] { _windowsRef });
             var expected = Encoding.UTF8.GetString(TestResources.WinRt.WinMDPrefixing_dump);
             AssertDumpsEqual(expected, actual);

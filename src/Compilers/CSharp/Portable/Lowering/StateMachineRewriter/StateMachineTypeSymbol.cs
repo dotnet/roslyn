@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // return a unique sequence number for the async implementation class that is independent of the compilation state.
             int count = 0;
-            foreach (var m in kickoffMethod.ContainingType.GetMembers(kickoffMethod.Name))
+            foreach (Symbol m in kickoffMethod.ContainingType.GetMembers(kickoffMethod.Name))
             {
                 count++;
                 if ((object)kickoffMethod == m)
@@ -70,8 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ArrayBuilder<CSharpAttributeData> builder = null;
 
                 // Inherit some attributes from the container of the kickoff method
-                var kickoffType = KickoffMethod.ContainingType;
-                foreach (var attribute in kickoffType.GetAttributes())
+                NamedTypeSymbol kickoffType = KickoffMethod.ContainingType;
+                foreach (CSharpAttributeData attribute in kickoffType.GetAttributes())
                 {
                     if (attribute.IsTargetAttribute(kickoffType, AttributeDescription.DebuggerNonUserCodeAttribute) ||
                         attribute.IsTargetAttribute(kickoffType, AttributeDescription.DebuggerStepThroughAttribute))

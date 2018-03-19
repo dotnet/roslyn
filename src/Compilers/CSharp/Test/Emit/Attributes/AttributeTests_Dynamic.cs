@@ -96,7 +96,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
         [Fact]
         public void TestCompileDynamicAttributes()
         {
-            var comp = CreateCompilationWithMscorlib40(s_dynamicTestSource, options: TestOptions.UnsafeReleaseDll, references: new[] { SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(s_dynamicTestSource, options: TestOptions.UnsafeReleaseDll, references: new[] { SystemCoreRef, ValueTupleRef, SystemRuntimeFacadeRef });
 
             CompileAndVerify(comp, verify: Verification.Passes, symbolValidator: module =>
             {
@@ -119,7 +119,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
             private DynamicAttributeValidator(ModuleSymbol module)
             {
                 _module = module;
-                var globalNamespace = module.GlobalNamespace;
+                NamespaceSymbol globalNamespace = module.GlobalNamespace;
 
                 _base0Class = globalNamespace.GetMember<NamedTypeSymbol>("Base0");
                 _base1Class = globalNamespace.GetMember<NamedTypeSymbol>("Base1");
@@ -212,101 +212,101 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 bool[] expectedTransformFlags;
 
                 //public static dynamic field1;
-                var field1 = _derivedClass.GetMember<FieldSymbol>("field1");
+                FieldSymbol field1 = _derivedClass.GetMember<FieldSymbol>("field1");
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = ( 01 00 00 00 ) 
                 ValidateDynamicAttribute(field1.GetAttributes(), expectedDynamicAttribute: true);
 
                 //public static dynamic[] field2;
-                var field2 = _derivedClass.GetMember<FieldSymbol>("field2");
+                FieldSymbol field2 = _derivedClass.GetMember<FieldSymbol>("field2");
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 * 00 01 * 00 00 ) 
                 expectedTransformFlags = new bool[] { false, true };
                 ValidateDynamicAttribute(field2.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformFlags);
 
                 //public static dynamic[][] field3;
-                var field3 = _derivedClass.GetMember<FieldSymbol>("field3");
+                FieldSymbol field3 = _derivedClass.GetMember<FieldSymbol>("field3");
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 03 00 00 00 * 00 00 01 * 00 00 ) 
                 expectedTransformFlags = new bool[] { false, false, true };
                 ValidateDynamicAttribute(field3.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformFlags);
 
                 //public const dynamic field4 = null;
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = ( 01 00 00 00 ) 
-                var field4 = _derivedClass.GetMember<FieldSymbol>("field4");
+                FieldSymbol field4 = _derivedClass.GetMember<FieldSymbol>("field4");
                 ValidateDynamicAttribute(field4.GetAttributes(), expectedDynamicAttribute: true);
 
                 //public const dynamic[] field5 = null;
-                var field5 = _derivedClass.GetMember<FieldSymbol>("field5");
+                FieldSymbol field5 = _derivedClass.GetMember<FieldSymbol>("field5");
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 * 00 01 * 00 00 ) 
                 expectedTransformFlags = new bool[] { false, true };
                 ValidateDynamicAttribute(field5.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformFlags);
 
                 //public const dynamic[][] field6 = null;
-                var field6 = _derivedClass.GetMember<FieldSymbol>("field6");
+                FieldSymbol field6 = _derivedClass.GetMember<FieldSymbol>("field6");
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 03 00 00 00 * 00 00 01 * 00 00 ) 
                 expectedTransformFlags = new bool[] { false, false, true };
                 ValidateDynamicAttribute(field6.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformFlags);
 
                 //public const dynamic[][] field7 = null;
-                var field7 = _derivedClass.GetMember<FieldSymbol>("field7");
+                FieldSymbol field7 = _derivedClass.GetMember<FieldSymbol>("field7");
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 03 00 00 00 * 00 00 01 * 00 00 ) 
                 expectedTransformFlags = new bool[] { false, false, true };
                 ValidateDynamicAttribute(field7.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformFlags);
 
                 //public Outer<T>.Inner<int, T>.InnerInner<Outer<dynamic>> field8 = null;
-                var field8 = _derivedClass.GetMember<FieldSymbol>("field8");
+                FieldSymbol field8 = _derivedClass.GetMember<FieldSymbol>("field8");
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 06 00 00 00 * 00 00 00 00 00 01 * 00 00 ) 
                 expectedTransformFlags = new bool[] { false, false, false, false, false, true };
                 ValidateDynamicAttribute(field8.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformFlags);
 
                 //public Outer<dynamic>.Inner<T, T>.InnerInner<T> field9 = null;
-                var field9 = _derivedClass.GetMember<FieldSymbol>("field9");
+                FieldSymbol field9 = _derivedClass.GetMember<FieldSymbol>("field9");
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 05 00 00 00 * 00 01 00 00 00 * 00 00 ) 
                 expectedTransformFlags = new bool[] { false, true, false, false, false };
                 ValidateDynamicAttribute(field9.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformFlags);
 
                 //public Outer<Outer<dynamic>.Inner<T, dynamic>>.Inner<dynamic, T>.InnerInner<T> field10 = null;
-                var field10 = _derivedClass.GetMember<FieldSymbol>("field10");
+                FieldSymbol field10 = _derivedClass.GetMember<FieldSymbol>("field10");
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 08 00 00 00 * 00 00 01 00 01 01 00 00 * 00 00 ) 
                 expectedTransformFlags = new bool[] { false, false, true, false, true, true, false, false };
                 ValidateDynamicAttribute(field10.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformFlags);
 
                 //public Outer<T>.Inner<dynamic, dynamic>.InnerInner<T> field11 = null;
-                var field11 = _derivedClass.GetMember<FieldSymbol>("field11");
+                FieldSymbol field11 = _derivedClass.GetMember<FieldSymbol>("field11");
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 05 00 00 00 * 00 00 01 01 00 * 00 00 ) 
                 expectedTransformFlags = new bool[] { false, false, true, true, false };
                 ValidateDynamicAttribute(field11.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformFlags);
 
                 //public Outer<T>.Inner<T, T>.InnerInner<Outer<dynamic>.Inner<T, dynamic>.InnerInner<int>> field12 = null;
-                var field12 = _derivedClass.GetMember<FieldSymbol>("field12");
+                FieldSymbol field12 = _derivedClass.GetMember<FieldSymbol>("field12");
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 09 00 00 00 * 00 00 00 00 00 01 00 01 00 * 00 00 ) 
                 expectedTransformFlags = new bool[] { false, false, false, false, false, true, false, true, false };
                 ValidateDynamicAttribute(field12.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformFlags);
 
                 //public Outer<dynamic>.Inner<Outer<T>, T>.InnerInner<dynamic> field13 = null;
-                var field13 = _derivedClass.GetMember<FieldSymbol>("field13");
+                FieldSymbol field13 = _derivedClass.GetMember<FieldSymbol>("field13");
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 06 00 00 00 * 00 01 00 00 00 01 * 00 00 ) 
                 expectedTransformFlags = new bool[] { false, true, false, false, false, true };
                 ValidateDynamicAttribute(field13.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformFlags);
 
                 //public Outer<dynamic>.Inner<dynamic, dynamic>.InnerInner<dynamic> field14 = null;
-                var field14 = _derivedClass.GetMember<FieldSymbol>("field14");
+                FieldSymbol field14 = _derivedClass.GetMember<FieldSymbol>("field14");
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 05 00 00 00 * 00 01 01 01 01 * 00 00 ) 
                 expectedTransformFlags = new bool[] { false, true, true, true, true };
                 ValidateDynamicAttribute(field14.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformFlags);
 
                 //public Outer<dynamic>.Inner<Outer<dynamic>, T>.InnerInner<dynamic>[] field15 = null;
-                var field15 = _derivedClass.GetMember<FieldSymbol>("field15");
+                FieldSymbol field15 = _derivedClass.GetMember<FieldSymbol>("field15");
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 07 00 00 00 * 00 00 01 00 01 00 01 * 00 00 ) 
                 expectedTransformFlags = new bool[] { false, false, true, false, true, false, true };
                 ValidateDynamicAttribute(field15.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformFlags);
 
                 //public Outer<dynamic>.Inner<Outer<dynamic>.Inner<T, dynamic>.InnerInner<int>, dynamic[]>.InnerInner<dynamic>[][] field16 = null;
-                var field16 = _derivedClass.GetMember<FieldSymbol>("field16");
+                FieldSymbol field16 = _derivedClass.GetMember<FieldSymbol>("field16");
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 0C 00 00 00 * 00 00 00 01 00 01 00 01 00 00 01 01 * 00 00 ) 
                 expectedTransformFlags = new bool[] { false, false, false, true, false, true, false, true, false, false, true, true };
                 ValidateDynamicAttribute(field16.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformFlags);
 
                 //public static Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] field17 = null;
-                var field17 = _derivedClass.GetMember<FieldSymbol>("field17");
+                FieldSymbol field17 = _derivedClass.GetMember<FieldSymbol>("field17");
                 //   .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 0D 00 00 00 * 00 00 00 01 00 00 01 00 00 01 00 01 01 * 00 00 ) 
                 expectedTransformFlags = new bool[] { false, false, false, true, false, false, true, false, false, true, false, true, true };
                 ValidateDynamicAttribute(field17.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformFlags);
@@ -321,7 +321,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
             private void ValidateAttributesOnMethodReturnValueAndParameters()
             {
                 //public static dynamic F1(dynamic x) { return x; }
-                var f1 = _derivedClass.GetMember<MethodSymbol>("F1");
+                MethodSymbol f1 = _derivedClass.GetMember<MethodSymbol>("F1");
                 ValidateDynamicAttribute(f1.GetAttributes(), expectedDynamicAttribute: false);
                 //.param [0]
                 //.custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = ( 01 00 00 00 ) 
@@ -331,7 +331,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 ValidateDynamicAttribute(f1.Parameters[0].GetAttributes(), expectedDynamicAttribute: true);
 
                 //public static dynamic F2(ref dynamic x) { return x; }
-                var f2 = _derivedClass.GetMember<MethodSymbol>("F2");
+                MethodSymbol f2 = _derivedClass.GetMember<MethodSymbol>("F2");
                 ValidateDynamicAttribute(f2.GetAttributes(), expectedDynamicAttribute: false);
                 //.param [0]
                 //.custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = ( 01 00 00 00 ) 
@@ -342,7 +342,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 ValidateDynamicAttribute(f2.Parameters[0].GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: _expectedTransformFlags);
 
                 //public static dynamic[] F3(dynamic[] x) { return x; }
-                var f3 = _derivedClass.GetMember<MethodSymbol>("F3");
+                MethodSymbol f3 = _derivedClass.GetMember<MethodSymbol>("F3");
                 ValidateDynamicAttribute(f3.GetAttributes(), expectedDynamicAttribute: false);
                 //.param [0]
                 //.custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 * 00 01 * 00 00 ) 
@@ -352,7 +352,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 ValidateDynamicAttribute(f3.Parameters[0].GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: _expectedTransformFlags);
 
                 //public static Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] F4(Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] x) { return x; }
-                var f4 = _derivedClass.GetMember<MethodSymbol>("F4");
+                MethodSymbol f4 = _derivedClass.GetMember<MethodSymbol>("F4");
                 ValidateDynamicAttribute(f4.GetAttributes(), expectedDynamicAttribute: false);
                 //.param [0]
                 //.custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 0D 00 00 00 * 00 00 00 01 00 00 01 00 00 01 00 01 01 * 00 00 ) 
@@ -363,7 +363,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 ValidateDynamicAttribute(f4.Parameters[0].GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: _expectedTransformFlags);
 
                 //public static (dynamic, object, dynamic) F5((dynamic, object, dynamic) x) { return x; }
-                var f5 = _derivedClass.GetMember<MethodSymbol>("F5");
+                MethodSymbol f5 = _derivedClass.GetMember<MethodSymbol>("F5");
                 ValidateDynamicAttribute(f5.GetAttributes(), expectedDynamicAttribute: false);
                 //.param [0]
                 //.custom instance void[System.Core] System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 03 00 00 00 00 01 01 00 00 )
@@ -377,7 +377,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
             private void ValidateAttributesOnProperty()
             {
                 //public static dynamic Prop1 { get { return field1; } }
-                var prop1 = _derivedClass.GetMember<PropertySymbol>("Prop1");
+                PropertySymbol prop1 = _derivedClass.GetMember<PropertySymbol>("Prop1");
                 //.custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = ( 01 00 00 00 ) 
                 ValidateDynamicAttribute(prop1.GetAttributes(), expectedDynamicAttribute: true);
 
@@ -387,7 +387,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 ValidateDynamicAttribute(prop1.GetMethod.GetReturnTypeAttributes(), expectedDynamicAttribute: true);
 
                 //public static Outer<dynamic>.Inner<Outer<dynamic>.Inner<T[], dynamic>.InnerInner<int>[], dynamic>.InnerInner<dynamic>[][] Prop2 { get { return field17; } set { field17 = value; } }
-                var prop2 = _derivedClass.GetMember<PropertySymbol>("Prop2");
+                PropertySymbol prop2 = _derivedClass.GetMember<PropertySymbol>("Prop2");
                 //.custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 0D 00 00 00 * 00 00 00 01 00 00 01 00 00 01 00 01 01 * 00 00 ) 
                 _expectedTransformFlags = new bool[] { false, false, false, true, false, false, true, false, false, true, false, true, true };
                 ValidateDynamicAttribute(prop2.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: _expectedTransformFlags);
@@ -406,7 +406,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
             private void ValidateAttributesOnIndexer()
             {
                 // public dynamic this[dynamic param]
-                var indexer = _derivedClass.GetIndexer<PropertySymbol>("Item");
+                PropertySymbol indexer = _derivedClass.GetIndexer<PropertySymbol>("Item");
                 //.custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor() = ( 01 00 00 00 ) 
                 ValidateDynamicAttribute(indexer.GetAttributes(), expectedDynamicAttribute: true);
 
@@ -441,7 +441,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
             private void ValidateAttributesForNullableType()
             {
                 // public static Outer<dynamic>.Inner<dynamic, Struct?> nullableField;
-                var nullableField = _structType.GetMember<FieldSymbol>("nullableField");
+                FieldSymbol nullableField = _structType.GetMember<FieldSymbol>("nullableField");
                 // .custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 05 00 00 00 * 00 01 01 00 00 * 00 00 ) 
                 _expectedTransformFlags = new bool[] { false, true, true, false, false };
                 ValidateDynamicAttribute(nullableField.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: _expectedTransformFlags);
@@ -462,10 +462,10 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 // .method public hidebysig specialname rtspecialname 
                 //  instance void  .ctor(object 'object',
                 //                    native int 'method') runtime managed
-                var ctor = _synthesizedMyDelegateType.InstanceConstructors[0];
+                MethodSymbol ctor = _synthesizedMyDelegateType.InstanceConstructors[0];
                 ValidateDynamicAttribute(ctor.GetAttributes(), expectedDynamicAttribute: false);
                 ValidateDynamicAttribute(ctor.GetReturnTypeAttributes(), expectedDynamicAttribute: false);
-                foreach (var param in ctor.Parameters)
+                foreach (ParameterSymbol param in ctor.Parameters)
                 {
                     ValidateDynamicAttribute(param.GetAttributes(), expectedDynamicAttribute: false);
                 }
@@ -474,7 +474,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 // 
                 //  .method public hidebysig newslot virtual 
                 //      instance object[]  Invoke(object[] x) runtime managed
-                var invokeMethod = _synthesizedMyDelegateType.GetMember<MethodSymbol>("Invoke");
+                MethodSymbol invokeMethod = _synthesizedMyDelegateType.GetMember<MethodSymbol>("Invoke");
                 ValidateDynamicAttribute(invokeMethod.GetAttributes(), expectedDynamicAttribute: false);
                 //.param [0]
                 //.custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 * 00 01 * 00 00 ) 
@@ -490,12 +490,12 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 //  BeginInvoke(object[] x,
                 //      class [mscorlib]System.AsyncCallback callback,
                 //      object 'object') runtime managed
-                var beginInvokeMethod = _synthesizedMyDelegateType.GetMember<MethodSymbol>("BeginInvoke");
+                MethodSymbol beginInvokeMethod = _synthesizedMyDelegateType.GetMember<MethodSymbol>("BeginInvoke");
                 ValidateDynamicAttribute(beginInvokeMethod.GetAttributes(), expectedDynamicAttribute: false);
                 ValidateDynamicAttribute(beginInvokeMethod.GetReturnTypeAttributes(), expectedDynamicAttribute: false);
                 //.param [1]
                 //.custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 * 00 01 * 00 00 ) 
-                var parameters = beginInvokeMethod.Parameters;
+                ImmutableArray<ParameterSymbol> parameters = beginInvokeMethod.Parameters;
                 ValidateDynamicAttribute(parameters[0].GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformFlags);
                 ValidateDynamicAttribute(parameters[1].GetAttributes(), expectedDynamicAttribute: false);
                 ValidateDynamicAttribute(parameters[2].GetAttributes(), expectedDynamicAttribute: false);
@@ -504,7 +504,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 //
                 // .method public hidebysig newslot virtual 
                 // instance object[]  EndInvoke(class [mscorlib]System.IAsyncResult result) runtime managed
-                var endInvokeMethod = _synthesizedMyDelegateType.GetMember<MethodSymbol>("EndInvoke");
+                MethodSymbol endInvokeMethod = _synthesizedMyDelegateType.GetMember<MethodSymbol>("EndInvoke");
                 ValidateDynamicAttribute(endInvokeMethod.GetAttributes(), expectedDynamicAttribute: false);
                 //.param [0]
                 //.custom instance void [System.Core]System.Runtime.CompilerServices.DynamicAttribute::.ctor(bool[]) = ( 01 00 02 00 00 00 * 00 01 * 00 00 ) 
@@ -514,7 +514,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
 
             public static void ValidateDynamicAttribute(ImmutableArray<CSharpAttributeData> attributes, bool expectedDynamicAttribute, bool[] expectedTransformFlags = null)
             {
-                var synthesizedDynamicAttributes = attributes.Where((attr) => string.Equals(attr.AttributeClass.Name, "DynamicAttribute", StringComparison.Ordinal));
+                System.Collections.Generic.IEnumerable<CSharpAttributeData> synthesizedDynamicAttributes = attributes.Where((attr) => string.Equals(attr.AttributeClass.Name, "DynamicAttribute", StringComparison.Ordinal));
 
                 if (!expectedDynamicAttribute)
                 {
@@ -522,7 +522,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
                 }
                 else
                 {
-                    var dynamicAttribute = synthesizedDynamicAttributes.Single();
+                    CSharpAttributeData dynamicAttribute = synthesizedDynamicAttributes.Single();
 
                     if (expectedTransformFlags == null)
                     {
@@ -555,7 +555,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
         [Fact]
         public void CS1980ERR_DynamicAttributeMissing()
         {
-            var comp = CreateCompilationWithMscorlib46(s_dynamicTestSource, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(s_dynamicTestSource, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,31): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // public class Outer<T> : Base1<dynamic>
@@ -812,7 +812,7 @@ public delegate dynamic[] MyDelegate(dynamic[] x);
             string source = @"
 dynamic x = 0;
 ";
-            var comp = CreateCompilationWithMscorlib45(
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(
                 source: source,
                 parseOptions: TestOptions.Script,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
@@ -820,7 +820,7 @@ dynamic x = 0;
 
             CompileAndVerify(comp, symbolValidator: module =>
             {
-                var implicitField = module.GlobalNamespace.GetTypeMember("Script").GetMember<FieldSymbol>("x");
+                FieldSymbol implicitField = module.GlobalNamespace.GetTypeMember("Script").GetMember<FieldSymbol>("x");
                 DynamicAttributeValidator.ValidateDynamicAttribute(implicitField.GetAttributes(), expectedDynamicAttribute: true);
             });
         }
@@ -844,7 +844,7 @@ dynamic x = 0;
             var source = GetNoCS1980String(typeName: @"Gen<dynamic>") + @"
 Gen<dynamic> x = null;";
 
-            var comp = CreateCompilationWithMscorlib45(
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(
                 source: source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 parseOptions: TestOptions.Script,
@@ -852,7 +852,7 @@ Gen<dynamic> x = null;";
 
             CompileAndVerify(comp, symbolValidator: module =>
             {
-                var implicitField = module.GlobalNamespace.GetTypeMember("Script").GetMember<FieldSymbol>("x");
+                FieldSymbol implicitField = module.GlobalNamespace.GetTypeMember("Script").GetMember<FieldSymbol>("x");
                 var expectedTransformsFlags = new bool[] { false, true };
                 DynamicAttributeValidator.ValidateDynamicAttribute(implicitField.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformsFlags);
             });
@@ -864,7 +864,7 @@ Gen<dynamic> x = null;";
             var source = GetNoCS1980String(typeName: "Gen<dynamic>") + @"
 Gen<dynamic> x = null;";
 
-            var comp = CreateCompilationWithMscorlib45(source: source, parseOptions: TestOptions.Script).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(source: source, parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (20,5): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // Gen<dynamic> x = null;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "dynamic").WithArguments("System.Runtime.CompilerServices.DynamicAttribute"));
@@ -878,7 +878,7 @@ Gen<dynamic> x = null;";
                 + GetNoCS1980String(typeName: @"Gen<dynamic>")
                 + "X x = null;";
 
-            var comp = CreateCompilationWithMscorlib45(
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(
                 source: source,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All),
                 parseOptions: TestOptions.Script,
@@ -886,7 +886,7 @@ Gen<dynamic> x = null;";
 
             CompileAndVerify(comp, symbolValidator: module =>
             {
-                var implicitField = module.GlobalNamespace.GetTypeMember("Script").GetMember<FieldSymbol>("x");
+                FieldSymbol implicitField = module.GlobalNamespace.GetTypeMember("Script").GetMember<FieldSymbol>("x");
                 var expectedTransformsFlags = new bool[] { false, true };
                 DynamicAttributeValidator.ValidateDynamicAttribute(implicitField.GetAttributes(), expectedDynamicAttribute: true, expectedTransformFlags: expectedTransformsFlags);
             });
@@ -900,7 +900,7 @@ Gen<dynamic> x = null;";
                 + GetNoCS1980String(typeName: @"Gen<dynamic>")
                 + "X x = null;";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script).VerifyDiagnostics(
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Script).VerifyDiagnostics(
                 // (20,1): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 // X x = null;
                 Diagnostic(ErrorCode.ERR_DynamicAttributeMissing, "X").WithArguments("System.Runtime.CompilerServices.DynamicAttribute").WithLocation(20, 1));
@@ -923,14 +923,14 @@ namespace System
         }
     }
 }";
-            var customRef = CreateCompilationWithMscorlib46(customDynamicAttrSource).ToMetadataReference();
+            CompilationReference customRef = CreateCompilationWithMscorlib46(customDynamicAttrSource).ToMetadataReference();
 
             var source = @"
 public class C<T>
 {
     public C<dynamic> field2;   // Uses missing ctor ""DynamicAttribute(bool[] transformFlags)"", generates CS1980
 }";
-            var comp = CreateCompilationWithMscorlib46(source, references: new[] { customRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(source, references: new[] { customRef });
             comp.VerifyDiagnostics(
                 // (4,14): error CS1980: Cannot define a class or member that utilizes 'dynamic' because the compiler required type 'System.Runtime.CompilerServices.DynamicAttribute' cannot be found. Are you missing a reference?
                 //     public C<dynamic> field2;   // Uses missing ctor "DynamicAttribute(bool[] transformFlags)", generates CS1980
@@ -1045,12 +1045,12 @@ class C
 ";
             CompileAndVerify(source, references: new[] { CSharpRef }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.All), symbolValidator: module =>
             {
-                var c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var iterator = c.GetMember<NamedTypeSymbol>("<Goo>d__0");
-                var getEnumerator = iterator.GetMethod("System.Collections.Generic.IEnumerable<dynamic>.GetEnumerator");
-                var attrs = getEnumerator.GetAttributes();
+                NamedTypeSymbol c = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol iterator = c.GetMember<NamedTypeSymbol>("<Goo>d__0");
+                MethodSymbol getEnumerator = iterator.GetMethod("System.Collections.Generic.IEnumerable<dynamic>.GetEnumerator");
+                ImmutableArray<CSharpAttributeData> attrs = getEnumerator.GetAttributes();
 
-                foreach (var attr in attrs)
+                foreach (CSharpAttributeData attr in attrs)
                 {
                     switch (attr.AttributeClass.Name)
                     {
@@ -1058,7 +1058,7 @@ class C
                             break;
 
                         case "DynamicAttribute":
-                            var values = attr.ConstructorArguments.Single().Values.ToArray();
+                            TypedConstant[] values = attr.ConstructorArguments.Single().Values.ToArray();
                             Assert.Equal(2, values.Length);
                             Assert.Equal(false, values[0].Value);
                             Assert.Equal(true, values[1].Value);
@@ -1144,9 +1144,9 @@ class C
         d(null);
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            CSharpCompilation comp = CreateEmptyCompilation(source0);
             comp.VerifyDiagnostics();
-            var ref0 = comp.EmitToImageReference();
+            MetadataReference ref0 = comp.EmitToImageReference();
             comp = CreateEmptyCompilation(source1, references: new[] { ref0, SystemCoreRef });
             comp.VerifyDiagnostics();
             // Make sure we emit without errors when System.Boolean is missing.
@@ -1178,9 +1178,9 @@ class C
         D d = () => { dynamic y = x; };
     }
 }";
-            var comp = CreateEmptyCompilation(source0);
+            CSharpCompilation comp = CreateEmptyCompilation(source0);
             comp.VerifyDiagnostics();
-            var ref0 = comp.EmitToImageReference();
+            MetadataReference ref0 = comp.EmitToImageReference();
             comp = CreateEmptyCompilation(source1, references: new[] { ref0, SystemCoreRef });
             comp.VerifyDiagnostics();
             // Make sure we emit without errors when System.Boolean is missing.
@@ -1257,7 +1257,7 @@ class C
         [InlineData(SourceCodeKind.Script)]
         public void TestNoCS1980WhenNotInContextWhichNeedsDynamicAttribute_Errors(SourceCodeKind sourceCodeKind)
         {
-            var comp = CreateCompilationWithMscorlib45(
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(
                 source: GetNoCS1980String(typeName: @"dynamic"),
                 parseOptions: new CSharpParseOptions(kind: sourceCodeKind, languageVersion: LanguageVersion.Latest));
 

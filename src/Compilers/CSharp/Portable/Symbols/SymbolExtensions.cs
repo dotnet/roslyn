@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns></returns>
         public static bool IsCompilationOutputWinMdObj(this Symbol symbol)
         {
-            var comp = symbol.DeclaringCompilation;
+            CSharpCompilation comp = symbol.DeclaringCompilation;
             return comp != null && comp.Options.OutputKind == OutputKind.WindowsRuntimeMetadata;
         }
 
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             for (int i = 0, n = array.Length; i < n; i++)
             {
-                var item = array[i];
+                T item = array[i];
                 if ((object)item != null && item.Kind == kind)
                 {
                     return true;
@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //       class type constructed from G or a class type derived from a class type
             //       constructed from G.
             // This text is missing in the current version of the spec, but we believe this is accidental.
-            var originalSuperType = superType.OriginalDefinition;
+            TypeSymbol originalSuperType = superType.OriginalDefinition;
             for (TypeSymbol current = subType;
                 (object)current != null;
                 current = (current.Kind == SymbolKind.TypeParameter) ? ((TypeParameterSymbol)current).EffectiveBaseClass(ref useSiteDiagnostics) : current.BaseTypeWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics))
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static NamespaceOrTypeSymbol ContainingNamespaceOrType(this Symbol symbol)
         {
-            var containingSymbol = symbol.ContainingSymbol;
+            Symbol containingSymbol = symbol.ContainingSymbol;
             if ((object)containingSymbol != null)
             {
                 switch (containingSymbol.Kind)
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (type.TypeKind == TypeKind.TypeParameter)
             {
-                var symbol = type.ContainingSymbol;
+                Symbol symbol = type.ContainingSymbol;
                 for (; ((object)containingSymbol != null) && (containingSymbol.Kind != SymbolKind.Namespace); containingSymbol = containingSymbol.ContainingSymbol)
                 {
                     if (containingSymbol == symbol)
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static bool IsHiddenByCodeAnalysisEmbeddedAttribute(this Symbol symbol)
         {
             // Only upper-level types should be checked 
-            var upperLevelType = symbol.Kind == SymbolKind.NamedType ? (NamedTypeSymbol)symbol : symbol.ContainingType;
+            NamedTypeSymbol upperLevelType = symbol.Kind == SymbolKind.NamedType ? (NamedTypeSymbol)symbol : symbol.ContainingType;
             if ((object)upperLevelType == null)
             {
                 return false;

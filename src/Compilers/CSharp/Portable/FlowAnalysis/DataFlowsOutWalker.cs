@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 bool badRegion = false;
-                var result = walker.Analyze(ref badRegion);
+                HashSet<Symbol> result = walker.Analyze(ref badRegion);
 #if DEBUG
                 // Assert that DataFlowsOut only contains variables that were assigned to inside the region
                 Debug.Assert(badRegion || !result.Any((variable) => !walker._assignedInside.Contains(variable)));
@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case BoundKind.CatchBlock:
                         {
-                            var local = ((BoundCatchBlock)node).Locals.FirstOrDefault();
+                            LocalSymbol local = ((BoundCatchBlock)node).Locals.FirstOrDefault();
                             return local?.DeclarationKind == LocalDeclarationKind.CatchVariable ? local : null;
                         }
 

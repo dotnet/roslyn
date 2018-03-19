@@ -111,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Dictionary<uint, object> hashBucketLabelsMap = EmitHashBucketJumpTable(stringHashMap);
 
             // Emit hash buckets
-            foreach (var kvPair in stringHashMap)
+            foreach (KeyValuePair<uint, HashBucket> kvPair in stringHashMap)
             {
                 // hashBucketLabel:
                 //  Emit direct string comparisons for each case label in hash bucket
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         private void EmitNonHashTableSwitch(KeyValuePair<ConstantValue, object>[] labels)
         {
             // Direct string comparison for each case label
-            foreach (var kvPair in labels)
+            foreach (KeyValuePair<ConstantValue, object> kvPair in labels)
             {
                 this.EmitCondBranchForStringSwitch(kvPair.Key, kvPair.Value);
             }
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             Debug.Assert(caseLabels != null);
             var stringHashMap = new Dictionary<uint, HashBucket>(caseLabels.Length);
 
-            foreach (var kvPair in caseLabels)
+            foreach (KeyValuePair<ConstantValue, object> kvPair in caseLabels)
             {
                 ConstantValue stringConstant = kvPair.Key;
                 Debug.Assert(stringConstant.IsNull || stringConstant.IsString);

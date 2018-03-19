@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If we are building static constructor of System.Decimal, accessing static fields 
                 // would be bad.
-                var curMethod = _factory.CurrentMethod;
+                MethodSymbol curMethod = _factory.CurrentMethod;
                 if ((curMethod.MethodKind != MethodKind.SharedConstructor ||
                    curMethod.ContainingType.SpecialType != SpecialType.System_Decimal) &&
                    !_inExpressionLambda)

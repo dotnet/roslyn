@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!structEnvironments.IsDefaultOrEmpty && typeParameters.Length != 0)
             {
                 var constructedStructClosures = ArrayBuilder<NamedTypeSymbol>.GetInstance();
-                foreach (var env in structEnvironments)
+                foreach (SynthesizedClosureEnvironment env in structEnvironments)
                 {
                     NamedTypeSymbol constructed;
                     if (env.Arity == 0)
@@ -84,8 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        var originals = env.ConstructedFromTypeParameters;
-                        var newArgs = typeMap.SubstituteTypeParameters(originals);
+                        ImmutableArray<TypeParameterSymbol> originals = env.ConstructedFromTypeParameters;
+                        ImmutableArray<TypeParameterSymbol> newArgs = typeMap.SubstituteTypeParameters(originals);
                         constructed = env.Construct(newArgs);
                     }
                     constructedStructClosures.Add(constructed);
@@ -102,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static DeclarationModifiers MakeDeclarationModifiers(ClosureKind closureKind, MethodSymbol originalMethod)
         {
-            var mods = closureKind == ClosureKind.ThisOnly ? DeclarationModifiers.Private : DeclarationModifiers.Internal;
+            DeclarationModifiers mods = closureKind == ClosureKind.ThisOnly ? DeclarationModifiers.Private : DeclarationModifiers.Internal;
 
             if (closureKind == ClosureKind.Static)
             {

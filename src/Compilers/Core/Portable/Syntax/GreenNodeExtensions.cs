@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
         public static TNode WithAnnotationsGreen<TNode>(this TNode node, IEnumerable<SyntaxAnnotation> annotations) where TNode : GreenNode
         {
             var newAnnotations = ArrayBuilder<SyntaxAnnotation>.GetInstance();
-            foreach (var candidate in annotations)
+            foreach (SyntaxAnnotation candidate in annotations)
             {
                 if (!newAnnotations.Contains(candidate))
                 {
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis
             if (newAnnotations.Count == 0)
             {
                 newAnnotations.Free();
-                var existingAnnotations = node.GetAnnotations();
+                SyntaxAnnotation[] existingAnnotations = node.GetAnnotations();
                 if (existingAnnotations == null || existingAnnotations.Length == 0)
                 {
                     return node;
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis
 
         public static TNode WithAdditionalAnnotationsGreen<TNode>(this TNode node, IEnumerable<SyntaxAnnotation> annotations) where TNode : GreenNode
         {
-            var existingAnnotations = node.GetAnnotations();
+            SyntaxAnnotation[] existingAnnotations = node.GetAnnotations();
 
             if (annotations == null)
             {
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis
             var newAnnotations = ArrayBuilder<SyntaxAnnotation>.GetInstance();
             newAnnotations.AddRange(existingAnnotations);
 
-            foreach (var candidate in annotations)
+            foreach (SyntaxAnnotation candidate in annotations)
             {
                 if (!newAnnotations.Contains(candidate))
                 {
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis
 
         public static TNode WithoutAnnotationsGreen<TNode>(this TNode node, IEnumerable<SyntaxAnnotation> annotations) where TNode : GreenNode
         {
-            var existingAnnotations = node.GetAnnotations();
+            SyntaxAnnotation[] existingAnnotations = node.GetAnnotations();
 
             if (annotations == null || existingAnnotations.Length == 0)
             {
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var newAnnotations = ArrayBuilder<SyntaxAnnotation>.GetInstance();
-                foreach (var candidate in existingAnnotations)
+                foreach (SyntaxAnnotation candidate in existingAnnotations)
                 {
                     if (!removalAnnotations.Contains(candidate))
                     {
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis
 
         public static TNode WithoutDiagnosticsGreen<TNode>(this TNode node) where TNode : GreenNode
         {
-            var current = node.GetDiagnostics();
+            DiagnosticInfo[] current = node.GetDiagnostics();
             if (current == null || current.Length == 0)
             {
                 return node;

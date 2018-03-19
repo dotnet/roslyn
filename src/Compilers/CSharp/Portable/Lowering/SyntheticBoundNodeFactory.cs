@@ -437,7 +437,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If necessary, add a conversion on the return expression.
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                var conversion = Compilation.Conversions.ClassifyConversionFromType(expression.Type, CurrentMethod.ReturnType, ref useSiteDiagnostics);
+                Conversion conversion = Compilation.Conversions.ClassifyConversionFromType(expression.Type, CurrentMethod.ReturnType, ref useSiteDiagnostics);
                 Debug.Assert(useSiteDiagnostics.IsNullOrEmpty());
                 Debug.Assert(conversion.Kind != ConversionKind.NoConversion);
                 if (conversion.Kind != ConversionKind.Identity)
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundObjectCreationExpression New(NamedTypeSymbol type, params BoundExpression[] args)
         {
             // TODO: add diagnostics for when things fall apart
-            var ctor = type.InstanceConstructors.Single(c => c.ParameterCount == args.Length);
+            MethodSymbol ctor = type.InstanceConstructors.Single(c => c.ParameterCount == args.Length);
             return New(ctor, args);
         }
 
@@ -709,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 statements.Add(Goto(afterif));
                 if (!locals.IsDefaultOrEmpty)
                 {
-                    var firstPart = this.Block(locals, statements.ToImmutable());
+                    BoundBlock firstPart = this.Block(locals, statements.ToImmutable());
                     statements.Clear();
                     statements.Add(firstPart);
                 }
@@ -723,7 +723,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 statements.Add(thenClause);
                 if (!locals.IsDefaultOrEmpty)
                 {
-                    var firstPart = this.Block(locals, statements.ToImmutable());
+                    BoundBlock firstPart = this.Block(locals, statements.ToImmutable());
                     statements.Clear();
                     statements.Add(firstPart);
                 }
@@ -758,13 +758,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundExpression>.GetInstance();
             for (int i = 0; i < parts.Length - 1; i++)
             {
-                var part = parts[i];
+                BoundExpression part = parts[i];
                 if (LocalRewriter.ReadIsSideeffecting(part))
                 {
                     builder.Add(parts[i]);
                 }
             }
-            var lastExpression = parts[parts.Length - 1];
+            BoundExpression lastExpression = parts[parts.Length - 1];
 
             if (locals.IsDefaultOrEmpty && builder.Count == 0)
             {
@@ -829,9 +829,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static void CheckSwitchSections(ImmutableArray<BoundSwitchSection> sections)
         {
             var labels = new HashSet<int>();
-            foreach (var s in sections)
+            foreach (BoundSwitchSection s in sections)
             {
-                foreach (var l in s.SwitchLabels)
+                foreach (BoundSwitchLabel l in s.SwitchLabels)
                 {
                     if (l.ConstantValueOpt == null)
                     {
@@ -847,8 +847,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundSwitchSection SwitchSection(int value, params BoundStatement[] statements)
         {
-            var label = GenerateLabel("case+" + value);
-            var literal = Literal(value);
+            GeneratedLabelSymbol label = GenerateLabel("case+" + value);
+            BoundLiteral literal = Literal(value);
             var switchLabel = new BoundSwitchLabel(Syntax, label, literal, literal.ConstantValue) { WasCompilerGenerated = true };
             return new BoundSwitchSection(Syntax, ImmutableArray.Create<BoundSwitchLabel>(switchLabel), ImmutableArray.Create<BoundStatement>(statements)) { WasCompilerGenerated = true };
         }
@@ -858,8 +858,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var builder = ArrayBuilder<BoundSwitchLabel>.GetInstance();
             foreach (var i in values)
             {
-                var label = GenerateLabel("case+" + i);
-                var expression = Literal(i);
+                GeneratedLabelSymbol label = GenerateLabel("case+" + i);
+                BoundLiteral expression = Literal(i);
                 builder.Add(new BoundSwitchLabel(Syntax, label, expression, expression.ConstantValue) { WasCompilerGenerated = true });
             }
 
@@ -926,7 +926,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public BoundStatement BaseInitialization()
         {
             // TODO: add diagnostics for when things fall apart
-            var ctor = CurrentMethod.ThisParameter.Type.BaseTypeNoUseSiteDiagnostics.InstanceConstructors.Single(c => c.ParameterCount == 0);
+            MethodSymbol ctor = CurrentMethod.ThisParameter.Type.BaseTypeNoUseSiteDiagnostics.InstanceConstructors.Single(c => c.ParameterCount == 0);
             return new BoundExpressionStatement(Syntax, Call(Base(), ctor)) { WasCompilerGenerated = true };
         }
 
@@ -1225,7 +1225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LocalSymbol local,
             BoundBlock block)
         {
-            var source = Local(local);
+            BoundLocal source = Local(local);
             return new BoundCatchBlock(Syntax, ImmutableArray.Create(local), source, source.Type, exceptionFilterOpt: null, body: block, isSynthesizedAsyncCatchAll: false);
         }
 
@@ -1279,8 +1279,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             MethodSymbol containingMethod = this.CurrentMethod;
-            var syntax = argument.Syntax;
-            var type = argument.Type;
+            SyntaxNode syntax = argument.Syntax;
+            TypeSymbol type = argument.Type;
 
             var local = new BoundLocal(
                 syntax,

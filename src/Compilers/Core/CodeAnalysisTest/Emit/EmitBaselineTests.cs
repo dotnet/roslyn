@@ -17,9 +17,9 @@ namespace Microsoft.CodeAnalysis.UnitTests.Emit
             var debugInfoProvider = new Func<MethodDefinitionHandle, EditAndContinueMethodDebugInformation>(_ => default);
             var localSigProvider = new Func<MethodDefinitionHandle, StandaloneSignatureHandle>(_ => default);
             var peModule = ModuleMetadata.CreateFromImage(TestResources.Basic.Members);
-            var peReader = peModule.Module.PEReaderOpt;
+            System.Reflection.PortableExecutable.PEReader peReader = peModule.Module.PEReaderOpt;
 
-            var mdBytes = peReader.GetMetadata().GetContent();
+            System.Collections.Immutable.ImmutableArray<byte> mdBytes = peReader.GetMetadata().GetContent();
             var mdBytesHandle = GCHandle.Alloc(mdBytes.DangerousGetUnderlyingArray(), GCHandleType.Pinned);
             var mdModule = ModuleMetadata.CreateFromMetadata(mdBytesHandle.AddrOfPinnedObject(), mdBytes.Length);
 

@@ -75,9 +75,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<TypeSymbol> TypeArgumentsWithDefinitionUseSiteDiagnostics(ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var result = TypeArgumentsNoUseSiteDiagnostics;
+            ImmutableArray<TypeSymbol> result = TypeArgumentsNoUseSiteDiagnostics;
 
-            foreach (var typeArgument in result)
+            foreach (TypeSymbol typeArgument in result)
             {
                 typeArgument.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
             }
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal TypeSymbol TypeArgumentWithDefinitionUseSiteDiagnostics(int index, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var result = TypeArgumentsNoUseSiteDiagnostics[index];
+            TypeSymbol result = TypeArgumentsNoUseSiteDiagnostics[index];
             result.OriginalDefinition.AddUseSiteDiagnostics(ref useSiteDiagnostics);
             return result;
         }
@@ -187,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return null;
                 }
 
-                var methods = GetMembers(WellKnownMemberNames.DelegateInvokeName);
+                ImmutableArray<Symbol> methods = GetMembers(WellKnownMemberNames.DelegateInvokeName);
                 if (methods.Length != 1)
                 {
                     return null;
@@ -355,11 +355,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void DoGetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
         {
-            var members = nameOpt == null
+            ImmutableArray<Symbol> members = nameOpt == null
                 ? this.GetMembersUnordered()
                 : this.GetSimpleNonTypeMembers(nameOpt);
 
-            foreach (var member in members)
+            foreach (Symbol member in members)
             {
                 if (member.Kind == SymbolKind.Method)
                 {
@@ -367,7 +367,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     if (method.IsExtensionMethod &&
                         ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
                     {
-                        var thisParam = method.Parameters.First();
+                        ParameterSymbol thisParam = method.Parameters.First();
 
                         if ((thisParam.RefKind == RefKind.Ref && !thisParam.Type.IsValueType) ||
                             (thisParam.RefKind == RefKind.In && thisParam.Type.TypeKind != TypeKind.Struct))
@@ -395,7 +395,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var kind = TypeKind;
+                TypeKind kind = TypeKind;
                 return kind != TypeKind.Enum && kind != TypeKind.Struct && kind != TypeKind.Error;
             }
         }
@@ -409,7 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var kind = TypeKind;
+                TypeKind kind = TypeKind;
                 return kind == TypeKind.Struct || kind == TypeKind.Enum;
             }
         }
@@ -690,8 +690,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if ((object)other == null) return false;
 
             // Compare OriginalDefinitions.
-            var thisOriginalDefinition = this.OriginalDefinition;
-            var otherOriginalDefinition = other.OriginalDefinition;
+            NamedTypeSymbol thisOriginalDefinition = this.OriginalDefinition;
+            NamedTypeSymbol otherOriginalDefinition = other.OriginalDefinition;
 
             if (((object)this == (object)thisOriginalDefinition || (object)other == (object)otherOriginalDefinition) &&
                 !((comparison & TypeCompareKind.IgnoreCustomModifiersAndArraySizesAndLowerBounds) != 0 && (this.HasTypeArgumentsCustomModifiers || other.HasTypeArgumentsCustomModifiers)))
@@ -751,8 +751,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var typeArguments = this.TypeArgumentsNoUseSiteDiagnostics;
-            var otherTypeArguments = other.TypeArgumentsNoUseSiteDiagnostics;
+            ImmutableArray<TypeSymbol> typeArguments = this.TypeArgumentsNoUseSiteDiagnostics;
+            ImmutableArray<TypeSymbol> otherTypeArguments = other.TypeArgumentsNoUseSiteDiagnostics;
             int count = typeArguments.Length;
 
             // since both are constructed from the same (original) type, they must have the same arity
@@ -905,7 +905,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                for (var current = this; !ReferenceEquals(current, null); current = current.ContainingType)
+                for (NamedTypeSymbol current = this; !ReferenceEquals(current, null); current = current.ContainingType)
                 {
                     if (current.TypeArgumentsNoUseSiteDiagnostics.Length != 0)
                     {
@@ -936,7 +936,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // Given C<int>.D<string, double>, yields { int, string, double }
         internal void GetAllTypeArguments(ArrayBuilder<TypeSymbol> builder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var outer = ContainingType;
+            NamedTypeSymbol outer = ContainingType;
             if (!ReferenceEquals(outer, null))
             {
                 outer.GetAllTypeArguments(builder, ref useSiteDiagnostics);
@@ -954,13 +954,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void GetAllTypeArguments(ArrayBuilder<TypeWithModifiers> builder, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var outer = ContainingType;
+            NamedTypeSymbol outer = ContainingType;
             if (!ReferenceEquals(outer, null))
             {
                 outer.GetAllTypeArguments(builder, ref useSiteDiagnostics);
             }
 
-            var types = TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
+            ImmutableArray<TypeSymbol> types = TypeArgumentsWithDefinitionUseSiteDiagnostics(ref useSiteDiagnostics);
 
             if (!HasTypeArgumentsCustomModifiers)
             {
@@ -982,7 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int count = TypeArgumentsNoUseSiteDiagnostics.Length;
 
-            var outer = ContainingType;
+            NamedTypeSymbol outer = ContainingType;
             if (!ReferenceEquals(outer, null))
             {
                 count += outer.AllTypeArgumentCount();
@@ -1137,7 +1137,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // not recurse into the containing type here; doing so will result in errors
             // being reported twice if Goo is bad.
 
-            var @base = this.BaseTypeNoUseSiteDiagnostics;
+            NamedTypeSymbol @base = this.BaseTypeNoUseSiteDiagnostics;
             if ((object)@base != null && @base.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes))
             {
                 return true;
@@ -1201,7 +1201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // Conditional attributes are inherited by derived types.
-                var baseType = this.BaseTypeNoUseSiteDiagnostics;
+                NamedTypeSymbol baseType = this.BaseTypeNoUseSiteDiagnostics;
                 return (object)baseType != null ? baseType.IsConditional : false;
             }
         }
@@ -1337,7 +1337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (typeToCheck.IsTupleType)
                     {
-                        var underlying = typeToCheck.TupleUnderlyingType;
+                        NamedTypeSymbol underlying = typeToCheck.TupleUnderlyingType;
                         if (underlying.Arity == TupleTypeSymbol.RestPosition && underlying.OriginalDefinition != this.OriginalDefinition)
                         {
                             tupleCardinality = 0;
@@ -1452,7 +1452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         INamedTypeSymbol INamedTypeSymbol.Construct(params ITypeSymbol[] arguments)
         {
-            foreach (var arg in arguments)
+            foreach (ITypeSymbol arg in arguments)
             {
                 arg.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("typeArguments");
             }

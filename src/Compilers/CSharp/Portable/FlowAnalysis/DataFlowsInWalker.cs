@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 bool badRegion = false;
-                var result = walker.Analyze(ref badRegion);
+                HashSet<Symbol> result = walker.Analyze(ref badRegion);
                 succeeded = !badRegion;
                 return badRegion ? new HashSet<Symbol>() : result;
             }

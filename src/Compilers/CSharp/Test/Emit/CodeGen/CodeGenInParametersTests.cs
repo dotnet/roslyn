@@ -24,7 +24,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.M(in int)", @"
 {
@@ -72,7 +72,7 @@ struct Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"42
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"42
 84");
 
             comp.VerifyIL("Program.Main()", @"
@@ -126,7 +126,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"42
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"42
 11
 42
 42");
@@ -189,7 +189,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
 
             comp.VerifyIL("Program.Main()", @"
 {
@@ -250,7 +250,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
 
             comp.VerifyIL("Program.Main()", @"
 {
@@ -312,7 +312,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: "42");
 
             comp.VerifyIL("Program.M(in int)", @"
 {
@@ -363,7 +363,7 @@ class P1 : Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hi
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails, expectedOutput: @"hi
 42");
 
             comp.VerifyIL("P1..ctor(in string)", @"
@@ -400,7 +400,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.M(in int)", @"
 {
@@ -431,7 +431,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,9): error CS8408: Cannot assign to variable 'in int' because it is a readonly variable
                 //         arg1 = 1;
@@ -483,7 +483,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (18,20): error CS8410: Cannot return variable 'in int' by writable reference because it is a readonly variable
                 //         return ref arg1;
@@ -508,7 +508,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (6,25): error CS8406: Cannot use variable 'in int' as a ref or out value because it is a readonly variable
                 //         ref var y = ref arg1;
@@ -541,7 +541,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,18): error CS0212: You can only take the address of an unfixed expression inside of a fixed statement initializer
                 //         int* a = & arg1;
@@ -574,7 +574,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (10,24): error CS8410: Cannot return variable 'in int' by writable reference because it is a readonly variable
                 //             return ref arg1;
@@ -607,7 +607,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.M", @"
 {
@@ -650,7 +650,7 @@ class Program
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Fails);
 
             comp.VerifyIL("Program.<M>g__M1|0_0(in int, in (int Alice, int Bob))", @"
 {
@@ -693,7 +693,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef });
             comp.VerifyDiagnostics(
                 // (12,28): error CS8410: Cannot return variable 'in int' by writable reference because it is a readonly variable
                 //                 return ref arg11;
@@ -720,7 +720,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput:@"42");
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput:@"42");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -753,7 +753,7 @@ class Program
 
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"42");
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"42");
 
             comp.VerifyIL("Program.Main", @"
 {
@@ -802,7 +802,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Passes, expectedOutput: @"6");
         }
 
@@ -844,7 +844,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
             comp.VerifyEmitDiagnostics(
                 // (14,44): error CS8178: 'await' cannot be used in an expression containing a call to 'Program.RefReturning(ref int)' because it returns by reference
                 //             M1(in RefReturning(ref local), await GetT(2), 3);
@@ -896,8 +896,8 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseExe);
-            var result = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"47");
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.UnsafeReleaseExe);
+            CompilationVerifier result = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"47");
 
             var expectedIL = @"
 {
@@ -1021,7 +1021,7 @@ class Program
 
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Passes, expectedOutput: @"6");
         }
 
@@ -1081,7 +1081,7 @@ public struct S1
 
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 3
 42
@@ -1149,7 +1149,7 @@ public struct S1
 
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 3
 42
@@ -1212,7 +1212,7 @@ public struct S1
 
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 2
 42
@@ -1269,7 +1269,7 @@ public class S1
 
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 2
 42
@@ -1329,7 +1329,7 @@ public struct S1
 
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 2
 42
@@ -1408,7 +1408,7 @@ public readonly struct S1
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 3
 42
@@ -1489,8 +1489,8 @@ public readonly struct S1
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
-            var v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(text, new[] { ValueTupleRef, SystemRuntimeFacadeRef }, options: TestOptions.ReleaseExe);
+            CompilationVerifier v = CompileAndVerify(comp, verify: Verification.Fails, expectedOutput: @"
 1
 2
 3
@@ -1720,7 +1720,7 @@ public readonly struct S1
     }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"0");
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"0");
 
             comp.VerifyIL("D.M1<T>(in T)", @"
 {
@@ -1778,7 +1778,7 @@ public readonly struct S1
     }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"");
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"");
 
             comp.VerifyIL("D.M1<T>(in T)", @"
 {
@@ -1870,7 +1870,7 @@ struct S1
 }
 ";
 
-            var comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242420");
+            CompilationVerifier comp = CompileAndVerify(text, parseOptions: TestOptions.Regular, verify: Verification.Passes, expectedOutput: @"4242420");
 
             comp.VerifyIL("Program.Test1(in S1?)", @"
 {
@@ -1919,7 +1919,7 @@ struct S1
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Binary()
         {
-            var reference = CreateCompilation(@"
+            CSharpCompilation reference = CreateCompilation(@"
 public class Test
 {
     public int Value { get; set; }
@@ -1950,7 +1950,7 @@ class Program
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Binary_Right()
         {
-            var reference = CreateCompilation(@"
+            CSharpCompilation reference = CreateCompilation(@"
 public class Test
 {
     public int Value { get; set; }
@@ -1981,7 +1981,7 @@ class Program
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Binary_Left()
         {
-            var reference = CreateCompilation(@"
+            CSharpCompilation reference = CreateCompilation(@"
 public class Test
 {
     public int Value { get; set; }
@@ -2012,7 +2012,7 @@ class Program
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Unary()
         {
-            var reference = CreateCompilation(@"
+            CSharpCompilation reference = CreateCompilation(@"
 public class Test
 {
     public bool Value { get; set; }
@@ -2042,7 +2042,7 @@ class Program
         [WorkItem(530136, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=530136")]
         public void OperatorsWithInParametersFromMetadata_Conversion()
         {
-            var reference = CreateCompilation(@"
+            CSharpCompilation reference = CreateCompilation(@"
 public class Test
 {
     public bool Value { get; set; }
@@ -2883,8 +2883,8 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(code, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "XX");
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(code, options: TestOptions.ReleaseExe);
+            CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: "XX");
 
             verifier.VerifyIL("X.M()", @"
 {
@@ -2921,8 +2921,8 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "5050");
+            CSharpCompilation compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: "5050");
 
             verifier.VerifyIL("Test.Main(string[])", @"
 {
@@ -2972,8 +2972,8 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "5050");
+            CSharpCompilation compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: "5050");
 
             verifier.VerifyIL("Test.Main(string[])", @"
 {
@@ -3030,8 +3030,8 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "5050");
+            CSharpCompilation compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: "5050");
 
             verifier.VerifyIL("Test.Main(string[])", @"
 {
@@ -3094,8 +3094,8 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
-            var verifier = CompileAndVerify(compilation, expectedOutput: "555555");
+            CSharpCompilation compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: "555555");
 
             verifier.VerifyIL("Test.Main(string[])", @"
 {
@@ -3156,9 +3156,9 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
-            var verifier = CompileAndVerify(compilation, expectedOutput: "0011", verify: Verification.Fails);
+            CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: "0011", verify: Verification.Fails);
 
             verifier.VerifyIL("Test..ctor()", @"
 {
@@ -3234,9 +3234,9 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
-            var verifier = CompileAndVerify(compilation, expectedOutput: "");
+            CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: "");
 
             verifier.VerifyIL("Test..ctor()", @"
 {
@@ -3290,9 +3290,9 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
-            var verifier = CompileAndVerify(compilation, expectedOutput: "hihi");
+            CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: "hihi");
 
             verifier.VerifyIL("Test..ctor()", @"
 {
@@ -3348,9 +3348,9 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
-            var verifier = CompileAndVerify(compilation, expectedOutput: "hihi");
+            CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: "hihi");
 
             verifier.VerifyIL("Test..ctor()", @"
 {
@@ -3411,9 +3411,9 @@ public struct Test
 }
 ";
 
-            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
-            var verifier = CompileAndVerify(compilation, expectedOutput: "11");
+            CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: "11");
 
             verifier.VerifyIL("Test.Test1()", @"
 {
@@ -3484,9 +3484,9 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
-            var verifier = CompileAndVerify(compilation, expectedOutput: "TestTest");
+            CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: "TestTest");
 
             verifier.VerifyIL("Test.Test1()", @"
 {
@@ -3541,9 +3541,9 @@ public class Test
 class Derived : Test { }
 ";
 
-            var compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(code, options: TestOptions.ReleaseExe);
 
-            var verifier = CompileAndVerify(compilation, expectedOutput: "TestTestDerivedDerived");
+            CompilationVerifier verifier = CompileAndVerify(compilation, expectedOutput: "TestTestDerivedDerived");
 
             verifier.VerifyIL("Test.Test1()", @"
 {

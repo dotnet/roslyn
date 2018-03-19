@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _rangeVariableMap = rangeVariableMap;
                 _parameterMap = new MultiDictionary<string, RangeVariableSymbol>();
-                foreach (var qv in rangeVariableMap.Keys)
+                foreach (RangeVariableSymbol qv in rangeVariableMap.Keys)
                 {
                     _parameterMap.Add(qv.Name, qv);
                 }
@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (path.IsEmpty)
                     {
                         // the range variable maps directly to a use of the parameter of that name
-                        var value = base.parameterMap[qv.Name];
+                        MultiDictionary<string, ParameterSymbol>.ValueSet value = base.parameterMap[qv.Name];
                         Debug.Assert(value.Count == 1);
                         translation = new BoundParameter(node, value.Single());
                     }
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LookupMembersWithFallback(lookupResult, receiver.Type, name, 0, ref useSiteDiagnostics, basesBeingResolved: null, options: options);
                 diagnostics.Add(node, useSiteDiagnostics);
 
-                var result = BindMemberOfType(node, node, name, 0, receiver, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeSymbol>), lookupResult, BoundMethodGroupFlags.None, diagnostics);
+                BoundExpression result = BindMemberOfType(node, node, name, 0, receiver, default(SeparatedSyntaxList<TypeSyntax>), default(ImmutableArray<TypeSymbol>), lookupResult, BoundMethodGroupFlags.None, diagnostics);
                 lookupResult.Free();
                 return result;
             }
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return;
                 }
 
-                foreach (var rangeVariable in _parameterMap[name])
+                foreach (RangeVariableSymbol rangeVariable in _parameterMap[name])
                 {
                     result.MergeEqual(originalBinder.CheckViability(rangeVariable, arity, options, null, diagnose, ref useSiteDiagnostics));
                 }
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (options.CanConsiderMembers())
                 {
-                    foreach (var kvp in _parameterMap)
+                    foreach (KeyValuePair<string, MultiDictionary<string, RangeVariableSymbol>.ValueSet> kvp in _parameterMap)
                     {
                         result.AddSymbol(null, kvp.Key, 0);
                     }

@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var methodsWithYield = ArrayBuilder<SyntaxNode>.GetInstance();
                 var symbolsWithYield = ArrayBuilder<MethodSymbol>.GetInstance();
                 map = LocalBinderFactory.BuildMap(_memberSymbol, _root, this, methodsWithYield, _binderUpdatedHandler);
-                foreach (var methodWithYield in methodsWithYield)
+                foreach (SyntaxNode methodWithYield in methodsWithYield)
                 {
                     Binder binder = this;
                     if (methodWithYield.Kind() != SyntaxKind.GlobalStatement &&
@@ -138,9 +138,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public void ValidateIteratorMethods(DiagnosticBag diagnostics)
         {
-            foreach (var iterator in MethodSymbolsWithYield)
+            foreach (MethodSymbol iterator in MethodSymbolsWithYield)
             {
-                foreach (var parameter in iterator.Parameters)
+                foreach (ParameterSymbol parameter in iterator.Parameters)
                 {
                     if (parameter.RefKind != RefKind.None)
                     {

@@ -52,7 +52,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
     Initializer: 
       null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -89,7 +89,7 @@ IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.Anonymous
       ReturnedValue: 
         null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedLambdaExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -136,7 +136,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
     Initializer: 
       null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -173,7 +173,7 @@ IAnonymousFunctionOperation (Symbol: lambda expression) (OperationKind.Anonymous
       ReturnedValue: 
         null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ParenthesizedLambdaExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -394,11 +394,11 @@ class Program
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
-            var syntaxTree = compilation.SyntaxTrees[0];
-            var semanticModel = compilation.GetSemanticModel(syntaxTree);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source);
+            SyntaxTree syntaxTree = compilation.SyntaxTrees[0];
+            SemanticModel semanticModel = compilation.GetSemanticModel(syntaxTree);
 
-            var variableDeclaration = syntaxTree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
+            LocalDeclarationStatementSyntax variableDeclaration = syntaxTree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
             var lambdaSyntax = (LambdaExpressionSyntax)variableDeclaration.Declaration.Variables.Single().Initializer.Value;
 
             var variableDeclarationGroupOperation = (IVariableDeclarationGroupOperation)semanticModel.GetOperation(variableDeclaration);

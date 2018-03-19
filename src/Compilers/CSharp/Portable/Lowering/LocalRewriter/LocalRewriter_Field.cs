@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConstantValue constantValueOpt,
             LookupResultKind resultKind)
         {
-            var tupleType = tupleField.ContainingType;
+            NamedTypeSymbol tupleType = tupleField.ContainingType;
 
             NamedTypeSymbol currentLinkType = tupleType.TupleUnderlyingType;
             FieldSymbol underlyingField = tupleField.TupleUnderlyingField;

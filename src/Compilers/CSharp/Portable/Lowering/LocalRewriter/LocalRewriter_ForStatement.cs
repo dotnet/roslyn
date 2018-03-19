@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // break:
             statementBuilder.Add(new BoundLabelStatement(syntax, breakLabel));
 
-            var statements = statementBuilder.ToImmutableAndFree();
+            ImmutableArray<BoundStatement> statements = statementBuilder.ToImmutableAndFree();
             return new BoundBlock(syntax, outerLocals, statements, hasErrors);
         }
 
@@ -261,7 +261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // break:
             statementBuilder.Add(new BoundLabelStatement(syntax, node.BreakLabel));
 
-            var statements = statementBuilder.ToImmutableAndFree();
+            ImmutableArray<BoundStatement> statements = statementBuilder.ToImmutableAndFree();
             return new BoundBlock(syntax, node.OuterLocals, statements, node.HasErrors);
         }
     }

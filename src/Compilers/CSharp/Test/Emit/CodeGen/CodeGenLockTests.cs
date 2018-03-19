@@ -29,7 +29,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text);
+            CompilationVerifier verifier = CompileAndVerify(text);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       55 (0x37)
@@ -84,7 +84,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text);
+            CompilationVerifier verifier = CompileAndVerify(text);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       59 (0x3b)
@@ -138,7 +138,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text);
+            CompilationVerifier verifier = CompileAndVerify(text);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       55 (0x37)
@@ -194,7 +194,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text);
+            CompilationVerifier verifier = CompileAndVerify(text);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       60 (0x3c)
@@ -251,7 +251,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text);
+            CompilationVerifier verifier = CompileAndVerify(text);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       59 (0x3b)
@@ -305,7 +305,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text);
+            CompilationVerifier verifier = CompileAndVerify(text);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       55 (0x37)
@@ -359,7 +359,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text);
+            CompilationVerifier verifier = CompileAndVerify(text);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       59 (0x3b)
@@ -413,7 +413,7 @@ public class Test
     }
 }
 ";
-            var verifier = CompileAndVerify(text);
+            CompilationVerifier verifier = CompileAndVerify(text);
             verifier.VerifyIL("Test.M<T>", @"
 {
   // Code size       60 (0x3c)
@@ -470,7 +470,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(text);
             CompileAndVerify(compilation).VerifyIL("Test.Main", @"
 {
   // Code size       95 (0x5f)
@@ -643,7 +643,7 @@ public static partial class Extensions
     public static object Test(this object o) { return o; }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(text);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(text);
             CompileAndVerify(compilation).VerifyIL("Test.Main", @"
 {
   // Code size       72 (0x48)
@@ -1354,8 +1354,8 @@ public class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithCorlib20(text);
-            var verifier = CompileAndVerify(compilation);
+            CSharpCompilation compilation = CreateCompilationWithCorlib20(text);
+            CompilationVerifier verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       48 (0x30)
@@ -1404,8 +1404,8 @@ public class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithCorlib20(text);
-            var verifier = CompileAndVerify(compilation);
+            CSharpCompilation compilation = CreateCompilationWithCorlib20(text);
+            CompilationVerifier verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       52 (0x34)
@@ -1453,8 +1453,8 @@ public class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithCorlib20(text);
-            var verifier = CompileAndVerify(compilation);
+            CSharpCompilation compilation = CreateCompilationWithCorlib20(text);
+            CompilationVerifier verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       48 (0x30)
@@ -1504,8 +1504,8 @@ public class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithCorlib20(text);
-            var verifier = CompileAndVerify(compilation);
+            CSharpCompilation compilation = CreateCompilationWithCorlib20(text);
+            CompilationVerifier verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       53 (0x35)
@@ -1556,8 +1556,8 @@ public class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithCorlib20(text);
-            var verifier = CompileAndVerify(compilation);
+            CSharpCompilation compilation = CreateCompilationWithCorlib20(text);
+            CompilationVerifier verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       52 (0x34)
@@ -1605,8 +1605,8 @@ public class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithCorlib20(text);
-            var verifier = CompileAndVerify(compilation);
+            CSharpCompilation compilation = CreateCompilationWithCorlib20(text);
+            CompilationVerifier verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       48 (0x30)
@@ -1654,8 +1654,8 @@ public class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithCorlib20(text);
-            var verifier = CompileAndVerify(compilation);
+            CSharpCompilation compilation = CreateCompilationWithCorlib20(text);
+            CompilationVerifier verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("Test.M", @"
 {
   // Code size       52 (0x34)
@@ -1703,8 +1703,8 @@ public class Test
     }
 }
 ";
-            var compilation = CreateCompilationWithCorlib20(text);
-            var verifier = CompileAndVerify(compilation);
+            CSharpCompilation compilation = CreateCompilationWithCorlib20(text);
+            CompilationVerifier verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("Test.M<T>", @"
 {
   // Code size       53 (0x35)
@@ -1894,7 +1894,7 @@ class C1
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
 
             CompileAndVerify(compilation, expectedOutput: "Inside lock.");
@@ -1915,7 +1915,7 @@ class C1
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
 
             CompileAndVerify(compilation, expectedOutput: "Inside lock.");
@@ -1936,7 +1936,7 @@ class C1
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
 
@@ -1965,7 +1965,7 @@ class C1
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit);
 
             compilation.VerifyEmitDiagnostics(
@@ -1993,7 +1993,7 @@ class C1
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Enter2);
             compilation.MakeMemberMissing(WellKnownMember.System_Threading_Monitor__Exit);
@@ -2029,7 +2029,7 @@ class C1
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
             compilation.MakeTypeMissing(WellKnownType.System_Threading_Monitor);
 
             compilation.VerifyEmitDiagnostics(

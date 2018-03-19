@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         {
             for (int i = 0; i < list.Count; i++)
             {
-                var item = list[i];
+                GreenNode item = list[i];
                 if ((i & 1) == 0)
                 {
                     Debug.Assert(!item.IsToken, "even elements of a separated list must be nodes");

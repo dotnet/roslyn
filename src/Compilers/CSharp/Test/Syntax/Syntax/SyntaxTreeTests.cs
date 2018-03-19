@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void WithRootAndOptions_ParsedTree()
         {
-            var oldTree = SyntaxFactory.ParseSyntaxTree("class B {}");
-            var newRoot = SyntaxFactory.ParseCompilationUnit("class C {}");
+            SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree("class B {}");
+            Syntax.CompilationUnitSyntax newRoot = SyntaxFactory.ParseCompilationUnit("class C {}");
             var newOptions = new CSharpParseOptions();
-            var newTree = oldTree.WithRootAndOptions(newRoot, newOptions);
-            var newText = newTree.GetText();
+            SyntaxTree newTree = oldTree.WithRootAndOptions(newRoot, newOptions);
+            SourceText newText = newTree.GetText();
 
             Assert.Equal(newRoot.ToString(), newTree.GetRoot().ToString());
             Assert.Same(newOptions, newTree.Options);
@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void WithRootAndOptions_ParsedTreeWithText()
         {
             var oldText = SourceText.From("class B {}", Encoding.UTF7, SourceHashAlgorithm.Sha256);
-            var oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
+            SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(oldText);
 
-            var newRoot = SyntaxFactory.ParseCompilationUnit("class C {}");
+            Syntax.CompilationUnitSyntax newRoot = SyntaxFactory.ParseCompilationUnit("class C {}");
             var newOptions = new CSharpParseOptions();
-            var newTree = oldTree.WithRootAndOptions(newRoot, newOptions);
-            var newText = newTree.GetText();
+            SyntaxTree newTree = oldTree.WithRootAndOptions(newRoot, newOptions);
+            SourceText newText = newTree.GetText();
 
             Assert.Equal(newRoot.ToString(), newTree.GetRoot().ToString());
             Assert.Same(newOptions, newTree.Options);
@@ -46,9 +46,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void WithRootAndOptions_DummyTree()
         {
             var dummy = new CSharpSyntaxTree.DummySyntaxTree();
-            var newRoot = SyntaxFactory.ParseCompilationUnit("class C {}");
+            Syntax.CompilationUnitSyntax newRoot = SyntaxFactory.ParseCompilationUnit("class C {}");
             var newOptions = new CSharpParseOptions();
-            var newTree = dummy.WithRootAndOptions(newRoot, newOptions);
+            SyntaxTree newTree = dummy.WithRootAndOptions(newRoot, newOptions);
             Assert.Equal(newRoot.ToString(), newTree.GetRoot().ToString());
             Assert.Same(newOptions, newTree.Options);
         }
@@ -56,9 +56,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void WithFilePath_ParsedTree()
         {
-            var oldTree = SyntaxFactory.ParseSyntaxTree("class B {}", path: "old.cs");
-            var newTree = oldTree.WithFilePath("new.cs");
-            var newText = newTree.GetText();
+            SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree("class B {}", path: "old.cs");
+            SyntaxTree newTree = oldTree.WithFilePath("new.cs");
+            SourceText newText = newTree.GetText();
 
             Assert.Equal(newTree.FilePath, "new.cs");
             Assert.Equal(oldTree.ToString(), newTree.ToString());
@@ -71,10 +71,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void WithFilePath_ParsedTreeWithText()
         {
             var oldText = SourceText.From("class B {}", Encoding.UTF7, SourceHashAlgorithm.Sha256);
-            var oldTree = SyntaxFactory.ParseSyntaxTree(oldText, path: "old.cs");
+            SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(oldText, path: "old.cs");
 
-            var newTree = oldTree.WithFilePath("new.cs");
-            var newText = newTree.GetText();
+            SyntaxTree newTree = oldTree.WithFilePath("new.cs");
+            SourceText newText = newTree.GetText();
 
             Assert.Equal(newTree.FilePath, "new.cs");
             Assert.Equal(oldTree.ToString(), newTree.ToString());
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void WithFilePath_DummyTree()
         {
             var oldTree = new CSharpSyntaxTree.DummySyntaxTree();
-            var newTree = oldTree.WithFilePath("new.cs");
+            SyntaxTree newTree = oldTree.WithFilePath("new.cs");
 
             Assert.Equal(newTree.FilePath, "new.cs");
             Assert.Equal(oldTree.ToString(), newTree.ToString());

@@ -33,19 +33,19 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
 
-            var global = compilation.GlobalNamespace;
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var baseClass = global.GetMember<NamedTypeSymbol>("Base");
-            var baseProperty = baseClass.GetMember<PropertySymbol>("P");
-            var baseGetter = baseProperty.GetMethod;
-            var baseSetter = baseProperty.SetMethod;
+            NamedTypeSymbol baseClass = global.GetMember<NamedTypeSymbol>("Base");
+            PropertySymbol baseProperty = baseClass.GetMember<PropertySymbol>("P");
+            MethodSymbol baseGetter = baseProperty.GetMethod;
+            MethodSymbol baseSetter = baseProperty.SetMethod;
 
-            var derivedClass = global.GetMember<NamedTypeSymbol>("Derived");
-            var derivedProperty = derivedClass.GetMember<PropertySymbol>("P");
-            var derivedGetter = derivedProperty.GetMethod;
-            var derivedSetter = derivedProperty.SetMethod;
+            NamedTypeSymbol derivedClass = global.GetMember<NamedTypeSymbol>("Derived");
+            PropertySymbol derivedProperty = derivedClass.GetMember<PropertySymbol>("P");
+            MethodSymbol derivedGetter = derivedProperty.GetMethod;
+            MethodSymbol derivedSetter = derivedProperty.SetMethod;
 
             Assert.Same(OverriddenOrHiddenMembersResult.Empty, baseProperty.OverriddenOrHiddenMembers);
             Assert.Null(baseProperty.OverriddenProperty);
@@ -95,24 +95,24 @@ class Derived2 : Derived1
 }
 ";
 
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
 
-            var global = compilation.GlobalNamespace;
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var baseClass = global.GetMember<NamedTypeSymbol>("Base");
-            var baseProperty = baseClass.GetMember<PropertySymbol>("P");
-            var baseGetter = baseProperty.GetMethod;
-            var baseSetter = baseProperty.SetMethod;
+            NamedTypeSymbol baseClass = global.GetMember<NamedTypeSymbol>("Base");
+            PropertySymbol baseProperty = baseClass.GetMember<PropertySymbol>("P");
+            MethodSymbol baseGetter = baseProperty.GetMethod;
+            MethodSymbol baseSetter = baseProperty.SetMethod;
 
-            var derived1Class = global.GetMember<NamedTypeSymbol>("Derived1");
-            var derived1Property = derived1Class.GetMember<PropertySymbol>("P");
-            var derived1Getter = derived1Property.GetMethod;
+            NamedTypeSymbol derived1Class = global.GetMember<NamedTypeSymbol>("Derived1");
+            PropertySymbol derived1Property = derived1Class.GetMember<PropertySymbol>("P");
+            MethodSymbol derived1Getter = derived1Property.GetMethod;
             Assert.Null(derived1Property.SetMethod);
 
-            var derived2Class = global.GetMember<NamedTypeSymbol>("Derived2");
-            var derived2Property = derived2Class.GetMember<PropertySymbol>("P");
+            NamedTypeSymbol derived2Class = global.GetMember<NamedTypeSymbol>("Derived2");
+            PropertySymbol derived2Property = derived2Class.GetMember<PropertySymbol>("P");
             Assert.Null(derived2Property.GetMethod);
-            var derived2Setter = derived2Property.SetMethod;
+            MethodSymbol derived2Setter = derived2Property.SetMethod;
 
             OverriddenOrHiddenMembersResult derived1PropertyOverriddenOrHidden = derived1Property.OverriddenOrHiddenMembers;
             Assert.Equal(0, derived1PropertyOverriddenOrHidden.HiddenMembers.Length);
@@ -150,19 +150,19 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
 
-            var global = compilation.GlobalNamespace;
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var baseClass = global.GetMember<NamedTypeSymbol>("Base");
-            var baseProperty = baseClass.GetMember<PropertySymbol>("P");
-            var baseGetter = baseProperty.GetMethod;
-            var baseSetter = baseProperty.SetMethod;
+            NamedTypeSymbol baseClass = global.GetMember<NamedTypeSymbol>("Base");
+            PropertySymbol baseProperty = baseClass.GetMember<PropertySymbol>("P");
+            MethodSymbol baseGetter = baseProperty.GetMethod;
+            MethodSymbol baseSetter = baseProperty.SetMethod;
 
-            var derivedClass = global.GetMember<NamedTypeSymbol>("Derived");
-            var derivedProperty = derivedClass.GetMember<PropertySymbol>("P");
-            var derivedGetter = derivedProperty.GetMethod;
-            var derivedSetter = derivedProperty.SetMethod;
+            NamedTypeSymbol derivedClass = global.GetMember<NamedTypeSymbol>("Derived");
+            PropertySymbol derivedProperty = derivedClass.GetMember<PropertySymbol>("P");
+            MethodSymbol derivedGetter = derivedProperty.GetMethod;
+            MethodSymbol derivedSetter = derivedProperty.SetMethod;
 
             OverriddenOrHiddenMembersResult derivedPropertyOverriddenOrHidden = derivedProperty.OverriddenOrHiddenMembers;
             Assert.Equal(0, derivedPropertyOverriddenOrHidden.OverriddenMembers.Length);
@@ -201,30 +201,30 @@ class Derived : Base
 }
 ";
 
-            var comp1 = CreateCompilation(text1);
+            CSharpCompilation comp1 = CreateCompilation(text1);
             var comp1ref = new CSharpCompilationReference(comp1);
             var refs = new System.Collections.Generic.List<MetadataReference>() { comp1ref };
 
-            var comp2 = CreateCompilation(text2, references: refs, assemblyName: "Test2");
+            CSharpCompilation comp2 = CreateCompilation(text2, references: refs, assemblyName: "Test2");
             var comp2ref = new CSharpCompilationReference(comp2);
             refs.Add(comp2ref);
-            var compilation = CreateCompilation(text3, refs, assemblyName: "Test3");
+            CSharpCompilation compilation = CreateCompilation(text3, refs, assemblyName: "Test3");
 
-            var global = compilation.GlobalNamespace;
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var baseClass = global.GetMember<NamedTypeSymbol>("Base");
-            var baseProperty = baseClass.GetMember<PropertySymbol>("P");
-            var baseGetter = baseProperty.GetMethod;
+            NamedTypeSymbol baseClass = global.GetMember<NamedTypeSymbol>("Base");
+            PropertySymbol baseProperty = baseClass.GetMember<PropertySymbol>("P");
+            MethodSymbol baseGetter = baseProperty.GetMethod;
 
-            var derived1Class = global.GetMember<NamedTypeSymbol>("Derived1");
-            var derived1Property = derived1Class.GetMember<PropertySymbol>("P");
-            var derived1Getter = derived1Property.GetMethod;
+            NamedTypeSymbol derived1Class = global.GetMember<NamedTypeSymbol>("Derived1");
+            PropertySymbol derived1Property = derived1Class.GetMember<PropertySymbol>("P");
+            MethodSymbol derived1Getter = derived1Property.GetMethod;
             Assert.Null(derived1Property.SetMethod);
 
-            var derived2Class = global.GetMember<NamedTypeSymbol>("Derived2");
-            var derived2Property = derived2Class.GetMember<PropertySymbol>("P");
+            NamedTypeSymbol derived2Class = global.GetMember<NamedTypeSymbol>("Derived2");
+            PropertySymbol derived2Property = derived2Class.GetMember<PropertySymbol>("P");
             Assert.Null(derived2Property.GetMethod);
-            var derived2Setter = derived2Property.SetMethod;
+            MethodSymbol derived2Setter = derived2Property.SetMethod;
 
             OverriddenOrHiddenMembersResult derived1PropertyOverriddenOrHidden = derived1Property.OverriddenOrHiddenMembers;
             Assert.Equal(0, derived1PropertyOverriddenOrHidden.OverriddenMembers.Length);
@@ -323,12 +323,12 @@ public class Derived2 : Derived1
 }
 ";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
-            var global = compilation.GlobalNamespace;
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var ilGetter = global.GetMember<NamedTypeSymbol>("Base").GetMember<PropertySymbol>("P").GetMethod;
-            var csharpGetter1 = global.GetMember<NamedTypeSymbol>("Derived1").GetMember<PropertySymbol>("P").GetMethod;
-            var csharpGetter2 = global.GetMember<NamedTypeSymbol>("Derived2").GetMember<PropertySymbol>("P").GetMethod;
+            MethodSymbol ilGetter = global.GetMember<NamedTypeSymbol>("Base").GetMember<PropertySymbol>("P").GetMethod;
+            MethodSymbol csharpGetter1 = global.GetMember<NamedTypeSymbol>("Derived1").GetMember<PropertySymbol>("P").GetMethod;
+            MethodSymbol csharpGetter2 = global.GetMember<NamedTypeSymbol>("Derived2").GetMember<PropertySymbol>("P").GetMethod;
 
             Assert.Equal(ilGetter.Name, csharpGetter1.Name);
             Assert.Equal(ilGetter.Name, csharpGetter2.Name);
@@ -353,16 +353,16 @@ public class C : I
 }
 ";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
-            var global = compilation.GlobalNamespace;
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var ilGetter = global.GetMember<NamedTypeSymbol>("I").GetMember<PropertySymbol>("P").GetMethod;
-            var @class = global.GetMember<SourceNamedTypeSymbol>("C");
-            var csharpGetter = @class.GetMember<PropertySymbol>("P").GetMethod;
+            MethodSymbol ilGetter = global.GetMember<NamedTypeSymbol>("I").GetMember<PropertySymbol>("P").GetMethod;
+            SourceNamedTypeSymbol @class = global.GetMember<SourceNamedTypeSymbol>("C");
+            MethodSymbol csharpGetter = @class.GetMember<PropertySymbol>("P").GetMethod;
 
             Assert.NotEqual(ilGetter.Name, csharpGetter.Name); //name not copied
 
-            var bridge = @class.GetSynthesizedExplicitImplementations(CancellationToken.None).Single();
+            SynthesizedExplicitImplementationForwardingMethod bridge = @class.GetSynthesizedExplicitImplementations(CancellationToken.None).Single();
             Assert.Same(csharpGetter, bridge.ImplementingMethod);
             Assert.Same(ilGetter, bridge.ExplicitInterfaceImplementations.Single());
 
@@ -386,12 +386,12 @@ public class C : I
 }
 ";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
-            var global = compilation.GlobalNamespace;
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var ilGetter = global.GetMember<NamedTypeSymbol>("I").GetMember<PropertySymbol>("P").GetMethod;
-            var @class = global.GetMember<SourceNamedTypeSymbol>("C");
-            var csharpGetter = @class.GetProperty("I.P").GetMethod;
+            MethodSymbol ilGetter = global.GetMember<NamedTypeSymbol>("I").GetMember<PropertySymbol>("P").GetMethod;
+            SourceNamedTypeSymbol @class = global.GetMember<SourceNamedTypeSymbol>("C");
+            MethodSymbol csharpGetter = @class.GetProperty("I.P").GetMethod;
 
             Assert.Equal("I.getter", csharpGetter.Name);
             Assert.Equal(0, @class.GetSynthesizedExplicitImplementations(CancellationToken.None).Length); //not needed
@@ -420,26 +420,26 @@ class Derived : Base, I
 }
 ";
 
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
 
             compilation.VerifyDiagnostics(
                 // (14,16): error CS0470: Method 'Derived.get_P()' cannot implement interface accessor 'I.P.get' for type 'Derived'. Use an explicit interface implementation.
                 Diagnostic(ErrorCode.ERR_MethodImplementingAccessor, "get_P").WithArguments("Derived.get_P()", "I.P.get", "Derived"));
 
-            var global = compilation.GlobalNamespace;
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var @interface = global.GetMember<NamedTypeSymbol>("I");
-            var interfaceProperty = @interface.GetMember<PropertySymbol>("P");
-            var interfaceGetter = interfaceProperty.GetMethod;
-            var interfaceSetter = interfaceProperty.SetMethod;
+            NamedTypeSymbol @interface = global.GetMember<NamedTypeSymbol>("I");
+            PropertySymbol interfaceProperty = @interface.GetMember<PropertySymbol>("P");
+            MethodSymbol interfaceGetter = interfaceProperty.GetMethod;
+            MethodSymbol interfaceSetter = interfaceProperty.SetMethod;
 
-            var baseClass = global.GetMember<NamedTypeSymbol>("Base");
-            var baseProperty = baseClass.GetMember<PropertySymbol>("P");
-            var baseGetter = baseProperty.GetMethod;
-            var baseSetter = baseProperty.SetMethod;
+            NamedTypeSymbol baseClass = global.GetMember<NamedTypeSymbol>("Base");
+            PropertySymbol baseProperty = baseClass.GetMember<PropertySymbol>("P");
+            MethodSymbol baseGetter = baseProperty.GetMethod;
+            MethodSymbol baseSetter = baseProperty.SetMethod;
 
-            var derivedClass = global.GetMember<NamedTypeSymbol>("Derived");
-            var derivedMethod = derivedClass.GetMember<MethodSymbol>("get_P");
+            NamedTypeSymbol derivedClass = global.GetMember<NamedTypeSymbol>("Derived");
+            MethodSymbol derivedMethod = derivedClass.GetMember<MethodSymbol>("get_P");
             Assert.Equal(MethodKind.Ordinary, derivedMethod.MethodKind);
 
             // The property and its setter are implemented in Base
@@ -473,23 +473,23 @@ class Derived : Base, I
 }
 ";
 
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
 
             compilation.VerifyDiagnostics(
                 // (17,20): error CS0686: Accessor 'Derived.P.get' cannot implement interface member 'I.get_P()' for type 'Derived'. Use an explicit interface implementation.
                 Diagnostic(ErrorCode.ERR_AccessorImplementingMethod, "get").WithArguments("Derived.P.get", "I.get_P()", "Derived"));
 
-            var global = compilation.GlobalNamespace;
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var @interface = global.GetMember<NamedTypeSymbol>("I");
-            var interfaceMethod = @interface.GetMember<MethodSymbol>("get_P");
+            NamedTypeSymbol @interface = global.GetMember<NamedTypeSymbol>("I");
+            MethodSymbol interfaceMethod = @interface.GetMember<MethodSymbol>("get_P");
 
-            var baseClass = global.GetMember<NamedTypeSymbol>("Base");
-            var baseMethod = baseClass.GetMember<MethodSymbol>("get_P");
+            NamedTypeSymbol baseClass = global.GetMember<NamedTypeSymbol>("Base");
+            MethodSymbol baseMethod = baseClass.GetMember<MethodSymbol>("get_P");
 
-            var derivedClass = global.GetMember<NamedTypeSymbol>("Derived");
-            var derivedProperty = derivedClass.GetMember<PropertySymbol>("P");
-            var derivedGetter = derivedProperty.GetMethod;
+            NamedTypeSymbol derivedClass = global.GetMember<NamedTypeSymbol>("Derived");
+            PropertySymbol derivedProperty = derivedClass.GetMember<PropertySymbol>("P");
+            MethodSymbol derivedGetter = derivedProperty.GetMethod;
             Assert.Equal(MethodKind.PropertyGet, derivedGetter.MethodKind);
 
             // The method is implemented (erroneously) in Derived
@@ -513,7 +513,7 @@ class Derived : Base, I<int> // CS0470 must be reported in ""I<int>""
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,23): error CS0470: Method 'Base.get_P()' cannot implement interface accessor 'I<int>.P.get' for type 'Derived'. Use an explicit interface implementation.
                 // class Derived : Base, I<int>
@@ -540,7 +540,7 @@ class Derived : Base, I<int> // CS0686 must be reported in ""I<int>""
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,23): error CS0686: Accessor 'Base.P.get' cannot implement interface member 'I<int>.get_P()' for type 'Derived'. Use an explicit interface implementation.
                 // class Derived : Base, I<int>
@@ -567,27 +567,27 @@ class Derived : Base, I //CS0535
 }
 ";
 
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
 
             compilation.VerifyDiagnostics(
                 // (12,7): error CS0535: 'Derived' does not implement interface member 'I.P.set'
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I").WithArguments("Derived", "I.P.set"));
 
-            var global = compilation.GlobalNamespace;
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var @interface = global.GetMember<NamedTypeSymbol>("I");
-            var interfaceProperty = @interface.GetMember<PropertySymbol>("P");
-            var interfaceGetter = interfaceProperty.GetMethod;
-            var interfaceSetter = interfaceProperty.SetMethod;
+            NamedTypeSymbol @interface = global.GetMember<NamedTypeSymbol>("I");
+            PropertySymbol interfaceProperty = @interface.GetMember<PropertySymbol>("P");
+            MethodSymbol interfaceGetter = interfaceProperty.GetMethod;
+            MethodSymbol interfaceSetter = interfaceProperty.SetMethod;
 
-            var baseClass = global.GetMember<NamedTypeSymbol>("Base");
-            var baseProperty = baseClass.GetMember<PropertySymbol>("P");
-            var baseGetter = baseProperty.GetMethod;
-            var baseSetter = baseProperty.SetMethod;
+            NamedTypeSymbol baseClass = global.GetMember<NamedTypeSymbol>("Base");
+            PropertySymbol baseProperty = baseClass.GetMember<PropertySymbol>("P");
+            MethodSymbol baseGetter = baseProperty.GetMethod;
+            MethodSymbol baseSetter = baseProperty.SetMethod;
 
-            var derivedClass = global.GetMember<NamedTypeSymbol>("Derived");
-            var derivedProperty = derivedClass.GetMember<PropertySymbol>("P");
-            var derivedGetter = derivedProperty.GetMethod;
+            NamedTypeSymbol derivedClass = global.GetMember<NamedTypeSymbol>("Derived");
+            PropertySymbol derivedProperty = derivedClass.GetMember<PropertySymbol>("P");
+            MethodSymbol derivedGetter = derivedProperty.GetMethod;
             Assert.Null(derivedProperty.SetMethod);
 
             // The property and its getter are implemented in Derived
@@ -637,28 +637,28 @@ class Derived3 : Derived2, I
 }
 ";
 
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
 
             compilation.VerifyDiagnostics();
 
-            var global = compilation.GlobalNamespace;
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var @interface = global.GetMember<NamedTypeSymbol>("I");
-            var interfaceProperty = @interface.GetMember<PropertySymbol>("P");
-            var interfaceGetter = interfaceProperty.GetMethod;
-            var interfaceSetter = interfaceProperty.SetMethod;
+            NamedTypeSymbol @interface = global.GetMember<NamedTypeSymbol>("I");
+            PropertySymbol interfaceProperty = @interface.GetMember<PropertySymbol>("P");
+            MethodSymbol interfaceGetter = interfaceProperty.GetMethod;
+            MethodSymbol interfaceSetter = interfaceProperty.SetMethod;
 
-            var derived1Class = global.GetMember<NamedTypeSymbol>("Derived1");
-            var derived1Property = derived1Class.GetMember<PropertySymbol>("P");
-            var derived1Getter = derived1Property.GetMethod;
+            NamedTypeSymbol derived1Class = global.GetMember<NamedTypeSymbol>("Derived1");
+            PropertySymbol derived1Property = derived1Class.GetMember<PropertySymbol>("P");
+            MethodSymbol derived1Getter = derived1Property.GetMethod;
             Assert.NotNull(derived1Getter);
 
-            var derived2Class = global.GetMember<NamedTypeSymbol>("Derived2");
-            var derived2Property = derived2Class.GetMember<PropertySymbol>("P");
-            var derived2Setter = derived2Property.SetMethod;
+            NamedTypeSymbol derived2Class = global.GetMember<NamedTypeSymbol>("Derived2");
+            PropertySymbol derived2Property = derived2Class.GetMember<PropertySymbol>("P");
+            MethodSymbol derived2Setter = derived2Property.SetMethod;
             Assert.NotNull(derived2Setter);
 
-            var derived3Class = global.GetMember<NamedTypeSymbol>("Derived3");
+            NamedTypeSymbol derived3Class = global.GetMember<NamedTypeSymbol>("Derived3");
 
             // Property and setter are implemented in Derived2
             Assert.Equal(derived2Property, derived3Class.FindImplementationForInterfaceMember(interfaceProperty));
@@ -693,7 +693,7 @@ interface I4 : I3
 }
 ";
 
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
 
             compilation.VerifyDiagnostics(
                 // (14,9): warning CS0108: 'I3.P' hides inherited member 'I1.P'. Use the new keyword if hiding was intended.
@@ -701,42 +701,42 @@ interface I4 : I3
                 // (19,9): warning CS0108: 'I4.P' hides inherited member 'I3.P'. Use the new keyword if hiding was intended.
                 Diagnostic(ErrorCode.WRN_NewRequired, "P").WithArguments("I4.P", "I3.P"));
 
-            var global = compilation.GlobalNamespace;
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var interface1 = global.GetMember<NamedTypeSymbol>("I1");
-            var interface1Property = interface1.GetMember<PropertySymbol>("P");
-            var interface1Getter = interface1Property.GetMethod;
-            var interface1Setter = interface1Property.SetMethod;
+            NamedTypeSymbol interface1 = global.GetMember<NamedTypeSymbol>("I1");
+            PropertySymbol interface1Property = interface1.GetMember<PropertySymbol>("P");
+            MethodSymbol interface1Getter = interface1Property.GetMethod;
+            MethodSymbol interface1Setter = interface1Property.SetMethod;
 
-            var interface2 = global.GetMember<NamedTypeSymbol>("I2");
-            var interface2Property = interface2.GetMember<PropertySymbol>("P");
-            var interface2Getter = interface2Property.GetMethod;
-            var interface2Setter = interface2Property.SetMethod;
+            NamedTypeSymbol interface2 = global.GetMember<NamedTypeSymbol>("I2");
+            PropertySymbol interface2Property = interface2.GetMember<PropertySymbol>("P");
+            MethodSymbol interface2Getter = interface2Property.GetMethod;
+            MethodSymbol interface2Setter = interface2Property.SetMethod;
 
-            var interface3 = global.GetMember<NamedTypeSymbol>("I3");
-            var interface3Property = interface3.GetMember<PropertySymbol>("P");
-            var interface3Getter = interface3Property.GetMethod;
+            NamedTypeSymbol interface3 = global.GetMember<NamedTypeSymbol>("I3");
+            PropertySymbol interface3Property = interface3.GetMember<PropertySymbol>("P");
+            MethodSymbol interface3Getter = interface3Property.GetMethod;
 
-            var interface4 = global.GetMember<NamedTypeSymbol>("I4");
-            var interface4Property = interface4.GetMember<PropertySymbol>("P");
-            var interface4Setter = interface4Property.SetMethod;
+            NamedTypeSymbol interface4 = global.GetMember<NamedTypeSymbol>("I4");
+            PropertySymbol interface4Property = interface4.GetMember<PropertySymbol>("P");
+            MethodSymbol interface4Setter = interface4Property.SetMethod;
 
-            var interface3PropertyOverriddenOrHidden = interface3Property.OverriddenOrHiddenMembers;
+            OverriddenOrHiddenMembersResult interface3PropertyOverriddenOrHidden = interface3Property.OverriddenOrHiddenMembers;
             Assert.Equal(0, interface3PropertyOverriddenOrHidden.OverriddenMembers.Length);
             Assert.Equal(0, interface3PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             AssertEx.SetEqual(interface3PropertyOverriddenOrHidden.HiddenMembers, interface1Property, interface2Property);
 
-            var interface3GetterOverriddenOrHidden = interface3Getter.OverriddenOrHiddenMembers;
+            OverriddenOrHiddenMembersResult interface3GetterOverriddenOrHidden = interface3Getter.OverriddenOrHiddenMembers;
             Assert.Equal(0, interface3GetterOverriddenOrHidden.OverriddenMembers.Length);
             Assert.Equal(0, interface3GetterOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             AssertEx.SetEqual(interface3GetterOverriddenOrHidden.HiddenMembers, interface1Getter, interface2Getter);
 
-            var interface4PropertyOverriddenOrHidden = interface4Property.OverriddenOrHiddenMembers;
+            OverriddenOrHiddenMembersResult interface4PropertyOverriddenOrHidden = interface4Property.OverriddenOrHiddenMembers;
             Assert.Equal(0, interface4PropertyOverriddenOrHidden.OverriddenMembers.Length);
             Assert.Equal(0, interface4PropertyOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             Assert.Equal(interface3Property, interface4PropertyOverriddenOrHidden.HiddenMembers.Single());
 
-            var interface4SetterOverriddenOrHidden = interface4Setter.OverriddenOrHiddenMembers;
+            OverriddenOrHiddenMembersResult interface4SetterOverriddenOrHidden = interface4Setter.OverriddenOrHiddenMembers;
             Assert.Equal(0, interface4SetterOverriddenOrHidden.OverriddenMembers.Length);
             Assert.Equal(0, interface4SetterOverriddenOrHidden.RuntimeOverriddenMembers.Length);
             Assert.Equal(0, interface4SetterOverriddenOrHidden.HiddenMembers.Length);
@@ -762,27 +762,27 @@ public class C : I
 }
 ";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
-            var global = compilation.GlobalNamespace;
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            NamespaceSymbol global = compilation.GlobalNamespace;
 
-            var @interface = global.GetMember<NamedTypeSymbol>("I");
+            NamedTypeSymbol @interface = global.GetMember<NamedTypeSymbol>("I");
 
-            var interfaceP = @interface.GetMember<PropertySymbol>("P");
-            var interfacePGetter = interfaceP.GetMethod;
+            PropertySymbol interfaceP = @interface.GetMember<PropertySymbol>("P");
+            MethodSymbol interfacePGetter = interfaceP.GetMethod;
             Assert.Equal("get_Q", interfacePGetter.Name); //NB: switched
 
-            var interfaceQ = @interface.GetMember<PropertySymbol>("Q");
-            var interfaceQGetter = interfaceQ.GetMethod;
+            PropertySymbol interfaceQ = @interface.GetMember<PropertySymbol>("Q");
+            MethodSymbol interfaceQGetter = interfaceQ.GetMethod;
             Assert.Equal("get_P", interfaceQGetter.Name); //NB: switched
 
-            var @class = global.GetMember<NamedTypeSymbol>("C");
+            NamedTypeSymbol @class = global.GetMember<NamedTypeSymbol>("C");
 
-            var classP = @class.GetMember<PropertySymbol>("P");
-            var classPGetter = classP.GetMethod;
+            PropertySymbol classP = @class.GetMember<PropertySymbol>("P");
+            MethodSymbol classPGetter = classP.GetMethod;
             Assert.Equal("get_P", classPGetter.Name); //NB: not switched
 
-            var classQ = @class.GetMember<PropertySymbol>("Q");
-            var classQGetter = classQ.GetMethod;
+            PropertySymbol classQ = @class.GetMember<PropertySymbol>("Q");
+            MethodSymbol classQGetter = classQ.GetMethod;
             Assert.Equal("get_Q", classQGetter.Name); //NB: not switched
 
             Assert.Equal(classP, @class.FindImplementationForInterfaceMember(interfaceP));
@@ -833,11 +833,11 @@ public class CSIPropImpl : VBIPropImpl, IProp
 ";
             #endregion
 
-            var asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
-            var asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
+            PortableExecutableReference asm01 = TestReferences.MetadataTests.InterfaceAndClass.VBInterfaces01;
+            PortableExecutableReference asm02 = TestReferences.MetadataTests.InterfaceAndClass.VBClasses01;
             var refs = new System.Collections.Generic.List<MetadataReference>() { asm01, asm02 };
 
-            var comp = CreateCompilation(text1, references: refs, assemblyName: "OHI_ExpImpPropGetSetMismatch001",
+            CSharpCompilation comp = CreateCompilation(text1, references: refs, assemblyName: "OHI_ExpImpPropGetSetMismatch001",
                             options: TestOptions.ReleaseDll);
 
             comp.VerifyDiagnostics(
@@ -866,13 +866,13 @@ public class CSIPropImpl : VBIPropImpl, IProp
         [Fact]
         public void AccessorWithImportedGenericType()
         {
-            var comp0 = CreateCompilation(@"
+            CSharpCompilation comp0 = CreateCompilation(@"
 public class MC<T> { }
 public delegate void MD<T>(T t);
 ");
 
             var compref = new CSharpCompilationReference(comp0);
-            var comp1 = CreateCompilation(@"
+            CSharpCompilation comp1 = CreateCompilation(@"
 using System;
 public class G<T>
 {
@@ -882,14 +882,14 @@ public class G<T>
 }
 ", references: new MetadataReference[] { compref }, assemblyName: "ACCImpGen");
 
-            var mtdata = comp1.EmitToArray(options: new EmitOptions(metadataOnly: true));
-            var mtref = MetadataReference.CreateFromImage(mtdata);
-            var comp2 = CreateCompilation(@"", references: new MetadataReference[] { mtref }, assemblyName: "META");
+            System.Collections.Immutable.ImmutableArray<byte> mtdata = comp1.EmitToArray(options: new EmitOptions(metadataOnly: true));
+            PortableExecutableReference mtref = MetadataReference.CreateFromImage(mtdata);
+            CSharpCompilation comp2 = CreateCompilation(@"", references: new MetadataReference[] { mtref }, assemblyName: "META");
 
-            var tsym = comp2.GetReferencedAssemblySymbol(mtref).GlobalNamespace.GetMember<NamedTypeSymbol>("G");
+            NamedTypeSymbol tsym = comp2.GetReferencedAssemblySymbol(mtref).GlobalNamespace.GetMember<NamedTypeSymbol>("G");
             Assert.NotNull(tsym);
 
-            var mems = tsym.GetMembers().Where(s => s.Kind == SymbolKind.Method);
+            System.Collections.Generic.IEnumerable<Symbol> mems = tsym.GetMembers().Where(s => s.Kind == SymbolKind.Method);
             // 4 accessors + ctor
             Assert.Equal(5, mems.Count());
             foreach (MethodSymbol m in mems)
@@ -1014,11 +1014,11 @@ using System;
                 var source = testCase.Item1;
                 var expectedResult = testCase.Item2;
 
-                var compilation = CreateCompilation(source);
-                var syntaxTree = compilation.SyntaxTrees.Single();
-                var nodes = syntaxTree.GetRoot().DescendantNodes();
+                CSharpCompilation compilation = CreateCompilation(source);
+                SyntaxTree syntaxTree = compilation.SyntaxTrees.Single();
+                System.Collections.Generic.IEnumerable<SyntaxNode> nodes = syntaxTree.GetRoot().DescendantNodes();
 
-                var invocationSyntax = nodes.OfType<InvocationExpressionSyntax>().Single();
+                InvocationExpressionSyntax invocationSyntax = nodes.OfType<InvocationExpressionSyntax>().Single();
                 Assert.Equal("d.Dispose()", invocationSyntax.ToString());
 
                 var memberAccessSyntax = (MemberAccessExpressionSyntax)invocationSyntax.Expression;
@@ -1029,13 +1029,13 @@ using System;
                 Assert.Equal("d", identifierSyntax.Identifier.Text);
                 Assert.Equal(0, identifierSyntax.Arity);
 
-                var memberNameSyntax = memberAccessSyntax.Name;
+                SimpleNameSyntax memberNameSyntax = memberAccessSyntax.Name;
                 Assert.Equal("Dispose", memberNameSyntax.ToString());
                 Assert.Equal("Dispose", memberNameSyntax.Identifier.Text);
                 Assert.Equal(0, memberNameSyntax.Arity);
 
-                var semanticModel = compilation.GetSemanticModel(syntaxTree);
-                var classDisposable = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Disposable");
+                SemanticModel semanticModel = compilation.GetSemanticModel(syntaxTree);
+                NamedTypeSymbol classDisposable = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Disposable");
                 Assert.Equal(TypeKind.Class, classDisposable.TypeKind);
                 Assert.Equal("Disposable", classDisposable.Name);
 
@@ -1053,17 +1053,17 @@ using System;
                 Assert.Equal(Accessibility.Public, methodDispose.DeclaredAccessibility);
                 Assert.False(methodDispose.IsExplicitInterfaceImplementation);
 
-                var explicitInterfaceImplementation = nodes.OfType<MethodDeclarationSyntax>().Single(d => d.ExplicitInterfaceSpecifier != null);
-                var interfaceName = explicitInterfaceImplementation.ExplicitInterfaceSpecifier.Name;
+                MethodDeclarationSyntax explicitInterfaceImplementation = nodes.OfType<MethodDeclarationSyntax>().Single(d => d.ExplicitInterfaceSpecifier != null);
+                NameSyntax interfaceName = explicitInterfaceImplementation.ExplicitInterfaceSpecifier.Name;
                 var isInterfaceNameBound = semanticModel.GetSymbolInfo(interfaceName).Symbol is NamedTypeSymbol;
                 Assert.Equal(expectedResult.isInterfaceNameBound, isInterfaceNameBound);
 
-                var memberAccessed = memberAccessSyntax;
+                MemberAccessExpressionSyntax memberAccessed = memberAccessSyntax;
 
                 // BEGIN CODE FROM REPRO STEPS
 
                 var methodSymbol = semanticModel.GetSymbolInfo(memberAccessed).Symbol as IMethodSymbol;
-                var type = methodSymbol.ContainingType;
+                INamedTypeSymbol type = methodSymbol.ContainingType;
                 var disposeMethod = (IMethodSymbol)compilation.GetSpecialType(SpecialType.System_IDisposable).GetMembers("Dispose").Single();
                 var isDispose = methodSymbol.Equals(type.FindImplementationForInterfaceMember(disposeMethod));
 

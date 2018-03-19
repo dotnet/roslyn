@@ -238,8 +238,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 operatorsBuilder.Add(BindTupleBinaryOperatorInfo(node, kind, leftParts[i], rightParts[i], diagnostics));
             }
 
-            var compilation = this.Compilation;
-            var operators = operatorsBuilder.ToImmutableAndFree();
+            CSharpCompilation compilation = this.Compilation;
+            ImmutableArray<TupleBinaryOperatorInfo> operators = operatorsBuilder.ToImmutableAndFree();
 
             // typeless tuple literals are not nullable
             bool leftNullable = left.Type?.IsNullableType() == true;
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<BoundExpression> elements, ImmutableArray<string> names,
             bool isNullable, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
-            foreach (var convertedType in convertedTypes)
+            foreach (TypeSymbol convertedType in convertedTypes)
             {
                 if (convertedType is null)
                 {
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             ImmutableArray<Location> elementLocations = elements.SelectAsArray(e => e.Syntax.Location);
 
-            var tuple = TupleTypeSymbol.Create(locationOpt: null, elementTypes: convertedTypes,
+            NamedTypeSymbol tuple = TupleTypeSymbol.Create(locationOpt: null, elementTypes: convertedTypes,
                 elementLocations, elementNames: names, compilation,
                 shouldCheckConstraints: true, errorPositions: default, syntax, diagnostics);
 

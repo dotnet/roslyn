@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Fact]
         public void TestEquality()
         {
-            var node1 = SyntaxFactory.ReturnStatement();
+            ReturnStatementSyntax node1 = SyntaxFactory.ReturnStatement();
 
             EqualityTesting.AssertEqual(default(SyntaxTokenList), default(SyntaxTokenList));
 
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Fact]
         public void TestReverse_Equality()
         {
-            var node1 = SyntaxFactory.ReturnStatement();
+            ReturnStatementSyntax node1 = SyntaxFactory.ReturnStatement();
 
             EqualityTesting.AssertEqual(default(SyntaxTokenList).Reverse(), default(SyntaxTokenList).Reverse());
 
@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Fact]
         public void TestAddInsertRemoveReplace()
         {
-            var list = SyntaxFactory.TokenList(SyntaxFactory.ParseToken("A "), SyntaxFactory.ParseToken("B "), SyntaxFactory.ParseToken("C "));
+            SyntaxTokenList list = SyntaxFactory.TokenList(SyntaxFactory.ParseToken("A "), SyntaxFactory.ParseToken("B "), SyntaxFactory.ParseToken("C "));
 
             Assert.Equal(3, list.Count);
             Assert.Equal("A", list[0].ToString());
@@ -63,18 +63,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             Assert.Equal("C", list[2].ToString());
             Assert.Equal("A B C ", list.ToFullString());
 
-            var elementA = list[0];
-            var elementB = list[1];
-            var elementC = list[2];
+            SyntaxToken elementA = list[0];
+            SyntaxToken elementB = list[1];
+            SyntaxToken elementC = list[2];
 
             Assert.Equal(0, list.IndexOf(elementA));
             Assert.Equal(1, list.IndexOf(elementB));
             Assert.Equal(2, list.IndexOf(elementC));
 
-            var tokenD = SyntaxFactory.ParseToken("D ");
-            var tokenE = SyntaxFactory.ParseToken("E ");
+            SyntaxToken tokenD = SyntaxFactory.ParseToken("D ");
+            SyntaxToken tokenE = SyntaxFactory.ParseToken("E ");
 
-            var newList = list.Add(tokenD);
+            SyntaxTokenList newList = list.Add(tokenD);
             Assert.Equal(4, newList.Count);
             Assert.Equal("A B C D ", newList.ToFullString());
 
@@ -195,10 +195,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Assert.Equal(0, list.Count);
 
-            var tokenD = SyntaxFactory.ParseToken("D ");
-            var tokenE = SyntaxFactory.ParseToken("E ");
+            SyntaxToken tokenD = SyntaxFactory.ParseToken("D ");
+            SyntaxToken tokenE = SyntaxFactory.ParseToken("E ");
 
-            var newList = list.Add(tokenD);
+            SyntaxTokenList newList = list.Add(tokenD);
             Assert.Equal(1, newList.Count);
             Assert.Equal("D ", newList.ToFullString());
 
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Fact]
         public void Extensions()
         {
-            var list = SyntaxFactory.TokenList(
+            SyntaxTokenList list = SyntaxFactory.TokenList(
                 SyntaxFactory.Token(SyntaxKind.SizeOfKeyword),
                 SyntaxFactory.Literal("x"),
                 SyntaxFactory.Token(SyntaxKind.DotToken));

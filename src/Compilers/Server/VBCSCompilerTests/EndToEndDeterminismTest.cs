@@ -24,17 +24,17 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         private async Task<(byte[] assemblyBytes, string finalFlags)> CompileAndGetBytes(string source)
         {
             // Setup
-            var tempDir = Temp.CreateDirectory();
+            TempDirectory tempDir = Temp.CreateDirectory();
             var srcFile = tempDir.CreateFile("test.cs").WriteAllText(source).Path;
             var outFile = srcFile.Replace("test.cs", "test.dll");
 
             try
             {
                 string finalFlags = null;
-                using (var serverData = ServerUtil.CreateServer())
+                using (ServerData serverData = ServerUtil.CreateServer())
                 {
                     finalFlags = $"{ _flags } /shared:{ serverData.PipeName } /pathmap:{tempDir.Path}=/ /out:{ outFile } { srcFile }";
-                    var result = CompilerServerUnitTests.RunCommandLineCompiler(
+                    (int ExitCode, string Output) result = CompilerServerUnitTests.RunCommandLineCompiler(
                         CompilerServerUnitTests.CSharpCompilerClientExecutable,
                         finalFlags,
                         currentDirectory: tempDir);
@@ -62,8 +62,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         /// <param name="source"> The source of the program that will be compiled </param>
         private async Task RunDeterministicTest(string source)
         {
-            var (first, finalFlags1) = await CompileAndGetBytes(source);
-            var (second, finalFlags2) = await CompileAndGetBytes(source);
+            (byte[] first, string finalFlags1) = await CompileAndGetBytes(source);
+            (byte[] second, string finalFlags2) = await CompileAndGetBytes(source);
             Assert.Equal(first.Length, second.Length);
             for (int i = 0; i < first.Length; i++)
             {

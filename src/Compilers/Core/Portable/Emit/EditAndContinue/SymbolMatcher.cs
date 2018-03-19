@@ -19,11 +19,11 @@ namespace Microsoft.CodeAnalysis.Emit
             ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> mappedSynthesizedMembers)
         {
             // Map all definitions to this compilation.
-            var typesAdded = MapDefinitions(baseline.TypesAdded);
-            var eventsAdded = MapDefinitions(baseline.EventsAdded);
-            var fieldsAdded = MapDefinitions(baseline.FieldsAdded);
-            var methodsAdded = MapDefinitions(baseline.MethodsAdded);
-            var propertiesAdded = MapDefinitions(baseline.PropertiesAdded);
+            IReadOnlyDictionary<Cci.ITypeDefinition, int> typesAdded = MapDefinitions(baseline.TypesAdded);
+            IReadOnlyDictionary<Cci.IEventDefinition, int> eventsAdded = MapDefinitions(baseline.EventsAdded);
+            IReadOnlyDictionary<Cci.IFieldDefinition, int> fieldsAdded = MapDefinitions(baseline.FieldsAdded);
+            IReadOnlyDictionary<Cci.IMethodDefinition, int> methodsAdded = MapDefinitions(baseline.MethodsAdded);
+            IReadOnlyDictionary<Cci.IPropertyDefinition, int> propertiesAdded = MapDefinitions(baseline.PropertiesAdded);
 
             return baseline.With(
                 targetCompilation,
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Emit
             where K : Cci.IDefinition
         {
             var result = new Dictionary<K, V>();
-            foreach (var pair in items)
+            foreach (KeyValuePair<K, V> pair in items)
             {
                 var key = (K)MapDefinition(pair.Key);
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             var result = new Dictionary<int, AddedOrChangedMethodInfo>();
 
-            foreach (var pair in addedOrChangedMethods)
+            foreach (KeyValuePair<int, AddedOrChangedMethodInfo> pair in addedOrChangedMethods)
             {
                 result.Add(pair.Key, pair.Value.MapTypes(this));
             }
@@ -86,10 +86,10 @@ namespace Microsoft.CodeAnalysis.Emit
         {
             var result = new Dictionary<AnonymousTypeKey, AnonymousTypeValue>();
 
-            foreach (var pair in anonymousTypeMap)
+            foreach (KeyValuePair<AnonymousTypeKey, AnonymousTypeValue> pair in anonymousTypeMap)
             {
-                var key = pair.Key;
-                var value = pair.Value;
+                AnonymousTypeKey key = pair.Key;
+                AnonymousTypeValue value = pair.Value;
                 var type = (Cci.ITypeDefinition)MapDefinition(value.Type);
                 Debug.Assert(type != null);
                 result.Add(key, new AnonymousTypeValue(value.Name, value.UniqueIndex, type));
@@ -123,14 +123,14 @@ namespace Microsoft.CodeAnalysis.Emit
                 return newMembers;
             }
 
-            var synthesizedMembersBuilder = ImmutableDictionary.CreateBuilder<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>>();
+            ImmutableDictionary<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>>.Builder synthesizedMembersBuilder = ImmutableDictionary.CreateBuilder<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>>();
 
             synthesizedMembersBuilder.AddRange(newMembers);
 
-            foreach (var pair in previousMembers)
+            foreach (KeyValuePair<Cci.ITypeDefinition, ImmutableArray<Cci.ITypeDefinitionMember>> pair in previousMembers)
             {
-                var previousContainer = pair.Key;
-                var memberDefs = pair.Value;
+                Cci.ITypeDefinition previousContainer = pair.Key;
+                ImmutableArray<Cci.ITypeDefinitionMember> memberDefs = pair.Value;
 
                 var mappedContainer = (Cci.ITypeDefinition)MapDefinition(previousContainer);
                 if (mappedContainer == null)
@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 var memberBuilder = ArrayBuilder<Cci.ITypeDefinitionMember>.GetInstance();
                 memberBuilder.AddRange(newSynthesizedMembers);
 
-                foreach (var memberDef in memberDefs)
+                foreach (Cci.ITypeDefinitionMember memberDef in memberDefs)
                 {
                     var mappedMemberDef = (Cci.ITypeDefinitionMember)MapDefinition(memberDef);
                     if (mappedMemberDef != null)

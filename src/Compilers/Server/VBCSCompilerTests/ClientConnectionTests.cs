@@ -125,8 +125,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         public async Task ReadFailure()
         {
             var stream = new Mock<Stream>(MockBehavior.Strict);
-            var connection = CreateConnection(stream.Object);
-            var result = await connection.HandleConnection().ConfigureAwait(true);
+            TestableClientConnection connection = CreateConnection(stream.Object);
+            ConnectionData result = await connection.HandleConnection().ConfigureAwait(true);
             Assert.Equal(CompletionReason.CompilationNotStarted, result.CompletionReason);
         }
 
@@ -146,9 +146,9 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 .Setup(x => x.ReadAsync(It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .Returns((byte[] array, int start, int length, CancellationToken ct) => Task.FromResult(realStream.Read(array, start, length)));
 
-            var connection = CreateConnection(stream.Object);
+            TestableClientConnection connection = CreateConnection(stream.Object);
             connection.ServeBuildRequestFunc = delegate { return Task.FromResult(s_emptyBuildResponse); };
-            var connectionData = await connection.HandleConnection().ConfigureAwait(true);
+            ConnectionData connectionData = await connection.HandleConnection().ConfigureAwait(true);
             Assert.Equal(CompletionReason.ClientDisconnect, connectionData.CompletionReason);
             Assert.Null(connectionData.KeepAlive);
         }
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             // Fake a long running build task here that we can validate later on. 
             var buildTaskSource = new TaskCompletionSource<BuildResponse>();
             var buildTaskCancellationToken = default(CancellationToken);
-            var clientConnection = CreateConnection(memoryStream);
+            TestableClientConnection clientConnection = CreateConnection(memoryStream);
             clientConnection.ServeBuildRequestFunc = (req, ct) =>
             {
                 buildTaskCancellationToken = ct;
@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 return monitorTaskSource.Task;
             };
 
-            var handleTask = clientConnection.HandleConnection();
+            Task<ConnectionData> handleTask = clientConnection.HandleConnection();
 
             // Wait until the monitor task is actually created and running. 
             await readyTaskSource.Task.ConfigureAwait(false);
@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             // Now simulate a disconnect by the client.  
             monitorTaskSource.SetResult(true);
 
-            var connectionData = await handleTask.ConfigureAwait(true);
+            ConnectionData connectionData = await handleTask.ConfigureAwait(true);
             Assert.Equal(CompletionReason.ClientDisconnect, connectionData.CompletionReason);
             Assert.Null(connectionData.KeepAlive);
             Assert.True(buildTaskCancellationToken.IsCancellationRequested);
@@ -204,7 +204,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             stream.ReadStream.Position = 0;
 
             var validated = false;
-            var connection = CreateConnection(stream);
+            TestableClientConnection connection = CreateConnection(stream);
             connection.ServeBuildRequestFunc = (req, token) => Task.FromResult(s_emptyBuildResponse);
             connection.ValidateBuildRequestFunc = _ => { validated = true; };
             await connection.HandleConnection().ConfigureAwait(true);
@@ -219,12 +219,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             await s_emptyCSharpBuildRequest.WriteAsync(stream.ReadStream, CancellationToken.None).ConfigureAwait(true);
             stream.ReadStream.Position = 0;
 
-            var connection = CreateConnection(stream);
-            var connectionData = await connection.HandleConnection(allowCompilationRequests: false).ConfigureAwait(false);
+            TestableClientConnection connection = CreateConnection(stream);
+            ConnectionData connectionData = await connection.HandleConnection(allowCompilationRequests: false).ConfigureAwait(false);
             Assert.Equal(CompletionReason.CompilationNotStarted, connectionData.CompletionReason);
 
             stream.WriteStream.Position = 0;
-            var response = await BuildResponse.ReadAsync(stream.WriteStream).ConfigureAwait(false);
+            BuildResponse response = await BuildResponse.ReadAsync(stream.WriteStream).ConfigureAwait(false);
             Assert.Equal(BuildResponse.ResponseType.Rejected, response.Type);
         }
 
@@ -235,12 +235,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             await BuildRequest.CreateShutdown().WriteAsync(stream.ReadStream, CancellationToken.None).ConfigureAwait(true);
             stream.ReadStream.Position = 0;
 
-            var connection = CreateConnection(stream);
-            var connectionData = await connection.HandleConnection(allowCompilationRequests: false).ConfigureAwait(false);
+            TestableClientConnection connection = CreateConnection(stream);
+            ConnectionData connectionData = await connection.HandleConnection(allowCompilationRequests: false).ConfigureAwait(false);
             Assert.Equal(CompletionReason.ClientShutdownRequest, connectionData.CompletionReason);
 
             stream.WriteStream.Position = 0;
-            var response = await BuildResponse.ReadAsync(stream.WriteStream).ConfigureAwait(false);
+            BuildResponse response = await BuildResponse.ReadAsync(stream.WriteStream).ConfigureAwait(false);
             Assert.Equal(BuildResponse.ResponseType.Shutdown, response.Type);
         }
     }

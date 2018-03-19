@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
-            foreach (var location in symbol.Locations)
+            foreach (Location location in symbol.Locations)
             {
                 if (location.SourceTree != null && FilterTreeOpt == location.SourceTree && ShouldInclude(location.SourceSpan))
                 {

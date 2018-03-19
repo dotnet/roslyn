@@ -22,11 +22,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.lambdaSymbol = lambdaSymbol;
             this.parameterMap = new MultiDictionary<string, ParameterSymbol>();
 
-            var parameters = lambdaSymbol.Parameters;
+            ImmutableArray<ParameterSymbol> parameters = lambdaSymbol.Parameters;
             if (!parameters.IsDefaultOrEmpty)
             {
                 RecordDefinitions(parameters);
-                foreach (var parameter in lambdaSymbol.Parameters)
+                foreach (ParameterSymbol parameter in lambdaSymbol.Parameters)
                 {
                     this.parameterMap.Add(parameter.Name, parameter);
                 }
@@ -35,8 +35,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void RecordDefinitions(ImmutableArray<ParameterSymbol> definitions)
         {
-            var declarationMap = _definitionMap ?? (_definitionMap = new SmallDictionary<string, ParameterSymbol>());
-            foreach (var s in definitions)
+            SmallDictionary<string, ParameterSymbol> declarationMap = _definitionMap ?? (_definitionMap = new SmallDictionary<string, ParameterSymbol>());
+            foreach (ParameterSymbol s in definitions)
             {
                 if (!declarationMap.ContainsKey(s.Name))
                 {
@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            foreach (var parameterSymbol in parameterMap[name])
+            foreach (ParameterSymbol parameterSymbol in parameterMap[name])
             {
                 result.MergeEqual(originalBinder.CheckViability(parameterSymbol, arity, options, null, diagnose, ref useSiteDiagnostics));
             }
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (options.CanConsiderMembers())
             {
-                foreach (var parameter in lambdaSymbol.Parameters)
+                foreach (ParameterSymbol parameter in lambdaSymbol.Parameters)
                 {
                     if (originalBinder.CanAddLookupSymbolInfo(parameter, options, result, null))
                     {
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var oldLocation = parameter.Locations[0];
+            Location oldLocation = parameter.Locations[0];
 
             Debug.Assert(oldLocation != newLocation || oldLocation == Location.None, "same nonempty location refers to different symbols?");
 
@@ -151,7 +151,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override bool EnsureSingleDefinition(Symbol symbol, string name, Location location, DiagnosticBag diagnostics)
         {
             ParameterSymbol existingDeclaration;
-            var map = _definitionMap;
+            SmallDictionary<string, ParameterSymbol> map = _definitionMap;
             if (map != null && map.TryGetValue(name, out existingDeclaration))
             {
                 return ReportConflictWithParameter(existingDeclaration, symbol, name, location, diagnostics);

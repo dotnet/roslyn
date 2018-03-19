@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
         private SyntaxToken QuickScanSyntaxToken()
         {
             this.Start();
-            var state = QuickScanState.Initial;
+            QuickScanState state = QuickScanState.Initial;
             int i = TextWindow.Offset;
             int n = TextWindow.CharacterWindowCount;
             n = Math.Min(n, i + MaxCachedTokenSize);
@@ -209,7 +209,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                 char c = charWindow[i];
                 int uc = unchecked((int)c);
 
-                var flags = uc < charPropLength ? (CharFlags)s_charProperties[uc] : CharFlags.Complex;
+                CharFlags flags = uc < charPropLength ? (CharFlags)s_charProperties[uc] : CharFlags.Complex;
 
                 state = (QuickScanState)s_stateTransitions[(int)state, (int)flags];
                 // NOTE: that Bad > Done and it is the only state like that
@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             if (state == QuickScanState.Done)
             {
                 // this is a good token!
-                var token = _cache.LookupToken(
+                SyntaxToken token = _cache.LookupToken(
                     TextWindow.CharacterWindow,
                     TextWindow.LexemeRelativeStart,
                     i - TextWindow.LexemeRelativeStart,
@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             var quickWidth = TextWindow.Width;
 #endif
             TextWindow.Reset(TextWindow.LexemeStartPosition);
-            var token = this.LexSyntaxToken();
+            SyntaxToken token = this.LexSyntaxToken();
 #if DEBUG
             Debug.Assert(quickWidth == token.FullWidth);
 #endif

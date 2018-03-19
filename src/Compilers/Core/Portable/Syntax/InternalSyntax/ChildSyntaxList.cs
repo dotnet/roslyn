@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
         private int CountNodes()
         {
             int n = 0;
-            var enumerator = this.GetEnumerator();
+            Enumerator enumerator = this.GetEnumerator();
             while (enumerator.MoveNext())
             {
                 n++;
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Syntax.InternalSyntax
                 var result = new GreenNode[this.Count];
                 var i = 0;
 
-                foreach (var n in this)
+                foreach (GreenNode n in this)
                 {
                     result[i++] = n;
                 }

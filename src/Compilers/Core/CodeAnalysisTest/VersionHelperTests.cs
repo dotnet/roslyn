@@ -33,11 +33,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TimeBased()
         {
-            var now = DateTime.Now;
+            DateTime now = DateTime.Now;
             int days, seconds;
             VersionTestHelpers.GetDefaultVersion(now, out days, out seconds);
 
-            var version = VersionHelper.GenerateVersionFromPatternAndCurrentTime(now, new Version(3, 2, 65535, 65535));
+            Version version = VersionHelper.GenerateVersionFromPatternAndCurrentTime(now, new Version(3, 2, 65535, 65535));
             Assert.Equal(3, version.Major);
             Assert.Equal(2, version.Minor);
             Assert.Equal(days, version.Build); 

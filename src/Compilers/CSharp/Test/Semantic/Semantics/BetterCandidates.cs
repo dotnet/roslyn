@@ -50,7 +50,7 @@ class B {}
                 //         Program.M(null);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(A)", "Program.M(B)").WithLocation(5, 17)
                 );
-            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics();
+            CSharpCompilation compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "1");
         }
 
@@ -77,7 +77,7 @@ class B {}
                 //         p.M(null);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(A)", "Program.M(B)").WithLocation(6, 11)
                 );
-            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics();
+            CSharpCompilation compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: "2");
         }
 
@@ -104,7 +104,7 @@ class B {}
                 //         M(null);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(A)", "Program.M(B)").WithLocation(5, 9)
                 );
-            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 );
             CompileAndVerify(compilation, expectedOutput: "1");
         }
@@ -133,7 +133,7 @@ class B {}
                 //     int X = M(null);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(A)", "Program.M(B)").WithLocation(9, 13)
                 );
-            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 );
             CompileAndVerify(compilation, expectedOutput: "1");
         }
@@ -163,7 +163,7 @@ class B {}
                 //     public Program() : this(M(null)) {}
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(A)", "Program.M(B)").WithLocation(7, 29)
                 );
-            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 );
             CompileAndVerify(compilation, expectedOutput: "1");
         }
@@ -285,7 +285,7 @@ public class B {}
                 //         M(new A(), 0);
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M").WithArguments("Program.M<T>(T, int)", "B", "T", "A").WithLocation(5, 9)
                 );
-            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 );
             CompileAndVerify(compilation, expectedOutput: "2");
         }
@@ -319,7 +319,7 @@ public class X {}
                 //         M(new B(), null);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M<T>(T, B)", "Program.M<T>(T, X)").WithLocation(6, 9)
                 );
-            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 );
             CompileAndVerify(compilation, expectedOutput: "struct class ");
         }
@@ -353,7 +353,7 @@ class B {}
                 //         M(Q);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(D1)", "Program.M(D2)").WithLocation(5, 9)
                 );
-            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 );
             CompileAndVerify(compilation, expectedOutput: "2");
         }
@@ -384,7 +384,7 @@ delegate ref int D2();
                 //         M(Q);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(D1)", "Program.M(D2)").WithLocation(6, 9)
                 );
-            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 );
             CompileAndVerify(compilation, expectedOutput: "2");
         }
@@ -425,7 +425,7 @@ namespace System.Runtime.CompilerServices
                 //         M(new Z().Q);
                 Diagnostic(ErrorCode.ERR_AmbigCall, "M").WithArguments("Program.M(D1)", "Program.M(D2)").WithLocation(5, 9)
                 );
-            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 );
             CompileAndVerify(compilation, expectedOutput: "2");
         }
@@ -455,7 +455,7 @@ public class C { public static implicit operator C(A a) => null; }
                 //         M(new A(), 0);
                 Diagnostic(ErrorCode.ERR_GenericConstraintNotSatisfiedRefType, "M").WithArguments("Program.M<T>(T, int)", "B", "T", "A").WithLocation(5, 9)
                 );
-            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 );
             CompileAndVerify(compilation, expectedOutput: "2");
         }
@@ -484,7 +484,7 @@ public class C { public static implicit operator C(A a) => null; }
                 //         M(new A(), 0);
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M").WithArguments("A").WithLocation(5, 9)
                 );
-            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe).VerifyDiagnostics(
                 );
             CompileAndVerify(compilation, expectedOutput: "2");
         }
@@ -513,7 +513,7 @@ public class C { public static unsafe implicit operator C(int* p) => null; }
                 //         M(p, 0);
                 Diagnostic(ErrorCode.ERR_BadTypeArgument, "M").WithArguments("int*").WithLocation(6, 9)
                 );
-            var compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true)).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithBetterCandidates(source, options: TestOptions.ReleaseExe.WithAllowUnsafe(true)).VerifyDiagnostics(
                 );
             CompileAndVerify(compilation, expectedOutput: "2", verify: Verification.Skipped);
         }

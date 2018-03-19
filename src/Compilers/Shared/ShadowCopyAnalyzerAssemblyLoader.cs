@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis
         {
             DirectoryInfo directory = new DirectoryInfo(directoryPath);
 
-            foreach (var file in directory.EnumerateFiles(searchPattern: "*", searchOption: SearchOption.AllDirectories))
+            foreach (FileInfo file in directory.EnumerateFiles(searchPattern: "*", searchOption: SearchOption.AllDirectories))
             {
                 ClearReadOnlyFlagOnFile(file);
             }

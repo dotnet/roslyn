@@ -137,14 +137,14 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
                     Debug.Assert(_startLabelIndex != _endLabelIndex, "1-sized buckets should be already known as degenerate.");
 
-                    var allLabels = this._allLabels;
+                    ImmutableArray<KeyValuePair<ConstantValue, object>> allLabels = this._allLabels;
                     var split = 0;
-                    var lastConst = this.StartConstant;
+                    ConstantValue lastConst = this.StartConstant;
                     var lastLabel = allLabels[_startLabelIndex].Value;
 
                     for(int idx = _startLabelIndex + 1; idx <= _endLabelIndex; idx++)
                     {
-                        var switchLabel = allLabels[idx];
+                        KeyValuePair<ConstantValue, object> switchLabel = allLabels[idx];
 
                         if (lastLabel != switchLabel.Value ||
                             !IsContiguous(lastConst, switchLabel.Key))
@@ -279,8 +279,8 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
             internal static bool MergeIsAdvantageous(SwitchBucket bucket1, SwitchBucket bucket2)
             {
-                var startConstant = bucket1.StartConstant;
-                var endConstant = bucket2.EndConstant;
+                ConstantValue startConstant = bucket1.StartConstant;
+                ConstantValue endConstant = bucket2.EndConstant;
 
                 if (BucketOverflow(startConstant, endConstant))
                 {

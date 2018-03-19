@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 exprSynList.Add(node as ExpressionSyntax);
             }
 
-            foreach (var child in node.ChildNodesAndTokens())
+            foreach (SyntaxNodeOrToken child in node.ChildNodesAndTokens())
             {
                 if (child.IsNode)
                     exprSynList = GetExprSyntaxList(child.AsNode(), exprSynList);
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var startComment = string.Format("/*<{0}>*/", tagName);
             var endComment = string.Format("/*</{0}>*/", tagName);
 
-            foreach (var exprSyntax in exprSynList)
+            foreach (ExpressionSyntax exprSyntax in exprSynList)
             {
                 string exprFullText = exprSyntax.ToFullString();
                 exprFullText = exprFullText.Trim();
@@ -89,10 +89,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal static SymbolInfo BindFirstConstructorInitializer(string source)
         {
-            var compilation = CreateCompilation(source);
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var constructorInitializer = GetFirstConstructorInitializer(tree.GetCompilationUnitRoot());
+            CSharpCompilation compilation = CreateCompilation(source);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            ConstructorInitializerSyntax constructorInitializer = GetFirstConstructorInitializer(tree.GetCompilationUnitRoot());
 
             Assert.NotNull(constructorInitializer);
 
@@ -103,30 +103,30 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             Func<SyntaxNode, bool> isConstructorInitializer = n =>
                 n.IsKind(SyntaxKind.BaseConstructorInitializer) || n.IsKind(SyntaxKind.ThisConstructorInitializer);
-            var constructorInitializers = node.DescendantNodesAndSelf(n => !(n is ExpressionSyntax)).Where(isConstructorInitializer);
+            IEnumerable<SyntaxNode> constructorInitializers = node.DescendantNodesAndSelf(n => !(n is ExpressionSyntax)).Where(isConstructorInitializer);
             return (ConstructorInitializerSyntax)constructorInitializers.FirstOrDefault();
         }
 
         protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest<TNode>(string testSrc, CSharpParseOptions parseOptions = null) where TNode : SyntaxNode
         {
-            var compilation = CreateCompilation(testSrc, parseOptions: parseOptions);
+            CSharpCompilation compilation = CreateCompilation(testSrc, parseOptions: parseOptions);
             return GetSemanticInfoForTest<TNode>(compilation);
         }
 
         protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTest<TNode>(CSharpCompilation compilation) where TNode : SyntaxNode
         {
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
-            var syntaxToBind = GetSyntaxNodeOfTypeForBinding<TNode>(GetSyntaxNodeList(tree));
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
+            TNode syntaxToBind = GetSyntaxNodeOfTypeForBinding<TNode>(GetSyntaxNodeList(tree));
 
             return model.GetSemanticInfoSummary(syntaxToBind);
         }
 
         internal PreprocessingSymbolInfo GetPreprocessingSymbolInfoForTest(string testSrc, string subStrForPreprocessNameIndex)
         {
-            var compilation = CreateCompilation(testSrc);
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilation(testSrc);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
             var position = testSrc.IndexOf(subStrForPreprocessNameIndex, StringComparison.Ordinal);
             var nameSyntaxToBind = tree.GetRoot().FindToken(position, findInsideTrivia: true).Parent as IdentifierNameSyntax;
 
@@ -135,14 +135,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal AliasSymbol GetAliasInfoForTest(string testSrc)
         {
-            var compilation = CreateCompilation(testSrc);
+            CSharpCompilation compilation = CreateCompilation(testSrc);
             return GetAliasInfoForTest(compilation);
         }
 
         internal AliasSymbol GetAliasInfoForTest(CSharpCompilation compilation)
         {
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
             IdentifierNameSyntax syntaxToBind = GetSyntaxNodeOfTypeForBinding<IdentifierNameSyntax>(GetSyntaxNodeList(tree));
 
             return (AliasSymbol)model.GetAliasInfo(syntaxToBind);

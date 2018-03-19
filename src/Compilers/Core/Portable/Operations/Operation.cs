@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis
 
         protected void SetParentOperation(IOperation parent)
         {
-            var result = Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, parent, null);
+            IOperation result = Interlocked.CompareExchange(ref _parentDoNotAccessDirectly, parent, null);
 
             // tree must belong to same semantic model if parent is given
             Debug.Assert(parent == null || ((Operation)parent).SemanticModel == SemanticModel);
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis
                 return operations;
             }
 
-            foreach (var operation in operations)
+            foreach (T operation in operations)
             {
                 // go through slowest path
                 SetParentOperation(operation, parent);
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    foreach (var child in _lazyChildren.Value)
+                    foreach (IOperation child in _lazyChildren.Value)
                     {
                         if (child == null)
                         {
@@ -208,13 +208,13 @@ namespace Microsoft.CodeAnalysis
             {
                 // for now, children can return null. once we fix the issue, children should never return null
                 // https://github.com/dotnet/roslyn/issues/21196
-                foreach (var o in parent.Children.WhereNotNull())
+                foreach (IOperation o in parent.Children.WhereNotNull())
                 {
                     queue.Enqueue(o);
                 }
             }
 
-            var operationQueue = s_queuePool.Allocate();
+            Queue<IOperation> operationQueue = s_queuePool.Allocate();
 
             try
             {
@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis
                 // every operation returned by the queue should already have Parent operation set
                 while (operationQueue.Count > 0)
                 {
-                    var operation = operationQueue.Dequeue();
+                    IOperation operation = operationQueue.Dequeue();
 
                     if (!operationAlreadyProcessed.Add(operation))
                     {
@@ -267,18 +267,18 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            var currentCandidate = Syntax.Parent;
+            SyntaxNode currentCandidate = Syntax.Parent;
 
             try
             {
                 while (currentCandidate != null)
                 {
                     // get operation
-                    var tree = SemanticModel.GetOperation(currentCandidate);
+                    IOperation tree = SemanticModel.GetOperation(currentCandidate);
                     if (tree != null)
                     {
                         // walk down operation tree to see whether this tree contains parent of this operation
-                        var parent = WalkDownOperationToFindParent(operationAlreadyProcessed, tree);
+                        IOperation parent = WalkDownOperationToFindParent(operationAlreadyProcessed, tree);
                         if (parent != null)
                         {
                             return parent;

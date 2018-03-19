@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool hasRefKinds = RefKinds.Count > 0;
                 for (int i = 0; i < Arguments.Count; i++)
                 {
-                    var argument = Arguments[i];
+                    BoundExpression argument = Arguments[i];
 
                     // By-ref dynamic arguments don't make the invocation dynamic.
                     if ((object)argument.Type != null && argument.Type.IsDynamic() && (!hasRefKinds || RefKinds[i] == Microsoft.CodeAnalysis.RefKind.None))
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                foreach (var argument in this.Arguments)
+                foreach (BoundExpression argument in this.Arguments)
                 {
                     if (argument.HasAnyErrors)
                     {

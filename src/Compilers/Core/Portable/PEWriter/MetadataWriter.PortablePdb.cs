@@ -61,10 +61,10 @@ namespace Microsoft.Cci
                 return;
             }
 
-            var methodHandle = MetadataTokens.MethodDefinitionHandle(methodRid);
+            MethodDefinitionHandle methodHandle = MetadataTokens.MethodDefinitionHandle(methodRid);
 
-            var bodyImportScope = bodyOpt.ImportScope;
-            var importScopeHandle = (bodyImportScope != null) ? GetImportScopeIndex(bodyImportScope, _scopeIndex) : default(ImportScopeHandle);
+            IImportScope bodyImportScope = bodyOpt.ImportScope;
+            ImportScopeHandle importScopeHandle = (bodyImportScope != null) ? GetImportScopeIndex(bodyImportScope, _scopeIndex) : default(ImportScopeHandle);
 
             // documents & sequence points:
             DocumentHandle singleDocumentHandle;
@@ -112,7 +112,7 @@ namespace Microsoft.Cci
 
                     foreach (ILocalDefinition constant in scope.Constants)
                     {
-                        var mdConstant = constant.CompileTimeValue;
+                        CodeAnalysis.CodeGen.MetadataConstant mdConstant = constant.CompileTimeValue;
                         Debug.Assert(mdConstant != null);
 
                         lastLocalConstantHandle = _debugMetadataOpt.AddLocalConstant(
@@ -124,7 +124,7 @@ namespace Microsoft.Cci
                 }
             }
 
-            var moveNextBodyInfo = bodyOpt.MoveNextBodyInfo;
+            StateMachineMoveNextBodyDebugInfo moveNextBodyInfo = bodyOpt.MoveNextBodyInfo;
             if (moveNextBodyInfo != null)
             {
                 _debugMetadataOpt.AddStateMachineMethod(
@@ -162,8 +162,8 @@ namespace Microsoft.Cci
             var encoder = new CustomModifiersEncoder(builder);
             SerializeCustomModifiers(encoder, localConstant.CustomModifiers);
 
-            var type = localConstant.Type;
-            var typeCode = type.TypeCode;
+            ITypeReference type = localConstant.Type;
+            PrimitiveTypeCode typeCode = type.TypeCode;
 
             object value = localConstant.CompileTimeValue.Value;
 
@@ -411,7 +411,7 @@ namespace Microsoft.Cci
                 SerializeImport(writer, import);
             }
 
-            var rid = _debugMetadataOpt.AddImportScope(
+            ImportScopeHandle rid = _debugMetadataOpt.AddImportScope(
                 parentScope: default(ImportScopeHandle),
                 imports: _debugMetadataOpt.GetOrAddBlob(writer));
 
@@ -427,10 +427,10 @@ namespace Microsoft.Cci
                 return scopeHandle;
             }
 
-            var parent = scope.Parent;
-            var parentScopeHandle = (parent != null) ? GetImportScopeIndex(scope.Parent, scopeIndex) : ModuleImportScopeHandle;
+            IImportScope parent = scope.Parent;
+            ImportScopeHandle parentScopeHandle = (parent != null) ? GetImportScopeIndex(scope.Parent, scopeIndex) : ModuleImportScopeHandle;
 
-            var result = _debugMetadataOpt.AddImportScope(
+            ImportScopeHandle result = _debugMetadataOpt.AddImportScope(
                 parentScope: parentScopeHandle,
                 imports: SerializeImportsBlob(scope));
 
@@ -471,10 +471,10 @@ namespace Microsoft.Cci
 
         private void SerializeLocalInfo(ILocalDefinition local, EntityHandle parent)
         {
-            var dynamicFlags = local.DynamicTransformFlags;
+            ImmutableArray<bool> dynamicFlags = local.DynamicTransformFlags;
             if (!dynamicFlags.IsEmpty)
             {
-                var value = SerializeBitVector(dynamicFlags);
+                ImmutableArray<byte> value = SerializeBitVector(dynamicFlags);
 
                 _debugMetadataOpt.AddCustomDebugInformation(
                     parent: parent,
@@ -482,7 +482,7 @@ namespace Microsoft.Cci
                     value: _debugMetadataOpt.GetOrAddBlob(value));
             }
 
-            var tupleElementNames = local.TupleElementNames;
+            ImmutableArray<string> tupleElementNames = local.TupleElementNames;
             if (!tupleElementNames.IsEmpty)
             {
                 var builder = new BlobBuilder();
@@ -584,7 +584,7 @@ namespace Microsoft.Cci
 
         private void SerializeStateMachineLocalScopes(IMethodBody methodBody, MethodDefinitionHandle method)
         {
-            var scopes = methodBody.StateMachineHoistedLocalScopes;
+            ImmutableArray<StateMachineHoistedLocalScope> scopes = methodBody.StateMachineHoistedLocalScopes;
             if (scopes.IsDefaultOrEmpty)
             {
                 return;
@@ -592,7 +592,7 @@ namespace Microsoft.Cci
 
             var writer = new BlobBuilder();
 
-            foreach (var scope in scopes)
+            foreach (StateMachineHoistedLocalScope scope in scopes)
             {
                 writer.WriteUInt32((uint)scope.StartOffset);
                 writer.WriteUInt32((uint)scope.Length);
@@ -628,15 +628,15 @@ namespace Microsoft.Cci
             // header:
             writer.WriteCompressedInteger(MetadataTokens.GetRowNumber(localSignatureHandleOpt));
 
-            var previousDocument = TryGetSingleDocument(sequencePoints);
+            DebugSourceDocument previousDocument = TryGetSingleDocument(sequencePoints);
             singleDocumentHandle = (previousDocument != null) ? GetOrAddDocument(previousDocument, documentIndex) : default(DocumentHandle);
 
             for (int i = 0; i < sequencePoints.Length; i++)
             {
-                var currentDocument = sequencePoints[i].Document;
+                DebugSourceDocument currentDocument = sequencePoints[i].Document;
                 if (previousDocument != currentDocument)
                 {
-                    var documentHandle = GetOrAddDocument(currentDocument, documentIndex);
+                    DocumentHandle documentHandle = GetOrAddDocument(currentDocument, documentIndex);
 
                     // optional document in header or document record:
                     if (previousDocument != null)
@@ -761,7 +761,7 @@ namespace Microsoft.Cci
         /// </remarks>
         public void AddRemainingEmbeddedDocuments(IEnumerable<DebugSourceDocument> documents)
         {
-            foreach (var document in documents)
+            foreach (DebugSourceDocument document in documents)
             {
                 Debug.Assert(document.GetSourceInfo().EmbeddedTextBlob != null);
                 GetOrAddDocument(document, _documentIndex);
@@ -774,7 +774,7 @@ namespace Microsoft.Cci
 
         private void SerializeEncMethodDebugInformation(IMethodBody methodBody, MethodDefinitionHandle method)
         {
-            var encInfo = GetEncMethodDebugInfo(methodBody);
+            EditAndContinueMethodDebugInformation encInfo = GetEncMethodDebugInfo(methodBody);
 
             if (!encInfo.LocalSlots.IsDefaultOrEmpty)
             {

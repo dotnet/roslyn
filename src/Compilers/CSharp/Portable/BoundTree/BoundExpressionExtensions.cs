@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
-            var constValue = node.ConstantValue;
+            ConstantValue constValue = node.ConstantValue;
             if (constValue != null)
             {
                 return constValue.IsDefaultValue;
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static bool HasDynamicType(this BoundExpression node)
         {
-            var type = node.Type;
+            TypeSymbol type = node.Type;
             return (object)type != null && type.IsDynamic();
         }
 
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.DelegateCreationExpression:
                     var expr = (BoundDelegateCreationExpression)node;
-                    var ctor = expr.Type.GetMembers(WellKnownMemberNames.InstanceConstructorName).FirstOrDefault();
+                    Symbol ctor = expr.Type.GetMembers(WellKnownMemberNames.InstanceConstructorName).FirstOrDefault();
                     if ((object)ctor != null)
                     {
                         symbols.Add(ctor);
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // and we should use those as the symbols displayed for the call. If it did succeed
                     // then we did not stash any symbols; just fall through to the default case.
 
-                    var originalMethods = ((BoundCall)node).OriginalMethodsOpt;
+                    System.Collections.Immutable.ImmutableArray<MethodSymbol> originalMethods = ((BoundCall)node).OriginalMethodsOpt;
                     if (originalMethods.IsDefault)
                     {
                         goto default;
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Same behavior as for a BoundCall: if overload resolution failed, pull out stashed candidates;
                     // otherwise use the default behavior.
 
-                    var originalIndexers = ((BoundIndexerAccess)node).OriginalIndexersOpt;
+                    System.Collections.Immutable.ImmutableArray<PropertySymbol> originalIndexers = ((BoundIndexerAccess)node).OriginalIndexersOpt;
                     if (originalIndexers.IsDefault)
                     {
                         goto default;
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 default:
-                    var symbol = node.ExpressionSymbol;
+                    Symbol symbol = node.ExpressionSymbol;
                     if ((object)symbol != null)
                     {
                         symbols.Add(symbol);

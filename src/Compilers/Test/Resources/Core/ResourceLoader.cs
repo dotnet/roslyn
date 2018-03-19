@@ -11,9 +11,9 @@ namespace TestResources
     {
         private static Stream GetResourceStream(string name)
         {
-            var assembly = typeof(ResourceLoader).GetTypeInfo().Assembly;
+            Assembly assembly = typeof(ResourceLoader).GetTypeInfo().Assembly;
 
-            var stream = assembly.GetManifestResourceStream(name);
+            Stream stream = assembly.GetManifestResourceStream(name);
             if (stream == null)
             {
                 throw new InvalidOperationException($"Resource '{name}' not found in {assembly.FullName}.");
@@ -24,7 +24,7 @@ namespace TestResources
 
         private static byte[] GetResourceBlob(string name)
         {
-            using (var stream = GetResourceStream(name))
+            using (Stream stream = GetResourceStream(name))
             {
                 var bytes = new byte[stream.Length];
                 using (var memoryStream = new MemoryStream(bytes))
@@ -50,7 +50,7 @@ namespace TestResources
         {
             if (resource == null)
             {
-                using (var stream = GetResourceStream(name))
+                using (Stream stream = GetResourceStream(name))
                 {
                     using (var streamReader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true))
                     {

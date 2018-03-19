@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public static RangeVariableMap RangeVariableMap(params RangeVariableSymbol[] parameters)
             {
                 var result = new RangeVariableMap();
-                foreach (var vars in parameters)
+                foreach (RangeVariableSymbol vars in parameters)
                 {
                     result.Add(vars, ImmutableArray<string>.Empty);
                 }
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             public RangeVariableMap RangeVariableMap()
             {
                 var result = new RangeVariableMap();
-                foreach (var vars in allRangeVariables.Keys)
+                foreach (RangeVariableSymbol vars in allRangeVariables.Keys)
                 {
                     result.Add(vars, allRangeVariables[vars].ToImmutable());
                 }
@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = new RangeVariableSymbol(name, binder.ContainingMemberOrLambda, identifier.GetLocation());
                 bool error = false;
 
-                foreach (var existingRangeVariable in allRangeVariables.Keys)
+                foreach (RangeVariableSymbol existingRangeVariable in allRangeVariables.Keys)
                 {
                     if (existingRangeVariable.Name == name)
                     {
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // field of the new transparent lambda parameter that contains the old variables.
             internal void AddTransparentIdentifier(string name)
             {
-                foreach (var b in allRangeVariables.Values)
+                foreach (ArrayBuilder<string> b in allRangeVariables.Values)
                 {
                     b.Add(name);
                 }
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 fromExpression = null;
                 rangeVariable = null;
                 selectOrGroup = null;
-                foreach (var b in allRangeVariables.Values) b.Free();
+                foreach (ArrayBuilder<string> b in allRangeVariables.Values) b.Free();
                 allRangeVariables.Clear();
                 clauses.Clear();
             }

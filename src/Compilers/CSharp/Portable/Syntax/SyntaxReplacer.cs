@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 int start = 0;
                 int end = 0;
 
-                foreach (var span in spans)
+                foreach (TextSpan span in spans)
                 {
                     if (first)
                     {
@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                     return false;
                 }
 
-                foreach (var s in _spanSet)
+                foreach (TextSpan s in _spanSet)
                 {
                     if (span.IntersectsWith(s))
                     {
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
-                var rewritten = token;
+                SyntaxToken rewritten = token;
 
                 if (_shouldVisitTrivia && this.ShouldVisit(token.FullSpan))
                 {
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             public override SyntaxTrivia VisitListElement(SyntaxTrivia trivia)
             {
-                var rewritten = trivia;
+                SyntaxTrivia rewritten = trivia;
 
                 if (this.VisitIntoStructuredTrivia && trivia.HasStructure && this.ShouldVisit(trivia.FullSpan))
                 {
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             public override SyntaxToken VisitToken(SyntaxToken token)
             {
-                var rewritten = token;
+                SyntaxToken rewritten = token;
 
                 if (_visitTrivia && this.ShouldVisit(token.FullSpan))
                 {
@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             public override SyntaxTrivia VisitListElement(SyntaxTrivia trivia)
             {
-                var rewritten = trivia;
+                SyntaxTrivia rewritten = trivia;
 
                 if (this.VisitIntoStructuredTrivia && trivia.HasStructure && this.ShouldVisit(trivia.FullSpan))
                 {

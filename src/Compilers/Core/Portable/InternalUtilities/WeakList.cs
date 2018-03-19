@@ -78,7 +78,7 @@ namespace Roslyn.Utilities
         private void Shrink(int firstDead, int alive)
         {
             int newSize = GetExpandedSize(alive);
-            var newItems = (newSize == _items.Length) ? _items : new WeakReference<T>[newSize];
+            WeakReference<T>[] newItems = (newSize == _items.Length) ? _items : new WeakReference<T>[newSize];
             Compact(firstDead, newItems);
             _items = newItems;
         }
@@ -107,7 +107,7 @@ namespace Roslyn.Utilities
             int j = firstDead;
             for (int i = firstDead + 1; i < oldSize; i++)
             {
-                var item = _items[i];
+                WeakReference<T> item = _items[i];
 
                 T target;
                 if (item.TryGetTarget(out target))

@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             _analyzerLoadException = null;
             var analyzerRef = new AnalyzerFileReference(analyzerPath, FromFileLoader.Instance);
             analyzerRef.AnalyzerLoadFailed += (s, e) => _analyzerLoadException = e.Exception;
-            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            ImmutableArray<DiagnosticAnalyzer>.Builder builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             analyzerRef.AddAnalyzers(builder, LanguageNames.CSharp);
             return _analyzerLoadException;
         }
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestMetadataParse()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
-            var analyzerTypeNameMap = reference.GetAnalyzerTypeNameMap();
+            ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap = reference.GetAnalyzerTypeNameMap();
             Assert.Equal(2, analyzerTypeNameMap.Keys.Count());
 
             Assert.Equal(6, analyzerTypeNameMap[LanguageNames.CSharp].Count);
@@ -104,9 +104,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public void TestGetAnalyzersPerLanguage()
         {
             AnalyzerFileReference reference = CreateAnalyzerFileReference(Assembly.GetExecutingAssembly().Location);
-            var analyzers = reference.GetAnalyzers(LanguageNames.CSharp);
+            ImmutableArray<DiagnosticAnalyzer> analyzers = reference.GetAnalyzers(LanguageNames.CSharp);
             Assert.Equal(4, analyzers.Length);
-            var analyzerNames = analyzers.Select(a => a.GetType().Name);
+            IEnumerable<string> analyzerNames = analyzers.Select(a => a.GetType().Name);
             Assert.Contains("TestAnalyzer", analyzerNames);
             Assert.Contains("TestAnalyzerCS", analyzerNames);
             Assert.Contains("TestAnalyzerCSVB", analyzerNames);
@@ -129,13 +129,13 @@ namespace Microsoft.CodeAnalysis.UnitTests
             List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
             reference.AnalyzerLoadFailed += errorHandler;
-            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            ImmutableArray<DiagnosticAnalyzer>.Builder builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             reference.AddAnalyzers(builder, LanguageNames.CSharp);
-            var analyzers = builder.ToImmutable();
+            ImmutableArray<DiagnosticAnalyzer> analyzers = builder.ToImmutable();
             reference.AnalyzerLoadFailed -= errorHandler;
 
             Assert.Equal(2, errors.Count);
-            var failedTypes = errors.Where(e => e.ErrorCode == AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer).Select(e => e.TypeName);
+            IEnumerable<string> failedTypes = errors.Where(e => e.ErrorCode == AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer).Select(e => e.TypeName);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.AbstractAnalyzer", failedTypes);
             Assert.Contains("Microsoft.CodeAnalysis.UnitTests.OpenGenericAnalyzer`1", failedTypes);
         }
@@ -148,9 +148,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
             List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
             reference.AnalyzerLoadFailed += errorHandler;
-            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            ImmutableArray<DiagnosticAnalyzer>.Builder builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             reference.AddAnalyzers(builder, LanguageNames.CSharp);
-            var analyzers = builder.ToImmutable();
+            ImmutableArray<DiagnosticAnalyzer> analyzers = builder.ToImmutable();
             reference.AnalyzerLoadFailed -= errorHandler;
 
             Assert.Equal(1, errors.Count);
@@ -160,16 +160,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestLoadErrors3()
         {
-            var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
+            TempDirectory directory = Temp.CreateDirectory();
+            TempFile alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
             AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
 
             List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
             reference.AnalyzerLoadFailed += errorHandler;
-            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            ImmutableArray<DiagnosticAnalyzer>.Builder builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             reference.AddAnalyzers(builder, LanguageNames.CSharp);
-            var analyzers = builder.ToImmutable();
+            ImmutableArray<DiagnosticAnalyzer> analyzers = builder.ToImmutable();
             reference.AnalyzerLoadFailed -= errorHandler;
 
             File.Delete(alphaDll.Path);
@@ -180,16 +180,16 @@ namespace Microsoft.CodeAnalysis.UnitTests
         [Fact]
         public void TestAnalyzerLoading()
         {
-            var dir = Temp.CreateDirectory();
+            TempDirectory dir = Temp.CreateDirectory();
             dir.CopyFile(typeof(AppDomainUtils).Assembly.Location);
-            var test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
-            var analyzerFile = DesktopTestHelpers.CreateCSharpAnalyzerAssemblyWithTestAnalyzer(dir, "MyAnalyzer");
-            var loadDomain = AppDomainUtils.Create("AnalyzerTestDomain", basePath: dir.Path);
+            TempFile test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
+            TempFile analyzerFile = DesktopTestHelpers.CreateCSharpAnalyzerAssemblyWithTestAnalyzer(dir, "MyAnalyzer");
+            AppDomain loadDomain = AppDomainUtils.Create("AnalyzerTestDomain", basePath: dir.Path);
             try
             {
                 // Test analyzer load success.
                 var remoteTest = (RemoteAnalyzerFileReferenceTest)loadDomain.CreateInstanceAndUnwrap(typeof(RemoteAnalyzerFileReferenceTest).Assembly.FullName, typeof(RemoteAnalyzerFileReferenceTest).FullName);
-                var exception = remoteTest.LoadAnalyzer(analyzerFile.Path);
+                Exception exception = remoteTest.LoadAnalyzer(analyzerFile.Path);
                 Assert.Null(exception);
             }
             finally
@@ -216,13 +216,13 @@ public class TestAnalyzer : DiagnosticAnalyzer
     public override void Initialize(AnalysisContext context) { throw new NotImplementedException(); }
 }";
 
-            var dir = Temp.CreateDirectory();
+            TempDirectory dir = Temp.CreateDirectory();
 
             dir.CopyFile(typeof(System.Reflection.Metadata.MetadataReader).Assembly.Location);
             dir.CopyFile(typeof(AppDomainUtils).Assembly.Location);
-            var immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
-            var analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
-            var test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
+            TempFile immutable = dir.CopyFile(typeof(ImmutableArray).Assembly.Location);
+            TempFile analyzer = dir.CopyFile(typeof(DiagnosticAnalyzer).Assembly.Location);
+            TempFile test = dir.CopyFile(typeof(FromFileLoader).Assembly.Location);
             dir.CopyFile(Path.Combine(Path.GetDirectoryName(typeof(CSharp.CSharpCompilation).Assembly.Location), "System.IO.FileSystem.dll"));
 
             var analyzerCompilation = CSharp.CSharpCompilation.Create(
@@ -236,14 +236,14 @@ public class TestAnalyzer : DiagnosticAnalyzer
                 },
                 new CSharp.CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-            var analyzerFile = dir.CreateFile("MyAnalyzer.dll").WriteAllBytes(analyzerCompilation.EmitToArray());
+            TempFile analyzerFile = dir.CreateFile("MyAnalyzer.dll").WriteAllBytes(analyzerCompilation.EmitToArray());
 
-            var loadDomain = AppDomainUtils.Create("AnalyzerTestDomain", basePath: dir.Path);
+            AppDomain loadDomain = AppDomainUtils.Create("AnalyzerTestDomain", basePath: dir.Path);
             try
             {
                 // Test analyzer load failure.
                 var remoteTest = (RemoteAnalyzerFileReferenceTest)loadDomain.CreateInstanceAndUnwrap(typeof(RemoteAnalyzerFileReferenceTest).Assembly.FullName, typeof(RemoteAnalyzerFileReferenceTest).FullName);
-                var exception = remoteTest.LoadAnalyzer(analyzerFile.Path);
+                Exception exception = remoteTest.LoadAnalyzer(analyzerFile.Path);
                 Assert.NotNull(exception as TypeLoadException);
             }
             finally
@@ -262,8 +262,8 @@ public class TestAnalyzer : DiagnosticAnalyzer
         [WorkItem(1029928, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1029928")]
         public void BadAnalyzerReference_DisplayName()
         {
-            var directory = Temp.CreateDirectory();
-            var textFile = directory.CreateFile("Goo.txt").WriteAllText("I am the very model of a modern major general.");
+            TempDirectory directory = Temp.CreateDirectory();
+            TempFile textFile = directory.CreateFile("Goo.txt").WriteAllText("I am the very model of a modern major general.");
             AnalyzerFileReference reference = CreateAnalyzerFileReference(textFile.Path);
 
             Assert.Equal(expected: "Goo", actual: reference.Display);
@@ -272,8 +272,8 @@ public class TestAnalyzer : DiagnosticAnalyzer
         [Fact]
         public void ValidAnalyzerReference_DisplayName()
         {
-            var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
+            TempDirectory directory = Temp.CreateDirectory();
+            TempFile alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
             AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
 
             Assert.Equal(expected: "Alpha", actual: reference.Display);
@@ -284,8 +284,8 @@ public class TestAnalyzer : DiagnosticAnalyzer
         [WorkItem(2782, "https://github.com/dotnet/roslyn/issues/2782")]
         public void ValidAnalyzerReference_Id()
         {
-            var directory = Temp.CreateDirectory();
-            var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
+            TempDirectory directory = Temp.CreateDirectory();
+            TempFile alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
             AnalyzerFileReference reference = CreateAnalyzerFileReference(alphaDll.Path);
 
             AssemblyIdentity expectedIdentity = null;
@@ -299,8 +299,8 @@ public class TestAnalyzer : DiagnosticAnalyzer
         [WorkItem(2782, "https://github.com/dotnet/roslyn/issues/2782")]
         public void BadAnalyzerReference_Id()
         {
-            var directory = Temp.CreateDirectory();
-            var textFile = directory.CreateFile("Goo.txt").WriteAllText("I am the very model of a modern major general.");
+            TempDirectory directory = Temp.CreateDirectory();
+            TempFile textFile = directory.CreateFile("Goo.txt").WriteAllText("I am the very model of a modern major general.");
             AnalyzerFileReference reference = CreateAnalyzerFileReference(textFile.Path);
 
             Assert.Equal(expected: "Goo", actual: reference.Id);
@@ -310,16 +310,16 @@ public class TestAnalyzer : DiagnosticAnalyzer
         [WorkItem(1032909, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1032909")]
         public void TestFailedLoadDoesntCauseNoAnalyzersWarning()
         {
-            var directory = Temp.CreateDirectory();
-            var analyzerDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AnalyzerTests.FaultyAnalyzer);
+            TempDirectory directory = Temp.CreateDirectory();
+            TempFile analyzerDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AnalyzerTests.FaultyAnalyzer);
             AnalyzerFileReference reference = CreateAnalyzerFileReference(analyzerDll.Path);
 
             List<AnalyzerLoadFailureEventArgs> errors = new List<AnalyzerLoadFailureEventArgs>();
             EventHandler<AnalyzerLoadFailureEventArgs> errorHandler = (o, e) => errors.Add(e);
             reference.AnalyzerLoadFailed += errorHandler;
-            var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+            ImmutableArray<DiagnosticAnalyzer>.Builder builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
             reference.AddAnalyzers(builder, LanguageNames.CSharp);
-            var analyzers = builder.ToImmutable();
+            ImmutableArray<DiagnosticAnalyzer> analyzers = builder.ToImmutable();
             reference.AnalyzerLoadFailed -= errorHandler;
 
             Assert.Equal(1, errors.Count);

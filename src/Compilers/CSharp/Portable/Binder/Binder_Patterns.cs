@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private BoundExpression BindIsPatternExpression(IsPatternExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            var expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+            BoundExpression expression = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
             var hasErrors = IsOperandErrors(node, ref expression, diagnostics);
-            var expressionType = expression.Type;
+            TypeSymbol expressionType = expression.Type;
             if ((object)expressionType == null || expressionType.SpecialType == SpecialType.System_Void)
             {
                 expressionType = CreateErrorType();
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            var pattern = BindPattern(node.Pattern, expressionType, hasErrors, diagnostics);
+            BoundPattern pattern = BindPattern(node.Pattern, expressionType, hasErrors, diagnostics);
             if (!hasErrors && pattern is BoundDeclarationPattern p && !p.IsVar && expression.ConstantValue == ConstantValue.Null)
             {
                 diagnostics.Add(ErrorCode.WRN_IsAlwaysFalse, node.Location, p.DeclaredType.Type);
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             out bool wasExpression)
         {
-            var innerExpression = patternExpression.SkipParens();
+            SyntaxNode innerExpression = patternExpression.SkipParens();
             if (innerExpression.Kind() == SyntaxKind.DefaultLiteralExpression)
             {
                 diagnostics.Add(ErrorCode.ERR_DefaultInPattern, innerExpression.Location);
@@ -85,9 +85,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             out bool wasExpression)
         {
-            var expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
+            BoundExpression expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
             ConstantValue constantValueOpt = null;
-            var convertedExpression = ConvertPatternExpression(operandType, patternExpression, expression, ref constantValueOpt, diagnostics);
+            BoundExpression convertedExpression = ConvertPatternExpression(operandType, patternExpression, expression, ref constantValueOpt, diagnostics);
             wasExpression = expression.Type?.IsErrorType() != true;
             if (!convertedExpression.HasErrors && constantValueOpt == null)
             {
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (convertedExpression.Kind == BoundKind.Conversion)
             {
                 var conversion = (BoundConversion)convertedExpression;
-                var operand = conversion.Operand;
+                BoundExpression operand = conversion.Operand;
                 if (inputType.IsNullableType() && (convertedExpression.ConstantValue == null || !convertedExpression.ConstantValue.IsNull))
                 {
                     // Null is a special case here because we want to compare null to the Nullable<T> itself, not to the underlying type.
@@ -225,7 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             conversion = conversions.ClassifyBuiltInConversion(expressionType, patternType, ref useSiteDiagnostics);
-            var result = Binder.GetIsOperatorConstantResult(expressionType, patternType, conversion.Kind, operandConstantValue, operandCouldBeNull);
+            ConstantValue result = Binder.GetIsOperatorConstantResult(expressionType, patternType, conversion.Kind, operandConstantValue, operandCouldBeNull);
             return
                 (result == null) ? (bool?)null :
                 (result == ConstantValue.True) ? true :
@@ -241,7 +241,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(operandType != (object)null);
 
-            var typeSyntax = node.Type;
+            TypeSyntax typeSyntax = node.Type;
 
             bool isVar;
             AliasSymbol aliasOpt;
@@ -279,7 +279,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var designation = (SingleVariableDesignationSyntax)node.Designation;
-            var identifier = designation.Identifier;
+            SyntaxToken identifier = designation.Identifier;
             SourceLocalSymbol localSymbol = this.LookupLocal(identifier);
 
             if (localSymbol != (object)null)

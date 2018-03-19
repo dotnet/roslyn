@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<ParameterSymbol> SubstituteParameters()
         {
-            var unsubstitutedParameters = OriginalDefinition.Parameters;
+            ImmutableArray<ParameterSymbol> unsubstitutedParameters = OriginalDefinition.Parameters;
 
             if (unsubstitutedParameters.IsEmpty)
             {

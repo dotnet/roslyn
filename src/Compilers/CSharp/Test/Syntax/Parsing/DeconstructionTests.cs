@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         public void ParenExpression()
         {
             // `(id) .` starts with a parenthesized expression
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -108,7 +108,7 @@ class C
         {
             // `(T id, ...) id` starts with a tuple type
 
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -186,7 +186,7 @@ class C
         {
             // `(T, ...) id` starts with a type
 
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -262,7 +262,7 @@ class C
         {
             // (T, ...) [] is a type
 
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -350,7 +350,7 @@ class C
         {
             // (E, ...) followed by ., +, -, etc. starts with a tuple literal/expression
 
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -434,7 +434,7 @@ class C
         public void DeconstructionAssignment()
         {
             // (E, ...) = is a deconstruction-assignment
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -509,7 +509,7 @@ class C
         [Fact]
         public void SimpleDeclaration()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -585,7 +585,7 @@ class C
         public void NestedDeconstructionAssignment()
         {
             // (E, ...) = is a deconstruction-assignment
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -677,7 +677,7 @@ class C
         public void DeconstructionDeclaration()
         {
             // `(T id, ...) = ...` is a deconstruction-declaration
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -767,7 +767,7 @@ class C
         public void NestedDeconstructionDeclaration()
         {
             // `(T id, (...)) = ...` is a deconstruction-declaration
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -880,7 +880,7 @@ class C
         public void VarDeconstructionDeclaration()
         {
             // `var (id, ...) = ...` is a deconstruction-declaration
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -957,7 +957,7 @@ class C
         public void VarNestedDeconstructionDeclaration()
         {
             // `var ((id, ...), ...) = ...` is a deconstruction-declaration
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
         class C
         {
             void Goo()
@@ -1044,7 +1044,7 @@ class C
         public void VarMethodCall()
         {
             // `var(...);` is a method call
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -1118,7 +1118,7 @@ class C
         [Fact]
         public void MixedDeconstructionVariables()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -1217,7 +1217,7 @@ class C
         [Fact]
         public void DeconstructionFor()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
         class C
         {
             void Goo()
@@ -1315,7 +1315,7 @@ class C
         [Fact]
         public void VarDeconstructionFor()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
         class C
         {
             void Goo()
@@ -1400,7 +1400,7 @@ class C
         [Fact]
         public void DeconstructionForeach()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
         class C
         {
             void Goo()
@@ -1493,7 +1493,7 @@ class C
         [Fact]
         public void VarDeconstructionForeach()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
         class C
         {
             void Goo()
@@ -1573,7 +1573,7 @@ class C
         [Fact]
         public void DeconstructionInScript()
         {
-            var tree = UsingTree(@" (int x, int y) = (1, 2); ", options: TestOptions.Script);
+            SyntaxTree tree = UsingTree(@" (int x, int y) = (1, 2); ", options: TestOptions.Script);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.GlobalStatement);
@@ -1649,7 +1649,7 @@ class C
         [Fact]
         public void DeconstructionForEachInScript()
         {
-            var tree = UsingTree(@" foreach ((int x, int y) in new[] { (1, 2) }) { }; ", options: TestOptions.Script);
+            SyntaxTree tree = UsingTree(@" foreach ((int x, int y) in new[] { (1, 2) }) { }; ", options: TestOptions.Script);
 
             N(SyntaxKind.CompilationUnit);
             {
@@ -1748,7 +1748,7 @@ class C
         [Fact]
         public void DeconstructionDeclarationWithDiscard()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -1871,11 +1871,11 @@ class C
         public void TupleArray()
         {
             var text = "(T, T)[] id;";
-            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            StatementSyntax statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
             Assert.False(statement.HasErrors);
 
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
-            var declaration = ((LocalDeclarationStatementSyntax)statement).Declaration;
+            VariableDeclarationSyntax declaration = ((LocalDeclarationStatementSyntax)statement).Declaration;
             Assert.Equal("(T, T)[]", declaration.Type.ToString());
             Assert.Equal("id", declaration.Variables.ToString());
         }
@@ -1884,11 +1884,11 @@ class C
         public void ParenthesizedExpression()
         {
             var text = "(x).ToString();";
-            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            StatementSyntax statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
             Assert.False(statement.HasErrors);
 
             Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
-            var expression = ((ExpressionStatementSyntax)statement).Expression;
+            ExpressionSyntax expression = ((ExpressionStatementSyntax)statement).Expression;
             Assert.Equal(SyntaxKind.InvocationExpression, expression.Kind());
         }
 
@@ -1896,11 +1896,11 @@ class C
         public void TupleLiteralStatement()
         {
             var text = "(x, x).ToString();";
-            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            StatementSyntax statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
             Assert.False(statement.HasErrors);
 
             Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
-            var expression = ((ExpressionStatementSyntax)statement).Expression;
+            ExpressionSyntax expression = ((ExpressionStatementSyntax)statement).Expression;
             Assert.Equal(SyntaxKind.InvocationExpression, expression.Kind());
         }
 
@@ -1908,11 +1908,11 @@ class C
         public void Statement4()
         {
             var text = "((x)).ToString();";
-            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            StatementSyntax statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
             Assert.False(statement.HasErrors);
 
             Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
-            var expression = ((ExpressionStatementSyntax)statement).Expression;
+            ExpressionSyntax expression = ((ExpressionStatementSyntax)statement).Expression;
             Assert.Equal(SyntaxKind.InvocationExpression, expression.Kind());
         }
 
@@ -1920,11 +1920,11 @@ class C
         public void Statement5()
         {
             var text = "((x, y) = M()).ToString();";
-            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            StatementSyntax statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
             Assert.False(statement.HasErrors);
 
             Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
-            var expression = ((ExpressionStatementSyntax)statement).Expression;
+            ExpressionSyntax expression = ((ExpressionStatementSyntax)statement).Expression;
             Assert.Equal(SyntaxKind.InvocationExpression, expression.Kind());
 
             var invocation = (InvocationExpressionSyntax)expression;
@@ -1937,11 +1937,11 @@ class C
         public void CastWithTupleType()
         {
             var text = "(((x, y))z).Goo();";
-            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            StatementSyntax statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
             Assert.False(statement.HasErrors);
 
             Assert.Equal(SyntaxKind.ExpressionStatement, statement.Kind());
-            var expression = ((ExpressionStatementSyntax)statement).Expression;
+            ExpressionSyntax expression = ((ExpressionStatementSyntax)statement).Expression;
             Assert.Equal(SyntaxKind.InvocationExpression, expression.Kind());
 
             var invocation = (InvocationExpressionSyntax)expression;
@@ -1954,10 +1954,10 @@ class C
         public void NotACast()
         {
             var text = "((Int32.MaxValue, Int32.MaxValue)).ToString();";
-            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            StatementSyntax statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
             Assert.False(statement.HasErrors);
 
-            var expression = ((ExpressionStatementSyntax)statement).Expression;
+            ExpressionSyntax expression = ((ExpressionStatementSyntax)statement).Expression;
             var invocation = (InvocationExpressionSyntax)expression;
             var lhs = (MemberAccessExpressionSyntax)invocation.Expression;
             var paren = (ParenthesizedExpressionSyntax)lhs.Expression;
@@ -1968,10 +1968,10 @@ class C
         public void AlsoNotACast()
         {
             var text = "((x, y)).ToString();";
-            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            StatementSyntax statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
             Assert.False(statement.HasErrors);
 
-            var expression = ((ExpressionStatementSyntax)statement).Expression;
+            ExpressionSyntax expression = ((ExpressionStatementSyntax)statement).Expression;
             var invocation = (InvocationExpressionSyntax)expression;
             var lhs = (MemberAccessExpressionSyntax)invocation.Expression;
             var paren = (ParenthesizedExpressionSyntax)lhs.Expression;
@@ -1982,10 +1982,10 @@ class C
         public void StillNotACast()
         {
             var text = "((((x, y)))).ToString();";
-            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            StatementSyntax statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
             Assert.False(statement.HasErrors);
 
-            var expression = ((ExpressionStatementSyntax)statement).Expression;
+            ExpressionSyntax expression = ((ExpressionStatementSyntax)statement).Expression;
             var invocation = (InvocationExpressionSyntax)expression;
             var lhs = (MemberAccessExpressionSyntax)invocation.Expression;
             var paren1 = (ParenthesizedExpressionSyntax)lhs.Expression;
@@ -1998,10 +1998,10 @@ class C
         public void LambdaInExpressionStatement()
         {
             var text = "(a) => a;"; // syntax ok
-            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            StatementSyntax statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
             Assert.False(statement.HasErrors);
 
-            var expression = ((ExpressionStatementSyntax)statement).Expression;
+            ExpressionSyntax expression = ((ExpressionStatementSyntax)statement).Expression;
             Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, expression.Kind());
         }
 
@@ -2009,10 +2009,10 @@ class C
         public void LambdaWithBodyInExpressionStatement()
         {
             var text = "(a, b) => { };"; // syntax ok
-            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            StatementSyntax statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
             Assert.False(statement.HasErrors);
 
-            var expression = ((ExpressionStatementSyntax)statement).Expression;
+            ExpressionSyntax expression = ((ExpressionStatementSyntax)statement).Expression;
             Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, expression.Kind());
         }
 
@@ -2020,7 +2020,7 @@ class C
         public void InvalidStatement()
         {
             var text = "(x, y)? = M();"; // error
-            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            StatementSyntax statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
             Assert.True(statement.HasErrors);
         }
 
@@ -2029,7 +2029,7 @@ class C
         public void ConfusedForWithDeconstruction()
         {
             var text = "for ((int x, var (y, z)) in goo) { }";
-            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            StatementSyntax statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
 
             // This expectation is wrong. We should expect a foreach statement (because the 'in' keyword is there)
             Assert.True(statement.Kind() == SyntaxKind.ForStatement);
@@ -2039,9 +2039,9 @@ class C
         public void NullableTuple()
         {
             var text = "(x, y)? z = M();";
-            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            StatementSyntax statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
             Assert.False(statement.HasErrors);
-            var declaration = ((LocalDeclarationStatementSyntax)statement).Declaration;
+            VariableDeclarationSyntax declaration = ((LocalDeclarationStatementSyntax)statement).Declaration;
             var nullable = (NullableTypeSyntax)declaration.Type;
             Assert.Equal(SyntaxKind.TupleType, nullable.ElementType.Kind());
         }
@@ -2375,7 +2375,7 @@ class C
         [Fact]
         public void DiscardsInDeconstruction_01()
         {
-            var tree = UsingTree(@"void M() { var (x, _) = e; }");
+            SyntaxTree tree = UsingTree(@"void M() { var (x, _) = e; }");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -2437,7 +2437,7 @@ class C
         [Fact]
         public void DiscardsInDeconstruction_02()
         {
-            var tree = UsingTree(@"void M() { (var x, var _) = e; }");
+            SyntaxTree tree = UsingTree(@"void M() { (var x, var _) = e; }");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -2512,7 +2512,7 @@ class C
         [Fact]
         public void DiscardsInOut_01()
         {
-            var tree = UsingTree(@"void M() { M(out var _); }");
+            SyntaxTree tree = UsingTree(@"void M() { M(out var _); }");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -2572,7 +2572,7 @@ class C
         [Fact]
         public void DiscardsInOut_02()
         {
-            var tree = UsingTree(@"void M() { M(out int _); }");
+            SyntaxTree tree = UsingTree(@"void M() { M(out int _); }");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -2632,7 +2632,7 @@ class C
         [Fact]
         public void DiscardsInPattern_01()
         {
-            var tree = UsingTree(@"void M() { if (e is int _) {} }");
+            SyntaxTree tree = UsingTree(@"void M() { if (e is int _) {} }");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -2691,7 +2691,7 @@ class C
         [Fact]
         public void DiscardsInPattern_02()
         {
-            var tree = UsingTree(@"void M() { if (e is var _) {} }");
+            SyntaxTree tree = UsingTree(@"void M() { if (e is var _) {} }");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -2750,7 +2750,7 @@ class C
         [Fact]
         public void DiscardsInPattern_03()
         {
-            var tree = UsingTree(@"void M() { switch (e) { case int _: break; } }");
+            SyntaxTree tree = UsingTree(@"void M() { switch (e) { case int _: break; } }");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);
@@ -2815,7 +2815,7 @@ class C
         [Fact]
         public void DiscardsInPattern_04()
         {
-            var tree = UsingTree(@"void M() { switch (e) { case var _: break; } }");
+            SyntaxTree tree = UsingTree(@"void M() { switch (e) { case var _: break; } }");
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.MethodDeclaration);

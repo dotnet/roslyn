@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void RespectCustomTempPath()
         {
-            var tempDir = Temp.CreateDirectory();
+            CodeAnalysis.Test.Utilities.TempDirectory tempDir = Temp.CreateDirectory();
             var provider = new DesktopStrongNameProvider(tempPath: tempDir.Path);
             using (var stream = (DesktopStrongNameProvider.TempFileStream)provider.CreateInputStream())
             {
@@ -42,14 +42,14 @@ class C
 {
     public static void Main(string[] args) { }
 }";
-            var tempDir = Temp.CreateDirectory();
+            CodeAnalysis.Test.Utilities.TempDirectory tempDir = Temp.CreateDirectory();
             var provider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, tempDir.Path, new VirtualizedStrongNameFileSystem());
 
-            var options = TestOptions
+            CSharpCompilationOptions options = TestOptions
                 .DebugExe
                 .WithStrongNameProvider(provider)
                 .WithCryptoKeyFile(SigningTestHelpers.KeyPairFile);
-            var comp = CreateCompilation(src, options: options);
+            CSharpCompilation comp = CreateCompilation(src, options: options);
             comp.VerifyEmitDiagnostics();
         }
 
@@ -62,11 +62,11 @@ class C
     public static void Main(string[] args) { }
 }";
             var provider = new DesktopStrongNameProvider(ImmutableArray<string>.Empty, null, new VirtualizedStrongNameFileSystem());
-            var options = TestOptions
+            CSharpCompilationOptions options = TestOptions
                 .DebugExe
                 .WithStrongNameProvider(provider)
                 .WithCryptoKeyFile(SigningTestHelpers.KeyPairFile);
-            var comp = CreateCompilation(src, options: options);
+            CSharpCompilation comp = CreateCompilation(src, options: options);
             comp.VerifyEmitDiagnostics();
         }
     }

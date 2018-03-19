@@ -33,7 +33,7 @@ class Test
 
             void validate(ModuleSymbol module)
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 AssertReferencedIsByRefLike(type);
 
                 var peModule = (PEModuleSymbol)module;
@@ -53,7 +53,7 @@ ref struct S1{}
 
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("S1");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("S1");
                 AssertReferencedIsByRefLike(type);
             });
         }
@@ -70,7 +70,7 @@ class Test
 
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 AssertReferencedIsByRefLike(type);
             });
         }
@@ -87,7 +87,7 @@ class Test
 
             void validate(ModuleSymbol module)
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test+S1`1");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test+S1`1");
                 AssertReferencedIsByRefLike(type);
 
                 var peModule = (PEModuleSymbol)module;
@@ -110,7 +110,7 @@ class Test<T>
 
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test`1").GetTypeMember("S1");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test`1").GetTypeMember("S1");
                 AssertReferencedIsByRefLike(type);
             });
         }
@@ -124,7 +124,7 @@ namespace System.Runtime.CompilerServices
     public class IsByRefLikeAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            CompilationReference referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 class Test
@@ -135,7 +135,7 @@ class Test
 
             CompileAndVerify(codeB, verify: Verification.Passes, references: new[] { referenceA }, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
 
                 AssertReferencedIsByRefLike(type);
                 AssertNoIsByRefLikeAttributeExists(module.ContainingAssembly);
@@ -151,7 +151,7 @@ namespace System.Runtime.CompilerServices
     public class IsByRefLikeAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            CompilationReference referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -178,7 +178,7 @@ namespace System.Runtime.CompilerServices
     public class IsByRefLikeAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            CompilationReference referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -204,7 +204,7 @@ namespace System.Runtime.CompilerServices
     public class IsByRefLikeAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            CompilationReference referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -233,7 +233,7 @@ namespace System.Runtime.CompilerServices
     public class IsByRefLikeAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            CompilationReference referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -262,7 +262,7 @@ namespace System.Runtime.CompilerServices
     public class IsByRefLikeAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            CompilationReference referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -299,7 +299,7 @@ namespace System.Runtime.CompilerServices
     public class IsByRefLikeAttribute : System.Attribute { }
 }";
 
-            var referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
+            CompilationReference referenceA = CreateCompilation(codeA).VerifyDiagnostics().ToMetadataReference();
 
             var codeB = @"
 using System.Runtime.CompilerServices;
@@ -343,15 +343,15 @@ public class Test
         [Fact]
         public void TypeReferencingAnotherTypeThatUsesAPublicIsByRefLikeAttributeFromAThirdNotReferencedAssemblyShouldGenerateItsOwn()
         {
-            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
+            CSharpCompilationOptions options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
 
-            var code1 = CreateCompilation(@"
+            CSharpCompilation code1 = CreateCompilation(@"
 namespace System.Runtime.CompilerServices
 {
     public class IsByRefLikeAttribute : System.Attribute { }
 }");
 
-            var code2 = CreateCompilation(@"
+            CSharpCompilation code2 = CreateCompilation(@"
 public class Test1
 {
 	public ref struct S1{}
@@ -364,7 +364,7 @@ public class Test1
                 Assert.Null(module.ContainingAssembly.GetTypeByMetadataName(isByRefLikeAttributeName));
             });
 
-            var code3 = CreateCompilation(@"
+            CSharpCompilation code3 = CreateCompilation(@"
 public class Test2
 {
 	public ref struct S1{}
@@ -415,7 +415,7 @@ public class Test
         [Fact]
         public void BuildingAModuleRequiresIsByRefLikeAttributeToBeThere_InAReference()
         {
-            var reference = CreateCompilation(@"
+            CompilationReference reference = CreateCompilation(@"
 namespace System.Runtime.CompilerServices
 {
     public class IsByRefLikeAttribute : System.Attribute { }
@@ -429,7 +429,7 @@ public class Test
 
             CompileAndVerify(code, verify: Verification.Fails, references: new[] { reference }, options: TestOptions.ReleaseModule, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
 
                 AssertReferencedIsByRefLike(type);
                 AssertNoIsByRefLikeAttributeExists(module.ContainingAssembly);
@@ -439,7 +439,7 @@ public class Test
         [Fact]
         public void ReferencingAnEmbeddedIsByRefLikeAttributeDoesNotUseIt_InternalsVisible()
         {
-            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
+            CSharpCompilationOptions options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
 
             var code1 = @"
 [assembly:System.Runtime.CompilerServices.InternalsVisibleToAttribute(""Assembly2"")]
@@ -448,7 +448,7 @@ public class Test1
 	public ref struct S1{}
 }";
 
-            var comp1 = CompileAndVerify(code1, options: options, verify: Verification.Passes, symbolValidator: module =>
+            CompilationVerifier comp1 = CompileAndVerify(code1, options: options, verify: Verification.Passes, symbolValidator: module =>
             {
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.CodeAnalysisEmbeddedAttribute.FullName);
                 AssertGeneratedEmbeddedAttribute(module.ContainingAssembly, AttributeDescription.IsByRefLikeAttribute.FullName);
@@ -559,7 +559,7 @@ class Test
         [Fact]
         public void IsByRefLikeAttributesInNoPia()
         {
-            var comAssembly = CreateCompilationWithMscorlib40(@"
+            CSharpCompilation comAssembly = CreateCompilationWithMscorlib40(@"
 using System;
 using System.Runtime.InteropServices;
 [assembly: ImportedFromTypeLib(""test.dll"")]
@@ -577,9 +577,9 @@ public ref struct S1{}
 
             CompileAndVerify(comAssembly, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test");
 
-                var property = type.GetMember<PEPropertySymbol>("Property");
+                PEPropertySymbol property = type.GetMember<PEPropertySymbol>("Property");
                 Assert.NotNull(property);
                 AssertReferencedIsByRefLike(property.Type);
             });
@@ -594,12 +594,12 @@ class User
 }";
 
 
-            var options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
+            CSharpCompilationOptions options = TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All);
 
-            var compilation_CompilationReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comAssembly.ToMetadataReference(embedInteropTypes: true) });
+            CSharpCompilation compilation_CompilationReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comAssembly.ToMetadataReference(embedInteropTypes: true) });
             CompileAndVerify(compilation_CompilationReference, symbolValidator: symbolValidator);
 
-            var compilation_BinaryReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) });
+            CSharpCompilation compilation_BinaryReference = CreateCompilationWithMscorlib40(code, options: options, references: new[] { comAssembly.EmitToImageReference(embedInteropTypes: true) });
             CompileAndVerify(compilation_BinaryReference, symbolValidator: symbolValidator);
 
             void symbolValidator(ModuleSymbol module)
@@ -607,9 +607,9 @@ class User
                 // No attribute is copied
                 AssertNoIsByRefLikeAttributeExists(module.ContainingAssembly);
 
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test");
 
-                var property = type.GetMember<PEPropertySymbol>("Property");
+                PEPropertySymbol property = type.GetMember<PEPropertySymbol>("Property");
                 Assert.NotNull(property);
                 AssertNotReferencedIsByRefLikeAttribute(property.Type.GetAttributes());
             }
@@ -656,12 +656,12 @@ class Test
 
             void validate(ModuleSymbol module)
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsByRefLikeType);
 
                 var assemblyName = module.ContainingAssembly.Name;
 
-                var attribute = type.GetAttributes().Single();
+                CSharpAttributeData attribute = type.GetAttributes().Single();
                 Assert.Equal("System.ObsoleteAttribute", attribute.AttributeClass.ToDisplayString());
                 Assert.Equal("hello", attribute.ConstructorArguments.ElementAt(0).Value);
                 Assert.Equal(true, attribute.ConstructorArguments.ElementAt(1).Value);
@@ -698,7 +698,7 @@ namespace System
 
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 AssertReferencedIsByRefLike(type, hasObsolete: false);
             });
         }
@@ -740,10 +740,10 @@ class Test
 
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsByRefLikeType);
 
-                var attribute = type.GetAttributes().Single();
+                CSharpAttributeData attribute = type.GetAttributes().Single();
                 Assert.Equal("Windows.Foundation.Metadata.DeprecatedAttribute", attribute.AttributeClass.ToDisplayString());
                 Assert.Equal(42u, attribute.ConstructorArguments.ElementAt(2).Value);
             });
@@ -787,15 +787,15 @@ class Test
 
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("Test").GetTypeMember("S1");
                 Assert.True(type.IsByRefLikeType);
 
-                var attributes = type.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attributes = type.GetAttributes();
 
                 Assert.Equal(2, attributes.Length);
                 Assert.Equal("Windows.Foundation.Metadata.DeprecatedAttribute", attributes[1].AttributeClass.ToDisplayString());
 
-                var attribute = attributes[0];
+                CSharpAttributeData attribute = attributes[0];
                 Assert.Equal("System.ObsoleteAttribute", attribute.AttributeClass.ToDisplayString());
                 Assert.Equal(0, attribute.ConstructorArguments.Count());
             });
@@ -848,7 +848,7 @@ class Test
 
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("S");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("S");
                 AssertReferencedIsByRefLike(type);
             });
         }
@@ -871,7 +871,7 @@ public class Test
 }
 ";
 
-            var libComp = CreateCompilation(libSrc);
+            CSharpCompilation libComp = CreateCompilation(libSrc);
 
             var text = @"
 class C1
@@ -951,11 +951,11 @@ namespace System
 
     public ref struct NotTypedReference { }
 }";
-            var compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
+            CSharpCompilation compilation1 = CreateEmptyCompilation(source1, assemblyName: GetUniqueName());
 
             CompileAndVerify(compilation1, verify: Verification.Fails, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("System.TypedReference");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("System.TypedReference");
                 AssertReferencedIsByRefLike(type, hasObsolete: false);
 
                 type = module.ContainingAssembly.GetTypeByMetadataName("System.ArgIterator");
@@ -982,7 +982,7 @@ namespace System
 
             CompileAndVerify(text, verify: Verification.Passes, symbolValidator: module =>
             {
-                var type = module.ContainingAssembly.GetTypeByMetadataName("System.TypedReference");
+                NamedTypeSymbol type = module.ContainingAssembly.GetTypeByMetadataName("System.TypedReference");
 
                 AssertReferencedIsByRefLike(type);
             });
@@ -997,7 +997,7 @@ namespace System
             Assert.Empty(peType.GetAttributes());
 
             var peModule = (PEModuleSymbol)peType.ContainingModule;
-            var obsoleteAttribute = peModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(peType.Handle, ignoreByRefLikeMarker: false);
+            ObsoleteAttributeData obsoleteAttribute = peModule.Module.TryGetDeprecatedOrExperimentalOrObsoleteAttribute(peType.Handle, ignoreByRefLikeMarker: false);
 
             if (hasObsolete)
             {
@@ -1013,7 +1013,7 @@ namespace System
 
         private static void AssertNotReferencedIsByRefLikeAttribute(ImmutableArray<CSharpAttributeData> attributes)
         {
-            foreach (var attr in attributes)
+            foreach (CSharpAttributeData attr in attributes)
             {
                 Assert.NotEqual("IsByRefLikeAttribute", attr.AttributeClass.Name);
             }
@@ -1027,11 +1027,11 @@ namespace System
 
         private static void AssertGeneratedEmbeddedAttribute(AssemblySymbol assembly, string expectedTypeName)
         {
-            var typeSymbol = assembly.GetTypeByMetadataName(expectedTypeName);
+            NamedTypeSymbol typeSymbol = assembly.GetTypeByMetadataName(expectedTypeName);
             Assert.NotNull(typeSymbol);
             Assert.Equal(Accessibility.Internal, typeSymbol.DeclaredAccessibility);
 
-            var attributes = typeSymbol.GetAttributes().OrderBy(attribute => attribute.AttributeClass.Name).ToArray();
+            CSharpAttributeData[] attributes = typeSymbol.GetAttributes().OrderBy(attribute => attribute.AttributeClass.Name).ToArray();
             Assert.Equal(2, attributes.Length);
 
             Assert.Equal(WellKnownTypes.GetMetadataName(WellKnownType.System_Runtime_CompilerServices_CompilerGeneratedAttribute), attributes[0].AttributeClass.ToDisplayString());

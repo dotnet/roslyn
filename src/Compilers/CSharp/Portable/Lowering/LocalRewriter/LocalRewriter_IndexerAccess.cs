@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(node.ReceiverOpt != null);
 
-            var loweredReceiver = VisitExpression(node.ReceiverOpt);
-            var loweredArguments = VisitList(node.Arguments);
+            BoundExpression loweredReceiver = VisitExpression(node.ReceiverOpt);
+            ImmutableArray<BoundExpression> loweredArguments = VisitList(node.Arguments);
 
             return MakeDynamicGetIndex(node, loweredReceiver, loweredArguments, node.ArgumentNamesOpt, node.ArgumentRefKindsOpt);
         }
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var getMethod = indexer.GetOwnOrInheritedGetMethod();
+                MethodSymbol getMethod = indexer.GetOwnOrInheritedGetMethod();
                 Debug.Assert((object)getMethod != null);
 
                 // We have already lowered each argument, but we may need some additional rewriting for the arguments,

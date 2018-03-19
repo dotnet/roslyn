@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
                 SeparatedSyntaxList<BaseTypeSyntax> inheritedTypeDecls = bases.Types;
 
-                var baseBinder = this.DeclaringCompilation.GetBinder(bases);
+                Binder baseBinder = this.DeclaringCompilation.GetBinder(bases);
                 baseBinder = baseBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
                 if ((object)backupLocation == null)
@@ -128,10 +128,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var typeParameterVarianceKeywords = new string[declaration.Arity];
             var parameterBuilders1 = new List<List<TypeParameterBuilder>>();
 
-            foreach (var syntaxRef in this.SyntaxReferences)
+            foreach (SyntaxReference syntaxRef in this.SyntaxReferences)
             {
                 var typeDecl = (CSharpSyntaxNode)syntaxRef.GetSyntax();
-                var syntaxTree = syntaxRef.SyntaxTree;
+                SyntaxTree syntaxTree = syntaxRef.SyntaxTree;
 
                 TypeParameterListSyntax tpl;
                 SyntaxKind typeKind = typeDecl.Kind();
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var parameterBuilder = new List<TypeParameterBuilder>();
                 parameterBuilders1.Add(parameterBuilder);
                 int i = 0;
-                foreach (var tp in tpl.Parameters)
+                foreach (TypeParameterSyntax tp in tpl.Parameters)
                 {
                     if (tp.VarianceKeyword.Kind() != SyntaxKind.None &&
                         !isInterfaceOrDelegate)
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                         if (!ReferenceEquals(ContainingType, null))
                         {
-                            var tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
+                            TypeParameterSymbol tpEnclosing = ContainingType.FindEnclosingTypeParameter(name);
                             if ((object)tpEnclosing != null)
                             {
                                 // Type parameter '{0}' has the same name as the type parameter from outer type '{1}'
@@ -222,20 +222,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            var parameterBuilders2 = parameterBuilders1.Transpose(); // type arguments are positional
-            var parameters = parameterBuilders2.Select((builders, i) => builders[0].MakeSymbol(i, builders, diagnostics));
+            IList<IList<TypeParameterBuilder>> parameterBuilders2 = parameterBuilders1.Transpose(); // type arguments are positional
+            IEnumerable<TypeParameterSymbol> parameters = parameterBuilders2.Select((builders, i) => builders[0].MakeSymbol(i, builders, diagnostics));
             return parameters.AsImmutable();
         }
 
         internal TypeParameterConstraintKind GetTypeParameterConstraints(int ordinal)
         {
-            var clause = this.GetTypeParameterConstraintClause(ordinal);
+            TypeParameterConstraintClause clause = this.GetTypeParameterConstraintClause(ordinal);
             return (clause != null) ? clause.Constraints : TypeParameterConstraintKind.None;
         }
 
         internal ImmutableArray<TypeSymbol> GetTypeParameterConstraintTypes(int ordinal)
         {
-            var clause = this.GetTypeParameterConstraintClause(ordinal);
+            TypeParameterConstraintClause clause = this.GetTypeParameterConstraintClause(ordinal);
             return (clause != null) ? clause.ConstraintTypes : ImmutableArray<TypeSymbol>.Empty;
         }
 
@@ -251,36 +251,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Free();
             }
 
-            var clauses = _lazyTypeParameterConstraints;
+            ImmutableArray<TypeParameterConstraintClause> clauses = _lazyTypeParameterConstraints;
             return (clauses.Length > 0) ? clauses[ordinal] : null;
         }
 
         private ImmutableArray<TypeParameterConstraintClause> MakeTypeParameterConstraints(DiagnosticBag diagnostics)
         {
-            var typeParameters = this.TypeParameters;
-            var results = ImmutableArray<TypeParameterConstraintClause>.Empty;
+            ImmutableArray<TypeParameterSymbol> typeParameters = this.TypeParameters;
+            ImmutableArray<TypeParameterConstraintClause> results = ImmutableArray<TypeParameterConstraintClause>.Empty;
 
             int arity = typeParameters.Length;
             if (arity > 0)
             {
-                foreach (var decl in declaration.Declarations)
+                foreach (SingleTypeDeclaration decl in declaration.Declarations)
                 {
-                    var syntaxRef = decl.SyntaxReference;
-                    var constraintClauses = GetConstraintClauses((CSharpSyntaxNode)syntaxRef.GetSyntax());
+                    SyntaxReference syntaxRef = decl.SyntaxReference;
+                    SyntaxList<TypeParameterConstraintClauseSyntax> constraintClauses = GetConstraintClauses((CSharpSyntaxNode)syntaxRef.GetSyntax());
                     if (constraintClauses.Count == 0)
                     {
                         continue;
                     }
 
-                    var binderFactory = this.DeclaringCompilation.GetBinderFactory(syntaxRef.SyntaxTree);
-                    var binder = binderFactory.GetBinder(constraintClauses[0]);
+                    BinderFactory binderFactory = this.DeclaringCompilation.GetBinderFactory(syntaxRef.SyntaxTree);
+                    Binder binder = binderFactory.GetBinder(constraintClauses[0]);
 
                     // Wrap binder from factory in a generic constraints specific binder 
                     // to avoid checking constraints when binding type names.
                     Debug.Assert(!binder.Flags.Includes(BinderFlags.GenericConstraintsClause));
                     binder = binder.WithContainingMemberOrLambda(this).WithAdditionalFlags(BinderFlags.GenericConstraintsClause | BinderFlags.SuppressConstraintChecks);
 
-                    var constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, constraintClauses, diagnostics);
+                    ImmutableArray<TypeParameterConstraintClause> constraints = binder.BindTypeParameterConstraintClauses(this, typeParameters, constraintClauses, diagnostics);
                     Debug.Assert(constraints.Length == arity);
 
                     if (results.Length == 0)
@@ -334,8 +334,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return false;
             }
 
-            var constraintTypes1 = clause1.ConstraintTypes;
-            var constraintTypes2 = clause2.ConstraintTypes;
+            ImmutableArray<TypeSymbol> constraintTypes1 = clause1.ConstraintTypes;
+            ImmutableArray<TypeSymbol> constraintTypes2 = clause2.ConstraintTypes;
 
             int n = constraintTypes1.Length;
             if (constraintTypes2.Length != n)
@@ -346,14 +346,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Construct a HashSet<T> for one of the sets
             // to allow O(n) comparison of the two sets.
             var setTypes2 = new HashSet<TypeSymbol>();
-            foreach (var constraintType in constraintTypes2)
+            foreach (TypeSymbol constraintType in constraintTypes2)
             {
                 // Binder should have dropped any duplicates.
                 Debug.Assert(!setTypes2.Contains(constraintType));
                 setTypes2.Add(constraintType);
             }
 
-            foreach (var constraintType in constraintTypes1)
+            foreach (TypeSymbol constraintType in constraintTypes1)
             {
                 if (!setTypes2.Contains(constraintType))
                 {
@@ -454,7 +454,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private CustomAttributesBag<CSharpAttributeData> GetAttributesBag()
         {
-            var bag = _lazyCustomAttributesBag;
+            CustomAttributesBag<CSharpAttributeData> bag = _lazyCustomAttributesBag;
             if (bag != null && bag.IsSealed)
             {
                 return bag;
@@ -487,7 +487,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         private TypeWellKnownAttributeData GetDecodedWellKnownAttributeData()
         {
-            var attributesBag = _lazyCustomAttributesBag;
+            CustomAttributesBag<CSharpAttributeData> attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsDecodedWellKnownAttributeDataComputed)
             {
                 attributesBag = this.GetAttributesBag();
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         internal CommonTypeEarlyWellKnownAttributeData GetEarlyDecodedWellKnownAttributeData()
         {
-            var attributesBag = _lazyCustomAttributesBag;
+            CustomAttributesBag<CSharpAttributeData> attributesBag = _lazyCustomAttributesBag;
             if (attributesBag == null || !attributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
             {
                 attributesBag = this.GetAttributesBag();
@@ -583,7 +583,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     AttributeUsageInfo info = this.DecodeAttributeUsageAttribute(boundAttribute, arguments.AttributeSyntax, diagnose: false);
                     if (!info.IsNull)
                     {
-                        var typeData = arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>();
+                        CommonTypeEarlyWellKnownAttributeData typeData = arguments.GetOrCreateData<CommonTypeEarlyWellKnownAttributeData>();
                         if (typeData.AttributeUsageInfo.IsNull)
                         {
                             typeData.AttributeUsageInfo = info;
@@ -623,14 +623,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var lazyCustomAttributesBag = _lazyCustomAttributesBag;
+                CustomAttributesBag<CSharpAttributeData> lazyCustomAttributesBag = _lazyCustomAttributesBag;
                 if (lazyCustomAttributesBag != null && lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed)
                 {
                     var data = (CommonTypeEarlyWellKnownAttributeData)lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData;
                     return data != null ? data.ObsoleteAttributeData : null;
                 }
 
-                foreach (var decl in this.declaration.Declarations)
+                foreach (SingleTypeDeclaration decl in this.declaration.Declarations)
                 {
                     if (decl.HasAnyAttributes)
                     {
@@ -646,7 +646,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert((object)arguments.AttributeSyntaxOpt != null);
 
-            var attribute = arguments.Attribute;
+            CSharpAttributeData attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
             Debug.Assert(arguments.SymbolPart == AttributeLocation.None);
 
@@ -748,7 +748,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else
             {
-                var compilation = this.DeclaringCompilation;
+                CSharpCompilation compilation = this.DeclaringCompilation;
                 if (attribute.IsSecurityAttribute(compilation))
                 {
                     attribute.DecodeSecurityAttribute<TypeWellKnownAttributeData>(this, compilation, ref arguments);
@@ -790,7 +790,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (SyntaxList<AttributeListSyntax> list in attributeLists)
             {
-                var syntaxTree = list.Node.SyntaxTree;
+                SyntaxTree syntaxTree = list.Node.SyntaxTree;
                 QuickAttributeChecker checker = this.DeclaringCompilation.GetBinderFactory(list.Node.SyntaxTree).GetBinder(list.Node).QuickAttributeChecker;
 
                 foreach (AttributeListSyntax attrList in list)
@@ -851,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private void DecodeCoClassAttribute(ref DecodeWellKnownAttributeArguments<AttributeSyntax, CSharpAttributeData, AttributeLocation> arguments)
         {
-            var attribute = arguments.Attribute;
+            CSharpAttributeData attribute = arguments.Attribute;
             Debug.Assert(!attribute.HasErrors);
 
             if (this.IsInterfaceType() && (!arguments.HasDecodedData || (object)((TypeWellKnownAttributeData)arguments.DecodedData).ComImportCoClass == null))
@@ -912,7 +912,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData();
+                TypeWellKnownAttributeData data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSpecialNameAttribute;
             }
         }
@@ -921,7 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = GetEarlyDecodedWellKnownAttributeData();
+                CommonTypeEarlyWellKnownAttributeData data = GetEarlyDecodedWellKnownAttributeData();
                 return data != null && data.HasCodeAnalysisEmbeddedAttribute;
             }
         }
@@ -944,7 +944,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = this.GetDecodedWellKnownAttributeData();
+                TypeWellKnownAttributeData data = this.GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSerializableAttribute;
             }
         }
@@ -954,10 +954,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private bool HasInstanceFields()
         {
-            var members = this.GetMembersUnordered();
+            ImmutableArray<Symbol> members = this.GetMembersUnordered();
             for (var i = 0; i < members.Length; i++)
             {
-                var m = members[i];
+                Symbol m = members[i];
                 if (!m.IsStatic)
                 {
                     switch (m.Kind)
@@ -982,7 +982,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData();
+                TypeWellKnownAttributeData data = GetDecodedWellKnownAttributeData();
                 if (data != null && data.HasStructLayoutAttribute)
                 {
                     return data.Layout;
@@ -1006,7 +1006,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData();
+                TypeWellKnownAttributeData data = GetDecodedWellKnownAttributeData();
                 return data != null && data.HasStructLayoutAttribute;
             }
         }
@@ -1015,7 +1015,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = GetDecodedWellKnownAttributeData();
+                TypeWellKnownAttributeData data = GetDecodedWellKnownAttributeData();
                 return (data != null && data.HasStructLayoutAttribute) ? data.MarshallingCharSet : DefaultMarshallingCharSet;
             }
         }
@@ -1024,7 +1024,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = this.GetDecodedWellKnownAttributeData();
+                TypeWellKnownAttributeData data = this.GetDecodedWellKnownAttributeData();
                 return data != null && data.HasDeclarativeSecurity;
             }
         }
@@ -1033,14 +1033,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                var data = this.GetDecodedWellKnownAttributeData();
+                TypeWellKnownAttributeData data = this.GetDecodedWellKnownAttributeData();
                 return data != null && data.HasSecurityCriticalAttributes;
             }
         }
 
         internal sealed override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
         {
-            var attributesBag = this.GetAttributesBag();
+            CustomAttributesBag<CSharpAttributeData> attributesBag = this.GetAttributesBag();
             var wellKnownData = (TypeWellKnownAttributeData)attributesBag.DecodedWellKnownAttributeData;
             if (wellKnownData != null)
             {
@@ -1056,7 +1056,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
-            var data = GetEarlyDecodedWellKnownAttributeData();
+            CommonTypeEarlyWellKnownAttributeData data = GetEarlyDecodedWellKnownAttributeData();
             return data != null ? data.ConditionalSymbols : ImmutableArray<string>.Empty;
         }
 
@@ -1084,19 +1084,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (this.TypeKind == TypeKind.Class)
                 {
-                    var baseType = this.BaseTypeNoUseSiteDiagnostics;
+                    NamedTypeSymbol baseType = this.BaseTypeNoUseSiteDiagnostics;
                     if ((object)baseType != null && baseType.SpecialType != SpecialType.System_Object)
                     {
                         // CS0424: '{0}': a class with the ComImport attribute cannot specify a base class
                         diagnostics.Add(ErrorCode.ERR_ComImportWithBase, this.Locations[0], this.Name);
                     }
 
-                    var initializers = this.StaticInitializers;
+                    ImmutableArray<ImmutableArray<FieldOrPropertyInitializer>> initializers = this.StaticInitializers;
                     if (!initializers.IsDefaultOrEmpty)
                     {
-                        foreach (var initializerGroup in initializers)
+                        foreach (ImmutableArray<FieldOrPropertyInitializer> initializerGroup in initializers)
                         {
-                            foreach (var singleInitializer in initializerGroup)
+                            foreach (FieldOrPropertyInitializer singleInitializer in initializerGroup)
                             {
                                 if (!singleInitializer.FieldOpt.IsMetadataConstant)
                                 {
@@ -1110,9 +1110,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     initializers = this.InstanceInitializers;
                     if (!initializers.IsDefaultOrEmpty)
                     {
-                        foreach (var initializerGroup in initializers)
+                        foreach (ImmutableArray<FieldOrPropertyInitializer> initializerGroup in initializers)
                         {
-                            foreach (var singleInitializer in initializerGroup)
+                            foreach (FieldOrPropertyInitializer singleInitializer in initializerGroup)
                             {
                                 // CS8028: '{0}': a class with the ComImport attribute cannot specify field initializers.
                                 diagnostics.Add(ErrorCode.ERR_ComImportWithInitializers, singleInitializer.Syntax.GetLocation(), this.Name);
@@ -1163,7 +1163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsByRefLikeAttribute(this));
 
-                var obsoleteData = ObsoleteAttributeData;
+                ObsoleteAttributeData obsoleteData = ObsoleteAttributeData;
                 Debug.Assert(obsoleteData != ObsoleteAttributeData.Uninitialized, "getting synthesized attributes before attributes are decoded");
 
                 // If user specified an Obsolete attribute, we cannot emit ours.

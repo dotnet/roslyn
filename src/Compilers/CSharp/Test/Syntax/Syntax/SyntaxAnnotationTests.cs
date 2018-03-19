@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestEmpty()
         {
             var code = @"";
-            var tree = SyntaxFactory.ParseSyntaxTree(code);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(code);
 
             TestAnnotation(tree);
         }
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             SyntaxAnnotation annotation = new SyntaxAnnotation();
             var oldToken = default(SyntaxToken);
-            var newToken = oldToken.WithAdditionalAnnotations(annotation);
+            SyntaxToken newToken = oldToken.WithAdditionalAnnotations(annotation);
 
             Assert.False(newToken.ContainsAnnotations);
         }
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             SyntaxAnnotation annotation = new SyntaxAnnotation();
             var oldTrivia = default(SyntaxTrivia);
-            var newTrivia = oldTrivia.WithAdditionalAnnotations(annotation);
+            SyntaxTrivia newTrivia = oldTrivia.WithAdditionalAnnotations(annotation);
 
             Assert.False(newTrivia.ContainsAnnotations);
         }
@@ -45,18 +45,18 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestCopyAnnotationToNullSyntaxNode()
         {
-            var fromNode = SyntaxFactory.ParseSyntaxTree(_helloWorldCode).GetCompilationUnitRoot();
+            CompilationUnitSyntax fromNode = SyntaxFactory.ParseSyntaxTree(_helloWorldCode).GetCompilationUnitRoot();
             var toNode = default(SyntaxNode);
-            var annotatedNode = fromNode.CopyAnnotationsTo(toNode);
+            SyntaxNode annotatedNode = fromNode.CopyAnnotationsTo(toNode);
             Assert.Null(annotatedNode);
         }
 
         [Fact]
         public void TestCopyAnnotationOfZeroLengthToSyntaxNode()
         {
-            var fromNode = SyntaxFactory.ParseSyntaxTree(_helloWorldCode).GetCompilationUnitRoot();
-            var toNode = SyntaxFactory.ParseSyntaxTree(_helloWorldCode).GetCompilationUnitRoot();
-            var annotatedNode = fromNode.CopyAnnotationsTo(toNode);
+            CompilationUnitSyntax fromNode = SyntaxFactory.ParseSyntaxTree(_helloWorldCode).GetCompilationUnitRoot();
+            CompilationUnitSyntax toNode = SyntaxFactory.ParseSyntaxTree(_helloWorldCode).GetCompilationUnitRoot();
+            CompilationUnitSyntax annotatedNode = fromNode.CopyAnnotationsTo(toNode);
             Assert.Equal(annotatedNode, toNode); // Reference Equal
         }
 
@@ -64,26 +64,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCopyAnnotationFromNullSyntaxToken()
         {
             var fromToken = default(SyntaxToken);
-            var toToken = SyntaxFactory.ParseSyntaxTree(_helloWorldCode).GetCompilationUnitRoot().DescendantTokens().First();
-            var annotatedToken = fromToken.CopyAnnotationsTo(toToken);
+            SyntaxToken toToken = SyntaxFactory.ParseSyntaxTree(_helloWorldCode).GetCompilationUnitRoot().DescendantTokens().First();
+            SyntaxToken annotatedToken = fromToken.CopyAnnotationsTo(toToken);
             Assert.True(annotatedToken.IsEquivalentTo(toToken));
         }
 
         [Fact]
         public void TestCopyAnnotationToNullSyntaxToken()
         {
-            var fromToken = SyntaxFactory.ParseSyntaxTree(_helloWorldCode).GetCompilationUnitRoot().DescendantTokens().First();
+            SyntaxToken fromToken = SyntaxFactory.ParseSyntaxTree(_helloWorldCode).GetCompilationUnitRoot().DescendantTokens().First();
             var toToken = default(SyntaxToken);
-            var annotatedToken = fromToken.CopyAnnotationsTo(toToken);
+            SyntaxToken annotatedToken = fromToken.CopyAnnotationsTo(toToken);
             Assert.True(annotatedToken.IsEquivalentTo(default(SyntaxToken)));
         }
 
         [Fact]
         public void TestCopyAnnotationOfZeroLengthToSyntaxToken()
         {
-            var fromToken = SyntaxFactory.ParseSyntaxTree(_helloWorldCode).GetCompilationUnitRoot().DescendantTokens().First();
-            var toToken = SyntaxFactory.ParseSyntaxTree(_helloWorldCode).GetCompilationUnitRoot().DescendantTokens().First();
-            var annotatedToken = fromToken.CopyAnnotationsTo(toToken);
+            SyntaxToken fromToken = SyntaxFactory.ParseSyntaxTree(_helloWorldCode).GetCompilationUnitRoot().DescendantTokens().First();
+            SyntaxToken toToken = SyntaxFactory.ParseSyntaxTree(_helloWorldCode).GetCompilationUnitRoot().DescendantTokens().First();
+            SyntaxToken annotatedToken = fromToken.CopyAnnotationsTo(toToken);
             Assert.Equal(annotatedToken, toToken); // Reference Equal
         }
 
@@ -91,9 +91,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCopyAnnotationFromNullSyntaxTrivia()
         {
             var fromTrivia = default(SyntaxTrivia);
-            var tree = SyntaxFactory.ParseSyntaxTree(_helloWorldCode);
-            var toTrivia = GetAllTrivia(tree.GetCompilationUnitRoot()).FirstOrDefault();
-            var annotatedTrivia = fromTrivia.CopyAnnotationsTo(toTrivia);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(_helloWorldCode);
+            SyntaxTrivia toTrivia = GetAllTrivia(tree.GetCompilationUnitRoot()).FirstOrDefault();
+            SyntaxTrivia annotatedTrivia = fromTrivia.CopyAnnotationsTo(toTrivia);
             Assert.True(toTrivia.IsEquivalentTo(annotatedTrivia));
         }
 
@@ -101,19 +101,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestCopyAnnotationToNullSyntaxTrivia()
         {
             var toTrivia = default(SyntaxTrivia);
-            var tree = SyntaxFactory.ParseSyntaxTree(_helloWorldCode);
-            var fromTrivia = GetAllTrivia(tree.GetCompilationUnitRoot()).FirstOrDefault();
-            var annotatedTrivia = fromTrivia.CopyAnnotationsTo(toTrivia);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(_helloWorldCode);
+            SyntaxTrivia fromTrivia = GetAllTrivia(tree.GetCompilationUnitRoot()).FirstOrDefault();
+            SyntaxTrivia annotatedTrivia = fromTrivia.CopyAnnotationsTo(toTrivia);
             Assert.True(default(SyntaxTrivia).IsEquivalentTo(annotatedTrivia));
         }
 
         [Fact]
         public void TestCopyAnnotationOfZeroLengthToSyntaxTrivia()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(_helloWorldCode);
-            var fromTrivia = GetAllTrivia(tree.GetCompilationUnitRoot()).FirstOrDefault();
-            var toTrivia = GetAllTrivia(tree.GetCompilationUnitRoot()).FirstOrDefault();
-            var annotatedTrivia = fromTrivia.CopyAnnotationsTo(toTrivia);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(_helloWorldCode);
+            SyntaxTrivia fromTrivia = GetAllTrivia(tree.GetCompilationUnitRoot()).FirstOrDefault();
+            SyntaxTrivia toTrivia = GetAllTrivia(tree.GetCompilationUnitRoot()).FirstOrDefault();
+            SyntaxTrivia annotatedTrivia = fromTrivia.CopyAnnotationsTo(toTrivia);
             Assert.Equal(annotatedTrivia, toTrivia); // Reference Equal
         }
 
@@ -125,9 +125,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestMissingAnnotationsOnNodesOrTokens()
         {
             SyntaxAnnotation annotation = new SyntaxAnnotation();
-            var tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
 
-            var matchingNodesOrTokens = tree.GetCompilationUnitRoot().GetAnnotatedNodesAndTokens(annotation);
+            IEnumerable<SyntaxNodeOrToken> matchingNodesOrTokens = tree.GetCompilationUnitRoot().GetAnnotatedNodesAndTokens(annotation);
             Assert.Empty(matchingNodesOrTokens);
         }
 
@@ -135,9 +135,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestMissingAnnotationsOnTrivia()
         {
             SyntaxAnnotation annotation = new SyntaxAnnotation();
-            var tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
 
-            var matchingTrivia = tree.GetCompilationUnitRoot().GetAnnotatedTrivia(annotation);
+            IEnumerable<SyntaxTrivia> matchingTrivia = tree.GetCompilationUnitRoot().GetAnnotatedTrivia(annotation);
             Assert.Empty(matchingTrivia);
         }
 
@@ -148,26 +148,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestSimpleMultipleAnnotationsOnNode()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(_helloWorldCode);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(_helloWorldCode);
             SyntaxAnnotation annotation1 = new SyntaxAnnotation();
             SyntaxAnnotation annotation2 = new SyntaxAnnotation();
 
             // Pick the first node from tree
-            var node = GetAllNodesAndTokens(tree.GetCompilationUnitRoot()).First(t => t.IsNode).AsNode();
+            SyntaxNode node = GetAllNodesAndTokens(tree.GetCompilationUnitRoot()).First(t => t.IsNode).AsNode();
 
             // Annotate it
-            var annotatedNode = node.WithAdditionalAnnotations(annotation1);
-            var newRoot = tree.GetCompilationUnitRoot().ReplaceNode(node, annotatedNode);
+            SyntaxNode annotatedNode = node.WithAdditionalAnnotations(annotation1);
+            CompilationUnitSyntax newRoot = tree.GetCompilationUnitRoot().ReplaceNode(node, annotatedNode);
 
             // Verify if annotation Exists
             TestAnnotation(annotation1, newRoot, node);
 
             // Pick the annotated node from the new tree
-            var node2 = newRoot.GetAnnotatedNodesAndTokens(annotation1).Single().AsNode();
+            SyntaxNode node2 = newRoot.GetAnnotatedNodesAndTokens(annotation1).Single().AsNode();
 
             // Annotate it again
-            var twiceAnnotatedNode = node2.WithAdditionalAnnotations(annotation2);
-            var twiceAnnotatedRoot = newRoot.ReplaceNode(node2, twiceAnnotatedNode);
+            SyntaxNode twiceAnnotatedNode = node2.WithAdditionalAnnotations(annotation2);
+            CompilationUnitSyntax twiceAnnotatedRoot = newRoot.ReplaceNode(node2, twiceAnnotatedNode);
 
             // Verify the recent annotation
             TestAnnotation(annotation2, twiceAnnotatedRoot, node2);
@@ -180,26 +180,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestSimpleMultipleAnnotationsOnToken()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(_helloWorldCode);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(_helloWorldCode);
             SyntaxAnnotation annotation1 = new SyntaxAnnotation();
             SyntaxAnnotation annotation2 = new SyntaxAnnotation();
 
             // Pick the first node from tree
-            var token = GetAllNodesAndTokens(tree.GetCompilationUnitRoot()).First(t => t.IsToken).AsToken();
+            SyntaxToken token = GetAllNodesAndTokens(tree.GetCompilationUnitRoot()).First(t => t.IsToken).AsToken();
 
             // Annotate it
-            var annotatedToken = token.WithAdditionalAnnotations(annotation1);
-            var newRoot = tree.GetCompilationUnitRoot().ReplaceToken(token, annotatedToken);
+            SyntaxToken annotatedToken = token.WithAdditionalAnnotations(annotation1);
+            CompilationUnitSyntax newRoot = tree.GetCompilationUnitRoot().ReplaceToken(token, annotatedToken);
 
             // Verify if annotation Exists
             TestAnnotation(annotation1, newRoot, token);
 
             // Pick the annotated node from the new tree
-            var token2 = newRoot.GetAnnotatedNodesAndTokens(annotation1).Single().AsToken();
+            SyntaxToken token2 = newRoot.GetAnnotatedNodesAndTokens(annotation1).Single().AsToken();
 
             // Annotate it again
-            var twiceAnnotatedToken = token2.WithAdditionalAnnotations(annotation2);
-            var twiceAnnotatedRoot = newRoot.ReplaceToken(token2, twiceAnnotatedToken);
+            SyntaxToken twiceAnnotatedToken = token2.WithAdditionalAnnotations(annotation2);
+            CompilationUnitSyntax twiceAnnotatedRoot = newRoot.ReplaceToken(token2, twiceAnnotatedToken);
 
             // Verify the recent annotation
             TestAnnotation(annotation2, twiceAnnotatedRoot, token2);
@@ -212,26 +212,26 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestSimpleMultipleAnnotationsOnTrivia()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(_helloWorldCode);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(_helloWorldCode);
             SyntaxAnnotation annotation1 = new SyntaxAnnotation();
             SyntaxAnnotation annotation2 = new SyntaxAnnotation();
 
             // Pick the first node from tree
-            var trivia = GetAllTrivia(tree.GetCompilationUnitRoot()).First();
+            SyntaxTrivia trivia = GetAllTrivia(tree.GetCompilationUnitRoot()).First();
 
             // Annotate it
-            var annotatedTrivia = trivia.WithAdditionalAnnotations(annotation1);
-            var newRoot = tree.GetCompilationUnitRoot().ReplaceTrivia(trivia, annotatedTrivia);
+            SyntaxTrivia annotatedTrivia = trivia.WithAdditionalAnnotations(annotation1);
+            CompilationUnitSyntax newRoot = tree.GetCompilationUnitRoot().ReplaceTrivia(trivia, annotatedTrivia);
 
             // Verify if annotation Exists
             TestAnnotation(annotation1, newRoot, trivia);
 
             // Pick the annotated node from the new tree
-            var trivia2 = newRoot.GetAnnotatedTrivia(annotation1).Single();
+            SyntaxTrivia trivia2 = newRoot.GetAnnotatedTrivia(annotation1).Single();
 
             // Annotate it again
-            var twiceAnnotatedTrivia = trivia2.WithAdditionalAnnotations(annotation2);
-            var twiceAnnotatedRoot = newRoot.ReplaceTrivia(trivia2, twiceAnnotatedTrivia);
+            SyntaxTrivia twiceAnnotatedTrivia = trivia2.WithAdditionalAnnotations(annotation2);
+            CompilationUnitSyntax twiceAnnotatedRoot = newRoot.ReplaceTrivia(trivia2, twiceAnnotatedTrivia);
 
             // Verify the recent annotation
             TestAnnotation(annotation2, twiceAnnotatedRoot, trivia2);
@@ -244,13 +244,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestMultipleAnnotationsOnAllNodesTokensAndTrivia()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(_helloWorldCode);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(_helloWorldCode);
             SyntaxNode newRoot = tree.GetCompilationUnitRoot();
 
             var annotations = new List<SyntaxAnnotation>(Enumerable.Range(0, 3).Select(_ => new SyntaxAnnotation()));
 
             // add annotation one by one to every single node, token, trivia
-            foreach (var annotation in annotations)
+            foreach (SyntaxAnnotation annotation in annotations)
             {
                 var rewriter = new InjectAnnotationRewriter(annotation);
                 newRoot = rewriter.Visit(newRoot);
@@ -263,7 +263,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestAnnotationOnEveryNodeTokenTriviaOfHelloWorld()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(_helloWorldCode);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(_helloWorldCode);
 
             TestAnnotation(tree);
             TestTriviaAnnotation(tree);
@@ -272,33 +272,33 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestIfNodeHasAnnotations()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(_helloWorldCode);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(_helloWorldCode);
             SyntaxAnnotation annotation1 = new SyntaxAnnotation();
 
             // Pick the first node from tree
-            var firstNode = GetAllNodesAndTokens(tree.GetCompilationUnitRoot()).First(t => t.IsNode).AsNode();
+            SyntaxNode firstNode = GetAllNodesAndTokens(tree.GetCompilationUnitRoot()).First(t => t.IsNode).AsNode();
 
-            var children = firstNode.ChildNodesAndTokens();
-            var lastChildOfFirstNode = children.Last(t => t.IsNode).AsNode();
-            var annotatedNode = lastChildOfFirstNode.WithAdditionalAnnotations(annotation1);
-            var newRoot = tree.GetCompilationUnitRoot().ReplaceNode(lastChildOfFirstNode, annotatedNode);
+            ChildSyntaxList children = firstNode.ChildNodesAndTokens();
+            SyntaxNode lastChildOfFirstNode = children.Last(t => t.IsNode).AsNode();
+            SyntaxNode annotatedNode = lastChildOfFirstNode.WithAdditionalAnnotations(annotation1);
+            CompilationUnitSyntax newRoot = tree.GetCompilationUnitRoot().ReplaceNode(lastChildOfFirstNode, annotatedNode);
 
             // Verify if annotation Exists
             TestAnnotation(annotation1, newRoot, lastChildOfFirstNode);
 
             // Pick the first node from new tree and see if any of its children is annotated
-            var firstNodeInNewTree = GetAllNodesAndTokens(newRoot).First(t => t.IsNode).AsNode();
+            SyntaxNode firstNodeInNewTree = GetAllNodesAndTokens(newRoot).First(t => t.IsNode).AsNode();
             Assert.True(firstNodeInNewTree.ContainsAnnotations);
 
             // Pick the node which was annotated and see if it has the annotation
-            var rightNode = firstNodeInNewTree.ChildNodesAndTokens().Last(t => t.IsNode).AsNode();
+            SyntaxNode rightNode = firstNodeInNewTree.ChildNodesAndTokens().Last(t => t.IsNode).AsNode();
             Assert.NotNull(rightNode.GetAnnotations().Single());
         }
 
         [Fact]
         public void TestCSharpAllInOne()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
 
             TestAnnotation(tree);
         }
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestCSharpAllInOneRandom()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
 
             TestRandomAnnotations(tree);
         }
@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestCSharpAllInOneManyRandom()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
 
             TestManyRandomAnnotations(tree);
         }
@@ -322,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestCSharpAllInOneTrivia()
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
+            SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
 
             TestTriviaAnnotation(tree);
         }
@@ -330,8 +330,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestCopyAnnotations1()
         {
-            var tree1 = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
-            var tree2 = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
+            SyntaxTree tree1 = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
+            SyntaxTree tree2 = SyntaxFactory.ParseSyntaxTree(_allInOneCSharpCode, options: Test.Utilities.TestOptions.Regular);
 
             TestCopyAnnotations(tree1, tree2);
         }
@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private void TestMultipleAnnotationsInTree(SyntaxNode oldRoot, SyntaxNode newRoot, List<SyntaxAnnotation> annotations)
         {
-            foreach (var annotation in annotations)
+            foreach (SyntaxAnnotation annotation in annotations)
             {
                 // Verify annotations in Nodes or Tokens
                 var annotatedNodesOrTokens = newRoot.GetAnnotatedNodesAndTokens(annotation).OrderBy(t => t.SpanStart).ToList();
@@ -350,23 +350,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
                 for (int i = 0; i < actualNodesOrTokens.Count(); i++)
                 {
-                    var oldNode = actualNodesOrTokens.ElementAt(i);
-                    var annotatedNode = annotatedNodesOrTokens.ElementAt(i);
+                    SyntaxNodeOrToken oldNode = actualNodesOrTokens.ElementAt(i);
+                    SyntaxNodeOrToken annotatedNode = annotatedNodesOrTokens.ElementAt(i);
                     Assert.Equal(oldNode.FullSpan, annotatedNode.FullSpan);
                     Assert.Equal(oldNode.Span, annotatedNode.Span);
                     Assert.True(oldNode.IsEquivalentTo(annotatedNode));
                 }
 
                 // Verify annotations in Trivia
-                var annotatedTrivia = newRoot.GetAnnotatedTrivia(annotation).OrderBy(t => t.SpanStart);
-                var actualTrivia = GetAllTrivia(oldRoot).OrderBy(t => t.SpanStart);
+                IOrderedEnumerable<SyntaxTrivia> annotatedTrivia = newRoot.GetAnnotatedTrivia(annotation).OrderBy(t => t.SpanStart);
+                IOrderedEnumerable<SyntaxTrivia> actualTrivia = GetAllTrivia(oldRoot).OrderBy(t => t.SpanStart);
 
                 Assert.Equal(annotatedTrivia.Count(), actualTrivia.Count());
 
                 for (int i = 0; i < actualTrivia.Count(); i++)
                 {
-                    var oldTrivia = actualTrivia.ElementAt(i);
-                    var newTrivia = annotatedTrivia.ElementAt(i);
+                    SyntaxTrivia oldTrivia = actualTrivia.ElementAt(i);
+                    SyntaxTrivia newTrivia = annotatedTrivia.ElementAt(i);
                     Assert.Equal(oldTrivia.FullSpan, newTrivia.FullSpan);
                     Assert.Equal(oldTrivia.Span, newTrivia.Span);
                     Assert.True(oldTrivia.IsEquivalentTo(newTrivia));
@@ -381,20 +381,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             // add a random annotation to every single node, token, trivia
             var rewriter = new InjectRandomAnnotationsRewriter(annotations);
-            var sourceTreeRoot = rewriter.Visit(tree1.GetCompilationUnitRoot());
+            SyntaxNode sourceTreeRoot = rewriter.Visit(tree1.GetCompilationUnitRoot());
 
-            var destTreeRoot = CopyAnnotationsTo(sourceTreeRoot, tree2.GetCompilationUnitRoot());
+            SyntaxNode destTreeRoot = CopyAnnotationsTo(sourceTreeRoot, tree2.GetCompilationUnitRoot());
 
             // now we have two tree with same annotation everywhere
             // verify that
-            foreach (var annotation in annotations)
+            foreach (SyntaxAnnotation annotation in annotations)
             {
                 // verify annotation at nodes and tokens
-                var sourceNodeOrTokens = sourceTreeRoot.GetAnnotatedNodesAndTokens(annotation);
-                var sourceNodeOrTokenEnumerator = sourceNodeOrTokens.GetEnumerator();
+                IEnumerable<SyntaxNodeOrToken> sourceNodeOrTokens = sourceTreeRoot.GetAnnotatedNodesAndTokens(annotation);
+                IEnumerator<SyntaxNodeOrToken> sourceNodeOrTokenEnumerator = sourceNodeOrTokens.GetEnumerator();
 
-                var destNodeOrTokens = destTreeRoot.GetAnnotatedNodesAndTokens(annotation);
-                var destNodeOrTokenEnumerator = destNodeOrTokens.GetEnumerator();
+                IEnumerable<SyntaxNodeOrToken> destNodeOrTokens = destTreeRoot.GetAnnotatedNodesAndTokens(annotation);
+                IEnumerator<SyntaxNodeOrToken> destNodeOrTokenEnumerator = destNodeOrTokens.GetEnumerator();
 
                 Assert.Equal(sourceNodeOrTokens.Count(), destNodeOrTokens.Count());
 
@@ -404,11 +404,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 }
 
                 // verify annotation at trivia
-                var sourceTrivia = sourceTreeRoot.GetAnnotatedTrivia(annotation);
-                var destTrivia = destTreeRoot.GetAnnotatedTrivia(annotation);
+                IEnumerable<SyntaxTrivia> sourceTrivia = sourceTreeRoot.GetAnnotatedTrivia(annotation);
+                IEnumerable<SyntaxTrivia> destTrivia = destTreeRoot.GetAnnotatedTrivia(annotation);
 
-                var sourceTriviaEnumerator = sourceTrivia.GetEnumerator();
-                var destTriviaEnumerator = destTrivia.GetEnumerator();
+                IEnumerator<SyntaxTrivia> sourceTriviaEnumerator = sourceTrivia.GetEnumerator();
+                IEnumerator<SyntaxTrivia> destTriviaEnumerator = destTrivia.GetEnumerator();
 
                 Assert.Equal(sourceTrivia.Count(), destTrivia.Count());
 
@@ -424,35 +424,35 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // now I have a tree that has annotation at every node/token/trivia
             // copy all those annotation to tree2 and create map from old one to new one
 
-            var sourceTreeNodeOrTokenEnumerator = GetAllNodesAndTokens(sourceTreeRoot).GetEnumerator();
-            var destTreeNodeOrTokenEnumerator = GetAllNodesAndTokens(destTreeRoot).GetEnumerator();
+            List<SyntaxNodeOrToken>.Enumerator sourceTreeNodeOrTokenEnumerator = GetAllNodesAndTokens(sourceTreeRoot).GetEnumerator();
+            List<SyntaxNodeOrToken>.Enumerator destTreeNodeOrTokenEnumerator = GetAllNodesAndTokens(destTreeRoot).GetEnumerator();
 
             var nodeOrTokenMap = new Dictionary<SyntaxNodeOrToken, SyntaxNodeOrToken>();
             while (sourceTreeNodeOrTokenEnumerator.MoveNext() && destTreeNodeOrTokenEnumerator.MoveNext())
             {
                 if (sourceTreeNodeOrTokenEnumerator.Current.IsNode)
                 {
-                    var oldNode = destTreeNodeOrTokenEnumerator.Current.AsNode();
-                    var newNode = sourceTreeNodeOrTokenEnumerator.Current.AsNode().CopyAnnotationsTo(oldNode);
+                    SyntaxNode oldNode = destTreeNodeOrTokenEnumerator.Current.AsNode();
+                    SyntaxNode newNode = sourceTreeNodeOrTokenEnumerator.Current.AsNode().CopyAnnotationsTo(oldNode);
                     nodeOrTokenMap.Add(oldNode, newNode);
                 }
                 else if (sourceTreeNodeOrTokenEnumerator.Current.IsToken)
                 {
-                    var oldToken = destTreeNodeOrTokenEnumerator.Current.AsToken();
-                    var newToken = sourceTreeNodeOrTokenEnumerator.Current.AsToken().CopyAnnotationsTo(oldToken);
+                    SyntaxToken oldToken = destTreeNodeOrTokenEnumerator.Current.AsToken();
+                    SyntaxToken newToken = sourceTreeNodeOrTokenEnumerator.Current.AsToken().CopyAnnotationsTo(oldToken);
                     nodeOrTokenMap.Add(oldToken, newToken);
                 }
             }
 
             // copy annotations at trivia
-            var sourceTreeTriviaEnumerator = GetAllTrivia(sourceTreeRoot).GetEnumerator();
-            var destTreeTriviaEnumerator = GetAllTrivia(destTreeRoot).GetEnumerator();
+            List<SyntaxTrivia>.Enumerator sourceTreeTriviaEnumerator = GetAllTrivia(sourceTreeRoot).GetEnumerator();
+            List<SyntaxTrivia>.Enumerator destTreeTriviaEnumerator = GetAllTrivia(destTreeRoot).GetEnumerator();
 
             var triviaMap = new Dictionary<SyntaxTrivia, SyntaxTrivia>();
             while (sourceTreeTriviaEnumerator.MoveNext() && destTreeTriviaEnumerator.MoveNext())
             {
-                var oldTrivia = destTreeTriviaEnumerator.Current;
-                var newTrivia = sourceTreeTriviaEnumerator.Current.CopyAnnotationsTo(oldTrivia);
+                SyntaxTrivia oldTrivia = destTreeTriviaEnumerator.Current;
+                SyntaxTrivia newTrivia = sourceTreeTriviaEnumerator.Current.CopyAnnotationsTo(oldTrivia);
                 triviaMap.Add(oldTrivia, newTrivia);
             }
 
@@ -468,25 +468,25 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             // we give constant seed so that we get exact same sequence every time.
             var randomGenerator = new Random(0);
 
-            var currentRoot = syntaxTree.GetCompilationUnitRoot();
+            CompilationUnitSyntax currentRoot = syntaxTree.GetCompilationUnitRoot();
             var count = GetAllNodesAndTokens(currentRoot).Count;
 
             // add one in root
             var rootAnnotation = new SyntaxAnnotation();
             annotations.Add(Tuple.Create(rootAnnotation, new SyntaxNodeOrToken(currentRoot)));
 
-            var rootAnnotated = AddAnnotationTo(rootAnnotation, currentRoot);
+            SyntaxNodeOrToken rootAnnotated = AddAnnotationTo(rootAnnotation, currentRoot);
             currentRoot = Replace(currentRoot, currentRoot, rootAnnotated);
 
             for (int i = 0; i < 20; i++)
             {
                 var annotation = new SyntaxAnnotation();
-                var item = GetAllNodesAndTokens(currentRoot)[randomGenerator.Next(count - 1)];
+                SyntaxNodeOrToken item = GetAllNodesAndTokens(currentRoot)[randomGenerator.Next(count - 1)];
 
                 // save it
                 annotations.Add(Tuple.Create(annotation, item));
 
-                var annotated = AddAnnotationTo(annotation, item);
+                SyntaxNodeOrToken annotated = AddAnnotationTo(annotation, item);
                 currentRoot = Replace(currentRoot, item, annotated);
 
                 TestAnnotations(annotations, currentRoot);
@@ -499,7 +499,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var firstAnnotation = new SyntaxAnnotation();
             var secondAnnotation = new SyntaxAnnotation();
 
-            var candidatePool = GetAllNodesAndTokens(syntaxTree.GetCompilationUnitRoot());
+            List<SyntaxNodeOrToken> candidatePool = GetAllNodesAndTokens(syntaxTree.GetCompilationUnitRoot());
             var numberOfCandidates = candidatePool.Count;
 
             // we give constant seed so that we get exact same sequence every time.
@@ -507,16 +507,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             for (int i = 0; i < 20; i++)
             {
-                var firstItem = candidatePool[randomGenerator.Next(numberOfCandidates - 1)];
-                var firstAnnotated = AddAnnotationTo(firstAnnotation, firstItem);
+                SyntaxNodeOrToken firstItem = candidatePool[randomGenerator.Next(numberOfCandidates - 1)];
+                SyntaxNodeOrToken firstAnnotated = AddAnnotationTo(firstAnnotation, firstItem);
 
-                var newRoot = Replace(syntaxTree.GetCompilationUnitRoot(), firstItem, firstAnnotated);
+                CompilationUnitSyntax newRoot = Replace(syntaxTree.GetCompilationUnitRoot(), firstItem, firstAnnotated);
 
                 // check the first annotation
                 TestAnnotation(firstAnnotation, newRoot, firstItem);
 
-                var secondItem = GetAllNodesAndTokens(newRoot)[randomGenerator.Next(numberOfCandidates - 1)];
-                var secondAnnotated = AddAnnotationTo(secondAnnotation, secondItem);
+                SyntaxNodeOrToken secondItem = GetAllNodesAndTokens(newRoot)[randomGenerator.Next(numberOfCandidates - 1)];
+                SyntaxNodeOrToken secondAnnotated = AddAnnotationTo(secondAnnotation, secondItem);
 
                 // transform the tree again
                 newRoot = Replace(newRoot, secondItem, secondAnnotated);
@@ -545,10 +545,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void TestAnnotations(List<Tuple<SyntaxAnnotation, SyntaxNodeOrToken>> annotations, SyntaxNode currentRoot)
         {
             // check every annotations
-            foreach (var pair in annotations)
+            foreach (Tuple<SyntaxAnnotation, SyntaxNodeOrToken> pair in annotations)
             {
-                var annotation = pair.Item1;
-                var nodeOrToken = pair.Item2;
+                SyntaxAnnotation annotation = pair.Item1;
+                SyntaxNodeOrToken nodeOrToken = pair.Item2;
 
                 TestAnnotation(annotation, currentRoot, nodeOrToken);
             }
@@ -558,11 +558,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var annotation = new SyntaxAnnotation();
 
-            foreach (var trivia in GetAllTrivia(syntaxTree.GetCompilationUnitRoot()))
+            foreach (SyntaxTrivia trivia in GetAllTrivia(syntaxTree.GetCompilationUnitRoot()))
             {
                 // add one annotation and test its existence
-                var newTrivia = trivia.WithAdditionalAnnotations(annotation);
-                var newRoot = syntaxTree.GetCompilationUnitRoot().ReplaceTrivia(trivia, newTrivia);
+                SyntaxTrivia newTrivia = trivia.WithAdditionalAnnotations(annotation);
+                CompilationUnitSyntax newRoot = syntaxTree.GetCompilationUnitRoot().ReplaceTrivia(trivia, newTrivia);
 
                 TestAnnotation(annotation, newRoot, trivia);
             }
@@ -572,21 +572,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var annotation = new SyntaxAnnotation();
 
-            var allNodesAndTokens = GetAllNodesAndTokens(syntaxTree.GetCompilationUnitRoot());
+            List<SyntaxNodeOrToken> allNodesAndTokens = GetAllNodesAndTokens(syntaxTree.GetCompilationUnitRoot());
             for (int i = 0; i < allNodesAndTokens.Count; i++)
             {
-                var nodeOrToken = allNodesAndTokens[i];
+                SyntaxNodeOrToken nodeOrToken = allNodesAndTokens[i];
                 SyntaxNode newRoot;
 
                 // add one annotation and test its existence
                 if (nodeOrToken.IsToken)
                 {
-                    var newToken = nodeOrToken.AsToken().WithAdditionalAnnotations(annotation);
+                    SyntaxToken newToken = nodeOrToken.AsToken().WithAdditionalAnnotations(annotation);
                     newRoot = syntaxTree.GetCompilationUnitRoot().ReplaceToken(nodeOrToken.AsToken(), newToken);
                 }
                 else
                 {
-                    var newNode = nodeOrToken.AsNode().WithAdditionalAnnotations(annotation);
+                    SyntaxNode newNode = nodeOrToken.AsNode().WithAdditionalAnnotations(annotation);
                     newRoot = syntaxTree.GetCompilationUnitRoot().ReplaceNode(nodeOrToken.AsNode(), newNode);
                 }
 
@@ -608,11 +608,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private void TestAnnotation(SyntaxAnnotation annotation, SyntaxNode root, SyntaxNode oldNode)
         {
-            var results = root.GetAnnotatedNodesAndTokens(annotation);
+            IEnumerable<SyntaxNodeOrToken> results = root.GetAnnotatedNodesAndTokens(annotation);
 
             Assert.Equal(1, results.Count());
 
-            var annotatedNode = results.Single().AsNode();
+            SyntaxNode annotatedNode = results.Single().AsNode();
 
             // try to check whether it is same node as old node.
             Assert.Equal(oldNode.FullSpan, annotatedNode.FullSpan);
@@ -622,11 +622,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private void TestAnnotation(SyntaxAnnotation annotation, SyntaxNode root, SyntaxToken oldToken)
         {
-            var results = root.GetAnnotatedNodesAndTokens(annotation);
+            IEnumerable<SyntaxNodeOrToken> results = root.GetAnnotatedNodesAndTokens(annotation);
 
             Assert.Equal(1, results.Count());
 
-            var annotatedToken = results.Single().AsToken();
+            SyntaxToken annotatedToken = results.Single().AsToken();
 
             // try to check whether it is same token as old token.
             Assert.Equal(oldToken.FullSpan, annotatedToken.FullSpan);
@@ -636,11 +636,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private void TestAnnotation(SyntaxAnnotation annotation, SyntaxNode root, SyntaxTrivia oldTrivia)
         {
-            var results = root.GetAnnotatedTrivia(annotation);
+            IEnumerable<SyntaxTrivia> results = root.GetAnnotatedTrivia(annotation);
 
             Assert.Equal(1, results.Count());
 
-            var annotatedTrivia = results.Single();
+            SyntaxTrivia annotatedTrivia = results.Single();
 
             // try to check whether it is same token as old token.
             Assert.Equal(oldTrivia.FullSpan, annotatedTrivia.FullSpan);
@@ -769,7 +769,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     return node;
                 }
 
-                var annotation = _annotations[_random.Next(0, _annotations.Count - 1)];
+                SyntaxAnnotation annotation = _annotations[_random.Next(0, _annotations.Count - 1)];
                 return base.Visit(node).WithAdditionalAnnotations(annotation);
             }
 
@@ -780,7 +780,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     return token;
                 }
 
-                var annotation = _annotations[_random.Next(0, _annotations.Count - 1)];
+                SyntaxAnnotation annotation = _annotations[_random.Next(0, _annotations.Count - 1)];
                 return base.VisitToken(token).WithAdditionalAnnotations(annotation);
             }
 
@@ -797,7 +797,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                     return base.VisitTrivia(trivia);
                 }
 
-                var annotation = _annotations[_random.Next(0, _annotations.Count - 1)];
+                SyntaxAnnotation annotation = _annotations[_random.Next(0, _annotations.Count - 1)];
                 return base.VisitTrivia(trivia).WithAdditionalAnnotations(annotation);
             }
         }

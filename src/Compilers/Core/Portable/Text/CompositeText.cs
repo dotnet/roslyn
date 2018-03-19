@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Text
             var newSegments = ArrayBuilder<SourceText>.GetInstance();
             while (segIndex < _segments.Length && count > 0)
             {
-                var segment = _segments[segIndex];
+                SourceText segment = _segments[segIndex];
                 var copyLength = Math.Min(count, segment.Length - segOffset);
 
                 AddSegments(newSegments, segment.GetSubText(new TextSpan(segOffset, copyLength)));
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.Text
 
             while (segIndex < _segments.Length && count > 0)
             {
-                var segment = _segments[segIndex];
+                SourceText segment = _segments[segIndex];
                 var copyLength = Math.Min(count, segment.Length - segOffset);
 
                 segment.CopyTo(segOffset, destination, destinationIndex, copyLength);
@@ -294,8 +294,8 @@ namespace Microsoft.CodeAnalysis.Text
                     // if we've got at least two, then combine them into a single text
                     if (count > 1)
                     {
-                        var encoding = segments[i].Encoding;
-                        var algorithm = segments[i].ChecksumAlgorithm;
+                        Encoding encoding = segments[i].Encoding;
+                        SourceHashAlgorithm algorithm = segments[i].ChecksumAlgorithm;
 
                         var writer = SourceTextWriter.Create(encoding, algorithm, combinedLength);
 
@@ -322,18 +322,18 @@ namespace Microsoft.CodeAnalysis.Text
         /// </summary>
         private static void ComputeLengthAndStorageSize(IReadOnlyList<SourceText> segments, out int length, out int size)
         {
-            var uniqueSources = s_uniqueSourcesPool.Allocate();
+            HashSet<SourceText> uniqueSources = s_uniqueSourcesPool.Allocate();
 
             length = 0;
             for (int i = 0; i < segments.Count; i++)
             {
-                var segment = segments[i];
+                SourceText segment = segments[i];
                 length += segment.Length;
                 uniqueSources.Add(segment.StorageKey);
             }
 
             size = 0;
-            foreach (var segment in uniqueSources)
+            foreach (SourceText segment in uniqueSources)
             {
                 size += segment.StorageSize;
             }
@@ -353,11 +353,11 @@ namespace Microsoft.CodeAnalysis.Text
             // if more than half of the storage is unused, compress into a single new segment
             if (length < size / 2)
             {
-                var encoding = segments[0].Encoding;
-                var algorithm = segments[0].ChecksumAlgorithm;
+                Encoding encoding = segments[0].Encoding;
+                SourceHashAlgorithm algorithm = segments[0].ChecksumAlgorithm;
 
                 var writer = SourceTextWriter.Create(encoding, algorithm, length);
-                foreach (var segment in segments)
+                foreach (SourceText segment in segments)
                 {
                     segment.Write(writer);
                 }

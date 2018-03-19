@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 // Well-known type SecurityAttribute is optional.
                 // Native compiler doesn't generate a use-site error if it is not found, we do the same.
-                var wellKnownType = compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAttribute);
+                NamedTypeSymbol wellKnownType = compilation.GetWellKnownType(WellKnownType.System_Security_Permissions_SecurityAttribute);
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                 _lazyIsSecurityAttribute = AttributeClass.IsDerivedFrom(wellKnownType, TypeCompareKind.ConsiderEverything, useSiteDiagnostics: ref useSiteDiagnostics).ToThreeState();
             }
@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 bool first = true;
 
-                foreach (var constructorArgument in this.CommonConstructorArguments)
+                foreach (TypedConstant constructorArgument in this.CommonConstructorArguments)
                 {
                     if (!first)
                     {
@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     first = false;
                 }
 
-                foreach (var namedArgument in this.CommonNamedArguments)
+                foreach (KeyValuePair<string, TypedConstant> namedArgument in this.CommonNamedArguments)
                 {
                     if (!first)
                     {
@@ -240,7 +240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(targetSymbol.Kind == SymbolKind.Assembly || targetSymbol.Kind == SymbolKind.NamedType || targetSymbol.Kind == SymbolKind.Method);
             Debug.Assert(this.IsSecurityAttribute(compilation));
 
-            var ctorArgs = this.CommonConstructorArguments;
+            ImmutableArray<TypedConstant> ctorArgs = this.CommonConstructorArguments;
             if (!ctorArgs.Any())
             {
                 // NOTE:    Security custom attributes must have a valid SecurityAction as its first argument, we have none here.
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return NoLocation.Singleton;
             }
 
-            var argList = nodeOpt.ArgumentList;
+            AttributeArgumentListSyntax argList = nodeOpt.ArgumentList;
             if (argList == null || argList.Arguments.IsEmpty())
             {
                 // Optional SecurityAction parameter with default value.
@@ -407,11 +407,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(!this.HasErrors);
 
             string resolvedFilePath = null;
-            var namedArgs = this.CommonNamedArguments;
+            ImmutableArray<KeyValuePair<string, TypedConstant>> namedArgs = this.CommonNamedArguments;
 
             if (namedArgs.Length == 1)
             {
-                var namedArg = namedArgs[0];
+                KeyValuePair<string, TypedConstant> namedArg = namedArgs[0];
                 NamedTypeSymbol attrType = this.AttributeClass;
                 string filePropName = PermissionSetAttributeWithFileReference.FilePropertyName;
                 string hexPropName = PermissionSetAttributeWithFileReference.HexPropertyName;
@@ -421,7 +421,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // resolve file prop path
                     var fileName = (string)namedArg.Value.Value;
-                    var resolver = compilation.Options.XmlReferenceResolver;
+                    XmlReferenceResolver resolver = compilation.Options.XmlReferenceResolver;
 
                     resolvedFilePath = (resolver != null) ? resolver.ResolveReference(fileName, baseFilePath: null) : null;
 
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // This method checks if the given PermissionSetAttribute type has a property member with the given propName which is writable, non-generic, public and of string type.
         private static bool PermissionSetAttributeTypeHasRequiredProperty(NamedTypeSymbol permissionSetType, string propName)
         {
-            var members = permissionSetType.GetMembers(propName);
+            ImmutableArray<Symbol> members = permissionSetType.GetMembers(propName);
             if (members.Length == 1 && members[0].Kind == SymbolKind.Property)
             {
                 var property = (PropertySymbol)members[0];

@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
     {
         public static bool Any<T>(this ArrayBuilder<T> builder, Func<T, bool> predicate)
         {
-            foreach (var item in builder)
+            foreach (T item in builder)
             {
                 if (predicate(item))
                 {
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
 
         public static bool All<T>(this ArrayBuilder<T> builder, Func<T, bool> predicate)
         {
-            foreach (var item in builder)
+            foreach (T item in builder)
             {
                 if (!predicate(item))
                 {
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
 
                 default:
                     var builder = ArrayBuilder<TResult>.GetInstance(items.Count);
-                    foreach (var item in items)
+                    foreach (TItem item in items)
                     {
                         builder.Add(map(item));
                     }
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis
 
                 default:
                     var builder = ArrayBuilder<TResult>.GetInstance(items.Count);
-                    foreach (var item in items)
+                    foreach (TItem item in items)
                     {
                         builder.Add(map(item, arg));
                     }
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis
 
         public static T Pop<T>(this ArrayBuilder<T> builder)
         {
-            var e = builder.Peek();
+            T e = builder.Peek();
             builder.RemoveAt(builder.Count - 1);
             return e;
         }

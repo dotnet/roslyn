@@ -41,7 +41,7 @@ public sealed class BehaviorCollection : DependencyObjectCollection
      return this[i];
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(source, references: WinRtRefs);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(source, references: WinRtRefs);
             comp.VerifyDiagnostics();
         }
 
@@ -84,7 +84,7 @@ b
 1
 0";
 
-            var verifier = this.CompileAndVerifyOnWin8Only(source, expectedOutput: expectedOutput);
+            CompilationVerifier verifier = this.CompileAndVerifyOnWin8Only(source, expectedOutput: expectedOutput);
 
             verifier.VerifyIL("Class1.Main",
 @"{
@@ -182,7 +182,7 @@ public class Class1
     }
 }";
             var expectedOut = "param1test";
-            var verifier = this.CompileAndVerifyOnWin8Only(
+            CompilationVerifier verifier = this.CompileAndVerifyOnWin8Only(
                 source,
                 expectedOutput: expectedOut);
 
@@ -247,7 +247,7 @@ testValue1
 testValue2
 testKey2testValue3
 ";
-            var verifier = this.CompileAndVerifyOnWin8Only(
+            CompilationVerifier verifier = this.CompileAndVerifyOnWin8Only(
                 source,
                 expectedOutput: expectedOut);
 
@@ -341,7 +341,7 @@ public class Class1
         en = new WwwFormUrlDecoder(""?param1=test"").GetEnumerator();
     }
 }";
-            var comp = CreateEmptyCompilation(source, references: WinRtRefs);
+            CSharpCompilation comp = CreateEmptyCompilation(source, references: WinRtRefs);
             // JsonArray implements both IEnumerable and IList, which both have a GetEnumerator
             // method. We can't know which interface method to call, so we shouldn't emit a
             // GetEnumerator method at all.
@@ -424,7 +424,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWithWinRt(source,
+            CompilationVerifier verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -1454,7 +1454,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var comp = CreateCompilationWithWinRT(source, references: LegacyRefs);
+            CSharpCompilation comp = CreateCompilationWithWinRT(source, references: LegacyRefs);
             comp.VerifyDiagnostics(
                 // (3,1): info CS8019: Unnecessary using directive.
                 // using System.Reflection;
@@ -1821,7 +1821,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWithWinRt(source,
+            CompilationVerifier verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 //FIXME: Can't verify because the metadata adapter isn't implemented yet
                 verify: Verification.Fails);
@@ -3182,7 +3182,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWithWinRt(source,
+            CompilationVerifier verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -4425,7 +4425,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWithWinRt(source,
+            CompilationVerifier verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -4791,7 +4791,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWithWinRt(source,
+            CompilationVerifier verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -4977,7 +4977,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWithWinRt(source,
+            CompilationVerifier verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
 
@@ -5174,7 +5174,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWithWinRt(source,
+            CompilationVerifier verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails,
                 options: TestOptions.ReleaseExe.WithModuleName("MODULE"));
@@ -5395,7 +5395,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWithWinRt(source,
+            CompilationVerifier verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -5532,7 +5532,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWithWinRt(source,
+            CompilationVerifier verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -5680,7 +5680,7 @@ namespace Test
         }
     }
 }";
-            var comp = CreateCompilationWithWinRT(source, references: LegacyRefs, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithWinRT(source, references: LegacyRefs, options: TestOptions.ReleaseExe);
             comp.VerifyDiagnostics(
     // (30,36): error CS0539: 'R.this[int]' in explicit interface declaration is not a member of interface
     //         int IObservableVector<int>.this[int index]
@@ -5802,7 +5802,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWithWinRt(source,
+            CompilationVerifier verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -6029,7 +6029,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWithWinRt(source,
+            CompilationVerifier verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -6228,7 +6228,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWithWinRt(source,
+            CompilationVerifier verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -6587,7 +6587,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWithWinRt(source,
+            CompilationVerifier verifier = CompileAndVerifyWithWinRt(source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
             verifier.VerifyDiagnostics(
@@ -6747,7 +6747,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWithWinRt(
+            CompilationVerifier verifier = CompileAndVerifyWithWinRt(
                 source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
@@ -7019,7 +7019,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWithWinRt(
+            CompilationVerifier verifier = CompileAndVerifyWithWinRt(
                 source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
@@ -7146,7 +7146,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWithWinRt(
+            CompilationVerifier verifier = CompileAndVerifyWithWinRt(
                 source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
@@ -7267,7 +7267,7 @@ class AllMembers
         return FailedCount;
     }
 }";
-            var verifier = CompileAndVerifyWithWinRt(
+            CompilationVerifier verifier = CompileAndVerifyWithWinRt(
                 source,
                 references: LegacyRefs,
                 verify: Verification.Fails);
@@ -7346,7 +7346,7 @@ namespace Test
         }   
     }
 }";
-            var verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
+            CompilationVerifier verifier = CompileAndVerifyWithWinRt(source, options: TestOptions.ReleaseWinMD);
 
             verifier.VerifyDiagnostics();
             verifier.VerifyIL("Test.C.GetEnumerator()",
@@ -7357,7 +7357,7 @@ namespace Test
   IL_0001:  ret
 }");
 
-            var compRef = verifier.Compilation.ToMetadataReference();
+            CompilationReference compRef = verifier.Compilation.ToMetadataReference();
             source =
 @"using System;
 using Test;
@@ -7405,19 +7405,19 @@ public class Class1
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib45(source, references: WinRtRefs);
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(source, references: WinRtRefs);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var add = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "Add").Single();
-            var addMethod = model.GetSymbolInfo(add).Symbol;
+            SyntaxNode add = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.IdentifierName) && ((IdentifierNameSyntax)n).Identifier.ValueText == "Add").Single();
+            ISymbol addMethod = model.GetSymbolInfo(add).Symbol;
             Assert.Equal("void System.Collections.Generic.IDictionary<System.String, Windows.Data.Json.IJsonValue>.Add(System.String key, Windows.Data.Json.IJsonValue value)", addMethod.ToTestDisplayString());
 
-            var jsonObj = ((MemberAccessExpressionSyntax)add.Parent).Expression;
+            ExpressionSyntax jsonObj = ((MemberAccessExpressionSyntax)add.Parent).Expression;
 
-            var jsonObjType = model.GetTypeInfo(jsonObj).Type;
+            ITypeSymbol jsonObjType = model.GetTypeInfo(jsonObj).Type;
             Assert.Equal("Windows.Data.Json.JsonObject", jsonObjType.ToTestDisplayString());
 
             Assert.True(model.LookupNames(add.SpanStart, jsonObjType).Contains("Add"));

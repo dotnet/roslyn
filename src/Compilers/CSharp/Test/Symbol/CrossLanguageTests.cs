@@ -24,13 +24,13 @@ End Interface
                 new[] { MscorlibRef_v4_0_30316_17626 },
                 new VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
 
-            var ref1 = vbcomp.EmitToImageReference(embedInteropTypes: true);
+            MetadataReference ref1 = vbcomp.EmitToImageReference(embedInteropTypes: true);
 
             var text = @"class C : I {}";
-            var tree = Parse(text);
-            var comp = CreateEmptyCompilation(new[] { tree }, new[] { ref1 });
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateEmptyCompilation(new[] { tree }, new[] { ref1 });
 
-            var t = comp.GetTypeByMetadataName("I");
+            CSharp.Symbols.NamedTypeSymbol t = comp.GetTypeByMetadataName("I");
             Assert.Empty(t.GetMembersUnordered().Where(x => x.Kind == SymbolKind.Method && !x.CanBeReferencedByName));
             Assert.False(t.GetMembersUnordered().Where(x => x.Kind == SymbolKind.Property).First().CanBeReferencedByName); //there's only one.
         }

@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
 
             ParseAndVerify(oldText, validator: oldTree =>
             {
-                var newTree = oldTree.WithInsertBefore("public", "async ");
+                SyntaxTree newTree = oldTree.WithInsertBefore("public", "async ");
 
                 Assert.Equal(default(SyntaxNodeOrToken), oldTree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression));
                 Assert.NotEqual(default(SyntaxNodeOrToken), newTree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression));
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
 
             ParseAndVerify(oldText, validator: oldTree =>
             {
-                var newTree = oldTree.WithRemoveFirst("async");
+                SyntaxTree newTree = oldTree.WithRemoveFirst("async");
 
                 Assert.NotEqual(default(SyntaxNodeOrToken), oldTree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression));
                 Assert.Equal(default(SyntaxNodeOrToken), newTree.FindNodeOrTokenByKind(SyntaxKind.AwaitExpression));
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.IncrementalParsing
 
         private static void ParseAndValidate(string text, Action<SyntaxTree> validator, CSharpParseOptions options = null)
         {
-            var oldTree = SyntaxFactory.ParseSyntaxTree(text);
+            SyntaxTree oldTree = SyntaxFactory.ParseSyntaxTree(text);
             validator(oldTree);
         }
         #endregion

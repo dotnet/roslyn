@@ -113,8 +113,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 // Use our metadata reader to do the equivalent thing.
                 using (var reader = new PEReader(FileUtilities.OpenRead(_fullPath)))
                 {
-                    var metadataReader = reader.GetMetadataReader();
-                    var assemblyIdentity = metadataReader.ReadAssemblyIdentityOrThrow();
+                    MetadataReader metadataReader = reader.GetMetadataReader();
+                    AssemblyIdentity assemblyIdentity = metadataReader.ReadAssemblyIdentityOrThrow();
                     _lazyDisplay = assemblyIdentity.Name;
                     _lazyIdentity = assemblyIdentity;
                 }
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             // remove all line breaks from the exception message
             string message = e.Message.Replace("\r", "").Replace("\n", "");
 
-            var errorCode = (typeNameOpt != null) ?
+            AnalyzerLoadFailureEventArgs.FailureErrorCode errorCode = (typeNameOpt != null) ?
                 AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer : 
                 AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer; 
 
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             using (var assembly = AssemblyMetadata.CreateFromFile(fullPath))
             {
-                var typeNameMap = from module in assembly.GetModules()
+                IEnumerable<IGrouping<string, string>> typeNameMap = from module in assembly.GetModules()
                                   from typeDefHandle in module.MetadataReader.TypeDefinitions
                                   let typeDef = module.MetadataReader.GetTypeDefinition(typeDefHandle)
                                   let typeName = GetFullyQualifiedTypeName(typeDef, module.Module)
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static IEnumerable<string> GetSupportedLanguages(TypeDefinition typeDef, PEModule peModule, AttributePredicate attributePredicate)
         {
-            var attributeLanguagesList = from customAttrHandle in typeDef.GetCustomAttributes()
+            IEnumerable<IEnumerable<string>> attributeLanguagesList = from customAttrHandle in typeDef.GetCustomAttributes()
                                          where attributePredicate(peModule, customAttrHandle)
                                          let attributeSupportedLanguages = GetSupportedLanguages(peModule, customAttrHandle)
                                          where attributeSupportedLanguages != null
@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private static string GetFullyQualifiedTypeName(TypeDefinition typeDef, PEModule peModule)
         {
-            var declaringType = typeDef.GetDeclaringType();
+            TypeDefinitionHandle declaringType = typeDef.GetDeclaringType();
 
             // Non nested type - simply get the full name
             if (declaringType.IsNil)
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
             else
             {
-                var declaringTypeDef = peModule.MetadataReader.GetTypeDefinition(declaringType);
+                TypeDefinition declaringTypeDef = peModule.MetadataReader.GetTypeDefinition(declaringType);
                 return GetFullyQualifiedTypeName(declaringTypeDef, peModule) + "+" + peModule.MetadataReader.GetString(typeDef.Name);
             }
         }
@@ -270,11 +270,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private static ImmutableArray<TExtension> CreateExtensionsForAllLanguages(Extensions<TExtension> extensions)
             {
                 // Get all analyzers in the assembly.
-                var map = ImmutableDictionary.CreateBuilder<string, ImmutableArray<TExtension>>();
+                ImmutableDictionary<string, ImmutableArray<TExtension>>.Builder map = ImmutableDictionary.CreateBuilder<string, ImmutableArray<TExtension>>();
                 extensions.AddExtensions(map);
 
-                var builder = ImmutableArray.CreateBuilder<TExtension>();
-                foreach (var analyzers in map.Values)
+                ImmutableArray<TExtension>.Builder builder = ImmutableArray.CreateBuilder<TExtension>();
+                foreach (ImmutableArray<TExtension> analyzers in map.Values)
                 {
                     builder.AddRange(analyzers);
                 }
@@ -295,7 +295,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private static ImmutableArray<TExtension> CreateLanguageSpecificExtensions(string language, Extensions<TExtension> extensions)
             {
                 // Get all analyzers in the assembly for the given language.
-                var builder = ImmutableArray.CreateBuilder<TExtension>();
+                ImmutableArray<TExtension>.Builder builder = ImmutableArray.CreateBuilder<TExtension>();
                 extensions.AddExtensions(builder, language);
                 return builder.ToImmutable();
             }
@@ -304,7 +304,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (_lazyExtensionTypeNameMap == null)
                 {
-                    var analyzerTypeNameMap = GetAnalyzerTypeNameMap(_reference._fullPath, _attributePredicate);
+                    ImmutableDictionary<string, ImmutableHashSet<string>> analyzerTypeNameMap = GetAnalyzerTypeNameMap(_reference._fullPath, _attributePredicate);
                     Interlocked.CompareExchange(ref _lazyExtensionTypeNameMap, analyzerTypeNameMap, null);
                 }
 
@@ -336,14 +336,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var reportedError = false;
 
                 // Add language specific analyzers.
-                foreach (var (language, _) in analyzerTypeNameMap)
+                foreach ((string language, ImmutableHashSet<string> _) in analyzerTypeNameMap)
                 {
                     if (language == null)
                     {
                         continue;
                     }
 
-                    var analyzers = GetLanguageSpecificAnalyzers(analyzerAssembly, analyzerTypeNameMap, language, ref reportedError);
+                    ImmutableArray<TExtension> analyzers = GetLanguageSpecificAnalyzers(analyzerAssembly, analyzerTypeNameMap, language, ref reportedError);
                     builder.Add(language, analyzers);
                 }
 
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 var reportedError = false;
 
                 // Add language specific analyzers.
-                var analyzers = GetLanguageSpecificAnalyzers(analyzerAssembly, analyzerTypeNameMap, language, ref reportedError);
+                ImmutableArray<TExtension> analyzers = GetLanguageSpecificAnalyzers(analyzerAssembly, analyzerTypeNameMap, language, ref reportedError);
                 builder.AddRange(analyzers);
 
                 // If there were types with the attribute but weren't an analyzer, generate a diagnostic.
@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private ImmutableArray<TExtension> GetAnalyzersForTypeNames(Assembly analyzerAssembly, IEnumerable<string> analyzerTypeNames, ref bool reportedError)
             {
-                var analyzers = ImmutableArray.CreateBuilder<TExtension>();
+                ImmutableArray<TExtension>.Builder analyzers = ImmutableArray.CreateBuilder<TExtension>();
 
                 // Given the type names, get the actual System.Type and try to create an instance of the type through reflection.
                 foreach (var typeName in analyzerTypeNames)

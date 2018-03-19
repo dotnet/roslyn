@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         internal async Task Verify(int connections, int completed)
         {
-            var stats = await Complete().ConfigureAwait(false);
+            ServerStats stats = await Complete().ConfigureAwait(false);
             Assert.Equal(connections, stats.Connections);
             Assert.Equal(completed, stats.CompletedConnections);
         }
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
         {
             pipeName = pipeName ?? Guid.NewGuid().ToString();
             compilerServerHost = compilerServerHost ?? DesktopBuildServerController.CreateCompilerServerHost();
-            var clientConnectionHost = DesktopBuildServerController.CreateClientConnectionHostForServerHost(compilerServerHost, pipeName);
+            IClientConnectionHost clientConnectionHost = DesktopBuildServerController.CreateClientConnectionHostForServerHost(compilerServerHost, pipeName);
 
             if (failingServer)
             {
@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         internal static async Task<BuildResponse> Send(string pipeName, BuildRequest request)
         {
-            using (var client = await BuildServerConnection.TryConnectToServerAsync(pipeName, Timeout.Infinite, cancellationToken: default).ConfigureAwait(false))
+            using (NamedPipeClientStream client = await BuildServerConnection.TryConnectToServerAsync(pipeName, Timeout.Infinite, cancellationToken: default).ConfigureAwait(false))
             {
                 await request.WriteAsync(client).ConfigureAwait(false);
                 return await BuildResponse.ReadAsync(client).ConfigureAwait(false);
@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         internal static async Task<int> SendShutdown(string pipeName)
         {
-            var response = await Send(pipeName, BuildRequest.CreateShutdown());
+            BuildResponse response = await Send(pipeName, BuildRequest.CreateShutdown());
             return ((ShutdownBuildResponse)response).ServerProcessId;
         }
 

@@ -103,10 +103,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// </summary>
         private ArrayMethod GetArrayMethod(Cci.IArrayTypeReference arrayType, ArrayMethodKind id)
         {
-            var key = ((byte)id, arrayType);
+            (byte, Cci.IArrayTypeReference arrayType) key = ((byte)id, arrayType);
             ArrayMethod result;
 
-            var dict = _dict;
+            ConcurrentDictionary<(byte methodKind, Cci.IArrayTypeReference arrayType), ArrayMethod> dict = _dict;
             if (!dict.TryGetValue(key, out result))
             {
                 result = MakeArrayMethod(arrayType, id);

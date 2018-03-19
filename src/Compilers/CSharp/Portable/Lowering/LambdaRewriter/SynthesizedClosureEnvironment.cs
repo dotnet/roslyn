@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (_members.IsDefault)
             {
-                var builder = _membersBuilder;
+                ArrayBuilder<Symbol> builder = _membersBuilder;
                 if ((object)StaticConstructor != null)
                 {
                     builder.Add(StaticConstructor);

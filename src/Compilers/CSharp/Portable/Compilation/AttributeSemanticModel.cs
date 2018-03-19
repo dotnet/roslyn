@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case SyntaxKind.AttributeArgument:
                     // Try to walk up to the AttributeSyntax
-                    var parent = node.Parent;
+                    CSharpSyntaxNode parent = node.Parent;
                     if (parent != null)
                     {
                         parent = parent.Parent;

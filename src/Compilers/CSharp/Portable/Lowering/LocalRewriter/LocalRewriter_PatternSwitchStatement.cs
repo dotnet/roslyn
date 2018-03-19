@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this._localRewriter = localRewriter;
                 this._factory = localRewriter._factory;
                 this._factory.Syntax = node.Syntax;
-                foreach (var section in node.SwitchSections)
+                foreach (BoundPatternSwitchSection section in node.SwitchSections)
                 {
                     _switchSections.Add(section.Syntax, ArrayBuilder<BoundStatement>.GetInstance());
                 }
@@ -58,14 +58,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private BoundStatement MakeLoweredForm(BoundPatternSwitchStatement node)
             {
-                var expression = _localRewriter.VisitExpression(node.Expression);
+                BoundExpression expression = _localRewriter.VisitExpression(node.Expression);
                 var result = ArrayBuilder<BoundStatement>.GetInstance();
 
                 // EnC: We need to insert a hidden sequence point to handle function remapping in case
                 // the containing method is edited while methods invoked in the expression are being executed.
                 if (!node.WasCompilerGenerated && _localRewriter.Instrument)
                 {
-                    var instrumentedExpression = _localRewriter._instrumenter.InstrumentSwitchStatementExpression(node, expression, _factory);
+                    BoundExpression instrumentedExpression = _localRewriter._instrumenter.InstrumentSwitchStatementExpression(node, expression, _factory);
                     if (expression.ConstantValue == null)
                     {
                         expression = instrumentedExpression;
@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _declaredTemps.AddRange(node.InnerLocals);
 
                 // output the sections of code
-                foreach (var section in node.SwitchSections)
+                foreach (BoundPatternSwitchSection section in node.SwitchSections)
                 {
                     // Lifetime of these locals is expanded to the entire switch body.
                     _declaredTemps.AddRange(section.Locals);
@@ -99,10 +99,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Start with the part of the decision tree that is in scope of the section variables.
                     // Its endpoint is not reachable (it jumps back into the decision tree code).
                     var sectionSyntax = (SyntaxNode)section.Syntax;
-                    var sectionBuilder = _switchSections[sectionSyntax];
+                    ArrayBuilder<BoundStatement> sectionBuilder = _switchSections[sectionSyntax];
 
                     // Add labels corresponding to the labels of the switch section.
-                    foreach (var label in section.SwitchLabels)
+                    foreach (BoundPatternSwitchLabel label in section.SwitchLabels)
                     {
                         sectionBuilder.Add(_factory.Label(label.Label));
                     }
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// </summary>
             private void LowerPatternSwitch(BoundExpression loweredExpression, BoundPatternSwitchStatement node, ArrayBuilder<BoundStatement> loweredDecisionTree)
             {
-                var decisionTree = LowerToDecisionTree(loweredExpression, node);
+                DecisionTree decisionTree = LowerToDecisionTree(loweredExpression, node);
                 LowerDecisionTree(loweredExpression, decisionTree, loweredDecisionTree);
             }
 
@@ -150,15 +150,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression loweredExpression,
                 BoundPatternSwitchStatement node)
             {
-                var loweredDecisionTree = CreateEmptyDecisionTree(loweredExpression);
+                DecisionTree loweredDecisionTree = CreateEmptyDecisionTree(loweredExpression);
                 BoundPatternSwitchLabel defaultLabel = null;
                 SyntaxNode defaultSection = null;
-                foreach (var section in node.SwitchSections)
+                foreach (BoundPatternSwitchSection section in node.SwitchSections)
                 {
-                    var sectionSyntax = section.Syntax;
-                    foreach (var label in section.SwitchLabels)
+                    SyntaxNode sectionSyntax = section.Syntax;
+                    foreach (BoundPatternSwitchLabel label in section.SwitchLabels)
                     {
-                        var loweredLabel = LowerSwitchLabel(label);
+                        BoundPatternSwitchLabel loweredLabel = LowerSwitchLabel(label);
                         if (loweredLabel.Syntax.Kind() == SyntaxKind.DefaultSwitchLabel)
                         {
                             if (defaultLabel != null)
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private void LowerDecisionTree(BoundExpression expression, DecisionTree decisionTree, ArrayBuilder<BoundStatement> loweredDecisionTree)
             {
                 // build a decision tree to dispatch the switch statement
-                var oldLoweredDecisionTree = this._loweredDecisionTree;
+                ArrayBuilder<BoundStatement> oldLoweredDecisionTree = this._loweredDecisionTree;
                 this._loweredDecisionTree = loweredDecisionTree;
                 LowerDecisionTree(expression, decisionTree);
                 this._loweredDecisionTree = oldLoweredDecisionTree;
@@ -226,7 +226,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Store the input expression into a temp
                     if (decisionTree.Expression != expression)
                     {
-                        var convertedExpression = _factory.Convert(decisionTree.Expression.Type, expression);
+                        BoundExpression convertedExpression = _factory.Convert(decisionTree.Expression.Type, expression);
                         _loweredDecisionTree.Add(_factory.Assignment(decisionTree.Expression, convertedExpression));
                     }
 
@@ -261,12 +261,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void LowerDecisionTree(DecisionTree.ByType byType)
             {
-                var inputConstant = byType.Expression.ConstantValue;
+                ConstantValue inputConstant = byType.Expression.ConstantValue;
 
                 // three-valued: true if input known null, false if input known non-null, null if not known.
                 bool? inputIsNull = inputConstant?.IsNull;
 
-                var defaultLabel = _factory.GenerateLabel("byTypeDefault");
+                GeneratedLabelSymbol defaultLabel = _factory.GenerateLabel("byTypeDefault");
 
                 if (byType.Type.CanContainNull())
                 {
@@ -290,10 +290,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case null:
                             {
                                 // Unknown if the input is null. First test for null
-                                var notNullLabel = _factory.GenerateLabel("notNull");
-                                var inputExpression = byType.Expression;
-                                var objectType = _factory.SpecialType(SpecialType.System_Object);
-                                var nullValue = _factory.Null(objectType);
+                                GeneratedLabelSymbol notNullLabel = _factory.GenerateLabel("notNull");
+                                BoundExpression inputExpression = byType.Expression;
+                                NamedTypeSymbol objectType = _factory.SpecialType(SpecialType.System_Object);
+                                BoundExpression nullValue = _factory.Null(objectType);
                                 BoundExpression notNull =
                                     byType.Type.IsNullableType()
                                     ? _localRewriter.RewriteNullableNullEquality(
@@ -323,13 +323,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (inputIsNull != true)
                 {
-                    foreach (var td in byType.TypeAndDecision)
+                    foreach (KeyValuePair<TypeSymbol, DecisionTree> td in byType.TypeAndDecision)
                     {
                         // then test for each type, sequentially
-                        var type = td.Key;
-                        var decision = td.Value;
-                        var failLabel = _factory.GenerateLabel("failedDecision");
-                        var testAndCopy = TypeTestAndCopyToTemp(byType.Expression, decision.Expression);
+                        TypeSymbol type = td.Key;
+                        DecisionTree decision = td.Value;
+                        GeneratedLabelSymbol failLabel = _factory.GenerateLabel("failedDecision");
+                        BoundExpression testAndCopy = TypeTestAndCopyToTemp(byType.Expression, decision.Expression);
                         _loweredDecisionTree.Add(_factory.ConditionalGoto(testAndCopy, failLabel, false));
                         LowerDecisionTree(decision.Expression, decision);
                         _loweredDecisionTree.Add(_factory.Label(failLabel));
@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray<KeyValuePair<BoundExpression, BoundExpression>> bindings,
                 ArrayBuilder<BoundStatement> addBindings)
             {
-                var patternMatched = _factory.GenerateLabel("patternMatched");
+                GeneratedLabelSymbol patternMatched = _factory.GenerateLabel("patternMatched");
                 _loweredDecisionTree.Add(_factory.Goto(patternMatched));
 
                 // Hide the code that binds pattern variables in a hidden sequence point
@@ -415,10 +415,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 addBindings.Add(_factory.Label(patternMatched));
                 if (!bindings.IsDefaultOrEmpty)
                 {
-                    foreach (var kv in bindings)
+                    foreach (KeyValuePair<BoundExpression, BoundExpression> kv in bindings)
                     {
-                        var loweredRight = kv.Key;
-                        var loweredLeft = kv.Value;
+                        BoundExpression loweredRight = kv.Key;
+                        BoundExpression loweredLeft = kv.Value;
                         Debug.Assert(loweredLeft.Type.Equals(loweredRight.Type, TypeCompareKind.AllIgnoreOptions));
                         addBindings.Add(_factory.ExpressionStatement(
                             _localRewriter.MakeStaticAssignmentOperator(
@@ -429,8 +429,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void LowerDecisionTree(DecisionTree.Guarded guarded)
             {
-                var sectionBuilder = this._switchSections[guarded.SectionSyntax];
-                var targetLabel = guarded.Label.Label;
+                ArrayBuilder<BoundStatement> sectionBuilder = this._switchSections[guarded.SectionSyntax];
+                LabelSymbol targetLabel = guarded.Label.Label;
                 Debug.Assert(guarded.Guard?.ConstantValue != ConstantValue.False);
                 if (guarded.Guard == null || guarded.Guard.ConstantValue == ConstantValue.True)
                 {
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 else
                 {
                     AddBindingsForCase(guarded.Bindings, sectionBuilder);
-                    var guardTest = _factory.ConditionalGoto(guarded.Guard, targetLabel, true);
+                    BoundStatement guardTest = _factory.ConditionalGoto(guarded.Guard, targetLabel, true);
 
                     // Only add instrumentation (such as a sequence point) if the node is not compiler-generated.
                     if (!guarded.Guard.WasCompilerGenerated && _localRewriter.Instrument)
@@ -460,7 +460,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     sectionBuilder.Add(guardTest);
 
-                    var guardFailed = _factory.GenerateLabel("guardFailed");
+                    GeneratedLabelSymbol guardFailed = _factory.GenerateLabel("guardFailed");
                     sectionBuilder.Add(_factory.Goto(guardFailed));
                     _loweredDecisionTree.Add(_factory.Label(guardFailed));
 
@@ -493,15 +493,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             private void LowerBasicSwitch(DecisionTree.ByValue byValue)
             {
                 var switchSections = ArrayBuilder<BoundSwitchSection>.GetInstance();
-                var noValueMatches = _factory.GenerateLabel("noValueMatches");
-                var underlyingSwitchType = byValue.Type.IsEnumType() ? byValue.Type.GetEnumUnderlyingType() : byValue.Type;
-                foreach (var vd in byValue.ValueAndDecision)
+                GeneratedLabelSymbol noValueMatches = _factory.GenerateLabel("noValueMatches");
+                TypeSymbol underlyingSwitchType = byValue.Type.IsEnumType() ? byValue.Type.GetEnumUnderlyingType() : byValue.Type;
+                foreach (KeyValuePair<object, DecisionTree> vd in byValue.ValueAndDecision)
                 {
                     var value = vd.Key;
-                    var decision = vd.Value;
+                    DecisionTree decision = vd.Value;
                     var constantValue = ConstantValue.Create(value, underlyingSwitchType.SpecialType);
                     var constantExpression = new BoundLiteral(_factory.Syntax, constantValue, underlyingSwitchType);
-                    var label = _factory.GenerateLabel("case+" + value);
+                    GeneratedLabelSymbol label = _factory.GenerateLabel("case+" + value);
                     var switchLabel = new BoundSwitchLabel(_factory.Syntax, label, constantExpression, constantValue);
                     var forValue = ArrayBuilder<BoundStatement>.GetInstance();
                     LowerDecisionTree(byValue.Expression, decision, forValue);
@@ -514,7 +514,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     switchSections.Add(section);
                 }
 
-                var rewrittenSections = switchSections.ToImmutableAndFree();
+                ImmutableArray<BoundSwitchSection> rewrittenSections = switchSections.ToImmutableAndFree();
                 MethodSymbol stringEquality = null;
                 if (underlyingSwitchType.SpecialType == SpecialType.System_String)
                 {
@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // The BoundSwitchStatement requires a constant target when there are no sections, so we accomodate that here.
-                var constantTarget = rewrittenSections.IsEmpty ? noValueMatches : null;
+                GeneratedLabelSymbol constantTarget = rewrittenSections.IsEmpty ? noValueMatches : null;
                 var switchStatement = new BoundSwitchStatement(
                     _factory.Syntax, null, _factory.Convert(underlyingSwitchType, byValue.Expression),
                     constantTarget,
@@ -581,18 +581,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //           If so, we should use the BoundSwitchStatement and do that in emit.
                 //           Moreover, we should be able to use `==` rather than `.Equals`
                 //           for cases (such as non-NaN) where we know the result to be the same.
-                var rewrittenSections = switchStatement.SwitchSections;
-                var expression = switchStatement.Expression;
-                var noValueMatches = switchStatement.BreakLabel;
+                ImmutableArray<BoundSwitchSection> rewrittenSections = switchStatement.SwitchSections;
+                BoundExpression expression = switchStatement.Expression;
+                GeneratedLabelSymbol noValueMatches = switchStatement.BreakLabel;
                 Debug.Assert(switchStatement.LoweredPreambleOpt == null);
                 Debug.Assert(switchStatement.InnerLocals.IsDefaultOrEmpty);
                 Debug.Assert(switchStatement.InnerLocalFunctions.IsDefaultOrEmpty);
                 Debug.Assert(switchStatement.StringEquality == null);
                 LabelSymbol nextLabel = null;
                 var builder = ArrayBuilder<BoundStatement>.GetInstance();
-                foreach (var section in rewrittenSections)
+                foreach (BoundSwitchSection section in rewrittenSections)
                 {
-                    foreach (var boundSwitchLabel in section.SwitchLabels)
+                    foreach (BoundSwitchLabel boundSwitchLabel in section.SwitchLabels)
                     {
                         if (nextLabel != null)
                         {
@@ -602,8 +602,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         Debug.Assert(boundSwitchLabel.ConstantValueOpt != null);
                         // generate (if (value.Equals(input)) goto label;
-                        var literal = _localRewriter.MakeLiteral(_factory.Syntax, boundSwitchLabel.ConstantValueOpt, expression.Type);
-                        var condition = _factory.InstanceCall(literal, "Equals", expression);
+                        BoundExpression literal = _localRewriter.MakeLiteral(_factory.Syntax, boundSwitchLabel.ConstantValueOpt, expression.Type);
+                        BoundExpression condition = _factory.InstanceCall(literal, "Equals", expression);
                         if (!condition.HasErrors && condition.Type.SpecialType != SpecialType.System_Boolean)
                         {
                             var call = (BoundCall)condition;
@@ -615,7 +615,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         builder.Add(_factory.Goto(nextLabel));
                     }
 
-                    foreach (var boundSwitchLabel in section.SwitchLabels)
+                    foreach (BoundSwitchLabel boundSwitchLabel in section.SwitchLabels)
                     {
                         builder.Add(_factory.Label(boundSwitchLabel.Label));
                     }
@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
 
                             Debug.Assert(decision != null);
-                            var onOther = _factory.GenerateLabel("on" + !onBoolean);
+                            GeneratedLabelSymbol onOther = _factory.GenerateLabel("on" + !onBoolean);
                             _loweredDecisionTree.Add(_factory.ConditionalGoto(byValue.Expression, onOther, !onBoolean));
                             LowerDecisionTree(byValue.Expression, decision);
                             // if we fall through here, that means the match was not complete and we invoke the default part
@@ -663,8 +663,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             bool hasTrue = byValue.ValueAndDecision.TryGetValue(true, out trueDecision);
                             bool hasFalse = byValue.ValueAndDecision.TryGetValue(false, out falseDecision);
                             Debug.Assert(hasTrue && hasFalse);
-                            var tryAnother = _factory.GenerateLabel("tryAnother");
-                            var onFalse = _factory.GenerateLabel("onFalse");
+                            GeneratedLabelSymbol tryAnother = _factory.GenerateLabel("tryAnother");
+                            GeneratedLabelSymbol onFalse = _factory.GenerateLabel("onFalse");
                             _loweredDecisionTree.Add(_factory.ConditionalGoto(byValue.Expression, onFalse, false));
                             LowerDecisionTree(byValue.Expression, trueDecision);
                             _loweredDecisionTree.Add(_factory.Goto(tryAnother));

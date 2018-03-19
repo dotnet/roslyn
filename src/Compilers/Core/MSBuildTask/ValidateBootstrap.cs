@@ -43,14 +43,14 @@ namespace Microsoft.CodeAnalysis.BuildTasks
                 return false;
             }
 
-            var dependencies = new[]
+            Assembly[] dependencies = new[]
             {
                 typeof(ValidateBootstrap).GetTypeInfo().Assembly,
             };
 
             var allGood = true;
-            var comparer = StringComparer.OrdinalIgnoreCase;
-            foreach (var dependency in dependencies)
+            StringComparer comparer = StringComparer.OrdinalIgnoreCase;
+            foreach (Assembly dependency in dependencies)
             {
                 var path = GetDirectory(dependency);
                 path = NormalizePath(path);
@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             var failedLoads = s_failedLoadSet.Keys.ToList();
             if (failedLoads.Count > 0)
             {
-                foreach (var name in failedLoads.OrderBy(x => x.Name))
+                foreach (AssemblyName name in failedLoads.OrderBy(x => x.Name))
                 {
                     Log.LogError($"Assembly resolution failed for {name}");
                     allGood = false;

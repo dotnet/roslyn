@@ -71,7 +71,7 @@ public class Derived : Base
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
+            CSharpCompilation compilation = CreateCompilation(source, parseOptions: TestOptions.Regular7_2)
                 .VerifyDiagnostics(
                 );
         }
@@ -94,9 +94,9 @@ public class Base
     public int this[string x] { private protected set { } get { return 5; } }
     private protected Base() { Event1?.Invoke(); }
 }";
-            var baseCompilation = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider));
+            CSharpCompilation baseCompilation = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2, options: TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultPortableProvider));
             var bb = (INamedTypeSymbol)baseCompilation.GlobalNamespace.GetMember("Base");
-            foreach (var member in bb.GetMembers())
+            foreach (ISymbol member in bb.GetMembers())
             {
                 switch (member.Name)
                 {
@@ -586,7 +586,7 @@ class Program
     private protected int F;
 }
 ";
-            var verifier = CompileAndVerify(
+            CompilationVerifier verifier = CompileAndVerify(
                 text,
                 parseOptions: TestOptions.Regular7_2,
                 expectedSignatures: new[]
@@ -687,7 +687,7 @@ abstract class B : A
     private protected void F() { }
 }
 ";
-            var compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2);
+            CSharpCompilation compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2);
             compilation1.VerifyDiagnostics();
 
             string source2 =
@@ -714,7 +714,7 @@ abstract class B : A
     private protected abstract void F();
 }
 ";
-            var compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2);
+            CSharpCompilation compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2);
             compilation1.VerifyDiagnostics();
 
             string source2 =
@@ -740,7 +740,7 @@ abstract class B : A
     private protected abstract void F();
 }
 ";
-            var compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2);
+            CSharpCompilation compilation1 = CreateCompilation(source1, parseOptions: TestOptions.Regular7_2);
             compilation1.VerifyDiagnostics();
 
             string source2 =

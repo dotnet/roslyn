@@ -97,9 +97,9 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
         /// <returns>A rule set object with data from the given XML node</returns>
         private static RuleSet ReadRuleSet(XElement ruleSetNode, string filePath)
         {
-            var specificOptions = ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>();
-            var generalOption = ReportDiagnostic.Default;
-            var includes = ImmutableArray.CreateBuilder<RuleSetInclude>();
+            ImmutableDictionary<string, ReportDiagnostic>.Builder specificOptions = ImmutableDictionary.CreateBuilder<string, ReportDiagnostic>();
+            ReportDiagnostic generalOption = ReportDiagnostic.Default;
+            ImmutableArray<RuleSetInclude>.Builder includes = ImmutableArray.CreateBuilder<RuleSetInclude>();
 
             ValidateAttribute(ruleSetNode, RuleSetToolsVersionAttributeName);
             ValidateAttribute(ruleSetNode, RuleSetNameAttributeName);
@@ -109,11 +109,11 @@ So we suppress this error until the reporting for CA3053 has been updated to acc
             {
                 if (childNode.Name == RulesNodeName)
                 {
-                    var rules = ReadRules(childNode);
-                    foreach (var rule in rules)
+                    List<KeyValuePair<string, ReportDiagnostic>> rules = ReadRules(childNode);
+                    foreach (KeyValuePair<string, ReportDiagnostic> rule in rules)
                     {
                         var ruleId = rule.Key;
-                        var action = rule.Value;
+                        ReportDiagnostic action = rule.Value;
 
                         ReportDiagnostic existingAction;
                         if (specificOptions.TryGetValue(ruleId, out existingAction))

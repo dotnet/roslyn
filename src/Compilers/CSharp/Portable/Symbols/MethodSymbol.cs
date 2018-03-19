@@ -342,7 +342,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <param name="accessingTypeOpt">The search must respect accessibility from this type.</param>
         internal MethodSymbol GetLeastOverriddenMethod(NamedTypeSymbol accessingTypeOpt)
         {
-            var accessingType = ((object)accessingTypeOpt == null ? this.ContainingType : accessingTypeOpt).OriginalDefinition;
+            NamedTypeSymbol accessingType = ((object)accessingTypeOpt == null ? this.ContainingType : accessingTypeOpt).OriginalDefinition;
 
             MethodSymbol m = this;
             while (m.IsOverride && !m.HidesBaseMethodsByName)
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal MethodSymbol GetConstructedLeastOverriddenMethod(NamedTypeSymbol accessingTypeOpt)
         {
-            var m = this.ConstructedFrom.GetLeastOverriddenMethod(accessingTypeOpt);
+            MethodSymbol m = this.ConstructedFrom.GetLeastOverriddenMethod(accessingTypeOpt);
             return m.IsGenericMethod ? m.Construct(this.TypeArguments) : m;
         }
 
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (this.IsOverride)
                 {
-                    var overriddenMethod = this.OverriddenMethod;
+                    MethodSymbol overriddenMethod = this.OverriddenMethod;
                     if ((object)overriddenMethod != null && overriddenMethod.IsConditional)
                     {
                         return overriddenMethod.CallsAreConditionallyOmitted(syntaxTree);
@@ -488,7 +488,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Conditional attributes are inherited by overriding methods.
                 if (this.IsOverride)
                 {
-                    var overriddenMethod = this.OverriddenMethod;
+                    MethodSymbol overriddenMethod = this.OverriddenMethod;
                     if ((object)overriddenMethod != null)
                     {
                         return overriddenMethod.IsConditional;
@@ -1160,8 +1160,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 AddSynthesizedAttribute(ref attributes, moduleBuilder.SynthesizeIsReadOnlyAttribute(this));
             }
 
-            var compilation = this.DeclaringCompilation;
-            var type = this.ReturnType;
+            CSharpCompilation compilation = this.DeclaringCompilation;
+            TypeSymbol type = this.ReturnType;
 
             if (type.ContainsDynamic() && compilation.HasDynamicEmitAttributes())
             {
@@ -1176,7 +1176,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         IMethodSymbol IMethodSymbol.Construct(params ITypeSymbol[] arguments)
         {
-            foreach (var arg in arguments)
+            foreach (ITypeSymbol arg in arguments)
             {
                 arg.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("typeArguments");
             }

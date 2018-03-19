@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             bool next = false;
             while (token.Kind() != SyntaxKind.None)
             {
-                foreach (var tr in token.LeadingTrivia)
+                foreach (SyntaxTrivia tr in token.LeadingTrivia)
                 {
                     if (next)
                     {
@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             bool next = false;
             while (token.Kind() != SyntaxKind.None)
             {
-                foreach (var tr in token.LeadingTrivia.Reverse())
+                foreach (SyntaxTrivia tr in token.LeadingTrivia.Reverse())
                 {
                     if (next)
                     {
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         private void GetRelatedDirectives(List<DirectiveTriviaSyntax> list)
         {
             list.Clear();
-            var p = this.GetPreviousRelatedDirective();
+            DirectiveTriviaSyntax p = this.GetPreviousRelatedDirective();
             while (p != null)
             {
                 list.Add(p);
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             list.Reverse();
             list.Add(this);
-            var n = this.GetNextRelatedDirective();
+            DirectiveTriviaSyntax n = this.GetNextRelatedDirective();
             while (n != null)
             {
                 list.Add(n);

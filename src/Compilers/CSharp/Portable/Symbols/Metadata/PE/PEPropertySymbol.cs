@@ -66,10 +66,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
             SignatureHeader callingConvention;
             BadImageFormatException propEx;
-            var propertyParams = metadataDecoder.GetSignatureForProperty(handle, out callingConvention, out propEx);
+            ParamInfo<TypeSymbol>[] propertyParams = metadataDecoder.GetSignatureForProperty(handle, out callingConvention, out propEx);
             Debug.Assert(propertyParams.Length > 0);
 
-            var returnInfo = propertyParams[0];
+            ParamInfo<TypeSymbol> returnInfo = propertyParams[0];
 
             PEPropertySymbol result = returnInfo.CustomModifiers.IsDefaultOrEmpty && returnInfo.RefCustomModifiers.IsDefaultOrEmpty
                 ? new PEPropertySymbol(moduleSymbol, containingType, handle, getMethod, setMethod, 0, propertyParams, metadataDecoder)
@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             MetadataDecoder metadataDecoder)
         {
             _containingType = containingType;
-            var module = moduleSymbol.Module;
+            PEModule module = moduleSymbol.Module;
             PropertyAttributes mdFlags = 0;
             BadImageFormatException mrEx = null;
 
@@ -121,9 +121,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             SignatureHeader unusedCallingConvention;
             BadImageFormatException getEx = null;
-            var getMethodParams = (object)getMethod == null ? null : metadataDecoder.GetSignatureForMethod(getMethod.Handle, out unusedCallingConvention, out getEx);
+            ParamInfo<TypeSymbol>[] getMethodParams = (object)getMethod == null ? null : metadataDecoder.GetSignatureForMethod(getMethod.Handle, out unusedCallingConvention, out getEx);
             BadImageFormatException setEx = null;
-            var setMethodParams = (object)setMethod == null ? null : metadataDecoder.GetSignatureForMethod(setMethod.Handle, out unusedCallingConvention, out setEx);
+            ParamInfo<TypeSymbol>[] setMethodParams = (object)setMethod == null ? null : metadataDecoder.GetSignatureForMethod(setMethod.Handle, out unusedCallingConvention, out setEx);
 
             // NOTE: property parameter names are not recorded in metadata, so we have to
             // use the parameter names from one of the indexers
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 _lazyUseSiteDiagnostic = new CSDiagnosticInfo(ErrorCode.ERR_BindToBogus, this);
             }
 
-            var returnInfo = propertyParams[0];
+            ParamInfo<TypeSymbol> returnInfo = propertyParams[0];
 
             if (returnInfo.IsByRef)
             {
@@ -568,12 +568,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     return ImmutableArray<PropertySymbol>.Empty;
                 }
 
-                var propertiesWithImplementedGetters = PEPropertyOrEventHelpers.GetPropertiesForExplicitlyImplementedAccessor(_getMethod);
-                var propertiesWithImplementedSetters = PEPropertyOrEventHelpers.GetPropertiesForExplicitlyImplementedAccessor(_setMethod);
+                ISet<PropertySymbol> propertiesWithImplementedGetters = PEPropertyOrEventHelpers.GetPropertiesForExplicitlyImplementedAccessor(_getMethod);
+                ISet<PropertySymbol> propertiesWithImplementedSetters = PEPropertyOrEventHelpers.GetPropertiesForExplicitlyImplementedAccessor(_setMethod);
 
                 var builder = ArrayBuilder<PropertySymbol>.GetInstance();
 
-                foreach (var prop in propertiesWithImplementedGetters)
+                foreach (PropertySymbol prop in propertiesWithImplementedGetters)
                 {
                     if ((object)prop.SetMethod == null || propertiesWithImplementedSetters.Contains(prop))
                     {
@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                     }
                 }
 
-                foreach (var prop in propertiesWithImplementedSetters)
+                foreach (PropertySymbol prop in propertiesWithImplementedSetters)
                 {
                     // No need to worry about duplicates.  If prop was added by the previous loop,
                     // then it must have a GetMethod.
@@ -628,8 +628,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             if (hasGetMethod && hasSetMethod)
             {
                 var lastPropertyParamIndex = propertyParams.Length - 1;
-                var getHandle = getMethodParams[lastPropertyParamIndex].Handle;
-                var setHandle = setMethodParams[lastPropertyParamIndex].Handle;
+                ParameterHandle getHandle = getMethodParams[lastPropertyParamIndex].Handle;
+                ParameterHandle setHandle = setMethodParams[lastPropertyParamIndex].Handle;
                 var getterHasParamArray = !getHandle.IsNil && module.HasParamsAttribute(getHandle);
                 var setterHasParamArray = !setHandle.IsNil && module.HasParamsAttribute(setHandle);
                 if (getterHasParamArray != setterHasParamArray)
@@ -673,8 +673,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 // NOTE: this is a best guess at the Dev10 behavior.  The actual behavior is
                 // in the unmanaged helper code that Dev10 uses to load the metadata.
-                var propertyParam = propertyParams[i];
-                var paramHandle = i < numAccessorParams ? accessorParams[i].Handle : propertyParam.Handle;
+                ParamInfo<TypeSymbol> propertyParam = propertyParams[i];
+                ParameterHandle paramHandle = i < numAccessorParams ? accessorParams[i].Handle : propertyParam.Handle;
                 var ordinal = i - 1;
                 bool isBad;
                 
@@ -745,7 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         propertyParams[0].CustomModifiers.NullToEmpty().Length + propertyParams[0].RefCustomModifiers.NullToEmpty().Length,
                         propertyParams, metadataDecoder)
             {
-                var returnInfo = propertyParams[0];
+                ParamInfo<TypeSymbol> returnInfo = propertyParams[0];
                 _typeCustomModifiers = CSharpCustomModifier.Convert(returnInfo.CustomModifiers);
                 _refCustomModifiers = CSharpCustomModifier.Convert(returnInfo.RefCustomModifiers);
             }

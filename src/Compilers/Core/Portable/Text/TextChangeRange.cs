@@ -97,7 +97,7 @@ namespace Microsoft.CodeAnalysis.Text
             var start = int.MaxValue;
             var end = 0;
 
-            foreach (var change in changes)
+            foreach (TextChangeRange change in changes)
             {
                 diff += change.NewLength - change.Span.Length;
 

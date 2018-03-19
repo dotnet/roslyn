@@ -126,12 +126,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         private async Task<ConnectionData> HandleCompilationRequest(BuildRequest request, CancellationToken cancellationToken)
         {
-            var keepAlive = CheckForNewKeepAlive(request);
+            TimeSpan? keepAlive = CheckForNewKeepAlive(request);
 
             // Kick off both the compilation and a task to monitor the pipe for closing.
             var buildCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            var compilationTask = ServeBuildRequest(request, buildCts.Token);
-            var monitorTask = CreateMonitorDisconnectTask(buildCts.Token);
+            Task<BuildResponse> compilationTask = ServeBuildRequest(request, buildCts.Token);
+            Task monitorTask = CreateMonitorDisconnectTask(buildCts.Token);
             await Task.WhenAny(compilationTask, monitorTask).ConfigureAwait(false);
 
             // Do an 'await' on the completed task, preference being compilation, to force
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             CompletionReason reason;
             if (compilationTask.IsCompleted)
             {
-                var response = await compilationTask.ConfigureAwait(false);
+                BuildResponse response = await compilationTask.ConfigureAwait(false);
 
                 try
                 {
@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         private TimeSpan? CheckForNewKeepAlive(BuildRequest request)
         {
             TimeSpan? timeout = null;
-            foreach (var arg in request.Arguments)
+            foreach (BuildRequest.Argument arg in request.Arguments)
             {
                 if (arg.ArgumentId == BuildProtocolConstants.ArgumentId.KeepAlive)
                 {
@@ -217,8 +217,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 // Do the compilation
                 Log("Begin compilation");
 
-                var request = BuildProtocolUtil.GetRunRequest(buildRequest);
-                var response = _compilerServerHost.RunCompilation(request, cancellationToken);
+                RunRequest request = BuildProtocolUtil.GetRunRequest(buildRequest);
+                BuildResponse response = _compilerServerHost.RunCompilation(request, cancellationToken);
 
                 Log("End compilation");
                 return response;

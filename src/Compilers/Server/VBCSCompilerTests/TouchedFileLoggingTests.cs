@@ -41,7 +41,7 @@ class C
             for (int i = 0; i < 2; i++)
             {
                 var source1 = Temp.CreateFile().WriteAllText(helloWorldCS).Path;
-                var touchedDir = Temp.CreateDirectory();
+                TempDirectory touchedDir = Temp.CreateDirectory();
                 var touchedBase = Path.Combine(touchedDir.Path, "touched");
 
                 filelist.Add(source1);
@@ -90,7 +90,7 @@ class C
             expectedReads = cmd.Arguments.MetadataReferences
                 .Select(r => r.Reference).ToList();
 
-            foreach (var file in cmd.Arguments.SourceFiles)
+            foreach (CommandLineSourceFile file in cmd.Arguments.SourceFiles)
             {
                 expectedReads.Add(file.Path);
             }
@@ -109,7 +109,7 @@ class C
             var touchedReadPath = touchedFilesBase + ".read";
             var touchedWritesPath = touchedFilesBase + ".write";
 
-            var expected = expectedReads.Select(s => s.ToUpperInvariant()).OrderBy(s => s);
+            IOrderedEnumerable<string> expected = expectedReads.Select(s => s.ToUpperInvariant()).OrderBy(s => s);
             Assert.Equal(string.Join("\r\n", expected),
                          File.ReadAllText(touchedReadPath).Trim());
 

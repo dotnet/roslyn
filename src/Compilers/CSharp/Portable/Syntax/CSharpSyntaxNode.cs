@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                var result =  this._syntaxTree ?? ComputeSyntaxTree(this);
+                SyntaxTree result =  this._syntaxTree ?? ComputeSyntaxTree(this);
                 Debug.Assert(result != null);
                 return result;
             }
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 }
 
-                var parent = node.Parent;
+                CSharpSyntaxNode parent = node.Parent;
                 if (parent == null)
                 {
                     // set the tree on the root node atomically
@@ -93,9 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 Debug.Assert(tree != null);
 
-                foreach (var n in nodes)
+                foreach (CSharpSyntaxNode n in nodes)
                 {
-                    var existingTree =  n._syntaxTree;
+                    SyntaxTree existingTree =  n._syntaxTree;
                     if (existingTree != null)
                     {
                         Debug.Assert(existingTree == tree, "how could this node belong to a different tree?");
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public new SyntaxTriviaList GetLeadingTrivia()
         {
-            var firstToken = this.GetFirstToken(includeZeroWidth: true);
+            SyntaxToken firstToken = this.GetFirstToken(includeZeroWidth: true);
             return firstToken.LeadingTrivia;
         }
 
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public new SyntaxTriviaList GetTrailingTrivia()
         {
-            var lastToken = this.GetLastToken(includeZeroWidth: true);
+            SyntaxToken lastToken = this.GetLastToken(includeZeroWidth: true);
             return lastToken.TrailingTrivia;
         }
 
@@ -246,13 +246,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public DirectiveTriviaSyntax GetFirstDirective(Func<DirectiveTriviaSyntax, bool> predicate = null)
         {
-            foreach (var child in this.ChildNodesAndTokens())
+            foreach (SyntaxNodeOrToken child in this.ChildNodesAndTokens())
             {
                 if (child.ContainsDirectives)
                 {
                     if (child.IsNode)
                     {
-                        var d = child.AsNode().GetFirstDirective(predicate);
+                        DirectiveTriviaSyntax d = child.AsNode().GetFirstDirective(predicate);
                         if (d != null)
                         {
                             return d;
@@ -260,10 +260,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        var token = child.AsToken();
+                        SyntaxToken token = child.AsToken();
 
                         // directives can only occur in leading trivia
-                        foreach (var tr in token.LeadingTrivia)
+                        foreach (SyntaxTrivia tr in token.LeadingTrivia)
                         {
                             if (tr.IsDirective)
                             {
@@ -286,13 +286,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public DirectiveTriviaSyntax GetLastDirective(Func<DirectiveTriviaSyntax, bool> predicate = null)
         {
-            foreach (var child in this.ChildNodesAndTokens().Reverse())
+            foreach (SyntaxNodeOrToken child in this.ChildNodesAndTokens().Reverse())
             {
                 if (child.ContainsDirectives)
                 {
                     if (child.IsNode)
                     {
-                        var d = child.AsNode().GetLastDirective(predicate);
+                        DirectiveTriviaSyntax d = child.AsNode().GetLastDirective(predicate);
                         if (d != null)
                         {
                             return d;
@@ -300,10 +300,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        var token = child.AsToken();
+                        SyntaxToken token = child.AsToken();
 
                         // directives can only occur in leading trivia
-                        foreach (var tr in token.LeadingTrivia.Reverse())
+                        foreach (SyntaxTrivia tr in token.LeadingTrivia.Reverse())
                         {
                             if (tr.IsDirective)
                             {
@@ -538,7 +538,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (this.Kind() == SyntaxKind.Block)
             {
-                var parent = this.Parent;
+                CSharpSyntaxNode parent = this.Parent;
                 if (parent is MemberDeclarationSyntax || parent is AccessorDeclarationSyntax)
                 {
                     return true;

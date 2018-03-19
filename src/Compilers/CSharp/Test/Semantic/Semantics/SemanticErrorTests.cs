@@ -1365,7 +1365,7 @@ class C
         this.goo(); // OK
     }
 }";
-            var comp = CreateCompilationWithMscorlib45(
+            CSharpCompilation comp = CreateCompilationWithMscorlib45(
                 new[] { SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Script) });
             comp.VerifyDiagnostics(
                 // (4,9): error CS0027: Keyword 'this' is not available in the current context
@@ -1513,10 +1513,10 @@ public class C
         decimal x = (decimal)double.PositiveInfinity;
     }
 }";
-            var diagnostics = CreateCompilation(text).GetDiagnostics();
+            System.Collections.Immutable.ImmutableArray<Diagnostic> diagnostics = CreateCompilation(text).GetDiagnostics();
 
-            var savedCurrentCulture = Thread.CurrentThread.CurrentCulture;
-            var savedCurrentUICulture = Thread.CurrentThread.CurrentUICulture;
+            CultureInfo savedCurrentCulture = Thread.CurrentThread.CurrentCulture;
+            CultureInfo savedCurrentUICulture = Thread.CurrentThread.CurrentUICulture;
             Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
             Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
 
@@ -1935,7 +1935,7 @@ class OuterClass
    }
 }";
             // Triage decided not to implement the more specific error (WrongNestedThis) and stick with ObjectRequired.
-            var comp = CreateCompilation(text, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(new Dictionary<string, ReportDiagnostic>()
+            CSharpCompilation comp = CreateCompilation(text, options: TestOptions.ReleaseDll.WithSpecificDiagnosticOptions(new Dictionary<string, ReportDiagnostic>()
             {
                 { MessageProvider.Instance.GetIdForErrorCode(649), ReportDiagnostic.Suppress }
             }));
@@ -3061,10 +3061,10 @@ public class MyClass : Outer.base1
 {
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             var type1 = comp.SourceModule.GlobalNamespace.GetMembers("MyClass").Single() as NamedTypeSymbol;
-            var b = type1.BaseType();
-            var errs = comp.GetDiagnostics();
+            NamedTypeSymbol b = type1.BaseType();
+            System.Collections.Immutable.ImmutableArray<Diagnostic> errs = comp.GetDiagnostics();
             Assert.Equal(1, errs.Count());
             Assert.Equal(122, errs.First().Code);
         }
@@ -3132,19 +3132,19 @@ class Error
     }
 }
 ";
-            var tree = Parse(text);
-            var compilation = CreateCompilation(tree);
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation compilation = CreateCompilation(tree);
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var compilationUnit = tree.GetCompilationUnitRoot();
+            CompilationUnitSyntax compilationUnit = tree.GetCompilationUnitRoot();
             var classError = (TypeDeclarationSyntax)compilationUnit.Members[2];
             var mainMethod = (MethodDeclarationSyntax)classError.Members[1];
             var callStmt = (ExpressionStatementSyntax)mainMethod.Body.Statements[0];
-            var callExpr = callStmt.Expression;
+            ExpressionSyntax callExpr = callStmt.Expression;
 
             var callPosition = callExpr.SpanStart;
 
-            var boundCall = model.GetSpeculativeSymbolInfo(callPosition, callExpr, SpeculativeBindingOption.BindAsExpression);
+            SymbolInfo boundCall = model.GetSpeculativeSymbolInfo(callPosition, callExpr, SpeculativeBindingOption.BindAsExpression);
 
             Assert.Null(boundCall.Symbol);
             Assert.Equal(1, boundCall.CandidateSymbols.Length);
@@ -3153,11 +3153,11 @@ class Error
             var constructedMethodSymbol = (MethodSymbol)(boundCall.CandidateSymbols[0]);
             Assert.Equal("void Error.Goo<A.ProtectedClass>(I<A.ProtectedClass> i)", constructedMethodSymbol.ToTestDisplayString());
 
-            var typeArgSymbol = constructedMethodSymbol.TypeArguments.Single();
+            TypeSymbol typeArgSymbol = constructedMethodSymbol.TypeArguments.Single();
             Assert.Equal("A.ProtectedClass", typeArgSymbol.ToTestDisplayString());
             Assert.False(model.IsAccessible(callPosition, typeArgSymbol), "Protected inner class is inaccessible");
 
-            var paramTypeSymbol = constructedMethodSymbol.Parameters.Single().Type;
+            TypeSymbol paramTypeSymbol = constructedMethodSymbol.Parameters.Single().Type;
             Assert.Equal("I<A.ProtectedClass>", paramTypeSymbol.ToTestDisplayString());
             Assert.False(model.IsAccessible(callPosition, typeArgSymbol), "Type should be inaccessible since type argument is inaccessible");
 
@@ -3929,7 +3929,7 @@ namespace MyNamespace
       static int M() { return 0; }
    }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (9,10): error CS0140: The label 'label1' is a duplicate
                 //          label1: int j = M();   // CS0140, comment this line to resolve
@@ -3965,7 +3965,7 @@ class Xyzzy
     }
     static int M() { return 0; }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics();
         }
 
@@ -3993,7 +3993,7 @@ class Xyzzy
     }
     static int M() { return 0; }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (21,9): error CS0104: 'var' is an ambiguous reference between 'A.var' and 'B.var'
                 //         var x = M(); // 8.5.1 When the local-variable-type is specified as var and no type named var is in scope, ...
@@ -4083,7 +4083,7 @@ public class iii
       }
    }
 }";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular6);
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
                 // (18,15): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type in C# 6 and earlier.
                 //       switch (a)   // CS0151, compiler cannot choose between int and long
@@ -4139,7 +4139,7 @@ public class a
    }
 }";
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (6,7): error CS0153: A goto case is only valid inside a switch statement
                 //       goto case 5;   // CS0153
@@ -4165,7 +4165,7 @@ class Program
         goto default;
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (14,9): error CS0153: A goto case is only valid inside a switch statement
                 //         goto default;
@@ -4343,10 +4343,10 @@ public class B : A
 {
     public override object P { set { } }
 }";
-            var compilation1 = CreateCompilation(source1);
+            CSharpCompilation compilation1 = CreateCompilation(source1);
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1);
-            var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
+            CompilationVerifier compilationVerifier = CompileAndVerify(compilation1);
+            PortableExecutableReference reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"class C
 {
@@ -4356,7 +4356,7 @@ public class B : A
         b.P = o;
     }
 }";
-            var compilation2 = CreateCompilation(source2, references: new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilation(source2, references: new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (5,17): error CS0154: The property or indexer 'B.P' cannot be used in this context because it lacks the get accessor
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "b.P").WithArguments("B.P").WithLocation(5, 17));
@@ -6237,7 +6237,7 @@ class MyClass
       MyStruct aStruct = new MyStruct();
    }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (4,4): error CS0171: Field 'MyStruct.i' must be fully assigned before control is returned to the caller
                 //    MyStruct(int initField)   // CS0171
@@ -6266,7 +6266,7 @@ class MyClass
     {
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(); // No CS0171 for S._x
         }
 
@@ -6859,7 +6859,7 @@ public class C
     M(__arglist);
   }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,7): error CS0190: The __arglist construct is valid only within a variable argument method
                 //     M(__arglist);
@@ -6890,7 +6890,7 @@ public class C
   {
   }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source);
             comp.VerifyDiagnostics(
                 // (10,14): error CS4013: Instance of type 'System.RuntimeArgumentHandle' cannot be used inside an anonymous function, query expression, iterator block or async method
                 //     f = x=>f(__arglist);
@@ -7101,14 +7101,14 @@ unsafe public class MyClass
       // j = i[1];
    }
 }";
-            var compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics(
                 // (8,11): error CS0196: A pointer must be indexed by only one value
                 //       j = i[1,2];   // CS0196
                 Diagnostic(ErrorCode.ERR_PtrIndexSingle, "i[1,2]"));
 
 
-            var tree = compilation.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().First();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            ElementAccessExpressionSyntax node = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().First();
 
             Assert.Equal("i[1,2]", node.ToString());
 
@@ -7401,10 +7401,10 @@ public class B : A
 {
     public override object P { get { return null; } }
 }";
-            var compilation1 = CreateCompilation(source1);
+            CSharpCompilation compilation1 = CreateCompilation(source1);
             compilation1.VerifyDiagnostics();
-            var compilationVerifier = CompileAndVerify(compilation1);
-            var reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
+            CompilationVerifier compilationVerifier = CompileAndVerify(compilation1);
+            PortableExecutableReference reference1 = MetadataReference.CreateFromImage(compilationVerifier.EmittedAssemblyData);
             var source2 =
 @"class C
 {
@@ -7414,7 +7414,7 @@ public class B : A
         b.P = o;
     }
 }";
-            var compilation2 = CreateCompilation(source2, references: new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilation(source2, references: new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (6,9): error CS0200: Property or indexer 'B.P' cannot be assigned to -- it is read only
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "b.P").WithArguments("B.P").WithLocation(6, 9));
@@ -7492,7 +7492,7 @@ class A
         x + y; x == 1;
     }
 }";
-            var comp = CreateCompilation(new[] { Parse(test, options: TestOptions.Regular6) }, new MetadataReference[] { });
+            CSharpCompilation comp = CreateCompilation(new[] { Parse(test, options: TestOptions.Regular6) }, new MetadataReference[] { });
             comp.VerifyDiagnostics(
     // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
     //         (a) => a;
@@ -8088,7 +8088,7 @@ public class MyClass
    }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (22,15): error CS0217: In order to be applicable as a short circuit operator a user-defined logical operator ('MyClass.operator &(MyClass, MyClass)') must have the same return type and parameter types
                 //       int i = f && f; // CS0217
@@ -8356,7 +8356,7 @@ public class MyClass
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (12,13): error CS0236: A field initializer cannot reference the non-static field, method, or property 'MyClass.b'
                 //     int c = b; //CS0236
@@ -11030,7 +11030,7 @@ class C
         [Fact()]
         public void CS0571ERR_CantCallSpecialMethod04()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"public class MyClass
 {
     public static MyClass operator ++(MyClass c)
@@ -11145,7 +11145,7 @@ public class Test
     public System.RuntimeArgumentHandle[][] y;
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (4,12): error CS0611: Array elements cannot be of type 'System.TypedReference'
                 //     public System.TypedReference[] x;
@@ -11170,7 +11170,7 @@ class C
         var z = new[] { new RuntimeArgumentHandle() };
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (6,17): error CS0611: Array elements cannot be of type 'System.ArgIterator'
                 //         var x = new[] { new ArgIterator() };
@@ -11246,7 +11246,7 @@ class X
         [Fact]
         public void CS0631ERR_IllegalRefParam()
         {
-            var compilation = CreateCompilation(
+            CSharpCompilation compilation = CreateCompilation(
 @"interface I
 {
     object this[ref object index] { get; set; }
@@ -11284,7 +11284,7 @@ class Example
         float f1 = 2.0;
     }
 }";
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics(
                 // (7,22): error CS0664: Literal of type double cannot be implicitly converted to type 'decimal'; use an 'M' suffix to create a literal of this type
                 //         decimal d1 = 1.0;
@@ -11866,7 +11866,7 @@ class A
             // meant it to be a constant or a variable, and then we can tell them if its a
             // bad constant.
 
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (6,15): error CS0822: Implicitly-typed variables cannot be constant
                 //         const var x = 0; // CS0822.cs
@@ -12425,7 +12425,7 @@ namespace TestNamespace
         [Fact]
         public void CS0841ERR_VariableUsedBeforeDeclaration04()
         {
-            var systemRef = TestReferences.NetFx.v4_0_30319.System;
+            PortableExecutableReference systemRef = TestReferences.NetFx.v4_0_30319.System;
             CreateCompilationWithMscorlib40AndSystemCore(
 @"using System.Collections.Generic;
 class Base
@@ -12518,7 +12518,7 @@ public class MyClass
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (7,9): error CS0844: Cannot use local variable 'num' before it is declared. The declaration of the local variable hides the field 'MyClass.num'.
                 //         num = 5;   // CS0844
@@ -12730,7 +12730,7 @@ Public Interface I
     Property P(index As Object) As Integer
     Property Q(Optional index As Object = Nothing) As Integer
 End Interface";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            MetadataReference reference1 = BasicCompilationUtils.CompileToMetadata(source1);
             var source2 =
 @"using System;
 using System.Linq.Expressions;
@@ -12748,7 +12748,7 @@ class C
         e2 = () => i.set_P(5, 6); // no error
     }
 }";
-            var compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilationWithMscorlib40AndSystemCore(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (8,20): error CS0855: An expression tree may not contain an indexed property
                 Diagnostic(ErrorCode.ERR_ExpressionTreeContainsIndexedProperty, "i.P[1]").WithLocation(8, 20),
@@ -12782,7 +12782,7 @@ Public Interface I
     Property R(x As Integer, y As Integer, Optional z As Integer = 3) As Object
     Property S(ParamArray args As Integer()) As Object
 End Interface";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            MetadataReference reference1 = BasicCompilationUtils.CompileToMetadata(source1);
             var source2 =
 @"class C
 {
@@ -12797,15 +12797,15 @@ End Interface";
         i.S = o; // CS0856 (Dev11)
     }
 }";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (8,9): error CS0856: Indexed property 'I.R' has non-optional arguments which must be provided
                 Diagnostic(ErrorCode.ERR_IndexedPropertyRequiresParams, "i.R").WithArguments("I.R").WithLocation(8, 9),
                 // (9,9): error CS7036: There is no argument given that corresponds to the required formal parameter 'y' of 'I.R[int, int, int]'
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "i.R[1]").WithArguments("y", "I.R[int, int, int]").WithLocation(9, 9));
 
-            var tree = compilation2.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().First();
+            SyntaxTree tree = compilation2.SyntaxTrees.Single();
+            ElementAccessExpressionSyntax node = tree.GetRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().First();
 
             Assert.Equal("i.R[1]", node.ToString());
 
@@ -12840,7 +12840,7 @@ Public Class A
         End Get
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1);
+            MetadataReference reference1 = BasicCompilationUtils.CompileToMetadata(source1);
             var source2 =
 @"class C
 {
@@ -12849,7 +12849,7 @@ End Class";
         return a.P;
     }
 }";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (5,16): error CS0856: Indexed property 'A.P' has non-optional arguments which must be provided
                 Diagnostic(ErrorCode.ERR_IndexedPropertyRequiresParams, "a.P").WithArguments("A.P").WithLocation(5, 16));
@@ -12919,7 +12919,7 @@ Public Class A
         End Set
     End Property
 End Class";
-            var reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
+            MetadataReference reference1 = BasicCompilationUtils.CompileToMetadata(source1, verify: Verification.Passes);
             var source2 =
 @"class B
 {
@@ -12932,7 +12932,7 @@ End Class";
         a = new IA() { S = null }; // CS0857 (Dev11)
     }
 }";
-            var compilation2 = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation2 = CreateCompilation(source2, new[] { reference1 });
             compilation2.VerifyDiagnostics(
                 // (8,24): error CS0857: Indexed property 'IA.R' must have all arguments optional
                 Diagnostic(ErrorCode.ERR_IndexedPropertyMustHaveAllOptionalParams, "R").WithArguments("IA.R").WithLocation(8, 24));
@@ -14574,7 +14574,7 @@ class C : IEnumerable
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (12,13): error CS1621: The yield statement cannot be used inside an anonymous method or lambda expression
                 //             yield return this; // CS1621
@@ -14600,7 +14600,7 @@ class C : IEnumerable
    }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (8,7): error CS1622: Cannot return a value from an iterator. Use the yield return statement to return a value, or yield break to end the iteration.
                 //       return (IEnumerator) this;  // CS1622
@@ -14636,7 +14636,7 @@ class C : IEnumerable
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (11,46): error CS1623: Iterators cannot have ref or out parameters
                 //     public IEnumerator GetEnumerator(ref int i)  // CS1623
@@ -14692,7 +14692,7 @@ public class CMain
 }
 
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (13,9): error CS1625: Cannot yield in the body of a finally clause
                 //         yield return this;  // CS1625
@@ -14727,7 +14727,7 @@ public class CMain
 }
 
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (10,10): error CS1626: Cannot yield a value in the body of a try block with a catch clause
                 //          yield return this;  // CS1626
@@ -14822,7 +14822,7 @@ public class C : IEnumerable
    }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (14,9): error CS1631: Cannot yield a value in the body of a catch clause
                 //         yield return this;  // CS1631
@@ -14851,7 +14851,7 @@ class MyClass
    }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (10,13): error CS1632: Control cannot leave the body of an anonymous method or lambda expression
 //             break;   // CS1632
@@ -14877,7 +14877,7 @@ public class Test
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
 // (5,17): error CS1636: __arglist is not allowed in the parameter list of iterators
 //     IEnumerable Goo(__arglist)
@@ -15610,7 +15610,7 @@ class Errors
    }
 }
 ";
-            var compilation = CreateCompilation(text, references: new[] { SystemCoreRef });
+            CSharpCompilation compilation = CreateCompilation(text, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
                 // (7,13): error CS1661: Cannot convert anonymous method to delegate type 'E' because the parameter types do not match the delegate parameter types
                 //       E e = delegate(out int i) { };   // CS1676
@@ -15638,7 +15638,7 @@ class Errors
     }
 }
 ";
-            var compilation = CreateCompilation(text, references: new[] { SystemCoreRef });
+            CSharpCompilation compilation = CreateCompilation(text, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
                 // (7,15): error CS1661: Cannot convert anonymous method to delegate type 'D' because the parameter types do not match the delegate parameter types
                 //         D d = delegate(out int i) { };   // CS1677
@@ -15889,7 +15889,7 @@ class Test
    }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (14,24): error CS1728: Cannot bind delegate to 'int?.GetValueOrDefault()' because it is a member of 'System.Nullable<T>'
                 //         Func<int> x1 = x.GetValueOrDefault;         // 1728
@@ -15932,7 +15932,7 @@ public class Child2 : Parent
     {
     }
 }";
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
 
             DiagnosticDescription[] expected = {
                 // (21,14): error CS7036: There is no argument given that corresponds to the required formal parameter 'i' of 'Parent.Parent(int, int)'
@@ -16028,7 +16028,7 @@ class C
 }
 ";
             //no errors
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             Assert.False(comp.GetDiagnostics().Any());
         }
 
@@ -16047,7 +16047,7 @@ public class C
     public static void Test(int age, string Name)
     { }
 }";
-            var comp = CreateCompilation(text, parseOptions: TestOptions.Regular6);
+            CSharpCompilation comp = CreateCompilation(text, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
                 // (6,21): error CS1738: Named argument specifications must appear after all fixed arguments have been specified. Please use language version 7.2 or greater to allow non-trailing named arguments.
                 //         Test(age: 5,"");
@@ -16105,7 +16105,7 @@ public class C
     public static void Test(int age , string Name)
     { }
 }";
-            var compilation = CSharpTestBase.CreateCompilation(text);
+            CSharpCompilation compilation = CSharpTestBase.CreateCompilation(text);
             compilation.VerifyDiagnostics(
                 // (6,29): error CS1740: Named argument 'Name' cannot be specified multiple times
                 //             Test(Name: "5", Name: "");
@@ -16283,7 +16283,7 @@ static class S
 {
     internal static void F(this double d) { }
 }";
-            var compilation = CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef });
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(text, references: new[] { SystemCoreRef });
             // Previously ERR_BadExtensionArgTypes.
             compilation.VerifyDiagnostics(
                 // (5,9): error CS1929: 'float' does not contain a definition for 'F' and the best extension method overload 'S.F(double)' requires a receiver of type 'double'
@@ -16306,7 +16306,7 @@ static class S
 {
     internal static void E(this B b) { }
 }";
-            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef });
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, references: new[] { SystemCoreRef });
             compilation.VerifyDiagnostics(
                 // (6,9): error CS1929: 'A' does not contain a definition for 'E' and the best extension method overload 'S.E(B)' requires a receiver of type 'B'
                 //         a.E();
@@ -16553,7 +16553,7 @@ class Program
         var q3 = from int x in xx select x;
     }
 }";
-            var comp = CreateCompilation(program);
+            CSharpCompilation comp = CreateCompilation(program);
             comp.VerifyDiagnostics(
                 // (11,32): error CS1936: Could not find an implementation of the query pattern for source type 'X'.  'Select' not found.
                 //         var q3 = from int x in xx select x;
@@ -16704,7 +16704,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
                 // (12,17): error CS1942: The type of the expression in the select clause is incorrect.  Type inference failed in the call to 'Select'.
                 //                 select i; //CS1942
@@ -17020,7 +17020,7 @@ class Program
         }
     }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (6,25): error CS1959: 'x' is of type 'T'. The type specified in a constant declaration must be sbyte, byte, short, ushort, int, uint, long, ulong, char, float, double, decimal, bool, string, an enum-type, or a reference-type.
                 //             const T x = null; // CS1959
@@ -17713,7 +17713,7 @@ public class D : B
     }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
                 // (12,9): error CS1971: The call to method 'M' needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.
                 //         base.M(d);
@@ -17741,7 +17741,7 @@ public class D : B
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
                 // (14,17): error CS1972: The indexer access needs to be dynamically dispatched, but cannot be because it is part of a base access expression. Consider casting the dynamic arguments or eliminating the base access.
                 //         int s = base[(dynamic)o];
@@ -17767,7 +17767,7 @@ static public class Extension
     public static void Goo(this B b, int x) { }
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
 // (8,9): error CS1973: 'B' has no applicable method named 'Goo' but appears to have an extension method by that name. Extension methods cannot be dynamically dispatched. Consider casting the dynamic arguments or calling the extension method without the extension method syntax.
 //         b.Goo(d);
@@ -17828,7 +17828,7 @@ class Program
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
                 // (6,15): error CS1976: Cannot use a method group as an argument to a dynamically dispatched operation. Did you intend to invoke the method?
                 //         d.Goo(M);
@@ -17847,7 +17847,7 @@ class Program
         d.Goo(delegate () {});
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
                 // (6,15): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
                 //         d.Goo(()=>{});
@@ -17875,7 +17875,7 @@ class C
     {
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, new[] { CSharpRef });
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source, new[] { CSharpRef });
             comp.VerifyDiagnostics(
                 // (9,15): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArgLambda, "delegate { }"));
@@ -17935,7 +17935,7 @@ unsafe  class C : IEnumerable<object>
         return null;
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, new[] { CSharpRef }, options: TestOptions.UnsafeReleaseDll);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source, new[] { CSharpRef }, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (16,18): error CS1977: Cannot use a lambda expression as an argument to a dynamically dispatched operation without first casting it to a delegate or expression tree type.
                 //             { d, delegate() { } },
@@ -17983,7 +17983,7 @@ class Program
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeReleaseDll);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(text, options: TestOptions.UnsafeReleaseDll);
             comp.VerifyDiagnostics(
                 // (6,15): error CS1978: Cannot use an expression of type 'int*' as an argument to a dynamically dispatched operation.
                 Diagnostic(ErrorCode.ERR_BadDynamicMethodArg, "i").WithArguments("int*"),
@@ -18429,7 +18429,7 @@ public class ClassX
    {
    }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (4,8): warning CS0169: The field 'ClassX.i' is never used
                 //    int i;   // CS0169, i is not used anywhere
@@ -18458,7 +18458,7 @@ internal class InternalClass
         public int EffectivelyPrivateAssigned = 0;
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (7,17): warning CS0169: The field 'InternalClass.ActuallyPrivate' is never used
                 //     private int ActuallyPrivate;
@@ -18491,7 +18491,7 @@ internal class InternalClass
         public int EffectivelyPrivateAssigned = 0;
     }
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (3,18): warning CS0649: Field 'InternalClass.ActuallyInternal' is never assigned to, and will always have its default value 0
                 //     internal int ActuallyInternal;
@@ -19191,7 +19191,7 @@ class C
    { }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (4,16): warning CS0414: The field 'C.i' is assigned but its value is never used
                 //    private int i = 1;  // CS0414
@@ -19207,7 +19207,7 @@ class C
 {
     T1 t1_field = default(T1);
 }";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (3,8): warning CS0414: The field 'S<T1, T2>.t1_field' is assigned but its value is never used
                 //     T1 t1_field = default(T1);
@@ -19490,7 +19490,7 @@ public class Test
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 Diagnostic(ErrorCode.WRN_AlwaysNull, "null + x").WithArguments("int?"),
                 Diagnostic(ErrorCode.WRN_AlwaysNull, "x + default(int?)").WithArguments("int?"),
@@ -19697,7 +19697,7 @@ class MyClass
    }
 }
 ";
-            var verifier = CompileAndVerify(source: text, expectedOutput: @"ffffffffffffffffffffffffffffffffffffffffffffffff
+            CompilationVerifier verifier = CompileAndVerify(source: text, expectedOutput: @"ffffffffffffffffffffffffffffffffffffffffffffffff
 ffffffffffffffffffffffffffffffffffffffffffffffff
 ffff");
 
@@ -20241,7 +20241,7 @@ ftftftft";
                 //         W((E?)null != 0);
                 Diagnostic(ErrorCode.WRN_NubExprIsConstBool, "(E?)null != 0").WithArguments("true", "MyClass.E", "MyClass.E?").WithLocation(96, 11)
             };
-            var compatibleExpected = fullExpected.Where(d => !d.Code.Equals((int)ErrorCode.WRN_NubExprIsConstBool2)).ToArray();
+            DiagnosticDescription[] compatibleExpected = fullExpected.Where(d => !d.Code.Equals((int)ErrorCode.WRN_NubExprIsConstBool2)).ToArray();
             this.CompileAndVerify(source: text, expectedOutput: expected).VerifyDiagnostics(compatibleExpected);
             this.CompileAndVerify(source: text, expectedOutput: expected, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithStrictFeature()).VerifyDiagnostics(fullExpected);
         }
@@ -20341,7 +20341,7 @@ class MyClass
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (6,15): warning CS0649: Field 'MyClass.table' is never assigned to, and will always have its default value null
                 //     Hashtable table;  // CS0649
@@ -20611,7 +20611,7 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (12,19): warning CS0675: Bitwise-or operator used on a sign-extended operand; consider casting to a smaller unsigned type first
                 //       object v1 = (((long)i32_hi) << 32) | i32_lo;          // CS0675
@@ -20730,11 +20730,11 @@ namespace TestNamespace
 }
 ";
 
-            var compilation = CreateCompilation(text, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilation(text, options: TestOptions.DebugExe);
 
             var exebits = new System.IO.MemoryStream();
             var pdbbits = new System.IO.MemoryStream();
-            var result = compilation.Emit(exebits, pdbbits);
+            CodeAnalysis.Emit.EmitResult result = compilation.Emit(exebits, pdbbits);
 
             result.Diagnostics.Verify(
                 // (12,20): warning CS0811: The fully qualified name for 'AVeryLong TSystem.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Collections.Generic.List`1[[System.Int32, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089' is too long for debug information. Compile without '/debug' option.
@@ -21050,7 +21050,7 @@ class Test
     }
 }
 ";
-            var c = CreateCompilation(
+            CSharpCompilation c = CreateCompilation(
                 new[] { Parse(text, options: TestOptions.RegularWithDocumentationComments) },
                 options: TestOptions.ReleaseDll.WithXmlReferenceResolver(null));
 
@@ -21120,12 +21120,12 @@ public class Test
         [ClrOnlyFact]
         public void CS1592WRN_XMLParseIncludeError()
         {
-            var xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText("&");
+            TempFile xmlFile = Temp.CreateFile(extension: ".xml").WriteAllText("&");
             var sourceTemplate = @"
 /// <include file='{0}' path='element'/>
 public class Test {{ }}
 ";
-            var comp = CreateCompilationWithMscorlib40AndDocumentationComments(string.Format(sourceTemplate, xmlFile.Path));
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndDocumentationComments(string.Format(sourceTemplate, xmlFile.Path));
 
             using (new EnsureEnglishUICulture())
             {
@@ -21876,7 +21876,7 @@ class Myclass
     static void Bar(string x) {}
 }";
 
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(text);
             comp.VerifyDiagnostics(
 // (9,9): warning CS1974: The dynamically dispatched call to method 'Goo' may fail at runtime because one or more applicable overloads are conditional methods.
 //         Goo(d); 
@@ -22124,7 +22124,7 @@ namespace CSSample
     }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             comp.VerifyDiagnostics(
                 // (28,25): error CS0149: Method name expected
                 //             d1 = new D1(2 + 2);
@@ -23256,7 +23256,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithMscorlib45(text).VerifyDiagnostics(
     // (11,18): error CS0175: Use of keyword 'base' is not valid in this context
     //         var x6 = base?.ToString();
     Diagnostic(ErrorCode.ERR_BaseIllegal, "base").WithLocation(11, 18),
@@ -23279,8 +23279,8 @@ class Program
     //         var x5 = null?.ToString();
     Diagnostic(ErrorCode.ERR_BadUnaryOp, "?").WithArguments("?", "<null>").WithLocation(24, 22)
     );
-            var tree = compilation.SyntaxTrees.Single();
-            var node = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().First();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            ConditionalAccessExpressionSyntax node = tree.GetRoot().DescendantNodes().OfType<ConditionalAccessExpressionSyntax>().First();
 
             Assert.Equal("base?.ToString()", node.ToString());
 
@@ -23548,7 +23548,7 @@ namespace System.Runtime.CompilerServices
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.DebugExe);
             compilation.VerifyDiagnostics(
                 // (34,50): error CS8185: A declaration is not allowed in this context.
                 //         Expression<Func<object>> e12 = () => _ = var (a, _) = GetTuple();
@@ -23741,7 +23741,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
             compilation.GetParseDiagnostics().Verify();
 
             // Make sure the compiler can handle producing method body diagnostics for this pattern when 

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression VisitAssignmentOperator(BoundAssignmentOperator node, bool used)
         {
-            var loweredRight = VisitExpression(node.Right);
+            BoundExpression loweredRight = VisitExpression(node.Right);
 
             BoundExpression left = node.Left;
             BoundExpression loweredLeft;
@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         // dyn.m = expr
                         var memberAccess = (BoundDynamicMemberAccess)left;
-                        var loweredReceiver = VisitExpression(memberAccess.Receiver);
+                        BoundExpression loweredReceiver = VisitExpression(memberAccess.Receiver);
                         return _dynamicFactory.MakeDynamicSetMember(loweredReceiver, memberAccess.Name, loweredRight).ToExpression();
                     }
 
@@ -56,8 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // dyn[args] = expr
                         var indexerAccess = (BoundDynamicIndexerAccess)left;
                         Debug.Assert(indexerAccess.ReceiverOpt != null);
-                        var loweredReceiver = VisitExpression(indexerAccess.ReceiverOpt);
-                        var loweredArguments = VisitList(indexerAccess.Arguments);
+                        BoundExpression loweredReceiver = VisitExpression(indexerAccess.ReceiverOpt);
+                        ImmutableArray<BoundExpression> loweredArguments = VisitList(indexerAccess.Arguments);
                         return MakeDynamicSetIndex(
                             indexerAccess,
                             loweredReceiver,
@@ -263,14 +263,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool used)
         {
             // Rewrite property assignment into call to setter.
-            var setMethod = property.GetOwnOrInheritedSetMethod();
+            MethodSymbol setMethod = property.GetOwnOrInheritedSetMethod();
 
             if ((object)setMethod == null)
             {
                 Debug.Assert((property as SourcePropertySymbol)?.IsAutoProperty == true,
                     "only autoproperties can be assignable without having setters");
 
-                var backingField = (property as SourcePropertySymbol).BackingField;
+                SynthesizedBackingFieldSymbol backingField = (property as SourcePropertySymbol).BackingField;
                 return _factory.AssignmentExpression(
                     _factory.Field(rewrittenReceiver, backingField),
                     rewrittenRight);

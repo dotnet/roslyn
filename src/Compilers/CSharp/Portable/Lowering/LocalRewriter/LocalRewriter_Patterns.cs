@@ -12,15 +12,15 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitIsPatternExpression(BoundIsPatternExpression node)
         {
-            var loweredExpression = VisitExpression(node.Expression);
-            var loweredPattern = LowerPattern(node.Pattern);
+            BoundExpression loweredExpression = VisitExpression(node.Expression);
+            BoundPattern loweredPattern = LowerPattern(node.Pattern);
             return MakeIsPattern(loweredPattern, loweredExpression);
         }
 
         // Input must be used no more than once in the result. If it is needed repeatedly store its value in a temp and use the temp.
         BoundExpression MakeIsPattern(BoundPattern loweredPattern, BoundExpression loweredInput)
         {
-            var syntax = _factory.Syntax = loweredPattern.Syntax;
+            SyntaxNode syntax = _factory.Syntax = loweredPattern.Syntax;
             switch (loweredPattern.Kind)
             {
                 case BoundKind.DeclarationPattern:
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (loweredPattern.IsVar)
             {
-                var result = _factory.Literal(true);
+                BoundLiteral result = _factory.Literal(true);
 
                 if (loweredPattern.VariableAccess.Kind == BoundKind.DiscardExpression)
                 {
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 Debug.Assert((object)loweredPattern.Variable != null && loweredInput.Type.Equals(loweredPattern.Variable.GetTypeOrReturnType(), TypeCompareKind.AllIgnoreOptions));
 
-                var assignment = _factory.AssignmentExpression(loweredPattern.VariableAccess, loweredInput);
+                BoundAssignmentOperator assignment = _factory.AssignmentExpression(loweredPattern.VariableAccess, loweredInput);
                 return _factory.MakeSequence(assignment, result);
             }
 
@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case BoundKind.Literal:
                         {
-                            var value = ((BoundLiteral)test).ConstantValue;
+                            ConstantValue value = ((BoundLiteral)test).ConstantValue;
                             return value.IsBoolean && value.BooleanValue;
                         }
                     case BoundKind.Sequence:
@@ -126,12 +126,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression CompareWithConstant(BoundExpression input, BoundExpression boundConstant)
         {
-            var systemObject = _factory.SpecialType(SpecialType.System_Object);
+            NamedTypeSymbol systemObject = _factory.SpecialType(SpecialType.System_Object);
             if (boundConstant.ConstantValue == ConstantValue.Null)
             {
                 if (input.Type.IsNonNullableValueType())
                 {
-                    var systemBoolean = _factory.SpecialType(SpecialType.System_Boolean);
+                    NamedTypeSymbol systemBoolean = _factory.SpecialType(SpecialType.System_Boolean);
                     return RewriteNullableNullEquality(
                         syntax: _factory.Syntax,
                         kind: BinaryOperatorKind.NullableNullEqual,
@@ -163,9 +163,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // use site diagnostics will already have been reported during binding.
             HashSet<DiagnosticInfo> ignoredDiagnostics = null;
-            var sourceType = source.Type.IsDynamic() ? _compilation.GetSpecialType(SpecialType.System_Object) : source.Type;
-            var conversionKind = _compilation.Conversions.ClassifyBuiltInConversion(sourceType, targetType, ref ignoredDiagnostics).Kind;
-            var constantResult = Binder.GetIsOperatorConstantResult(sourceType, targetType, conversionKind, source.ConstantValue, requiredNullTest);
+            TypeSymbol sourceType = source.Type.IsDynamic() ? _compilation.GetSpecialType(SpecialType.System_Object) : source.Type;
+            ConversionKind conversionKind = _compilation.Conversions.ClassifyBuiltInConversion(sourceType, targetType, ref ignoredDiagnostics).Kind;
+            ConstantValue constantResult = Binder.GetIsOperatorConstantResult(sourceType, targetType, conversionKind, source.ConstantValue, requiredNullTest);
             return
                 constantResult == ConstantValue.True ? true :
                 constantResult == ConstantValue.False ? false :
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         BoundExpression MakeIsDeclarationPattern(SyntaxNode syntax, BoundExpression loweredInput, BoundExpression loweredTarget, bool requiresNullTest)
         {
-            var type = loweredTarget.Type;
+            TypeSymbol type = loweredTarget.Type;
             requiresNullTest = requiresNullTest && loweredInput.Type.CanContainNull();
 
             // If the match is impossible, we simply evaluate the input and yield false.
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 requiresNullTest = requiresNullTest && MatchConstantValue(loweredInput, type, true) != true;
                 if (loweredInput.Type.IsNullableType())
                 {
-                    var getValueOrDefault = _factory.SpecialMethod(SpecialMember.System_Nullable_T_GetValueOrDefault).AsMember((NamedTypeSymbol)loweredInput.Type);
+                    MethodSymbol getValueOrDefault = _factory.SpecialMethod(SpecialMember.System_Nullable_T_GetValueOrDefault).AsMember((NamedTypeSymbol)loweredInput.Type);
                     if (requiresNullTest)
                     {
                         //bool Is<T>(T? input, out T output) where T : struct
@@ -201,8 +201,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         //    return input.HasValue;
                         //}
 
-                        var input = _factory.SynthesizedLocal(loweredInput.Type, syntax); // we copy the input to avoid double evaluation
-                        var getHasValue = _factory.SpecialMethod(SpecialMember.System_Nullable_T_get_HasValue).AsMember((NamedTypeSymbol)loweredInput.Type);
+                        LocalSymbol input = _factory.SynthesizedLocal(loweredInput.Type, syntax); // we copy the input to avoid double evaluation
+                        MethodSymbol getHasValue = _factory.SpecialMethod(SpecialMember.System_Nullable_T_get_HasValue).AsMember((NamedTypeSymbol)loweredInput.Type);
                         return _factory.MakeSequence(input,
                             _factory.AssignmentExpression(_factory.Local(input), loweredInput),
                             _factory.AssignmentExpression(loweredTarget, _factory.Convert(type, _factory.Call(_factory.Local(input), getValueOrDefault))),
@@ -211,16 +211,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        var convertedInput = _factory.Convert(type, _factory.Call(loweredInput, getValueOrDefault));
-                        var assignment = _factory.AssignmentExpression(loweredTarget, convertedInput);
+                        BoundExpression convertedInput = _factory.Convert(type, _factory.Call(loweredInput, getValueOrDefault));
+                        BoundAssignmentOperator assignment = _factory.AssignmentExpression(loweredTarget, convertedInput);
                         return _factory.MakeSequence(assignment, _factory.Literal(true));
                     }
                     
                 }
                 else
                 {
-                    var convertedInput = _factory.Convert(type, loweredInput);
-                    var assignment = _factory.AssignmentExpression(loweredTarget, convertedInput);
+                    BoundExpression convertedInput = _factory.Convert(type, loweredInput);
+                    BoundAssignmentOperator assignment = _factory.AssignmentExpression(loweredTarget, convertedInput);
                     return requiresNullTest
                         ? _factory.ObjectNotEqual(assignment, _factory.Null(type))
                         : _factory.MakeSequence(assignment, _factory.Literal(true));
@@ -249,11 +249,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 //     return i is T && (o = (T)i; true);
                 // }
 
-                var i = _factory.SynthesizedLocal(loweredInput.Type, syntax); // we copy the input to avoid double evaluation
+                LocalSymbol i = _factory.SynthesizedLocal(loweredInput.Type, syntax); // we copy the input to avoid double evaluation
 
                 // Because a cast involving a type parameter is not necessarily a valid conversion (or, if it is, it might not
                 // be of a kind appropriate for pattern-matching), we use `object` as an intermediate type for the input expression.
-                var convertedInput = _factory.Convert(type, _factory.Convert(_factory.SpecialType(SpecialType.System_Object), _factory.Local(i)));
+                BoundExpression convertedInput = _factory.Convert(type, _factory.Convert(_factory.SpecialType(SpecialType.System_Object), _factory.Local(i)));
 
                 return _factory.MakeSequence(i,
                     _factory.LogicalAnd(

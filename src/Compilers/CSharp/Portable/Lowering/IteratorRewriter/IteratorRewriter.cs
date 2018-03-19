@@ -145,14 +145,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             PropertySymbol symbol = (PropertySymbol)EnsureSpecialMember(member, bag);
             if ((object)symbol != null)
             {
-                var getter = symbol.GetMethod;
+                MethodSymbol getter = symbol.GetMethod;
                 if ((object)getter == null)
                 {
                     Binder.Error(bag, ErrorCode.ERR_PropertyLacksGet, body.Syntax, symbol);
                     return;
                 }
 
-                var info = getter.GetUseSiteDiagnostic();
+                DiagnosticInfo info = getter.GetUseSiteDiagnostic();
                 if ((object)info != null)
                 {
                     bag.Add(new CSDiagnostic(info, body.Syntax.Location));
@@ -207,22 +207,22 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void GenerateEnumeratorImplementation()
         {
-            var IDisposable_Dispose = F.SpecialMethod(SpecialMember.System_IDisposable__Dispose);
+            MethodSymbol IDisposable_Dispose = F.SpecialMethod(SpecialMember.System_IDisposable__Dispose);
 
-            var IEnumerator_MoveNext = F.SpecialMethod(SpecialMember.System_Collections_IEnumerator__MoveNext);
-            var IEnumerator_Reset = F.SpecialMethod(SpecialMember.System_Collections_IEnumerator__Reset);
-            var IEnumerator_get_Current = F.SpecialProperty(SpecialMember.System_Collections_IEnumerator__Current).GetMethod;
+            MethodSymbol IEnumerator_MoveNext = F.SpecialMethod(SpecialMember.System_Collections_IEnumerator__MoveNext);
+            MethodSymbol IEnumerator_Reset = F.SpecialMethod(SpecialMember.System_Collections_IEnumerator__Reset);
+            MethodSymbol IEnumerator_get_Current = F.SpecialProperty(SpecialMember.System_Collections_IEnumerator__Current).GetMethod;
 
-            var IEnumeratorOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(_elementType);
-            var IEnumeratorOfElementType_get_Current = F.SpecialProperty(SpecialMember.System_Collections_Generic_IEnumerator_T__Current).GetMethod.AsMember(IEnumeratorOfElementType);
+            NamedTypeSymbol IEnumeratorOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerator_T).Construct(_elementType);
+            MethodSymbol IEnumeratorOfElementType_get_Current = F.SpecialProperty(SpecialMember.System_Collections_Generic_IEnumerator_T__Current).GetMethod.AsMember(IEnumeratorOfElementType);
 
             // Add bool IEnumerator.MoveNext() and void IDisposable.Dispose()
             {
-                var disposeMethod = OpenMethodImplementation(
+                SynthesizedImplementationMethod disposeMethod = OpenMethodImplementation(
                     IDisposable_Dispose,
                     hasMethodBodyDependency: true);
 
-                var moveNextMethod = OpenMoveNextMethodImplementation(IEnumerator_MoveNext);
+                SynthesizedImplementationMethod moveNextMethod = OpenMoveNextMethodImplementation(IEnumerator_MoveNext);
 
                 GenerateMoveNextAndDispose(moveNextMethod, disposeMethod);
             }
@@ -248,10 +248,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void GenerateEnumerableImplementation(ref BoundExpression managedThreadId)
         {
-            var IEnumerable_GetEnumerator = F.SpecialMethod(SpecialMember.System_Collections_IEnumerable__GetEnumerator);
+            MethodSymbol IEnumerable_GetEnumerator = F.SpecialMethod(SpecialMember.System_Collections_IEnumerable__GetEnumerator);
 
-            var IEnumerableOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_elementType);
-            var IEnumerableOfElementType_GetEnumerator = F.SpecialMethod(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator).AsMember(IEnumerableOfElementType);
+            NamedTypeSymbol IEnumerableOfElementType = F.SpecialType(SpecialType.System_Collections_Generic_IEnumerable_T).Construct(_elementType);
+            MethodSymbol IEnumerableOfElementType_GetEnumerator = F.SpecialMethod(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator).AsMember(IEnumerableOfElementType);
 
             // generate the code for GetEnumerator()
             // .NET Core has removed the Thread class. We can the managed thread id by making a call to 
@@ -272,15 +272,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // The implementation doesn't depend on the method body of the iterator method.
             // Only on it's parameters and staticness.
-            var getEnumeratorGeneric = OpenMethodImplementation(
+            SynthesizedImplementationMethod getEnumeratorGeneric = OpenMethodImplementation(
                 IEnumerableOfElementType_GetEnumerator,
                 hasMethodBodyDependency: false);
 
             var bodyBuilder = ArrayBuilder<BoundStatement>.GetInstance();
-            var resultVariable = F.SynthesizedLocal(stateMachineType, null);      // iteratorClass result;
+            LocalSymbol resultVariable = F.SynthesizedLocal(stateMachineType, null);      // iteratorClass result;
             BoundStatement makeIterator = F.Assignment(F.Local(resultVariable), F.New(stateMachineType.Constructor, F.Literal(0))); // result = new IteratorClass(0)
 
-            var thisInitialized = F.GenerateLabel("thisInitialized");
+            GeneratedLabelSymbol thisInitialized = F.GenerateLabel("thisInitialized");
 
             if ((object)_initialThreadIdField != null)
             {
@@ -320,8 +320,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bodyBuilder.Add(makeIterator);
 
             // Initialize all the parameter copies
-            var copySrc = initialParameters;
-            var copyDest = nonReusableLocalProxies;
+            System.Collections.Generic.Dictionary<Symbol, CapturedSymbolReplacement> copySrc = initialParameters;
+            System.Collections.Generic.IReadOnlyDictionary<Symbol, CapturedSymbolReplacement> copyDest = nonReusableLocalProxies;
             if (!method.IsStatic)
             {
                 // starting with "this"
@@ -337,7 +337,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             bodyBuilder.Add(F.Label(thisInitialized));
 
-            foreach (var parameter in method.Parameters)
+            foreach (ParameterSymbol parameter in method.Parameters)
             {
                 CapturedSymbolReplacement proxy;
                 if (copyDest.TryGetValue(parameter, out proxy))
@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             F.CloseMethod(F.Block(ImmutableArray.Create(resultVariable), bodyBuilder.ToImmutableAndFree()));
 
             // Generate IEnumerable.GetEnumerator
-            var getEnumerator = OpenMethodImplementation(IEnumerable_GetEnumerator);
+            SynthesizedImplementationMethod getEnumerator = OpenMethodImplementation(IEnumerable_GetEnumerator);
             F.CloseMethod(F.Return(F.Call(F.This(), getEnumeratorGeneric)));
         }
 

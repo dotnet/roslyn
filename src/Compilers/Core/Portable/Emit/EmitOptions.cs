@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 diagnostics.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_InvalidDebugInformationFormat, Location.None, (int)DebugInformationFormat));
             }
 
-            foreach (var instrumentationKind in InstrumentationKinds)
+            foreach (InstrumentationKind instrumentationKind in InstrumentationKinds)
             {
                 if (!instrumentationKind.IsValid())
                 {

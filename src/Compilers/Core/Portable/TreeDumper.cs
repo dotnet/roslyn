@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis
             var children = node.Children.ToList();
             for (int i = 0; i < children.Count; ++i)
             {
-                var child = children[i];
+                TreeDumperNode child = children[i];
                 if (child == null)
                 {
                     continue;
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 var childIndent = indent + relativeIndent;
-                foreach (var child in node.Children)
+                foreach (TreeDumperNode child in node.Children)
                 {
                     if (child == null)
                     {
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis
         // an (awful) test for a null read-only-array.  Is there no better way to do this?
         private static bool IsDefaultImmutableArray(Object o)
         {
-            var ti = o.GetType().GetTypeInfo();
+            System.Reflection.TypeInfo ti = o.GetType().GetTypeInfo();
             return ti.IsGenericType && ti.GetGenericTypeDefinition() == typeof(ImmutableArray<>) &&
                 (bool)ti.GetDeclaredMethod("get_IsDefault").Invoke(o, Array.Empty<object>());
         }
@@ -227,10 +227,10 @@ namespace Microsoft.CodeAnalysis
             stack.Push(new KeyValuePair<TreeDumperNode, TreeDumperNode>(null, this));
             while (stack.Count != 0)
             {
-                var currentEdge = stack.Pop();
+                KeyValuePair<TreeDumperNode, TreeDumperNode> currentEdge = stack.Pop();
                 yield return currentEdge;
-                var currentNode = currentEdge.Value;
-                foreach (var child in currentNode.Children.Where(x => x != null).Reverse())
+                TreeDumperNode currentNode = currentEdge.Value;
+                foreach (TreeDumperNode child in currentNode.Children.Where(x => x != null).Reverse())
                 {
                     stack.Push(new KeyValuePair<TreeDumperNode, TreeDumperNode>(currentNode, child));
                 }

@@ -47,7 +47,7 @@ struct S
 
             Action<ModuleSymbol> validator = module =>
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
                 CheckIndexer(type.Indexers.Single(), true, true, SpecialType.System_String, SpecialType.System_String);
 
                 type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("I");
@@ -116,12 +116,12 @@ class C : IB, IC
         set { }
     }
 }";
-            var compilation = CompileAndVerify(source);
+            CodeAnalysis.Test.Utilities.CompilationVerifier compilation = CompileAndVerify(source);
             compilation.VerifyDiagnostics();
 
             var globalNamespace = (NamespaceSymbol)compilation.Compilation.GlobalNamespace;
 
-            var type = globalNamespace.GetMember<NamedTypeSymbol>("IA");
+            NamedTypeSymbol type = globalNamespace.GetMember<NamedTypeSymbol>("IA");
             CheckIndexer(type.Indexers.Single(), true, true, SpecialType.System_Object, SpecialType.System_String);
 
             type = globalNamespace.GetMember<NamedTypeSymbol>("IB");
@@ -131,16 +131,16 @@ class C : IB, IC
             CheckIndexer(type.Indexers.Single(), true, true, SpecialType.System_Object, SpecialType.System_String);
 
             type = globalNamespace.GetMember<NamedTypeSymbol>("A");
-            var typeAProperties = type.GetMembers().Where(m => m.Kind == SymbolKind.Property).Cast<PropertySymbol>().ToArray();
+            PropertySymbol[] typeAProperties = type.GetMembers().Where(m => m.Kind == SymbolKind.Property).Cast<PropertySymbol>().ToArray();
             Assert.Equal(3, typeAProperties.Length);
             CheckIndexer(typeAProperties[0], true, true, SpecialType.System_Object, SpecialType.System_String);
             CheckIndexer(typeAProperties[1], true, false, SpecialType.System_Object, SpecialType.System_String);
             CheckIndexer(typeAProperties[2], true, true, SpecialType.System_Object, SpecialType.System_String);
 
-            var sourceType = globalNamespace.GetMember<SourceNamedTypeSymbol>("B");
+            SourceNamedTypeSymbol sourceType = globalNamespace.GetMember<SourceNamedTypeSymbol>("B");
             CheckIndexer(sourceType.Indexers.Single(), true, true, SpecialType.System_Object, SpecialType.System_String);
 
-            var bridgeMethods = sourceType.GetSynthesizedExplicitImplementations(CancellationToken.None);
+            ImmutableArray<SynthesizedExplicitImplementationForwardingMethod> bridgeMethods = sourceType.GetSynthesizedExplicitImplementations(CancellationToken.None);
             Assert.Equal(2, bridgeMethods.Length);
             Assert.True(bridgeMethods.Select(GetPairForSynthesizedExplicitImplementation).SetEquals(new[]
             {
@@ -174,7 +174,7 @@ class C : IB, IC
             Assert.Equal(property.Type.SpecialType, expectedType);
             CheckParameters(property.Parameters, expectedParameterTypes);
 
-            var getter = property.GetMethod;
+            MethodSymbol getter = property.GetMethod;
             if (hasGet)
             {
                 Assert.NotNull(getter);
@@ -186,7 +186,7 @@ class C : IB, IC
                 Assert.Null(getter);
             }
 
-            var setter = property.SetMethod;
+            MethodSymbol setter = property.SetMethod;
             if (hasSet)
             {
                 Assert.NotNull(setter);
@@ -207,7 +207,7 @@ class C : IB, IC
             Assert.Equal(parameters.Length, expectedTypes.Length);
             for (int i = 0; i < expectedTypes.Length; i++)
             {
-                var parameter = parameters[i];
+                ParameterSymbol parameter = parameters[i];
                 Assert.Equal(parameter.Ordinal, i);
                 Assert.Equal(parameter.Type.SpecialType, expectedTypes[i]);
             }
@@ -264,7 +264,7 @@ public class C : B
 {
     public override int this[int x] { get { return 0; } }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             // NOTE: we could eliminate WRN_NewOrOverrideExpected by putting a "new" modifier on B.this[]
             compilation.VerifyDiagnostics(
@@ -273,8 +273,8 @@ public class C : B
                 // (20,25): error CS0506: 'C.this[int]': cannot override inherited member 'B.this[int]' because it is not marked virtual, abstract, or override
                 Diagnostic(ErrorCode.ERR_CantOverrideNonVirtual, "this").WithArguments("C.this[int]", "B.this[int]"));
 
-            var classC = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var indexerC = classC.Indexers.Single();
+            NamedTypeSymbol classC = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            PropertySymbol indexerC = classC.Indexers.Single();
 
             Assert.Null(indexerC.OverriddenProperty);
             Assert.Null(indexerC.GetMethod.OverriddenMethod);
@@ -304,17 +304,17 @@ class C : I1, I2
 }
 ";
 
-            var compilation = CreateCompilation(text);
+            CSharpCompilation compilation = CreateCompilation(text);
             compilation.VerifyDiagnostics();
 
-            var interface1 = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
-            var interface1Indexer = interface1.Indexers.Single();
+            NamedTypeSymbol interface1 = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
+            PropertySymbol interface1Indexer = interface1.Indexers.Single();
 
-            var interface2 = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I2");
-            var interface2Indexer = interface2.Indexers.Single();
+            NamedTypeSymbol interface2 = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I2");
+            PropertySymbol interface2Indexer = interface2.Indexers.Single();
 
-            var @class = compilation.GlobalNamespace.GetMember<SourceNamedTypeSymbol>("C");
-            var classIndexer = @class.Indexers.Single();
+            SourceNamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<SourceNamedTypeSymbol>("C");
+            PropertySymbol classIndexer = @class.Indexers.Single();
 
             // All of the indexers have the same Name
             Assert.Equal(WellKnownMemberNames.Indexer, classIndexer.Name);
@@ -330,16 +330,16 @@ class C : I1, I2
             Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interface1Indexer));
             Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interface2Indexer));
 
-            var synthesizedExplicitImplementations = @class.GetSynthesizedExplicitImplementations(default(CancellationToken));
+            ImmutableArray<SynthesizedExplicitImplementationForwardingMethod> synthesizedExplicitImplementations = @class.GetSynthesizedExplicitImplementations(default(CancellationToken));
             Assert.Equal(2, synthesizedExplicitImplementations.Length);
 
             Assert.Equal(classIndexer.GetMethod, synthesizedExplicitImplementations[0].ImplementingMethod);
             Assert.Equal(classIndexer.GetMethod, synthesizedExplicitImplementations[1].ImplementingMethod);
 
-            var interface1Getter = interface1Indexer.GetMethod;
-            var interface2Getter = interface2Indexer.GetMethod;
-            var interface1GetterImpl = synthesizedExplicitImplementations[0].ExplicitInterfaceImplementations.Single();
-            var interface2GetterImpl = synthesizedExplicitImplementations[1].ExplicitInterfaceImplementations.Single();
+            MethodSymbol interface1Getter = interface1Indexer.GetMethod;
+            MethodSymbol interface2Getter = interface2Indexer.GetMethod;
+            MethodSymbol interface1GetterImpl = synthesizedExplicitImplementations[0].ExplicitInterfaceImplementations.Single();
+            MethodSymbol interface2GetterImpl = synthesizedExplicitImplementations[1].ExplicitInterfaceImplementations.Single();
 
             Assert.True(interface1Getter == interface1GetterImpl ^ interface1Getter == interface2GetterImpl);
             Assert.True(interface2Getter == interface1GetterImpl ^ interface2Getter == interface2GetterImpl);
@@ -389,14 +389,14 @@ class C : I1, I2
 
             CompileWithCustomILSource(csharp, il, compilation =>
             {
-                var interface1 = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
-                var interface1Indexer = interface1.Indexers.Single();
+                NamedTypeSymbol interface1 = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
+                PropertySymbol interface1Indexer = interface1.Indexers.Single();
 
-                var interface2 = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I2");
-                var interface2Indexer = interface2.Indexers.Single();
+                NamedTypeSymbol interface2 = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I2");
+                PropertySymbol interface2Indexer = interface2.Indexers.Single();
 
-                var @class = compilation.GlobalNamespace.GetMember<SourceNamedTypeSymbol>("C");
-                var classIndexer = @class.Indexers.Single();
+                SourceNamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<SourceNamedTypeSymbol>("C");
+                PropertySymbol classIndexer = @class.Indexers.Single();
 
                 // All of the indexers have the same Name
                 Assert.Equal(WellKnownMemberNames.Indexer, classIndexer.Name);
@@ -412,16 +412,16 @@ class C : I1, I2
                 Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interface1Indexer));
                 Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interface2Indexer));
 
-                var synthesizedExplicitImplementations = @class.GetSynthesizedExplicitImplementations(default(CancellationToken));
+                ImmutableArray<SynthesizedExplicitImplementationForwardingMethod> synthesizedExplicitImplementations = @class.GetSynthesizedExplicitImplementations(default(CancellationToken));
                 Assert.Equal(2, synthesizedExplicitImplementations.Length);
 
                 Assert.Equal(classIndexer.GetMethod, synthesizedExplicitImplementations[0].ImplementingMethod);
                 Assert.Equal(classIndexer.GetMethod, synthesizedExplicitImplementations[1].ImplementingMethod);
 
-                var interface1Getter = interface1Indexer.GetMethod;
-                var interface2Getter = interface2Indexer.GetMethod;
-                var interface1GetterImpl = synthesizedExplicitImplementations[0].ExplicitInterfaceImplementations.Single();
-                var interface2GetterImpl = synthesizedExplicitImplementations[1].ExplicitInterfaceImplementations.Single();
+                MethodSymbol interface1Getter = interface1Indexer.GetMethod;
+                MethodSymbol interface2Getter = interface2Indexer.GetMethod;
+                MethodSymbol interface1GetterImpl = synthesizedExplicitImplementations[0].ExplicitInterfaceImplementations.Single();
+                MethodSymbol interface2GetterImpl = synthesizedExplicitImplementations[1].ExplicitInterfaceImplementations.Single();
 
                 Assert.True(interface1Getter == interface1GetterImpl ^ interface1Getter == interface2GetterImpl);
                 Assert.True(interface2Getter == interface1GetterImpl ^ interface2Getter == interface2GetterImpl);
@@ -466,20 +466,20 @@ class C : I1
 
             CompileWithCustomILSource(csharp, il, compilation =>
             {
-                var @interface = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
-                var interfaceIndexers = @interface.Indexers;
+                NamedTypeSymbol @interface = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
+                ImmutableArray<PropertySymbol> interfaceIndexers = @interface.Indexers;
 
                 Assert.Equal(2, interfaceIndexers.Length);
                 Assert.Equal(interfaceIndexers[0].ToTestDisplayString(), interfaceIndexers[1].ToTestDisplayString());
 
-                var @class = compilation.GlobalNamespace.GetMember<SourceNamedTypeSymbol>("C");
-                var classIndexer = @class.Indexers.Single();
+                SourceNamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<SourceNamedTypeSymbol>("C");
+                PropertySymbol classIndexer = @class.Indexers.Single();
 
                 // classIndexer implements both
                 Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interfaceIndexers[0]));
                 Assert.Equal(classIndexer, @class.FindImplementationForInterfaceMember(interfaceIndexers[1]));
 
-                var synthesizedExplicitImplementation = @class.GetSynthesizedExplicitImplementations(default(CancellationToken)).Single();
+                SynthesizedExplicitImplementationForwardingMethod synthesizedExplicitImplementation = @class.GetSynthesizedExplicitImplementations(default(CancellationToken)).Single();
 
                 Assert.Equal(classIndexer.GetMethod, synthesizedExplicitImplementation.ImplementingMethod);
 
@@ -526,24 +526,24 @@ class C : I1
 }
 ";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (4,12): warning CS0473: Explicit interface implementation 'C.I1.this[int]' matches more than one interface member. Which interface member is actually chosen is implementation-dependent. Consider using a non-explicit implementation instead.
                 Diagnostic(ErrorCode.WRN_ExplicitImplCollision, "this").WithArguments("C.I1.this[int]"),
                 // (2,7): error CS0535: 'C' does not implement interface member 'I1.this[int]'
                 Diagnostic(ErrorCode.ERR_UnimplementedInterfaceMember, "I1").WithArguments("C", "I1.this[int]"));
 
-            var @interface = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
-            var interfaceIndexers = @interface.Indexers;
+            NamedTypeSymbol @interface = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I1");
+            ImmutableArray<PropertySymbol> interfaceIndexers = @interface.Indexers;
 
             Assert.Equal(2, interfaceIndexers.Length);
             Assert.Equal(interfaceIndexers[0].ToTestDisplayString(), interfaceIndexers[1].ToTestDisplayString());
 
-            var @class = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var classIndexer = @class.GetProperty("I1.this[]");
+            NamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            PropertySymbol classIndexer = @class.GetProperty("I1.this[]");
 
             // One is implemented, the other is not (unspecified which)
-            var indexer0Impl = @class.FindImplementationForInterfaceMember(interfaceIndexers[0]);
-            var indexer1Impl = @class.FindImplementationForInterfaceMember(interfaceIndexers[1]);
+            Symbol indexer0Impl = @class.FindImplementationForInterfaceMember(interfaceIndexers[0]);
+            Symbol indexer1Impl = @class.FindImplementationForInterfaceMember(interfaceIndexers[1]);
             Assert.True(indexer0Impl == classIndexer ^ indexer1Impl == classIndexer);
             Assert.True(indexer0Impl == null ^ indexer1Impl == null);
         }
@@ -587,17 +587,17 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             compilation.VerifyDiagnostics(
                 // (4,16): warning CS0108: 'Derived.this[int]' hides inherited member 'Base.this[int]'. Use the new keyword if hiding was intended.
                 Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("Derived.this[int]", "Base.this[int]"));
 
-            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-            var baseIndexer = baseClass.Indexers.Single();
+            NamedTypeSymbol baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            PropertySymbol baseIndexer = baseClass.Indexers.Single();
 
-            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            var derivedIndexer = derivedClass.Indexers.Single();
+            NamedTypeSymbol derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            PropertySymbol derivedIndexer = derivedClass.Indexers.Single();
 
             // The indexers have the same Name
             Assert.Equal(WellKnownMemberNames.Indexer, derivedIndexer.Name);
@@ -650,11 +650,11 @@ class Derived : Base
 
             CompileWithCustomILSource(csharp, il, compilation =>
             {
-                var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-                var baseIndexer = baseClass.Indexers.Single();
+                NamedTypeSymbol baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+                PropertySymbol baseIndexer = baseClass.Indexers.Single();
 
-                var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-                var derivedIndexer = derivedClass.Indexers.Single();
+                NamedTypeSymbol derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+                PropertySymbol derivedIndexer = derivedClass.Indexers.Single();
 
                 // Rhe indexers have the same Name
                 Assert.Equal(WellKnownMemberNames.Indexer, derivedIndexer.Name);
@@ -711,18 +711,18 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharp, il);
 
             // As in dev10, we report only the first hidden member.
             compilation.VerifyDiagnostics(
                 // (4,16): warning CS0108: 'Derived.this[int]' hides inherited member 'Base.this[int]'. Use the new keyword if hiding was intended.
                 Diagnostic(ErrorCode.WRN_NewRequired, "this").WithArguments("Derived.this[int]", "Base.this[int]"));
 
-            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-            var baseIndexers = baseClass.Indexers;
+            NamedTypeSymbol baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            ImmutableArray<PropertySymbol> baseIndexers = baseClass.Indexers;
 
-            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            var derivedIndexer = derivedClass.Indexers.Single();
+            NamedTypeSymbol derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            PropertySymbol derivedIndexer = derivedClass.Indexers.Single();
 
             // The indexers have the same Name
             Assert.Equal(WellKnownMemberNames.Indexer, derivedIndexer.Name);
@@ -735,7 +735,7 @@ class Derived : Base
             Assert.NotEqual(baseIndexers[1].MetadataName, derivedIndexer.MetadataName);
 
             // classIndexer implements both
-            var hiddenMembers = derivedIndexer.OverriddenOrHiddenMembers.HiddenMembers;
+            ImmutableArray<Symbol> hiddenMembers = derivedIndexer.OverriddenOrHiddenMembers.HiddenMembers;
             Assert.Equal(2, hiddenMembers.Length);
             Assert.Contains(baseIndexers[0], hiddenMembers);
             Assert.Contains(baseIndexers[1], hiddenMembers);
@@ -785,15 +785,15 @@ class Derived : Base
 }
 ";
 
-            var compilation = CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
+            CSharpCompilation compilation = CreateCompilationWithILAndMscorlib40(csharp, il).VerifyDiagnostics(
                 // (4,25): error CS0462: The inherited members 'Base.this[int]' and 'Base.this[int]' have the same signature in type 'Derived', so they cannot be overridden
                 Diagnostic(ErrorCode.ERR_AmbigOverride, "this").WithArguments("Base.this[int]", "Base.this[int]", "Derived"));
 
-            var baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-            var baseIndexers = baseClass.Indexers;
+            NamedTypeSymbol baseClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            ImmutableArray<PropertySymbol> baseIndexers = baseClass.Indexers;
 
-            var derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
-            var derivedIndexer = derivedClass.Indexers.Single();
+            NamedTypeSymbol derivedClass = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            PropertySymbol derivedIndexer = derivedClass.Indexers.Single();
 
             // The indexers have the same Name
             Assert.Equal(WellKnownMemberNames.Indexer, derivedIndexer.Name);
@@ -806,7 +806,7 @@ class Derived : Base
             Assert.NotEqual(baseIndexers[1].MetadataName, derivedIndexer.MetadataName);
 
             // classIndexer implements both
-            var overriddenMembers = derivedIndexer.OverriddenOrHiddenMembers.OverriddenMembers;
+            ImmutableArray<Symbol> overriddenMembers = derivedIndexer.OverriddenOrHiddenMembers.OverriddenMembers;
             Assert.Equal(2, overriddenMembers.Length);
             Assert.Contains(baseIndexers[0], overriddenMembers);
             Assert.Contains(baseIndexers[1], overriddenMembers);
@@ -1124,21 +1124,21 @@ class C : I
 
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
-                var globalNamespace = module.GlobalNamespace;
-                var compilation = module.DeclaringCompilation;
+                NamespaceSymbol globalNamespace = module.GlobalNamespace;
+                CSharpCompilation compilation = module.DeclaringCompilation;
                 Assert.Equal(isFromSource, compilation != null);
 
                 //// Source interface
 
-                var @interface = globalNamespace.GetMember<NamedTypeSymbol>("I");
+                NamedTypeSymbol @interface = globalNamespace.GetMember<NamedTypeSymbol>("I");
                 if (isFromSource)
                 {
                     Assert.True(@interface.IsFromCompilation(compilation));
                 }
 
-                var interfaceEvent = @interface.GetMember<EventSymbol>("E");
-                var interfaceProperty = @interface.GetMember<PropertySymbol>("P");
-                var interfaceIndexer = @interface.Indexers.Single();
+                EventSymbol interfaceEvent = @interface.GetMember<EventSymbol>("E");
+                PropertySymbol interfaceProperty = @interface.GetMember<PropertySymbol>("P");
+                PropertySymbol interfaceIndexer = @interface.Indexers.Single();
 
                 Assert.True(interfaceEvent.CanBeReferencedByName);
                 Assert.True(interfaceProperty.CanBeReferencedByName);
@@ -1146,23 +1146,23 @@ class C : I
 
                 //// Source class
 
-                var @class = globalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol @class = globalNamespace.GetMember<NamedTypeSymbol>("C");
                 if (isFromSource)
                 {
                     Assert.True(@class.IsFromCompilation(compilation));
                 }
 
-                var classEventImpl = @class.GetMembers().Where(m => m.GetExplicitInterfaceImplementations().Contains(interfaceEvent)).Single();
-                var classPropertyImpl = @class.GetMembers().Where(m => m.GetExplicitInterfaceImplementations().Contains(interfaceProperty)).Single();
-                var classIndexerImpl = @class.GetMembers().Where(m => m.GetExplicitInterfaceImplementations().Contains(interfaceIndexer)).Single();
+                Symbol classEventImpl = @class.GetMembers().Where(m => m.GetExplicitInterfaceImplementations().Contains(interfaceEvent)).Single();
+                Symbol classPropertyImpl = @class.GetMembers().Where(m => m.GetExplicitInterfaceImplementations().Contains(interfaceProperty)).Single();
+                Symbol classIndexerImpl = @class.GetMembers().Where(m => m.GetExplicitInterfaceImplementations().Contains(interfaceIndexer)).Single();
 
                 Assert.False(classEventImpl.CanBeReferencedByName);
                 Assert.False(classPropertyImpl.CanBeReferencedByName);
                 Assert.False(classIndexerImpl.CanBeReferencedByName);
 
-                var classEvent = @class.GetMember<EventSymbol>("E");
-                var classProperty = @class.GetMember<PropertySymbol>("P");
-                var classIndexer = @class.Indexers.Single();
+                EventSymbol classEvent = @class.GetMember<EventSymbol>("E");
+                PropertySymbol classProperty = @class.GetMember<PropertySymbol>("P");
+                PropertySymbol classIndexer = @class.Indexers.Single();
 
                 Assert.True(classEvent.CanBeReferencedByName);
                 Assert.True(classProperty.CanBeReferencedByName);
@@ -1209,24 +1209,24 @@ public class C : I
 
             Action<ModuleSymbol> sourceValidator = module =>
             {
-                var globalNamespace = module.GlobalNamespace;
+                NamespaceSymbol globalNamespace = module.GlobalNamespace;
 
-                var classC = globalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol classC = globalNamespace.GetMember<NamedTypeSymbol>("C");
                 Assert.Equal(0, classC.Indexers.Length); //excludes explicit implementations
 
-                var classCIndexer = classC.GetMembers().Where(s => s.Kind == SymbolKind.Property).Single();
+                Symbol classCIndexer = classC.GetMembers().Where(s => s.Kind == SymbolKind.Property).Single();
                 Assert.Equal("I.this[]", classCIndexer.Name); //interface name + WellKnownMemberNames.Indexer
                 Assert.True(classCIndexer.IsIndexer()); //since declared with IndexerDeclarationSyntax
             };
 
             Action<ModuleSymbol> metadataValidator = module =>
             {
-                var globalNamespace = module.GlobalNamespace;
+                NamespaceSymbol globalNamespace = module.GlobalNamespace;
 
-                var classC = globalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol classC = globalNamespace.GetMember<NamedTypeSymbol>("C");
                 Assert.Equal(0, classC.Indexers.Length); //excludes explicit implementations
 
-                var classCIndexer = classC.GetMembers().Where(s => s.Kind == SymbolKind.Property).Single();
+                Symbol classCIndexer = classC.GetMembers().Where(s => s.Kind == SymbolKind.Property).Single();
                 Assert.Equal("I.Item", classCIndexer.Name); //name does not reflect WellKnownMemberNames.Indexer
                 Assert.False(classCIndexer.IsIndexer()); //not the default member of C
             };
@@ -1267,18 +1267,18 @@ public class Derived : Base
         int x = base[1];
     }
 }";
-            var tree = Parse(source);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(source);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
-            var indexerAccessSyntax = GetElementAccessExpressions(tree.GetCompilationUnitRoot()).Single();
+            ElementAccessExpressionSyntax indexerAccessSyntax = GetElementAccessExpressions(tree.GetCompilationUnitRoot()).Single();
 
-            var baseClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-            var baseIndexer = baseClass.Indexers.Single();
+            NamedTypeSymbol baseClass = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            PropertySymbol baseIndexer = baseClass.Indexers.Single();
 
             // Confirm that the base indexer is used (even though the derived indexer signature matches).
-            var model = comp.GetSemanticModel(tree);
-            var symbolInfo = model.GetSymbolInfo(indexerAccessSyntax);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            SymbolInfo symbolInfo = model.GetSymbolInfo(indexerAccessSyntax);
             Assert.Equal(baseIndexer, symbolInfo.Symbol);
         }
 
@@ -1302,7 +1302,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilation(source, new[] { TestReferences.SymbolsTests.Indexers });
+            CSharpCompilation compilation = CreateCompilation(source, new[] { TestReferences.SymbolsTests.Indexers });
 
             compilation.VerifyDiagnostics(
                 // (8,13): error CS1545: Property, indexer, or event 'RefIndexer.this[ref int]' is not supported by the language; try directly calling accessor methods 'RefIndexer.get_Item(ref int)' or 'RefIndexer.set_Item(ref int, int)'
@@ -1333,7 +1333,7 @@ class Test
     }
 }
 ";
-            var compilation = CreateCompilation(source, new[] { TestReferences.SymbolsTests.Indexers });
+            CSharpCompilation compilation = CreateCompilation(source, new[] { TestReferences.SymbolsTests.Indexers });
             compilation.VerifyDiagnostics();
         }
 
@@ -1349,7 +1349,7 @@ class Test : RefIndexer
     public override int this[int x] { get { return 0; } set { } }
 }
 ";
-            var compilation = CreateCompilation(source,
+            CSharpCompilation compilation = CreateCompilation(source,
                 new MetadataReference[] { TestReferences.SymbolsTests.Indexers });
             compilation.VerifyDiagnostics(
                 // (4,25): error CS0115: 'Test.this[int]': no suitable method found to override
@@ -1368,7 +1368,7 @@ class Test : IRefIndexer
     public int this[int x] { get { return 0; } set { } }
 }
 ";
-            var compilation = CreateCompilation(source, new[] { TestReferences.SymbolsTests.Indexers });
+            CSharpCompilation compilation = CreateCompilation(source, new[] { TestReferences.SymbolsTests.Indexers });
 
             // Normally, we wouldn't see errors for the accessors, but here we do because the indexer is bogus.
             compilation.VerifyDiagnostics(
@@ -1390,7 +1390,7 @@ class Test : IRefIndexer
     int IRefIndexer.this[int x] { get { return 0; } set { } }
 }
 ";
-            var compilation = CreateCompilation(source,
+            CSharpCompilation compilation = CreateCompilation(source,
                 new MetadataReference[] { TestReferences.SymbolsTests.Indexers });
             // Normally, we wouldn't see errors for the accessors, but here we do because the indexer is bogus.
             compilation.VerifyDiagnostics(
@@ -1414,10 +1414,10 @@ class B
     public virtual int this[int x] { get { return 0; } set { } }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
-            var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B").Indexers.Single();
+            PropertySymbol indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B").Indexers.Single();
             Assert.Equal(WellKnownMemberNames.Indexer, indexer.Name);
             Assert.Equal("A", indexer.MetadataName);
             Assert.Equal("get_A", indexer.GetMethod.Name);
@@ -1439,10 +1439,10 @@ interface I
     int this[int x] { get; set; }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
-            var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I").Indexers.Single();
+            PropertySymbol indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("I").Indexers.Single();
             Assert.Equal("@indexer", indexer.MetadataName);
             Assert.Equal("get_@indexer", indexer.GetMethod.MetadataName);
             Assert.Equal("set_@indexer", indexer.SetMethod.MetadataName);
@@ -1494,9 +1494,9 @@ class D : B
     public int this[int x, int y] { get { return 0; } set { } }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
-            var derivedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("D");
+            NamedTypeSymbol derivedType = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("D");
             Assert.True(derivedType.Indexers.All(i => i.MetadataName == "A"));
         }
 
@@ -1546,16 +1546,16 @@ class C : B
     public int this[int x, int y] { get { return 0; } }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
 
-            var classA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
-            var classB = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
-            var classC = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            NamedTypeSymbol classA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            NamedTypeSymbol classB = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("B");
+            NamedTypeSymbol classC = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
 
-            var get_XA = classA.GetMember<FieldSymbol>("get_X");
-            var get_XB = classB.GetMember<MethodSymbol>("get_X");
-            var get_XC = classC.GetMember<MethodSymbol>("get_X");
+            FieldSymbol get_XA = classA.GetMember<FieldSymbol>("get_X");
+            MethodSymbol get_XB = classB.GetMember<MethodSymbol>("get_X");
+            MethodSymbol get_XC = classC.GetMember<MethodSymbol>("get_X");
 
             Assert.Equal("X", get_XB.AssociatedSymbol.MetadataName);
             Assert.Equal("X", get_XC.AssociatedSymbol.MetadataName);
@@ -1575,12 +1575,12 @@ class A
     public int this[int x] { get { return 0; } }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (9,30): error CS0102: The type 'A' already contains a definition for 'get_X'
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "get").WithArguments("A", "get_X"));
 
-            var classA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
+            NamedTypeSymbol classA = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A");
             Assert.Equal("X", classA.Indexers.Single().MetadataName);
         }
 
@@ -1606,7 +1606,7 @@ class A
 }
 ";
             // NOTE: Dev10 reports CS0571 for MyAttribute's use of get_Item
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (11,18): error CS0571: 'A.this[int].get': cannot explicitly call operator or accessor
                 //     [IndexerName(get_Item)]
@@ -1638,7 +1638,7 @@ class B
 }
 ";
             // NOTE: Dev10 reports CS0117 in A, but CS0571 in B
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,20): error CS0571: 'B.this[int].get': cannot explicitly call operator or accessor
                 //     [IndexerName(B.get_Item)]
@@ -1667,7 +1667,7 @@ class B : A
     public int this[int x] { get { return 0; } }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -2108,9 +2108,9 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            CSharpCompilation compilation = CreateCompilation(source).VerifyDiagnostics();
 
-            var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Program").Indexers.Single();
+            PropertySymbol indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("Program").Indexers.Single();
             Assert.True(indexer.IsIndexer);
             Assert.Equal("A", indexer.MetadataName);
             Assert.True(indexer.GetAttributes().Single().IsTargetAttribute(indexer, AttributeDescription.IndexerNameAttribute));
@@ -2146,9 +2146,9 @@ class B
     public int this[int x] { get { return 0; } }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var loopResult = Parallel.ForEach(compilation.GlobalNamespace.GetTypeMembers(), type =>
+            ParallelLoopResult loopResult = Parallel.ForEach(compilation.GlobalNamespace.GetTypeMembers(), type =>
                 type.ForceComplete(null, default(CancellationToken)));
 
             Assert.True(loopResult.IsCompleted);
@@ -2177,9 +2177,9 @@ class B
     public int this[int x] { get { return 0; } }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
-            var loopResult = Parallel.ForEach(compilation.GlobalNamespace.GetTypeMembers(), type =>
+            ParallelLoopResult loopResult = Parallel.ForEach(compilation.GlobalNamespace.GetTypeMembers(), type =>
                 type.ForceComplete(null, default(CancellationToken)));
 
             Assert.True(loopResult.IsCompleted);
@@ -2212,11 +2212,11 @@ class B
         x = this[new int[1]];
     }
 }";
-            var tree = Parse(source);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(source);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             CheckOverloadResolutionResults(tree, model,
                 "System.Int32 C.this[System.Int32 x] { get; }",
@@ -2253,11 +2253,11 @@ public class Derived : Base
         x = base[1, 2, 3];
     }
 }";
-            var tree = Parse(source);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(source);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             CheckOverloadResolutionResults(tree, model,
                 // NOTE: we'll actually emit calls to the corresponding base indexers
@@ -2295,11 +2295,11 @@ public class Derived : Base
         x = base[1, 2, 3];
     }
 }";
-            var tree = Parse(source);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(source);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             CheckOverloadResolutionResults(tree, model,
                 "System.Int32 Derived.this[System.Int32 x] { get; }",
@@ -2333,11 +2333,11 @@ class Test2
         x = d[d, d, d, d, d]; // Fine
     }
 }";
-            var tree = Parse(source);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(source);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
             CheckOverloadResolutionResults(tree, model,
                 "System.Int32 Base.this[Derived c1, Derived c2, params Derived[] c3] { get; }",
@@ -2384,13 +2384,13 @@ struct Test
     public byte this[byte p] { get { return p; } }
 }
 ";
-            var comp = CreateCompilation(text);
+            CSharpCompilation comp = CreateCompilation(text);
             NamedTypeSymbol type01 = comp.SourceModule.GlobalNamespace.GetTypeMembers("Test").Single();
             var indexer = type01.GetMembers(WellKnownMemberNames.Indexer).Single() as PropertySymbol;
             Assert.NotNull(indexer.GetMethod);
             Assert.False(indexer.GetMethod.Parameters.IsEmpty);
             // VB is SynthesizedParameterSymbol; C# is SourceComplexParameterSymbol
-            foreach (var p in indexer.GetMethod.Parameters)
+            foreach (ParameterSymbol p in indexer.GetMethod.Parameters)
             {
                 Assert.True(p.IsImplicitlyDeclared, "Parameter of Indexer Accessor");
             }
@@ -2513,7 +2513,7 @@ class C
 
         private static void CheckOverloadResolutionResults(SyntaxTree tree, SemanticModel model, params string[] expected)
         {
-            var actual = GetElementAccessExpressions(tree.GetCompilationUnitRoot()).Select(syntax => model.GetSymbolInfo(syntax).Symbol.ToTestDisplayString());
+            IEnumerable<string> actual = GetElementAccessExpressions(tree.GetCompilationUnitRoot()).Select(syntax => model.GetSymbolInfo(syntax).Symbol.ToTestDisplayString());
             AssertEx.Equal(expected, actual, itemInspector: s => string.Format("\"{0}\"", s));
         }
 
@@ -2540,7 +2540,7 @@ partial class C
     public void M() {}
 }
 ";
-            var compilation = CreateCompilation(new string[] { text1, text2 });
+            CSharpCompilation compilation = CreateCompilation(new string[] { text1, text2 });
             Assert.True(((TypeSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single()).GetMembers().Any(x => SymbolExtensions.IsIndexer(x)));
 
             //test with text inputs reversed in case syntax ordering predicate ever changes.
@@ -2591,41 +2591,41 @@ public class Wrapper
     public Derived Derived;
 }
 ";
-            var tree = Parse(source);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(source);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var elementAccessSyntaxes = GetElementAccessExpressions(tree.GetCompilationUnitRoot());
+            IEnumerable<ElementAccessExpressionSyntax> elementAccessSyntaxes = GetElementAccessExpressions(tree.GetCompilationUnitRoot());
 
             // The access itself doesn't have an indexer group.
-            foreach (var syntax in elementAccessSyntaxes)
+            foreach (ElementAccessExpressionSyntax syntax in elementAccessSyntaxes)
             {
                 Assert.Equal(0, model.GetIndexerGroup(syntax).Length);
             }
 
-            var baseType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-            var derivedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+            NamedTypeSymbol baseType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            NamedTypeSymbol derivedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
 
-            var baseIndexers = baseType.Indexers;
-            var derivedIndexers = derivedType.Indexers;
+            ImmutableArray<PropertySymbol> baseIndexers = baseType.Indexers;
+            ImmutableArray<PropertySymbol> derivedIndexers = derivedType.Indexers;
 
-            var baseIndexer3 = baseIndexers.Single(indexer => indexer.ParameterCount == 3);
+            PropertySymbol baseIndexer3 = baseIndexers.Single(indexer => indexer.ParameterCount == 3);
 
-            var baseIndexerGroup = baseIndexers;
-            var derivedIndexerGroup = derivedIndexers.Concat(ImmutableArray.Create<PropertySymbol>(baseIndexer3));
+            ImmutableArray<PropertySymbol> baseIndexerGroup = baseIndexers;
+            ImmutableArray<PropertySymbol> derivedIndexerGroup = derivedIndexers.Concat(ImmutableArray.Create<PropertySymbol>(baseIndexer3));
 
-            var receiverSyntaxes = elementAccessSyntaxes.Select(access => access.Expression);
+            IEnumerable<ExpressionSyntax> receiverSyntaxes = elementAccessSyntaxes.Select(access => access.Expression);
             Assert.Equal(7, receiverSyntaxes.Count());
 
             // The receiver of each access expression has an indexer group.
-            foreach (var syntax in receiverSyntaxes)
+            foreach (ExpressionSyntax syntax in receiverSyntaxes)
             {
-                var type = model.GetTypeInfo(syntax).Type;
+                ITypeSymbol type = model.GetTypeInfo(syntax).Type;
                 Assert.NotNull(type);
 
-                var indexerGroup = model.GetIndexerGroup(syntax);
+                ImmutableArray<IPropertySymbol> indexerGroup = model.GetIndexerGroup(syntax);
 
                 if (type.Equals(baseType))
                 {
@@ -2678,30 +2678,30 @@ class Derived2 : Base
 {
 }
 ";
-            var tree = Parse(source);
-            var comp = CreateCompilation(tree);
+            SyntaxTree tree = Parse(source);
+            CSharpCompilation comp = CreateCompilation(tree);
             comp.VerifyDiagnostics();
 
-            var model = comp.GetSemanticModel(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var elementAccessSyntaxes = GetElementAccessExpressions(tree.GetCompilationUnitRoot());
+            IEnumerable<ElementAccessExpressionSyntax> elementAccessSyntaxes = GetElementAccessExpressions(tree.GetCompilationUnitRoot());
 
             // The access itself doesn't have an indexer group.
-            foreach (var syntax in elementAccessSyntaxes)
+            foreach (ElementAccessExpressionSyntax syntax in elementAccessSyntaxes)
             {
                 Assert.Equal(0, model.GetIndexerGroup(syntax).Length);
             }
 
-            var baseType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
-            var derived1Type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived1");
-            var derived2Type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived2");
+            NamedTypeSymbol baseType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+            NamedTypeSymbol derived1Type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived1");
+            NamedTypeSymbol derived2Type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived2");
 
-            var indexers = baseType.Indexers;
-            var publicIndexer = indexers.Single(indexer => indexer.DeclaredAccessibility == Accessibility.Public);
-            var protectedIndexer = indexers.Single(indexer => indexer.DeclaredAccessibility == Accessibility.Protected);
-            var privateIndexer = indexers.Single(indexer => indexer.DeclaredAccessibility == Accessibility.Private);
+            ImmutableArray<PropertySymbol> indexers = baseType.Indexers;
+            PropertySymbol publicIndexer = indexers.Single(indexer => indexer.DeclaredAccessibility == Accessibility.Public);
+            PropertySymbol protectedIndexer = indexers.Single(indexer => indexer.DeclaredAccessibility == Accessibility.Protected);
+            PropertySymbol privateIndexer = indexers.Single(indexer => indexer.DeclaredAccessibility == Accessibility.Private);
 
-            var receiverSyntaxes = elementAccessSyntaxes.Select(access => access.Expression).ToArray();
+            ExpressionSyntax[] receiverSyntaxes = elementAccessSyntaxes.Select(access => access.Expression).ToArray();
             Assert.Equal(3, receiverSyntaxes.Length);
 
             // In declaring type, can see everything.
@@ -2746,7 +2746,7 @@ class Derived2 : Base
     .set instance void A::set_P(int32, int32, int32)
   }
 }";
-            var reference1 = CompileIL(source1);
+            MetadataReference reference1 = CompileIL(source1);
             var source2 =
 @"using System;
 class B : A
@@ -2776,7 +2776,7 @@ class C
         a[1] += 1; // Dev11 uses get_P default for both
     }
 }";
-            var compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
+            CodeAnalysis.Test.Utilities.CompilationVerifier compilation2 = CompileAndVerify(source2, references: new[] { reference1 }, expectedOutput:
 @"get_P: 3
 set_P: 3
 get_P: 3
@@ -2815,19 +2815,19 @@ class Test
 ";
             #endregion
 
-            var comp1 = CreateEmptyCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
-            var comp2 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp1) });
+            CSharpCompilation comp1 = CreateEmptyCompilation(src1, new[] { TestReferences.NetFx.v4_0_21006.mscorlib });
+            CSharpCompilation comp2 = CreateCompilation(src2, new[] { new CSharpCompilationReference(comp1) });
 
-            var typeSymbol = comp1.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("IGoo");
-            var idxSymbol = typeSymbol.GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
+            NamedTypeSymbol typeSymbol = comp1.SourceModule.GlobalNamespace.GetMember<NamedTypeSymbol>("IGoo");
+            PropertySymbol idxSymbol = typeSymbol.GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
             Assert.NotNull(idxSymbol);
             Assert.Equal("this[]", idxSymbol.Name);
             Assert.Equal("Item", idxSymbol.MetadataName);
 
-            var tree = comp2.SyntaxTrees[0];
-            var model = comp2.GetSemanticModel(tree);
+            SyntaxTree tree = comp2.SyntaxTrees[0];
+            SemanticModel model = comp2.GetSemanticModel(tree);
             ExpressionSyntax expr = tree.GetCompilationUnitRoot().DescendantNodes().OfType<ElementAccessExpressionSyntax>().FirstOrDefault();
-            var idxSymbol2 = model.GetSymbolInfo(expr);
+            SymbolInfo idxSymbol2 = model.GetSymbolInfo(expr);
             Assert.NotNull(idxSymbol2.Symbol);
             Assert.Equal(WellKnownMemberNames.Indexer, idxSymbol2.Symbol.Name);
             Assert.Equal("Item", idxSymbol2.Symbol.MetadataName);
@@ -2842,17 +2842,17 @@ class C<T>
     int this[int x] { get { return 0; } }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var unsubstitutedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-            var unsubstitutedIndexer = unsubstitutedType.GetMember<SourcePropertySymbol>(WellKnownMemberNames.Indexer);
+            NamedTypeSymbol unsubstitutedType = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+            SourcePropertySymbol unsubstitutedIndexer = unsubstitutedType.GetMember<SourcePropertySymbol>(WellKnownMemberNames.Indexer);
 
             Assert.Equal(WellKnownMemberNames.Indexer, unsubstitutedIndexer.Name);
             Assert.Equal("Item", unsubstitutedIndexer.MetadataName);
 
-            var substitutedType = unsubstitutedType.Construct(comp.GetSpecialType(SpecialType.System_Int32));
-            var substitutedIndexer = substitutedType.GetMember<SubstitutedPropertySymbol>(WellKnownMemberNames.Indexer);
+            NamedTypeSymbol substitutedType = unsubstitutedType.Construct(comp.GetSpecialType(SpecialType.System_Int32));
+            SubstitutedPropertySymbol substitutedIndexer = substitutedType.GetMember<SubstitutedPropertySymbol>(WellKnownMemberNames.Indexer);
 
             Assert.Equal(WellKnownMemberNames.Indexer, substitutedIndexer.Name);
             Assert.Equal("Item", substitutedIndexer.MetadataName);

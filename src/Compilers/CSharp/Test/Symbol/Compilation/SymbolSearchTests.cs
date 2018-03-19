@@ -15,13 +15,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             Assert.Throws<ArgumentException>(() =>
             {
-                var compilation = GetTestCompilation();
+                CSharpCompilation compilation = GetTestCompilation();
                 compilation.ContainsSymbolsWithName(n => true, SymbolFilter.None);
             });
 
             Assert.Throws<ArgumentException>(() =>
             {
-                var compilation = GetTestCompilation();
+                CSharpCompilation compilation = GetTestCompilation();
                 compilation.GetSymbolsWithName(n => true, SymbolFilter.None);
             });
         }
@@ -31,13 +31,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             Assert.Throws<ArgumentNullException>(() =>
             {
-                var compilation = GetTestCompilation();
+                CSharpCompilation compilation = GetTestCompilation();
                 compilation.ContainsSymbolsWithName(null);
             });
 
             Assert.Throws<ArgumentNullException>(() =>
             {
-                var compilation = GetTestCompilation();
+                CSharpCompilation compilation = GetTestCompilation();
                 compilation.GetSymbolsWithName(null);
             });
         }
@@ -45,7 +45,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestMergedNamespace()
         {
-            var compilation = GetTestCompilation();
+            CSharpCompilation compilation = GetTestCompilation();
 
             Test(compilation, n => n == "System", includeNamespace: true, includeType: false, includeMember: false, count: 1);
             Test(compilation, n => n == "System", includeNamespace: true, includeType: true, includeMember: false, count: 1);
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestSourceNamespace()
         {
-            var compilation = GetTestCompilation();
+            CSharpCompilation compilation = GetTestCompilation();
 
             Test(compilation, n => n == "MyNamespace", includeNamespace: true, includeType: false, includeMember: false, count: 1);
             Test(compilation, n => n == "MyNamespace", includeNamespace: true, includeType: true, includeMember: false, count: 1);
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestClassInMergedNamespace()
         {
-            var compilation = GetTestCompilation();
+            CSharpCompilation compilation = GetTestCompilation();
 
             Test(compilation, n => n == "Test", includeNamespace: false, includeType: true, includeMember: false, count: 1);
             Test(compilation, n => n == "Test", includeNamespace: false, includeType: true, includeMember: true, count: 1);
@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestClassInSourceNamespace()
         {
-            var compilation = GetTestCompilation();
+            CSharpCompilation compilation = GetTestCompilation();
 
             Test(compilation, n => n == "Test1", includeNamespace: false, includeType: true, includeMember: false, count: 1);
             Test(compilation, n => n == "Test1", includeNamespace: false, includeType: true, includeMember: true, count: 1);
@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestMembers()
         {
-            var compilation = GetTestCompilation();
+            CSharpCompilation compilation = GetTestCompilation();
 
             Test(compilation, n => n == "myField", includeNamespace: false, includeType: false, includeMember: true, count: 1);
             Test(compilation, n => n == "myField", includeNamespace: false, includeType: true, includeMember: true, count: 1);
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void TestPartialSearch()
         {
-            var compilation = GetTestCompilation();
+            CSharpCompilation compilation = GetTestCompilation();
 
             Test(compilation, n => n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace: false, includeType: false, includeMember: true, count: 4);
             Test(compilation, n => n.IndexOf("my", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace: false, includeType: true, includeMember: false, count: 4);
@@ -153,7 +153,7 @@ class Implicit : I
     public void M() { }
 }
 ";
-            var compilation = CreateCompilation(new[] { source });
+            CSharpCompilation compilation = CreateCompilation(new[] { source });
 
             Test(compilation, n => n.IndexOf("M", StringComparison.OrdinalIgnoreCase) >= 0, includeNamespace: false, includeType: false, includeMember: true, count: 3);
         }
@@ -199,7 +199,7 @@ enum Enum
 
         private static void Test(CSharpCompilation compilation, Func<string, bool> predicate, bool includeNamespace, bool includeType, bool includeMember, int count)
         {
-            var filter = SymbolFilter.None;
+            SymbolFilter filter = SymbolFilter.None;
             filter = includeNamespace ? filter | SymbolFilter.Namespace : filter;
             filter = includeType ? filter | SymbolFilter.Type : filter;
             filter = includeMember ? filter | SymbolFilter.Member : filter;

@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Their ordinals are zero.
             // EnC local slot variable matching logic find the right slot based on the type of the local.
 
-            if (!localByType.TryGetValue(type, out var localSymbol))
+            if (!localByType.TryGetValue(type, out LocalSymbol localSymbol))
             {
                 localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.SwitchCasePatternMatching, _switchSyntax);
                 localByType.Add(type, localSymbol);
@@ -61,14 +61,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         protected DecisionTree CreateEmptyDecisionTree(BoundExpression expression)
         {
-            var type = expression.Type;
+            TypeSymbol type = expression.Type;
 
             LocalSymbol localSymbol = null;
             if (expression.ConstantValue == null)
             {
                 // Unless it is a constant, the decision tree acts on a copy of the input expression.
                 // We create a temp to represent that copy. Lowering will assign into this temp.
-                var local = GetBoundPatternMatchingLocal(type);
+                BoundLocal local = GetBoundPatternMatchingLocal(type);
                 expression = local;
                 localSymbol = local.LocalSymbol;
             }
@@ -90,8 +90,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected DecisionTree AddToDecisionTree(DecisionTree decisionTree, SyntaxNode sectionSyntax, BoundPatternSwitchLabel label)
         {
-            var pattern = label.Pattern;
-            var guard = label.Guard;
+            BoundPattern pattern = label.Pattern;
+            BoundExpression guard = label.Guard;
             if (guard?.ConstantValue == ConstantValue.False)
             {
                 return null;
@@ -243,10 +243,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            foreach (var kvp in byType.TypeAndDecision)
+            foreach (KeyValuePair<TypeSymbol, DecisionTree> kvp in byType.TypeAndDecision)
             {
-                var matchedType = kvp.Key;
-                var decision = kvp.Value;
+                TypeSymbol matchedType = kvp.Key;
+                DecisionTree decision = kvp.Value;
 
                 // See if the test is already subsumed
                 switch (ExpressionOfTypeMatchesPatternType(value.Value.Type, matchedType, ref _useSiteDiagnostics))
@@ -274,9 +274,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             // type test.
             for (int i = byType.TypeAndDecision.Count - 1; i >= 0; i--)
             {
-                var kvp = byType.TypeAndDecision[i];
-                var matchedType = kvp.Key;
-                var decision = kvp.Value;
+                KeyValuePair<TypeSymbol, DecisionTree> kvp = byType.TypeAndDecision[i];
+                TypeSymbol matchedType = kvp.Key;
+                DecisionTree decision = kvp.Value;
                 if (matchedType.Equals(value.Value.Type, TypeCompareKind.IgnoreDynamicAndTupleNames))
                 {
                     forType = decision;
@@ -307,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // if we did not piggy-back, then create a new decision tree node for the type.
             if (forType == null)
             {
-                var type = value.Value.Type;
+                TypeSymbol type = value.Value.Type;
                 if (byType.Type.Equals(type, TypeCompareKind.AllIgnoreOptions))
                 {
                     // reuse the input expression when we have an equivalent type to reduce the number of generated temps
@@ -315,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var narrowedExpression = GetBoundPatternMatchingLocal(type);
+                    BoundLocal narrowedExpression = GetBoundPatternMatchingLocal(type);
                     forType = new DecisionTree.ByValue(narrowedExpression, type.TupleUnderlyingTypeOrSelf(), narrowedExpression.LocalSymbol);
                 }
 
@@ -390,7 +390,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 guarded.Default = new DecisionTree.ByType(guarded.Expression, guarded.Type, null);
             }
 
-            var result = AddByType(guarded.Default, type, makeDecision);
+            DecisionTree result = AddByType(guarded.Default, type, makeDecision);
             if (guarded.Default.MatchIsComplete)
             {
                 guarded.MatchIsComplete = true;
@@ -420,7 +420,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             DecisionTree result = null;
             if (byType.TypeAndDecision.Count != 0)
             {
-                var lastTypeAndDecision = byType.TypeAndDecision.Last();
+                KeyValuePair<TypeSymbol, DecisionTree> lastTypeAndDecision = byType.TypeAndDecision.Last();
                 if (lastTypeAndDecision.Key.Equals(type, TypeCompareKind.IgnoreDynamicAndTupleNames))
                 {
                     result = Add(lastTypeAndDecision.Value, makeDecision);
@@ -429,7 +429,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (result == null)
             {
-                var expression = GetBoundPatternMatchingLocal(type);
+                BoundLocal expression = GetBoundPatternMatchingLocal(type);
                 result = makeDecision(expression, type);
                 Debug.Assert(result.Temp == null);
                 result.Temp = expression.LocalSymbol;
@@ -504,11 +504,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool NonNullHandled(DecisionTree.ByType byType)
         {
-            var inputType = byType.Type.StrippedType().TupleUnderlyingTypeOrSelf();
-            foreach (var td in byType.TypeAndDecision)
+            TypeSymbol inputType = byType.Type.StrippedType().TupleUnderlyingTypeOrSelf();
+            foreach (KeyValuePair<TypeSymbol, DecisionTree> td in byType.TypeAndDecision)
             {
-                var type = td.Key;
-                var decision = td.Value;
+                TypeSymbol type = td.Key;
+                DecisionTree decision = td.Value;
                 if (ExpressionOfTypeMatchesPatternType(inputType, type, ref _useSiteDiagnostics) == true &&
                     decision.MatchIsComplete)
                 {
@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 guarded.Default = new DecisionTree.ByType(guarded.Expression, guarded.Type, null);
             }
 
-            var result = AddByNull(guarded.Default, makeDecision);
+            DecisionTree result = AddByNull(guarded.Default, makeDecision);
             if (guarded.Default.MatchIsComplete)
             {
                 guarded.MatchIsComplete = true;
@@ -558,7 +558,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (guarded.Default != null)
             {
                 Debug.Assert(!guarded.Default.MatchIsComplete); // otherwise we would have given a subsumption error
-                var result = Add(guarded.Default, makeDecision);
+                DecisionTree result = Add(guarded.Default, makeDecision);
                 if (guarded.Default.MatchIsComplete)
                 {
                     guarded.MatchIsComplete = true;
@@ -568,7 +568,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                var result = guarded.Default = makeDecision(guarded.Expression, guarded.Type);
+                DecisionTree result = guarded.Default = makeDecision(guarded.Expression, guarded.Type);
                 if (guarded.Default.MatchIsComplete)
                 {
                     guarded.MatchIsComplete = true;

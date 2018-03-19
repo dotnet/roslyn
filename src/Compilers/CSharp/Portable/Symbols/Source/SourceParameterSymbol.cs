@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (addRefReadOnlyModifier && refKind == RefKind.In)
             {
-                var modifierType = context.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, declarationDiagnostics, syntax);
+                NamedTypeSymbol modifierType = context.GetWellKnownType(WellKnownType.System_Runtime_InteropServices_InAttribute, declarationDiagnostics, syntax);
 
                 return new SourceComplexParameterSymbolWithCustomModifiers(
                     owner,

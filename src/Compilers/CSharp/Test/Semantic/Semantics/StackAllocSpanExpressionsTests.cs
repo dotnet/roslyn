@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ConversionFromPointerStackAlloc_UserDefined_Implicit()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 unsafe class Test
 {
@@ -43,48 +43,48 @@ unsafe class Test
                 //         double* obj5 = stackalloc int[10];
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[10]").WithArguments("int", "double*").WithLocation(11, 24));
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var variables = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
+            IEnumerable<VariableDeclaratorSyntax> variables = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
             Assert.Equal(5, variables.Count());
 
-            var obj1 = variables.ElementAt(0);
+            VariableDeclaratorSyntax obj1 = variables.ElementAt(0);
             Assert.Equal("obj1", obj1.Identifier.Text);
 
-            var obj1Value = model.GetSemanticInfoSummary(obj1.Initializer.Value);
+            CompilationUtils.SemanticInfoSummary obj1Value = model.GetSemanticInfoSummary(obj1.Initializer.Value);
             Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj1Value.Type).PointedAtType.SpecialType);
             Assert.Equal("Test", obj1Value.ConvertedType.Name);
             Assert.Equal(ConversionKind.ImplicitUserDefined, obj1Value.ImplicitConversion.Kind);
 
-            var obj2 = variables.ElementAt(1);
+            VariableDeclaratorSyntax obj2 = variables.ElementAt(1);
             Assert.Equal("obj2", obj2.Identifier.Text);
 
-            var obj2Value = model.GetSemanticInfoSummary(obj2.Initializer.Value);
+            CompilationUtils.SemanticInfoSummary obj2Value = model.GetSemanticInfoSummary(obj2.Initializer.Value);
             Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.Type).PointedAtType.SpecialType);
             Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.ConvertedType).PointedAtType.SpecialType);
             Assert.Equal(ConversionKind.Identity, obj2Value.ImplicitConversion.Kind);
 
-            var obj3 = variables.ElementAt(2);
+            VariableDeclaratorSyntax obj3 = variables.ElementAt(2);
             Assert.Equal("obj3", obj3.Identifier.Text);
 
-            var obj3Value = model.GetSemanticInfoSummary(obj3.Initializer.Value);
+            CompilationUtils.SemanticInfoSummary obj3Value = model.GetSemanticInfoSummary(obj3.Initializer.Value);
             Assert.Equal("Span", obj3Value.Type.Name);
             Assert.Equal("Span", obj3Value.ConvertedType.Name);
             Assert.Equal(ConversionKind.Identity, obj3Value.ImplicitConversion.Kind);
 
-            var obj4 = variables.ElementAt(3);
+            VariableDeclaratorSyntax obj4 = variables.ElementAt(3);
             Assert.Equal("obj4", obj4.Identifier.Text);
 
-            var obj4Value = model.GetSemanticInfoSummary(obj4.Initializer.Value);
+            CompilationUtils.SemanticInfoSummary obj4Value = model.GetSemanticInfoSummary(obj4.Initializer.Value);
             Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.Type).PointedAtType.SpecialType);
             Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.ConvertedType).PointedAtType.SpecialType);
             Assert.Equal(ConversionKind.Identity, obj4Value.ImplicitConversion.Kind);
 
-            var obj5 = variables.ElementAt(4);
+            VariableDeclaratorSyntax obj5 = variables.ElementAt(4);
             Assert.Equal("obj5", obj5.Identifier.Text);
 
-            var obj5Value = model.GetSemanticInfoSummary(obj5.Initializer.Value);
+            CompilationUtils.SemanticInfoSummary obj5Value = model.GetSemanticInfoSummary(obj5.Initializer.Value);
             Assert.Null(obj5Value.Type);
             Assert.Equal(SpecialType.System_Double, ((PointerTypeSymbol)obj5Value.ConvertedType).PointedAtType.SpecialType);
             Assert.Equal(ConversionKind.NoConversion, obj5Value.ImplicitConversion.Kind);
@@ -93,7 +93,7 @@ unsafe class Test
         [Fact]
         public void ConversionFromPointerStackAlloc_UserDefined_Explicit()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 unsafe class Test
 {
@@ -117,49 +117,49 @@ unsafe class Test
                 //         double* obj5 = stackalloc int[10];
                 Diagnostic(ErrorCode.ERR_StackAllocConversionNotPossible, "stackalloc int[10]").WithArguments("int", "double*").WithLocation(11, 24));
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var variables = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
+            IEnumerable<VariableDeclaratorSyntax> variables = tree.GetCompilationUnitRoot().DescendantNodes().OfType<VariableDeclaratorSyntax>();
             Assert.Equal(5, variables.Count());
 
-            var obj1 = variables.ElementAt(0);
+            VariableDeclaratorSyntax obj1 = variables.ElementAt(0);
             Assert.Equal("obj1", obj1.Identifier.Text);
             Assert.Equal(SyntaxKind.CastExpression, obj1.Initializer.Value.Kind());
 
-            var obj1Value = model.GetSemanticInfoSummary(((CastExpressionSyntax)obj1.Initializer.Value).Expression);
+            CompilationUtils.SemanticInfoSummary obj1Value = model.GetSemanticInfoSummary(((CastExpressionSyntax)obj1.Initializer.Value).Expression);
             Assert.Equal("Span", obj1Value.Type.Name);
             Assert.Equal("Span", obj1Value.ConvertedType.Name);
             Assert.Equal(ConversionKind.Identity, obj1Value.ImplicitConversion.Kind);
 
-            var obj2 = variables.ElementAt(1);
+            VariableDeclaratorSyntax obj2 = variables.ElementAt(1);
             Assert.Equal("obj2", obj2.Identifier.Text);
 
-            var obj2Value = model.GetSemanticInfoSummary(obj2.Initializer.Value);
+            CompilationUtils.SemanticInfoSummary obj2Value = model.GetSemanticInfoSummary(obj2.Initializer.Value);
             Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.Type).PointedAtType.SpecialType);
             Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj2Value.ConvertedType).PointedAtType.SpecialType);
             Assert.Equal(ConversionKind.Identity, obj2Value.ImplicitConversion.Kind);
 
-            var obj3 = variables.ElementAt(2);
+            VariableDeclaratorSyntax obj3 = variables.ElementAt(2);
             Assert.Equal("obj3", obj3.Identifier.Text);
 
-            var obj3Value = model.GetSemanticInfoSummary(obj3.Initializer.Value);
+            CompilationUtils.SemanticInfoSummary obj3Value = model.GetSemanticInfoSummary(obj3.Initializer.Value);
             Assert.Equal("Span", obj3Value.Type.Name);
             Assert.Equal("Span", obj3Value.ConvertedType.Name);
             Assert.Equal(ConversionKind.Identity, obj3Value.ImplicitConversion.Kind);
 
-            var obj4 = variables.ElementAt(3);
+            VariableDeclaratorSyntax obj4 = variables.ElementAt(3);
             Assert.Equal("obj4", obj4.Identifier.Text);
 
-            var obj4Value = model.GetSemanticInfoSummary(obj4.Initializer.Value);
+            CompilationUtils.SemanticInfoSummary obj4Value = model.GetSemanticInfoSummary(obj4.Initializer.Value);
             Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.Type).PointedAtType.SpecialType);
             Assert.Equal(SpecialType.System_Int32, ((PointerTypeSymbol)obj4Value.ConvertedType).PointedAtType.SpecialType);
             Assert.Equal(ConversionKind.Identity, obj4Value.ImplicitConversion.Kind);
 
-            var obj5 = variables.ElementAt(4);
+            VariableDeclaratorSyntax obj5 = variables.ElementAt(4);
             Assert.Equal("obj5", obj5.Identifier.Text);
 
-            var obj5Value = model.GetSemanticInfoSummary(obj5.Initializer.Value);
+            CompilationUtils.SemanticInfoSummary obj5Value = model.GetSemanticInfoSummary(obj5.Initializer.Value);
             Assert.Null(obj5Value.Type);
             Assert.Equal(SpecialType.System_Double, ((PointerTypeSymbol)obj5Value.ConvertedType).PointedAtType.SpecialType);
             Assert.Equal(ConversionKind.NoConversion, obj5Value.ImplicitConversion.Kind);
@@ -349,7 +349,7 @@ class Test
         [Fact]
         public void NewStackAllocSpanSyntaxProducesErrorsOnEarlierVersions_Statements()
         {
-            var parseOptions = new CSharpParseOptions().WithLanguageVersion(LanguageVersion.CSharp7);
+            CSharpParseOptions parseOptions = new CSharpParseOptions().WithLanguageVersion(LanguageVersion.CSharp7);
 
             CreateCompilationWithMscorlibAndSpan(@"
 using System;
@@ -368,7 +368,7 @@ class Test
         [Fact]
         public void NewStackAllocSpanSyntaxProducesErrorsOnEarlierVersions_Expressions()
         {
-            var parseOptions = new CSharpParseOptions().WithLanguageVersion(LanguageVersion.CSharp7);
+            CSharpParseOptions parseOptions = new CSharpParseOptions().WithLanguageVersion(LanguageVersion.CSharp7);
 
             CreateCompilationWithMscorlibAndSpan(@"
 class Test

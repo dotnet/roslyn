@@ -132,7 +132,7 @@ namespace Roslyn.Utilities
         internal T FindItem(char[] chars, int start, int len, int hashCode)
         {
             // capture array to avoid extra range checks
-            var arr = _localTable;
+            LocalEntry[] arr = _localTable;
             var idx = LocalIdxFromHash(hashCode);
 
             var text = arr[idx].Text;
@@ -154,7 +154,7 @@ namespace Roslyn.Utilities
                 arr[idx].HashCode = hashCode;
                 arr[idx].Text = e.Text;
 
-                var tk = e.Item;
+                T tk = e.Item;
                 arr[idx].Item = tk;
 
                 return tk;
@@ -165,7 +165,7 @@ namespace Roslyn.Utilities
 
         private SharedEntryValue FindSharedEntry(char[] chars, int start, int len, int hashCode)
         {
-            var arr = _sharedTableInst;
+            SharedEntry[] arr = _sharedTableInst;
             int idx = SharedIdxFromHash(hashCode);
 
             SharedEntryValue e = null;
@@ -207,7 +207,7 @@ namespace Roslyn.Utilities
             AddSharedEntry(hashCode, e);
 
             // add to the local table too
-            var arr = _localTable;
+            LocalEntry[] arr = _localTable;
             var idx = LocalIdxFromHash(hashCode);
             arr[idx].HashCode = hashCode;
             arr[idx].Text = text;
@@ -216,7 +216,7 @@ namespace Roslyn.Utilities
 
         private void AddSharedEntry(int hashCode, SharedEntryValue e)
         {
-            var arr = _sharedTableInst;
+            SharedEntry[] arr = _sharedTableInst;
             int idx = SharedIdxFromHash(hashCode);
 
             // try finding an empty spot in the bucket
@@ -257,7 +257,7 @@ namespace Roslyn.Utilities
 
         private int NextRandom()
         {
-            var r = _random;
+            Random r = _random;
             if (r != null)
             {
                 return r.Next();

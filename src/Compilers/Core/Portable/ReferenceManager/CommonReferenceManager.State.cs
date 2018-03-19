@@ -472,7 +472,7 @@ namespace Microsoft.CodeAnalysis
 
             if (supersedeLowerVersions)
             {
-                foreach (var assemblyReference in assemblyReferencesBySimpleName)
+                foreach (KeyValuePair<string, List<ReferencedAssemblyIdentity>> assemblyReference in assemblyReferencesBySimpleName)
                 {
                     // the item in the list is the highest version, by construction
                     for (int i = 1; i < assemblyReference.Value.Count; i++)
@@ -501,9 +501,9 @@ namespace Microsoft.CodeAnalysis
             ImmutableDictionary<AssemblyIdentity, AssemblyIdentity>.Builder lazyBuilder = null;
             for (int i = 0; i < originalIdentities.Length; i++)
             {
-                var symbolIdentity = symbols[i].Identity;
-                var versionPattern = symbols[i].AssemblyVersionPattern;
-                var originalIdentity = originalIdentities[i];
+                AssemblyIdentity symbolIdentity = symbols[i].Identity;
+                Version versionPattern = symbols[i].AssemblyVersionPattern;
+                AssemblyIdentity originalIdentity = originalIdentities[i];
 
                 if ((object)versionPattern != null)
                 {
@@ -511,7 +511,7 @@ namespace Microsoft.CodeAnalysis
 
                     lazyBuilder = lazyBuilder ?? ImmutableDictionary.CreateBuilder<AssemblyIdentity, AssemblyIdentity>();
 
-                    var sourceIdentity = symbolIdentity.WithVersion(versionPattern);
+                    AssemblyIdentity sourceIdentity = symbolIdentity.WithVersion(versionPattern);
 
                     if (lazyBuilder.ContainsKey(sourceIdentity))
                     {
@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis
             }
 
             // build and revision parts can differ only if the corresponding source versions were auto-generated:
-            var versionPattern = candidateSymbol.AssemblyVersionPattern;
+            Version versionPattern = candidateSymbol.AssemblyVersionPattern;
             Debug.Assert((object)versionPattern == null || versionPattern.Build == ushort.MaxValue || versionPattern.Revision == ushort.MaxValue);
 
             if (((object)versionPattern == null || versionPattern.Build < ushort.MaxValue) && version.Build != candidateVersion.Build)
@@ -580,7 +580,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (!reference.IsSkipped && !reference.RecursiveAliasesOpt.IsDefault)
                 {
-                    var recursiveAliases = reference.RecursiveAliasesOpt;
+                    ImmutableArray<string> recursiveAliases = reference.RecursiveAliasesOpt;
 
                     Debug.Assert(reference.Kind == MetadataImageKind.Assembly);
                     visitedAssemblies.Clear();
@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis
 
                         // push dependencies onto the stack:
                         // +1 for the assembly being built:
-                        foreach (var binding in bindingResult[assemblyIndex + 1].ReferenceBinding)
+                        foreach (AssemblyReferenceBinding binding in bindingResult[assemblyIndex + 1].ReferenceBinding)
                         {
                             if (binding.IsBound)
                             {
@@ -652,7 +652,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal override MetadataReference GetMetadataReference(IAssemblySymbol assemblySymbol)
         {
-            foreach (var entry in ReferencedAssembliesMap)
+            foreach (KeyValuePair<MetadataReference, int> entry in ReferencedAssembliesMap)
             {
                 if ((object)ReferencedAssemblies[entry.Value] == assemblySymbol)
                 {
@@ -673,7 +673,7 @@ namespace Microsoft.CodeAnalysis
 
         public bool DeclarationsAccessibleWithoutAlias(int referencedAssemblyIndex)
         {
-            var aliases = AliasesOfReferencedAssemblies[referencedAssemblyIndex];
+            ImmutableArray<string> aliases = AliasesOfReferencedAssemblies[referencedAssemblyIndex];
             return aliases.Length == 0 || aliases.IndexOf(MetadataReferenceProperties.GlobalAlias, StringComparer.Ordinal) >= 0;
         }
 

@@ -167,9 +167,9 @@ class Program
         S t = s;
     }
 }";
-            var comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).Compilation;
+            Compilation comp1 = CompileAndVerify(s1, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes).Compilation;
 
-            var comp2 = CompileAndVerify(s2,
+            Compilation comp2 = CompileAndVerify(s2,
                 options: TestOptions.UnsafeReleaseExe,
                 references: new MetadataReference[] { MetadataReference.CreateFromStream(comp1.EmitToStream()) },
                 expectedOutput: "12", verify: Verification.Fails).Compilation;
@@ -563,9 +563,9 @@ class Program
         [Fact, WorkItem(3392, "https://github.com/dotnet/roslyn/issues/3392")]
         public void StructLayout_01()
         {
-            foreach (var layout in new[] { LayoutKind.Auto, LayoutKind.Explicit, LayoutKind.Sequential })
+            foreach (LayoutKind layout in new[] { LayoutKind.Auto, LayoutKind.Explicit, LayoutKind.Sequential })
             {
-                foreach (var charSet in new[] { CharSet.Ansi, CharSet.Auto, CharSet.None, CharSet.Unicode })
+                foreach (CharSet charSet in new[] { CharSet.Ansi, CharSet.Auto, CharSet.None, CharSet.Unicode })
                 {
                     var text =
 @"
@@ -581,11 +581,11 @@ public unsafe struct Test
                     CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes, 
                         symbolValidator: (m) =>
                         {
-                            var test = m.GlobalNamespace.GetTypeMember("Test");
+                            NamedTypeSymbol test = m.GlobalNamespace.GetTypeMember("Test");
                             Assert.Equal(layout, test.Layout.Kind);
                             Assert.Equal(charSet == CharSet.None ? CharSet.Ansi : charSet, test.MarshallingCharSet);
 
-                            var bufferType = test.GetTypeMembers().Single();
+                            NamedTypeSymbol bufferType = test.GetTypeMembers().Single();
                             Assert.Equal("Test.<Field>e__FixedBuffer", bufferType.ToTestDisplayString());
                             Assert.Equal(LayoutKind.Sequential, bufferType.Layout.Kind);
                             Assert.Equal(charSet == CharSet.None ? CharSet.Ansi : charSet, bufferType.MarshallingCharSet);
@@ -597,7 +597,7 @@ public unsafe struct Test
         [Fact, WorkItem(3392, "https://github.com/dotnet/roslyn/issues/3392")]
         public void StructLayout_02()
         {
-            foreach (var layout in new[] { LayoutKind.Auto, LayoutKind.Explicit, LayoutKind.Sequential })
+            foreach (LayoutKind layout in new[] { LayoutKind.Auto, LayoutKind.Explicit, LayoutKind.Sequential })
             {
                 var text =
 @"
@@ -613,11 +613,11 @@ public unsafe struct Test
                 CompileAndVerify(text, options: TestOptions.UnsafeReleaseDll, verify: Verification.Passes,
                     symbolValidator: (m) =>
                     {
-                        var test = m.GlobalNamespace.GetTypeMember("Test");
+                        NamedTypeSymbol test = m.GlobalNamespace.GetTypeMember("Test");
                         Assert.Equal(layout, test.Layout.Kind);
                         Assert.Equal(CharSet.Ansi, test.MarshallingCharSet);
 
-                        var bufferType = test.GetTypeMembers().Single();
+                        NamedTypeSymbol bufferType = test.GetTypeMembers().Single();
                         Assert.Equal("Test.<Field>e__FixedBuffer", bufferType.ToTestDisplayString());
                         Assert.Equal(LayoutKind.Sequential, bufferType.Layout.Kind);
                         Assert.Equal(CharSet.Ansi, bufferType.MarshallingCharSet);

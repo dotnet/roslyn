@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
             foreach (NamedTypeSymbol @interface in UnderlyingNamedType.GetInterfacesToEmit())
             {
-                var typeRef = moduleBeingBuilt.Translate(
+                Cci.INamedTypeReference typeRef = moduleBeingBuilt.Translate(
                     @interface,
                     (CSharpSyntaxNode)context.SyntaxNodeOpt,
                     context.Diagnostics);
@@ -208,10 +208,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
 
         protected override CSharpAttributeData CreateTypeIdentifierAttribute(bool hasGuid, SyntaxNode syntaxNodeOpt, DiagnosticBag diagnostics)
         {
-            var member = hasGuid ?
+            WellKnownMember member = hasGuid ?
                 WellKnownMember.System_Runtime_InteropServices_TypeIdentifierAttribute__ctor :
                 WellKnownMember.System_Runtime_InteropServices_TypeIdentifierAttribute__ctorStringString;
-            var ctor = TypeManager.GetWellKnownMethod(member, syntaxNodeOpt, diagnostics);
+            MethodSymbol ctor = TypeManager.GetWellKnownMethod(member, syntaxNodeOpt, diagnostics);
             if ((object)ctor == null)
             {
                 return null;
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
                 // otherwise, we expect that we will have reported an error (ERRID_PIAHasNoAssemblyGuid1) about this assembly, since
                 // you can't /link against an assembly which lacks a GuidAttribute.
 
-                var stringType = TypeManager.GetSystemStringType(syntaxNodeOpt, diagnostics);
+                NamedTypeSymbol stringType = TypeManager.GetSystemStringType(syntaxNodeOpt, diagnostics);
 
                 if ((object)stringType != null)
                 {

@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             method.CheckMethodVarianceSafety(
                 returnTypeLocationProvider: m =>
                     {
-                        var syntax = m.GetDeclaringSyntax<DelegateDeclarationSyntax>();
+                        DelegateDeclarationSyntax syntax = m.GetDeclaringSyntax<DelegateDeclarationSyntax>();
                         return (syntax == null) ? null : syntax.ReturnType.Location;
                     },
                 diagnostics: diagnostics);
@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             method.CheckMethodVarianceSafety(
                 returnTypeLocationProvider: m =>
                     {
-                        var syntax = m.GetDeclaringSyntax<MethodDeclarationSyntax>();
+                        MethodDeclarationSyntax syntax = m.GetDeclaringSyntax<MethodDeclarationSyntax>();
                         return (syntax == null) ? null : syntax.ReturnType.Location;
                     },
                 diagnostics: diagnostics);
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     context: property,
                     locationProvider: p =>
                         {
-                            var syntax = p.GetDeclaringSyntax<BasePropertyDeclarationSyntax>();
+                            BasePropertyDeclarationSyntax syntax = p.GetDeclaringSyntax<BasePropertyDeclarationSyntax>();
                             return (syntax == null) ? null : syntax.Type.Location;
                         },
                     locationArg: property,
@@ -158,7 +158,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     context: context,
                     locationProvider: p =>
                         {
-                            var syntax = p.GetDeclaringSyntax<ParameterSyntax>();
+                            ParameterSyntax syntax = p.GetDeclaringSyntax<ParameterSyntax>();
                             return (syntax == null) ? null : syntax.Type.Location;
                         },
                     locationArg: param,
@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // reference rather than the specific type parameter, for instance, returning
             // "C<T>[]" for "interface I<in T> { C<T>[] F(); }" rather than the type parameter
             // in "C<T>[]", but that is better than returning the location of T within "I<in T>".
-            var location = locationProvider(locationArg) ?? unsafeTypeParameter.Locations[0];
+            Location location = locationProvider(locationArg) ?? unsafeTypeParameter.Locations[0];
 
             // CONSIDER: instead of using the same error code for all variance errors, we could use different codes for "requires input-safe", 
             // "requires output-safe", and "requires input-safe and output-safe".  This would make the error codes much easier to document and
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private static T GetDeclaringSyntax<T>(this Symbol symbol) where T : SyntaxNode
         {
-            var syntaxRefs = symbol.DeclaringSyntaxReferences;
+            ImmutableArray<SyntaxReference> syntaxRefs = symbol.DeclaringSyntaxReferences;
             if (syntaxRefs.Length == 0)
             {
                 return null;

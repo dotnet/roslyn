@@ -12,8 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         public static SyntaxTree WithReplace(this SyntaxTree syntaxTree, int offset, int length, string newText)
         {
-            var oldFullText = syntaxTree.GetText();
-            var newFullText = oldFullText.WithChanges(new TextChange(new TextSpan(offset, length), newText));
+            SourceText oldFullText = syntaxTree.GetText();
+            SourceText newFullText = oldFullText.WithChanges(new TextChange(new TextSpan(offset, length), newText));
             return syntaxTree.WithChangedText(newFullText);
         }
 

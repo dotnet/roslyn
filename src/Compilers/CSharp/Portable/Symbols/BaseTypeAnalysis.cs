@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (partialClosure.Add(type))
             {
-                foreach (var member in type.GetMembersUnordered())
+                foreach (Symbol member in type.GetMembersUnordered())
                 {
                     var field = member as FieldSymbol;
                     if ((object)field == null || field.Type.TypeKind != TypeKind.Struct || field.IsStatic)
@@ -132,7 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // because as soon as we see something with non-zero arity we kick out (generic => managed).
             if (partialClosure.Add(type))
             {
-                foreach (var member in type.GetInstanceFieldsAndEvents())
+                foreach (Symbol member in type.GetInstanceFieldsAndEvents())
                 {
                     // Only instance fields (including field-like events) affect the outcome.
                     FieldSymbol field;
@@ -274,7 +274,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             type = type.OriginalDefinition;
             if (partialClosure.Add(type))
             {
-                foreach (var bt in type.GetDeclaredInterfaces(null))
+                foreach (NamedTypeSymbol bt in type.GetDeclaredInterfaces(null))
                 {
                     InterfaceDependsClosure(bt, partialClosure);
                     // containment is not interesting for interfaces as they cannot nest in C#

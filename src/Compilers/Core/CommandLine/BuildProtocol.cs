@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         public static BuildRequest CreateShutdown()
         {
-            var requestArgs = new[] { new Argument(ArgumentId.Shutdown, argumentIndex: 0, value: "") };
+            Argument[] requestArgs = new[] { new Argument(ArgumentId.Shutdown, argumentIndex: 0, value: "") };
             return new BuildRequest(BuildProtocolConstants.ProtocolVersion, RequestLanguage.CSharpCompile, requestArgs);
         }
 

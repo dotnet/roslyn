@@ -21,9 +21,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public abstract object this[object x] = { get; }
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
 
@@ -40,10 +40,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 class/*</bind>*/ B
 {
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            ExpressionSyntax expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             VisitAllExpressions(model, expr);
         }
 
@@ -63,10 +63,10 @@ class/*</bind>*/ B
         int i;
     }
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            ExpressionSyntax expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             VisitAllExpressions(model, expr);
         }
 
@@ -86,10 +86,10 @@ class C
         var o = /*<bind>*/new A<B<object>>/*</bind>*/();
     }
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            var expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            ExpressionSyntax expr = GetExprSyntaxForBinding(GetExprSyntaxList(tree));
             VisitAllExpressions(model, expr);
         }
 
@@ -99,10 +99,10 @@ class C
         {
             var text =
 @"#if e==true";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            foreach (var expr in GetAllExpressions(tree.GetCompilationUnitRoot()))
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            foreach (ExpressionSyntax expr in GetAllExpressions(tree.GetCompilationUnitRoot()))
             {
                 model.GetTypeInfo(expr);
             }
@@ -124,9 +124,9 @@ class C
     {
     }
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
 
@@ -151,10 +151,10 @@ static class C
         return null;
     }
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            foreach (var stmt in GetAllStatements(tree.GetCompilationUnitRoot()))
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            foreach (StatementSyntax stmt in GetAllStatements(tree.GetCompilationUnitRoot()))
             {
                 model.AnalyzeDataFlow(stmt);
             }
@@ -168,12 +168,12 @@ static class C
 @"object F;
 abstract object P { get; set; }
 abstract void M();";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            var diagnostics = model.GetDiagnostics().ToArray();
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            Diagnostic[] diagnostics = model.GetDiagnostics().ToArray();
             Assert.NotEmpty(diagnostics);
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>(TypeSymbol.ImplicitTypeName);
+            NamedTypeSymbol type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>(TypeSymbol.ImplicitTypeName);
             Assert.True(type.IsImplicitlyDeclared);
             Symbol member;
             member = type.GetMember<FieldSymbol>("F");
@@ -189,14 +189,14 @@ abstract void M();";
         public void Repro611177()
         {
             var source = @"[_<_[delegate using'";
-            var comp = CreateCompilation(source);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateCompilation(source);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var usingSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
+            UsingDirectiveSyntax usingSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingDirectiveSyntax>().Single();
             model.GetSymbolInfo(usingSyntax);
 
-            var identifierSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single();
+            IdentifierNameSyntax identifierSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single();
             model.GetSymbolInfo(identifierSyntax);
         }
 
@@ -212,11 +212,11 @@ class C
         int[delegate { using (Q); }] array;
     }
 }";
-            var comp = CreateCompilation(source);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateCompilation(source);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var usingSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().Single();
+            UsingStatementSyntax usingSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<UsingStatementSyntax>().Single();
 
             model.GetSymbolInfo(usingSyntax.Expression);
         }
@@ -233,13 +233,13 @@ class C
         int[delegate { typeof(int) }] array;
     }
 }";
-            var comp = CreateCompilation(source);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateCompilation(source);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var typeOfSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TypeOfExpressionSyntax>().Single();
+            TypeOfExpressionSyntax typeOfSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TypeOfExpressionSyntax>().Single();
 
-            var info = model.GetTypeInfo(typeOfSyntax); //Used to throw
+            TypeInfo info = model.GetTypeInfo(typeOfSyntax); //Used to throw
             Assert.Equal(comp.GetWellKnownType(WellKnownType.System_Type), info.Type);
         }
 
@@ -255,14 +255,14 @@ class C
         var x = typeof(int[delegate { 1 }]);
     }
 }";
-            var comp = CreateCompilation(source);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateCompilation(source);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var literalSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
+            LiteralExpressionSyntax literalSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LiteralExpressionSyntax>().Single();
             Assert.Equal(SyntaxKind.NumericLiteralExpression, literalSyntax.Kind());
 
-            var info = model.GetTypeInfo(literalSyntax); //Used to throw
+            TypeInfo info = model.GetTypeInfo(literalSyntax); //Used to throw
             Assert.Equal(SpecialType.System_Int32, info.Type.SpecialType);
         }
 
@@ -288,13 +288,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
     }
 ";
-            var comp = CreateCompilation(source);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            CSharpCompilation comp = CreateCompilation(source);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var identifierSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single(n => n.Identifier.ValueText == "CompletionItem");
+            IdentifierNameSyntax identifierSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Single(n => n.Identifier.ValueText == "CompletionItem");
 
-            var info = model.GetSymbolInfo(identifierSyntax); //Used to throw
+            SymbolInfo info = model.GetSymbolInfo(identifierSyntax); //Used to throw
         }
 
         [WorkItem(754405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/754405")]
@@ -306,9 +306,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     object F = typeof(int?);
 }";
-            var tree = Parse(text);
-            var comp = CreateEmptyCompilation(new[] { tree });
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateEmptyCompilation(new[] { tree });
+            SemanticModel model = comp.GetSemanticModel(tree);
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
 
@@ -321,9 +321,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     object F = typeof(int*);
 }";
-            var tree = Parse(text);
-            var comp = CreateEmptyCompilation(new[] { tree });
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateEmptyCompilation(new[] { tree });
+            SemanticModel model = comp.GetSemanticModel(tree);
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
 
@@ -336,9 +336,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     object F = typeof(int[]);
 }";
-            var tree = Parse(text);
-            var comp = CreateEmptyCompilation(new[] { tree });
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateEmptyCompilation(new[] { tree });
+            SemanticModel model = comp.GetSemanticModel(tree);
             VisitAllExpressions(model, tree.GetCompilationUnitRoot());
         }
 
@@ -351,12 +351,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     static object F = new C<,>();
 }";
-            var tree = Parse(text);
-            var comp = CreateCompilation(tree);
-            var model = comp.GetSemanticModel(tree);
-            foreach (var expr in GetAllExpressions(tree.GetCompilationUnitRoot()))
+            SyntaxTree tree = Parse(text);
+            CSharpCompilation comp = CreateCompilation(tree);
+            SemanticModel model = comp.GetSemanticModel(tree);
+            foreach (ExpressionSyntax expr in GetAllExpressions(tree.GetCompilationUnitRoot()))
             {
-                var symbolInfo = model.GetSymbolInfo(expr);
+                SymbolInfo symbolInfo = model.GetSymbolInfo(expr);
                 Assert.NotNull(symbolInfo);
                 model.AnalyzeDataFlow(expr);
             }
@@ -364,9 +364,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         private void VisitAllExpressions(SemanticModel model, SyntaxNode node)
         {
-            foreach (var expr in GetAllExpressions(node))
+            foreach (ExpressionSyntax expr in GetAllExpressions(node))
             {
-                var symbolInfo = model.GetSymbolInfo(expr);
+                SymbolInfo symbolInfo = model.GetSymbolInfo(expr);
                 Assert.NotNull(symbolInfo);
             }
         }

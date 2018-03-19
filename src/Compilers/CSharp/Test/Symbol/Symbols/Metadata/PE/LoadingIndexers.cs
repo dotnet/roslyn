@@ -56,10 +56,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             CompileWithCustomILSource("", ilSource, compilation =>
             {
-                var @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
+                PENamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
                 Assert.Equal("Item", @class.DefaultMemberName);
 
-                var indexer = @class.GetIndexer<PEPropertySymbol>("Item");
+                PEPropertySymbol indexer = @class.GetIndexer<PEPropertySymbol>("Item");
                 CheckIndexer(indexer, true, true, "System.Int32 C.this[System.Int32 x] { get; set; }");
             });
         }
@@ -98,10 +98,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             CompileWithCustomILSource("", ilSource, compilation =>
             {
-                var @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
+                PENamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
                 Assert.Equal("Item", @class.DefaultMemberName);
 
-                var indexer = @class.GetIndexer<PEPropertySymbol>("Item");
+                PEPropertySymbol indexer = @class.GetIndexer<PEPropertySymbol>("Item");
                 CheckIndexer(indexer, false, true, "System.Int32 C.this[System.Int32 x] { set; }");
             });
         }
@@ -140,10 +140,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             CompileWithCustomILSource("", ilSource, compilation =>
             {
-                var @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
+                PENamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
                 Assert.Equal("Item", @class.DefaultMemberName);
 
-                var indexer = @class.GetIndexer<PEPropertySymbol>("Item");
+                PEPropertySymbol indexer = @class.GetIndexer<PEPropertySymbol>("Item");
                 CheckIndexer(indexer, true, false, "System.Int32 C.this[System.Int32 x] { get; }");
             });
         }
@@ -190,10 +190,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             CompileWithCustomILSource("", ilSource, compilation =>
             {
-                var @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
+                PENamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
                 Assert.Equal("NotItem", @class.DefaultMemberName);
 
-                var indexer = @class.GetIndexer<PEPropertySymbol>("NotItem");
+                PEPropertySymbol indexer = @class.GetIndexer<PEPropertySymbol>("NotItem");
                 CheckIndexer(indexer, true, true, "System.Int32 C.this[System.Int32 x] { get; set; }");
             });
         }
@@ -240,10 +240,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             CompileWithCustomILSource("", ilSource, compilation =>
             {
-                var @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
+                PENamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
                 Assert.Equal("get_NotItem", @class.DefaultMemberName);
 
-                var indexer = @class.GetIndexer<PEPropertySymbol>("NotItem");
+                PEPropertySymbol indexer = @class.GetIndexer<PEPropertySymbol>("NotItem");
                 CheckIndexer(indexer, true, true, "System.Int32 C.this[System.Int32 x] { get; set; }");
             });
         }
@@ -303,13 +303,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             CompileWithCustomILSource("", ilSource, compilation =>
             {
-                var @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
+                PENamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
                 Assert.Equal("Accessor1", @class.DefaultMemberName);
 
-                var indexer1 = @class.GetIndexer<PEPropertySymbol>("Indexer1");
+                PEPropertySymbol indexer1 = @class.GetIndexer<PEPropertySymbol>("Indexer1");
                 CheckIndexer(indexer1, true, true, "System.Int32 C.this[System.Int32 x, System.Int64 y] { get; set; }", suppressAssociatedPropertyCheck: true);
 
-                var indexer2 = @class.GetIndexer<PEPropertySymbol>("Indexer2");
+                PEPropertySymbol indexer2 = @class.GetIndexer<PEPropertySymbol>("Indexer2");
                 CheckIndexer(indexer2, true, true, "System.Int32 C.this[System.Int32 x, System.Int64 y] { get; set; }", suppressAssociatedPropertyCheck: true);
             });
         }
@@ -345,10 +345,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             CompileWithCustomILSource("", ilSource, compilation =>
             {
-                var @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
+                PENamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
                 Assert.Equal("", @class.DefaultMemberName); //placeholder value to avoid refetching
 
-                var property = @class.GetMember<PEPropertySymbol>("Item");
+                PEPropertySymbol property = @class.GetMember<PEPropertySymbol>("Item");
                 CheckNonIndexer(property, true, false, "System.Int32 C.Item[System.Int32 x] { get; }");
             });
         }
@@ -387,10 +387,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             CompileWithCustomILSource("", ilSource, compilation =>
             {
-                var @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
+                PENamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
                 Assert.Equal("NotItem", @class.DefaultMemberName);
 
-                var property = @class.GetMember<PEPropertySymbol>("Item");
+                PEPropertySymbol property = @class.GetMember<PEPropertySymbol>("Item");
                 CheckNonIndexer(property, true, false, "System.Int32 C.Item[System.Int32 x] { get; }");
             });
         }
@@ -595,8 +595,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
         [Fact]
         public void LoadIndexerWithRefParam()
         {
-            var assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.SymbolsTests.Indexers);
-            var @class = assembly.GlobalNamespace.GetMember<NamedTypeSymbol>("RefIndexer");
+            AssemblySymbol assembly = MetadataTestHelpers.GetSymbolForReference(TestReferences.SymbolsTests.Indexers);
+            NamedTypeSymbol @class = assembly.GlobalNamespace.GetMember<NamedTypeSymbol>("RefIndexer");
             var indexer = (PropertySymbol)@class.GetMembers().Where(m => m.Kind == SymbolKind.Property).Single();
             Assert.Equal(RefKind.Ref, indexer.Parameters.Single().RefKind);
             Assert.True(indexer.MustCallMethodsDirectly);
@@ -604,13 +604,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
         private static void CheckInstanceAndStaticIndexers(CSharpCompilation compilation, string className, string indexerDisplayString)
         {
-            var @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>(className);
+            PENamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>(className);
 
-            var instanceIndexer = @class.GetIndexer<PEPropertySymbol>("Instance");
+            PEPropertySymbol instanceIndexer = @class.GetIndexer<PEPropertySymbol>("Instance");
             Assert.False(instanceIndexer.IsStatic);
             CheckIndexer(instanceIndexer, true, true, indexerDisplayString);
 
-            var staticIndexer = @class.GetIndexer<PEPropertySymbol>("Static"); //not allowed in C#
+            PEPropertySymbol staticIndexer = @class.GetIndexer<PEPropertySymbol>("Static"); //not allowed in C#
             Assert.True(staticIndexer.IsStatic);
             CheckIndexer(staticIndexer, true, true, indexerDisplayString);
         }
@@ -700,29 +700,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             CompileWithCustomILSource("", ilSource, compilation =>
             {
-                var @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
+                PENamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
 
-                var parameterCountIndexer = @class.GetIndexer<PEPropertySymbol>("ParameterCount");
+                PEPropertySymbol parameterCountIndexer = @class.GetIndexer<PEPropertySymbol>("ParameterCount");
                 Assert.True(parameterCountIndexer.IsIndexer);
                 Assert.True(parameterCountIndexer.MustCallMethodsDirectly);
                 Assert.NotEqual(parameterCountIndexer.ParameterCount, parameterCountIndexer.GetMethod.ParameterCount);
 
-                var parameterTypesIndexer = @class.GetIndexer<PEPropertySymbol>("ParameterTypes");
+                PEPropertySymbol parameterTypesIndexer = @class.GetIndexer<PEPropertySymbol>("ParameterTypes");
                 Assert.True(parameterTypesIndexer.IsIndexer);
                 Assert.True(parameterTypesIndexer.MustCallMethodsDirectly);
                 Assert.NotEqual(parameterTypesIndexer.Parameters.Last().Type, parameterTypesIndexer.GetMethod.Parameters.Last().Type);
 
-                var returnTypeIndexer = @class.GetIndexer<PEPropertySymbol>("ReturnType");
+                PEPropertySymbol returnTypeIndexer = @class.GetIndexer<PEPropertySymbol>("ReturnType");
                 Assert.True(returnTypeIndexer.IsIndexer);
                 Assert.True(returnTypeIndexer.MustCallMethodsDirectly);
                 Assert.NotEqual(returnTypeIndexer.Type, returnTypeIndexer.GetMethod.ReturnType);
 
-                var parameterModoptIndexer = @class.GetIndexer<PEPropertySymbol>("ParameterModopt");
+                PEPropertySymbol parameterModoptIndexer = @class.GetIndexer<PEPropertySymbol>("ParameterModopt");
                 Assert.True(parameterModoptIndexer.IsIndexer);
                 Assert.False(parameterModoptIndexer.MustCallMethodsDirectly); //NB: we allow this amount of variation (modopt is on, rather than in parameter type)
                 Assert.NotEqual(parameterModoptIndexer.Parameters.Last().CustomModifiers.Length, parameterModoptIndexer.GetMethod.Parameters.Last().CustomModifiers.Length);
 
-                var returnTypeModoptIndexer = @class.GetIndexer<PEPropertySymbol>("ReturnTypeModopt");
+                PEPropertySymbol returnTypeModoptIndexer = @class.GetIndexer<PEPropertySymbol>("ReturnTypeModopt");
                 Assert.True(returnTypeModoptIndexer.IsIndexer);
                 Assert.False(returnTypeModoptIndexer.MustCallMethodsDirectly); //NB: we allow this amount of variation (modopt is on, rather than in return type)
                 Assert.NotEqual(returnTypeModoptIndexer.TypeCustomModifiers.Length, returnTypeModoptIndexer.GetMethod.ReturnTypeCustomModifiers.Length);
@@ -779,21 +779,21 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             CompileWithCustomILSource("", ilSource, compilation =>
             {
-                var @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
+                PENamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
 
-                var property1 = @class.GetMember<PEPropertySymbol>("ReadWrite");
+                PEPropertySymbol property1 = @class.GetMember<PEPropertySymbol>("ReadWrite");
                 var property1ParamName = property1.Parameters.Single().Name;
 
                 // NOTE: prefer setter
                 Assert.NotEqual(property1ParamName, property1.GetMethod.Parameters.Single().Name);
                 Assert.Equal(property1ParamName, property1.SetMethod.Parameters.First().Name);
 
-                var property2 = @class.GetMember<PEPropertySymbol>("ReadOnly");
+                PEPropertySymbol property2 = @class.GetMember<PEPropertySymbol>("ReadOnly");
                 var property2ParamName = property2.Parameters.Single().Name;
 
                 Assert.Equal(property2ParamName, property2.GetMethod.Parameters.Single().Name);
 
-                var property3 = @class.GetMember<PEPropertySymbol>("WriteOnly");
+                PEPropertySymbol property3 = @class.GetMember<PEPropertySymbol>("WriteOnly");
                 var property3ParamName = property3.Parameters.Single().Name;
 
                 Assert.Equal(property3ParamName, property3.SetMethod.Parameters.First().Name);
@@ -835,17 +835,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             CompileWithCustomILSource("", ilSource, compilation =>
             {
-                var @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
+                PENamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
 
-                var accessor = @class.GetMember<MethodSymbol>("get_Item");
+                MethodSymbol accessor = @class.GetMember<MethodSymbol>("get_Item");
                 var accessParam0Name = accessor.Parameters[0].Name;
                 var accessParam1Name = accessor.Parameters[1].Name;
 
-                var property1 = @class.GetMember<PEPropertySymbol>("TooMany");
+                PEPropertySymbol property1 = @class.GetMember<PEPropertySymbol>("TooMany");
                 Assert.Equal(accessParam0Name, property1.Parameters[0].Name);
 
-                var property2 = @class.GetMember<PEPropertySymbol>("TooFew");
-                var property2Params = property2.Parameters;
+                PEPropertySymbol property2 = @class.GetMember<PEPropertySymbol>("TooFew");
+                System.Collections.Immutable.ImmutableArray<ParameterSymbol> property2Params = property2.Parameters;
                 Assert.Equal(accessParam0Name, property2Params[0].Name);
                 Assert.Equal(accessParam1Name, property2Params[1].Name);
                 Assert.Equal("value", property2Params[2].Name); //filler name
@@ -908,19 +908,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             CompileWithCustomILSource("", ilSource, compilation =>
             {
-                var @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
+                PENamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
 
-                var readWrite = @class.GetIndexer<PEPropertySymbol>("ReadWrite");
+                PEPropertySymbol readWrite = @class.GetIndexer<PEPropertySymbol>("ReadWrite");
                 Assert.True(readWrite.IsIndexer);
                 Assert.False(readWrite.MustCallMethodsDirectly);
                 Assert.True(readWrite.Parameters.Last().IsParams);
 
-                var readOnly = @class.GetIndexer<PEPropertySymbol>("ReadOnly");
+                PEPropertySymbol readOnly = @class.GetIndexer<PEPropertySymbol>("ReadOnly");
                 Assert.True(readOnly.IsIndexer);
                 Assert.False(readOnly.MustCallMethodsDirectly);
                 Assert.True(readOnly.Parameters.Last().IsParams);
 
-                var writeOnly = @class.GetIndexer<PEPropertySymbol>("WriteOnly");
+                PEPropertySymbol writeOnly = @class.GetIndexer<PEPropertySymbol>("WriteOnly");
                 Assert.True(writeOnly.IsIndexer);
                 Assert.False(writeOnly.MustCallMethodsDirectly);
                 Assert.True(writeOnly.Parameters.Last().IsParams);
@@ -992,14 +992,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             CompileWithCustomILSource("", ilSource, compilation =>
             {
-                var @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
+                PENamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
 
-                var readWrite = @class.GetIndexer<PEPropertySymbol>("OnlyGetter");
+                PEPropertySymbol readWrite = @class.GetIndexer<PEPropertySymbol>("OnlyGetter");
                 Assert.True(readWrite.IsIndexer);
                 Assert.True(readWrite.MustCallMethodsDirectly);
                 Assert.False(readWrite.Parameters.Last().IsParams); //favour setter
 
-                var readOnly = @class.GetIndexer<PEPropertySymbol>("OnlySetter");
+                PEPropertySymbol readOnly = @class.GetIndexer<PEPropertySymbol>("OnlySetter");
                 Assert.True(readWrite.IsIndexer);
                 Assert.True(readOnly.MustCallMethodsDirectly);
                 Assert.True(readOnly.Parameters.Last().IsParams); //favour setter
@@ -1154,11 +1154,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
 
             CompileWithCustomILSource("", ilSource, compilation =>
             {
-                var @interface = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("I");
-                var interfaceIndexer = @interface.Indexers.Single();
+                PENamedTypeSymbol @interface = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("I");
+                PropertySymbol interfaceIndexer = @interface.Indexers.Single();
                 Assert.True(interfaceIndexer.IsIndexer);
 
-                var @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
+                PENamedTypeSymbol @class = compilation.GlobalNamespace.GetMember<PENamedTypeSymbol>("C");
                 var classIndexer = (PropertySymbol)@class.GetMembers().Single(s => s.Kind == SymbolKind.Property);
                 Assert.False(classIndexer.IsIndexer);
 

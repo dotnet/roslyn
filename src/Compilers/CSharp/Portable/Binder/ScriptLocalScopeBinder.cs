@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             private static ImmutableArray<LabelSymbol> GetLabels(SynthesizedInteractiveInitializerMethod scriptInitializer, CompilationUnitSyntax syntax)
             {
                 var builder = ArrayBuilder<LabelSymbol>.GetInstance();
-                foreach (var member in syntax.Members)
+                foreach (MemberDeclarationSyntax member in syntax.Members)
                 {
                     if (member.Kind() != SyntaxKind.GlobalStatement)
                     {

@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         internal static CSharpSyntaxNode GetContainingDeconstruction(this ExpressionSyntax expr)
         {
-            var kind = expr.Kind();
+            SyntaxKind kind = expr.Kind();
             if (kind != SyntaxKind.TupleExpression && kind != SyntaxKind.DeclarationExpression && kind != SyntaxKind.IdentifierName)
             {
                 return null;
@@ -347,7 +347,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (true)
             {
                 Debug.Assert(expr.Kind() == SyntaxKind.TupleExpression || expr.Kind() == SyntaxKind.DeclarationExpression || expr.Kind() == SyntaxKind.IdentifierName);
-                var parent = expr.Parent;
+                CSharpSyntaxNode parent = expr.Parent;
                 if (parent == null) { return null; }
 
                 switch (parent.Kind())

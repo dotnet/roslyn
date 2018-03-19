@@ -359,19 +359,19 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private string FormatPrimitive(object obj, bool quoteStrings = false)
         {
-            var options = quoteStrings ? ObjectDisplayOptions.UseQuotes : ObjectDisplayOptions.None;
+            ObjectDisplayOptions options = quoteStrings ? ObjectDisplayOptions.UseQuotes : ObjectDisplayOptions.None;
             return ObjectDisplay.FormatPrimitive(obj, options | ObjectDisplayOptions.EscapeNonPrintableCharacters);
         }
 
         private string FormatPrimitiveUsingHexadecimalNumbers(object obj, bool quoteStrings = false)
         {
-            var options = quoteStrings ? ObjectDisplayOptions.UseQuotes : ObjectDisplayOptions.None;
+            ObjectDisplayOptions options = quoteStrings ? ObjectDisplayOptions.UseQuotes : ObjectDisplayOptions.None;
             return ObjectDisplay.FormatPrimitive(obj, options | ObjectDisplayOptions.UseHexadecimalNumbers | ObjectDisplayOptions.EscapeNonPrintableCharacters);
         }
 
         private string FormatPrimitiveIncludingTypeSuffix(object obj, bool useHexadecimalNumbers = false)
         {
-            var options = useHexadecimalNumbers ? ObjectDisplayOptions.UseHexadecimalNumbers : ObjectDisplayOptions.None;
+            ObjectDisplayOptions options = useHexadecimalNumbers ? ObjectDisplayOptions.UseHexadecimalNumbers : ObjectDisplayOptions.None;
             return ObjectDisplay.FormatPrimitive(obj, options | ObjectDisplayOptions.IncludeTypeSuffix | ObjectDisplayOptions.EscapeNonPrintableCharacters);
         }
     }

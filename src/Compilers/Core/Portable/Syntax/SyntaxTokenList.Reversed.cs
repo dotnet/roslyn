@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis
                         _index = _count;
                         _current = null;
 
-                        var last = list.Last();
+                        SyntaxToken last = list.Last();
                         _position = last.Position + last.FullWidth;
                     }
                 }

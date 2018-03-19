@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
         [Fact]
         public void RefStructUsing()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 class C
 {
     void M()
@@ -38,7 +38,7 @@ class C
         [Fact]
         public void RefStructAnonymous()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -62,7 +62,7 @@ class C
         [Fact]
         public void RefStructInFor()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 class C
 {
@@ -84,7 +84,7 @@ class C
         [Fact]
         public void RefStructInLock()
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 
 class C
@@ -107,7 +107,7 @@ class C
         public void RefStructEscapeInIterator()
 
         {
-            var comp = CreateCompilationWithMscorlibAndSpan(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(@"
 using System;
 using System.Collections;
 class C
@@ -2477,10 +2477,10 @@ class Program
         }
     }
 ";
-            var comp = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation comp = CreateCompilationWithMscorlibAndSpan(text);
             comp.VerifyDiagnostics();
 
-            var compiled = CompileAndVerify(comp, verify: Verification.Passes);
+            CompilationVerifier compiled = CompileAndVerify(comp, verify: Verification.Passes);
             compiled.VerifyIL("C.M(ref System.Span<int>)", @"
 {
   // Code size        8 (0x8)
@@ -2726,7 +2726,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation compilation = CreateCompilationWithMscorlibAndSpan(text);
             compilation.VerifyDiagnostics(
                 // (12,29): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (global, global) = (local, local); // error 1
@@ -2752,28 +2752,28 @@ namespace System
             );
 
             // Check the Type and ConvertedType of tuples on the right-hand-side
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(3);
+            TupleExpressionSyntax tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(3);
             Assert.Equal(@"(local, """")", tuple2.ToString());
             Assert.Equal(@"(global, s) = (local, """")", tuple2.Parent.ToString());
             Assert.Equal("(System.Span<int> local, string)", model.GetTypeInfo(tuple2).Type.ToString());
             Assert.Equal("(System.Span<int>, string)", model.GetTypeInfo(tuple2).ConvertedType.ToString());
 
-            var tuple3 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(5);
+            TupleExpressionSyntax tuple3 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(5);
             Assert.Equal(@"(local, null)", tuple3.ToString());
             Assert.Equal(@"(global, s) = (local, null)", tuple3.Parent.ToString());
             Assert.Null(model.GetTypeInfo(tuple3).Type);
             Assert.Equal("(System.Span<int>, string)", model.GetTypeInfo(tuple3).ConvertedType.ToString());
 
-            var tuple6 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(11);
+            TupleExpressionSyntax tuple6 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(11);
             Assert.Equal(@"(local, """")", tuple6.ToString());
             Assert.Equal(@"(c, s) = (local, """")", tuple6.Parent.ToString());
             Assert.Equal("(System.Span<int> local, string)", model.GetTypeInfo(tuple6).Type.ToString());
             Assert.Equal("(C, string)", model.GetTypeInfo(tuple6).ConvertedType.ToString());
 
-            var tuple7 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(13);
+            TupleExpressionSyntax tuple7 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(13);
             Assert.Equal("(local, null)", tuple7.ToString());
             Assert.Equal("(c, s) = (local, null)", tuple7.Parent.ToString());
             Assert.Null(model.GetTypeInfo(tuple7).Type);
@@ -2809,7 +2809,7 @@ public class C
     public static implicit operator C(Span<int> s) => throw null;
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation compilation = CreateCompilationWithMscorlibAndSpan(text);
             compilation.VerifyDiagnostics(
                 // (12,28): error CS8179: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (global, global) = (local, local); // error 1
@@ -2850,28 +2850,28 @@ public class C
             );
 
             // Check the Type and ConvertedType of tuples on the right-hand-side
-            var tree = compilation.SyntaxTrees[0];
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(3);
+            TupleExpressionSyntax tuple2 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(3);
             Assert.Equal(@"(local, """")", tuple2.ToString());
             Assert.Equal(@"(global, s) = (local, """")", tuple2.Parent.ToString());
             Assert.Equal("(System.Span<int> local, string)", model.GetTypeInfo(tuple2).Type.ToString());
             Assert.Equal("(System.Span<int>, string)", model.GetTypeInfo(tuple2).ConvertedType.ToString());
 
-            var tuple3 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(5);
+            TupleExpressionSyntax tuple3 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(5);
             Assert.Equal(@"(local, null)", tuple3.ToString());
             Assert.Equal(@"(global, s) = (local, null)", tuple3.Parent.ToString());
             Assert.Null(model.GetTypeInfo(tuple3).Type);
             Assert.Equal("(System.Span<int>, string)", model.GetTypeInfo(tuple3).ConvertedType.ToString());
 
-            var tuple6 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(11);
+            TupleExpressionSyntax tuple6 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(11);
             Assert.Equal(@"(local, """")", tuple6.ToString());
             Assert.Equal(@"(c, s) = (local, """")", tuple6.Parent.ToString());
             Assert.Equal("(System.Span<int> local, string)", model.GetTypeInfo(tuple6).Type.ToString());
             Assert.Equal("(C, string)", model.GetTypeInfo(tuple6).ConvertedType.ToString());
 
-            var tuple7 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(13);
+            TupleExpressionSyntax tuple7 = tree.GetCompilationUnitRoot().DescendantNodes().OfType<TupleExpressionSyntax>().ElementAt(13);
             Assert.Equal("(local, null)", tuple7.ToString());
             Assert.Equal("(c, s) = (local, null)", tuple7.Parent.ToString());
             Assert.Null(model.GetTypeInfo(tuple7).Type);
@@ -2922,7 +2922,7 @@ namespace System
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlibAndSpan(text);
+            CSharpCompilation compilation = CreateCompilationWithMscorlibAndSpan(text);
             compilation.VerifyDiagnostics(
                 // (12,29): error CS0306: The type 'Span<int>' may not be used as a type argument
                 //         (global, global) = (local, local); // error 1

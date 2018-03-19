@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
         [InlineData(DebugInformationFormat.PortablePdb)]
         public void MethodExtents(DebugInformationFormat format)
         {
-            var source0 = MarkedSource(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""1111111111111111111111111111111111111111""
+            SourceWithMarkedNodes source0 = MarkedSource(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""1111111111111111111111111111111111111111""
 using System;
 
 public class C
@@ -51,7 +51,7 @@ public class C
 }                              
 ", fileName: @"C:\Enc1.cs");
 
-            var source1 = MarkedSource(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""2222222222222222222222222222222222222222""
+            SourceWithMarkedNodes source1 = MarkedSource(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""2222222222222222222222222222222222222222""
 using System;
 
 public class C
@@ -82,7 +82,7 @@ public class C
 }
 ", fileName: @"C:\Enc1.cs");
 
-            var source2 = MarkedSource(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""3333333333333333333333333333333333333333""
+            SourceWithMarkedNodes source2 = MarkedSource(@"#pragma checksum ""C:\Enc1.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""3333333333333333333333333333333333333333""
 using System;
 
 public class C
@@ -115,34 +115,34 @@ public class C
 }
 ", fileName: @"C:\Enc1.cs");
 
-            var compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "EncMethodExtents");
-            var compilation1 = compilation0.WithSource(source1.Tree);
-            var compilation2 = compilation1.WithSource(source2.Tree);
+            CSharpCompilation compilation0 = CreateCompilation(source0.Tree, options: ComSafeDebugDll.WithMetadataImportOptions(MetadataImportOptions.All), assemblyName: "EncMethodExtents");
+            CSharpCompilation compilation1 = compilation0.WithSource(source1.Tree);
+            CSharpCompilation compilation2 = compilation1.WithSource(source2.Tree);
 
             compilation0.VerifyDiagnostics();
             compilation1.VerifyDiagnostics();
             compilation2.VerifyDiagnostics();
 
-            var v0 = CompileAndVerify(compilation0, emitOptions: EmitOptions.Default.WithDebugInformationFormat(format));
+            CompilationVerifier v0 = CompileAndVerify(compilation0, emitOptions: EmitOptions.Default.WithDebugInformationFormat(format));
             var md0 = ModuleMetadata.CreateFromImage(v0.EmittedAssemblyData);
 
-            var f0 = compilation0.GetMember<MethodSymbol>("C.F");
-            var f1 = compilation1.GetMember<MethodSymbol>("C.F");
-            var f2 = compilation2.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f0 = compilation0.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f1 = compilation1.GetMember<MethodSymbol>("C.F");
+            MethodSymbol f2 = compilation2.GetMember<MethodSymbol>("C.F");
 
-            var g0 = compilation0.GetMember<MethodSymbol>("C.G");
-            var g1 = compilation1.GetMember<MethodSymbol>("C.G");
-            var g2 = compilation2.GetMember<MethodSymbol>("C.G");
+            MethodSymbol g0 = compilation0.GetMember<MethodSymbol>("C.G");
+            MethodSymbol g1 = compilation1.GetMember<MethodSymbol>("C.G");
+            MethodSymbol g2 = compilation2.GetMember<MethodSymbol>("C.G");
 
-            var a1 = compilation1.GetMember<MethodSymbol>("C.A");
-            var a2 = compilation2.GetMember<MethodSymbol>("C.A");
+            MethodSymbol a1 = compilation1.GetMember<MethodSymbol>("C.A");
+            MethodSymbol a2 = compilation2.GetMember<MethodSymbol>("C.A");
 
-            var b2 = compilation2.GetMember<MethodSymbol>("C.B");
+            MethodSymbol b2 = compilation2.GetMember<MethodSymbol>("C.B");
 
             var generation0 = EmitBaseline.CreateInitialBaseline(md0, v0.CreateSymReader().GetEncMethodDebugInfo);
 
-            var syntaxMap1 = GetSyntaxMapFromMarkers(source0, source1);
-            var diff1 = compilation1.EmitDifference(
+            System.Func<SyntaxNode, SyntaxNode> syntaxMap1 = GetSyntaxMapFromMarkers(source0, source1);
+            CompilationDifference diff1 = compilation1.EmitDifference(
                 generation0,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, syntaxMap1, preserveLocalVariables: true),
@@ -152,7 +152,7 @@ public class C
                 "C: {<>c}",
                 "C.<>c: {<>9__3_0, <>9__3_2, <>9__3_3#1, <>9__3_1, <G>b__3_0, <G>b__3_1, <G>b__3_2, <G>b__3_3#1}");
 
-            var reader1 = diff1.GetMetadata().Reader;
+            MetadataReader reader1 = diff1.GetMetadata().Reader;
 
             CheckEncLogDefinitions(reader1,
                 Row(3, TableIndex.StandAloneSig, EditAndContinueOperation.Default),
@@ -262,8 +262,8 @@ public class C
   </methods>
 </symbols>
 ");
-            var syntaxMap2 = GetSyntaxMapFromMarkers(source1, source2);
-            var diff2 = compilation2.EmitDifference(
+            System.Func<SyntaxNode, SyntaxNode> syntaxMap2 = GetSyntaxMapFromMarkers(source1, source2);
+            CompilationDifference diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(
                     new SemanticEdit(SemanticEditKind.Update, f1, f2, syntaxMap2, preserveLocalVariables: true),
@@ -275,7 +275,7 @@ public class C
                 "C: {<>c}",
                 "C.<>c: {<>9__3_3#1, <>9__3_1, <G>b__3_1, <G>b__3_3#1, <>9__3_0, <>9__3_2, <G>b__3_0, <G>b__3_2}");
 
-            var reader2 = diff2.GetMetadata().Reader;
+            MetadataReader reader2 = diff2.GetMetadata().Reader;
 
             CheckEncLogDefinitions(reader2,
                 Row(5, TableIndex.StandAloneSig, EditAndContinueOperation.Default),

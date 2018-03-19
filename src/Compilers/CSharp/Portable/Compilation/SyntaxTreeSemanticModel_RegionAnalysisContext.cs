@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (expression.Kind() == SyntaxKind.ParenthesizedExpression)
                 expression = ((ParenthesizedExpressionSyntax)expression).Expression;
 
-            var memberModel = GetMemberModel(expression);
+            MemberSemanticModel memberModel = GetMemberModel(expression);
             if (memberModel == null)
             {
                 // Recover from error cases
@@ -28,14 +28,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Symbol member;
             BoundNode boundNode = GetBoundRoot(memberModel, out member);
-            var first = memberModel.GetUpperBoundNode(expression, promoteToBindable: true);
-            var last = first;
+            BoundNode first = memberModel.GetUpperBoundNode(expression, promoteToBindable: true);
+            BoundNode last = first;
             return new RegionAnalysisContext(this.Compilation, member, boundNode, first, last);
         }
 
         private RegionAnalysisContext RegionAnalysisContext(StatementSyntax firstStatement, StatementSyntax lastStatement)
         {
-            var memberModel = GetMemberModel(firstStatement);
+            MemberSemanticModel memberModel = GetMemberModel(firstStatement);
             if (memberModel == null)
             {
                 // Recover from error cases
@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Symbol member;
             BoundNode boundNode = GetBoundRoot(memberModel, out member);
-            var first = memberModel.GetUpperBoundNode(firstStatement, promoteToBindable: true);
-            var last = memberModel.GetUpperBoundNode(lastStatement, promoteToBindable: true);
+            BoundNode first = memberModel.GetUpperBoundNode(firstStatement, promoteToBindable: true);
+            BoundNode last = memberModel.GetUpperBoundNode(lastStatement, promoteToBindable: true);
             return new RegionAnalysisContext(Compilation, member, boundNode, first, last);
         }
     }

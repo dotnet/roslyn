@@ -44,8 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             while (_stack.Any())
             {
                 var diagIndex = _stack.Top.DiagnosticIndex;
-                var node = _stack.Top.Node;
-                var diags = node.GetDiagnostics();
+                GreenNode node = _stack.Top.Node;
+                DiagnosticInfo[] diags = node.GetDiagnostics();
                 if (diagIndex < diags.Length - 1)
                 {
                     diagIndex++;
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (slotIndex < node.SlotCount - 1)
                 {
                     slotIndex++;
-                    var child = node.GetSlot(slotIndex);
+                    GreenNode child = node.GetSlot(slotIndex);
                     if (child == null)
                     {
                         goto tryAgain;
@@ -149,14 +149,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private void PushToken(Syntax.InternalSyntax.SyntaxToken token)
             {
-                var trailing = token.GetTrailingTrivia();
+                GreenNode trailing = token.GetTrailingTrivia();
                 if (trailing != null)
                 {
                     this.Push(trailing);
                 }
 
                 this.Push(token);
-                var leading = token.GetLeadingTrivia();
+                GreenNode leading = token.GetLeadingTrivia();
                 if (leading != null)
                 {
                     this.Push(leading);

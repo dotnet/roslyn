@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             if (_lazyMethodsByName == null)
             {
                 var map = new Dictionary<string, MethodData>();
-                foreach (var pair in Methods)
+                foreach (KeyValuePair<IMethodSymbol, MethodData> pair in Methods)
                 {
                     var name = GetMethodName(pair.Key);
                     if (map.ContainsKey(name))
@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         private static string GetMethodName(IMethodSymbol methodSymbol)
         {
-            var format = (methodSymbol.MethodKind == MethodKind.UserDefinedOperator) ?
+            SymbolDisplayFormat format = (methodSymbol.MethodKind == MethodKind.UserDefinedOperator) ?
                 _testDataOperatorKeyFormat :
                 _testDataKeyFormat;
             return methodSymbol.ToDisplayString(format);

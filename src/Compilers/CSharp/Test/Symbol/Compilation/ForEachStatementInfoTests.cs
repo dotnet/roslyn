@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Fact]
         public void Equality()
         {
-            var c = CreateCompilation(@"
+            CSharpCompilation c = CreateCompilation(@"
 class E1
 {
     public E GetEnumerator() { return null; }
@@ -36,14 +36,14 @@ class E2
             var mn1 = (MethodSymbol)e1.GetMembers("MoveNext").Single();
             var cur1 = (PropertySymbol)e1.GetMembers("Current").Single();
             var disp1 = (MethodSymbol)e1.GetMembers("Dispose").Single();
-            var conv1 = Conversion.Identity;
+            Conversion conv1 = Conversion.Identity;
 
             var e2 = (TypeSymbol)c.GlobalNamespace.GetMembers("E2").Single();
             var ge2 = (MethodSymbol)e2.GetMembers("GetEnumerator").Single();
             var mn2 = (MethodSymbol)e2.GetMembers("MoveNext").Single();
             var cur2 = (PropertySymbol)e2.GetMembers("Current").Single();
             var disp2 = (MethodSymbol)e2.GetMembers("Dispose").Single();
-            var conv2 = Conversion.NoConversion;
+            Conversion conv2 = Conversion.NoConversion;
 
             EqualityTesting.AssertEqual(default(ForEachStatementInfo), default(ForEachStatementInfo));
             EqualityTesting.AssertEqual(new ForEachStatementInfo(ge1, mn1, cur1, disp1, e1, conv1, conv1), new ForEachStatementInfo(ge1, mn1, cur1, disp1, e1, conv1, conv1));

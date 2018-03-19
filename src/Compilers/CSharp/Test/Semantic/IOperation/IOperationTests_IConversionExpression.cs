@@ -38,7 +38,7 @@ IVariableDeclaratorOperation (Symbol: dynamic d1) (OperationKind.VariableDeclara
         Operand: 
           ILocalReferenceOperation: o1 (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -67,7 +67,7 @@ IVariableDeclaratorOperation (Symbol: System.Object o2) (OperationKind.VariableD
     IVariableInitializerOperation (OperationKind.VariableInitializer, Type: null) (Syntax: '= o1')
       ILocalReferenceOperation: o1 (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -95,7 +95,7 @@ IVariableDeclaratorOperation (Symbol: System.Double d1) (OperationKind.VariableD
         Operand: 
           ILocalReferenceOperation: f1 (OperationKind.LocalReference, Type: System.Single) (Syntax: 'f1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -167,14 +167,14 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDe
                     // This scenario, where the syntax has IsMissing set, is special cased. We remove the conversion, and leave
                     // just an IInvalidOperation with null type. First assert that our assumptions are true, then test the actual
                     // result
-                    var initializerSyntax = ((VariableDeclaratorSyntax)syntax).Initializer.Value;
-                    var typeInfo = compilation.GetSemanticModel(syntax.SyntaxTree).GetTypeInfo(initializerSyntax);
+                    ExpressionSyntax initializerSyntax = ((VariableDeclaratorSyntax)syntax).Initializer.Value;
+                    TypeInfo typeInfo = compilation.GetSemanticModel(syntax.SyntaxTree).GetTypeInfo(initializerSyntax);
                     Assert.Equal(SyntaxKind.IdentifierName, initializerSyntax.Kind());
                     Assert.True(initializerSyntax.IsMissing);
                     Assert.Null(typeInfo.Type);
                     Assert.Null(typeInfo.ConvertedType);
 
-                    var initializerOperation = ((IVariableDeclaratorOperation)operation).Initializer.Value;
+                    IOperation initializerOperation = ((IVariableDeclaratorOperation)operation).Initializer.Value;
                     Assert.Null(initializerOperation.Type);
                     Assert.Equal(OperationKind.Invalid, initializerOperation.Kind);
                 });
@@ -358,7 +358,7 @@ IVariableDeclaratorOperation (Symbol: System.Object o) (OperationKind.VariableDe
                   Initializer: 
                     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier()
@@ -370,7 +370,7 @@ IVariableDeclaratorOperation (Symbol: System.Object o) (OperationKind.VariableDe
                     },
                     OperationSelector = (operation) =>
                     {
-                        var initializer = ((IVariableDeclaratorOperation)operation).Initializer.Value;
+                        IOperation initializer = ((IVariableDeclaratorOperation)operation).Initializer.Value;
                         return (IConversionOperation)((ICoalesceOperation)initializer).WhenNull;
                     }
                 }.Verify);
@@ -666,7 +666,7 @@ IVariableDeclaratorOperation (Symbol: System.Int64? l1) (OperationKind.VariableD
         Operand: 
           ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32?) (Syntax: 'i1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -695,7 +695,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32? i2) (OperationKind.VariableD
         Operand: 
           ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -767,7 +767,7 @@ IVariableDeclaratorOperation (Symbol: System.IFormattable f1) (OperationKind.Var
                   FormatString: 
                     null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -800,7 +800,7 @@ IVariableDeclaratorOperation (Symbol: System.Object o1) (OperationKind.VariableD
             Initializer: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -833,7 +833,7 @@ IVariableDeclaratorOperation (Symbol: dynamic d1) (OperationKind.VariableDeclara
             Initializer: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -870,7 +870,7 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
             Initializer: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -986,7 +986,7 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
             Initializer: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -1105,7 +1105,7 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
         Operand: 
           ILocalReferenceOperation: i2 (OperationKind.LocalReference, Type: I2) (Syntax: 'i2')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -1183,7 +1183,7 @@ IVariableDeclaratorOperation (Symbol: C1[] c1arr) (OperationKind.VariableDeclara
         Operand: 
           ILocalReferenceOperation: c2arr (OperationKind.LocalReference, Type: C2[]) (Syntax: 'c2arr')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -1341,7 +1341,7 @@ IVariableDeclaratorOperation (Symbol: System.Array a1) (OperationKind.VariableDe
             Initializer: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -1375,7 +1375,7 @@ IVariableDeclaratorOperation (Symbol: System.Array a1) (OperationKind.VariableDe
             Initializer: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -1446,7 +1446,7 @@ IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<System.In
             Initializer: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -1519,7 +1519,7 @@ IVariableDeclaratorOperation (Symbol: System.Delegate d2) (OperationKind.Variabl
         Operand: 
           ILocalReferenceOperation: d1 (OperationKind.LocalReference, Type: C1.DType) (Syntax: 'd1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -1637,7 +1637,7 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
             Initializer: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -1682,7 +1682,7 @@ IVariableDeclaratorOperation (Symbol: I1<C4> c1) (OperationKind.VariableDeclarat
         Operand: 
           ILocalReferenceOperation: c2 (OperationKind.LocalReference, Type: C2<C3>) (Syntax: 'c2')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -1776,7 +1776,7 @@ IVariableDeclaratorOperation (Symbol: I1<C3> c1) (OperationKind.VariableDeclarat
         Operand: 
           ILocalReferenceOperation: c2 (OperationKind.LocalReference, Type: C2<C4>) (Syntax: 'c2')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -1858,7 +1858,7 @@ IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<System.St
             Initializer: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -1894,7 +1894,7 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
             Initializer: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -1969,7 +1969,7 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
             Initializer: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -2044,7 +2044,7 @@ IVariableDeclaratorOperation (Symbol: U u) (OperationKind.VariableDeclarator, Ty
             Initializer: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -2188,7 +2188,7 @@ IVariableDeclaratorOperation (Symbol: System.Object o) (OperationKind.VariableDe
         Operand: 
           ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -2218,7 +2218,7 @@ IVariableDeclaratorOperation (Symbol: dynamic d) (OperationKind.VariableDeclarat
         Operand: 
           ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -2252,7 +2252,7 @@ IVariableDeclaratorOperation (Symbol: System.ValueType v1) (OperationKind.Variab
             Initializer: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -2325,7 +2325,7 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
             Initializer: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -2397,7 +2397,7 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
         Operand: 
           ILocalReferenceOperation: s1 (OperationKind.LocalReference, Type: S1?) (Syntax: 's1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -2472,7 +2472,7 @@ IVariableDeclaratorOperation (Symbol: System.Enum e) (OperationKind.VariableDecl
             Instance Receiver: 
               null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -2541,7 +2541,7 @@ IVariableDeclaratorOperation (Symbol: System.String s1) (OperationKind.VariableD
         Operand: 
           ILocalReferenceOperation: d1 (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -2570,7 +2570,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i1) (OperationKind.VariableDe
         Operand: 
           ILocalReferenceOperation: d1 (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -2708,7 +2708,7 @@ IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, 
         Operand: 
           IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C1) (Syntax: 'this')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -2748,7 +2748,7 @@ IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, 
             Operand: 
               ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier()
@@ -2895,7 +2895,7 @@ IVariableDeclaratorOperation (Symbol: C3 c3) (OperationKind.VariableDeclarator, 
         Operand: 
           IInstanceReferenceOperation (OperationKind.InstanceReference, Type: C2) (Syntax: 'this')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -2925,7 +2925,7 @@ IVariableDeclaratorOperation (Symbol: System.Void* v1) (OperationKind.VariableDe
         Operand: 
           ILiteralOperation (OperationKind.Literal, Type: null, Constant: null) (Syntax: 'null')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 compilationOptions: TestOptions.UnsafeReleaseDll,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -2956,7 +2956,7 @@ IVariableDeclaratorOperation (Symbol: System.Void* v1) (OperationKind.VariableDe
         Operand: 
           ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: System.Int32*) (Syntax: 'i1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 compilationOptions: TestOptions.UnsafeReleaseDll,
@@ -3067,7 +3067,7 @@ IVariableDeclaratorOperation (Symbol: System.Linq.Expressions.Expression<System.
                     Right: 
                       ILiteralOperation (OperationKind.Literal, Type: System.Int32, Constant: 5) (Syntax: '5')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -3176,7 +3176,7 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return i;')
       Operand: 
         ILocalReferenceOperation: i (OperationKind.LocalReference, Type: System.Int32) (Syntax: 'i')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics,
                 additionalOperationTreeVerifier: new ExpectedSymbolVerifier().Verify);
@@ -3285,7 +3285,7 @@ IVariableDeclarationGroupOperation (1 declarations) (OperationKind.VariableDecla
     Initializer: 
       null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<LocalDeclarationStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -3688,7 +3688,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32? i) (OperationKind.VariableDe
         Operand: 
           ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Int64?) (Syntax: 'l')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -3716,7 +3716,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDec
         Operand: 
           ILocalReferenceOperation: l (OperationKind.LocalReference, Type: System.Int64?) (Syntax: 'l')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -3744,7 +3744,7 @@ IVariableDeclaratorOperation (Symbol: System.String s) (OperationKind.VariableDe
         Operand: 
           ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -3772,7 +3772,7 @@ IVariableDeclaratorOperation (Symbol: System.String s) (OperationKind.VariableDe
         Operand: 
           ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -3804,7 +3804,7 @@ IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, 
         Operand: 
           ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: C1) (Syntax: 'c1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -3870,7 +3870,7 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
         Operand: 
           ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: I1) (Syntax: 'i1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -3900,7 +3900,7 @@ IVariableDeclaratorOperation (Symbol: C1 c1) (OperationKind.VariableDeclarator, 
         Operand: 
           ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: I1) (Syntax: 'i1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -3966,7 +3966,7 @@ IVariableDeclaratorOperation (Symbol: I2 i2) (OperationKind.VariableDeclarator, 
         Operand: 
           ILocalReferenceOperation: i1 (OperationKind.LocalReference, Type: I1) (Syntax: 'i1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4030,7 +4030,7 @@ IVariableDeclaratorOperation (Symbol: C2[] c2arr) (OperationKind.VariableDeclara
         Operand: 
           ILocalReferenceOperation: c1arr (OperationKind.LocalReference, Type: C1[]) (Syntax: 'c1arr')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4126,7 +4126,7 @@ IVariableDeclaratorOperation (Symbol: C1[] c2arr) (OperationKind.VariableDeclara
         Operand: 
           ILocalReferenceOperation: c1arr (OperationKind.LocalReference, Type: System.Array) (Syntax: 'c1arr')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4157,7 +4157,7 @@ IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<C1> c1lis
         Operand: 
           ILocalReferenceOperation: c1arr (OperationKind.LocalReference, Type: C1[]) (Syntax: 'c1arr')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4223,7 +4223,7 @@ IVariableDeclaratorOperation (Symbol: C1[] c1arr) (OperationKind.VariableDeclara
         Operand: 
           ILocalReferenceOperation: c1List (OperationKind.LocalReference, Type: System.Collections.Generic.IList<C1>) (Syntax: 'c1List')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4288,7 +4288,7 @@ IVariableDeclaratorOperation (Symbol: System.Action a) (OperationKind.VariableDe
         Operand: 
           ILocalReferenceOperation: d (OperationKind.LocalReference, Type: System.Delegate) (Syntax: 'd')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4332,7 +4332,7 @@ IVariableDeclaratorOperation (Symbol: I1<C4> c1) (OperationKind.VariableDeclarat
         Operand: 
           ILocalReferenceOperation: c2 (OperationKind.LocalReference, Type: C2<C3>) (Syntax: 'c2')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4360,7 +4360,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDec
         Operand: 
           ILocalReferenceOperation: o (OperationKind.LocalReference, Type: System.Object) (Syntax: 'o')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4388,7 +4388,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDec
         Operand: 
           ILocalReferenceOperation: d (OperationKind.LocalReference, Type: dynamic) (Syntax: 'd')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4418,7 +4418,7 @@ IVariableDeclaratorOperation (Symbol: System.Int32 i) (OperationKind.VariableDec
         Operand: 
           ILocalReferenceOperation: v (OperationKind.LocalReference, Type: System.ValueType) (Syntax: 'v')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4453,7 +4453,7 @@ IVariableDeclaratorOperation (Symbol: E1 e1) (OperationKind.VariableDeclarator, 
         Operand: 
           ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Enum) (Syntax: 'e')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4488,7 +4488,7 @@ IVariableDeclaratorOperation (Symbol: E1? e1) (OperationKind.VariableDeclarator,
         Operand: 
           ILocalReferenceOperation: e (OperationKind.LocalReference, Type: System.Enum) (Syntax: 'e')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4564,7 +4564,7 @@ IVariableDeclaratorOperation (Symbol: S1 s1) (OperationKind.VariableDeclarator, 
         Operand: 
           ILocalReferenceOperation: i (OperationKind.LocalReference, Type: I1) (Syntax: 'i')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4637,7 +4637,7 @@ IVariableDeclaratorOperation (Symbol: System.Collections.Generic.IList<S1> s1Lis
         Operand: 
           ILocalReferenceOperation: i1List (OperationKind.LocalReference, Type: System.Collections.Generic.IList<I1>) (Syntax: 'i1List')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4666,7 +4666,7 @@ IVariableDeclaratorOperation (Symbol: T t) (OperationKind.VariableDeclarator, Ty
         Operand: 
           IParameterReferenceOperation: u (OperationKind.ParameterReference, Type: U) (Syntax: 'u')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4728,7 +4728,7 @@ IVariableDeclaratorOperation (Symbol: T t) (OperationKind.VariableDeclarator, Ty
         Operand: 
           IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: I1) (Syntax: 'i')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4757,7 +4757,7 @@ IVariableDeclaratorOperation (Symbol: I1 i) (OperationKind.VariableDeclarator, T
         Operand: 
           IParameterReferenceOperation: t (OperationKind.ParameterReference, Type: T) (Syntax: 't')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4789,7 +4789,7 @@ IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, 
         Operand: 
           ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: C1) (Syntax: 'c1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4821,7 +4821,7 @@ IVariableDeclaratorOperation (Symbol: C2 c2) (OperationKind.VariableDeclarator, 
         Operand: 
           ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: C1) (Syntax: 'c1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4858,7 +4858,7 @@ IVariableDeclaratorOperation (Symbol: I1 i1) (OperationKind.VariableDeclarator, 
             Operand: 
               ILocalReferenceOperation: c1 (OperationKind.LocalReference, Type: C1) (Syntax: 'c1')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<VariableDeclaratorSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -4886,7 +4886,7 @@ IReturnOperation (OperationKind.Return, Type: null) (Syntax: 'return (int)1.0;')
       Operand: 
         ILiteralOperation (OperationKind.Literal, Type: System.Double, Constant: 1) (Syntax: '1.0')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<ReturnStatementSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -5019,7 +5019,7 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
   Operand: 
     ILocalReferenceOperation: objectAction (OperationKind.LocalReference, Type: System.Action<System.Object>) (Syntax: 'objectAction')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<CastExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -5110,13 +5110,13 @@ IConversionOperation (TryCast: False, Unchecked) (OperationKind.Conversion, Type
             /// </summary>
             public void Verify(IOperation variableDeclaration, Compilation compilation, SyntaxNode syntaxNode)
             {
-                var finalSyntax = GetAndInvokeSyntaxSelector(syntaxNode);
-                var semanticModel = compilation.GetSemanticModel(finalSyntax.SyntaxTree);
-                var typeInfo = semanticModel.GetTypeInfo(finalSyntax);
+                SyntaxNode finalSyntax = GetAndInvokeSyntaxSelector(syntaxNode);
+                SemanticModel semanticModel = compilation.GetSemanticModel(finalSyntax.SyntaxTree);
+                TypeInfo typeInfo = semanticModel.GetTypeInfo(finalSyntax);
 
-                var initializer = GetAndInvokeOperationSelector(variableDeclaration);
+                IOperation initializer = GetAndInvokeOperationSelector(variableDeclaration);
 
-                var conversion = initializer;
+                IOperation conversion = initializer;
                 Assert.Equal(conversion.Type, typeInfo.ConvertedType);
                 Assert.Equal(ConversionChildSelector(conversion).Type, typeInfo.Type);
             }

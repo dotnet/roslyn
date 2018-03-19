@@ -113,7 +113,7 @@ End Module")
         {
             if (files != null)
             {
-                foreach (var pair in files)
+                foreach (KeyValuePair<string, string> pair in files)
                 {
                     TempFile file = currentDirectory.CreateFile(pair.Key);
                     file.WriteAllText(pair.Value);
@@ -133,7 +133,7 @@ End Module")
             var resetVariables = new Dictionary<string, string>();
             try
             {
-                foreach (var variable in environmentVariables)
+                foreach (KeyValuePair<string, string> variable in environmentVariables)
                 {
                     resetVariables.Add(variable.Key, Environment.GetEnvironmentVariable(variable.Key));
                     Environment.SetEnvironmentVariable(variable.Key, variable.Value);
@@ -143,7 +143,7 @@ End Module")
             }
             finally
             {
-                foreach (var variable in resetVariables)
+                foreach (KeyValuePair<string, string> variable in resetVariables)
                 {
                     Environment.SetEnvironmentVariable(variable.Key, variable.Value);
                 }
@@ -165,7 +165,7 @@ End Module")
                 writer = new StreamWriter(memoryStream, encoding);
             }
 
-            var result = func(writer);
+            T result = func(writer);
             writer.Flush();
             if (memoryStream != null)
             {
@@ -195,7 +195,7 @@ End Module")
             // case where these tests are run under extreme load.  In high load scenarios the
             // client will correctly drop down to a local compilation if the server doesn't respond
             // fast enough.
-            var client = ServerUtil.CreateBuildClient(language);
+            DesktopBuildClient client = ServerUtil.CreateBuildClient(language);
             client.TimeoutOverride = Timeout.Infinite;
 
             var sdkDir = ServerUtil.DefaultSdkDirectory;
@@ -206,7 +206,7 @@ End Module")
                 sdkDir: sdkDir,
                 tempDir: BuildServerConnection.GetTempPath(currentDirectory.Path));
 
-            var (result, output) = UseTextWriter(redirectEncoding, writer => ApplyEnvironmentVariables(additionalEnvironmentVars, () => client.RunCompilation(arguments, buildPaths, writer)));
+            (RunCompilationResult result, string output) = UseTextWriter(redirectEncoding, writer => ApplyEnvironmentVariables(additionalEnvironmentVars, () => client.RunCompilation(arguments, buildPaths, writer)));
             Assert.Equal(shouldRunOnServer, result.RanOnServer);
             return (result.ExitCode, output);
         }
@@ -220,7 +220,7 @@ End Module")
         {
             if (!CoreClrShim.IsRunningOnCoreClr)
             {
-                var result = ProcessUtilities.Run(file.Path, "", Path.GetDirectoryName(file.Path));
+                ProcessResult result = ProcessUtilities.Run(file.Path, "", Path.GetDirectoryName(file.Path));
                 Assert.Equal(expectedOutput.Trim(), result.Output.Trim());
             }
         }
@@ -233,7 +233,7 @@ End Module")
 
         private void VerifyResultAndOutput((int ExitCode, string Output) result, TempDirectory path, string expectedOutput)
         {
-            using (var resultFile = GetResultFile(path, "hello.exe"))
+            using (DisposableFile resultFile = GetResultFile(path, "hello.exe"))
             {
                 VerifyResult(result);
 
@@ -247,9 +247,9 @@ End Module")
         public async Task FallbackToCsc()
         {
             // Verify csc will fall back to command line when server fails to process
-            using (var serverData = ServerUtil.CreateServerFailsConnection())
+            using (ServerData serverData = ServerUtil.CreateServerFailsConnection())
             {
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs, shouldRunOnServer: false);
+                (int ExitCode, string Output) result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs, shouldRunOnServer: false);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
                 // the server still counts failed connections as completing a connection (but with a failed result), hence the "completed: 1"
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
@@ -260,11 +260,11 @@ End Module")
         public async Task CscFallBackOutputNoUtf8()
         {
             // Verify csc will fall back to command line when server fails to process
-            using (var serverData = ServerUtil.CreateServerFailsConnection())
+            using (ServerData serverData = ServerUtil.CreateServerFailsConnection())
             {
                 var files = new Dictionary<string, string> { { "hello.cs", "♕" } };
 
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, files, redirectEncoding: Encoding.ASCII, shouldRunOnServer: false);
+                (int ExitCode, string Output) result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, files, redirectEncoding: Encoding.ASCII, shouldRunOnServer: false);
                 Assert.Equal(result.ExitCode, 1);
                 Assert.Equal("hello.cs(1,1): error CS1056: Unexpected character '?'", result.Output.Trim());
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
@@ -276,9 +276,9 @@ End Module")
         {
             var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
 
-            using (var serverData = ServerUtil.CreateServerFailsConnection())
+            using (ServerData serverData = ServerUtil.CreateServerFailsConnection())
             {
-                var result = RunCommandLineCompiler(
+                (int ExitCode, string Output) result = RunCommandLineCompiler(
                     CSharpCompilerClientExecutable,
                     $"/shared:{serverData.PipeName} /utf8output /nologo /t:library {srcFile}",
                     _tempDirectory,
@@ -297,9 +297,9 @@ End Module")
         {
             var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText("♕").Path;
 
-            using (var serverData = ServerUtil.CreateServerFailsConnection())
+            using (ServerData serverData = ServerUtil.CreateServerFailsConnection())
             {
-                var result = RunCommandLineCompiler(
+                (int ExitCode, string Output) result = RunCommandLineCompiler(
                     BasicCompilerClientExecutable,
                     $"/shared:{serverData.PipeName} /vbruntime* /nologo test.vb",
                     _tempDirectory,
@@ -320,9 +320,9 @@ End Module")
         {
             var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText("♕").Path;
 
-            using (var serverData = ServerUtil.CreateServerFailsConnection())
+            using (ServerData serverData = ServerUtil.CreateServerFailsConnection())
             {
-                var result = RunCommandLineCompiler(
+                (int ExitCode, string Output) result = RunCommandLineCompiler(
                     BasicCompilerClientExecutable,
                     $"/shared:{serverData.PipeName} /vbruntime* /utf8output /nologo /t:library {srcFile}",
                     _tempDirectory,
@@ -341,9 +341,9 @@ End Module")
         [Fact]
         public async Task FallbackToVbc()
         {
-            using (var serverData = ServerUtil.CreateServerFailsConnection())
+            using (ServerData serverData = ServerUtil.CreateServerFailsConnection())
             {
-                var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo /vbruntime* hello.vb", _tempDirectory, s_helloWorldSrcVb, shouldRunOnServer: false);
+                (int ExitCode, string Output) result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo /vbruntime* hello.vb", _tempDirectory, s_helloWorldSrcVb, shouldRunOnServer: false);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello from VB");
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -353,9 +353,9 @@ End Module")
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task HelloWorldCS()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
+                (int ExitCode, string Output) result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo hello.cs", _tempDirectory, s_helloWorldSrcCs);
                 VerifyResultAndOutput(result, _tempDirectory, "Hello, world.");
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
             }
@@ -382,10 +382,10 @@ End Module")
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Platformx86MscorlibCsc()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
                 var files = new Dictionary<string, string> { { "c.cs", "class C {}" } };
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable,
+                (int ExitCode, string Output) result = RunCommandLineCompiler(CSharpCompilerClientExecutable,
                                                     $"/shared:{serverData.PipeName} /nologo /t:library /platform:x86 c.cs",
                                                     _tempDirectory,
                                                     files);
@@ -398,10 +398,10 @@ End Module")
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task Platformx86MscorlibVbc()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
                 var files = new Dictionary<string, string> { { "c.vb", "Class C\nEnd Class" } };
-                var result = RunCommandLineCompiler(BasicCompilerClientExecutable,
+                (int ExitCode, string Output) result = RunCommandLineCompiler(BasicCompilerClientExecutable,
                                                     $"/shared:{serverData.PipeName} /vbruntime* /nologo /t:library /platform:x86 c.vb",
                                                     _tempDirectory,
                                                     files);
@@ -414,9 +414,9 @@ End Module")
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task ExtraMSCorLibCS()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable,
+                (int ExitCode, string Output) result = RunCommandLineCompiler(CSharpCompilerClientExecutable,
                                                     $"/shared:{serverData.PipeName} /nologo /r:mscorlib.dll hello.cs",
                                                     _tempDirectory,
                                                     s_helloWorldSrcCs);
@@ -429,9 +429,9 @@ End Module")
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task HelloWorldVB()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
-                var result = RunCommandLineCompiler(BasicCompilerClientExecutable,
+                (int ExitCode, string Output) result = RunCommandLineCompiler(BasicCompilerClientExecutable,
                                                     $"/shared:{serverData.PipeName} /nologo /vbruntime* hello.vb",
                                                     _tempDirectory,
                                                     s_helloWorldSrcVb);
@@ -444,9 +444,9 @@ End Module")
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task ExtraMSCorLibVB()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
-                var result = RunCommandLineCompiler(BasicCompilerClientExecutable,
+                (int ExitCode, string Output) result = RunCommandLineCompiler(BasicCompilerClientExecutable,
                     $"/shared:{serverData.PipeName} /nologo /r:mscorlib.dll /vbruntime* hello.vb",
                     _tempDirectory,
                     s_helloWorldSrcVb);
@@ -459,7 +459,7 @@ End Module")
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task CompileErrorsCS()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
                 Dictionary<string, string> files =
                                        new Dictionary<string, string> {
@@ -471,7 +471,7 @@ class Hello
     { Console.WriteLine(""Hello, world."") }
 }"}};
 
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} hello.cs", _tempDirectory, files);
+                (int ExitCode, string Output) result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} hello.cs", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
                 Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
@@ -486,7 +486,7 @@ class Hello
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task CompileErrorsVB()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
                 Dictionary<string, string> files =
                                        new Dictionary<string, string> {
@@ -499,7 +499,7 @@ Module Module1
     End Sub
 End Class"}};
 
-                var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /vbruntime* hellovb.vb", _tempDirectory, files);
+                (int ExitCode, string Output) result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /vbruntime* hellovb.vb", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
                 Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
@@ -515,9 +515,9 @@ End Class"}};
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MissingFileErrorCS()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} missingfile.cs", _tempDirectory);
+                (int ExitCode, string Output) result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} missingfile.cs", _tempDirectory);
 
                 // Should output errors, but not create output file.
                 Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
@@ -532,9 +532,9 @@ End Class"}};
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MissingReferenceErrorCS()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /r:missing.dll hello.cs", _tempDirectory, s_helloWorldSrcCs);
+                (int ExitCode, string Output) result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /r:missing.dll hello.cs", _tempDirectory, s_helloWorldSrcCs);
 
                 // Should output errors, but not create output file.
                 Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
@@ -550,7 +550,7 @@ End Class"}};
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task InvalidMetadataFileErrorCS()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
                 Dictionary<string, string> files =
                                        new Dictionary<string, string> {
@@ -558,7 +558,7 @@ End Class"}};
                                                { "app.cs", "class Test { static void Main() {} }"},
                                                };
 
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /r:Lib.cs app.cs", _tempDirectory, files);
+                (int ExitCode, string Output) result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"/shared:{serverData.PipeName} /r:Lib.cs app.cs", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
                 Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
@@ -573,9 +573,9 @@ End Class"}};
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MissingFileErrorVB()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
-                var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /vbruntime* missingfile.vb", _tempDirectory);
+                (int ExitCode, string Output) result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /vbruntime* missingfile.vb", _tempDirectory);
 
                 // Should output errors, but not create output file.
                 Assert.Contains("Copyright (C) Microsoft Corporation. All rights reserved.", result.Output, StringComparison.Ordinal);
@@ -590,7 +590,7 @@ End Class"}};
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MissingReferenceErrorVB()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
                 Dictionary<string, string> files =
                                        new Dictionary<string, string> {
@@ -604,7 +604,7 @@ Module Module1
     End Sub
 End Module"}};
 
-                var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo /vbruntime* /r:missing.dll hellovb.vb", _tempDirectory, files);
+                (int ExitCode, string Output) result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo /vbruntime* /r:missing.dll hellovb.vb", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
                 Assert.Contains("error BC2017: could not find library", result.Output, StringComparison.Ordinal);
@@ -619,7 +619,7 @@ End Module"}};
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task InvalidMetadataFileErrorVB()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
                 Dictionary<string, string> files =
                                        new Dictionary<string, string> {
@@ -632,7 +632,7 @@ End Class" },
     End Sub
 End Module"}};
 
-                var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo /vbruntime* /r:Lib.vb app.vb", _tempDirectory, files);
+                (int ExitCode, string Output) result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"/shared:{serverData.PipeName} /nologo /vbruntime* /r:Lib.vb app.vb", _tempDirectory, files);
 
                 // Should output errors, but not create output file.
                 Assert.Contains("error BC31519", result.Output, StringComparison.Ordinal);
@@ -662,14 +662,14 @@ Public Class Library
 End Class
 "}};
 
-            using (var serverData = ServerUtil.CreateServer())
-            using (var tmpFile = GetResultFile(rootDirectory, "lib.dll"))
+            using (ServerData serverData = ServerUtil.CreateServer())
+            using (DisposableFile tmpFile = GetResultFile(rootDirectory, "lib.dll"))
             {
-                var result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"src1.vb /shared:{serverData.PipeName} /nologo /t:library /out:lib.dll", rootDirectory, files);
+                (int ExitCode, string Output) result = RunCommandLineCompiler(BasicCompilerClientExecutable, $"src1.vb /shared:{serverData.PipeName} /nologo /t:library /out:lib.dll", rootDirectory, files);
                 Assert.Equal("", result.Output);
                 Assert.Equal(0, result.ExitCode);
 
-                using (var hello1_file = GetResultFile(rootDirectory, "hello1.exe"))
+                using (DisposableFile hello1_file = GetResultFile(rootDirectory, "hello1.exe"))
                 {
                     // Create EXE "hello1.exe"
                     files = new Dictionary<string, string> {
@@ -688,7 +688,7 @@ End Module
                     // Run hello1.exe.
                     RunCompilerOutput(hello1_file, "Hello1 from library1");
 
-                    using (var hello2_file = GetResultFile(rootDirectory, "hello2.exe"))
+                    using (DisposableFile hello2_file = GetResultFile(rootDirectory, "hello2.exe"))
                     {
                         // Create EXE "hello2.exe" referencing same DLL
                         files = new Dictionary<string, string> {
@@ -726,7 +726,7 @@ End Class
                         Assert.Equal("", result.Output);
                         Assert.Equal(0, result.ExitCode);
 
-                        using (var hello3_file = GetResultFile(rootDirectory, "hello3.exe"))
+                        using (DisposableFile hello3_file = GetResultFile(rootDirectory, "hello3.exe"))
                         {
                             // Create EXE "hello3.exe" referencing new DLL
                             files = new Dictionary<string, string> {
@@ -764,8 +764,8 @@ End Module
         {
             TempDirectory rootDirectory = _tempDirectory.CreateDirectory("ReferenceCachingCS");
 
-            using (var serverData = ServerUtil.CreateServer())
-            using (var tmpFile = GetResultFile(rootDirectory, "lib.dll"))
+            using (ServerData serverData = ServerUtil.CreateServer())
+            using (DisposableFile tmpFile = GetResultFile(rootDirectory, "lib.dll"))
             {
                 // Create DLL "lib.dll"
                 Dictionary<string, string> files =
@@ -778,11 +778,11 @@ public class Library
     { return ""library1""; }
 }"}};
 
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"src1.cs /shared:{serverData.PipeName} /nologo /t:library /out:lib.dll", rootDirectory, files);
+                (int ExitCode, string Output) result = RunCommandLineCompiler(CSharpCompilerClientExecutable, $"src1.cs /shared:{serverData.PipeName} /nologo /t:library /out:lib.dll", rootDirectory, files);
                 Assert.Equal("", result.Output);
                 Assert.Equal(0, result.ExitCode);
 
-                using (var hello1_file = GetResultFile(rootDirectory, "hello1.exe"))
+                using (DisposableFile hello1_file = GetResultFile(rootDirectory, "hello1.exe"))
                 {
                     // Create EXE "hello1.exe"
                     files = new Dictionary<string, string> {
@@ -800,9 +800,9 @@ class Hello
                     // Run hello1.exe.
                     RunCompilerOutput(hello1_file, "Hello1 from library1");
 
-                    using (var hello2_file = GetResultFile(rootDirectory, "hello2.exe"))
+                    using (DisposableFile hello2_file = GetResultFile(rootDirectory, "hello2.exe"))
                     {
-                        var hello2exe = Temp.AddFile(hello2_file);
+                        DisposableFile hello2exe = Temp.AddFile(hello2_file);
 
                         // Create EXE "hello2.exe" referencing same DLL
                         files = new Dictionary<string, string> {
@@ -838,7 +838,7 @@ public class Library
                         Assert.Equal("", result.Output);
                         Assert.Equal(0, result.ExitCode);
 
-                        using (var hello3_file = GetResultFile(rootDirectory, "hello3.exe"))
+                        using (DisposableFile hello3_file = GetResultFile(rootDirectory, "hello3.exe"))
                         {
                             // Create EXE "hello3.exe" referencing new DLL
                             files = new Dictionary<string, string> {
@@ -913,12 +913,12 @@ End Module";
 
             return Task.Run(() =>
             {
-                var result = RunCommandLineCompiler(language, string.Join(" ", arguments), compilationDir, filesInDirectory: filesInDirectory);
+                (int ExitCode, string Output) result = RunCommandLineCompiler(language, string.Join(" ", arguments), compilationDir, filesInDirectory: filesInDirectory);
 
                 Assert.Equal(0, result.ExitCode);
 
                 // Run the EXE and verify it prints the desired output.
-                var exeFile = GetResultFile(compilationDir, exeFileName);
+                DisposableFile exeFile = GetResultFile(compilationDir, exeFileName);
                 RunCompilerOutput(exeFile, $"{prefix} Hello number {i}");
                 return exeFile;
             });
@@ -930,7 +930,7 @@ End Module";
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task MultipleSimultaneousCompiles()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
                 // Run this many compiles simultaneously in different directories.
                 const int numberOfCompiles = 20;
@@ -938,8 +938,8 @@ End Module";
 
                 for (int i = 0; i < numberOfCompiles; ++i)
                 {
-                    var language = i % 2 == 0 ? RequestLanguage.CSharpCompile : RequestLanguage.VisualBasicCompile;
-                    var compilationDir = Temp.CreateDirectory();
+                    RequestLanguage language = i % 2 == 0 ? RequestLanguage.CSharpCompile : RequestLanguage.VisualBasicCompile;
+                    TempDirectory compilationDir = Temp.CreateDirectory();
                     tasks[i] = RunCompilationAsync(language, serverData.PipeName, i, compilationDir);
                 }
 
@@ -947,7 +947,7 @@ End Module";
 
                 await serverData.Verify(numberOfCompiles, numberOfCompiles);
 
-                foreach (var task in tasks)
+                foreach (Task<DisposableFile> task in tasks)
                 {
                     Temp.AddFile(task.Result);
                 }
@@ -958,7 +958,7 @@ End Module";
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task UseLibVariableCS()
         {
-            var libDirectory = _tempDirectory.CreateDirectory("LibraryDir");
+            TempDirectory libDirectory = _tempDirectory.CreateDirectory("LibraryDir");
 
             // Create DLL "lib.dll"
             Dictionary<string, string> files =
@@ -971,9 +971,9 @@ public class Library
     { return ""library1""; }
 }"}};
 
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable,
+                (int ExitCode, string Output) result = RunCommandLineCompiler(CSharpCompilerClientExecutable,
                                                     $"src1.cs /shared:{serverData.PipeName} /nologo /t:library /out:" + Path.Combine(libDirectory.Path, "lib.dll"),
                                                     _tempDirectory, files);
 
@@ -997,7 +997,7 @@ class Hello
                 Assert.Equal("", result.Output);
                 Assert.Equal(0, result.ExitCode);
 
-                var resultFile = Temp.AddFile(GetResultFile(_tempDirectory, "hello1.exe"));
+                DisposableFile resultFile = Temp.AddFile(GetResultFile(_tempDirectory, "hello1.exe"));
                 await serverData.Verify(connections: 2, completed: 2).ConfigureAwait(true);
             }
         }
@@ -1006,7 +1006,7 @@ class Hello
         [Trait(Traits.Environment, Traits.Environments.VSProductInstall)]
         public async Task UseLibVariableVB()
         {
-            var libDirectory = _tempDirectory.CreateDirectory("LibraryDir");
+            TempDirectory libDirectory = _tempDirectory.CreateDirectory("LibraryDir");
 
             // Create DLL "lib.dll"
             Dictionary<string, string> files =
@@ -1021,9 +1021,9 @@ Public Class Library
 End Class
 "}};
 
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
-                var result = RunCommandLineCompiler(BasicCompilerClientExecutable,
+                (int ExitCode, string Output) result = RunCommandLineCompiler(BasicCompilerClientExecutable,
                                                     $"src1.vb /shared:{serverData.PipeName} /vbruntime* /nologo /t:library /out:" + Path.Combine(libDirectory.Path, "lib.dll"),
                                                     _tempDirectory, files);
 
@@ -1048,7 +1048,7 @@ End Module
                 Assert.Equal("", result.Output);
                 Assert.Equal(0, result.ExitCode);
 
-                var resultFile = Temp.AddFile(GetResultFile(_tempDirectory, "hello1.exe"));
+                DisposableFile resultFile = Temp.AddFile(GetResultFile(_tempDirectory, "hello1.exe"));
                 await serverData.Verify(connections: 2, completed: 2).ConfigureAwait(true);
             }
         }
@@ -1060,9 +1060,9 @@ End Module
         {
             var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
 
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
-                var result = RunCommandLineCompiler(
+                (int ExitCode, string Output) result = RunCommandLineCompiler(
                     CSharpCompilerClientExecutable,
                     $"/shared:{serverData.PipeName} /nologo /t:library {srcFile}",
                     _tempDirectory,
@@ -1081,11 +1081,11 @@ End Module
         public async Task Utf8Output_WithRedirecting_Off_Share()
         {
             var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
-            var tempOut = _tempDirectory.CreateFile("output.txt");
+            TempFile tempOut = _tempDirectory.CreateFile("output.txt");
 
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
-                var result = RunCommandLineCompiler(
+                (int ExitCode, string Output) result = RunCommandLineCompiler(
                     BasicCompilerClientExecutable,
                     $"/shared:{serverData.PipeName} /nologo /vbruntime* /t:library {srcFile}",
                     _tempDirectory,
@@ -1109,9 +1109,9 @@ End Module
         {
             var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
 
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
-                var result = RunCommandLineCompiler(
+                (int ExitCode, string Output) result = RunCommandLineCompiler(
                     CSharpCompilerClientExecutable,
                     $"/shared:{serverData.PipeName} /utf8output /nologo /t:library {srcFile}",
                     _tempDirectory,
@@ -1131,9 +1131,9 @@ End Module
         {
             var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText(@"♕").Path;
 
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
-                var result = RunCommandLineCompiler(
+                (int ExitCode, string Output) result = RunCommandLineCompiler(
                     BasicCompilerClientExecutable,
                     $"/shared:{serverData.PipeName} /utf8output /nologo /vbruntime* /t:library {srcFile}",
                     _tempDirectory,
@@ -1171,9 +1171,9 @@ End Module
 }
 "}};
 
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
-                var result = RunCommandLineCompiler(CSharpCompilerClientExecutable,
+                (int ExitCode, string Output) result = RunCommandLineCompiler(CSharpCompilerClientExecutable,
                                                     $"ref_mscorlib2.cs /shared:{serverData.PipeName} /nologo /nostdlib /noconfig /t:library /r:mscorlib20.dll",
                                                     _tempDirectory, files);
 
@@ -1210,13 +1210,13 @@ class Program
         [Fact]
         public async Task Utf8OutputInRspFileCsc()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
                 var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
-                var rspFile = _tempDirectory.CreateFile("temp.rsp").WriteAllText(
+                TempFile rspFile = _tempDirectory.CreateFile("temp.rsp").WriteAllText(
                     string.Format("/utf8output /nologo /t:library {0}", srcFile));
 
-                var result = RunCommandLineCompiler(
+                (int ExitCode, string Output) result = RunCommandLineCompiler(
                     CSharpCompilerClientExecutable,
                     $"/shared:{serverData.PipeName} /noconfig @{rspFile}",
                     _tempDirectory,
@@ -1233,13 +1233,13 @@ class Program
         [Fact]
         public async Task Utf8OutputInRspFileVbc()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
                 var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("♕").Path;
-                var rspFile = _tempDirectory.CreateFile("temp.rsp").WriteAllText(
+                TempFile rspFile = _tempDirectory.CreateFile("temp.rsp").WriteAllText(
                     string.Format("/utf8output /nologo /vbruntime* /t:library {0}", srcFile));
 
-                var result = RunCommandLineCompiler(
+                (int ExitCode, string Output) result = RunCommandLineCompiler(
                     BasicCompilerClientExecutable,
                     $"/shared:{serverData.PipeName} /noconfig @{rspFile}",
                     _tempDirectory,
@@ -1257,7 +1257,7 @@ class Program
         [ConditionalFact(typeof(DesktopOnly))]
         public void BadKeepAlive1()
         {
-            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive", _tempDirectory, shouldRunOnServer: false);
+            (int ExitCode, string Output) result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive", _tempDirectory, shouldRunOnServer: false);
 
             Assert.Equal(1, result.ExitCode);
             Assert.Equal("Missing argument for '/keepalive' option.", result.Output.Trim());
@@ -1266,7 +1266,7 @@ class Program
         [ConditionalFact(typeof(DesktopOnly))]
         public void BadKeepAlive2()
         {
-            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:goo", _tempDirectory, shouldRunOnServer: false);
+            (int ExitCode, string Output) result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:goo", _tempDirectory, shouldRunOnServer: false);
 
             Assert.Equal(1, result.ExitCode);
             Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
@@ -1275,7 +1275,7 @@ class Program
         [ConditionalFact(typeof(DesktopOnly))]
         public void BadKeepAlive3()
         {
-            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:-100", _tempDirectory, shouldRunOnServer: false);
+            (int ExitCode, string Output) result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:-100", _tempDirectory, shouldRunOnServer: false);
 
             Assert.Equal(1, result.ExitCode);
             Assert.Equal("Arguments to '/keepalive' option below -1 are invalid.", result.Output.Trim());
@@ -1284,7 +1284,7 @@ class Program
         [ConditionalFact(typeof(DesktopOnly))]
         public void BadKeepAlive4()
         {
-            var result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:9999999999", _tempDirectory, shouldRunOnServer: false);
+            (int ExitCode, string Output) result = RunCommandLineCompiler(CSharpCompilerClientExecutable, "/shared /keepalive:9999999999", _tempDirectory, shouldRunOnServer: false);
 
             Assert.Equal(1, result.ExitCode);
             Assert.Equal("Argument to '/keepalive' option is not a 32-bit integer.", result.Output.Trim());
@@ -1294,14 +1294,14 @@ class Program
         [WorkItem(1024619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024619")]
         public async Task Bug1024619_01()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
                 var srcFile = _tempDirectory.CreateFile("test.cs").WriteAllText("").Path;
 
                 _tempDirectory.CreateDirectory("Temp");
                 var tmp = Path.Combine(_tempDirectory.Path, "Temp");
 
-                var result = RunCommandLineCompiler(
+                (int ExitCode, string Output) result = RunCommandLineCompiler(
                     CSharpCompilerClientExecutable,
                     $"/shared:{serverData.PipeName} /nologo /t:library {srcFile}",
                     _tempDirectory,
@@ -1327,14 +1327,14 @@ class Program
         [WorkItem(1024619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024619")]
         public async Task Bug1024619_02()
         {
-            using (var serverData = ServerUtil.CreateServer())
+            using (ServerData serverData = ServerUtil.CreateServer())
             {
                 var srcFile = _tempDirectory.CreateFile("test.vb").WriteAllText("").Path;
 
                 _tempDirectory.CreateDirectory("Temp");
                 var tmp = Path.Combine(_tempDirectory.Path, "Temp");
 
-                var result = RunCommandLineCompiler(
+                (int ExitCode, string Output) result = RunCommandLineCompiler(
                     BasicCompilerClientExecutable,
                     $"/shared:{serverData.PipeName} /vbruntime* /nologo /t:library {srcFile}",
                     _tempDirectory,
@@ -1362,13 +1362,13 @@ class Program
         {
             var basePath = Path.GetDirectoryName(typeof(CompilerServerUnitTests).Assembly.Location);
             var compilerServerExecutable = Path.Combine(basePath, "VBCSCompiler.exe");
-            var dir = Temp.CreateDirectory();
+            TempDirectory dir = Temp.CreateDirectory();
             var workingDirectory = dir.Path;
             var serverExe = dir.CopyFile(compilerServerExecutable).Path;
             dir.CopyFile(typeof(System.Collections.Immutable.ImmutableArray).Assembly.Location);
 
             // Missing Microsoft.CodeAnalysis.dll launching server.
-            var result = ProcessUtilities.Run(serverExe, arguments: $"-pipename:{GetUniqueName()}", workingDirectory: workingDirectory);
+            ProcessResult result = ProcessUtilities.Run(serverExe, arguments: $"-pipename:{GetUniqueName()}", workingDirectory: workingDirectory);
             Assert.Equal(1, result.ExitCode);
             // Exception is logged rather than written to output/error streams.
             Assert.Equal("", result.Output.Trim());
@@ -1383,11 +1383,11 @@ class Program
             {
                 throw new FileNotFoundException();
             });
-            using (var serverData = ServerUtil.CreateServer(compilerServerHost: host))
+            using (ServerData serverData = ServerUtil.CreateServer(compilerServerHost: host))
             {
                 var request = new BuildRequest(1, RequestLanguage.CSharpCompile, new BuildRequest.Argument[0]);
-                var compileTask = ServerUtil.Send(serverData.PipeName, request);
-                var response = await compileTask;
+                Task<BuildResponse> compileTask = ServerUtil.Send(serverData.PipeName, request);
+                BuildResponse response = await compileTask;
                 Assert.Equal(BuildResponse.ResponseType.Completed, response.Type);
                 Assert.Equal(0, ((CompletedBuildResponse)response).ReturnCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);

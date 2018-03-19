@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(21194, "https://github.com/dotnet/roslyn/issues/21194")]
         public void TestQuickAttributeChecker()
         {
-            var predefined = QuickAttributeChecker.Predefined;
-            var typeForwardedTo = SyntaxFactory.Attribute(SyntaxFactory.ParseName("TypeForwardedTo"));
-            var typeIdentifier = SyntaxFactory.Attribute(SyntaxFactory.ParseName("TypeIdentifier"));
+            QuickAttributeChecker predefined = QuickAttributeChecker.Predefined;
+            AttributeSyntax typeForwardedTo = SyntaxFactory.Attribute(SyntaxFactory.ParseName("TypeForwardedTo"));
+            AttributeSyntax typeIdentifier = SyntaxFactory.Attribute(SyntaxFactory.ParseName("TypeIdentifier"));
 
             Assert.True(predefined.IsPossibleMatch(typeForwardedTo, QuickAttributes.TypeForwardedTo));
             Assert.False(predefined.IsPossibleMatch(typeForwardedTo, QuickAttributes.TypeIdentifier));
@@ -41,31 +41,31 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.True(predefined.IsPossibleMatch(typeIdentifier, QuickAttributes.TypeIdentifier));
             Assert.False(predefined.IsPossibleMatch(typeIdentifier, QuickAttributes.None));
 
-            var alias1 = SyntaxFactory.Attribute(SyntaxFactory.ParseName("alias1"));
-            var checker1 = WithAliases(predefined, "using alias1 = TypeForwardedToAttribute;");
+            AttributeSyntax alias1 = SyntaxFactory.Attribute(SyntaxFactory.ParseName("alias1"));
+            QuickAttributeChecker checker1 = WithAliases(predefined, "using alias1 = TypeForwardedToAttribute;");
             Assert.True(checker1.IsPossibleMatch(alias1, QuickAttributes.TypeForwardedTo));
             Assert.False(checker1.IsPossibleMatch(alias1, QuickAttributes.TypeIdentifier));
 
-            var checker1a = WithAliases(checker1, "using alias1 = TypeIdentifierAttribute;");
+            QuickAttributeChecker checker1a = WithAliases(checker1, "using alias1 = TypeIdentifierAttribute;");
             Assert.True(checker1a.IsPossibleMatch(alias1, QuickAttributes.TypeForwardedTo));
             Assert.True(checker1a.IsPossibleMatch(alias1, QuickAttributes.TypeIdentifier));
 
-            var checker1b = WithAliases(checker1, "using alias2 = TypeIdentifierAttribute;");
-            var alias2 = SyntaxFactory.Attribute(SyntaxFactory.ParseName("alias2"));
+            QuickAttributeChecker checker1b = WithAliases(checker1, "using alias2 = TypeIdentifierAttribute;");
+            AttributeSyntax alias2 = SyntaxFactory.Attribute(SyntaxFactory.ParseName("alias2"));
             Assert.True(checker1b.IsPossibleMatch(alias1, QuickAttributes.TypeForwardedTo));
             Assert.False(checker1b.IsPossibleMatch(alias1, QuickAttributes.TypeIdentifier));
             Assert.False(checker1b.IsPossibleMatch(alias2, QuickAttributes.TypeForwardedTo));
             Assert.True(checker1b.IsPossibleMatch(alias2, QuickAttributes.TypeIdentifier));
 
-            var checker3 = WithAliases(predefined, "using alias3 = TypeForwardedToAttribute; using alias3 = TypeIdentifierAttribute;");
-            var alias3 = SyntaxFactory.Attribute(SyntaxFactory.ParseName("alias3"));
+            QuickAttributeChecker checker3 = WithAliases(predefined, "using alias3 = TypeForwardedToAttribute; using alias3 = TypeIdentifierAttribute;");
+            AttributeSyntax alias3 = SyntaxFactory.Attribute(SyntaxFactory.ParseName("alias3"));
             Assert.True(checker3.IsPossibleMatch(alias3, QuickAttributes.TypeForwardedTo));
             Assert.True(checker3.IsPossibleMatch(alias3, QuickAttributes.TypeIdentifier));
 
             QuickAttributeChecker WithAliases(QuickAttributeChecker checker, string aliases)
             {
-                var nodes = Parse(aliases).GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>();
-                var list = new SyntaxList<UsingDirectiveSyntax>().AddRange(nodes);
+                IEnumerable<UsingDirectiveSyntax> nodes = Parse(aliases).GetRoot().DescendantNodes().OfType<UsingDirectiveSyntax>();
+                SyntaxList<UsingDirectiveSyntax> list = new SyntaxList<UsingDirectiveSyntax>().AddRange(nodes);
                 return checker.AddAliasesIfAny(list);
             }
         }
@@ -91,16 +91,16 @@ public class RefersToLibAttribute : Attribute
 }
 ";
 
-            var origLibComp = CreateCompilation(origLib_cs, assemblyName: "lib");
+            CSharpCompilation origLibComp = CreateCompilation(origLib_cs, assemblyName: "lib");
             origLibComp.VerifyDiagnostics();
 
-            var compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            CSharpCompilation compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
 
-            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference() }, assemblyName: "lib");
+            CSharpCompilation newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
 
-            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference() }, assemblyName: "lib");
+            CSharpCompilation newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics();
         }
 
@@ -124,20 +124,20 @@ public class RefersToLibAttribute : Attribute
 }
 ";
 
-            var origLibComp = CreateCompilation(origLib_cs, assemblyName: "lib");
+            CSharpCompilation origLibComp = CreateCompilation(origLib_cs, assemblyName: "lib");
             origLibComp.VerifyDiagnostics();
 
-            var compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            CSharpCompilation compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
 
-            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference() }, assemblyName: "lib");
+            CSharpCompilation newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics(
                 // (3,60): error CS1503: Argument 1: cannot convert from 'int' to 'System.Type'
                 // [assembly: System.Runtime.CompilerServices.TypeForwardedTo(1)]
                 Diagnostic(ErrorCode.ERR_BadArgType, "1").WithArguments("1", "int", "System.Type").WithLocation(3, 60)
                 );
 
-            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference() }, assemblyName: "lib");
+            CSharpCompilation newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics(
                 // (3,60): error CS1503: Argument 1: cannot convert from 'int' to 'System.Type'
                 // [assembly: System.Runtime.CompilerServices.TypeForwardedTo(1)]
@@ -164,20 +164,20 @@ public class RefersToLibAttribute : C
 }
 ";
 
-            var origLibComp = CreateCompilation(origLib_cs, assemblyName: "lib");
+            CSharpCompilation origLibComp = CreateCompilation(origLib_cs, assemblyName: "lib");
             origLibComp.VerifyDiagnostics();
 
-            var compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            CSharpCompilation compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
 
-            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference() }, assemblyName: "lib");
+            CSharpCompilation newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics(
                 // (2,12): error CS7068: Reference to type 'C' claims it is defined in this assembly, but it is not defined in source or any added modules
                 // [assembly: RefersToLib] // to bind this, we'll want to lookup type C in 'lib'
                 Diagnostic(ErrorCode.ERR_MissingTypeInSource, "RefersToLib").WithArguments("C").WithLocation(2, 12)
                 );
 
-            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference() }, assemblyName: "lib");
+            CSharpCompilation newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics(
                 // (2,12): error CS7068: Reference to type 'C' claims it is defined in this assembly, but it is not defined in source or any added modules
                 // [assembly: RefersToLib] // to bind this, we'll want to lookup type C in 'lib'
@@ -213,16 +213,16 @@ public class RefersToLibAttribute : C
 }
 ";
 
-            var origLibComp = CreateCompilation(origLib_cs, assemblyName: "lib");
+            CSharpCompilation origLibComp = CreateCompilation(origLib_cs, assemblyName: "lib");
             origLibComp.VerifyDiagnostics();
 
-            var compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            CSharpCompilation compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
 
-            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference() }, assemblyName: "lib");
+            CSharpCompilation newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
 
-            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference() }, assemblyName: "lib");
+            CSharpCompilation newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics();
         }
 
@@ -246,20 +246,20 @@ public class RefersToLibAttribute : Attribute
 }
 ";
 
-            var origLibComp = CreateCompilation(origLib_cs, assemblyName: "lib");
+            CSharpCompilation origLibComp = CreateCompilation(origLib_cs, assemblyName: "lib");
             origLibComp.VerifyDiagnostics();
 
-            var newComp = CreateCompilation(origLib_cs, assemblyName: "new");
+            CSharpCompilation newComp = CreateCompilation(origLib_cs, assemblyName: "new");
             newComp.VerifyDiagnostics();
 
-            var compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            CSharpCompilation compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
 
-            var newLibComp = CreateCompilation(newLib_cs,
+            CSharpCompilation newLibComp = CreateCompilation(newLib_cs,
                 references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
 
-            var newLibComp2 = CreateCompilation(newLib_cs,
+            CSharpCompilation newLibComp2 = CreateCompilation(newLib_cs,
                 references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics();
         }
@@ -283,22 +283,22 @@ public class RefersToLibAttribute : C
 }
 ";
 
-            var origLibComp = CreateCompilation(origLib_cs, assemblyName: "lib");
+            CSharpCompilation origLibComp = CreateCompilation(origLib_cs, assemblyName: "lib");
             origLibComp.VerifyDiagnostics();
 
-            var newComp = CreateCompilation(origLib_cs, assemblyName: "new");
+            CSharpCompilation newComp = CreateCompilation(origLib_cs, assemblyName: "new");
             newComp.VerifyDiagnostics();
 
-            var compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            CSharpCompilation compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
 
-            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            CSharpCompilation newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
 
-            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            CSharpCompilation newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics();
 
-            var newLibComp3 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            CSharpCompilation newLibComp3 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp3.SourceAssembly.GetAttributes();
             newLibComp3.VerifyDiagnostics();
         }
@@ -317,21 +317,21 @@ public class RefersToLibAttribute : C
 [assembly: System.Runtime.CompilerServices.TypeForwardedTo(typeof(C))]
 ";
 
-            var origLibComp = CreateCompilation(cDefinition_cs, assemblyName: "lib");
+            CSharpCompilation origLibComp = CreateCompilation(cDefinition_cs, assemblyName: "lib");
             origLibComp.VerifyDiagnostics();
 
-            var compWithDerivedAndReferenceToLib = CreateCompilation(typeForward_cs + derivedDefinition_cs, references: new[] { origLibComp.EmitToImageReference() });
+            CSharpCompilation compWithDerivedAndReferenceToLib = CreateCompilation(typeForward_cs + derivedDefinition_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithDerivedAndReferenceToLib .VerifyDiagnostics();
 
-            var compWithC = CreateCompilation(cDefinition_cs, assemblyName: "new");
+            CSharpCompilation compWithC = CreateCompilation(cDefinition_cs, assemblyName: "new");
             compWithC.VerifyDiagnostics();
 
-            var newLibComp = CreateCompilation(typeForward_cs, references: new[] { compWithDerivedAndReferenceToLib.EmitToImageReference(), compWithC.EmitToImageReference() }, assemblyName: "lib");
-            var attribute = newLibComp.SourceAssembly.GetAttributes().Single(); // GetAttributes binds all attributes
+            CSharpCompilation newLibComp = CreateCompilation(typeForward_cs, references: new[] { compWithDerivedAndReferenceToLib.EmitToImageReference(), compWithC.EmitToImageReference() }, assemblyName: "lib");
+            CSharpAttributeData attribute = newLibComp.SourceAssembly.GetAttributes().Single(); // GetAttributes binds all attributes
             Assert.Equal("System.Runtime.CompilerServices.TypeForwardedToAttribute(typeof(C))", attribute.ToString());
 
             var derived = (NamedTypeSymbol)newLibComp.GetMember("Derived");
-            var c = derived.BaseType(); // get C
+            NamedTypeSymbol c = derived.BaseType(); // get C
             Assert.Equal("C", c.ToTestDisplayString());
             Assert.False(c.IsErrorType());
         }
@@ -356,20 +356,20 @@ public class RefersToLibAttribute : C
 }
 ";
 
-            var origLibComp = CreateCompilation(origLib_cs, assemblyName: "lib");
+            CSharpCompilation origLibComp = CreateCompilation(origLib_cs, assemblyName: "lib");
             origLibComp.VerifyDiagnostics();
 
-            var newComp = CreateCompilation(origLib_cs, assemblyName: "new");
+            CSharpCompilation newComp = CreateCompilation(origLib_cs, assemblyName: "new");
             newComp.VerifyDiagnostics();
 
-            var compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            CSharpCompilation compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
 
-            var newLibComp = CreateCompilation(newLib_cs,
+            CSharpCompilation newLibComp = CreateCompilation(newLib_cs,
                 references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
 
-            var newLibComp2 = CreateCompilation(newLib_cs,
+            CSharpCompilation newLibComp2 = CreateCompilation(newLib_cs,
                 references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics();
         }
@@ -394,19 +394,19 @@ public class RefersToLibAttribute : Attribute
 }
 ";
 
-            var origLibComp = CreateCompilation(origLib_cs, assemblyName: "lib");
+            CSharpCompilation origLibComp = CreateCompilation(origLib_cs, assemblyName: "lib");
             origLibComp.VerifyDiagnostics();
 
-            var newComp = CreateCompilation(origLib_cs, assemblyName: "new");
+            CSharpCompilation newComp = CreateCompilation(origLib_cs, assemblyName: "new");
             newComp.VerifyDiagnostics();
 
-            var compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            CSharpCompilation compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
 
-            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            CSharpCompilation newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
 
-            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            CSharpCompilation newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics();
         }
 
@@ -429,26 +429,26 @@ public class RefersToLibAttribute : C
 }
 ";
 
-            var origLibComp = CreateCompilation(origLib_cs, assemblyName: "lib");
+            CSharpCompilation origLibComp = CreateCompilation(origLib_cs, assemblyName: "lib");
             origLibComp.VerifyDiagnostics();
 
-            var newComp = CreateCompilation(origLib_cs, assemblyName: "new");
+            CSharpCompilation newComp = CreateCompilation(origLib_cs, assemblyName: "new");
             newComp.VerifyDiagnostics();
 
-            var compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
+            CSharpCompilation compWithReferenceToLib = CreateCompilation(reference_cs, references: new[] { origLibComp.EmitToImageReference() });
             compWithReferenceToLib.VerifyDiagnostics();
 
-            var newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
+            CSharpCompilation newLibComp = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.EmitToImageReference(),  newComp.EmitToImageReference() }, assemblyName: "lib");
             newLibComp.VerifyDiagnostics();
 
-            var newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
+            CSharpCompilation newLibComp2 = CreateCompilation(newLib_cs, references: new[] { compWithReferenceToLib.ToMetadataReference(),  newComp.ToMetadataReference() }, assemblyName: "lib");
             newLibComp2.VerifyDiagnostics();
         }
 
         [Fact]
         public void TestAssemblyAttributes()
         {
-            var source = CreateCompilation(@"
+            CSharpCompilation source = CreateCompilation(@"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -467,7 +467,7 @@ class C
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 Symbol assembly = m.ContainingSymbol;
-                var attrs = assembly.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attrs = assembly.GetAttributes();
                 Assert.Equal(5, attrs.Length);
                 attrs[0].VerifyValue(0, TypedConstantKind.Primitive, "Roslyn.Compilers.UnitTests");
                 Assert.Equal(@"System.Runtime.CompilerServices.InternalsVisibleToAttribute(""Roslyn.Compilers.UnitTests"")", attrs[0].ToString());
@@ -489,7 +489,7 @@ class C
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestNamedArgumentOnStringParamsArgument()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(@"
 using System;
 
 class MarkAttribute : Attribute
@@ -518,7 +518,7 @@ static class Program
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestNamedArgumentOnOrderedObjectParamsArgument()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(@"
 using System;
 using System.Reflection;
 
@@ -553,7 +553,7 @@ static class Program
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestNamedArgumentOnObjectParamsArgument()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(@"
 using System;
 using System.Reflection;
 
@@ -588,7 +588,7 @@ static class Program
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestNamedArgumentOnObjectParamsArgument2()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(@"
 using System;
 using System.Reflection;
 
@@ -625,7 +625,7 @@ static class Program
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestNamedArgumentOnObjectParamsArgument3()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(@"
 using System;
 using System.Reflection;
 
@@ -661,7 +661,7 @@ static class Program
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestNamedArgumentOnObjectParamsArgument4()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(@"
 using System;
 using System.Reflection;
 
@@ -697,7 +697,7 @@ static class Program
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestNamedArgumentOnObjectParamsArgument5()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(@"
 using System;
 using System.Reflection;
 
@@ -732,7 +732,7 @@ static class Program
         [WorkItem(20741, "https://github.com/dotnet/roslyn/issues/20741")]
         public void TestNamedArgumentOnNonParamsArgument()
         {
-            var comp = CreateCompilationWithMscorlib46(@"
+            CSharpCompilation comp = CreateCompilationWithMscorlib46(@"
 using System;
 using System.Reflection;
 
@@ -790,7 +790,7 @@ public unsafe partial class A : C, I
 }
 ";
 
-            var source = CreateCompilationWithMscorlib40AndSystemCore(code);
+            CSharpCompilation source = CreateCompilationWithMscorlib40AndSystemCore(code);
 
             // the following should not crash
             source.GetDiagnosticsForSyntaxTree(CompilationStage.Compile, source.SyntaxTrees[0], filterSpanWithinTree: null, includeEarlierStages: true);
@@ -826,7 +826,7 @@ public class Base
         [Fact]
         public void TestAssemblyAttributesReflection()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -847,10 +847,10 @@ class C
 }
 ");
 
-            var attrs = compilation.Assembly.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs = compilation.Assembly.GetAttributes();
             Assert.Equal(8, attrs.Length);
 
-            foreach (var a in attrs)
+            foreach (CSharpAttributeData a in attrs)
             {
                 switch (a.AttributeClass.Name)
                 {
@@ -897,7 +897,7 @@ class C
         [Fact]
         public void TestAttributesOnClassDefinedInClass()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using System;
 using System.Runtime.CompilerServices;
 
@@ -914,7 +914,7 @@ class C
     public static void Main() {}
 }
 ");
-            var attrs = compilation.SourceModule.GlobalNamespace.GetMember("A").GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs = compilation.SourceModule.GlobalNamespace.GetMember("A").GetAttributes();
             Assert.Equal(1, attrs.Length);
             Assert.Equal("A.XAttribute", attrs.First().AttributeClass.ToDisplayString());
         }
@@ -922,7 +922,7 @@ class C
         [Fact]
         public void TestAttributesOnClassWithConstantDefinedInClass()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using System;
 [Attr(Goo.p)]
 class Goo
@@ -938,7 +938,7 @@ class C
     public static void Main() { }
 }
 ");
-            var attrs = compilation.SourceModule.GlobalNamespace.GetMember("Goo").GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs = compilation.SourceModule.GlobalNamespace.GetMember("Goo").GetAttributes();
             Assert.Equal(1, attrs.Length);
             attrs.First().VerifyValue<object>(0, TypedConstantKind.Primitive, null);
         }
@@ -946,7 +946,7 @@ class C
         [Fact]
         public void TestAttributeEmit()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using System;
 public enum e1
 {
@@ -992,7 +992,7 @@ class C
     public static void Main() {}
 }
 ");
-            var verifier = CompileAndVerify(compilation);
+            CompilationVerifier verifier = CompileAndVerify(compilation);
             verifier.VerifyIL("XAttribute..ctor(int)", @"{
   // Code size        7 (0x7)
   .maxstack  1
@@ -1005,7 +1005,7 @@ class C
         [Fact]
         public void TestAttributesOnClassProperty()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using System;
 public class A
 {
@@ -1023,8 +1023,8 @@ class C
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var type = (NamedTypeSymbol)m.GlobalNamespace.GetMember("A");
-                var prop = type.GetMember("Prop");
-                var attrs = prop.GetAttributes();
+                Symbol prop = type.GetMember("Prop");
+                ImmutableArray<CSharpAttributeData> attrs = prop.GetAttributes();
                 Assert.Equal(1, attrs.Length);
                 attrs.First().VerifyValue(0, TypedConstantKind.Primitive, true);
                 Assert.Equal("System.CLSCompliantAttribute", attrs.First().AttributeClass.ToDisplayString());
@@ -1038,7 +1038,7 @@ class C
         [Fact]
         public void Bug688268()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using System;
 using System.Runtime.InteropServices;
 using System.Security;
@@ -1052,16 +1052,16 @@ public interface I
             System.Action<ModuleSymbol> metadataValidator =
                 delegate (ModuleSymbol module)
             {
-                var metadata = ((PEModuleSymbol)module).Module;
+                PEModule metadata = ((PEModuleSymbol)module).Module;
 
                 var typeI = (PENamedTypeSymbol)module.GlobalNamespace.GetTypeMembers("I").Single();
 
-                var methods = metadata.GetMethodsOfTypeOrThrow(typeI.Handle);
+                System.Reflection.Metadata.MethodDefinitionHandleCollection methods = metadata.GetMethodsOfTypeOrThrow(typeI.Handle);
                 Assert.Equal(2, methods.Count);
 
-                var e = methods.GetEnumerator();
+                System.Reflection.Metadata.MethodDefinitionHandleCollection.Enumerator e = methods.GetEnumerator();
                 e.MoveNext();
-                var flags = metadata.GetMethodDefFlagsOrThrow(e.Current);
+                MethodAttributes flags = metadata.GetMethodDefFlagsOrThrow(e.Current);
                 Assert.Equal(
                     MethodAttributes.PrivateScope |
                     MethodAttributes.Public |
@@ -1120,20 +1120,20 @@ public class A
     }
 }
 ";
-            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.MDTestAttributeDefLib.AsImmutableOrNull()) };
+            PortableExecutableReference[] references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.MDTestAttributeDefLib.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilation(source, references, options: opt);
+            CSharpCompilation compilation = CreateCompilation(source, references, options: opt);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var type = (NamedTypeSymbol)m.GlobalNamespace.GetMember("A");
-                var attrs = type.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attrs = type.GetAttributes();
                 Assert.Equal("AObjectAttribute(typeof(object), O = null)", attrs.First().ToString());
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeof(object));
                 attrs.First().VerifyNamedArgumentValue<object>(0, "O", TypedConstantKind.Primitive, null);
 
-                var prop = type.GetMember<PropertySymbol>("RProp");
+                PropertySymbol prop = type.GetMember<PropertySymbol>("RProp");
                 attrs = prop.GetMethod.GetAttributes();
                 Assert.Equal("AObjectAttribute({typeof(string)})", attrs.First().ToString());
                 attrs.First().VerifyValue(0, TypedConstantKind.Array, new object[] { typeof(string) });
@@ -1168,7 +1168,7 @@ public class Test
     public int P2 { get; }
 }
 ";
-            var comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
+            CSharpCompilation comp = CreateCompilation(source, parseOptions: TestOptions.Regular7_2);
             comp.VerifyDiagnostics(
                 // (7,6): warning CS8361: Field-targeted attributes on auto-properties are not supported in language version 7.2. Please use language version 7.3 or greater.
                 //     [field: System.Obsolete]
@@ -1217,46 +1217,46 @@ public class Test
 ";
             Action<ModuleSymbol> symbolValidator = moduleSymbol =>
             {
-                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                NamedTypeSymbol @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
                 bool isFromSource = @class is SourceNamedTypeSymbol;
 
                 var propAttributesExpected = isFromSource ? new string[0] : s_autoPropAttributes;
                 var fieldAttributesExpected = isFromSource ? new string[0] : s_backingFieldAttributes;
 
-                var prop1 = @class.GetMember<PropertySymbol>("P");
+                PropertySymbol prop1 = @class.GetMember<PropertySymbol>("P");
                 Assert.Empty(prop1.GetAttributes());
                 AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop1.GetMethod.GetAttributes()));
                 AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop1.SetMethod.GetAttributes()));
 
-                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                FieldSymbol field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(1)" }), GetAttributeStrings(field1.GetAttributes()));
 
-                var prop2 = @class.GetMember<PropertySymbol>("P2");
+                PropertySymbol prop2 = @class.GetMember<PropertySymbol>("P2");
                 Assert.Empty(prop2.GetAttributes());
                 AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop2.GetMethod.GetAttributes()));
                 Assert.Null(prop2.SetMethod);
 
-                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                FieldSymbol field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(2)" }), GetAttributeStrings(field2.GetAttributes()));
 
-                var prop3 = @class.GetMember<PropertySymbol>("P3");
+                PropertySymbol prop3 = @class.GetMember<PropertySymbol>("P3");
                 Assert.Equal("B(3)", prop3.GetAttributes().Single().ToString());
                 AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop3.GetMethod.GetAttributes()));
                 Assert.Null(prop3.SetMethod);
 
-                var field3 = @class.GetMember<FieldSymbol>("<P3>k__BackingField");
+                FieldSymbol field3 = @class.GetMember<FieldSymbol>("<P3>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(33)" }), GetAttributeStrings(field3.GetAttributes()));
 
-                var prop4 = @class.GetMember<PropertySymbol>("P4");
+                PropertySymbol prop4 = @class.GetMember<PropertySymbol>("P4");
                 Assert.Equal("B(4)", prop4.GetAttributes().Single().ToString());
                 AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop3.GetMethod.GetAttributes()));
                 Assert.Null(prop4.SetMethod);
 
-                var field4 = @class.GetMember<FieldSymbol>("<P4>k__BackingField");
+                FieldSymbol field4 = @class.GetMember<FieldSymbol>("<P4>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(44)", "A(444)" }), GetAttributeStrings(field4.GetAttributes()));
             };
 
-            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+            CompilationVerifier comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
         }
@@ -1272,10 +1272,10 @@ public class Test
 ";
             Action<ModuleSymbol> symbolValidator = moduleSymbol =>
             {
-                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                NamedTypeSymbol @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
                 bool isFromSource = @class is SourceNamedTypeSymbol;
 
-                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                FieldSymbol field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
                 if (isFromSource)
                 {
                     Assert.Empty(field1.GetAttributes());
@@ -1290,7 +1290,7 @@ public class Test
                 }
             };
 
-            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+            CompilationVerifier comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
         }
@@ -1312,16 +1312,16 @@ public struct Test
 ";
             Action<ModuleSymbol> symbolValidator = moduleSymbol =>
             {
-                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                NamedTypeSymbol @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
                 bool isFromSource = @class is SourceNamedTypeSymbol;
 
                 var fieldAttributesExpected = isFromSource ? new string[0] : s_backingFieldAttributes;
 
-                var prop1 = @class.GetMember<PropertySymbol>("P");
+                PropertySymbol prop1 = @class.GetMember<PropertySymbol>("P");
                 Assert.Empty(prop1.GetAttributes());
 
-                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
-                var attributes1 = field1.GetAttributes();
+                FieldSymbol field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                ImmutableArray<CSharpAttributeData> attributes1 = field1.GetAttributes();
                 if (isFromSource)
                 {
                     AssertEx.SetEqual(new[] { "System.Runtime.CompilerServices.SpecialNameAttribute" }, GetAttributeStrings(attributes1));
@@ -1332,15 +1332,15 @@ public struct Test
                 }
                 Assert.True(field1.HasSpecialName);
 
-                var prop2 = @class.GetMember<PropertySymbol>("P2");
+                PropertySymbol prop2 = @class.GetMember<PropertySymbol>("P2");
                 Assert.Empty(prop2.GetAttributes());
 
-                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                FieldSymbol field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(field2.GetAttributes()));
                 Assert.False(field2.HasSpecialName);
 
-                var field3 = @class.GetMember<FieldSymbol>("f");
-                var attributes3 = field3.GetAttributes();
+                FieldSymbol field3 = @class.GetMember<FieldSymbol>("f");
+                ImmutableArray<CSharpAttributeData> attributes3 = field3.GetAttributes();
                 if (isFromSource)
                 {
                     AssertEx.SetEqual(new[] { "System.Runtime.CompilerServices.SpecialNameAttribute" }, GetAttributeStrings(attributes3));
@@ -1351,7 +1351,7 @@ public struct Test
                 }
             };
 
-            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+            CompilationVerifier comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
         }
@@ -1374,16 +1374,16 @@ public class Test
 
             Action<ModuleSymbol> symbolValidator = moduleSymbol =>
             {
-                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                NamedTypeSymbol @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
                 bool isFromSource = @class is SourceNamedTypeSymbol;
 
                 var fieldAttributesExpected = isFromSource ? new string[0] : s_backingFieldAttributes;
 
-                var prop1 = @class.GetMember<PropertySymbol>("P");
+                PropertySymbol prop1 = @class.GetMember<PropertySymbol>("P");
                 Assert.Empty(prop1.GetAttributes());
 
-                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
-                var attributes1 = field1.GetAttributes();
+                FieldSymbol field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                ImmutableArray<CSharpAttributeData> attributes1 = field1.GetAttributes();
                 if (isFromSource)
                 {
                     AssertEx.SetEqual(new[] { "System.NonSerializedAttribute" }, GetAttributeStrings(attributes1));
@@ -1394,15 +1394,15 @@ public class Test
                 }
                 Assert.True(field1.IsNotSerialized);
 
-                var prop2 = @class.GetMember<PropertySymbol>("P2");
+                PropertySymbol prop2 = @class.GetMember<PropertySymbol>("P2");
                 Assert.Empty(prop2.GetAttributes());
 
-                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                FieldSymbol field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(field2.GetAttributes()));
                 Assert.False(field2.IsNotSerialized);
 
-                var field3 = @class.GetMember<FieldSymbol>("f");
-                var attributes3 = field3.GetAttributes();
+                FieldSymbol field3 = @class.GetMember<FieldSymbol>("f");
+                ImmutableArray<CSharpAttributeData> attributes3 = field3.GetAttributes();
                 if (isFromSource)
                 {
                     AssertEx.SetEqual(new[] { "System.NonSerializedAttribute" }, GetAttributeStrings(attributes3));
@@ -1414,7 +1414,7 @@ public class Test
                 Assert.True(field3.IsNotSerialized);
             };
 
-            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+            CompilationVerifier comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
         }
@@ -1429,7 +1429,7 @@ public struct Test
     public static int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,13): error CS0637: The FieldOffset attribute is not allowed on static or const fields
                 //     [field: System.Runtime.InteropServices.FieldOffset(0)]
@@ -1447,7 +1447,7 @@ public struct Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,56): error CS0591: Invalid value for argument to 'System.Runtime.InteropServices.FieldOffset' attribute
                 //     [field: System.Runtime.InteropServices.FieldOffset(-1)]
@@ -1471,7 +1471,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,13): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
                 //     [field: FieldOffset(4)]
@@ -1491,7 +1491,7 @@ public struct Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,13): error CS0636: The FieldOffset attribute can only be placed on members of types marked with the StructLayout(LayoutKind.Explicit)
                 //     [field: FieldOffset(4)]
@@ -1511,7 +1511,7 @@ public struct Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,16): error CS0625: 'Test.P': instance field in types marked with StructLayout(LayoutKind.Explicit) must have a FieldOffset attribute
                 //     public int P { get; set; }
@@ -1529,7 +1529,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (4,13): error CS8362: Do not use 'System.Runtime.CompilerServices.FixedBuffer' attribute on a property
                 //     [field: System.Runtime.CompilerServices.FixedBuffer(typeof(int), 0)]
@@ -1547,7 +1547,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(source, references: new[] { SystemCoreRef });
+            CSharpCompilation comp = CreateCompilation(source, references: new[] { SystemCoreRef });
             comp.VerifyDiagnostics(
                 // (4,13): error CS1970: Do not use 'System.Runtime.CompilerServices.DynamicAttribute'. Use the 'dynamic' keyword instead.
                 //     [field: System.Runtime.CompilerServices.DynamicAttribute()]
@@ -1569,7 +1569,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,13): error CS8335: Do not use 'System.Runtime.CompilerServices.IsReadOnlyAttribute'. This is reserved for compiler usage.
                 //     [field: System.Runtime.CompilerServices.IsReadOnlyAttribute()]
@@ -1591,7 +1591,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (8,13): error CS8335: Do not use 'System.Runtime.CompilerServices.IsByRefLikeAttribute'. This is reserved for compiler usage.
                 //     [field: System.Runtime.CompilerServices.IsByRefLikeAttribute()]
@@ -1614,26 +1614,26 @@ public class Test
 ";
             Action<ModuleSymbol> symbolValidator = moduleSymbol =>
             {
-                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                NamedTypeSymbol @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
                 bool isFromSource = @class is SourceNamedTypeSymbol;
                 var fieldAttributesExpected = isFromSource ? new string[0] : s_backingFieldAttributes;
 
-                var prop1 = @class.GetMember<PropertySymbol>("P");
+                PropertySymbol prop1 = @class.GetMember<PropertySymbol>("P");
                 Assert.Empty(prop1.GetAttributes());
 
-                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                FieldSymbol field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.Runtime.CompilerServices.DateTimeConstantAttribute(123456)" }),
                     GetAttributeStrings(field1.GetAttributes()));
 
-                var prop2 = @class.GetMember<PropertySymbol>("P2");
+                PropertySymbol prop2 = @class.GetMember<PropertySymbol>("P2");
                 Assert.Empty(prop2.GetAttributes());
 
-                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                FieldSymbol field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.Runtime.CompilerServices.DateTimeConstantAttribute(123456)" }),
                     GetAttributeStrings(field2.GetAttributes()));
             };
 
-            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+            CompilationVerifier comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
         }
@@ -1656,7 +1656,7 @@ public class Test
 ";
             Action<ModuleSymbol> symbolValidator = moduleSymbol =>
             {
-                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                NamedTypeSymbol @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
                 bool isFromSource = @class is SourceNamedTypeSymbol;
 
                 var fieldAttributesExpected = isFromSource ? new string[0]
@@ -1667,10 +1667,10 @@ public class Test
 
                 string[] decimalAttributeExpected = new[] { "System.Runtime.CompilerServices.DecimalConstantAttribute(0, 0, 100, 100, 100)" };
 
-                var prop1 = @class.GetMember<PropertySymbol>("P");
+                PropertySymbol prop1 = @class.GetMember<PropertySymbol>("P");
                 Assert.Empty(prop1.GetAttributes());
 
-                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                FieldSymbol field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
                 if (isFromSource)
                 {
                     AssertEx.SetEqual(fieldAttributesExpected.Concat(decimalAttributeExpected), GetAttributeStrings(field1.GetAttributes()));
@@ -1681,13 +1681,13 @@ public class Test
                     Assert.Equal(constantExpected, field1.ConstantValue.ToString());
                 }
 
-                var prop2 = @class.GetMember<PropertySymbol>("P2");
+                PropertySymbol prop2 = @class.GetMember<PropertySymbol>("P2");
                 Assert.Empty(prop2.GetAttributes());
 
-                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                FieldSymbol field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(decimalAttributeExpected), GetAttributeStrings(field2.GetAttributes()));
 
-                var field3 = @class.GetMember<FieldSymbol>("field");
+                FieldSymbol field3 = @class.GetMember<FieldSymbol>("field");
                 if (isFromSource)
                 {
                     AssertEx.SetEqual(decimalAttributeExpected, GetAttributeStrings(field3.GetAttributes()));
@@ -1699,7 +1699,7 @@ public class Test
                 }
             };
 
-            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+            CompilationVerifier comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
         }
@@ -1721,7 +1721,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilationWithMscorlib40(source);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40(source);
             comp.VerifyDiagnostics(
                 // (11,13): error CS8138: Cannot reference 'System.Runtime.CompilerServices.TupleElementNamesAttribute' explicitly. Use the tuple syntax to define tuple names.
                 //     [field: System.Runtime.CompilerServices.TupleElementNamesAttribute(new[] { "hello" })]
@@ -1744,25 +1744,25 @@ public class Test
 ";
             Action<ModuleSymbol> symbolValidator = moduleSymbol =>
             {
-                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                NamedTypeSymbol @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
                 bool isFromSource = @class is SourceNamedTypeSymbol;
                 var propAttributesExpected = isFromSource ? new string[0] : s_autoPropAttributes;
                 var fieldAttributesExpected = isFromSource ? new string[0] : s_backingFieldAttributes;
 
-                var prop1 = @class.GetMember<PropertySymbol>("P");
+                PropertySymbol prop1 = @class.GetMember<PropertySymbol>("P");
                 Assert.Empty(prop1.GetAttributes());
 
-                var field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
+                FieldSymbol field1 = @class.GetMember<FieldSymbol>("<P>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "System.ObsoleteAttribute" }),
                     GetAttributeStrings(field1.GetAttributes()));
                 Assert.Equal(ObsoleteAttributeKind.Obsolete, field1.ObsoleteAttributeData.Kind);
                 Assert.Null(field1.ObsoleteAttributeData.Message);
                 Assert.False(field1.ObsoleteAttributeData.IsError);
 
-                var prop2 = @class.GetMember<PropertySymbol>("P2");
+                PropertySymbol prop2 = @class.GetMember<PropertySymbol>("P2");
                 Assert.Empty(prop2.GetAttributes());
 
-                var field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
+                FieldSymbol field2 = @class.GetMember<FieldSymbol>("<P2>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { @"System.ObsoleteAttribute(""obsolete"", true)" }),
                     GetAttributeStrings(field2.GetAttributes()));
                 Assert.Equal(ObsoleteAttributeKind.Obsolete, field2.ObsoleteAttributeData.Kind);
@@ -1770,7 +1770,7 @@ public class Test
                 Assert.True(field2.ObsoleteAttributeData.IsError);
             };
 
-            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+            CompilationVerifier comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
         }
@@ -1790,7 +1790,7 @@ public class Test
     public int P2 { get => throw null; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (9,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
                 //     [field: A]
@@ -1814,7 +1814,7 @@ public class Test
     public int P3 { [field: A] get => throw null; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,21): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'method, return'. All attributes in this block will be ignored.
                 //     public int P { [field: A] get => throw null; set => throw null; }
@@ -1847,7 +1847,7 @@ public class Test
     public int P { get; set; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (11,13): error CS0579: Duplicate 'Single' attribute
                 //     [field: Single]
@@ -1878,31 +1878,31 @@ public class Derived : Base
 ";
             Action<ModuleSymbol> symbolValidator = moduleSymbol =>
             {
-                var parent = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
+                NamedTypeSymbol parent = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Base");
                 bool isFromSource = parent is SourceNamedTypeSymbol;
                 var propAttributesExpected = isFromSource ? new string[0] : s_autoPropAttributes;
                 var fieldAttributesExpected = isFromSource ? new string[0] : s_backingFieldAttributes;
 
-                var prop1 = parent.GetMember<PropertySymbol>("P");
+                PropertySymbol prop1 = parent.GetMember<PropertySymbol>("P");
                 Assert.Equal("A(2)", prop1.GetAttributes().Single().ToString());
                 AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop1.GetMethod.GetAttributes()));
                 AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop1.SetMethod.GetAttributes()));
 
-                var field1 = parent.GetMember<FieldSymbol>("<P>k__BackingField");
+                FieldSymbol field1 = parent.GetMember<FieldSymbol>("<P>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected.Concat(new[] { "A(1)" }), GetAttributeStrings(field1.GetAttributes()));
 
-                var child = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
+                NamedTypeSymbol child = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Derived");
 
-                var prop2 = child.GetMember<PropertySymbol>("P");
+                PropertySymbol prop2 = child.GetMember<PropertySymbol>("P");
                 Assert.Empty(prop2.GetAttributes());
                 AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop2.GetMethod.GetAttributes()));
                 AssertEx.SetEqual(propAttributesExpected, GetAttributeStrings(prop2.SetMethod.GetAttributes()));
 
-                var field2 = child.GetMember<FieldSymbol>("<P>k__BackingField");
+                FieldSymbol field2 = child.GetMember<FieldSymbol>("<P>k__BackingField");
                 AssertEx.SetEqual(fieldAttributesExpected, GetAttributeStrings(field2.GetAttributes()));
             };
 
-            var comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
+            CompilationVerifier comp = CompileAndVerify(source, sourceSymbolValidator: symbolValidator, symbolValidator: symbolValidator,
                 options: TestOptions.DebugDll.WithMetadataImportOptions(MetadataImportOptions.All));
             comp.VerifyDiagnostics();
         }
@@ -1923,7 +1923,7 @@ public class Test
     public int P2 { get; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,13): error CS0592: Attribute 'A' is not valid on this declaration type. It is only valid on 'property, indexer' declarations.
                 //     [field: A]
@@ -1955,7 +1955,7 @@ public class Test
     public int P2 { get; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (14,13): error CS0592: Attribute 'ClassAllowed' is not valid on this declaration type. It is only valid on 'class' declarations.
                 //     [field: ClassAllowed] // error 2
@@ -1985,7 +1985,7 @@ public class Test
     public int P3 { get; set; }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (10,6): warning CS0657: 'field' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'property'. All attributes in this block will be ignored.
                 //     [field: A]
@@ -2039,18 +2039,18 @@ public class Test
 
             Func<bool, Action<ModuleSymbol>> symbolValidator = isFromSource => moduleSymbol =>
             {
-                var @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                NamedTypeSymbol @class = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
 
-                var event1 = @class.GetMember<EventSymbol>("E1");
-                var event2 = @class.GetMember<EventSymbol>("E2");
-                var event3 = @class.GetMember<EventSymbol>("E3");
-                var event4 = @class.GetMember<EventSymbol>("E4");
-                var event5 = @class.GetMember<EventSymbol>("E5");
-                var event6 = @class.GetMember<EventSymbol>("E6");
-                var event7 = @class.GetMember<EventSymbol>("E7");
-                var event8 = @class.GetMember<EventSymbol>("E8");
-                var event9 = @class.GetMember<EventSymbol>("E9");
-                var event10 = @class.GetMember<EventSymbol>("E10");
+                EventSymbol event1 = @class.GetMember<EventSymbol>("E1");
+                EventSymbol event2 = @class.GetMember<EventSymbol>("E2");
+                EventSymbol event3 = @class.GetMember<EventSymbol>("E3");
+                EventSymbol event4 = @class.GetMember<EventSymbol>("E4");
+                EventSymbol event5 = @class.GetMember<EventSymbol>("E5");
+                EventSymbol event6 = @class.GetMember<EventSymbol>("E6");
+                EventSymbol event7 = @class.GetMember<EventSymbol>("E7");
+                EventSymbol event8 = @class.GetMember<EventSymbol>("E8");
+                EventSymbol event9 = @class.GetMember<EventSymbol>("E9");
+                EventSymbol event10 = @class.GetMember<EventSymbol>("E10");
 
                 var accessorsExpected = isFromSource ? new string[0] : new[] { "CompilerGeneratedAttribute" };
 
@@ -2283,18 +2283,18 @@ class C
 
             Action<ModuleSymbol> symbolValidator = moduleSymbol =>
             {
-                var type = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var typeAttrType = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("TypeAttribute");
-                var paramAttrType = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("ParamAttribute");
-                var returnTypeAttrType = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("ReturnTypeAttribute");
-                var typeParamAttrType = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("TypeParamAttribute");
+                NamedTypeSymbol type = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol typeAttrType = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("TypeAttribute");
+                NamedTypeSymbol paramAttrType = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("ParamAttribute");
+                NamedTypeSymbol returnTypeAttrType = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("ReturnTypeAttribute");
+                NamedTypeSymbol typeParamAttrType = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("TypeParamAttribute");
 
                 // Verify delegate type attribute
-                var delegateType = type.GetTypeMember("Delegate");
+                NamedTypeSymbol delegateType = type.GetTypeMember("Delegate");
                 Assert.Equal(1, delegateType.GetAttributes(typeAttrType).Count());
 
                 // Verify type parameter attribute
-                var typeParameters = delegateType.TypeParameters;
+                ImmutableArray<TypeParameterSymbol> typeParameters = delegateType.TypeParameters;
                 Assert.Equal(1, typeParameters.Length);
                 Assert.Equal(1, typeParameters[0].GetAttributes(typeParamAttrType).Count());
 
@@ -2303,10 +2303,10 @@ class C
                 // Invoke method
                 // 1) Has return type attributes from delegate declaration syntax
                 // 2) Has parameter attributes from delegate declaration syntax
-                var invokeMethod = delegateType.GetMethod("Invoke");
+                MethodSymbol invokeMethod = delegateType.GetMethod("Invoke");
                 Assert.Equal(1, invokeMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == returnTypeAttrType).Count());
                 Assert.Equal(typeParameters[0], invokeMethod.ReturnType);
-                var parameters = invokeMethod.GetParameters();
+                ImmutableArray<ParameterSymbol> parameters = invokeMethod.GetParameters();
                 Assert.Equal(3, parameters.Length);
                 Assert.Equal("p1", parameters[0].Name);
                 Assert.Equal(1, parameters[0].GetAttributes(paramAttrType).Count());
@@ -2318,7 +2318,7 @@ class C
                 // Delegate Constructor:
                 // 1) Doesn't have any return type attributes
                 // 2) Doesn't have any parameter attributes
-                var ctor = delegateType.GetMethod(".ctor");
+                MethodSymbol ctor = delegateType.GetMethod(".ctor");
                 Assert.Equal(0, ctor.GetReturnTypeAttributes().Length);
                 parameters = ctor.GetParameters();
                 Assert.Equal(2, parameters.Length);
@@ -2419,17 +2419,17 @@ class C
 
             Func<bool, Action<ModuleSymbol>> symbolValidator = isFromMetadata => moduleSymbol =>
             {
-                var type = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var paramAttrType = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("ParamAttribute");
+                NamedTypeSymbol type = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                NamedTypeSymbol paramAttrType = moduleSymbol.GlobalNamespace.GetMember<NamedTypeSymbol>("ParamAttribute");
 
                 // Verify delegate type attribute
-                var delegateType = type.GetTypeMember("Delegate");
+                NamedTypeSymbol delegateType = type.GetTypeMember("Delegate");
 
                 // Verify delegate methods (return type/parameters) attributes
 
                 // Invoke method has parameter attributes from delegate declaration syntax
                 var invokeMethod = (MethodSymbol)delegateType.GetMember("Invoke");
-                var parameters = invokeMethod.GetParameters();
+                ImmutableArray<ParameterSymbol> parameters = invokeMethod.GetParameters();
                 Assert.Equal(2, parameters.Length);
                 Assert.Equal("p1", parameters[0].Name);
                 Assert.Equal(1, parameters[0].GetAttributes(paramAttrType).Count());
@@ -2512,18 +2512,18 @@ namespace AttributeTest
 }
 ";
 
-            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
+            PortableExecutableReference[] references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
 
-            var compilation = CreateCompilation(source, references, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(source, references, options: TestOptions.ReleaseDll);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
-                var attrs = m.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attrs = m.GetAttributes();
                 // Assert.Equal(1, attrs.Count);
                 // Assert.Equal("CustomAttribute.AttrName", attrs[0].AttributeClass.ToDisplayString());
                 // attrs[0].VerifyValue<Type>(0, "TypeField", TypedConstantKind.Type, typeof(System.IO.FileStream));
 
-                var assembly = m.ContainingSymbol;
+                Symbol assembly = m.ContainingSymbol;
                 attrs = assembly.GetAttributes();
                 Assert.Equal(2, attrs.Length);
                 Assert.Equal("CustomAttribute.AttrName", attrs[0].AttributeClass.ToDisplayString());
@@ -2531,16 +2531,16 @@ namespace AttributeTest
 
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var top = (NamedTypeSymbol)ns.GetMember("Goo");
-                var type = top.GetMember<NamedTypeSymbol>("NestedClass");
+                NamedTypeSymbol type = top.GetMember<NamedTypeSymbol>("NestedClass");
 
-                var field = type.GetMember<FieldSymbol>("Field");
+                FieldSymbol field = type.GetMember<FieldSymbol>("Field");
                 attrs = field.GetAttributes();
                 Assert.Equal("CustomAttribute.AllInheritMultipleAttribute", attrs[0].AttributeClass.ToDisplayString());
                 attrs[0].VerifyValue(0, TypedConstantKind.Enum, (int)FileMode.Open);
                 attrs[0].VerifyValue(1, TypedConstantKind.Enum, (int)(BindingFlags.DeclaredOnly | BindingFlags.Public));
                 attrs[0].VerifyNamedArgumentValue<uint>(0, "UIntField", TypedConstantKind.Primitive, 1230);
 
-                var nenum = top.GetMember<TypeSymbol>("NestedEnum");
+                TypeSymbol nenum = top.GetMember<TypeSymbol>("NestedEnum");
                 attrs = nenum.GetAttributes();
                 Assert.Equal(2, attrs.Length);
                 attrs[0].VerifyValue(0, TypedConstantKind.Array, new char[] { 'q', 'c' });
@@ -2586,10 +2586,10 @@ namespace AttributeTest
 }
 ";
 
-            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01) };
+            PortableExecutableReference[] references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilation(source, references, options: opt);
+            CSharpCompilation compilation = CreateCompilation(source, references, options: opt);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -2597,12 +2597,12 @@ namespace AttributeTest
                 var type = (NamedTypeSymbol)ns.GetMember("Goo");
 
                 var dele = (NamedTypeSymbol)type.GetTypeMember("NestedSubDele");
-                var attrs = dele.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attrs = dele.GetAttributes();
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Array, new object[] { 0, "", null });
                 attrs.First().VerifyValue<byte>(1, TypedConstantKind.Primitive, 255);
                 attrs.First().VerifyValue<sbyte>(2, TypedConstantKind.Primitive, -128);
                 attrs.First().VerifyNamedArgumentValue<object[]>(0, "AryProp", TypedConstantKind.Array, new object[] { new object[] { "", typeof(IList<string>) } });
-                var mem = dele.GetMember<MethodSymbol>("Invoke");
+                MethodSymbol mem = dele.GetMember<MethodSymbol>("Invoke");
                 attrs = mem.Parameters[0].GetAttributes();
                 Assert.Equal(1, attrs.Length);
                 attrs = mem.Parameters[1].GetAttributes();
@@ -2628,16 +2628,16 @@ namespace AttributeTest
     }
 }
 ";
-            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
+            PortableExecutableReference[] references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilation(source, references, options: opt);
+            CSharpCompilation compilation = CreateCompilation(source, references, options: opt);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("IGoo");
-                var attrs = type.GetMember<MethodSymbol>("F").GetAttributes();
+                ImmutableArray<CSharpAttributeData> attrs = type.GetMember<MethodSymbol>("F").GetAttributes();
 
                 Assert.Equal(@"CustomAttribute.DerivedAttribute({1, null, ""Hi""}, ObjectField = 2)", attrs.First().ToString());
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Array, new object[] { 1, null, "Hi" });
@@ -2679,13 +2679,13 @@ partial class CDoc
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
-            var globalNs = compilation.GlobalNamespace;
-            var cDoc = globalNs.GetTypeMember("CDoc");
+            NamespaceSymbol globalNs = compilation.GlobalNamespace;
+            NamedTypeSymbol cDoc = globalNs.GetTypeMember("CDoc");
             Assert.NotNull(cDoc);
 
-            var attrs = cDoc.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs = cDoc.GetAttributes();
             Assert.Equal(1, attrs.Length);
             Assert.Equal("X.AttrAttribute", attrs[0].AttributeClass.ToDisplayString());
 
@@ -2727,13 +2727,13 @@ partial class CDoc
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
-            var globalNs = compilation.GlobalNamespace;
-            var cDoc = globalNs.GetTypeMember("CDoc");
+            NamespaceSymbol globalNs = compilation.GlobalNamespace;
+            NamedTypeSymbol cDoc = globalNs.GetTypeMember("CDoc");
             Assert.NotNull(cDoc);
 
-            var attrs = cDoc.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs = cDoc.GetAttributes();
             Assert.Equal(1, attrs.Length);
             Assert.Equal("X.AttrAttribute", attrs[0].AttributeClass.ToDisplayString());
 
@@ -2779,13 +2779,13 @@ partial class CDoc
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
-            var globalNs = compilation.GlobalNamespace;
-            var cDoc = globalNs.GetTypeMember("CDoc");
+            NamespaceSymbol globalNs = compilation.GlobalNamespace;
+            NamedTypeSymbol cDoc = globalNs.GetTypeMember("CDoc");
             Assert.NotNull(cDoc);
 
-            var attrs = cDoc.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs = cDoc.GetAttributes();
             Assert.Equal(1, attrs.Length);
             Assert.Equal("Z.Attr", attrs[0].AttributeClass.ToDisplayString());
 
@@ -2831,16 +2831,16 @@ partial class CDoc
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
-            var globalNs = compilation.GlobalNamespace;
-            var cDoc = globalNs.GetTypeMember("CDoc");
+            NamespaceSymbol globalNs = compilation.GlobalNamespace;
+            NamedTypeSymbol cDoc = globalNs.GetTypeMember("CDoc");
             Assert.NotNull(cDoc);
 
-            var attrs = cDoc.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs = cDoc.GetAttributes();
             Assert.Equal(1, attrs.Length);
             Assert.Equal("Z.Attr", attrs[0].AttributeClass.ToDisplayString());
-            var syntax = attrs.Single().ApplicationSyntaxReference.GetSyntax();
+            SyntaxNode syntax = attrs.Single().ApplicationSyntaxReference.GetSyntax();
             Assert.NotNull(syntax);
             Assert.IsType<AttributeSyntax>(syntax);
 
@@ -2862,16 +2862,16 @@ namespace AttributeTest
     }
 }
 ";
-            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
+            PortableExecutableReference[] references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilation(source, references, options: opt);
+            CSharpCompilation compilation = CreateCompilation(source, references, options: opt);
 
             Action<ModuleSymbol> sourceAttributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("IGoo");
-                var attrs = type.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attrs = type.GetAttributes();
                 attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, new char[] { ' ' });
                 attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "" });
 
@@ -2882,7 +2882,7 @@ namespace AttributeTest
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("IGoo");
-                var attrs = type.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attrs = type.GetAttributes();
                 attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, new char[] { ' ' });
                 attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "" });
             };
@@ -2949,8 +2949,8 @@ namespace AttributeTest
                 var attributeClass = (NamedTypeSymbol)ns.GetMember("ExampleAttribute");
 
                 var method = (MethodSymbol)type.GetMember("MultipleArgumentsToParamsParameter");
-                var attrs = method.GetAttributes(attributeClass);
-                var attr = attrs.Single();
+                IEnumerable<CSharpAttributeData> attrs = method.GetAttributes(attributeClass);
+                CSharpAttributeData attr = attrs.Single();
                 Assert.Equal(2, attr.CommonConstructorArguments.Length);
                 attr.VerifyValue<string>(0, TypedConstantKind.Primitive, "MultipleArgumentsToParamsParameter");
                 attr.VerifyValue<int[]>(1, TypedConstantKind.Array, new int[] { 4, 5, 6 });
@@ -2971,7 +2971,7 @@ namespace AttributeTest
             };
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
-            var compVerifier = CompileAndVerify(
+            CompilationVerifier compVerifier = CompileAndVerify(
                 source,
                 sourceSymbolValidator: attributeValidator,
                 symbolValidator: attributeValidator,
@@ -2999,16 +2999,16 @@ namespace AttributeTest
     }
 }
 ";
-            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
+            PortableExecutableReference[] references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilation(source, references, options: opt);
+            CSharpCompilation compilation = CreateCompilation(source, references, options: opt);
 
             Action<ModuleSymbol> sourceAttributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("IGoo");
-                var attrs = type.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attrs = type.GetAttributes();
                 attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, new char[] { ' ' });
                 attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "whatever" });
 
@@ -3019,7 +3019,7 @@ namespace AttributeTest
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("IGoo");
-                var attrs = type.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attrs = type.GetAttributes();
                 attrs.First().VerifyValue<char[]>(0, TypedConstantKind.Array, new char[] { ' ' });
                 attrs.First().VerifyValue<string[]>(1, TypedConstantKind.Array, new string[] { "whatever" });
             };
@@ -3048,13 +3048,13 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("MyAttribute");
-                var attrs = type.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attrs = type.GetAttributes();
                 Assert.Equal(1, attrs.Length);
                 attrs.First().VerifyValue(0, TypedConstantKind.Type, typeof(Object));
             };
@@ -3091,16 +3091,16 @@ namespace AttributeTest
     }
 }
 ";
-            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
+            PortableExecutableReference[] references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilation(source, references, options: opt);
+            CSharpCompilation compilation = CreateCompilation(source, references, options: opt);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("A");
-                var attrs = type.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attrs = type.GetAttributes();
                 attrs.First().VerifyValue(0, TypedConstantKind.Array, (object[])null);
             };
 
@@ -3198,10 +3198,10 @@ namespace AttributeTest
     }
 }
 ";
-            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
+            PortableExecutableReference[] references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilation(source, references, options: opt);
+            CSharpCompilation compilation = CreateCompilation(source, references, options: opt);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -3209,13 +3209,13 @@ namespace AttributeTest
                 var type = (NamedTypeSymbol)ns.GetMember("Goo");
 
                 var property = (PropertySymbol)type.GetMember("Property");
-                var getter = property.GetMethod;
-                var attrs = getter.GetReturnTypeAttributes();
+                MethodSymbol getter = property.GetMethod;
+                ImmutableArray<CSharpAttributeData> attrs = getter.GetReturnTypeAttributes();
                 Assert.Equal(1, attrs.Length);
-                var attr = attrs.First();
+                CSharpAttributeData attr = attrs.First();
                 Assert.Equal("CustomAttribute.AllInheritMultipleAttribute", attr.AttributeClass.ToDisplayString());
 
-                var setter = property.SetMethod;
+                MethodSymbol setter = property.SetMethod;
                 attrs = setter.GetReturnTypeAttributes();
                 Assert.Equal(1, attrs.Length);
                 attr = attrs.First();
@@ -3229,7 +3229,7 @@ namespace AttributeTest
                 attr = attrs.Last();
                 Assert.Equal("CustomAttribute.AllInheritMultipleAttribute", attr.AttributeClass.ToDisplayString());
 
-                var delegateType = type.GetTypeMember("Delegate");
+                NamedTypeSymbol delegateType = type.GetTypeMember("Delegate");
                 var invokeMethod = (MethodSymbol)delegateType.GetMember("Invoke");
                 attrs = invokeMethod.GetReturnTypeAttributes();
                 Assert.Equal(1, attrs.Length);
@@ -3275,7 +3275,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -3286,7 +3286,7 @@ namespace AttributeTest
                 var attributeType2 = (NamedTypeSymbol)ns.GetMember("RAttribute");
                 var genMethod = (MethodSymbol)type.GetMember("M");
 
-                var attrs = enumType.GetAttributes(attributeType);
+                IEnumerable<CSharpAttributeData> attrs = enumType.GetAttributes(attributeType);
                 Assert.Equal(1, attrs.Count());
 
                 attrs = genMethod.GetAttributes(attributeType2);
@@ -3315,7 +3315,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -3323,10 +3323,10 @@ namespace AttributeTest
                 var type = (NamedTypeSymbol)ns.GetMember("Program");
                 var attributeType = (NamedTypeSymbol)ns.GetMember("var");
 
-                var attrs = type.GetAttributes(attributeType);
+                IEnumerable<CSharpAttributeData> attrs = type.GetAttributes(attributeType);
                 Assert.Equal(1, attrs.Count());
 
-                var attr = attrs.First();
+                CSharpAttributeData attr = attrs.First();
                 Assert.Equal("AttributeTest.var", attr.ToString());
             };
 
@@ -3361,7 +3361,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -3371,7 +3371,7 @@ namespace AttributeTest
                 var attributeType = (NamedTypeSymbol)ns.GetMember("TestAttribute");
 
                 var field = (FieldSymbol)type.GetMember("testField");
-                var attrs = field.GetAttributes(attributeType);
+                IEnumerable<CSharpAttributeData> attrs = field.GetAttributes(attributeType);
                 Assert.Equal(1, attrs.Count());
             };
 
@@ -3412,7 +3412,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -3424,11 +3424,11 @@ namespace AttributeTest
                 var attributeTypeForReturn = (NamedTypeSymbol)ns.GetMember("TestAttributeForReturn");
 
                 var property = (PropertySymbol)type.GetMember("P1");
-                var setter = property.SetMethod;
+                MethodSymbol setter = property.SetMethod;
 
-                var attrs = setter.GetAttributes(attributeTypeForMethod);
+                IEnumerable<CSharpAttributeData> attrs = setter.GetAttributes(attributeTypeForMethod);
                 Assert.Equal(1, attrs.Count());
-                var attr = attrs.First();
+                CSharpAttributeData attr = attrs.First();
                 Assert.Equal("AttributeTest.TestAttributeForMethod", attr.AttributeClass.ToDisplayString());
 
                 Assert.Equal(1, setter.ParameterCount);
@@ -3444,7 +3444,7 @@ namespace AttributeTest
 
 
                 property = (PropertySymbol)type.GetMember("P2");
-                var getter = property.GetMethod;
+                MethodSymbol getter = property.GetMethod;
 
                 attrs = getter.GetAttributes(attributeTypeForMethod);
                 Assert.Equal(1, attrs.Count());
@@ -3464,7 +3464,7 @@ namespace AttributeTest
         [Fact]
         public void TestAttributeStringForEnumTypedConstant()
         {
-            var source = CreateCompilationWithMscorlib40(@"
+            CSharpCompilation source = CreateCompilationWithMscorlib40(@"
 using System;
 namespace AttributeTest
 {
@@ -3498,10 +3498,10 @@ namespace AttributeTest
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("A");
 
-                var attrs = type.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attrs = type.GetAttributes();
                 Assert.Equal(1, attrs.Length);
 
-                var attr = attrs.First();
+                CSharpAttributeData attr = attrs.First();
 
                 Assert.Equal(1, attr.CommonConstructorArguments.Length);
                 attr.VerifyValue(0, TypedConstantKind.Enum, (int)(AttributeTargets.Field | AttributeTargets.Event));
@@ -3550,13 +3550,13 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("A");
-                var attrs = type.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attrs = type.GetAttributes();
 
                 attrs.First().VerifyValue(0, TypedConstantKind.Primitive, 4);
                 attrs.First().VerifyValue(1, TypedConstantKind.Primitive, 5);
@@ -3593,13 +3593,13 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("A");
-                var attrs = type.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attrs = type.GetAttributes();
 
                 attrs.First().VerifyValue(0, TypedConstantKind.Primitive, 3);
                 attrs.First().VerifyValue(1, TypedConstantKind.Primitive, 4);
@@ -3637,13 +3637,13 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("A");
-                var attrs = type.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attrs = type.GetAttributes();
 
                 Assert.Equal(2, attrs.First().CommonConstructorArguments.Length);
 
@@ -3682,13 +3682,13 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("A");
-                var attrs = type.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attrs = type.GetAttributes();
 
                 attrs.First().VerifyValue(0, TypedConstantKind.Primitive, 3);
                 attrs.First().VerifyValue(1, TypedConstantKind.Primitive, 4);
@@ -3726,15 +3726,15 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 var ns = (NamespaceSymbol)m.GlobalNamespace.GetMember("AttributeTest");
                 var type = (NamedTypeSymbol)ns.GetMember("A");
-                var attrs = type.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attrs = type.GetAttributes();
 
-                var attr = attrs.First();
+                CSharpAttributeData attr = attrs.First();
                 Assert.Equal(1, attr.CommonConstructorArguments.Length);
                 attr.VerifyValue<int>(0, TypedConstantKind.Primitive, 2);
 
@@ -3928,7 +3928,7 @@ class B
         typeof(C<>).GetGenericArguments()[0].GetCustomAttributes(false);
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -3937,11 +3937,11 @@ class B
 
                 NamedTypeSymbol attributeType = m.GlobalNamespace.GetTypeMember("A");
 
-                var attrs = cClass.GetAttributes(attributeType);
+                IEnumerable<CSharpAttributeData> attrs = cClass.GetAttributes(attributeType);
                 Assert.Equal(1, attrs.Count());
                 attrs.First().VerifyValue(0, TypedConstantKind.Primitive, 2);
 
-                var typeParameters = cClass.TypeParameters;
+                ImmutableArray<TypeParameterSymbol> typeParameters = cClass.TypeParameters;
                 Assert.Equal(1, typeParameters.Length);
                 attrs = typeParameters[0].GetAttributes(attributeType);
                 Assert.Equal(1, attrs.Count());
@@ -3984,7 +3984,7 @@ public class Program
         
     }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -3992,7 +3992,7 @@ public class Program
                 NamedTypeSymbol cClass = bClass.GetTypeMember("C");
                 NamedTypeSymbol attributeType = m.GlobalNamespace.GetTypeMember("A");
 
-                var attrs = bClass.GetAttributes(attributeType);
+                IEnumerable<CSharpAttributeData> attrs = bClass.GetAttributes(attributeType);
                 Assert.Equal(1, attrs.Count());
                 attrs.First().VerifyValue(0, TypedConstantKind.Type, cClass.AsUnboundGenericType());
             };
@@ -4026,14 +4026,14 @@ class Program
     {
     }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 NamedTypeSymbol bClass = m.GlobalNamespace.GetTypeMember("B");
                 NamedTypeSymbol attributeType = m.GlobalNamespace.GetTypeMember("A");
 
-                var attrs = bClass.GetAttributes(attributeType);
+                IEnumerable<CSharpAttributeData> attrs = bClass.GetAttributes(attributeType);
                 Assert.Equal(1, attrs.Count());
                 attrs.First().VerifyValue(0, TypedConstantKind.Type, bClass.AsUnboundGenericType());
             };
@@ -4047,25 +4047,25 @@ class Program
         [Fact]
         public void AttributeArgumentAsEnumFromMetadata()
         {
-            var metadataStream1 = CSharpCompilation.Create("bar.dll",
+            MemoryStream metadataStream1 = CSharpCompilation.Create("bar.dll",
                 references: new[] { MscorlibRef },
                 syntaxTrees: new[] { Parse("public enum Bar { Baz }") }).EmitToStream(options: new EmitOptions(metadataOnly: true));
 
-            var ref1 = MetadataReference.CreateFromStream(metadataStream1);
+            PortableExecutableReference ref1 = MetadataReference.CreateFromStream(metadataStream1);
 
-            var metadataStream2 = CSharpCompilation.Create("goo.dll", references: new[] { MscorlibRef, ref1 },
+            MemoryStream metadataStream2 = CSharpCompilation.Create("goo.dll", references: new[] { MscorlibRef, ref1 },
                 syntaxTrees: new[] {
                     SyntaxFactory.ParseSyntaxTree(
                         "public class Ca : System.Attribute { public Ca(object o) { } } " +
                         "[Ca(Bar.Baz)]" +
                         "public class Goo { }") }).EmitToStream(options: new EmitOptions(metadataOnly: true));
 
-            var ref2 = MetadataReference.CreateFromStream(metadataStream2);
+            PortableExecutableReference ref2 = MetadataReference.CreateFromStream(metadataStream2);
 
             var compilation = CSharpCompilation.Create("moo.dll", references: new[] { MscorlibRef, ref1, ref2 });
 
-            var goo = compilation.GetTypeByMetadataName("Goo");
-            var ca = goo.GetAttributes().First().CommonConstructorArguments.First();
+            NamedTypeSymbol goo = compilation.GetTypeByMetadataName("Goo");
+            TypedConstant ca = goo.GetAttributes().First().CommonConstructorArguments.First();
 
             Assert.Equal("Bar", ca.Type.Name);
         }
@@ -4122,15 +4122,15 @@ public class A : Attribute
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 NamedTypeSymbol attributeType = m.GlobalNamespace.GetTypeMember("A");
 
-                var attrs = attributeType.GetAttributes(attributeType);
+                IEnumerable<CSharpAttributeData> attrs = attributeType.GetAttributes(attributeType);
                 Assert.Equal(12, attrs.Count());
-                var enumerator = attrs.GetEnumerator();
+                IEnumerator<CSharpAttributeData> enumerator = attrs.GetEnumerator();
                 enumerator.MoveNext();
                 enumerator.Current.VerifyNamedArgumentValue(0, "X", TypedConstantKind.Enum, (int)new DayOfWeek());
                 enumerator.MoveNext();
@@ -4228,11 +4228,11 @@ partial class Program
 }
 ";
 
-            var compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
-                var programClass = m.GlobalNamespace.GetTypeMember("Program");
+                NamedTypeSymbol programClass = m.GlobalNamespace.GetTypeMember("Program");
                 var gooMethod = (MethodSymbol)programClass.GetMember("Goo");
 
                 TestAttributeOnPartialMethodHelper(m, gooMethod);
@@ -4244,16 +4244,16 @@ partial class Program
 
         private void TestAttributeOnPartialMethodHelper(ModuleSymbol m, MethodSymbol gooMethod)
         {
-            var a1Class = m.GlobalNamespace.GetTypeMember("A1");
-            var a2Class = m.GlobalNamespace.GetTypeMember("A2");
-            var b1Class = m.GlobalNamespace.GetTypeMember("B1");
-            var b2Class = m.GlobalNamespace.GetTypeMember("B2");
-            var c1Class = m.GlobalNamespace.GetTypeMember("C1");
-            var c2Class = m.GlobalNamespace.GetTypeMember("C2");
-            var d1Class = m.GlobalNamespace.GetTypeMember("D1");
-            var d2Class = m.GlobalNamespace.GetTypeMember("D2");
-            var e1Class = m.GlobalNamespace.GetTypeMember("E1");
-            var e2Class = m.GlobalNamespace.GetTypeMember("E2");
+            NamedTypeSymbol a1Class = m.GlobalNamespace.GetTypeMember("A1");
+            NamedTypeSymbol a2Class = m.GlobalNamespace.GetTypeMember("A2");
+            NamedTypeSymbol b1Class = m.GlobalNamespace.GetTypeMember("B1");
+            NamedTypeSymbol b2Class = m.GlobalNamespace.GetTypeMember("B2");
+            NamedTypeSymbol c1Class = m.GlobalNamespace.GetTypeMember("C1");
+            NamedTypeSymbol c2Class = m.GlobalNamespace.GetTypeMember("C2");
+            NamedTypeSymbol d1Class = m.GlobalNamespace.GetTypeMember("D1");
+            NamedTypeSymbol d2Class = m.GlobalNamespace.GetTypeMember("D2");
+            NamedTypeSymbol e1Class = m.GlobalNamespace.GetTypeMember("E1");
+            NamedTypeSymbol e2Class = m.GlobalNamespace.GetTypeMember("E2");
 
             Assert.Equal(1, gooMethod.GetAttributes(a1Class).Count());
             Assert.Equal(1, gooMethod.GetAttributes(a2Class).Count());
@@ -4261,15 +4261,15 @@ partial class Program
             Assert.Equal(1, gooMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == b1Class).Count());
             Assert.Equal(1, gooMethod.GetReturnTypeAttributes().Where(a => a.AttributeClass == b2Class).Count());
 
-            var typeParam1 = gooMethod.TypeParameters[0];
+            TypeParameterSymbol typeParam1 = gooMethod.TypeParameters[0];
             Assert.Equal(1, typeParam1.GetAttributes(c1Class).Count());
             Assert.Equal(1, typeParam1.GetAttributes(c2Class).Count());
 
-            var typeParam2 = gooMethod.TypeParameters[1];
+            TypeParameterSymbol typeParam2 = gooMethod.TypeParameters[1];
             Assert.Equal(1, typeParam2.GetAttributes(d1Class).Count());
             Assert.Equal(1, typeParam2.GetAttributes(d2Class).Count());
 
-            var param = gooMethod.Parameters[0];
+            ParameterSymbol param = gooMethod.Parameters[0];
             Assert.Equal(1, param.GetAttributes(e1Class).Count());
             Assert.Equal(1, param.GetAttributes(e2Class).Count());
         }
@@ -4297,14 +4297,14 @@ class C
     }
 }";
 
-            var compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
-                var aClass = m.GlobalNamespace.GetTypeMember("A");
-                var bClass = m.GlobalNamespace.GetTypeMember("B");
+                NamedTypeSymbol aClass = m.GlobalNamespace.GetTypeMember("A");
+                NamedTypeSymbol bClass = m.GlobalNamespace.GetTypeMember("B");
 
-                var type = m.GlobalNamespace.GetTypeMember("X");
+                NamedTypeSymbol type = m.GlobalNamespace.GetTypeMember("X");
 
                 Assert.Equal(2, type.GetAttributes().Length);
                 Assert.Equal(1, type.GetAttributes(aClass).Count());
@@ -4333,15 +4333,15 @@ class C
     public static void Main() {}
 }";
 
-            var compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(new[] { source1, source2 }, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
-                var aClass = m.GlobalNamespace.GetTypeMember("A");
-                var bClass = m.GlobalNamespace.GetTypeMember("B");
+                NamedTypeSymbol aClass = m.GlobalNamespace.GetTypeMember("A");
+                NamedTypeSymbol bClass = m.GlobalNamespace.GetTypeMember("B");
 
-                var type = m.GlobalNamespace.GetTypeMember("Gen");
-                var typeParameter = type.TypeParameters.First();
+                NamedTypeSymbol type = m.GlobalNamespace.GetTypeMember("Gen");
+                TypeParameterSymbol typeParameter = type.TypeParameters.First();
 
                 Assert.Equal(2, typeParameter.GetAttributes().Length);
                 Assert.Equal(1, typeParameter.GetAttributes(aClass).Count());
@@ -4370,7 +4370,7 @@ public class GClass<T> where T : Attribute
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -4408,16 +4408,16 @@ class C
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
                 NamedTypeSymbol attributeType = m.GlobalNamespace.GetTypeMember("A");
                 NamedTypeSymbol cClass = m.GlobalNamespace.GetTypeMember("C");
 
-                var attrs = attributeType.GetAttributes(attributeType);
+                IEnumerable<CSharpAttributeData> attrs = attributeType.GetAttributes(attributeType);
                 Assert.Equal(1, attrs.Count());
-                var attr = attrs.First();
+                CSharpAttributeData attr = attrs.First();
                 Assert.Equal(1, attr.CommonConstructorArguments.Length);
                 attr.VerifyValue<object>(0, TypedConstantKind.Primitive, null);
 
@@ -4466,7 +4466,7 @@ class C
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -4475,10 +4475,10 @@ class C
                 NamedTypeSymbol cClass = m.GlobalNamespace.GetTypeMember("C");
 
                 // Verify A attributes
-                var attrs = cClass.GetAttributes(attributeTypeA);
+                IEnumerable<CSharpAttributeData> attrs = cClass.GetAttributes(attributeTypeA);
                 Assert.Equal(2, attrs.Count());
 
-                var attr = attrs.First();
+                CSharpAttributeData attr = attrs.First();
                 Assert.Equal(1, attr.CommonConstructorArguments.Length);
                 attr.VerifyValue<object>(0, TypedConstantKind.Primitive, null);
 
@@ -4528,7 +4528,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseExe);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -4536,7 +4536,7 @@ public class Test
                 NamedTypeSymbol testClass = m.GlobalNamespace.GetTypeMember("Test");
 
                 // Verify attributes
-                var attrs = testClass.GetAttributes(attributeType);
+                IEnumerable<CSharpAttributeData> attrs = testClass.GetAttributes(attributeType);
                 Assert.Equal(1, attrs.Count());
             };
 
@@ -4586,8 +4586,8 @@ public struct S
 }
 ";
 
-            var comp = CreateCompilation(source);
-            var global = comp.SourceModule.GlobalNamespace;
+            CSharpCompilation comp = CreateCompilation(source);
+            NamespaceSymbol global = comp.SourceModule.GlobalNamespace;
             var typesym = global.GetMember("S") as NamedTypeSymbol;
             Assert.NotNull(typesym);
             Assert.True(typesym.HasSpecialName);
@@ -4640,7 +4640,7 @@ public class C5 {}
 public class C6 {}
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             Action<ModuleSymbol> attributeValidator = (ModuleSymbol m) =>
             {
@@ -4657,7 +4657,7 @@ public class C6 {}
                 NamedTypeSymbol classC5 = m.GlobalNamespace.GetTypeMember("C5");
                 NamedTypeSymbol classC6 = m.GlobalNamespace.GetTypeMember("C6");
 
-                var attrs = classC1.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attrs = classC1.GetAttributes();
                 Assert.Equal(1, attrs.Length);
                 var typeArg = ArrayTypeSymbol.CreateCSharpArray(m.ContainingAssembly, classW, default(ImmutableArray<CustomModifier>));
                 attrs.First().VerifyValue<object>(0, TypedConstantKind.Type, typeArg);
@@ -4781,23 +4781,23 @@ public class C
 
             Action<FieldSymbol, string> VerifyAttributes = (field, value) =>
             {
-                var attributes = field.GetAttributes();
+                ImmutableArray<CSharpAttributeData> attributes = field.GetAttributes();
                 Assert.Equal(1, attributes.Length);
                 attributes[0].VerifyValue(0, TypedConstantKind.Primitive, value);
             };
 
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => (ModuleSymbol module) =>
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var x1 = type.GetMember<FieldSymbol>("x1");
-                var x2 = type.GetMember<FieldSymbol>("x2");
-                var x3 = type.GetMember<FieldSymbol>("x3");
-                var x4 = type.GetMember<FieldSymbol>("x4");
-                var x5 = type.GetMember<FieldSymbol>("x5");
-                var x6 = type.GetMember<FieldSymbol>("x6");
-                var x7 = type.GetMember<FieldSymbol>("x7");
-                var x8 = type.GetMember<FieldSymbol>("x8");
-                var x9 = type.GetMember<FieldSymbol>("x9");
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                FieldSymbol x1 = type.GetMember<FieldSymbol>("x1");
+                FieldSymbol x2 = type.GetMember<FieldSymbol>("x2");
+                FieldSymbol x3 = type.GetMember<FieldSymbol>("x3");
+                FieldSymbol x4 = type.GetMember<FieldSymbol>("x4");
+                FieldSymbol x5 = type.GetMember<FieldSymbol>("x5");
+                FieldSymbol x6 = type.GetMember<FieldSymbol>("x6");
+                FieldSymbol x7 = type.GetMember<FieldSymbol>("x7");
+                FieldSymbol x8 = type.GetMember<FieldSymbol>("x8");
+                FieldSymbol x9 = type.GetMember<FieldSymbol>("x9");
 
                 // public const string UnicodeSurrogate1 = ""\uD800"";
                 VerifyAttributes(x1, isFromSource ?
@@ -4873,22 +4873,22 @@ class D : C
 }
 ";
 
-            var c1 = CreateCompilation(lib1);
-            var r1 = c1.EmitToImageReference();
+            CSharpCompilation c1 = CreateCompilation(lib1);
+            MetadataReference r1 = c1.EmitToImageReference();
 
-            var c2 = CreateCompilation(lib2, references: new[] { r1 });
-            var r2 = c2.EmitToImageReference();
+            CSharpCompilation c2 = CreateCompilation(lib2, references: new[] { r1 });
+            MetadataReference r2 = c2.EmitToImageReference();
 
-            var cm = CreateCompilation(main, new[] { r2 });
+            CSharpCompilation cm = CreateCompilation(main, new[] { r2 });
             cm.VerifyDiagnostics();
 
-            var model = cm.GetSemanticModel(cm.SyntaxTrees[0]);
+            SemanticModel model = cm.GetSemanticModel(cm.SyntaxTrees[0]);
 
             int index = main.IndexOf("M()", StringComparison.Ordinal);
             var m = (ExpressionSyntax)cm.SyntaxTrees[0].GetCompilationUnitRoot().FindToken(index).Parent.Parent;
 
-            var info = model.GetSymbolInfo(m);
-            var args = info.Symbol.GetAttributes()[0].CommonConstructorArguments;
+            SymbolInfo info = model.GetSymbolInfo(m);
+            ImmutableArray<TypedConstant> args = info.Symbol.GetAttributes()[0].CommonConstructorArguments;
 
             // unresolved type - parameter ignored
             Assert.Equal(0, args.Length);
@@ -4918,9 +4918,9 @@ class C
 ";
             CompileAndVerify(source, symbolValidator: (m) =>
             {
-                var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var attr = c.GetAttributes().Single();
-                var args = attr.ConstructorArguments.ToArray();
+                NamedTypeSymbol c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                CSharpAttributeData attr = c.GetAttributes().Single();
+                TypedConstant[] args = attr.ConstructorArguments.ToArray();
 
                 Assert.True(args[0].IsNull);
                 Assert.Equal("object[]", args[0].Type.ToDisplayString());
@@ -4962,9 +4962,9 @@ class C
 ";
             CompileAndVerify(source, symbolValidator: (m) =>
             {
-                var c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var attr = c.GetAttributes().Single();
-                var args = attr.ConstructorArguments.ToArray();
+                NamedTypeSymbol c = m.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                CSharpAttributeData attr = c.GetAttributes().Single();
+                TypedConstant[] args = attr.ConstructorArguments.ToArray();
 
                 Assert.Null(args[0].Value);
                 Assert.Equal("Type", args[0].Type.Name);
@@ -4990,14 +4990,14 @@ class C<T>
 ";
             CompileAndVerify(source, symbolValidator: module =>
             {
-                var @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
-                var classTypeParameter = @class.TypeParameters.Single();
-                var method = @class.GetMember<MethodSymbol>("M");
-                var methodTypeParameter = method.TypeParameters.Single();
+                NamedTypeSymbol @class = module.GlobalNamespace.GetMember<NamedTypeSymbol>("C");
+                TypeParameterSymbol classTypeParameter = @class.TypeParameters.Single();
+                MethodSymbol method = @class.GetMember<MethodSymbol>("M");
+                TypeParameterSymbol methodTypeParameter = method.TypeParameters.Single();
 
                 Assert.Empty(classTypeParameter.GetAttributes());
 
-                var attribute = methodTypeParameter.GetAttributes().Single();
+                CSharpAttributeData attribute = methodTypeParameter.GetAttributes().Single();
                 Assert.Equal("XAttribute", attribute.AttributeClass.Name);
             });
         }
@@ -5010,7 +5010,7 @@ class C<T>
         [Fact]
         public void AttributeConstructorErrors1()
         {
-            var compilation = CreateCompilationWithMscorlib40AndSystemCore(@"
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40AndSystemCore(@"
 using System;
 static class m
 {
@@ -5081,7 +5081,7 @@ class A
         [Fact]
         public void AttributeNamedArgumentErrors1()
         {
-            var compilation = CreateCompilation(@"
+            CSharpCompilation compilation = CreateCompilation(@"
 using System;
 [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
 class XAttribute : Attribute
@@ -5159,10 +5159,10 @@ static class AttributeMod
     {
     }
 }";
-            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
+            PortableExecutableReference[] references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.AttributeTestDef01.AsImmutableOrNull()) };
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilation(source, references, options: opt);
+            CSharpCompilation compilation = CreateCompilation(source, references, options: opt);
 
             compilation.VerifyDiagnostics(
                 // (4,2): error CS0579: Duplicate 'BaseAttribute' attribute
@@ -5204,7 +5204,7 @@ class Class3 { }
 class Class4 { }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (10,2): error CS1614: 'X' is ambiguous between 'X' and 'XAttribute'; use either '@X' or 'XAttribute'
@@ -5231,7 +5231,7 @@ class Class2 { }
 class Class3 { }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (13,2): error CS0246: The type or namespace name 'X' could not be found (are you missing a using directive or an assembly reference?)
@@ -5265,7 +5265,7 @@ class X
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (13,8): error CS0416: 'T': an attribute argument cannot use type parameters
@@ -5314,7 +5314,7 @@ public class MainClass
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics();
         }
 
@@ -5334,7 +5334,7 @@ class X
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (6,2): warning CS0657: 'method' is not a valid attribute location for this declaration. Valid attribute locations for this declaration are 'type'. All attributes in this block will be ignored.
@@ -5353,7 +5353,7 @@ class X
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(/*CS0657, CS0246*/);
         }
@@ -5374,7 +5374,7 @@ class A
 class B
 {
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (4,6): error CS0592: Attribute 'AttributeUsage' is not valid on this declaration type. It is only valid on 'class' declarations.
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "AttributeUsage").WithArguments("AttributeUsage", "class").WithLocation(4, 6),
@@ -5403,7 +5403,7 @@ public class Test
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (3,39): error CS0643: 'AllowMultiple' duplicate named attribute argument
@@ -5434,7 +5434,7 @@ public class Goo
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 Diagnostic(ErrorCode.ERR_BadArgType, "null").WithArguments("1", "<null>", "System.AttributeTargets"));
@@ -5454,7 +5454,7 @@ class Goo<T>
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (2,2): error CS0404: Cannot apply attribute class 'Goo<T>' because it is generic
                 // [Goo<int>]
@@ -5481,7 +5481,7 @@ public class Goo
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (4,17): error CS1503: Argument 1: cannot convert from '<null>' to 'System.AttributeTargets'
@@ -5505,7 +5505,7 @@ class Goo<T>
 }
 ";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (2,2): error CS0404: Cannot apply attribute class 'Goo<T>' because it is generic
@@ -5531,7 +5531,7 @@ class B : Attribute
             var source2 =
 @"[module: B]";
 
-            var compilation = CreateCompilation(new[] { source1, source2 });
+            CSharpCompilation compilation = CreateCompilation(new[] { source1, source2 });
             compilation.VerifyDiagnostics(
                 // (2,10): error CS0592: Attribute 'A' is not valid on this declaration type. It is only valid on 'class' declarations.
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "A").WithArguments("A", "class").WithLocation(2, 10),
@@ -5559,7 +5559,7 @@ class Gen<[A] T> {}
             var source2 =
 @"class Gen2<[B] T> {}";
 
-            var compilation = CreateCompilation(new[] { source1, source2 });
+            CSharpCompilation compilation = CreateCompilation(new[] { source1, source2 });
             compilation.VerifyDiagnostics(
                 // (11,12): error CS0592: Attribute 'A' is not valid on this declaration type. It is only valid on 'class' declarations.
                 // class Gen<[A] T> {}
@@ -5591,7 +5591,7 @@ partial class C
 partial class C
 {
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (10,2): error CS0592: Attribute 'A' is not valid on this declaration type. It is only valid on 'struct' declarations.
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "A").WithArguments("A", "struct").WithLocation(10, 2),
@@ -5620,7 +5620,7 @@ partial class Gen<[A] T>
 partial class Gen<[B] T>
 {
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (11,20): error CS0592: Attribute 'A' is not valid on this declaration type. It is only valid on 'struct' declarations.
                 // partial class Gen<[A] T>
@@ -5654,7 +5654,7 @@ class F
   public int test;
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (16,6): error CS0120: An object reference is required for the non-static field, method, or property 'F.ProtectionLevel'
                 //   [A(ProtectionLevel.Privacy)]
@@ -5693,7 +5693,7 @@ using System;
 [AttributeUsage(AttributeTargets.Assembly)]
 class Attr: Attribute { public Attr(){} }";
 
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (3,10): error CS0592: Attribute 'Attr' is not valid on this declaration type. It is only valid on 'assembly' declarations.
                 Diagnostic(ErrorCode.ERR_AttributeOnBadSymbolType, "Attr").WithArguments("Attr", "assembly"));
@@ -5726,7 +5726,7 @@ class A : Attribute
     public A(object x) { }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (3,16): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [A(new int[1] {Program.f})]
@@ -5763,7 +5763,7 @@ class A : Attribute
     public A(object x) { }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (4,4): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 // [A(new int[][] { new int[] { 1 } })]
@@ -5791,7 +5791,7 @@ class Program
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (8,2): error CS0181: Attribute constructor parameter 'x' has type 'int[][*,*]', which is not a valid attribute parameter type
                 // [My]
@@ -5820,7 +5820,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CompileAndVerify(source, expectedOutput: "");
+            CompilationVerifier compilation = CompileAndVerify(source, expectedOutput: "");
         }
 
         [WorkItem(541858, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541858")]
@@ -5848,7 +5848,7 @@ public class C<T>
     public enum E2 { }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (14,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [A(X = default(E))]
@@ -5869,7 +5869,7 @@ class Program
     public static void Main() {}
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (2,2): error CS0246: The type or namespace name 'varAttribute' could not be found (are you missing a using directive or an assembly reference?)
                 // [var()]
@@ -5909,7 +5909,7 @@ namespace AttributeTest
     }
 }
 ";
-            var compilation = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
+            CSharpCompilation compilation = CreateCompilation(source, parseOptions: TestOptions.Regular7_1);
             compilation.VerifyDiagnostics(
                 // (7,27): error CS1016: Named attribute argument expected
                 //     [A(3, z: 5, X = 6, y: 1)]
@@ -5958,7 +5958,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (11,8): error CS1503: Argument 1: cannot convert from 'method group' to 'int'
@@ -6001,7 +6001,7 @@ namespace TestNamespace_01
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (23,6): error CS1614: 'Description' is ambiguous between 'ValidWithoutSuffix.Description' and 'ValidWithSuffix.DescriptionAttribute'; use either '@Description' or 'DescriptionAttribute'
@@ -6045,7 +6045,7 @@ namespace TestNamespace_02
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (30,6): error CS0104: 'DescriptionAttribute' is an ambiguous reference between 'ValidWithSuffix.DescriptionAttribute' and 'ValidWithSuffix_And_ValidWithoutSuffix.DescriptionAttribute'
@@ -6089,7 +6089,7 @@ namespace TestNamespace_03
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics();
         }
@@ -6139,7 +6139,7 @@ namespace TestNamespace_04
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (36,6): error CS0104: 'Description' is an ambiguous reference between 'ValidWithSuffix_And_ValidWithoutSuffix.Description' and 'ValidWithoutSuffix.Description'
@@ -6182,7 +6182,7 @@ namespace TestNamespace_05
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (23,6): error CS0616: 'InvalidWithoutSuffix.Description' is not an attribute class
@@ -6229,7 +6229,7 @@ namespace TestNamespace_06
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (27,6): error CS0104: 'Description' is an ambiguous reference between 'InvalidWithSuffix.DescriptionAttribute' and 'InvalidWithSuffix_And_InvalidWithoutSuffix.DescriptionAttribute'
@@ -6276,7 +6276,7 @@ namespace TestNamespace_07
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (30,6): error CS0616: 'InvalidWithSuffix_And_InvalidWithoutSuffix.DescriptionAttribute' is not an attribute class
@@ -6332,7 +6332,7 @@ namespace TestNamespace_08
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (36,6): error CS0104: 'Description' is an ambiguous reference between 'InvalidWithSuffix_And_InvalidWithoutSuffix.Description' and 'InvalidWithoutSuffix.Description' 
@@ -6383,7 +6383,7 @@ namespace TestNamespace_09
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (31,6): error CS0104: 'Description' is an ambiguous reference between 'InvalidWithSuffix_But_ValidWithoutSuffix.Description' and 'InvalidWithoutSuffix_But_ValidWithSuffix.Description'
@@ -6423,7 +6423,7 @@ namespace TestNamespace_10
     public class Test { public static void Main() {} }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (23,6): error CS0104: 'Description' is an ambiguous reference between 'InvalidWithoutSuffix.Description' and 'ValidWithoutSuffix.Description'
@@ -6463,7 +6463,7 @@ namespace TestNamespace_11
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (23,6): error CS0104: 'Description' is an ambiguous reference between 'InvalidWithSuffix.DescriptionAttribute' and 'ValidWithSuffix.DescriptionAttribute'
@@ -6510,7 +6510,7 @@ namespace TestNamespace_12
     public class Test2 { }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (30,6): error CS0104: 'DescriptionAttribute' is an ambiguous reference between 'InvalidWithSuffix.DescriptionAttribute' and 'InvalidWithoutSuffix_But_ValidWithSuffix.DescriptionAttribute'
@@ -6614,7 +6614,7 @@ partial class C<[A][A] T> { }
 ";
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilation(source, null, options: opt);
+            CSharpCompilation compilation = CreateCompilation(source, null, options: opt);
 
             compilation.VerifyDiagnostics(
                 // (4,2): error CS0579: Duplicate 'A' attribute
@@ -6646,7 +6646,7 @@ class C
     static void Main() { }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (11,8): error CS0103: The name 'qq' does not exist in the current context
@@ -6656,15 +6656,15 @@ class C
                 // (17,16): error CS0103: The name 'value' does not exist in the current context
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "value").WithArguments("value"));
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var attrArgSyntaxes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AttributeArgumentSyntax>();
+            IEnumerable<AttributeArgumentSyntax> attrArgSyntaxes = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AttributeArgumentSyntax>();
             Assert.Equal(3, attrArgSyntaxes.Count());
 
-            foreach (var argSyntax in attrArgSyntaxes)
+            foreach (AttributeArgumentSyntax argSyntax in attrArgSyntaxes)
             {
-                var info = semanticModel.GetSymbolInfo(argSyntax.Expression);
+                SymbolInfo info = semanticModel.GetSymbolInfo(argSyntax.Expression);
                 Assert.Null(info.Symbol);
                 Assert.Equal(0, info.CandidateSymbols.Length);
                 Assert.Equal(CandidateReason.None, info.CandidateReason);
@@ -6691,21 +6691,21 @@ class C
     static void Main() { }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             compilation.VerifyDiagnostics(
                 // (11,15): error CS0246: The type or namespace name 'T' could not be found (are you missing a using directive or an assembly reference?)
                 Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "T").WithArguments("T"));
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var attrArgSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().Single();
+            AttributeArgumentSyntax attrArgSyntax = tree.GetCompilationUnitRoot().DescendantNodes().OfType<AttributeArgumentSyntax>().Single();
             var typeofSyntax = (TypeOfExpressionSyntax)attrArgSyntax.Expression;
-            var typeofArgSyntax = typeofSyntax.Type;
+            TypeSyntax typeofArgSyntax = typeofSyntax.Type;
             Assert.Equal("T", typeofArgSyntax.ToString());
 
-            var info = semanticModel.GetSymbolInfo(typeofArgSyntax);
+            SymbolInfo info = semanticModel.GetSymbolInfo(typeofArgSyntax);
             Assert.Null(info.Symbol);
             Assert.Equal(0, info.CandidateSymbols.Length);
             Assert.Equal(CandidateReason.None, info.CandidateReason);
@@ -6732,7 +6732,7 @@ partial class C
 ";
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilation(source, null, options: opt);
+            CSharpCompilation compilation = CreateCompilation(source, null, options: opt);
 
             compilation.VerifyDiagnostics(
                 // error CS0579: Duplicate 'A' attribute
@@ -6775,7 +6775,7 @@ partial class C
 ";
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilation(source, null, options: opt);
+            CSharpCompilation compilation = CreateCompilation(source, null, options: opt);
             compilation.VerifyDiagnostics(
                 // (25,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Goo6<T>()'
                 //     static partial void Goo6<[A][A] T>() { }
@@ -6833,7 +6833,7 @@ partial class C
 ";
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilation(source, null, options: opt);
+            CSharpCompilation compilation = CreateCompilation(source, null, options: opt);
 
             compilation.VerifyDiagnostics(
                 // (25,25): error CS0759: No defining declaration found for implementing declaration of partial method 'C.Goo6(int)'
@@ -6931,7 +6931,7 @@ partial class C
 }";
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilation(source, null, options: opt);
+            CSharpCompilation compilation = CreateCompilation(source, null, options: opt);
 
             compilation.VerifyDiagnostics(
                 // (7,32): error CS1001: Identifier expected
@@ -6986,7 +6986,7 @@ using EnterpriseLibraryExtensions;
 
 [assembly: ConfigurationDesignManager(typeof(ExtensionDesignManager))]
 ";
-            var compilation = CreateCompilation(new string[] { source, source2 });
+            CSharpCompilation compilation = CreateCompilation(new string[] { source, source2 });
             compilation.GetDiagnostics();
         }
 
@@ -7000,7 +7000,7 @@ class Gen<T>
 {
     [TypeAttribute(typeof(L1.L2.L3<>.L4<>))] public T Fld6;
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             Assert.NotEmpty(compilation.GetDiagnostics());
 
@@ -7039,7 +7039,7 @@ public class Test
 }";
             CSharpCompilationOptions opt = TestOptions.ReleaseDll;
 
-            var compilation = CreateCompilation(source, null, options: opt);
+            CSharpCompilation compilation = CreateCompilation(source, null, options: opt);
 
             compilation.VerifyDiagnostics(
                 // (3,16): error CS0698: A generic type cannot derive from 'System.Attribute' because it is an attribute class
@@ -7071,7 +7071,7 @@ public class Test
 	}
 }";
 
-            var comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40(csharpSource, ilSource);
 
             comp.VerifyDiagnostics(
                 // (2,2): error CS0404: Cannot apply attribute class 'Gen<T>' because it is generic
@@ -7098,7 +7098,7 @@ class B : Attribute
     internal Type InternalField; // CS0649
 }";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
                 // (7,17): warning CS0649: Field 'B.PublicField' is never assigned to, and will always have its default value null
@@ -7139,7 +7139,7 @@ class A : Attribute
     }
 }";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
                 // (13,8): error CS0617: 'PrivateField' is not a valid named attribute argument. Named attribute arguments must be fields which are not readonly, static, or const, or read-write properties which are public and not static.
@@ -7166,7 +7166,7 @@ class A : Attribute
     public object X;
 }";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
                 // (4,8): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -7255,7 +7255,7 @@ class C<T>
     public enum E { V }
 }";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
 
             comp.VerifyDiagnostics(
                 // (11,12): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
@@ -7413,15 +7413,15 @@ class Test
 
             Action<ModuleSymbol> sourceValidator = module =>
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-                var attrs = type.GetAttributes();
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                ImmutableArray<CSharpAttributeData> attrs = type.GetAttributes();
                 Assert.Equal(3, attrs.Length);
             };
 
             Action<ModuleSymbol> metadataValidator = module =>
             {
-                var type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-                var attrs = type.GetAttributes();
+                NamedTypeSymbol type = module.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+                ImmutableArray<CSharpAttributeData> attrs = type.GetAttributes();
                 Assert.Equal(1, attrs.Length); // only one is not conditional
                 Assert.Equal("Attr2", attrs.Single().AttributeClass.Name);
             };
@@ -7445,7 +7445,7 @@ public class Test
 {
 	public void goo([MyAttribute2(Types = new Type[
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
 
             Assert.NotEmpty(compilation.GetDiagnostics());
         }
@@ -7482,7 +7482,7 @@ class System : Attribute
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib40(source);
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source);
 
             compilation.VerifyDiagnostics(
                 // (2,7): warning CS0437: The type 'System' in '' conflicts with the imported namespace 'System' in 'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'. Using the type defined in ''.
@@ -7513,7 +7513,7 @@ public class X: Attribute
 {
 }
 ";
-            var comp1 = CreateCompilationWithMscorlib40(source2, assemblyName: "Temp0").ToMetadataReference();
+            CompilationReference comp1 = CreateCompilationWithMscorlib40(source2, assemblyName: "Temp0").ToMetadataReference();
             CreateCompilationWithMscorlib40(source, references: new[] { comp1 }).VerifyDiagnostics(
                 // (2,12): error CS0616: 'X' is not an attribute class
                 // [assembly: X]
@@ -7540,8 +7540,8 @@ class Y
 }
 ";
             comp1 = CreateCompilationWithMscorlib40(source2, assemblyName: "Temp1").ToMetadataReference();
-            var comp2 = CreateEmptyCompilation(source3, assemblyName: "Temp2").ToMetadataReference();
-            var comp3 = CreateCompilationWithMscorlib40(source4, references: new[] { comp1, comp2 });
+            CompilationReference comp2 = CreateEmptyCompilation(source3, assemblyName: "Temp2").ToMetadataReference();
+            CSharpCompilation comp3 = CreateCompilationWithMscorlib40(source4, references: new[] { comp1, comp2 });
             comp3.VerifyDiagnostics(
                 // (2,2): error CS0434: The namespace 'X' in 'Temp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null' conflicts with the type 'X' in 'Temp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
                 // [X]
@@ -7624,12 +7624,12 @@ public class IA
 	}
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (6,3): error CS0579: Duplicate 'IndexerName' attribute
                 Diagnostic(ErrorCode.ERR_DuplicateAttribute, "IndexerName").WithArguments("IndexerName"));
 
-            var indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("IA").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
+            PropertySymbol indexer = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("IA").GetMember<PropertySymbol>(WellKnownMemberNames.Indexer);
             Assert.Equal("ItemX", indexer.MetadataName); //First one wins.
         }
 
@@ -7654,7 +7654,7 @@ public class IA
     ret
   }
 }";
-            var reference1 = CompileIL(source1, prependDefaultHeader: false);
+            MetadataReference reference1 = CompileIL(source1, prependDefaultHeader: false);
             var source2 =
 @"class C
 {
@@ -7663,13 +7663,13 @@ public class IA
         o.M();
     }
 }";
-            var compilation = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation = CreateCompilation(source2, new[] { reference1 });
             compilation.VerifyDiagnostics();
-            var assembly = compilation.Assembly;
+            AssemblySymbol assembly = compilation.Assembly;
             Assert.Equal(assembly.GetAttributes().Length, 0);
-            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
+            NamedTypeSymbol type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
             Assert.Equal(type.GetAttributes().Length, 0);
-            var method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<PEMethodSymbol>("M");
+            PEMethodSymbol method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<PEMethodSymbol>("M");
             Assert.Equal(method.GetAttributes().Length, 0);
             Assert.True(method.TestIsExtensionBitSet);
             Assert.True(method.TestIsExtensionBitTrue);
@@ -7696,7 +7696,7 @@ public class IA
     ret
   }
 }";
-            var reference1 = CompileIL(source1, prependDefaultHeader: false);
+            MetadataReference reference1 = CompileIL(source1, prependDefaultHeader: false);
             var source2 =
 @"class C
 {
@@ -7705,14 +7705,14 @@ public class IA
         o.M();
     }
 }";
-            var compilation = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation = CreateCompilation(source2, new[] { reference1 });
             compilation.VerifyDiagnostics(); // we now recognize the extension method even without the assembly-level attribute
 
-            var assembly = compilation.Assembly;
+            AssemblySymbol assembly = compilation.Assembly;
             Assert.Equal(assembly.GetAttributes().Length, 0);
-            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
+            NamedTypeSymbol type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
             Assert.Equal(type.GetAttributes().Length, 0);
-            var method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<PEMethodSymbol>("M");
+            PEMethodSymbol method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<PEMethodSymbol>("M");
             Assert.Equal(method.GetAttributes().Length, 0);
             Assert.True(method.TestIsExtensionBitSet);
             Assert.True(method.TestIsExtensionBitTrue);
@@ -7739,7 +7739,7 @@ public class IA
     ret
   }
 }";
-            var reference1 = CompileIL(source1, prependDefaultHeader: false);
+            MetadataReference reference1 = CompileIL(source1, prependDefaultHeader: false);
             var source2 =
 @"class C
 {
@@ -7748,18 +7748,18 @@ public class IA
         o.M();
     }
 }";
-            var compilation = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation = CreateCompilation(source2, new[] { reference1 });
             compilation.VerifyDiagnostics(
                 // (5,11): error CS1061: 'object' does not contain a definition for 'M' and no extension method 'M' accepting a 
                 // first argument of type 'object' could be found (are you missing a using directive or an assembly reference?)
                 //         o.M();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M").WithArguments("object", "M"));
 
-            var assembly = compilation.Assembly;
+            AssemblySymbol assembly = compilation.Assembly;
             Assert.Equal(0, assembly.GetAttributes().Length);
-            var type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
+            NamedTypeSymbol type = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E");
             Assert.Equal(0, type.GetAttributes().Length);
-            var method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<PEMethodSymbol>("M");
+            PEMethodSymbol method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("E").GetMember<PEMethodSymbol>("M");
             Assert.Equal(0, method.GetAttributes().Length);
             Assert.True(method.TestIsExtensionBitSet);
             Assert.False(method.TestIsExtensionBitTrue);
@@ -7785,7 +7785,7 @@ public class IA
     ret
   }
 }";
-            var reference1 = CompileIL(source1, prependDefaultHeader: false);
+            MetadataReference reference1 = CompileIL(source1, prependDefaultHeader: false);
             var source2 =
 @"class C
 {
@@ -7795,12 +7795,12 @@ public class IA
         A.M(1, 2, 3, 4);
     }
 }";
-            var compilation = CreateCompilation(source2, new[] { reference1 });
+            CSharpCompilation compilation = CreateCompilation(source2, new[] { reference1 });
             compilation.VerifyDiagnostics();
 
-            var method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PEMethodSymbol>("M");
+            PEMethodSymbol method = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("A").GetMember<PEMethodSymbol>("M");
             Assert.Equal(0, method.GetAttributes().Length);
-            var yParam = method.Parameters[1];
+            ParameterSymbol yParam = method.Parameters[1];
             Assert.True(yParam.IsParams);
             Assert.Equal(0, yParam.GetAttributes().Length);
         }
@@ -7834,11 +7834,11 @@ public class IA
 
 } // end of class Library1.Goo
 ";
-            var reference1 = CompileIL(source1, prependDefaultHeader: false);
+            MetadataReference reference1 = CompileIL(source1, prependDefaultHeader: false);
 
-            var compilation = CreateCompilation("", new[] { reference1 });
+            CSharpCompilation compilation = CreateCompilation("", new[] { reference1 });
 
-            var type = compilation.GetTypeByMetadataName("Library1.Goo");
+            NamedTypeSymbol type = compilation.GetTypeByMetadataName("Library1.Goo");
             Assert.Equal(0, type.GetAttributes()[0].ConstructorArguments.Count());
         }
 
@@ -7876,7 +7876,7 @@ public class C<T, U> : Attribute
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
 
                 // NOTE: Dev11 reports ERR_AttributeCantBeGeneric for these, but this makes more sense.
@@ -7941,7 +7941,7 @@ public class C<T> : Attribute
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (5,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
                 // [Alias]
@@ -7989,7 +7989,7 @@ class Test
 
             // NOTE: Dev11 does not give an error for "[Alias]" - it just silently drops the
             // attribute at emit-time.
-            var comp = CreateCompilationWithILAndMscorlib40(source, il);
+            CSharpCompilation comp = CreateCompilationWithILAndMscorlib40(source, il);
             comp.VerifyDiagnostics(
                 // (4,2): error CS0404: Cannot apply attribute class 'C<int>' because it is generic
                 // [Alias]
@@ -8028,7 +8028,7 @@ public class Outer<T>
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
             // (5,2): error CS0404: Cannot apply attribute class 'Outer<int>.Inner' because it is generic
             // [InnerAlias]
@@ -8232,7 +8232,7 @@ public class ArrayOrObjectAttribute : Attribute
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,6): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [ArrayOnlyAttribute(new string[] { "A" })] //error
@@ -8241,23 +8241,23 @@ public class ArrayOrObjectAttribute : Attribute
                 //     [ArrayOrObjectAttribute(new string[] { "A" })] //error, even though the object ctor would work
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"ArrayOrObjectAttribute(new string[] { ""A"" })"));
 
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            var method1 = type.GetMember<MethodSymbol>("M1");
-            var method2 = type.GetMember<MethodSymbol>("M2");
-            var method3 = type.GetMember<MethodSymbol>("M3");
+            NamedTypeSymbol type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+            MethodSymbol method1 = type.GetMember<MethodSymbol>("M1");
+            MethodSymbol method2 = type.GetMember<MethodSymbol>("M2");
+            MethodSymbol method3 = type.GetMember<MethodSymbol>("M3");
 
-            var attrs1 = method1.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs1 = method1.GetAttributes();
             var value1 = new string[] { "A" };
             attrs1[0].VerifyValue(0, TypedConstantKind.Array, value1);
             attrs1[1].VerifyValue(0, TypedConstantKind.Array, value1);
             attrs1[2].VerifyValue(0, TypedConstantKind.Array, value1);
 
-            var attrs2 = method2.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs2 = method2.GetAttributes();
             attrs2[0].VerifyValue(0, TypedConstantKind.Array, (object[])null);
             attrs2[1].VerifyValue(0, TypedConstantKind.Primitive, (object)null);
             attrs2[2].VerifyValue(0, TypedConstantKind.Array, (object[])null);
 
-            var attrs3 = method3.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs3 = method3.GetAttributes();
             var value3 = new object[] { "A" };
             attrs3[0].VerifyValue(0, TypedConstantKind.Array, value3);
             attrs3[1].VerifyValue(0, TypedConstantKind.Array, value3);
@@ -8311,7 +8311,7 @@ public class ParamArrayOrObjectAttribute : Attribute
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (6,6): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [ParamArrayOnlyAttribute(new string[] { "A" })] //error
@@ -8320,33 +8320,33 @@ public class ParamArrayOrObjectAttribute : Attribute
                 //     [ParamArrayOrObjectAttribute(new string[] { "A" })] //error, even though the object ctor would work
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"ParamArrayOrObjectAttribute(new string[] { ""A"" })"));
 
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            var method1 = type.GetMember<MethodSymbol>("M1");
-            var method2 = type.GetMember<MethodSymbol>("M2");
-            var method3 = type.GetMember<MethodSymbol>("M3");
-            var method4 = type.GetMember<MethodSymbol>("M4");
+            NamedTypeSymbol type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+            MethodSymbol method1 = type.GetMember<MethodSymbol>("M1");
+            MethodSymbol method2 = type.GetMember<MethodSymbol>("M2");
+            MethodSymbol method3 = type.GetMember<MethodSymbol>("M3");
+            MethodSymbol method4 = type.GetMember<MethodSymbol>("M4");
 
             // As in the test above (i.e. not affected by params modifier).
-            var attrs1 = method1.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs1 = method1.GetAttributes();
             var value1 = new string[] { "A" };
             attrs1[0].VerifyValue(0, TypedConstantKind.Array, value1);
             attrs1[1].VerifyValue(0, TypedConstantKind.Array, value1);
             attrs1[2].VerifyValue(0, TypedConstantKind.Array, value1);
 
             // As in the test above (i.e. not affected by params modifier).
-            var attrs2 = method2.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs2 = method2.GetAttributes();
             attrs2[0].VerifyValue(0, TypedConstantKind.Array, (object[])null);
             attrs2[1].VerifyValue(0, TypedConstantKind.Primitive, (object)null);
             attrs2[2].VerifyValue(0, TypedConstantKind.Array, (object[])null);
 
             // As in the test above (i.e. not affected by params modifier).
-            var attrs3 = method3.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs3 = method3.GetAttributes();
             var value3 = new object[] { "A" };
             attrs3[0].VerifyValue(0, TypedConstantKind.Array, value3);
             attrs3[1].VerifyValue(0, TypedConstantKind.Array, value3);
             attrs3[2].VerifyValue(0, TypedConstantKind.Array, value3);
 
-            var attrs4 = method4.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs4 = method4.GetAttributes();
             attrs4[0].VerifyValue(0, TypedConstantKind.Array, new object[] { "A" });
             attrs4[1].VerifyValue(0, TypedConstantKind.Primitive, "A");
             attrs4[2].VerifyValue(0, TypedConstantKind.Primitive, "A");
@@ -8399,35 +8399,35 @@ public class StringOrObjectAttribute : Attribute
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (7,6): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
                 //     [ObjectOnlyAttribute(new string[] { "A" })] //error
                 Diagnostic(ErrorCode.ERR_BadAttributeArgument, @"ObjectOnlyAttribute(new string[] { ""A"" })"));
 
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            var method1 = type.GetMember<MethodSymbol>("M1");
-            var method2 = type.GetMember<MethodSymbol>("M2");
-            var method3 = type.GetMember<MethodSymbol>("M3");
-            var method4 = type.GetMember<MethodSymbol>("M4");
+            NamedTypeSymbol type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+            MethodSymbol method1 = type.GetMember<MethodSymbol>("M1");
+            MethodSymbol method2 = type.GetMember<MethodSymbol>("M2");
+            MethodSymbol method3 = type.GetMember<MethodSymbol>("M3");
+            MethodSymbol method4 = type.GetMember<MethodSymbol>("M4");
 
-            var attrs1 = method1.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs1 = method1.GetAttributes();
             var value1 = new string[] { "A" };
             attrs1[0].VerifyValue(0, TypedConstantKind.Array, value1);
             attrs1[1].VerifyValue(0, TypedConstantKind.Array, value1);
             attrs1[2].VerifyValue(0, TypedConstantKind.Array, value1);
 
-            var attrs2 = method2.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs2 = method2.GetAttributes();
             attrs2[0].VerifyValue(0, TypedConstantKind.Array, (object[])null);
             attrs2[1].VerifyValue(0, TypedConstantKind.Array, (object[])null);
             attrs2[2].VerifyValue(0, TypedConstantKind.Array, (string[])null);
 
-            var attrs3 = method3.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs3 = method3.GetAttributes();
             var value3 = new object[] { "A" };
             attrs3[0].VerifyValue(0, TypedConstantKind.Array, value3);
             attrs3[1].VerifyValue(0, TypedConstantKind.Array, value3);
 
-            var attrs4 = method4.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs4 = method4.GetAttributes();
             var value4 = new object[] { "A" };
             attrs4[0].VerifyValue(0, TypedConstantKind.Array, value4);
             attrs4[1].VerifyValue(0, TypedConstantKind.Array, value4);
@@ -8476,25 +8476,25 @@ public class ArrayOrObjectAttribute : Attribute
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            var method1 = type.GetMember<MethodSymbol>("M1");
-            var method2 = type.GetMember<MethodSymbol>("M2");
-            var method3 = type.GetMember<MethodSymbol>("M3");
+            NamedTypeSymbol type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+            MethodSymbol method1 = type.GetMember<MethodSymbol>("M1");
+            MethodSymbol method2 = type.GetMember<MethodSymbol>("M2");
+            MethodSymbol method3 = type.GetMember<MethodSymbol>("M3");
 
-            var attrs1 = method1.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs1 = method1.GetAttributes();
             var value1 = new int[] { 1 };
             attrs1[0].VerifyValue(0, TypedConstantKind.Array, value1);
             attrs1[1].VerifyValue(0, TypedConstantKind.Array, value1);
 
-            var attrs2 = method2.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs2 = method2.GetAttributes();
             attrs2[0].VerifyValue(0, TypedConstantKind.Array, (object[])null);
             attrs2[1].VerifyValue(0, TypedConstantKind.Primitive, (object)null);
             attrs2[2].VerifyValue(0, TypedConstantKind.Array, (object[])null);
 
-            var attrs3 = method3.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs3 = method3.GetAttributes();
             var value3 = new object[] { 1 };
             attrs3[0].VerifyValue(0, TypedConstantKind.Array, value3);
             attrs3[1].VerifyValue(0, TypedConstantKind.Array, value3);
@@ -8548,35 +8548,35 @@ public class ParamArrayOrObjectAttribute : Attribute
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            var method1 = type.GetMember<MethodSymbol>("M1");
-            var method2 = type.GetMember<MethodSymbol>("M2");
-            var method3 = type.GetMember<MethodSymbol>("M3");
-            var method4 = type.GetMember<MethodSymbol>("M4");
+            NamedTypeSymbol type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+            MethodSymbol method1 = type.GetMember<MethodSymbol>("M1");
+            MethodSymbol method2 = type.GetMember<MethodSymbol>("M2");
+            MethodSymbol method3 = type.GetMember<MethodSymbol>("M3");
+            MethodSymbol method4 = type.GetMember<MethodSymbol>("M4");
 
             // As in the test above (i.e. not affected by params modifier).
-            var attrs1 = method1.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs1 = method1.GetAttributes();
             var value1 = new int[] { 1 };
             attrs1[0].VerifyValue(0, TypedConstantKind.Array, value1);
             attrs1[1].VerifyValue(0, TypedConstantKind.Array, value1);
 
             // As in the test above (i.e. not affected by params modifier).
-            var attrs2 = method2.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs2 = method2.GetAttributes();
             attrs2[0].VerifyValue(0, TypedConstantKind.Array, (object[])null);
             attrs2[1].VerifyValue(0, TypedConstantKind.Primitive, (object)null);
             attrs2[2].VerifyValue(0, TypedConstantKind.Array, (object[])null);
 
             // As in the test above (i.e. not affected by params modifier).
-            var attrs3 = method3.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs3 = method3.GetAttributes();
             var value3 = new object[] { 1 };
             attrs3[0].VerifyValue(0, TypedConstantKind.Array, value3);
             attrs3[1].VerifyValue(0, TypedConstantKind.Array, value3);
             attrs3[2].VerifyValue(0, TypedConstantKind.Array, value3);
 
-            var attrs4 = method4.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs4 = method4.GetAttributes();
             attrs4[0].VerifyValue(0, TypedConstantKind.Array, new object[] { 1 });
             attrs4[1].VerifyValue(0, TypedConstantKind.Primitive, 1);
             attrs4[2].VerifyValue(0, TypedConstantKind.Primitive, 1);
@@ -8629,32 +8629,32 @@ public class IntOrObjectAttribute : Attribute
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            var method1 = type.GetMember<MethodSymbol>("M1");
-            var method2 = type.GetMember<MethodSymbol>("M2");
-            var method3 = type.GetMember<MethodSymbol>("M3");
-            var method4 = type.GetMember<MethodSymbol>("M4");
+            NamedTypeSymbol type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+            MethodSymbol method1 = type.GetMember<MethodSymbol>("M1");
+            MethodSymbol method2 = type.GetMember<MethodSymbol>("M2");
+            MethodSymbol method3 = type.GetMember<MethodSymbol>("M3");
+            MethodSymbol method4 = type.GetMember<MethodSymbol>("M4");
 
-            var attrs1 = method1.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs1 = method1.GetAttributes();
             var value1 = new int[] { 1 };
             attrs1[0].VerifyValue(0, TypedConstantKind.Array, value1);
             attrs1[1].VerifyValue(0, TypedConstantKind.Array, new object[] { value1 });
             attrs1[2].VerifyValue(0, TypedConstantKind.Array, value1);
 
-            var attrs2 = method2.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs2 = method2.GetAttributes();
             var value2 = (object[])null;
             attrs2[0].VerifyValue(0, TypedConstantKind.Array, value2);
             attrs2[1].VerifyValue(0, TypedConstantKind.Array, value2);
 
-            var attrs3 = method3.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs3 = method3.GetAttributes();
             var value3 = new object[] { 1 };
             attrs3[0].VerifyValue(0, TypedConstantKind.Array, value3);
             attrs3[1].VerifyValue(0, TypedConstantKind.Array, value3);
 
-            var attrs4 = method4.GetAttributes();
+            ImmutableArray<CSharpAttributeData> attrs4 = method4.GetAttributes();
             var value4 = new object[] { 1 };
             attrs4[0].VerifyValue(0, TypedConstantKind.Array, value4);
             attrs4[1].VerifyValue(0, TypedConstantKind.Array, value4);
@@ -8699,12 +8699,12 @@ public class Test
 }
 ";
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
-            var methods = Enumerable.Range(0, 6).Select(i => type.GetMember<MethodSymbol>("M" + i));
-            var attrs = methods.Select(m => m.GetAttributes().Single()).ToArray();
+            NamedTypeSymbol type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
+            IEnumerable<MethodSymbol> methods = Enumerable.Range(0, 6).Select(i => type.GetMember<MethodSymbol>("M" + i));
+            CSharpAttributeData[] attrs = methods.Select(m => m.GetAttributes().Single()).ToArray();
 
             var nullArray = (int[])null;
             var emptyArray = new int[0];
@@ -8743,17 +8743,17 @@ public class TestAttribute : Attribute
 class Target<T>
 {}";
 
-            var comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation comp = CreateCompilation(source, options: TestOptions.ReleaseDll);
             comp.VerifyDiagnostics();
 
-            var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Target");
+            NamedTypeSymbol type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Target");
 
             var typeInAttribute = (NamedTypeSymbol)type.GetAttributes()[0].ConstructorArguments.First().Value;
             Assert.True(typeInAttribute.IsUnboundGenericType);
             Assert.True(((INamedTypeSymbol)typeInAttribute).IsUnboundGenericType);
             Assert.Equal("Target<>", typeInAttribute.ToTestDisplayString());
 
-            var comp2 = CreateCompilation("", new[] { comp.EmitToImageReference() });
+            CSharpCompilation comp2 = CreateCompilation("", new[] { comp.EmitToImageReference() });
             type = comp2.GlobalNamespace.GetMember<NamedTypeSymbol>("Target");
 
             Assert.IsAssignableFrom<PENamedTypeSymbol>(type);
@@ -8772,7 +8772,7 @@ public class CTest
 {}
 ";
 
-            var compilation1 = CreateCompilation(source1, assemblyName: "Bug1020038");
+            CSharpCompilation compilation1 = CreateCompilation(source1, assemblyName: "Bug1020038");
 
             var source2 = @"
 class CAttr : System.Attribute
@@ -8785,7 +8785,7 @@ class Test
 {}
 ";
 
-            var compilation2 = CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) });
+            CSharpCompilation compilation2 = CreateCompilation(source2, new[] { new CSharpCompilationReference(compilation1) });
 
             CompileAndVerify(compilation2, symbolValidator: (m) =>
             {
@@ -8804,7 +8804,7 @@ class Test
 {}
 ";
 
-            var compilation3 = CreateCompilation(source3, new[] { new CSharpCompilationReference(compilation1) });
+            CSharpCompilation compilation3 = CreateCompilation(source3, new[] { new CSharpCompilationReference(compilation1) });
 
             CompileAndVerify(compilation3, symbolValidator: (m) =>
             {
@@ -8825,12 +8825,12 @@ class C<T>
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugDll);
 
             CompileAndVerify(compilation, symbolValidator: (m) =>
             {
-                var cc = m.GlobalNamespace.GetTypeMember("C");
-                var mm = cc.GetMember<MethodSymbol>("M");
+                NamedTypeSymbol cc = m.GlobalNamespace.GetTypeMember("C");
+                MethodSymbol mm = cc.GetMember<MethodSymbol>("M");
 
                 Assert.True(cc.TypeParameters.Single().GetAttributes().IsEmpty);
                 Assert.Equal("XAttribute", mm.TypeParameters.Single().GetAttributes().Single().ToString());
@@ -8854,7 +8854,7 @@ public static class LanguageNames
     public const xyz CSharp = ""C#"";
 }
 ";
-            var compilation1 = CreateCompilationWithMscorlib40(source1, options: TestOptions.DebugDll);
+            CSharpCompilation compilation1 = CreateCompilationWithMscorlib40(source1, options: TestOptions.DebugDll);
             compilation1.VerifyDiagnostics(
     // (10,18): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
     //     public const xyz CSharp = "C#";
@@ -8868,11 +8868,11 @@ internal sealed class CSharpCompilerDiagnosticAnalyzer
 {}
 ";
 
-            var compilation2 = CreateCompilationWithMscorlib40(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll, assemblyName: "Test.dll");
+            CSharpCompilation compilation2 = CreateCompilationWithMscorlib40(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll, assemblyName: "Test.dll");
             Assert.Same(compilation1.Assembly, compilation2.SourceModule.ReferencedAssemblySymbols[1]);
             compilation2.VerifyDiagnostics();
 
-            var emitResult2 = compilation2.Emit(peStream: new MemoryStream(), options: new EmitOptions(metadataOnly: true));
+            EmitResult emitResult2 = compilation2.Emit(peStream: new MemoryStream(), options: new EmitOptions(metadataOnly: true));
             Assert.False(emitResult2.Success);
             emitResult2.Diagnostics.Verify(
     // error CS7038: Failed to emit module 'Test.dll'.
@@ -8880,7 +8880,7 @@ internal sealed class CSharpCompilerDiagnosticAnalyzer
                 );
 
             // Use different mscorlib to test retargeting scenario
-            var compilation3 = CreateCompilationWithMscorlib45(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll);
+            CSharpCompilation compilation3 = CreateCompilationWithMscorlib45(source2, new[] { new CSharpCompilationReference(compilation1) }, options: TestOptions.DebugDll);
             Assert.NotSame(compilation1.Assembly, compilation3.SourceModule.ReferencedAssemblySymbols[1]);
             compilation3.VerifyDiagnostics(
     // (2,35): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)
@@ -8888,7 +8888,7 @@ internal sealed class CSharpCompilerDiagnosticAnalyzer
     Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "CSharp").WithArguments("xyz").WithLocation(2, 35)
                 );
 
-            var emitResult3 = compilation3.Emit(peStream: new MemoryStream(), options: new EmitOptions(metadataOnly: true));
+            EmitResult emitResult3 = compilation3.Emit(peStream: new MemoryStream(), options: new EmitOptions(metadataOnly: true));
             Assert.False(emitResult3.Success);
             emitResult3.Diagnostics.Verify(
     // (2,35): error CS0246: The type or namespace name 'xyz' could not be found (are you missing a using directive or an assembly reference?)

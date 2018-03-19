@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Collections
                     return added;
                 }
 
-                var nextSet = set._next;
+                SmallConcurrentSetOfInts nextSet = set._next;
                 if (nextSet == null)
                 {
                     // Need to add a new 'block'.

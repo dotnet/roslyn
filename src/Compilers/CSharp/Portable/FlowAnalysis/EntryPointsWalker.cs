@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 walker.Analyze(ref badRegion);
-                var result = walker._entryPoints;
+                HashSet<LabeledStatementSyntax> result = walker._entryPoints;
                 succeeded = !badRegion;
                 return badRegion ? SpecializedCollections.EmptyEnumerable<LabeledStatementSyntax>() : result;
             }

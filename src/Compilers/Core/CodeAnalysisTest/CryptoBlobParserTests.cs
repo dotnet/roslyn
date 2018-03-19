@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             RSAParameters? privateKeyOpt;
             Assert.True(CryptoBlobParser.TryParseKey(key, out _, out privateKeyOpt));
             Debug.Assert(privateKeyOpt.HasValue);
-            var privKey = privateKeyOpt.Value;
+            RSAParameters privKey = privateKeyOpt.Value;
 
             AssertEx.Equal(privKey.Exponent, new byte[] { 0x01, 0x00, 0x01 });
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             RSAParameters? privateKeyOpt;
             Assert.True(CryptoBlobParser.TryParseKey(key, out _, out privateKeyOpt));
             Assert.True(privateKeyOpt.HasValue);
-            var privKey = privateKeyOpt.Value;
+            RSAParameters privKey = privateKeyOpt.Value;
 
             AssertEx.Equal(privKey.Exponent, new byte[] { 0x01, 0x00, 0x01 });
 

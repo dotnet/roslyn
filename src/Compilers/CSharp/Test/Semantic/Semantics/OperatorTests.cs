@@ -36,15 +36,15 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 ";
-            var compilation = CreateCompilation(source);
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            CSharpCompilation compilation = CreateCompilation(source);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var orNodes = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().ToArray();
+            BinaryExpressionSyntax[] orNodes = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().ToArray();
             Assert.Equal(orNodes.Length, 2);
 
-            var insideEnumDefinition = semanticModel.GetSymbolInfo(orNodes[0]);
-            var insideMethodBody = semanticModel.GetSymbolInfo(orNodes[1]);
+            SymbolInfo insideEnumDefinition = semanticModel.GetSymbolInfo(orNodes[0]);
+            SymbolInfo insideMethodBody = semanticModel.GetSymbolInfo(orNodes[1]);
 
             Assert.False(insideEnumDefinition.IsEmpty);
             Assert.False(insideMethodBody.IsEmpty);
@@ -94,7 +94,7 @@ IBinaryOperation (BinaryOperatorKind.Or) (OperationKind.BinaryOperator, Type: Te
       Instance Receiver: 
         null
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -586,7 +586,7 @@ IBlockOperation (2 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -755,7 +755,7 @@ IBlockOperation (5 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -854,7 +854,7 @@ IBlockOperation (4 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -957,7 +957,7 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -1030,7 +1030,7 @@ IBlockOperation (4 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
               InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
               OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -1107,7 +1107,7 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
                 InConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
                 OutConversion: CommonConversion (Exists: True, IsIdentity: True, IsNumeric: False, IsReference: False, IsUserDefined: False) (MethodSymbol: null)
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -1509,7 +1509,7 @@ IBinaryOperation (BinaryOperatorKind.Add) (OperatorMethod: System.Int32 D<System
 ";
             // Dev11 reports error CS0121: The call is ambiguous between the following methods or properties: 
             // 'D<object>.C.operator+(D<object>.C, D<object>.C)' and 'D<dynamic>.C.operator +(D<dynamic>.C, D<dynamic>.C)'
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BinaryExpressionSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -2131,7 +2131,7 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: '{ ..
         Right: 
           IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: S) (Syntax: 'i')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -2270,7 +2270,7 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: '{ ..
         Right: 
           IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: S) (Syntax: 'i')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -2390,7 +2390,7 @@ IBlockOperation (10 statements) (OperationKind.Block, Type: null) (Syntax: '{ ..
         Right: 
           IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -2545,7 +2545,7 @@ IBlockOperation (1 statements) (OperationKind.Block, Type: null) (Syntax: '{ ...
           Right: 
             IParameterReferenceOperation: i (OperationKind.ParameterReference, Type: System.Int32) (Syntax: 'i')
 ";
-            var expectedDiagnostics = DiagnosticDescription.None;
+            DiagnosticDescription[] expectedDiagnostics = DiagnosticDescription.None;
 
             VerifyOperationTreeAndDiagnosticsForTest<BlockSyntax>(source, expectedOperationTree, expectedDiagnostics);
         }
@@ -2840,7 +2840,7 @@ class C
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (7,12): error CS0023: Operator '!' cannot be applied to operand of type 'int'
                 //         if(!1) {}
@@ -2853,22 +2853,22 @@ class C
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "error").WithArguments("error").WithLocation(9, 9)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var model = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel model = compilation.GetSemanticModel(tree);
 
-            var negOne = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            PrefixUnaryExpressionSyntax negOne = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
             Assert.Equal("!1", negOne.ToString());
             var type1 = (TypeSymbol)model.GetTypeInfo(negOne).Type;
             Assert.Equal("?", type1.ToTestDisplayString());
             Assert.True(type1.IsErrorType());
 
-            var boolPlusPlus = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().ElementAt(0);
+            PostfixUnaryExpressionSyntax boolPlusPlus = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().ElementAt(0);
             Assert.Equal("b++", boolPlusPlus.ToString());
             var type2 = (TypeSymbol)model.GetTypeInfo(boolPlusPlus).Type;
             Assert.Equal("?", type2.ToTestDisplayString());
             Assert.True(type2.IsErrorType());
 
-            var errorPlusPlus = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().ElementAt(1);
+            PostfixUnaryExpressionSyntax errorPlusPlus = tree.GetRoot().DescendantNodes().OfType<PostfixUnaryExpressionSyntax>().ElementAt(1);
             Assert.Equal("error++", errorPlusPlus.ToString());
             var type3 = (TypeSymbol)model.GetTypeInfo(errorPlusPlus).Type;
             Assert.Equal("?", type3.ToTestDisplayString());
@@ -3071,11 +3071,11 @@ class C
             // from it the nodes that describe the operators. We then compare the description of
             // the operators given to the comment that follows the use of the operator.
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             var method = (SourceMemberMethodSymbol)compilation.GlobalNamespace.GetTypeMembers("C").Single().GetMembers("M").Single();
             var diagnostics = new DiagnosticBag();
-            var block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
-            var tree = BoundTreeDumperNodeProducer.MakeTree(block);
+            BoundBlock block = MethodCompiler.BindMethodBody(method, new TypeCompilationState(method.ContainingType, compilation, null), diagnostics);
+            TreeDumperNode tree = BoundTreeDumperNodeProducer.MakeTree(block);
             var results = string.Join("\n",
                 query(tree.PreorderTraversal())
                 .ToArray());
@@ -4683,7 +4683,7 @@ public class C
     }
 }
 ";
-            var compilation = CreateCompilation(source).VerifyDiagnostics();
+            CSharpCompilation compilation = CreateCompilation(source).VerifyDiagnostics();
         }
 
         [WorkItem(541147, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541147")]
@@ -4910,7 +4910,7 @@ namespace N2
         }
     }
 }";
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
         }
 
@@ -4929,7 +4929,7 @@ public class X
         Console.Write(obj == null);
     }
 }";
-            var comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilationWithMscorlib40AndSystemCore(source, options: TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: "True"); ;
 
             source = @"
@@ -4991,7 +4991,7 @@ class Program
     }
 }
 ";
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
         }
 
@@ -5015,7 +5015,7 @@ class Program
     static void M(F f) {}
 }
 ";
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
         }
 
@@ -5034,7 +5034,7 @@ class Program
     }
 } 
 ";
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
         }
 
@@ -5053,7 +5053,7 @@ class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source);
+            CompilationVerifier comp = CompileAndVerify(source);
             comp.VerifyDiagnostics();
         }
 
@@ -5105,7 +5105,7 @@ class Program
         System.Console.WriteLine(c2 ? 7 : 8);
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
         }
 
@@ -5132,7 +5132,7 @@ class Program
         }
     }
 }";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (14,13): error CS0029: Cannot implicitly convert type 'Program.C?' to 'bool'
                 //         if (c) 
@@ -5174,7 +5174,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (13,20): error CS0039: Cannot convert type 'void' to 'T' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 //         object o = Main() as T;
@@ -5208,7 +5208,7 @@ class Program
             // NOTE:    We follow the specification and generate WRN_IsAlwaysFalse
             // NOTE:    instead of an error.
 
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (13,18): warning CS0184: The given expression is never of the provided ('T') type
                 //         bool b = Main() is T;
@@ -5476,7 +5476,7 @@ class Test
     }
 }
 ";
-            var comp = CompileAndVerify(source, expectedOutput: @"False
+            CompilationVerifier comp = CompileAndVerify(source, expectedOutput: @"False
 False");
             comp.VerifyDiagnostics();
         }
@@ -5530,7 +5530,7 @@ class Test
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics(
                 // (37,21): error CS0039: Cannot convert type 'Bar' to 'Goo' via a reference conversion, boxing conversion, unboxing conversion, wrapping conversion, or null type conversion
                 //         object a1 = numeral as Goo;
@@ -6444,18 +6444,18 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var expectedOperator = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S1").GetMembers(WellKnownMemberNames.EqualityOperatorName).
+            MethodSymbol expectedOperator = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("S1").GetMembers(WellKnownMemberNames.EqualityOperatorName).
                 OfType<MethodSymbol>().Single(m => m.ParameterTypes[0] == m.ParameterTypes[1]);
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var syntax = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
+            BinaryExpressionSyntax syntax = tree.GetRoot().DescendantNodes().OfType<BinaryExpressionSyntax>().Single();
 
-            var info = model.GetSymbolInfo(syntax);
+            SymbolInfo info = model.GetSymbolInfo(syntax);
             Assert.Equal(expectedOperator, info.Symbol);
         }
 
@@ -6564,16 +6564,16 @@ class Program
 }
 ";
             // SPEC VIOLATION: According to the spec, this is ambiguous.  However, we will match the dev11 behavior.
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var syntax = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Last();
+            IdentifierNameSyntax syntax = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Last();
             Assert.Equal("i2", syntax.Identifier.ValueText);
 
-            var info = model.GetTypeInfo(syntax);
+            TypeInfo info = model.GetTypeInfo(syntax);
             Assert.Equal(comp.GlobalNamespace.GetMember<NamedTypeSymbol>("InputParameter"), info.Type);
             Assert.Equal(comp.GetSpecialType(SpecialType.System_Boolean), info.ConvertedType);
         }
@@ -6644,7 +6644,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
             CompileAndVerify(comp, expectedOutput: @"A
 A");
         }
@@ -6691,7 +6691,7 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
+            CSharpCompilation comp = CreateCompilation(source, new[] { SystemCoreRef, CSharpRef }, TestOptions.ReleaseExe);
             CompileAndVerifyException<Microsoft.CSharp.RuntimeBinder.RuntimeBinderException>(comp,
                 "Operator '|' is ambiguous on operands of type 'InputParameter' and 'InputParameter'");
         }
@@ -6719,16 +6719,16 @@ class Program
     }
 }
 ";
-            var comp = CreateCompilation(source);
+            CSharpCompilation comp = CreateCompilation(source);
             comp.VerifyDiagnostics();
 
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
+            SyntaxTree tree = comp.SyntaxTrees.Single();
+            SemanticModel model = comp.GetSemanticModel(tree);
 
-            var syntax = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Last();
+            IdentifierNameSyntax syntax = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Last();
             Assert.Equal("i2", syntax.Identifier.ValueText);
 
-            var info = model.GetTypeInfo(syntax);
+            TypeInfo info = model.GetTypeInfo(syntax);
             Assert.Equal(comp.GlobalNamespace.GetMember<NamedTypeSymbol>("InputParameter"), info.Type);
             Assert.Equal(comp.GetSpecialType(SpecialType.System_Boolean), info.ConvertedType);
         }
@@ -6881,12 +6881,12 @@ public class RubyTime
 
             var source = builder.ToString();
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var nodes = (from node in tree.GetRoot().DescendantNodes()
+            ExpressionSyntax[] nodes = (from node in tree.GetRoot().DescendantNodes()
                          select ((ExpressionSyntax)(node as PrefixUnaryExpressionSyntax)) ?? node as PostfixUnaryExpressionSyntax).
                          Where(node => (object)node != null).ToArray();
 
@@ -6908,7 +6908,7 @@ public class RubyTime
                     type = compilation.GetTypeByMetadataName(typeNames[name]);
                 }
 
-                foreach (var op in operators)
+                foreach (UnaryOperatorKind op in operators)
                 {
                     TestUnaryIntrinsicSymbol(
                         op,
@@ -6942,9 +6942,9 @@ public class RubyTime
             Assert.Equal(0, info1.CandidateSymbols.Length);
 
             var symbol1 = (MethodSymbol)info1.Symbol;
-            var symbol2 = semanticModel.GetSymbolInfo(node2).Symbol;
+            ISymbol symbol2 = semanticModel.GetSymbolInfo(node2).Symbol;
             var symbol3 = (MethodSymbol)semanticModel.GetSymbolInfo(node3).Symbol;
-            var symbol4 = semanticModel.GetSymbolInfo(node4).Symbol;
+            ISymbol symbol4 = semanticModel.GetSymbolInfo(node4).Symbol;
 
             Assert.Equal(symbol1, symbol3);
 
@@ -7097,19 +7097,19 @@ class Module1
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var nodes = (from node in tree.GetRoot().DescendantNodes()
+            ExpressionSyntax[] nodes = (from node in tree.GetRoot().DescendantNodes()
                          select ((ExpressionSyntax)(node as PrefixUnaryExpressionSyntax)) ?? node as PostfixUnaryExpressionSyntax).
                          Where(node => (object)node != null).ToArray();
 
             Assert.Equal(2, nodes.Length);
 
-            var symbols1 = (from node1 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node1).Symbol).ToArray();
-            foreach (var symbol1 in symbols1)
+            MethodSymbol[] symbols1 = (from node1 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node1).Symbol).ToArray();
+            foreach (MethodSymbol symbol1 in symbols1)
             {
                 Assert.False(symbol1.IsCheckedBuiltin);
             }
@@ -7117,8 +7117,8 @@ class Module1
             compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOverflowChecks(true));
             semanticModel = compilation.GetSemanticModel(tree);
 
-            var symbols2 = (from node2 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node2).Symbol).ToArray();
-            foreach (var symbol2 in symbols2)
+            MethodSymbol[] symbols2 = (from node2 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node2).Symbol).ToArray();
+            foreach (MethodSymbol symbol2 in symbols2)
             {
                 Assert.True(symbol2.IsCheckedBuiltin);
             }
@@ -7248,10 +7248,10 @@ class Module1
 
             var source = builder.ToString();
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
             TypeSymbol[] types = new TypeSymbol[typeNames.Length];
 
@@ -7269,16 +7269,16 @@ class Module1
             Assert.Null(types[types.Length - 1]);
             types[types.Length - 1] = compilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_SByte));
 
-            var nodes = (from node in tree.GetRoot().DescendantNodes()
+            BinaryExpressionSyntax[] nodes = (from node in tree.GetRoot().DescendantNodes()
                          select (node as BinaryExpressionSyntax)).
                          Where(node => (object)node != null).ToArray();
 
             n = 0;
-            foreach (var leftType in types)
+            foreach (TypeSymbol leftType in types)
             {
-                foreach (var rightType in types)
+                foreach (TypeSymbol rightType in types)
                 {
-                    foreach (var op in operators)
+                    foreach (BinaryOperatorKind op in operators)
                     {
                         TestBinaryIntrinsicSymbol(
                             op,
@@ -7405,10 +7405,10 @@ class Module1
 
             var source = builder.ToString();
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(true));
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
             TypeSymbol[] types = new TypeSymbol[typeNames.Length];
 
@@ -7426,16 +7426,16 @@ class Module1
             Assert.Null(types[types.Length - 1]);
             types[types.Length - 1] = compilation.CreatePointerTypeSymbol(compilation.GetSpecialType(SpecialType.System_SByte));
 
-            var nodes = (from node in tree.GetRoot().DescendantNodes()
+            AssignmentExpressionSyntax[] nodes = (from node in tree.GetRoot().DescendantNodes()
                          select (node as AssignmentExpressionSyntax)).
                          Where(node => (object)node != null).ToArray();
 
             n = 0;
-            foreach (var leftType in types)
+            foreach (TypeSymbol leftType in types)
             {
-                foreach (var rightType in types)
+                foreach (TypeSymbol rightType in types)
                 {
-                    foreach (var op in operators)
+                    foreach (BinaryOperatorKind op in operators)
                     {
                         TestBinaryIntrinsicSymbol(
                             op,
@@ -7507,13 +7507,13 @@ class Module1
             }
 
             var symbol1 = (MethodSymbol)info1.Symbol;
-            var symbol2 = semanticModel.GetSymbolInfo(node2).Symbol;
-            var symbol3 = semanticModel.GetSymbolInfo(node3).Symbol;
-            var symbol4 = semanticModel.GetSymbolInfo(node4).Symbol;
+            ISymbol symbol2 = semanticModel.GetSymbolInfo(node2).Symbol;
+            ISymbol symbol3 = semanticModel.GetSymbolInfo(node3).Symbol;
+            ISymbol symbol4 = semanticModel.GetSymbolInfo(node4).Symbol;
             var symbol5 = (MethodSymbol)semanticModel.GetSymbolInfo(node5).Symbol;
-            var symbol6 = semanticModel.GetSymbolInfo(node6).Symbol;
-            var symbol7 = semanticModel.GetSymbolInfo(node7).Symbol;
-            var symbol8 = semanticModel.GetSymbolInfo(node8).Symbol;
+            ISymbol symbol6 = semanticModel.GetSymbolInfo(node6).Symbol;
+            ISymbol symbol7 = semanticModel.GetSymbolInfo(node7).Symbol;
+            ISymbol symbol8 = semanticModel.GetSymbolInfo(node8).Symbol;
 
             Assert.Equal(symbol1, symbol5);
             Assert.Equal(symbol2, symbol6);
@@ -7941,18 +7941,18 @@ class Module1
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var nodes = (from node in tree.GetRoot().DescendantNodes()
+            BinaryExpressionSyntax[] nodes = (from node in tree.GetRoot().DescendantNodes()
                          select node as BinaryExpressionSyntax).
                          Where(node => (object)node != null).ToArray();
 
             Assert.Equal(2, nodes.Length);
 
-            foreach (var node1 in nodes)
+            foreach (BinaryExpressionSyntax node1 in nodes)
             {
                 SymbolInfo info1 = semanticModel.GetSymbolInfo(node1);
 
@@ -7976,17 +7976,17 @@ class Module1
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var nodes = tree.GetRoot().DescendantNodes().Where(node => node is BinaryExpressionSyntax || node is AssignmentExpressionSyntax).ToArray();
+            SyntaxNode[] nodes = tree.GetRoot().DescendantNodes().Where(node => node is BinaryExpressionSyntax || node is AssignmentExpressionSyntax).ToArray();
 
             Assert.Equal(2, nodes.Length);
 
-            var symbols1 = (from node1 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node1).Symbol).ToArray();
-            foreach (var symbol1 in symbols1)
+            MethodSymbol[] symbols1 = (from node1 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node1).Symbol).ToArray();
+            foreach (MethodSymbol symbol1 in symbols1)
             {
                 Assert.False(symbol1.IsCheckedBuiltin);
             }
@@ -7994,8 +7994,8 @@ class Module1
             compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOverflowChecks(true));
             semanticModel = compilation.GetSemanticModel(tree);
 
-            var symbols2 = (from node2 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node2).Symbol).ToArray();
-            foreach (var symbol2 in symbols2)
+            MethodSymbol[] symbols2 = (from node2 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node2).Symbol).ToArray();
+            foreach (MethodSymbol symbol2 in symbols2)
             {
                 Assert.True(symbol2.IsCheckedBuiltin);
             }
@@ -8020,19 +8020,19 @@ class Module1
     }
 }";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll.WithOverflowChecks(false));
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var nodes = (from node in tree.GetRoot().DescendantNodes()
+            BinaryExpressionSyntax[] nodes = (from node in tree.GetRoot().DescendantNodes()
                          select node as BinaryExpressionSyntax).
                          Where(node => (object)node != null).ToArray();
 
             Assert.Equal(2, nodes.Length);
 
-            var symbols1 = (from node1 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node1).Symbol).ToArray();
-            foreach (var symbol1 in symbols1)
+            MethodSymbol[] symbols1 = (from node1 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node1).Symbol).ToArray();
+            foreach (MethodSymbol symbol1 in symbols1)
             {
                 Assert.False(symbol1.IsCheckedBuiltin);
                 Assert.True(((TypeSymbol)symbol1.ContainingSymbol).IsDynamic());
@@ -8042,8 +8042,8 @@ class Module1
             compilation = compilation.WithOptions(TestOptions.ReleaseDll.WithOverflowChecks(true));
             semanticModel = compilation.GetSemanticModel(tree);
 
-            var symbols2 = (from node2 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node2).Symbol).ToArray();
-            foreach (var symbol2 in symbols2)
+            MethodSymbol[] symbols2 = (from node2 in nodes select (MethodSymbol)semanticModel.GetSymbolInfo(node2).Symbol).ToArray();
+            foreach (MethodSymbol symbol2 in symbols2)
             {
                 Assert.True(symbol2.IsCheckedBuiltin);
                 Assert.True(((TypeSymbol)symbol2.ContainingSymbol).IsDynamic());
@@ -8085,7 +8085,7 @@ struct TestStr
 {}
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
 
             compilation.VerifyDiagnostics(
     // (17,20): error CS0019: Operator '==' cannot be applied to operands of type 'TestStr?' and 'TestStr?'
@@ -8096,10 +8096,10 @@ struct TestStr
     Diagnostic(ErrorCode.ERR_BadBinaryOps, "x != x1").WithArguments("!=", "TestStr?", "TestStr?")
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var semanticModel = compilation.GetSemanticModel(tree);
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            SemanticModel semanticModel = compilation.GetSemanticModel(tree);
 
-            var nodes = (from node in tree.GetRoot().DescendantNodes()
+            BinaryExpressionSyntax[] nodes = (from node in tree.GetRoot().DescendantNodes()
                          select node as BinaryExpressionSyntax).
                          Where(node => (object)node != null).ToArray();
 
@@ -8150,26 +8150,26 @@ struct TestStr
         return i += 1;
     }
 }";
-            var compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.ReleaseDll);
             compilation.VerifyDiagnostics();
 
-            var tree = compilation.SyntaxTrees[0];
-            var methodDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
-            var methodBody = methodDecl.Body;
+            SyntaxTree tree = compilation.SyntaxTrees[0];
+            MethodDeclarationSyntax methodDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+            BlockSyntax methodBody = methodDecl.Body;
             var model = (CSharpSemanticModel)compilation.GetSemanticModel(tree);
-            var binder = model.GetEnclosingBinder(methodBody.SpanStart);
+            Binder binder = model.GetEnclosingBinder(methodBody.SpanStart);
             var diagnostics = DiagnosticBag.GetInstance();
-            var block = binder.BindEmbeddedBlock(methodBody, diagnostics);
+            BoundBlock block = binder.BindEmbeddedBlock(methodBody, diagnostics);
             diagnostics.Free();
 
             // Rewriter should use Equals.
             var rewriter = new EmptyRewriter();
-            var node = rewriter.Visit(block);
+            BoundNode node = rewriter.Visit(block);
             Assert.Same(node, block);
 
             var visitor = new FindCompoundAssignmentWalker();
             visitor.Visit(block);
-            var op = visitor.FirstNode.Operator;
+            BinaryOperatorSignature op = visitor.FirstNode.Operator;
             Assert.Null(op.Method);
             // Equals and GetHashCode should support null Method.
             Assert.Equal(op, new BinaryOperatorSignature(op.Kind, op.LeftType, op.RightType, op.ReturnType, op.Method));
@@ -8233,7 +8233,7 @@ class P
         }
     }
 }";
-            var verifier = CompileAndVerify(source);
+            CompilationVerifier verifier = CompileAndVerify(source);
             verifier.Compilation.VerifyDiagnostics();
             verifier.VerifyIL("P.M",
 @"
@@ -8304,7 +8304,7 @@ class P
         }
     }
 }";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (18,13): error CS0218: In order for 'B.operator &(B, B)' to be applicable as a short circuit operator, its declaring type 'B' must define operator true and operator false
                 //         if (x && y)
@@ -10185,7 +10185,7 @@ class C3 : C1<int?>
     }
 }
 ";
-            var verifier = CompileAndVerify(source: source, expectedOutput:
+            CompilationVerifier verifier = CompileAndVerify(source: source, expectedOutput:
 @"False
 True
 True
@@ -10346,7 +10346,7 @@ class C2
         Test.Print(((C1)null) as S);
     }
 }";
-            var verifier = CompileAndVerify(source: source, expectedOutput:
+            CompilationVerifier verifier = CompileAndVerify(source: source, expectedOutput:
 @"False
 False
 ");
@@ -10561,7 +10561,7 @@ class MainClass
 }
 ";
 
-            var compilation = CreateCompilation(source, options: TestOptions.DebugDll);
+            CSharpCompilation compilation = CreateCompilation(source, options: TestOptions.DebugDll);
 
             compilation.VerifyDiagnostics();
         }
@@ -10605,7 +10605,7 @@ public enum FlagsEnum
     Bar = 2,
 }
 ";
-            var verifier = CompileAndVerify(source, expectedOutput: "Goo, Bar");
+            CompilationVerifier verifier = CompileAndVerify(source, expectedOutput: "Goo, Bar");
             verifier.VerifyDiagnostics();
         }
 
@@ -10622,7 +10622,7 @@ public enum FlagsEnum
     }
 }
 ";
-            var compilation = CreateCompilation(source)
+            CSharpCompilation compilation = CreateCompilation(source)
                 .VerifyDiagnostics(
                 // (6,17): warning CS0183: The given expression is always of the provided ('string') type
                 //         var x = d is string;
@@ -10645,7 +10645,7 @@ class Program
         if (t is ValueTuple<int, int>) { }    // goldilocks
     }
 }";
-            var compilation = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef })
+            CSharpCompilation compilation = CreateCompilationWithMscorlib40(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef })
                 .VerifyDiagnostics(
                 // (7,13): warning CS0184: The given expression is never of the provided ('(long, int)') type
                 //         if (t is ValueTuple<long, int>) { }   // too big
@@ -10671,15 +10671,15 @@ public class C {
     }
 }
 ";
-            var compilation = CreateCompilation(source);
+            CSharpCompilation compilation = CreateCompilation(source);
             compilation.VerifyDiagnostics(
                 // (4,22): error CS0103: The name 'invalidExpression' does not exist in the current context
                 //         var local = !invalidExpression;
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "invalidExpression").WithArguments("invalidExpression").WithLocation(4, 22)
                 );
 
-            var tree = compilation.SyntaxTrees.Single();
-            var negNode = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
+            SyntaxTree tree = compilation.SyntaxTrees.Single();
+            PrefixUnaryExpressionSyntax negNode = tree.GetRoot().DescendantNodes().OfType<PrefixUnaryExpressionSyntax>().Single();
             Assert.Equal("!invalidExpression", negNode.ToString());
 
             var type = (TypeSymbol)compilation.GetSemanticModel(tree).GetTypeInfo(negNode).Type;

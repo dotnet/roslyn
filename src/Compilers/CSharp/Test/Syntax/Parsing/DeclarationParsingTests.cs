@@ -25,14 +25,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestExternAlias()
         {
             var text = "extern alias a;";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Externs.Count);
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            var ea = file.Externs[0];
+            ExternAliasDirectiveSyntax ea = file.Externs[0];
 
             Assert.NotNull(ea.ExternKeyword);
             Assert.Equal(SyntaxKind.ExternKeyword, ea.ExternKeyword.Kind());
@@ -48,16 +48,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestExternWithoutAlias()
         {
             var text = "extern a;";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Externs.Count);
             Assert.Equal(text, file.ToString());
-            var errors = file.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = file.Errors();
             Assert.Equal(1, errors.Length);
             Assert.Equal((int)ErrorCode.ERR_SyntaxError, errors[0].Code);
 
-            var ea = file.Externs[0];
+            ExternAliasDirectiveSyntax ea = file.Externs[0];
 
             Assert.NotNull(ea.ExternKeyword);
             Assert.Equal(SyntaxKind.ExternKeyword, ea.ExternKeyword.Kind());
@@ -73,14 +73,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsing()
         {
             var text = "using a;";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Usings.Count);
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            var ud = file.Usings[0];
+            UsingDirectiveSyntax ud = file.Usings[0];
 
             Assert.NotNull(ud.UsingKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
@@ -95,14 +95,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingStatic()
         {
             var text = "using static a;";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Usings.Count);
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            var ud = file.Usings[0];
+            UsingDirectiveSyntax ud = file.Usings[0];
 
             Assert.NotNull(ud.UsingKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
@@ -117,13 +117,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingStaticInWrongOrder()
         {
             var text = "static using a;";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Usings.Count);
             Assert.Equal(text, file.ToFullString());
 
-            var errors = file.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = file.Errors();
             Assert.True(errors.Length > 0);
             Assert.Equal((int)ErrorCode.ERR_NamespaceUnexpected, errors[0].Code);
         }
@@ -132,13 +132,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDuplicateStatic()
         {
             var text = "using static static a;";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Usings.Count);
             Assert.Equal(text, file.ToString());
 
-            var errors = file.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = file.Errors();
             Assert.True(errors.Length > 0);
             Assert.Equal((int)ErrorCode.ERR_IdentifierExpectedKW, errors[0].Code);
         }
@@ -147,13 +147,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingNamespace()
         {
             var text = "using namespace a;";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Usings.Count);
             Assert.Equal(text, file.ToString());
 
-            var errors = file.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = file.Errors();
             Assert.True(errors.Length > 0);
             Assert.Equal((int)ErrorCode.ERR_IdentifierExpectedKW, errors[0].Code);
         }
@@ -162,14 +162,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingDottedName()
         {
             var text = "using a.b;";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Usings.Count);
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            var ud = file.Usings[0];
+            UsingDirectiveSyntax ud = file.Usings[0];
 
             Assert.NotNull(ud.UsingKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
@@ -184,14 +184,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingStaticDottedName()
         {
             var text = "using static a.b;";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Usings.Count);
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            var ud = file.Usings[0];
+            UsingDirectiveSyntax ud = file.Usings[0];
 
             Assert.NotNull(ud.UsingKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
@@ -206,14 +206,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingStaticGenericName()
         {
             var text = "using static a<int?>;";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Usings.Count);
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            var ud = file.Usings[0];
+            UsingDirectiveSyntax ud = file.Usings[0];
 
             Assert.NotNull(ud.UsingKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
@@ -228,14 +228,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingAliasName()
         {
             var text = "using a = b;";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Usings.Count);
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            var ud = file.Usings[0];
+            UsingDirectiveSyntax ud = file.Usings[0];
 
             Assert.NotNull(ud.UsingKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
@@ -252,14 +252,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestUsingAliasGenericName()
         {
             var text = "using a = b<c>;";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Usings.Count);
             Assert.Equal(text, file.ToString());
             Assert.Equal(0, file.Errors().Length);
 
-            var ud = file.Usings[0];
+            UsingDirectiveSyntax ud = file.Usings[0];
 
             Assert.NotNull(ud.UsingKeyword);
             Assert.Equal(SyntaxKind.UsingKeyword, ud.UsingKeyword.Kind());
@@ -276,7 +276,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGlobalAttribute()
         {
             var text = "[assembly:a]";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.AttributeLists.Count);
@@ -302,7 +302,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGlobalAttribute_Verbatim()
         {
             var text = "[@assembly:a]";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.AttributeLists.Count);
@@ -331,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGlobalAttribute_Escape()
         {
             var text = @"[as\u0073embly:a]";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.AttributeLists.Count);
@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGlobalModuleAttribute()
         {
             var text = "[module:a]";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.AttributeLists.Count);
@@ -387,7 +387,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGlobalModuleAttribute_Verbatim()
         {
             var text = "[@module:a]";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.AttributeLists.Count);
@@ -415,7 +415,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGlobalAttributeWithParentheses()
         {
             var text = "[assembly:a()]";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.AttributeLists.Count);
@@ -445,7 +445,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGlobalAttributeWithMultipleArguments()
         {
             var text = "[assembly:a(b, c)]";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.AttributeLists.Count);
@@ -476,7 +476,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGlobalAttributeWithNamedArguments()
         {
             var text = "[assembly:a(b = c)]";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.AttributeLists.Count);
@@ -512,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGlobalAttributeWithMultipleAttributes()
         {
             var text = "[assembly:a, b]";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.AttributeLists.Count);
@@ -544,7 +544,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestMultipleGlobalAttributeDeclarations()
         {
             var text = "[assembly:a] [assembly:b]";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(2, file.AttributeLists.Count);
@@ -581,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNamespace()
         {
             var text = "namespace a { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNamespaceWithDottedName()
         {
             var text = "namespace a.b.c { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNamespaceWithUsing()
         {
             var text = "namespace a { using b.c; }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -648,7 +648,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNamespaceWithExternAlias()
         {
             var text = "namespace a { extern alias b; }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -671,7 +671,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNamespaceWithExternAliasFollowingUsingBad()
         {
             var text = "namespace a { using b; extern alias c; }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -695,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNamespaceWithNestedNamespace()
         {
             var text = "namespace a { namespace b { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -726,7 +726,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClass()
         {
             var text = "class a { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -752,7 +752,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithPublic()
         {
             var text = "public class a { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -779,7 +779,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithInternal()
         {
             var text = "internal class a { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -806,7 +806,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithStatic()
         {
             var text = "static class a { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -833,7 +833,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithSealed()
         {
             var text = "sealed class a { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -860,7 +860,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithAbstract()
         {
             var text = "abstract class a { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -887,7 +887,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithPartial()
         {
             var text = "partial class a { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -914,7 +914,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithAttribute()
         {
             var text = "[attr] class a { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -941,7 +941,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithMultipleAttributes()
         {
             var text = "[attr1] [attr2] class a { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -969,7 +969,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithMultipleAttributesInAList()
         {
             var text = "[attr1, attr2] class a { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -996,7 +996,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithBaseType()
         {
             var text = "class a : b { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1027,7 +1027,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithMultipleBases()
         {
             var text = "class a : b, c { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1059,7 +1059,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithTypeConstraintBound()
         {
             var text = "class a<b> where b : c { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1099,13 +1099,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNonGenericClassWithTypeConstraintBound()
         {
             var text = "class a where b : c { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(text, file.ToString());
 
-            var errors = file.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = file.Errors();
             Assert.Equal(0, errors.Length);
 
             Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
@@ -1156,7 +1156,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithNewConstraintBound()
         {
             var text = "class a<b> where b : new() { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1200,7 +1200,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithClassConstraintBound()
         {
             var text = "class a<b> where b : class { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1241,7 +1241,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithStructConstraintBound()
         {
             var text = "class a<b> where b : struct { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1282,7 +1282,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithMultipleConstraintBounds()
         {
             var text = "class a<b> where b : class, c, new() { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1338,7 +1338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithMultipleConstraints()
         {
             var text = "class a<b> where b : c where b : new() { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1393,7 +1393,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithMultipleConstraints001()
         {
             var text = "class a<b> where b : c where b { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1439,7 +1439,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithMultipleConstraints002()
         {
             var text = "class a<b> where b : c where { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1483,7 +1483,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassWithMultipleBasesAndConstraints()
         {
             var text = "class a<b> : c, d where b : class, e, new() { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1543,7 +1543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestInterface()
         {
             var text = "interface a { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1568,7 +1568,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGenericInterface()
         {
             var text = "interface A<B> { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1582,7 +1582,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(cs.Keyword);
             Assert.Equal(SyntaxKind.InterfaceKeyword, cs.Keyword.Kind());
             Assert.NotNull(cs.Identifier);
-            var gn = cs.TypeParameterList;
+            TypeParameterListSyntax gn = cs.TypeParameterList;
             Assert.Equal("<B>", gn.ToString());
             Assert.Equal("A", cs.Identifier.ToString());
             Assert.Equal(0, gn.Parameters[0].AttributeLists.Count);
@@ -1598,7 +1598,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGenericInterfaceWithAttributesAndVariance()
         {
             var text = "interface A<[B] out C> { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1613,7 +1613,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.InterfaceKeyword, cs.Keyword.Kind());
             Assert.NotNull(cs.Identifier);
 
-            var gn = cs.TypeParameterList;
+            TypeParameterListSyntax gn = cs.TypeParameterList;
             Assert.Equal("<[B] out C>", gn.ToString());
             Assert.Equal("A", cs.Identifier.ToString());
             Assert.Equal(1, gn.Parameters[0].AttributeLists.Count);
@@ -1630,7 +1630,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestStruct()
         {
             var text = "struct a { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1655,7 +1655,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNestedClass()
         {
             var text = "class a { class b { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1695,7 +1695,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNestedPrivateClass()
         {
             var text = "class a { private class b { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1736,7 +1736,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNestedProtectedClass()
         {
             var text = "class a { protected class b { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1777,7 +1777,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNestedProtectedInternalClass()
         {
             var text = "class a { protected internal class b { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1819,7 +1819,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNestedInternalProtectedClass()
         {
             var text = "class a { internal protected class b { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1861,7 +1861,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNestedPublicClass()
         {
             var text = "class a { public class b { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1902,7 +1902,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNestedInternalClass()
         {
             var text = "class a { internal class b { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1943,7 +1943,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDelegate()
         {
             var text = "delegate a b();";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1970,7 +1970,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDelegateWithRefReturnType()
         {
             var text = "delegate ref a b();";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -1998,7 +1998,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDelegateWithRefReadonlyReturnType()
         {
             var text = "delegate ref readonly a b();";
-            var file = this.ParseFile(text, TestOptions.Regular);
+            CompilationUnitSyntax file = this.ParseFile(text, TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2045,7 +2045,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var typeText = SyntaxFacts.GetText(builtInType);
             var text = "delegate " + typeText + " b();";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2091,7 +2091,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var typeText = SyntaxFacts.GetText(builtInType);
             var text = "delegate a b(" + typeText + " c);";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2126,7 +2126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDelegateWithParameter()
         {
             var text = "delegate a b(c d);";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2161,7 +2161,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDelegateWithMultipleParameters()
         {
             var text = "delegate a b(c d, e f);";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2203,7 +2203,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDelegateWithRefParameter()
         {
             var text = "delegate a b(ref c d);";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2239,7 +2239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDelegateWithOutParameter()
         {
             var text = "delegate a b(out c d);";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2275,7 +2275,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDelegateWithParamsParameter()
         {
             var text = "delegate a b(params c d);";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2311,12 +2311,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDelegateWithArgListParameter()
         {
             var text = "delegate a b(__arglist);";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
             Assert.Equal(text, file.ToString());
-            var errors = file.Errors();
+            System.Collections.Immutable.ImmutableArray<DiagnosticInfo> errors = file.Errors();
             Assert.Equal(0, errors.Length);
 
             Assert.Equal(SyntaxKind.DelegateDeclaration, file.Members[0].Kind());
@@ -2345,7 +2345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestDelegateWithParameterAttribute()
         {
             var text = "delegate a b([attr] c d);";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2381,7 +2381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNestedDelegate()
         {
             var text = "class a { delegate b c(); }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2423,7 +2423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassMethod()
         {
             var text = "class a { b X() { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2469,7 +2469,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassMethodWithRefReturn()
         {
             var text = "class a { ref b X() { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2515,7 +2515,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassMethodWithRefReadonlyReturn()
         {
             var text = "class a { ref readonly b X() { } }";
-            var file = this.ParseFile(text, TestOptions.Regular);
+            CompilationUnitSyntax file = this.ParseFile(text, TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2560,7 +2560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassMethodWithRef()
         {
             var text = "class a { ref }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2590,7 +2590,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassMethodWithRefReadonly()
         {
             var text = "class a { ref readonly }";
-            var file = this.ParseFile(text, parseOptions: TestOptions.Regular);
+            CompilationUnitSyntax file = this.ParseFile(text, parseOptions: TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2618,7 +2618,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void TestClassMethodModifiers(params SyntaxKind[] modifiers)
         {
             var text = "class a { " + string.Join(" ", modifiers.Select(SyntaxFacts.GetText)) + " b X() { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2686,7 +2686,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassMethodWithPartial()
         {
             var text = "class a { partial void M() { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2733,7 +2733,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassMethodWithParameter()
         {
             var text = "class a { b X(c d) { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2785,7 +2785,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassMethodWithMultipleParameters()
         {
             var text = "class a { b X(c d, e f) { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2846,7 +2846,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private void TestClassMethodWithParameterModifier(SyntaxKind mod)
         {
             var text = "class a { b X(" + SyntaxFacts.GetText(mod) + " c d) { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2911,7 +2911,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestClassMethodWithArgListParameter()
         {
             var text = "class a { b X(__arglist) { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -2985,7 +2985,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { " + typeText + " M() { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3050,7 +3050,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { b X(" + typeText + " c) { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3102,7 +3102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGenericClassMethod()
         {
             var text = "class a { b<c> M() { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3148,7 +3148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestGenericClassMethodWithTypeConstraintBound()
         {
             var text = "class a { b X<c>() where b : d { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3213,7 +3213,7 @@ class Class1<T>{
     public Class1() { }
 }
 ";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3229,7 +3229,7 @@ class Class1<T>{
         public void TestClassConstructor()
         {
             var text = "class a { a() { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3264,7 +3264,7 @@ class Class1<T>{
         private void TestClassConstructorWithModifier(SyntaxKind mod)
         {
             var text = "class a { " + SyntaxFacts.GetText(mod) + " a() { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3311,7 +3311,7 @@ class Class1<T>{
         public void TestClassDestructor()
         {
             var text = "class a { ~a() { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3348,7 +3348,7 @@ class Class1<T>{
         public void TestClassField()
         {
             var text = "class a { b c; }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3408,7 +3408,7 @@ class Class1<T>{
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { " + typeText + " c; }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3448,7 +3448,7 @@ class Class1<T>{
         private void TestClassFieldModifier(SyntaxKind mod)
         {
             var text = "class a { " + SyntaxFacts.GetText(mod) + " b c; }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3502,7 +3502,7 @@ class Class1<T>{
         private void TestClassEventFieldModifier(SyntaxKind mod)
         {
             var text = "class a { " + SyntaxFacts.GetText(mod) + " event b c; }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3558,7 +3558,7 @@ class Class1<T>{
         public void TestClassConstField()
         {
             var text = "class a { const b c = d; }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3603,7 +3603,7 @@ class Class1<T>{
         public void TestClassFieldWithInitializer()
         {
             var text = "class a { b c = e; }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3647,7 +3647,7 @@ class Class1<T>{
         public void TestClassFieldWithArrayInitializer()
         {
             var text = "class a { b c = { }; }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3692,7 +3692,7 @@ class Class1<T>{
         public void TestClassFieldWithMultipleVariables()
         {
             var text = "class a { b c, d, e; }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3746,7 +3746,7 @@ class Class1<T>{
         public void TestClassFieldWithMultipleVariablesAndInitializers()
         {
             var text = "class a { b c = x, d = y, e = z; }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3809,7 +3809,7 @@ class Class1<T>{
         public void TestClassFixedField()
         {
             var text = "class a { fixed b c[10]; }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3855,7 +3855,7 @@ class Class1<T>{
         public void TestClassProperty()
         {
             var text = "class a { b c { get; set; } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3909,7 +3909,7 @@ class Class1<T>{
         public void TestClassPropertyWithRefReturn()
         {
             var text = "class a { ref b c { get; set; } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -3964,7 +3964,7 @@ class Class1<T>{
         public void TestClassPropertyWithRefReadonlyReturn()
         {
             var text = "class a { ref readonly b c { get; set; } }";
-            var file = this.ParseFile(text, TestOptions.Regular);
+            CompilationUnitSyntax file = this.ParseFile(text, TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4037,7 +4037,7 @@ class Class1<T>{
         {
             var typeText = SyntaxFacts.GetText(type);
             var text = "class a { " + typeText + " c { get; set; } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4091,7 +4091,7 @@ class Class1<T>{
         public void TestClassPropertyWithBodies()
         {
             var text = "class a { b c { get { } set { } } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4145,7 +4145,7 @@ class Class1<T>{
         public void TestClassAutoPropertyWithInitializer()
         {
             var text = "class a { b c { get; set; } = d; }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4201,7 +4201,7 @@ class Class1<T>{
         public void InitializerOnNonAutoProp()
         {
             var text = "class C { int P { set {} } = 0; }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(0, file.Errors().Length);
@@ -4229,7 +4229,7 @@ class Class1<T>{
         {
             bool isEvent = accessorKeyword == SyntaxKind.AddKeyword || accessorKeyword == SyntaxKind.RemoveKeyword;
             var text = "class a { " + (isEvent ? "event" : string.Empty) + " b c { " + SyntaxFacts.GetText(accessorKeyword) + " { x = value; } } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4270,7 +4270,7 @@ class Class1<T>{
             Assert.NotNull(ps.AccessorList.Accessors[0].Keyword);
             Assert.Equal(accessorKeyword, ps.AccessorList.Accessors[0].Keyword.Kind());
             Assert.Equal(SyntaxKind.None, ps.AccessorList.Accessors[0].SemicolonToken.Kind());
-            var body = ps.AccessorList.Accessors[0].Body;
+            BlockSyntax body = ps.AccessorList.Accessors[0].Body;
             Assert.NotNull(body);
             Assert.Equal(1, body.Statements.Count);
             Assert.Equal(SyntaxKind.ExpressionStatement, body.Statements[0].Kind());
@@ -4285,7 +4285,7 @@ class Class1<T>{
         private void TestClassEventWithValue(SyntaxKind accessorKind, SyntaxKind accessorKeyword, SyntaxKind tokenKind)
         {
             var text = "class a { event b c { " + SyntaxFacts.GetText(accessorKeyword) + " { x = value; } } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4326,7 +4326,7 @@ class Class1<T>{
             Assert.NotNull(es.AccessorList.Accessors[0].Keyword);
             Assert.Equal(accessorKeyword, es.AccessorList.Accessors[0].Keyword.Kind());
             Assert.Equal(SyntaxKind.None, es.AccessorList.Accessors[0].SemicolonToken.Kind());
-            var body = es.AccessorList.Accessors[0].Body;
+            BlockSyntax body = es.AccessorList.Accessors[0].Body;
             Assert.NotNull(body);
             Assert.Equal(1, body.Statements.Count);
             Assert.Equal(SyntaxKind.ExpressionStatement, body.Statements[0].Kind());
@@ -4341,7 +4341,7 @@ class Class1<T>{
         private void TestClassPropertyWithModifier(SyntaxKind mod)
         {
             var text = "class a { " + SyntaxFacts.GetText(mod) + " b c { get; set; } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4410,7 +4410,7 @@ class Class1<T>{
         private void TestClassPropertyWithAccessorModifier(SyntaxKind mod)
         {
             var text = "class a { b c { " + SyntaxFacts.GetText(mod) + " get { } } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4473,7 +4473,7 @@ class Class1<T>{
         public void TestClassPropertyExplicit()
         {
             var text = "class a { b I.c { get; set; } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4529,7 +4529,7 @@ class Class1<T>{
         public void TestClassEventProperty()
         {
             var text = "class a { event b c { add { } remove { } } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4583,7 +4583,7 @@ class Class1<T>{
         private void TestClassEventPropertyWithModifier(SyntaxKind mod)
         {
             var text = "class a { " + SyntaxFacts.GetText(mod) + " event b c { add { } remove { } } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4651,7 +4651,7 @@ class Class1<T>{
         private void TestClassEventPropertyWithAccessorModifier(SyntaxKind mod)
         {
             var text = "class a { event b c { " + SyntaxFacts.GetText(mod) + " add { } } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4715,7 +4715,7 @@ class Class1<T>{
         public void TestClassEventPropertyExplicit()
         {
             var text = "class a { event b I.c { add { } remove { } } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4772,7 +4772,7 @@ class Class1<T>{
         public void TestClassIndexer()
         {
             var text = "class a { b this[c d] { get; set; } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4839,7 +4839,7 @@ class Class1<T>{
         public void TestClassIndexerWithRefReturn()
         {
             var text = "class a { ref b this[c d] { get; set; } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4907,7 +4907,7 @@ class Class1<T>{
         public void TestClassIndexerWithRefReadonlyReturn()
         {
             var text = "class a { ref readonly b this[c d] { get; set; } }";
-            var file = this.ParseFile(text, TestOptions.Regular);
+            CompilationUnitSyntax file = this.ParseFile(text, TestOptions.Regular);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -4974,7 +4974,7 @@ class Class1<T>{
         public void TestClassIndexerWithMultipleParameters()
         {
             var text = "class a { b this[c d, e f] { get; set; } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -5050,7 +5050,7 @@ class Class1<T>{
         public void TestClassIndexerExplicit()
         {
             var text = "class a { b I.this[c d] { get; set; } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -5118,7 +5118,7 @@ class Class1<T>{
         private void TestClassBinaryOperatorMethod(SyntaxKind op1)
         {
             var text = "class a { b operator " + SyntaxFacts.GetText(op1) + " (c d, e f) { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -5198,7 +5198,7 @@ class Class1<T>{
         public void TestClassRightShiftOperatorMethod()
         {
             var text = "class a { b operator >> (c d, e f) { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -5254,7 +5254,7 @@ class Class1<T>{
         private void TestClassUnaryOperatorMethod(SyntaxKind op1)
         {
             var text = "class a { b operator " + SyntaxFacts.GetText(op1) + " (c d) { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -5317,7 +5317,7 @@ class Class1<T>{
         public void TestClassImplicitConversionOperatorMethod()
         {
             var text = "class a { implicit operator b (c d) { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -5365,7 +5365,7 @@ class Class1<T>{
         public void TestClassExplicitConversionOperatorMethod()
         {
             var text = "class a { explicit operator b (c d) { } }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -5413,7 +5413,7 @@ class Class1<T>{
         public void TestNamespaceDeclarationsBadNames()
         {
             var text = "namespace A::B { }";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -5492,7 +5492,7 @@ class Program {
   }
 }
 ";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[0].Code);
         }
@@ -5567,7 +5567,7 @@ class @class
     }
 }
 ";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
             Assert.Equal(0, file.Errors().Length);
         }
 
@@ -5583,7 +5583,7 @@ class C {
    }
 }
 ";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(0, file.Errors().Length);
@@ -5667,7 +5667,7 @@ System.Console.WriteLine(""Bad, breaking change"");
         //Presumably, the statement depends on a conditional compilation directive.
         private void TestConditionalCompilation(string text, string desiredText, string undesiredText)
         {
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
 
             Assert.NotNull(file);
             Assert.Equal(1, file.Members.Count);
@@ -5680,7 +5680,7 @@ System.Console.WriteLine(""Bad, breaking change"");
             Assert.NotNull(mainMethod.Body);
             Assert.Equal(1, mainMethod.Body.Statements.Count);
 
-            var statement = mainMethod.Body.Statements[0];
+            StatementSyntax statement = mainMethod.Body.Statements[0];
             var stmtText = statement.ToString();
 
             //make sure we compiled out the right statement
@@ -5690,7 +5690,7 @@ System.Console.WriteLine(""Bad, breaking change"");
 
         private void TestError(string text, ErrorCode error)
         {
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
             Assert.NotNull(file);
             Assert.Equal(1, file.Errors().Length);
             Assert.Equal(error, (ErrorCode)file.Errors()[0].Code);
@@ -5733,7 +5733,7 @@ unsafe struct s
     new fixed char _Type6[10];    
 }
 ";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
             Assert.Equal(0, file.Errors().Length);
         }
 
@@ -5746,7 +5746,7 @@ unsafe struct s
     public fixed bool _Type1[10], _Type2[10], _Type3[20];
 }
 ";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
             Assert.Equal(0, file.Errors().Length);
         }
 
@@ -5761,7 +5761,7 @@ unsafe struct s
     public fixed bool _Type2[20];
     }
 ";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
             Assert.Equal(0, file.Errors().Length);
         }
 
@@ -5787,7 +5787,7 @@ unsafe struct s
 
 
 ";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
             Assert.Equal(0, file.Errors().Length);
         }
 
@@ -5884,7 +5884,7 @@ class C1
     }
 }
 ";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
             Assert.Equal(0, file.Errors().Length);
         }
 
@@ -5905,7 +5905,7 @@ class C1
     }
 }
 ";
-            var file = this.ParseFile(text);
+            CompilationUnitSyntax file = this.ParseFile(text);
             Assert.Equal(0, file.Errors().Length);
         }
 
@@ -6063,7 +6063,7 @@ class C
         [Fact]
         public void ParseOutVar()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C
 {
     void Goo()
@@ -6137,7 +6137,7 @@ class C
         [Fact]
         public void TestPartiallyWrittenConstraintClauseInBaseList1()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C<T> : where
 ");
             N(SyntaxKind.CompilationUnit);
@@ -6177,7 +6177,7 @@ class C<T> : where
         [Fact]
         public void TestPartiallyWrittenConstraintClauseInBaseList2()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C<T> : where T
 ");
             N(SyntaxKind.CompilationUnit);
@@ -6225,7 +6225,7 @@ class C<T> : where T
         [Fact]
         public void TestPartiallyWrittenConstraintClauseInBaseList3()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C<T> : where T :
 ");
             N(SyntaxKind.CompilationUnit);
@@ -6281,7 +6281,7 @@ class C<T> : where T :
         [Fact]
         public void TestPartiallyWrittenConstraintClauseInBaseList4()
         {
-            var tree = UsingTree(@"
+            SyntaxTree tree = UsingTree(@"
 class C<T> : where T : X
 ");
             N(SyntaxKind.CompilationUnit);
