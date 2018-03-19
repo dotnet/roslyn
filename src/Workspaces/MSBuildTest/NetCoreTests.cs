@@ -183,6 +183,26 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
 
             var projectFilePath = GetSolutionFileName(@"Project\Project.csproj");
 
+            await AssertNetCoreMultiTFMProject(projectFilePath);
+        }
+
+        [ConditionalFact(typeof(VisualStudioMSBuildInstalled))]
+        [Trait(Traits.Feature, Traits.Features.MSBuildWorkspace)]
+        [Trait(Traits.Feature, Traits.Features.NetCore)]
+        public async Task TestOpenProject_NetCoreMultiTFM_ProjectReferenceWithReversedTFMs()
+        {
+            CreateFiles(GetNetCoreMultiTFMFiles_ProjectReferenceWithReversedTFMs());
+
+            // Restoring for Project.csproj should also restore Library.csproj
+            DotNetHelper.Restore(@"Project\Project.csproj", workingDirectory: this.SolutionDirectory.Path);
+
+            var projectFilePath = GetSolutionFileName(@"Project\Project.csproj");
+
+            await AssertNetCoreMultiTFMProject(projectFilePath);
+        }
+
+        private async Task AssertNetCoreMultiTFMProject(string projectFilePath)
+        {
             using (var workspace = CreateMSBuildWorkspace())
             {
                 await workspace.OpenProjectAsync(projectFilePath);
@@ -244,6 +264,28 @@ namespace Microsoft.CodeAnalysis.MSBuild.UnitTests
                 }
 
                 Assert.True(actualNames.SetEquals(expectedNames), $"Project names differ!{Environment.NewLine}Expected: {actualNames}{Environment.NewLine}Expected: {expectedNames}");
+
+                // Verify that the projects reference the correct TFMs
+                var projects = workspace.CurrentSolution.Projects.Where(p => p.FilePath.EndsWith("Project.csproj"));
+                foreach (var project in projects)
+                {
+                    Assert.Single(project.ProjectReferences);
+
+                    var projectRef = workspace.CurrentSolution.GetProject(project.ProjectReferences.Single().ProjectId);
+
+                    if (project.OutputFilePath.Contains("netcoreapp2.0"))
+                    {
+                        Assert.Contains("netstandard2.0", projectRef.OutputFilePath);
+                    }
+                    else if (project.OutputFilePath.Contains("net461"))
+                    {
+                        Assert.Contains("net461", projectRef.OutputFilePath);
+                    }
+                    else
+                    {
+                        Assert.True(false, "OutputFilePath with expected TFM not found.");
+                    }
+                }
             }
         }
     }

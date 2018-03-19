@@ -150,6 +150,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 (@"Library\Class1.cs", Resources.SourceFiles.CSharp.NetCoreMultiTFM_ProjectReference_Class1));
         }
 
+        protected FileSet GetNetCoreMultiTFMFiles_ProjectReferenceWithReversedTFMs()
+        {
+            return new FileSet(
+                (@"Directory.Build.props", Resources.Directory_Build_props),
+                (@"Directory.Build.targets", Resources.Directory_Build_targets),
+                (@"Project\Project.csproj", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Project),
+                (@"Project\Program.cs", Resources.SourceFiles.CSharp.NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Program),
+                (@"Library\Library.csproj", Resources.ProjectFiles.CSharp.NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Library),
+                (@"Library\Class1.cs", Resources.SourceFiles.CSharp.NetCoreMultiTFM_ProjectReferenceWithReversedTFMs_Class1));
+        }
+
         protected FileSet GetMultiProjectSolutionFiles()
         {
             return new FileSet(
