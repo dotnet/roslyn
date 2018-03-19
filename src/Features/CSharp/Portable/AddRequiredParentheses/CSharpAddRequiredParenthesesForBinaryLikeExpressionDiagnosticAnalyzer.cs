@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryParentheses;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryParentheses;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
 {
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.CSharp.AddRequiredParentheses
                 return;
 
             default:
-                throw new InvalidOperationException();
+                throw ExceptionUtilities.UnexpectedValue(binaryLikeOpt);
             }
         }
 
