@@ -1123,7 +1123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (int)-1;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1143,7 +1143,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (int)+1;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1163,7 +1163,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (int)&x;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1183,7 +1183,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (int)*x;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1203,7 +1203,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (T[])-1;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1223,7 +1223,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (T[])+1;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1243,7 +1243,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (T[])&x;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1263,7 +1263,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (T[])*x;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1283,7 +1283,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (T*)-1;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1303,7 +1303,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (T*)+1;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1323,7 +1323,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (T*)&x;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1343,7 +1343,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (T*)*x;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1363,7 +1363,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (T?)-1;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1383,7 +1383,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (T?)+1;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1403,7 +1403,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (T?)&x;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1423,7 +1423,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (T?)*x;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1443,7 +1443,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (e::N.T)-1;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1463,7 +1463,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (e::N.T)+1;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1483,7 +1483,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     {
         int x = (e::N.T)&x;
     }
-}", offeredWhenRequireForClarityIsEnabled: true);
+}", offeredWhenRequireForClarityIsEnabled: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
@@ -1502,6 +1502,86 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.RemoveUnnecessaryParent
     void M()
     {
         int x = (e::N.T)*x;
+    }
+}", offeredWhenRequireForClarityIsEnabled: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestCastOfPrimary()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (X)$$(a);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (X)a;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestCastOfMemberAccess()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (X)$$(a.b);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (X)a.b;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestCastOfNonAmbiguousUnary()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (X)$$(!a);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (X)!a;
+    }
+}", offeredWhenRequireForClarityIsEnabled: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryParentheses)]
+        public async Task TestCastOfCast()
+        {
+            await TestAsync(
+@"class C
+{
+    void M()
+    {
+        int x = (X)$$((Y)a);
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        int x = (X)(Y)a;
     }
 }", offeredWhenRequireForClarityIsEnabled: true);
         }

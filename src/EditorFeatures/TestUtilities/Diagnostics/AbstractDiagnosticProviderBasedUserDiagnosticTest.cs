@@ -153,6 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
             yield return CodeStyleOptions.BitwiseOperationParentheses;
             yield return CodeStyleOptions.LogicalOperationParentheses;
             yield return CodeStyleOptions.CoalesceOperationParentheses;
+            yield return CodeStyleOptions.CastOperationParentheses;
         }
 
         protected IDictionary<OptionKey, object> RequireArithmeticParenthesesForClarity
