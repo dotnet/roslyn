@@ -3203,7 +3203,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal struct LocalState : AbstractLocalState
 #endif
         {
-            // PROTOTYPE(NullableReferenceTypes): Consider storing nullability rather than non-nullability.
+            // PROTOTYPE(NullableReferenceTypes): Consider storing nullability rather than non-nullability
+            // or perhaps expose as nullability from `this[int]` even if stored differently.
             private BitVector _knownNullState; // No diagnostics should be derived from a variable with a bit set to 0.
             private BitVector _notNull;
 
