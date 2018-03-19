@@ -786,7 +786,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return constantConversion;
             }
 
-            // See also NullableWalker.UseExpressionForConversion.
             switch (sourceExpression.Kind)
             {
                 case BoundKind.Literal:

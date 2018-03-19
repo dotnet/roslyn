@@ -1015,9 +1015,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ReportStaticNullCheckingDiagnostics(ErrorCode.WRN_NullabilityMismatchInAssignment, element.Syntax, GetTypeAsDiagnosticArgument(sourceType), destinationType);
                         continue;
                     }
-                    Result result = InferResultNullability(element, conversion, destinationType, resultType);
                     if (elementTypeIsReferenceType)
                     {
+                        Result result = InferResultNullability(element, conversion, destinationType, resultType);
                         TrackNullableStateForAssignment(element, -1, elementType, element, result.Type, result.Slot);
                     }
                 }
@@ -1745,36 +1745,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static Conversion GenerateConversion(Conversions conversions, BoundExpression sourceExpression, TypeSymbol sourceType, TypeSymbol destinationType)
         {
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            return UseExpressionForConversion(sourceExpression) ?
+            return useExpressionForConversion(sourceExpression) ?
                 conversions.ClassifyImplicitConversionFromExpression(sourceExpression, destinationType, ref useSiteDiagnostics) :
                 conversions.ClassifyImplicitConversionFromType(sourceType, destinationType, ref useSiteDiagnostics);
-        }
 
-        // See ConversionsBase.ClassifyImplicitBuiltInConversionFromExpression.
-        private static bool UseExpressionForConversion(BoundExpression value)
-        {
-            switch (value.Kind)
-            {
-                case BoundKind.Literal:
-                case BoundKind.DefaultExpression:
-                case BoundKind.SuppressNullableWarningExpression:
-                case BoundKind.TupleLiteral:
-                case BoundKind.UnboundLambda:
-                case BoundKind.MethodGroup:
-                case BoundKind.InterpolatedString:
-                case BoundKind.StackAllocArrayCreation:
-                case BoundKind.ThrowExpression:
-                    return true;
-            }
-            if (value.Type is null)
-            {
-                return true;
-            }
-            if (value.ConstantValue != null)
-            {
-                return true;
-            }
-            return false;
+            bool useExpressionForConversion(BoundExpression value) => value.Type is null || value.ConstantValue != null;
         }
 
         /// <summary>
