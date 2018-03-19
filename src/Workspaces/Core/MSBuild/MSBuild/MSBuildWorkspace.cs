@@ -27,7 +27,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
         // used to serialize access to public methods
         private readonly NonReentrantLock _serializationLock = new NonReentrantLock();
 
-        private MSBuildProjectLoader _loader;
+        private readonly MSBuildProjectLoader _loader;
+        private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
+
         private ImmutableList<WorkspaceDiagnostic> _diagnostics = ImmutableList<WorkspaceDiagnostic>.Empty;
 
         private MSBuildWorkspace(
@@ -35,7 +37,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             ImmutableDictionary<string, string> properties)
             : base(hostServices, "MSBuildWorkspace")
         {
-            _loader = new MSBuildProjectLoader(this, properties);
+            var diagnosticReporter = new DiagnosticReporter(this);
+            _projectFileLoaderRegistry = new ProjectFileLoaderRegistry(this, diagnosticReporter);
+            _loader = new MSBuildProjectLoader(this, diagnosticReporter, _projectFileLoaderRegistry, properties);
         }
 
         /// <summary>
@@ -90,18 +94,12 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// The MSBuild properties used when interpreting project files.
         /// These are the same properties that are passed to msbuild via the /property:&lt;n&gt;=&lt;v&gt; command line argument.
         /// </summary>
-        public ImmutableDictionary<string, string> Properties
-        {
-            get { return _loader.Properties; }
-        }
+        public ImmutableDictionary<string, string> Properties => _loader.Properties;
 
         /// <summary>
         /// Diagnostics logged while opening solutions, projects and documents.
         /// </summary>
-        public ImmutableList<WorkspaceDiagnostic> Diagnostics
-        {
-            get { return _diagnostics; }
-        }
+        public ImmutableList<WorkspaceDiagnostic> Diagnostics => _diagnostics;
 
         protected internal override void OnWorkspaceFailed(WorkspaceDiagnostic diagnostic)
         {
@@ -133,8 +131,8 @@ namespace Microsoft.CodeAnalysis.MSBuild
         /// </summary>
         public bool SkipUnrecognizedProjects
         {
-            get { return _loader.SkipUnrecognizedProjects; }
-            set { _loader.SkipUnrecognizedProjects = value; }
+            get => _loader.SkipUnrecognizedProjects;
+            set => _loader.SkipUnrecognizedProjects = value;
         }
 
         /// <summary>
@@ -275,7 +273,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 if (this.HasProjectFileChanges(projectChanges))
                 {
                     var projectPath = project.FilePath;
-                    if (_loader.TryGetLoaderFromProjectPath(projectPath, out var loader))
+                    if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(projectPath, out var loader))
                     {
                         try
                         {
@@ -352,10 +350,10 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         protected override void ApplyDocumentAdded(DocumentInfo info, SourceText text)
         {
-            System.Diagnostics.Debug.Assert(_applyChangesProjectFile != null);
+            Debug.Assert(_applyChangesProjectFile != null);
 
             var project = this.CurrentSolution.GetProject(info.Id.ProjectId);
-            if (_loader.TryGetLoaderFromProjectPath(project.FilePath, out var loader))
+            if (_projectFileLoaderRegistry.TryGetLoaderFromProjectPath(project.FilePath, out var loader))
             {
                 var extension = _applyChangesProjectFile.GetDocumentExtension(info.SourceCodeKind);
                 var fileName = Path.ChangeExtension(info.Name, extension);

@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
             };
 
             _projectCollection = new MSB.Evaluation.ProjectCollection(properties);
+
             _logger = new MSBuildDiagnosticLogger()
             {
                 Verbosity = MSB.Framework.LoggerVerbosity.Normal
@@ -92,7 +93,7 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
             try
             {
-                var project = FindProject( path, globalProperties);
+                var project = FindProject(path, globalProperties);
                 if (project != null)
                 {
                     return (project, log);
@@ -181,6 +182,11 @@ namespace Microsoft.CodeAnalysis.MSBuild.Build
 
         public void Stop()
         {
+            if (!_started)
+            {
+                throw new InvalidOperationException();
+            }
+
             MSB.Execution.BuildManager.DefaultBuildManager.EndBuild();
             _started = false;
         }

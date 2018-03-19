@@ -1,15 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.MSBuild.Build;
-using Microsoft.CodeAnalysis.MSBuild.Logging;
 using Roslyn.Utilities;
 using MSB = Microsoft.Build;
 
@@ -23,21 +19,37 @@ namespace Microsoft.CodeAnalysis.MSBuild
         // the workspace that the projects and solutions are intended to be loaded into.
         private readonly Workspace _workspace;
 
+        private readonly DiagnosticReporter _diagnosticReporter;
+        private readonly PathResolver _pathResolver;
+        private readonly ProjectFileLoaderRegistry _projectFileLoaderRegistry;
+
         // used to protect access to the following mutable state
         private readonly NonReentrantLock _dataGuard = new NonReentrantLock();
         private ImmutableDictionary<string, string> _properties;
-        private readonly Dictionary<string, string> _extensionToLanguageMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
         internal readonly ProjectBuildManager BuildManager;
+
+        internal MSBuildProjectLoader(
+            Workspace workspace,
+            DiagnosticReporter diagnosticReporter,
+            ProjectFileLoaderRegistry projectFileLoaderRegistry,
+            ImmutableDictionary<string, string> properties)
+        {
+            _workspace = workspace;
+            _diagnosticReporter = diagnosticReporter ?? new DiagnosticReporter(workspace);
+            _pathResolver = new PathResolver(_diagnosticReporter);
+            _projectFileLoaderRegistry = projectFileLoaderRegistry ?? new ProjectFileLoaderRegistry(workspace, _diagnosticReporter);
+            _properties = properties ?? ImmutableDictionary<string, string>.Empty;
+
+            BuildManager = new ProjectBuildManager();
+        }
 
         /// <summary>
         /// Create a new instance of an <see cref="MSBuildProjectLoader"/>.
         /// </summary>
         public MSBuildProjectLoader(Workspace workspace, ImmutableDictionary<string, string> properties = null)
+            : this(workspace, diagnosticReporter: null, projectFileLoaderRegistry: null, properties)
         {
-            _workspace = workspace;
-            _properties = properties ?? ImmutableDictionary<string, string>.Empty;
-            BuildManager = new ProjectBuildManager();
         }
 
         /// <summary>
@@ -81,16 +93,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 throw new ArgumentNullException(nameof(projectFileExtension));
             }
 
-            using (_dataGuard.DisposableWait())
-            {
-                _extensionToLanguageMap[projectFileExtension] = language;
-            }
+            _projectFileLoaderRegistry.AssociateFileExtensionWithLanguage(projectFileExtension, language);
         }
-
-        private const string SolutionDirProperty = "SolutionDir";
 
         private void SetSolutionProperties(string solutionFilePath)
         {
+            const string SolutionDirProperty = "SolutionDir";
+
             // When MSBuild is building an individual project, it doesn't define $(SolutionDir).
             // However when building an .sln file, or when working inside Visual Studio,
             // $(SolutionDir) is defined to be the directory where the .sln file is located.
@@ -111,6 +120,11 @@ namespace Microsoft.CodeAnalysis.MSBuild
             }
         }
 
+        private DiagnosticReportingMode GetReportingModeForUnrecognizedProjects()
+            => this.SkipUnrecognizedProjects
+                ? DiagnosticReportingMode.Log
+                : DiagnosticReportingMode.Throw;
+
         /// <summary>
         /// Loads the <see cref="SolutionInfo"/> for the specified solution file, including all projects referenced by the solution file and 
         /// all the projects referenced by the project files.
@@ -125,30 +139,30 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 throw new ArgumentNullException(nameof(solutionFilePath));
             }
 
-            var absoluteSolutionPath = this.GetAbsoluteSolutionPath(solutionFilePath, Directory.GetCurrentDirectory());
+            if (!_pathResolver.TryGetAbsoluteSolutionPath(solutionFilePath, baseDirectory: Directory.GetCurrentDirectory(), DiagnosticReportingMode.Throw, out var absoluteSolutionPath))
+            {
+                // TryGetAbsoluteSolutionPath should throw before we get here.
+                return null;
+            }
+
             using (_dataGuard.DisposableWait(cancellationToken))
             {
                 this.SetSolutionProperties(absoluteSolutionPath);
             }
 
-            VersionStamp version = default;
-
             var solutionFile = MSB.Construction.SolutionFile.Parse(absoluteSolutionPath);
-            var reportMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
 
-            var requestedProjectOptions = new ReportingOptions
-            {
-                OnPathFailure = reportMode,
-                OnLoaderFailure = reportMode
-            };
+            var reportingMode = GetReportingModeForUnrecognizedProjects();
 
-            var discoveredProjectOptions = new ReportingOptions
-            {
-                OnPathFailure = reportMode,
-                OnLoaderFailure = reportMode
-            };
+            var requestedProjectOptions = new DiagnosticReportingOptions(
+                onPathFailure: reportingMode,
+                onLoaderFailure: reportingMode);
 
-            var projectPaths = new List<string>(capacity: solutionFile.ProjectsInOrder.Count);
+            var discoveredProjectOptions = new DiagnosticReportingOptions(
+                onPathFailure: reportingMode,
+                onLoaderFailure: reportingMode);
+
+            var projectPaths = ImmutableArray.CreateBuilder<string>();
 
             // load all the projects
             foreach (var project in solutionFile.ProjectsInOrder)
@@ -161,8 +175,13 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 }
             }
 
-            var worker = new Worker(this,
-                projectPaths.ToImmutableArray(),
+            var worker = new Worker(
+                _workspace,
+                _diagnosticReporter,
+                _pathResolver,
+                _projectFileLoaderRegistry,
+                BuildManager,
+                projectPaths.ToImmutable(),
                 baseDirectory: Path.GetDirectoryName(absoluteSolutionPath),
                 _properties,
                 projectMap: null,
@@ -176,30 +195,9 @@ namespace Microsoft.CodeAnalysis.MSBuild
             // construct workspace from loaded project infos
             return SolutionInfo.Create(
                 SolutionId.CreateNewId(debugName: absoluteSolutionPath),
-                version,
+                version: default,
                 absoluteSolutionPath,
                 projects);
-        }
-
-        internal string GetAbsoluteSolutionPath(string path, string baseDirectory)
-        {
-            string absolutePath;
-
-            try
-            {
-                absolutePath = GetAbsolutePath(path, baseDirectory);
-            }
-            catch (Exception)
-            {
-                throw new InvalidOperationException(string.Format(WorkspacesResources.Invalid_solution_file_path_colon_0, path));
-            }
-
-            if (!File.Exists(absolutePath))
-            {
-                throw new FileNotFoundException(string.Format(WorkspacesResources.Solution_file_not_found_colon_0, absolutePath));
-            }
-
-            return absolutePath;
         }
 
         /// <summary>
@@ -217,20 +215,20 @@ namespace Microsoft.CodeAnalysis.MSBuild
                 throw new ArgumentNullException(nameof(projectFilePath));
             }
 
-            var requestedProjectOptions = new ReportingOptions
-            {
-                OnPathFailure = ReportMode.Throw,
-                OnLoaderFailure = ReportMode.Throw
-            };
+            var requestedProjectOptions = DiagnosticReportingOptions.ThrowForAll;
 
-            var discoveredMode = this.SkipUnrecognizedProjects ? ReportMode.Log : ReportMode.Throw;
-            var discoveredProjectOptions = new ReportingOptions
-            {
-                OnPathFailure = discoveredMode,
-                OnLoaderFailure = discoveredMode
-            };
+            var reportingMode = GetReportingModeForUnrecognizedProjects();
 
-            var worker = new Worker(this,
+            var discoveredProjectOptions = new DiagnosticReportingOptions(
+                onPathFailure: reportingMode,
+                onLoaderFailure: reportingMode);
+
+            var worker = new Worker(
+                _workspace,
+                _diagnosticReporter,
+                _pathResolver,
+                _projectFileLoaderRegistry,
+                BuildManager,
                 requestedProjectPaths: ImmutableArray.Create(projectFilePath),
                 baseDirectory: Directory.GetCurrentDirectory(),
                 globalProperties: _properties,
@@ -242,188 +240,5 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
             return await worker.LoadAsync(cancellationToken).ConfigureAwait(false);
         }
-
-        private static string GetMsbuildFailedMessage(string projectFilePath, string message)
-        {
-            if (string.IsNullOrWhiteSpace(message))
-            {
-                return string.Format(WorkspaceMSBuildResources.Msbuild_failed_when_processing_the_file_0, projectFilePath);
-            }
-            else
-            {
-                return string.Format(WorkspaceMSBuildResources.Msbuild_failed_when_processing_the_file_0_with_message_1, projectFilePath, message);
-            }
-        }
-
-        private string TryGetAbsolutePath(string path, ReportMode mode)
-        {
-            try
-            {
-                path = Path.GetFullPath(path);
-            }
-            catch (Exception)
-            {
-                ReportFailure(mode, string.Format(WorkspacesResources.Invalid_project_file_path_colon_0, path));
-                return null;
-            }
-
-            if (!File.Exists(path))
-            {
-                ReportFailure(
-                    mode,
-                    string.Format(WorkspacesResources.Project_file_not_found_colon_0, path),
-                    msg => new FileNotFoundException(msg));
-                return null;
-            }
-
-            return path;
-        }
-
-        internal bool TryGetLoaderFromProjectPath(string projectFilePath, out IProjectFileLoader loader)
-        {
-            return TryGetLoaderFromProjectPath(projectFilePath, ReportMode.Ignore, out loader);
-        }
-
-        private bool TryGetLoaderFromProjectPath(string projectFilePath, ReportMode mode, out IProjectFileLoader loader)
-        {
-            using (_dataGuard.DisposableWait())
-            {
-                // otherwise try to figure it out from extension
-                var extension = Path.GetExtension(projectFilePath);
-                if (extension.Length > 0 && extension[0] == '.')
-                {
-                    extension = extension.Substring(1);
-                }
-
-                if (_extensionToLanguageMap.TryGetValue(extension, out var language))
-                {
-                    if (_workspace.Services.SupportedLanguages.Contains(language))
-                    {
-                        loader = _workspace.Services.GetLanguageServices(language).GetService<IProjectFileLoader>();
-                    }
-                    else
-                    {
-                        loader = null;
-                        this.ReportFailure(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projectFilePath, language));
-                        return false;
-                    }
-                }
-                else
-                {
-                    loader = ProjectFileLoader.GetLoaderForProjectFileExtension(_workspace, extension);
-
-                    if (loader == null)
-                    {
-                        this.ReportFailure(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_file_extension_1_is_not_associated_with_a_language, projectFilePath, Path.GetExtension(projectFilePath)));
-                        return false;
-                    }
-                }
-
-                // since we have both C# and VB loaders in this same library, it no longer indicates whether we have full language support available.
-                if (loader != null)
-                {
-                    language = loader.Language;
-
-                    // check for command line parser existing... if not then error.
-                    var commandLineParser = _workspace.Services.GetLanguageServices(language).GetService<ICommandLineParserService>();
-                    if (commandLineParser == null)
-                    {
-                        loader = null;
-                        this.ReportFailure(mode, string.Format(WorkspacesResources.Cannot_open_project_0_because_the_language_1_is_not_supported, projectFilePath, language));
-                        return false;
-                    }
-                }
-
-                return loader != null;
-            }
-        }
-
-        private bool TryGetAbsoluteProjectPath(string path, string baseDirectory, ReportMode mode, out string absolutePath)
-        {
-            try
-            {
-                absolutePath = GetAbsolutePath(path, baseDirectory);
-            }
-            catch (Exception)
-            {
-                ReportFailure(mode, string.Format(WorkspacesResources.Invalid_project_file_path_colon_0, path));
-                absolutePath = null;
-                return false;
-            }
-
-            if (!File.Exists(absolutePath))
-            {
-                ReportFailure(
-                    mode,
-                    string.Format(WorkspacesResources.Project_file_not_found_colon_0, absolutePath),
-                    msg => new FileNotFoundException(msg));
-                return false;
-            }
-
-            return true;
-        }
-
-        private static string GetAbsolutePath(string path, string baseDirectoryPath)
-        {
-            return Path.GetFullPath(FileUtilities.ResolveRelativePath(path, baseDirectoryPath) ?? path);
-        }
-
-        private enum ReportMode
-        {
-            Throw,
-            Log,
-            Ignore
-        }
-
-        private void ReportFailure(ReportMode mode, string message, Func<string, Exception> createException = null)
-        {
-            switch (mode)
-            {
-                case ReportMode.Throw:
-                    if (createException != null)
-                    {
-                        throw createException(message);
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException(message);
-                    }
-
-                case ReportMode.Log:
-                    _workspace.OnWorkspaceFailed(new WorkspaceDiagnostic(WorkspaceDiagnosticKind.Failure, message));
-                    break;
-
-                case ReportMode.Ignore:
-                default:
-                    break;
-            }
-        }
-
-        private void ReportDiagnosticLog(DiagnosticLog log)
-        {
-            foreach (var logItem in log)
-            {
-                ReportFailure(ReportMode.Log, GetMsbuildFailedMessage(logItem.ProjectFilePath, logItem.ToString()));
-            }
-        }
-
-        private void ReportWorkspaceDiagnostic(WorkspaceDiagnostic diagnostic)
-        {
-            _workspace.OnWorkspaceFailed(diagnostic);
-        }
-
-        private bool IsSupportedLanguage(string languageName)
-            => _workspace.Services.SupportedLanguages.Contains(languageName);
-
-        private TLanguageService GetLanguageService<TLanguageService>(string languageName)
-            where TLanguageService : ILanguageService
-            => _workspace.Services
-                .GetLanguageServices(languageName)
-                .GetService<TLanguageService>();
-
-        private TWorkspaceService GetWorkspaceService<TWorkspaceService>()
-            where TWorkspaceService : IWorkspaceService
-            => _workspace.Services
-                .GetService<TWorkspaceService>();
     }
 }
