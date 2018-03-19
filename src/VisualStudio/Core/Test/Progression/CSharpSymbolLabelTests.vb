@@ -6,6 +6,7 @@ Imports Microsoft.VisualStudio.GraphModel
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
+    <[UseExportProvider]>
     Public Class CSharpSymbolLabelTests
         <Fact, Trait(Traits.Feature, Traits.Features.Progression)>
         Public Async Function TestNamedType() As Task

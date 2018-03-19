@@ -16,6 +16,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Debugging
 {
+    [UseExportProvider]
     public partial class ProximityExpressionsGetterTests
     {
         private SyntaxTree GetTree()

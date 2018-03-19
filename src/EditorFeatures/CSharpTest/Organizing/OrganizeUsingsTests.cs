@@ -14,6 +14,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Organizing
 {
+    [UseExportProvider]
     public class OrganizeUsingsTests
     {
         protected async Task CheckAsync(

@@ -10,6 +10,7 @@ Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Microsoft.VisualStudio.Text.Operations
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.InteractivePaste
+    <[UseExportProvider]>
     Public Class InteractivePasteCommandhandlerTests
         Const ClipboardLineBasedCutCopyTag As String = "VisualStudioEditorOperationsLineCutCopyClipboardTag"
         Const BoxSelectionCutCopyTag As String = "MSDEVColumnSelect"

@@ -11,6 +11,7 @@ Imports Microsoft.VisualStudio.Text.Editor
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Preview
+    <[UseExportProvider]>
     Public Class PreviewChangesTests
 
         Private _exportProvider As ExportProvider = MinimalTestExportProvider.CreateExportProvider(

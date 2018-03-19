@@ -7,6 +7,7 @@ Imports Microsoft.VisualStudio.Language.CallHierarchy
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.CallHierarchy
+    <[UseExportProvider]>
     Public Class CallHierarchyTests
         <WpfFact, Trait(Traits.Feature, Traits.Features.CallHierarchy)>
         Public Sub TestScopes()

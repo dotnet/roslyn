@@ -8,6 +8,7 @@ using VSCommanding = Microsoft.VisualStudio.Commanding;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Interactive.Commands
 {
+    [UseExportProvider]
     public class InteractiveCommandHandlerTests
     {
         private const string Caret = "$$";

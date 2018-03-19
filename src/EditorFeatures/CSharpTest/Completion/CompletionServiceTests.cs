@@ -6,6 +6,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion
 {
+    [UseExportProvider]
     public class CompletionServiceTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

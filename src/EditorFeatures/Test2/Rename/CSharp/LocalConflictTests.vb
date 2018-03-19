@@ -3,6 +3,7 @@
 Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
+    <[UseExportProvider]>
     Public Class LocalConflictTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 

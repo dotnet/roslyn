@@ -10,6 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 {
+    [UseExportProvider]
     public class EventHookupCommandHandlerTests
     {
         [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]

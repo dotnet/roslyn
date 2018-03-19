@@ -18,6 +18,7 @@ Imports Moq
 #Disable Warning BC40000 ' IQuickInfo* is obsolete
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
+    <[UseExportProvider]>
     Public Class QuickInfoControllerTests
 
         Public Sub New()

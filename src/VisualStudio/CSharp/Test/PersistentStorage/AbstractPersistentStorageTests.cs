@@ -12,11 +12,13 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionSize;
 using Microsoft.CodeAnalysis.SQLite;
 using Microsoft.CodeAnalysis.Storage;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Moq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.WorkspaceServices
 {
+    [UseExportProvider]
     public abstract class AbstractPersistentStorageTests : IDisposable
     {
         private enum Size

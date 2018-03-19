@@ -10,6 +10,7 @@ using static Microsoft.CodeAnalysis.CSharp.Completion.Providers.DeclarationNameC
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.DeclarationInfoTests
 {
+    [UseExportProvider]
     public class DeclarationNameCompletion_ContextTests
     {
         protected CSharpTestWorkspaceFixture fixture = new CSharpTestWorkspaceFixture();

@@ -10,6 +10,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 {
     public partial class ExtractMethodTests
     {
+        [UseExportProvider]
         public class LanguageInteraction : ExtractMethodBase
         {
             #region Generics

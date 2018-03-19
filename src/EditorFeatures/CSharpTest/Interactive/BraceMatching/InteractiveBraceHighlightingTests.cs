@@ -19,6 +19,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BraceHighlighting
 {
+    [UseExportProvider]
     public class InteractiveBraceHighlightingTests
     {
         private IEnumerable<T> Enumerable<T>(params T[] array)

@@ -26,6 +26,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
+    [UseExportProvider]
     public class VisualStudioDiagnosticAnalyzerExecutorTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]

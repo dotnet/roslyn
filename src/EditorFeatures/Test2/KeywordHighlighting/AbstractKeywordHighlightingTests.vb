@@ -13,6 +13,7 @@ Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.KeywordHighlighting
 
+    <[UseExportProvider]>
     Public MustInherit Class AbstractKeywordHighlightingTests
         Protected Async Function VerifyHighlightsAsync(test As XElement, Optional optionIsEnabled As Boolean = True) As Tasks.Task
             Using workspace = TestWorkspace.Create(test)

@@ -12,6 +12,7 @@ using Xunit;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.F1Help
 {
+    [UseExportProvider]
     public class F1HelpTests
     {
         private async Task TestAsync(string markup, string expectedText)

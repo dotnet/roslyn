@@ -7,6 +7,7 @@ Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim.In
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim
+    <[UseExportProvider]>
     Public Class VisualBasicSpecialReferencesTests
         <WpfFact()>
         <Trait(Traits.Feature, Traits.Features.ProjectSystemShims)>

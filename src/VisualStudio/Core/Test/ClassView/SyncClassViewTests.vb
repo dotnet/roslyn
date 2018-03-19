@@ -8,6 +8,7 @@ Imports Microsoft.VisualStudio.Text.Editor.Commanding.Commands
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ClassView
+    <[UseExportProvider]>
     Public Class SyncClassViewTests
 
 #Region "C# Tests"

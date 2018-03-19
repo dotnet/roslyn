@@ -10,6 +10,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Debugging
 {
+    [UseExportProvider]
     public class NameResolverTests
     {
         private async Task TestAsync(string text, string searchText, params string[] expectedNames)

@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using EnvDTE;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
@@ -12,6 +13,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
     /// Base class of a all test-containing classes. Automatically creates a FileCodeModel for testing with the given
     /// file.
     /// </summary>
+    [UseExportProvider]
     public abstract class AbstractFileCodeElementTests : IDisposable
     {
         private readonly string _contents;

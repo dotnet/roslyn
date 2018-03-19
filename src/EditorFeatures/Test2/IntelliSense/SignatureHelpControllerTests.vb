@@ -20,6 +20,7 @@ Imports Moq
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
+    <[UseExportProvider]>
     Public Class SignatureHelpControllerTests
         Public Sub New()
             ' The controller expects to be on a UI thread

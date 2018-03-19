@@ -27,6 +27,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Preview
 {
+    [UseExportProvider]
     public class PreviewWorkspaceTests
     {
         [Fact, Trait(Traits.Editor, Traits.Editors.Preview)]

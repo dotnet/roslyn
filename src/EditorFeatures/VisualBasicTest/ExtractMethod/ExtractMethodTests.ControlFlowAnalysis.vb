@@ -9,6 +9,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
         ''' (B) Analyzer
         ''' </summary>
         ''' <remarks></remarks>
+        <[UseExportProvider]>
         Public Class FlowAnalysis
 
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>

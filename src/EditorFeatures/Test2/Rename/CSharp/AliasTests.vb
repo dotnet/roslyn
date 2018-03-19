@@ -4,6 +4,7 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
+    <UseExportProvider>
     Public Class AliasTests
         Private ReadOnly _outputHelper As ITestOutputHelper
 

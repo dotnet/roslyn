@@ -11,6 +11,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Structure
 {
+    [UseExportProvider]
     public class BlockStructureServiceTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Outlining)]

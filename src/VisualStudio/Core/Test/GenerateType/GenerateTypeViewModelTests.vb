@@ -16,6 +16,7 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.GenerateType
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.GenerateType
+    <[UseExportProvider]>
     Public Class GenerateTypeViewModelTests
         Private Shared s_assembly1_Name As String = "Assembly1"
         Private Shared s_test1_Name As String = "Test1"

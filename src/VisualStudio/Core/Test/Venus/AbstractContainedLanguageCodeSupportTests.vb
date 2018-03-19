@@ -1,12 +1,13 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Venus
 
+    <[UseExportProvider]>
     Public MustInherit Class AbstractContainedLanguageCodeSupportTests
 
         Protected MustOverride ReadOnly Property Language As String

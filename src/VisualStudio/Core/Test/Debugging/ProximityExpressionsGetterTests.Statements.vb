@@ -6,6 +6,7 @@ Imports Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.UnitTests.Debugging
+    <[UseExportProvider]>
     Partial Public Class ProximityExpressionsGetterTests
         <Fact, Trait(Traits.Feature, Traits.Features.DebuggingProximityExpressions)>
         Public Sub TestAtStartOfStatement_0()

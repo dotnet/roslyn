@@ -5,10 +5,12 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Classification;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.QuickInfo
 {
+    [UseExportProvider]
     public abstract class AbstractSemanticQuickInfoSourceTests
     {
         protected AbstractSemanticQuickInfoSourceTests() { }

@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Editor.Wpf;
 using Microsoft.CodeAnalysis.Remote;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities.RemoteHost;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Composition;
@@ -26,6 +27,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigateTo
 {
+    [UseExportProvider]
     public abstract class AbstractNavigateToTests
     {
         protected static ExportProvider s_exportProvider =

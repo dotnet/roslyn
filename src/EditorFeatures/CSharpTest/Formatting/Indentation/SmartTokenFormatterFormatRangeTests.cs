@@ -27,6 +27,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting.Indentation
 {
+    [UseExportProvider]
     public class SmartTokenFormatterFormatRangeTests
     {
         [Fact]

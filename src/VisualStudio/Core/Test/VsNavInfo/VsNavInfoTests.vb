@@ -9,6 +9,7 @@ Imports Microsoft.VisualStudio.LanguageServices.UnitTests.Utilities.VsNavInfo
 Imports Microsoft.VisualStudio.Shell.Interop
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.VsNavInfo
+    <[UseExportProvider]>
     Public Class VsNavInfoTests
 
 #Region "C# Tests"

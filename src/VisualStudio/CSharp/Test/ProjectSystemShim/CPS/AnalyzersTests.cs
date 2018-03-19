@@ -13,6 +13,7 @@ using DisposableFile = Microsoft.CodeAnalysis.Test.Utilities.DisposableFile;
 
 namespace Roslyn.VisualStudio.CSharp.UnitTests.ProjectSystemShim.CPS
 {
+    [UseExportProvider]
     public class AnalyzersTests
     {
         [WpfFact]

@@ -4,8 +4,10 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.EditAndContinue
+Imports Microsoft.CodeAnalysis.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
+    <[UseExportProvider]>
     Public Class EditAndContinueWorkspaceServiceTests
         <Fact>
         Public Sub ReadOnlyDocumentTest()

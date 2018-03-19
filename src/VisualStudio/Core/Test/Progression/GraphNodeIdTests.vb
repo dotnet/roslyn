@@ -7,6 +7,7 @@ Imports Microsoft.VisualStudio.GraphModel
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Progression
+    <[UseExportProvider]>
     Public Class GraphNodeIdTests
         Private Async Function AssertMarkedNodeIdIsAsync(code As String, expectedId As String, Optional language As String = "C#", Optional symbolTransform As Func(Of ISymbol, ISymbol) = Nothing) As Task
             Using testState = ProgressionTestState.Create(

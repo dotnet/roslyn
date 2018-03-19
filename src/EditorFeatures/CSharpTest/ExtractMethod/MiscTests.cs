@@ -20,6 +20,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 {
+    [UseExportProvider]
     public class MiscTests
     {
         private static ISyntaxTriviaService GetSyntaxTriviaService()

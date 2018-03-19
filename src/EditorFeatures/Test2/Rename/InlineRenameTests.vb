@@ -16,6 +16,7 @@ Imports Microsoft.CodeAnalysis.Shared.Utilities
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
+    <[UseExportProvider]>
     Public Class InlineRenameTests
         Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
 

@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Completion
+    <[UseExportProvider]>
     Public Class VisualBasicCompletionSnippetNoteTests
         Private _markup As XElement = <document>
                                           <![CDATA[Imports System

@@ -3,6 +3,7 @@
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.ExtractMethod
     Partial Public Class ExtractMethodTests
+        <[UseExportProvider]>
         Public Class MethodNameGeneration
 
             <Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)>

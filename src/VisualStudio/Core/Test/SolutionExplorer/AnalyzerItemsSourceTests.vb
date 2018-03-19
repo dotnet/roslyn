@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplorer
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SolutionExplorer
+    <[UseExportProvider]>
     Public Class AnalyzerItemsSourceTests
         <Fact, Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub Ordering()

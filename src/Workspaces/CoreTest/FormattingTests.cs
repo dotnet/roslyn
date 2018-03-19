@@ -10,6 +10,7 @@ using VB = Microsoft.CodeAnalysis.VisualBasic;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [UseExportProvider]
     public partial class FormattingTests : TestBase
     {
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]

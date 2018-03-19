@@ -4,9 +4,11 @@ Imports Microsoft.CodeAnalysis.Editing
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Editting
+    <[UseExportProvider]>
     Public Class AddImportsTests
         Private Function GetDocument(code As String, Optional globalImports As String() = Nothing) As Document
             Dim ws As AdhocWorkspace = New AdhocWorkspace()

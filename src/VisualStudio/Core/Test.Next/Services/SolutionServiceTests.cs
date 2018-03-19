@@ -18,6 +18,7 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.Next.UnitTests.Remote
 {
+    [UseExportProvider]
     public class SolutionServiceTests
     {
         [Fact, Trait(Traits.Feature, Traits.Features.RemoteHost)]

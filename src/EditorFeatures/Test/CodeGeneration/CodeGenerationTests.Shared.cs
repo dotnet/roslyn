@@ -9,6 +9,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeGeneration
 {
     public partial class CodeGenerationTests
     {
+        [UseExportProvider]
         public class Shared
         {
             [Fact, Trait(Traits.Feature, Traits.Features.CodeGenerationSortDeclarations)]

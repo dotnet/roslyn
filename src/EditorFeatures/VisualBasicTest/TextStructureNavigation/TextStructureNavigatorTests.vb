@@ -9,6 +9,7 @@ Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TextStructureNavigation
+    <[UseExportProvider]>
     Public Class TextStructureNavigatorTests
 
         <Fact, Trait(Traits.Feature, Traits.Features.TextStructureNavigator)>

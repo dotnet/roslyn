@@ -15,7 +15,7 @@ Imports Microsoft.VisualStudio.Text
 Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.ReferenceHighlighting
-
+    <[UseExportProvider]>
     Public MustInherit Class AbstractReferenceHighlightingTests
         Protected Async Function VerifyHighlightsAsync(test As XElement, Optional optionIsEnabled As Boolean = True) As Tasks.Task
             Await VerifyHighlightsAsync(test, optionIsEnabled, outOfProcess:=False)
