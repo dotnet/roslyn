@@ -48,7 +48,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 _options = options
                 _path = If(path, String.Empty)
                 _root = If(cloneRoot, Me.CloneNodeAsRoot(syntaxRoot), syntaxRoot)
-                _hasCompilationUnitRoot = (syntaxRoot.Kind = SyntaxKind.CompilationUnit)
+                _hasCompilationUnitRoot = syntaxRoot.Kind = SyntaxKind.CompilationUnit
                 _isMyTemplate = isMyTemplate
             End Sub
 

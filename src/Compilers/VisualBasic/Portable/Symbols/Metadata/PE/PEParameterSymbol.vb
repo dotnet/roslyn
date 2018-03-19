@@ -348,7 +348,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
                 ' Filter out ParamArrayAttributes if necessary and cache the attribute handle
                 ' for GetCustomAttributesToEmit
-                Dim filterOutParamArrayAttribute As Boolean = (Not _lazyIsParamArray.HasValue() OrElse _lazyIsParamArray.Value())
+                Dim filterOutParamArrayAttribute As Boolean = Not _lazyIsParamArray.HasValue() OrElse _lazyIsParamArray.Value()
 
                 Dim defaultValue As ConstantValue = Me.ExplicitDefaultConstantValue
                 Dim filterOutConstantAttributeDescription As AttributeDescription = Nothing

@@ -680,11 +680,11 @@ End Class
             Dim privField As FieldSymbol = TryCast(classA.GetMembers("priv").[Single](), FieldSymbol)
             Dim pubField As FieldSymbol = TryCast(classA.GetMembers("pub").[Single](), FieldSymbol)
             Dim protField As FieldSymbol = TryCast(classA.GetMembers("prot").[Single](), FieldSymbol)
-            Dim karrayType As TypeSymbol = (TryCast(classA.GetMembers("karray").[Single](), FieldSymbol)).[Type]
-            Dim aarrayType As TypeSymbol = (TryCast(classA.GetMembers("aarray").[Single](), FieldSymbol)).[Type]
-            Dim kenumType As TypeSymbol = (TryCast(classA.GetMembers("kenum").[Single](), FieldSymbol)).[Type]
-            Dim aenumType As TypeSymbol = (TryCast(classA.GetMembers("aenum").[Single](), FieldSymbol)).[Type]
-            Dim unknownType As TypeSymbol = (TryCast(classA.GetMembers("unknowntype").[Single](), FieldSymbol)).[Type]
+            Dim karrayType As TypeSymbol = TryCast(classA.GetMembers("karray").[Single](), FieldSymbol).[Type]
+            Dim aarrayType As TypeSymbol = TryCast(classA.GetMembers("aarray").[Single](), FieldSymbol).[Type]
+            Dim kenumType As TypeSymbol = TryCast(classA.GetMembers("kenum").[Single](), FieldSymbol).[Type]
+            Dim aenumType As TypeSymbol = TryCast(classA.GetMembers("aenum").[Single](), FieldSymbol).[Type]
+            Dim unknownType As TypeSymbol = TryCast(classA.GetMembers("unknowntype").[Single](), FieldSymbol).[Type]
             Dim semanticModel = c.GetSemanticModel(c.SyntaxTrees(0))
             Assert.True(Symbol.IsSymbolAccessible(classA, classB))
             Assert.True(Symbol.IsSymbolAccessible(pubField, classB))

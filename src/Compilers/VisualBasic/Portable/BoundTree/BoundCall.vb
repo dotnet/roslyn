@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ValidateConstantValue()
 
             Debug.Assert(Arguments.Length = Method.ParameterCount)
-            Dim isOperator As Boolean = (Method.MethodKind = MethodKind.UserDefinedOperator)
+            Dim isOperator As Boolean = Method.MethodKind = MethodKind.UserDefinedOperator
             Dim isLifted? As Boolean = Nothing
 
             For i As Integer = 0 To Arguments.Length - 1

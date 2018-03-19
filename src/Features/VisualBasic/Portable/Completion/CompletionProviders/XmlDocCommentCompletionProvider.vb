@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Dim isStartOfTag = text(characterPosition) = "<"c
-            Dim isClosingTag = (text(characterPosition) = "/"c AndAlso characterPosition > 0 AndAlso text(characterPosition - 1) = "<"c)
+            Dim isClosingTag = text(characterPosition) = "/"c AndAlso characterPosition > 0 AndAlso text(characterPosition - 1) = "<"c
             Dim isDoubleQuote = text(characterPosition) = """"c
 
             Return isStartOfTag OrElse isClosingTag OrElse isDoubleQuote OrElse

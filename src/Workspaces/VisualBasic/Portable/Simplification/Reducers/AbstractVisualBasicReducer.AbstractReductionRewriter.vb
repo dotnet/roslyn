@@ -112,9 +112,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Simplification
 
                 Dim parentNode = token.Parent
 
-                If TypeOf (parentNode) Is ExpressionSyntax Then
+                If TypeOf parentNode Is ExpressionSyntax Then
                     parentNode = GetParentNode(DirectCast(parentNode, ExpressionSyntax))
-                ElseIf TypeOf (parentNode) Is StatementSyntax Then
+                ElseIf TypeOf parentNode Is StatementSyntax Then
                     parentNode = GetParentNode(DirectCast(parentNode, StatementSyntax))
                 End If
 

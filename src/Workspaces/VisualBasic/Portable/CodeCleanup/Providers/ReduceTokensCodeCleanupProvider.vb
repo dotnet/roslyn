@@ -309,7 +309,7 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                     Return "0"
                 End If
 
-                While (exponent > 0)
+                While exponent > 0
                     Dim remainder = exponent Mod 8UL
 
                     builder.Insert(0, remainder)
@@ -331,9 +331,9 @@ Namespace Microsoft.CodeAnalysis.CodeCleanup.Providers
                 'binary 1111111111111111111111111111111111111111111111111000000000000000
                 'or in decimal 18446744073709518848
                 'This will cause the subsequent conversion to a hex or octal string to output an incorrect value
-                If TypeOf (value) Is Short Then
+                If TypeOf value Is Short Then
                     Return CType(value, UShort)
-                ElseIf TypeOf (value) Is Integer Then
+                ElseIf TypeOf value Is Integer Then
                     Return CType(value, UInteger)
                 Else
                     Return CType(value, ULong)

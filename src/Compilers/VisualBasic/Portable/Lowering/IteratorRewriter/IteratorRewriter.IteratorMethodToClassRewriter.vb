@@ -91,7 +91,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                     F.Assignment(F.Field(F.Me, Me.StateField, True), F.Literal(Value)),
                                     F.Goto(breakLabel))).ToArray()
 
-                If (sections.Length > 0) Then
+                If sections.Length > 0 Then
                     F.CloseMethod(F.Block(
                         F.Select(
                             F.Field(F.Me, Me.StateField, False),

@@ -329,7 +329,7 @@ End Structure
             Dim nameParts = namedTypeName.Split("."c)
 
             Dim srcAssembly = DirectCast(c.Assembly, SourceAssemblySymbol)
-            Dim nsSymbol As NamespaceSymbol = (If(fromCorLib, srcAssembly.CorLibrary, srcAssembly)).GlobalNamespace
+            Dim nsSymbol As NamespaceSymbol = If(fromCorLib, srcAssembly.CorLibrary, srcAssembly).GlobalNamespace
             For Each ns In nameParts.Take(nameParts.Length - 1)
                 nsSymbol = DirectCast(nsSymbol.GetMember(ns), NamespaceSymbol)
             Next

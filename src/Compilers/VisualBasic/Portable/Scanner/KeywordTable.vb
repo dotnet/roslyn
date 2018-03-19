@@ -336,7 +336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Shared Function CanFollowExpression(kind As SyntaxKind) As Boolean
             Dim description As KeywordDescription = Nothing
-            If (s_keywordProperties.TryGetValue(kind, description)) Then
+            If s_keywordProperties.TryGetValue(kind, description) Then
                 Return description.kdCanFollowExpr
             End If
             Return False
@@ -344,7 +344,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Shared Function IsQueryClause(kind As SyntaxKind) As Boolean
             Dim description As KeywordDescription = Nothing
-            If (s_keywordProperties.TryGetValue(kind, description)) Then
+            If s_keywordProperties.TryGetValue(kind, description) Then
                 Return description.kdIsQueryClause
             End If
             Return False
@@ -352,7 +352,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
         Friend Shared Function TokenOpPrec(kind As SyntaxKind) As OperatorPrecedence
             Dim description As KeywordDescription = Nothing
-            If (s_keywordProperties.TryGetValue(kind, description)) Then
+            If s_keywordProperties.TryGetValue(kind, description) Then
                 Return description.kdOperPrec
             End If
 

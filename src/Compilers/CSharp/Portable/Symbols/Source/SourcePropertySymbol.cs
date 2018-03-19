@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // This has the value that IsIndexer will ultimately have, once we've populated the fields of this object.
             bool isIndexer = syntax.Kind() == SyntaxKind.IndexerDeclaration;
             var interfaceSpecifier = GetExplicitInterfaceSpecifier(syntax);
-            bool isExplicitInterfaceImplementation = (interfaceSpecifier != null);
+            bool isExplicitInterfaceImplementation = interfaceSpecifier != null;
 
             _location = location;
             _containingType = containingType;
@@ -116,7 +116,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool hasExpressionBody = arrowExpression != null;
             bool hasInitializer = !isIndexer && propertySyntax.Initializer != null;
 
-            bool notRegularProperty = (!IsAbstract && !IsExtern && !isIndexer && hasAccessorList);
+            bool notRegularProperty = !IsAbstract && !IsExtern && !isIndexer && hasAccessorList;
             AccessorDeclarationSyntax getSyntax = null;
             AccessorDeclarationSyntax setSyntax = null;
             if (hasAccessorList)
@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override Microsoft.Cci.CallingConvention CallingConvention
         {
-            get { return (IsStatic ? 0 : Microsoft.Cci.CallingConvention.HasThis); }
+            get { return IsStatic ? 0 : Microsoft.Cci.CallingConvention.HasThis; }
         }
 
         public override ImmutableArray<ParameterSymbol> Parameters
@@ -1423,7 +1423,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // "Inconsistent accessibility: indexer return type '{1}' is less accessible than indexer '{0}'"
                 // "Inconsistent accessibility: property type '{1}' is less accessible than property '{0}'"
-                diagnostics.Add((this.IsIndexer ? ErrorCode.ERR_BadVisIndexerReturn : ErrorCode.ERR_BadVisPropertyType), _location, this, type);
+                diagnostics.Add(this.IsIndexer ? ErrorCode.ERR_BadVisIndexerReturn : ErrorCode.ERR_BadVisPropertyType, _location, this, type);
             }
 
             diagnostics.Add(_location, useSiteDiagnostics);

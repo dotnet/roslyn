@@ -376,8 +376,8 @@ End Class</a>
 
             Using workspaceFixture = New VisualBasicTestWorkspaceFixture()
                 Dim options = If(useDebuggerOptions,
-                                 (workspaceFixture.GetWorkspace()).Options.WithDebuggerCompletionOptions(),
-                                 (workspaceFixture.GetWorkspace()).Options)
+                                 workspaceFixture.GetWorkspace().Options.WithDebuggerCompletionOptions(),
+                                 workspaceFixture.GetWorkspace().Options)
 
                 Dim document1 = workspaceFixture.UpdateDocument(code, SourceCodeKind.Regular)
                 Await CheckResultsAsync(document1, position, isBuilder, triggerInfo, options)

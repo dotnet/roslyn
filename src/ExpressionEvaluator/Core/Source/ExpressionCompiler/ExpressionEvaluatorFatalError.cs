@@ -41,7 +41,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                                     var value = getValueMethod.Invoke(eeKey, new object[] { RegistryValue });
                                     if ((value != null) && (value is int))
                                     {
-                                        IsFailFastEnabled = ((int)value == 1);
+                                        IsFailFastEnabled = (int)value == 1;
                                     }
                                 }
                             }

@@ -1409,14 +1409,14 @@ class NonGen
 ");
 
             var globalNS = compilation.GlobalNamespace;
-            var gen1Class = ((NamedTypeSymbol)globalNS.GetMembers("Gen1").First());
+            var gen1Class = (NamedTypeSymbol)globalNS.GetMembers("Gen1").First();
             Assert.Equal("Gen1", gen1Class.Name);
             Assert.Equal("Gen1`3", gen1Class.MetadataName);
-            var nonGenClass = ((NamedTypeSymbol)globalNS.GetMembers("NonGen").First());
+            var nonGenClass = (NamedTypeSymbol)globalNS.GetMembers("NonGen").First();
             Assert.Equal("NonGen", nonGenClass.Name);
             Assert.Equal("NonGen", nonGenClass.MetadataName);
-            var system = ((NamespaceSymbol)globalNS.GetMembers("System").First());
-            var equatable = ((NamedTypeSymbol)system.GetMembers("IEquatable").First());
+            var system = (NamespaceSymbol)globalNS.GetMembers("System").First();
+            var equatable = (NamedTypeSymbol)system.GetMembers("IEquatable").First();
             Assert.Equal("IEquatable", equatable.Name);
             Assert.Equal("IEquatable`1", equatable.MetadataName);
         }

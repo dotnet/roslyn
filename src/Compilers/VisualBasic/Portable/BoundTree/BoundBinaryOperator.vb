@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim opName As String = OverloadResolution.TryGetOperatorName(OperatorKind)
 
                     If opName IsNot Nothing Then
-                        Dim op As BinaryOperatorKind = (OperatorKind And BinaryOperatorKind.OpMask)
+                        Dim op As BinaryOperatorKind = OperatorKind And BinaryOperatorKind.OpMask
                         Dim leftType = DirectCast(Left.Type.GetNullableUnderlyingTypeOrSelf(), NamedTypeSymbol)
                         Return New SynthesizedIntrinsicOperatorSymbol(leftType,
                                                                       opName,

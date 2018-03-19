@@ -414,7 +414,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(intoBinder Is Nothing)
                 Debug.Assert(firstSelectDeclaredRangeVariables.Length = 1)
 
-                Dim suppressCallDiagnostics As Boolean = (firstSelectExpression.Kind = BoundKind.BadExpression)
+                Dim suppressCallDiagnostics As Boolean = firstSelectExpression.Kind = BoundKind.BadExpression
 
                 If Not suppressCallDiagnostics AndAlso firstSelectExpression.HasErrors AndAlso firstSelectExpression.Kind = BoundKind.QueryClause Then
                     Dim query = DirectCast(firstSelectExpression, BoundQueryClause)
@@ -755,7 +755,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             childScopeBinder.LookupInSingleBinder(lookup, rangeVar.Name, 0, Nothing, childScopeBinder, useSiteDiagnostics:=Nothing)
 
-            Dim result As Boolean = (lookup.IsGood AndAlso lookup.Symbols(0).Kind = SymbolKind.RangeVariable)
+            Dim result As Boolean = lookup.IsGood AndAlso lookup.Symbols(0).Kind = SymbolKind.RangeVariable
 
             lookup.Free()
 
@@ -1142,8 +1142,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' restrict the shape of the Anonymous Type in method's declaration, the operators should be
                         ' insensitive to the shape of the Anonymous Type.
                         joinSelector = joinSelectorBinder.BuildJoinSelector(variable,
-                                                                            (i = variables.Count - 1 AndAlso
-                                                                                MustProduceFlatCompoundVariable(operatorsEnumerator)),
+                                                                            i = variables.Count - 1 AndAlso
+                                                                                MustProduceFlatCompoundVariable(operatorsEnumerator),
                                                                             diagnostics)
                     Else
                         ' Easy case, no need to build an Anonymous Type.
@@ -3032,8 +3032,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' restrict the shape of the Anonymous Type in method's declaration, the operators should be
                     ' insensitive to the shape of the Anonymous Type.
                     selector = BuildJoinSelector(variable,
-                                                 (variable Is DirectCast(operatorsEnumerator.Current, LetClauseSyntax).Variables.Last() AndAlso
-                                                      MustProduceFlatCompoundVariable(operatorsEnumerator)),
+                                                 variable Is DirectCast(operatorsEnumerator.Current, LetClauseSyntax).Variables.Last() AndAlso
+                                                      MustProduceFlatCompoundVariable(operatorsEnumerator),
                                                  diagnostics,
                                                  rangeVar, selector)
 

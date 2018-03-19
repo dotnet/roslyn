@@ -1037,10 +1037,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                         ' We are asserting what we know so far. If this assert fails, this is not a bug, we either need to remove this assert or relax the assert. 
                         Debug.Assert(statementSyntax.Kind = SyntaxKind.NamespaceBlock AndAlso
-                                     (TypeOf (declarationSyntax) Is AccessorStatementSyntax OrElse
-                                      TypeOf (declarationSyntax) Is EventStatementSyntax OrElse
-                                      TypeOf (declarationSyntax) Is MethodStatementSyntax OrElse
-                                      TypeOf (declarationSyntax) Is PropertyStatementSyntax))
+                                     (TypeOf declarationSyntax Is AccessorStatementSyntax OrElse
+                                      TypeOf declarationSyntax Is EventStatementSyntax OrElse
+                                      TypeOf declarationSyntax Is MethodStatementSyntax OrElse
+                                      TypeOf declarationSyntax Is PropertyStatementSyntax))
 
                         Return Nothing
                 End Select

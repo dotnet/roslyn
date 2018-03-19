@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     ' a preceding "_" will be a BadToken already and there was already a 
                     ' ERR_ExpectedIdentifier diagnose message for it
-                    If (CurrentToken.Kind = SyntaxKind.BadToken AndAlso CurrentToken.Text = "_") Then
+                    If CurrentToken.Kind = SyntaxKind.BadToken AndAlso CurrentToken.Text = "_" Then
                         identifier = identifier.AddLeadingSyntax(CurrentToken, ERRID.ERR_ExpectedIdentifier)
                         GetNextToken()
                     Else

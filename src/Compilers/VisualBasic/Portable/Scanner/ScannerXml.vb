@@ -71,7 +71,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             While CanGet()
                 Dim c As Char = Peek()
 
-                Select Case (c)
+                Select Case c
                     ' // Whitespace
                     ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
                     Case CARRIAGE_RETURN, LINE_FEED
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Select Case ch
                                 Case "!"c
                                     If CanGet(2) Then
-                                        Select Case (Peek(2))
+                                        Select Case Peek(2)
                                             Case "-"c
                                                 If NextIs(3, "-"c) Then
                                                     Return XmlMakeBeginCommentToken(leadingTrivia, s_scanNoTriviaFunc)
@@ -311,7 +311,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             While CanGet(Here)
                 Dim c As Char = Peek(Here)
 
-                Select Case (c)
+                Select Case c
                     Case CARRIAGE_RETURN, LINE_FEED
                         Here = SkipLineBreak(c, Here)
                         scratch.Append(LINE_FEED)
@@ -346,7 +346,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Select Case ch
                                 Case "!"c
                                     If CanGet(2) Then
-                                        Select Case (Peek(2))
+                                        Select Case Peek(2)
                                             Case "-"c
                                                 If NextIs(3, "-"c) Then
                                                     Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
@@ -493,7 +493,7 @@ ScanChars:
             Dim Here = 0
             While CanGet(Here)
                 Dim c As Char = Peek(Here)
-                Select Case (c)
+                Select Case c
 
                     Case CARRIAGE_RETURN, LINE_FEED
                         Return XmlMakeCommentToken(precedingTrivia, Here + LengthOfLineBreak(c, Here))
@@ -585,7 +585,7 @@ ScanChars:
 
             While CanGet(Here)
                 Dim c As Char = Peek(Here)
-                Select Case (c)
+                Select Case c
 
                     Case CARRIAGE_RETURN, LINE_FEED
                         Here = SkipLineBreak(c, Here)
@@ -661,7 +661,7 @@ ScanChars:
             Dim Here = 0
             While CanGet(Here)
                 Dim c As Char = Peek(Here)
-                Select Case (c)
+                Select Case c
 
                     Case CARRIAGE_RETURN, LINE_FEED
                         result = XmlMakeProcessingInstructionToken(precedingTrivia.ToList, Here + LengthOfLineBreak(c, Here))
@@ -722,7 +722,7 @@ CleanUp:
             While CanGet()
                 Dim c As Char = Peek()
 
-                Select Case (c)
+                Select Case c
                     ' // Whitespace
                     ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
                     Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
@@ -798,7 +798,7 @@ CleanUp:
             While CanGet(Here)
                 Dim c As Char = Peek(Here)
 
-                Select Case (c)
+                Select Case c
 
                     Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
                         If Here > 0 Then
@@ -904,7 +904,7 @@ ScanChars:
                     End If
                 End If
 
-                Select Case (c)
+                Select Case c
                     Case CARRIAGE_RETURN, LINE_FEED
                         Here = SkipLineBreak(c, Here)
                         scratch.Append(SPACE)
@@ -1068,7 +1068,7 @@ CleanUp:
             While CanGet(Here)
                 Dim c As Char = Peek(Here)
 
-                Select Case (c)
+                Select Case c
 
                     Case ":"c, " "c, CHARACTER_TABULATION, LINE_FEED, CARRIAGE_RETURN,
                         "="c, "'"c, """"c, "/"c,
@@ -1136,7 +1136,7 @@ CreateNCNameToken:
             If CanGet(1) Then
                 Dim c As Char = Peek(1)
 
-                Select Case (c)
+                Select Case c
                     Case "#"c
                         Dim Here = 2    ' skip "&#"
                         Dim result = ScanXmlCharRef(Here)

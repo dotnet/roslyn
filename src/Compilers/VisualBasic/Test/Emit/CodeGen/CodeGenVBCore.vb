@@ -2417,7 +2417,7 @@ End Class
             other.Emit(memory)
 
             Dim c As VisualBasicCompilation = CompilationUtils.CreateCompilationWithMscorlib40AndReferences(
-    (<compilation name="WantsIVTAccessVbCoreAndStillCannot3">
+    <compilation name="WantsIVTAccessVbCoreAndStillCannot3">
          <file name="a.vb"><![CDATA[
 Imports System
 Imports Microsoft.VisualBasic
@@ -2429,7 +2429,7 @@ Class Program
 End Class
 ]]>
          </file>
-     </compilation>),
+     </compilation>,
             references:=NoVbRuntimeReferences.Concat({MetadataReference.CreateFromImage(memory.ToImmutable())}),
             options:=TestOptions.ReleaseDll)
 

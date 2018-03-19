@@ -225,7 +225,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="left">The left value.</param>
         ''' <param name="right">The right value.</param>
         Public Shared Operator <>(left As Conversion, right As Conversion) As Boolean
-            Return Not (left = right)
+            Return Not left = right
         End Operator
 
         ''' <summary>
@@ -398,7 +398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Can be combined with <see cref="ConversionKind.Nullable"/> to indicate that the underlying value conversion is a predefined tuple conversion
         ''' </summary>
-        Tuple = (1 << 26)
+        Tuple = 1 << 26
         WideningTuple = [Widening] Or Tuple
         NarrowingTuple = [Narrowing] Or Tuple
         WideningNullableTuple = WideningNullable Or Tuple
@@ -515,17 +515,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' First, dig through Nullable
                 Dim sourceNullableUnderlying = source.GetNullableUnderlyingTypeOrSelf()
-                Dim sourceIsNullable As Boolean = (sourceNullableUnderlying IsNot source)
+                Dim sourceIsNullable As Boolean = sourceNullableUnderlying IsNot source
 
                 Dim targetNullableUnderlying = target.GetNullableUnderlyingTypeOrSelf()
-                Dim targetIsNullable As Boolean = (targetNullableUnderlying IsNot target)
+                Dim targetIsNullable As Boolean = targetNullableUnderlying IsNot target
 
                 ' Now dig through Enum
                 Dim sourceEnumUnderlying = sourceNullableUnderlying.GetEnumUnderlyingTypeOrSelf()
-                Dim sourceIsEnum As Boolean = (sourceEnumUnderlying IsNot sourceNullableUnderlying)
+                Dim sourceIsEnum As Boolean = sourceEnumUnderlying IsNot sourceNullableUnderlying
 
                 Dim targetEnumUnderlying = targetNullableUnderlying.GetEnumUnderlyingTypeOrSelf()
-                Dim targetIsEnum As Boolean = (targetEnumUnderlying IsNot targetNullableUnderlying)
+                Dim targetIsEnum As Boolean = targetEnumUnderlying IsNot targetNullableUnderlying
 
                 ' Filter out unexpected underlying types for Nullable and enum types
                 If (sourceIsEnum OrElse sourceIsNullable) AndAlso
@@ -569,8 +569,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
                 ' Adjust classification for enum conversions first, but don't adjust conversions enum <=> Object.
-                If ((sourceIsEnum AndAlso Not target.IsObjectType()) OrElse
-                    (targetIsEnum AndAlso Not source.IsObjectType())) Then
+                If (sourceIsEnum AndAlso Not target.IsObjectType()) OrElse
+                    (targetIsEnum AndAlso Not source.IsObjectType()) Then
 
                     '§8.8 Widening Conversions
                     '•	From an enumerated type to its underlying numeric type, or to a numeric type 
@@ -806,7 +806,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ' // Converting True to an arithmetic value produces -1.
                     If IsBooleanType(sourceType) AndAlso value <> 0 Then
 
-                        Const BASIC_TRUE As Integer = (-1)
+                        Const BASIC_TRUE As Integer = -1
 
                         If IsUnsignedIntegralType(targetType) Then
                             Dim ignoreOverflow As Boolean = False
@@ -974,7 +974,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
-            If Not (source.IsValue) Then
+            If Not source.IsValue Then
                 Return Nothing 'ConversionKind.NoConversion
             End If
 
@@ -1574,7 +1574,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return Nothing ' No conversion
             End If
 
-            Return (ConversionKind.Widening Or ConversionKind.Lambda)
+            Return ConversionKind.Widening Or ConversionKind.Lambda
         End Function
 
         Private Shared Function ClassifyNumericConstantConversion(constantExpression As BoundExpression, destination As TypeSymbol, binder As Binder) As ConversionKind
@@ -1800,7 +1800,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return conv
             End If
 
-            If Not (source.IsValue) Then
+            If Not source.IsValue Then
                 Return Nothing 'ConversionKind.NoConversion
             End If
 
@@ -1856,7 +1856,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return conv
             End If
 
-            If Not (source.IsValue) Then
+            If Not source.IsValue Then
                 Return Nothing 'ConversionKind.NoConversion
             End If
 
@@ -2135,7 +2135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim userDefinedInputType = conv.Value.Parameters(0).Type
                 Dim inConversion As ConversionKind
 
-                If (source.Kind <> BoundKind.ArrayLiteral) Then
+                If source.Kind <> BoundKind.ArrayLiteral Then
                     inConversion = ClassifyPredefinedConversion(source, userDefinedInputType, binder, useSiteDiagnostics)
                 Else
                     inConversion = ClassifyArrayLiteralConversion(DirectCast(source, BoundArrayLiteral), userDefinedInputType, binder, useSiteDiagnostics)
@@ -2367,7 +2367,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Debug.Assert(srcIsInterfaceType OrElse srcIsClassType OrElse srcIsArrayType)
 
-                If (srcIsInterfaceType OrElse srcIsClassType) Then
+                If srcIsInterfaceType OrElse srcIsClassType Then
 
                     Dim conv As ConversionKind = ToInterfaceConversionClassifier.ClassifyConversionToVariantCompatibleInterface(DirectCast(source, NamedTypeSymbol),
                                                                                                                                    DirectCast(destination, NamedTypeSymbol),
@@ -2397,7 +2397,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Else
                 Debug.Assert(dstIsClassType OrElse dstIsArrayType)
 
-                If (srcIsClassType OrElse srcIsArrayType) Then
+                If srcIsClassType OrElse srcIsArrayType Then
 
                     If dstIsClassType AndAlso IsDerivedFrom(source, destination, useSiteDiagnostics) Then
                         'From a reference type to a base type.
@@ -2530,11 +2530,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(source IsNot Nothing AndAlso Conversions.IsDelegateType(source))
             Debug.Assert(destination IsNot Nothing AndAlso Conversions.IsDelegateType(destination))
 
-            Const validBits As ConversionKind = (ConversionKind.Widening Or ConversionKind.Narrowing Or
+            Const validBits As ConversionKind = ConversionKind.Widening Or ConversionKind.Narrowing Or
                                                  ConversionKind.InvolvesEnumTypeConversions Or
                                                  ConversionKind.VarianceConversionAmbiguity Or
                                                  ConversionKind.MightSucceedAtRuntime Or
-                                                 ConversionKind.NarrowingDueToContraVarianceInDelegate)
+                                                 ConversionKind.NarrowingDueToContraVarianceInDelegate
 
             Dim forwardConv As ConversionKind = ClassifyImmediateVarianceCompatibility(source, destination, varianceCompatibilityClassificationDepth, useSiteDiagnostics)
             Debug.Assert((forwardConv And Not validBits) = 0)
@@ -2550,7 +2550,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return (backwardConv And Not (ConversionKind.Widening Or ConversionKind.NarrowingDueToContraVarianceInDelegate)) Or ConversionKind.Narrowing
             End If
 
-            Return ((forwardConv Or backwardConv) And ConversionKind.MightSucceedAtRuntime)
+            Return (forwardConv Or backwardConv) And ConversionKind.MightSucceedAtRuntime
         End Function
 
 
@@ -2655,9 +2655,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     addConv = ConversionKind.Narrowing Or (addConv And (ConversionKind.InvolvesEnumTypeConversions Or ConversionKind.VarianceConversionAmbiguity))
                 End If
 
-                Const validNonidentityBits As ConversionKind = (ConversionKind.Widening Or ConversionKind.Narrowing Or
+                Const validNonidentityBits As ConversionKind = ConversionKind.Widening Or ConversionKind.Narrowing Or
                                                                 ConversionKind.InvolvesEnumTypeConversions Or
-                                                                ConversionKind.VarianceConversionAmbiguity)
+                                                                ConversionKind.VarianceConversionAmbiguity
 
                 Debug.Assert(IsIdentityConversion(addConv) OrElse (addConv And Not validNonidentityBits) = 0)
 
@@ -2681,7 +2681,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End If
                     Else
                         _match = source
-                        _conv = (addConv And validNonidentityBits)
+                        _conv = addConv And validNonidentityBits
                     End If
                 End If
 
@@ -3799,7 +3799,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If dstIsInterfaceType Then
                         ' Conversions to an interface
 
-                        If (constraintIsClassType OrElse constraintIsInterfaceType OrElse constraintIsValueType) Then
+                        If constraintIsClassType OrElse constraintIsInterfaceType OrElse constraintIsValueType Then
                             If convToInterface.AccumulateConversionClassificationToVariantCompatibleInterface(DirectCast(constraint, NamedTypeSymbol),
                                                                                                               destinationInterface,
                                                                                                               varianceCompatibilityClassificationDepth,
@@ -3960,7 +3960,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         constraintIsValueType = IsValueType(constraint)
                     End If
 
-                    If (constraintIsClassType OrElse constraintIsValueType OrElse constraintIsArrayType) Then
+                    If constraintIsClassType OrElse constraintIsValueType OrElse constraintIsArrayType Then
                         If srcIsClassType Then
                             If IsDerivedFrom(constraint, source, useSiteDiagnostics) Then
                                 'From a base type of the class constraint to a type parameter.
@@ -4302,13 +4302,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         '''   <c>true</c> if a stub needed for conversion; otherwise, <c>false</c>.
         ''' </returns>
         Public Shared Function IsStubRequiredForMethodConversion(methodConversions As MethodConversionKind) As Boolean
-            Const methodConversionsRequiringStubs = (MethodConversionKind.OneArgumentIsNarrowing Or
+            Const methodConversionsRequiringStubs = MethodConversionKind.OneArgumentIsNarrowing Or
                                                      MethodConversionKind.OneArgumentIsVbOrBoxWidening Or
                                                      MethodConversionKind.ReturnIsWidening Or
                                                      MethodConversionKind.ReturnIsIsVbOrBoxNarrowing Or
                                                      MethodConversionKind.ReturnValueIsDropped Or
                                                      MethodConversionKind.AllArgumentsIgnored Or
-                                                     MethodConversionKind.ExcessOptionalArgumentsOnTarget)
+                                                     MethodConversionKind.ExcessOptionalArgumentsOnTarget
 
             Return (methodConversions And methodConversionsRequiringStubs) <> 0 AndAlso
                    (methodConversions And MethodConversionKind.AllErrorReasons) = 0

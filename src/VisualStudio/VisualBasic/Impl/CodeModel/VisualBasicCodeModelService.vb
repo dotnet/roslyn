@@ -1565,11 +1565,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel
 
             If TypeOf node Is FieldDeclarationSyntax Then
                 Return EnvDTE.vsCMAccess.vsCMAccessPrivate
-            ElseIf (TypeOf node Is MethodBlockBaseSyntax OrElse
+            ElseIf TypeOf node Is MethodBlockBaseSyntax OrElse
                     TypeOf node Is TypeBlockSyntax OrElse
                     TypeOf node Is EnumBlockSyntax OrElse
                     TypeOf node Is MethodBaseSyntax OrElse
-                    TypeOf node Is EnumMemberDeclarationSyntax) Then
+                    TypeOf node Is EnumMemberDeclarationSyntax Then
                 Return EnvDTE.vsCMAccess.vsCMAccessPublic
             End If
 

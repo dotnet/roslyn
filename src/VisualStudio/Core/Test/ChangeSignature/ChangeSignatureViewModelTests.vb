@@ -345,7 +345,7 @@ class MyClass
             Using workspace = TestWorkspace.Create(workspaceXml)
                 Dim doc = workspace.Documents.Single()
                 Dim workspaceDoc = workspace.CurrentSolution.GetDocument(doc.Id)
-                If (Not doc.CursorPosition.HasValue) Then
+                If Not doc.CursorPosition.HasValue Then
                     Assert.True(False, "Missing caret location in document.")
                 End If
 

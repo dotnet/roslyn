@@ -25,7 +25,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Update the resume table so exceptions that occur in the [Consequence] don't fall through to 
             ' [AlternativeOpt] upon Resume Next and to make sure that we are in the right scope when we 
             ' Resume Next on [End If].
-            Dim finishConsequenceWithResumeTarget As Boolean = (node.AlternativeOpt IsNot Nothing)
+            Dim finishConsequenceWithResumeTarget As Boolean = node.AlternativeOpt IsNot Nothing
 
             ' need to add a sequence point before the body
             ' make sure SP is outside of the block if consequence is a block

@@ -1340,7 +1340,7 @@ var a = new C2();
         {
             var comp = CSharpCompilation.Create("Compilation");
             SyntaxTree t1 = SyntaxFactory.ParseSyntaxTree("Using System;");
-            Assert.Throws<ArgumentException>(() => (comp.AddSyntaxTrees(t1, t1)));
+            Assert.Throws<ArgumentException>(() => comp.AddSyntaxTrees(t1, t1));
             Assert.Equal(0, comp.SyntaxTrees.Length);
         }
 

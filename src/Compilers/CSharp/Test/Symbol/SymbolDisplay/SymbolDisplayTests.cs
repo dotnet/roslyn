@@ -5314,7 +5314,7 @@ class C
             var symbolWithNames = new FakeTupleTypeSymbol();
             var types = ImmutableArray.Create(intType, stringType);
             var names = ImmutableArray.Create("Alice", "Bob");
-            symbolWithNames.wrappedTuple = ((INamedTypeSymbol)comp.CreateTupleTypeSymbol(types, names));
+            symbolWithNames.wrappedTuple = (INamedTypeSymbol)comp.CreateTupleTypeSymbol(types, names);
 
             var descriptionWithNames = symbolWithNames.ToDisplayParts();
 
@@ -5333,7 +5333,7 @@ class C
 
             var symbolWithoutNames = new FakeTupleTypeSymbol();
             types = ImmutableArray.Create(intType, stringType);
-            symbolWithoutNames.wrappedTuple = ((INamedTypeSymbol)comp.CreateTupleTypeSymbol(types));
+            symbolWithoutNames.wrappedTuple = (INamedTypeSymbol)comp.CreateTupleTypeSymbol(types);
 
             var descriptionWithoutNames = symbolWithoutNames.ToDisplayParts();
 

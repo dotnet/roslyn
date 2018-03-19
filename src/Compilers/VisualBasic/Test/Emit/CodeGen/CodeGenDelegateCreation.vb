@@ -44,7 +44,7 @@ End Class
                 CompileAndVerify(c1, symbolValidator:=
                     Sub([module])
                         ' Note: taking dev10 metadata as golden results, not the ECMA spec.
-                        Dim reader = (DirectCast([module], PEModuleSymbol)).Module.GetMetadataReader()
+                        Dim reader = DirectCast([module], PEModuleSymbol).Module.GetMetadataReader()
 
                         Dim expectedMethodMethodFlags = MethodAttributes.Public Or MethodAttributes.NewSlot Or MethodAttributes.Virtual Or MethodAttributes.CheckAccessOnOverride
                         Dim expectedConstructorMethodFlags = MethodAttributes.Public Or MethodAttributes.SpecialName Or MethodAttributes.RTSpecialName

@@ -457,7 +457,7 @@ End Module
                 Dim assembly = System.Reflection.Assembly.ReflectionOnlyLoad(output2.ToArray())
 
                 AddHandler assembly.ModuleResolve, Function(sender As Object, e As ResolveEventArgs)
-                                                       If (e.Name.Equals(c_mod1.SourceModule.Name)) Then
+                                                       If e.Name.Equals(c_mod1.SourceModule.Name) Then
                                                            Return assembly.LoadModule(e.Name, output_mod1.ToArray())
                                                        End If
 
@@ -498,7 +498,7 @@ End Module
                 Dim assembly = System.Reflection.Assembly.ReflectionOnlyLoad(output3.ToArray())
 
                 AddHandler assembly.ModuleResolve, Function(sender As Object, e As ResolveEventArgs)
-                                                       If (e.Name.Equals(c_mod2.SourceModule.Name)) Then
+                                                       If e.Name.Equals(c_mod2.SourceModule.Name) Then
                                                            Return assembly.LoadModule(e.Name, output_mod2.ToArray())
                                                        End If
 
@@ -552,7 +552,7 @@ End Module
                 Dim assembly = System.Reflection.Assembly.ReflectionOnlyLoad(output4.ToArray())
 
                 AddHandler assembly.ModuleResolve, Function(sender As Object, e As ResolveEventArgs)
-                                                       If (e.Name.Equals(c_mod3.SourceModule.Name)) Then
+                                                       If e.Name.Equals(c_mod3.SourceModule.Name) Then
                                                            Return assembly.LoadModule(e.Name, output_mod3.ToArray())
                                                        End If
 
@@ -589,9 +589,9 @@ End Module
                 Dim assembly = System.Reflection.Assembly.ReflectionOnlyLoad(output5.ToArray())
 
                 AddHandler assembly.ModuleResolve, Function(sender As Object, e As ResolveEventArgs)
-                                                       If (e.Name.Equals(c_mod1.SourceModule.Name)) Then
+                                                       If e.Name.Equals(c_mod1.SourceModule.Name) Then
                                                            Return assembly.LoadModule(e.Name, output_mod1.ToArray())
-                                                       ElseIf (e.Name.Equals(c_mod3.SourceModule.Name)) Then
+                                                       ElseIf e.Name.Equals(c_mod3.SourceModule.Name) Then
                                                            Return assembly.LoadModule(e.Name, output_mod3.ToArray())
                                                        End If
                                                        Return Nothing

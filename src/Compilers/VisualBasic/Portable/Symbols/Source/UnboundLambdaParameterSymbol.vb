@@ -27,7 +27,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             identifierSyntax As ModifiedIdentifierSyntax,
             typeSyntax As SyntaxNodeOrToken
         )
-            MyBase.New(name, ordinal, type, ((flags And SourceParameterFlags.ByRef) <> 0), location)
+            MyBase.New(name, ordinal, type, (flags And SourceParameterFlags.ByRef) <> 0, location)
 
             _identifierSyntax = identifierSyntax
             _typeSyntax = typeSyntax

@@ -26,19 +26,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Dim token = CType(MyBase.ParentTrivia.Token, SyntaxToken)
 
             Dim [next] As Boolean = False
-            Do While (token.Kind <> SyntaxKind.None)
+            Do While token.Kind <> SyntaxKind.None
                 Dim tr As SyntaxTrivia
                 For Each tr In token.LeadingTrivia
                     If [next] Then
                         If tr.IsDirective Then
                             Dim d As DirectiveTriviaSyntax = DirectCast(tr.GetStructure, DirectiveTriviaSyntax)
-                            If ((predicate Is Nothing) OrElse predicate.Invoke(d)) Then
+                            If (predicate Is Nothing) OrElse predicate.Invoke(d) Then
                                 Return d
                             End If
                         End If
                         Continue For
                     End If
-                    If (tr.UnderlyingNode Is MyBase.Green) Then
+                    If tr.UnderlyingNode Is MyBase.Green Then
                         [next] = True
                     End If
                 Next
@@ -51,16 +51,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             Dim token As SyntaxToken = CType(MyBase.ParentTrivia.Token, SyntaxToken)
 
             Dim [next] As Boolean = False
-            Do While (token.Kind <> SyntaxKind.None)
+            Do While token.Kind <> SyntaxKind.None
                 For Each tr In token.LeadingTrivia.Reverse()
                     If [next] Then
                         If tr.IsDirective Then
                             Dim d As DirectiveTriviaSyntax = DirectCast(tr.GetStructure, DirectiveTriviaSyntax)
-                            If ((predicate Is Nothing) OrElse predicate.Invoke(d)) Then
+                            If (predicate Is Nothing) OrElse predicate.Invoke(d) Then
                                 Return d
                             End If
                         End If
-                    ElseIf (tr.UnderlyingNode Is MyBase.Green) Then
+                    ElseIf tr.UnderlyingNode Is MyBase.Green Then
                         [next] = True
                     End If
                 Next

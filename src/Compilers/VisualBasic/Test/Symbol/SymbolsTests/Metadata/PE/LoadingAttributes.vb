@@ -1318,7 +1318,7 @@ End Class]]>
 
             Dim mems = type01.GetMembers("GenericUriParserOptions")
             Dim prop = TryCast(mems.First(), PropertySymbol)
-            If (prop Is Nothing) Then
+            If prop Is Nothing Then
                 prop = TryCast(mems.Last(), PropertySymbol)
             End If
 

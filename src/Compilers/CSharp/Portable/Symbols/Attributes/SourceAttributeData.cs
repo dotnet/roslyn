@@ -222,7 +222,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                foundMatch = (targetSignature.Length == 3);
+                foundMatch = targetSignature.Length == 3;
                 int k = 0;
                 for (int j = 3; j < targetSignature.Length; j++)
                 {

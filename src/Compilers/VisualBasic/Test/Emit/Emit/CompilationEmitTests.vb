@@ -3869,13 +3869,13 @@ End interface
 
                 Dim typeDef = metadataReader.GetTypeDefinition(handle)
 
-                If (metadataReader.StringComparer.Equals(typeDef.Name, "Viewable")) Then
+                If metadataReader.StringComparer.Equals(typeDef.Name, "Viewable") Then
                     For Each m In typeDef.GetMethods()
                         Dim method = metadataReader.GetMethodDefinition(m)
-                        If (metadataReader.StringComparer.Equals(method.Name, "get_P1")) Then
+                        If metadataReader.StringComparer.Equals(method.Name, "get_P1") Then
                             P1RVA = method.RelativeVirtualAddress
                         End If
-                        If (metadataReader.StringComparer.Equals(method.Name, "get_P2")) Then
+                        If metadataReader.StringComparer.Equals(method.Name, "get_P2") Then
                             P2RVA = method.RelativeVirtualAddress
                         End If
                     Next

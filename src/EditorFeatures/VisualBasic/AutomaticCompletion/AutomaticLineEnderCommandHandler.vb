@@ -67,7 +67,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.AutomaticCompletion
             Dim nonMissingToken = If(lastToken.IsMissing, lastToken.GetPreviousToken(), lastToken)
 
             ' now we have the last token, check whether it is at a valid location
-            If (line.Span.Contains(nonMissingToken.Span.End)) Then
+            If line.Span.Contains(nonMissingToken.Span.End) Then
                 ' make sure that there is no trailing text after last token on the line if it is not at the end of the line
                 Dim endingString = text.ToString(TextSpan.FromBounds(nonMissingToken.Span.End, line.End))
                 If Not String.IsNullOrWhiteSpace(endingString) Then

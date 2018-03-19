@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             //Script class is not static and contains no extensions.
             SingleTypeDeclaration.TypeDeclarationFlags declFlags = SingleTypeDeclaration.TypeDeclarationFlags.None;
-            var membernames = GetNonTypeMemberNames(((Syntax.InternalSyntax.CompilationUnitSyntax)(compilationUnit.Green)).Members, ref declFlags);
+            var membernames = GetNonTypeMemberNames(((Syntax.InternalSyntax.CompilationUnitSyntax)compilationUnit.Green).Members, ref declFlags);
             rootChildren.Add(
                 CreateScriptClass(
                     compilationUnit,
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateScriptRootDeclaration(compilationUnit);
             }
 
-            var children = VisitNamespaceChildren(compilationUnit, compilationUnit.Members, ((Syntax.InternalSyntax.CompilationUnitSyntax)(compilationUnit.Green)).Members);
+            var children = VisitNamespaceChildren(compilationUnit, compilationUnit.Members, ((Syntax.InternalSyntax.CompilationUnitSyntax)compilationUnit.Green).Members);
 
             return new RootSingleNamespaceDeclaration(
                 hasUsings: compilationUnit.Usings.Any(),
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Symbol.ReportErrorIfHasConstraints(node.ConstraintClauses, diagnostics);
             }
 
-            var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)(node.Green)).Members,
+            var memberNames = GetNonTypeMemberNames(((Syntax.InternalSyntax.TypeDeclarationSyntax)node.Green).Members,
                                                     ref declFlags);
 
             var modifiers = node.Modifiers.ToDeclarationModifiers(diagnostics: diagnostics);
@@ -553,27 +553,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             switch (member.Kind)
             {
                 case SyntaxKind.CompilationUnit:
-                    return (((Syntax.InternalSyntax.CompilationUnitSyntax)member).AttributeLists).Any();
+                    return ((Syntax.InternalSyntax.CompilationUnitSyntax)member).AttributeLists.Any();
 
                 case SyntaxKind.ClassDeclaration:
                 case SyntaxKind.StructDeclaration:
                 case SyntaxKind.InterfaceDeclaration:
                 case SyntaxKind.EnumDeclaration:
-                    return (((Syntax.InternalSyntax.BaseTypeDeclarationSyntax)member).AttributeLists).Any();
+                    return ((Syntax.InternalSyntax.BaseTypeDeclarationSyntax)member).AttributeLists.Any();
 
                 case SyntaxKind.DelegateDeclaration:
-                    return (((Syntax.InternalSyntax.DelegateDeclarationSyntax)member).AttributeLists).Any();
+                    return ((Syntax.InternalSyntax.DelegateDeclarationSyntax)member).AttributeLists.Any();
 
                 case SyntaxKind.FieldDeclaration:
                 case SyntaxKind.EventFieldDeclaration:
-                    return (((Syntax.InternalSyntax.BaseFieldDeclarationSyntax)member).AttributeLists).Any();
+                    return ((Syntax.InternalSyntax.BaseFieldDeclarationSyntax)member).AttributeLists.Any();
 
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.OperatorDeclaration:
                 case SyntaxKind.ConversionOperatorDeclaration:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.DestructorDeclaration:
-                    return (((Syntax.InternalSyntax.BaseMethodDeclarationSyntax)member).AttributeLists).Any();
+                    return ((Syntax.InternalSyntax.BaseMethodDeclarationSyntax)member).AttributeLists.Any();
 
                 case SyntaxKind.PropertyDeclaration:
                 case SyntaxKind.EventDeclaration:

@@ -317,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
                         End If
                     End If
 
-                    If Not isRenameLocation AndAlso TypeOf (symbol) Is INamespaceSymbol AndAlso token.GetPreviousToken().Kind = SyntaxKind.NamespaceKeyword Then
+                    If Not isRenameLocation AndAlso TypeOf symbol Is INamespaceSymbol AndAlso token.GetPreviousToken().Kind = SyntaxKind.NamespaceKeyword Then
                         Return newToken
                     End If
                 End If
@@ -791,7 +791,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
 
         Private Shared Function GetExpansionTarget(token As SyntaxToken) As SyntaxNode
             ' get the directly enclosing statement
-            Dim enclosingStatement = token.FirstAncestorOrSelf(Function(n) TypeOf (n) Is ExecutableStatementSyntax)
+            Dim enclosingStatement = token.FirstAncestorOrSelf(Function(n) TypeOf n Is ExecutableStatementSyntax)
 
             ' for nodes in a using, for or for each statement, we do not need the enclosing _executable_ statement, which is the whole block.
             ' it's enough to expand the using, for or foreach statement.
@@ -810,16 +810,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Rename
             ' see if there's an enclosing lambda expression
             Dim possibleLambdaExpression As SyntaxNode = Nothing
             If enclosingStatement Is Nothing Then
-                possibleLambdaExpression = token.FirstAncestorOrSelf(Function(n) TypeOf (n) Is LambdaExpressionSyntax)
+                possibleLambdaExpression = token.FirstAncestorOrSelf(Function(n) TypeOf n Is LambdaExpressionSyntax)
             End If
 
-            Dim enclosingCref = token.FirstAncestorOrSelf(Function(n) TypeOf (n) Is CrefReferenceSyntax)
+            Dim enclosingCref = token.FirstAncestorOrSelf(Function(n) TypeOf n Is CrefReferenceSyntax)
             If enclosingCref IsNot Nothing Then
                 Return enclosingCref
             End If
 
             ' there seems to be no statement above this one. Let's see if we can at least get an SimpleNameSyntax
-            Return If(enclosingStatement, If(possibleLambdaExpression, token.FirstAncestorOrSelf(Function(n) TypeOf (n) Is SimpleNameSyntax)))
+            Return If(enclosingStatement, If(possibleLambdaExpression, token.FirstAncestorOrSelf(Function(n) TypeOf n Is SimpleNameSyntax)))
         End Function
 
 #Region "Helper Methods"

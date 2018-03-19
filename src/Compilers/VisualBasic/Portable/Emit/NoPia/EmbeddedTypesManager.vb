@@ -264,7 +264,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit.NoPia
             Dim embedded = New EmbeddedType(Me, namedType)
             Dim cached = EmbeddedTypesMap.GetOrAdd(namedType, embedded)
 
-            Dim isInterface = (namedType.IsInterface)
+            Dim isInterface = namedType.IsInterface
 
             If isInterface AndAlso fromImplements Then
                 ' Note, we must use 'cached' here because we might drop 'embedded' below.

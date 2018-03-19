@@ -104,7 +104,7 @@ BC42024: Unused local variable: 'i4'.
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-                                               (<expected>
+                                               <expected>
 BC42109: Variable 'i1' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
                                     i2 = i1             ' Warning- use of uninitialized variable
                                          ~~
@@ -114,7 +114,7 @@ BC42108: Variable 'i3' is passed by reference before it has been assigned a valu
 BC42024: Unused local variable: 'i4'.
                                     Dim i4 As s1        ' Warning - unused local
                                         ~~                                                   
-                                               </expected>))
+                                               </expected>)
         End Sub
 
         <Fact>
@@ -149,7 +149,7 @@ BC42024: Unused local variable: 'i4'.
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-                                               (<expected>
+                                               <expected>
 BC42104: Variable 'i1' is used before it has been assigned a value. A null reference exception could result at runtime.
                                     i2 = i1             ' Warning- use of uninitialized variable
                                          ~~
@@ -159,7 +159,7 @@ BC42104: Variable 'i3' is used before it has been assigned a value. A null refer
 BC42024: Unused local variable: 'i4'.
                                     Dim i4 As C1   ' Warning - unused local
                                         ~~    
-                                               </expected>))
+                                               </expected>)
         End Sub
 
         <Fact()>
@@ -182,7 +182,7 @@ End Class
                           </compilation>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
-            CompilationUtils.AssertTheseDiagnostics(errs, (<errors></errors>))
+            CompilationUtils.AssertTheseDiagnostics(errs, <errors></errors>)
         End Sub
 
         <Fact()>
@@ -205,11 +205,11 @@ End Class
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-(<errors>
+<errors>
 BC42024: Unused local variable: 'x'.
                            Dim x As Integer
                                ~
-</errors>))
+</errors>)
         End Sub
 
         <WorkItem(722619, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/722619")>
@@ -533,11 +533,11 @@ End Module
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-(<expected>
+<expected>
 BC42109: Variable 's' is used before it has been assigned a value. A null reference exception could result at runtime. Make sure the structure or all the reference members are initialized before use
         If dict.TryGetValue("", s) Then
                                 ~
-</expected>))
+</expected>)
         End Sub
 
         <WorkItem(544072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544072")>
@@ -565,8 +565,8 @@ End Module
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-(<expected>
- </expected>))
+<expected>
+ </expected>)
         End Sub
 
         <WorkItem(544072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544072")>
@@ -591,8 +591,8 @@ End Module
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-(<expected>
- </expected>))
+<expected>
+ </expected>)
         End Sub
 
         <WorkItem(544072, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544072")>
@@ -614,11 +614,11 @@ End Module
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-(<expected>
+<expected>
 BC42104: Variable 's' is used before it has been assigned a value. A null reference exception could result at runtime.
         If dict.TryGetValue("", s) Then
                                 ~
-</expected>))
+</expected>)
         End Sub
 
         <Fact()>
@@ -642,8 +642,8 @@ BC42104: Variable 's' is used before it has been assigned a value. A null refere
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-                                               (<expected>
-                                                </expected>))
+                                               <expected>
+                                                </expected>)
         End Sub
 
         <Fact>
@@ -667,8 +667,8 @@ BC42104: Variable 's' is used before it has been assigned a value. A null refere
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-                                               (<expected>
-                                                </expected>))
+                                               <expected>
+                                                </expected>)
         End Sub
 
         <Fact>
@@ -700,12 +700,12 @@ BC42104: Variable 's' is used before it has been assigned a value. A null refere
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-                                               (<expected>
+                                               <expected>
 BC42104: Variable 'o2' is used before it has been assigned a value. A null reference exception could result at runtime.
                                     o1 = o2
                                          ~~
                                                    
-                                               </expected>))
+                                               </expected>)
         End Sub
 
         <Fact>
@@ -732,8 +732,8 @@ End Module
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-(<expected>
- </expected>))
+<expected>
+ </expected>)
         End Sub
 
         <Fact>
@@ -759,8 +759,8 @@ End Module
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-(<expected>
- </expected>))
+<expected>
+ </expected>)
         End Sub
 
         <Fact>
@@ -788,8 +788,8 @@ End Module
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-(<expected>
- </expected>))
+<expected>
+ </expected>)
         End Sub
 
         <Fact>
@@ -823,11 +823,11 @@ End Module
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-                                               (<expected>
+                                               <expected>
 BC42104: Variable 'o2' is used before it has been assigned a value. A null reference exception could result at runtime.
                                     o1 = o2
                                          ~~
-                                               </expected>))
+                                               </expected>)
         End Sub
 
         <Fact>
@@ -924,11 +924,11 @@ end class</file>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-                                               (<errors>
+                                               <errors>
 BC42353: Function 'goo' doesn't return a value on all code paths. Are you missing a 'Return' statement?
     end function
     ~~~~~~~~~~~~                                                   
-                                               </errors>))
+                                               </errors>)
         End Sub
 
         <Fact>
@@ -948,8 +948,8 @@ end class</file>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-                                               (<errors>
-                                                </errors>))
+                                               <errors>
+                                                </errors>)
         End Sub
 
         <WorkItem(540687, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540687")>
@@ -981,7 +981,7 @@ End Module</file>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-                                               (<errors>
+                                               <errors>
                                                     <![CDATA[
 BC42353: Function 'f' doesn't return a value on all code paths. Are you missing a 'Return' statement?
     End Function
@@ -990,7 +990,7 @@ BC42353: Function '<anonymous method>' doesn't return a value on all code paths.
                                End Function
                                ~~~~~~~~~~~~                                                   
 ]]>
-                                                </errors>))
+                                                </errors>)
         End Sub
 
         <WorkItem(541005, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541005")>
@@ -1138,11 +1138,11 @@ Imports System.Linq
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-                                               (<errors>
+                                               <errors>
 BC42104: Variable 'obj' is used before it has been assigned a value. A null reference exception could result at runtime.
                                         Console.WriteLine(obj)      ' Use of uninitialized local warning
                                                           ~~~
-                                               </errors>))
+                                               </errors>)
         End Sub
 
         <Fact>
@@ -1193,11 +1193,11 @@ BC42104: Variable 'obj' is used before it has been assigned a value. A null refe
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib40(program)
             Dim errs = Me.FlowDiagnostics(comp)
             CompilationUtils.AssertTheseDiagnostics(errs,
-                                    (<errors>
+                                    <errors>
 BC42104: Variable 'obj' is used before it has been assigned a value. A null reference exception could result at runtime.
                                         Console.WriteLine(obj)      ' Use of uninitialized local warning
                                                           ~~~
-                                    </errors>))
+                                    </errors>)
         End Sub
 
         <Fact>

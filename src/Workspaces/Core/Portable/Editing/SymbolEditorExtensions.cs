@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editing
 
             if (baseOrInterfaceType.TypeKind != TypeKind.Error)
             {
-                baseOrInterfaceType = (ITypeSymbol)(await editor.GetCurrentSymbolAsync(baseOrInterfaceType, cancellationToken).ConfigureAwait(false));
+                baseOrInterfaceType = (ITypeSymbol)await editor.GetCurrentSymbolAsync(baseOrInterfaceType, cancellationToken).ConfigureAwait(false);
             }
 
             // look for the base or interface declaration in all declarations of the symbol

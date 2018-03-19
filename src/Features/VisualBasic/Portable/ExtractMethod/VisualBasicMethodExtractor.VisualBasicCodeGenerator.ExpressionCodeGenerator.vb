@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExtractMethod
 
                 Protected Overrides Function GetOutermostCallSiteContainerToProcess(cancellationToken As CancellationToken) As SyntaxNode
                     Dim callSiteContainer = GetCallSiteContainerFromOutermostMoveInVariable(cancellationToken)
-                    Return If(callSiteContainer, (GetCallSiteContainerFromExpression()))
+                    Return If(callSiteContainer, GetCallSiteContainerFromExpression())
                 End Function
 
                 Private Function GetCallSiteContainerFromExpression() As SyntaxNode

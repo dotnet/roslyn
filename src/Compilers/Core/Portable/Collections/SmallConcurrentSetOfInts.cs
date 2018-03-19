@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 // Lost the race with another thread
             }
 
-            return (val == i);
+            return val == i;
         }
     }
 }

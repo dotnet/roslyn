@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.ConvertAutoPropertyToFullProperty
                 return;
             }
 
-            if (!(IsValidAutoProperty(property, propertySymbol)))
+            if (!IsValidAutoProperty(property, propertySymbol))
             {
                 return;
             }

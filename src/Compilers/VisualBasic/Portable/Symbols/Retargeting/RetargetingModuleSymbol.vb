@@ -216,7 +216,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             Loop
 
 #If DEBUG Then
-            While (j < underlyingBoundReferences.Length AndAlso underlyingBoundReferences(j).IsLinked)
+            While j < underlyingBoundReferences.Length AndAlso underlyingBoundReferences(j).IsLinked
                 j += 1
             End While
 

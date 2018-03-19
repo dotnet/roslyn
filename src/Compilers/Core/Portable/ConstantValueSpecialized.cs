@@ -556,7 +556,7 @@ namespace Microsoft.CodeAnalysis
             {
                 get
                 {
-                    return unchecked((sbyte)(_value));
+                    return unchecked((sbyte)_value);
                 }
             }
 

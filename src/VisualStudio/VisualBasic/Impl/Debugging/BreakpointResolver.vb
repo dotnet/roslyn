@@ -60,7 +60,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
 
             parameterCount = Nothing
             If parameterList IsNot Nothing Then
-                If (parameterList.OpenParenToken.IsMissing OrElse parameterList.CloseParenToken.IsMissing) Then
+                If parameterList.OpenParenToken.IsMissing OrElse parameterList.CloseParenToken.IsMissing Then
                     foundIncompleteParameterList = True
                 Else
                     lengthOfParsedText += parameterList.FullSpan.End

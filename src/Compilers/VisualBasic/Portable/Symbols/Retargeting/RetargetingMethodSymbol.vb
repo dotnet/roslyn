@@ -103,7 +103,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Public Overrides ReadOnly Property TypeParameters As ImmutableArray(Of TypeParameterSymbol)
             Get
-                If (_lazyTypeParameters.IsDefault) Then
+                If _lazyTypeParameters.IsDefault Then
                     If Not IsGenericMethod Then
                         _lazyTypeParameters = ImmutableArray(Of TypeParameterSymbol).Empty
                     Else
@@ -118,7 +118,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Public Overrides ReadOnly Property TypeArguments As ImmutableArray(Of TypeSymbol)
             Get
-                If (IsGenericMethod) Then
+                If IsGenericMethod Then
                     Return StaticCast(Of TypeSymbol).From(Me.TypeParameters)
                 Else
                     Return ImmutableArray(Of TypeSymbol).Empty

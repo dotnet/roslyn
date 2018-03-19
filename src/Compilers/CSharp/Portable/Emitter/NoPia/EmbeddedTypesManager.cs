@@ -314,7 +314,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
             EmbeddedType embedded = new EmbeddedType(this, namedType);
             EmbeddedType cached = EmbeddedTypesMap.GetOrAdd(namedType, embedded);
 
-            bool isInterface = (namedType.IsInterface);
+            bool isInterface = namedType.IsInterface;
 
             if (isInterface && fromImplements)
             {

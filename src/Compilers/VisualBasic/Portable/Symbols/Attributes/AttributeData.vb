@@ -380,7 +380,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                NoLocation.Singleton)
                         arguments.Diagnostics.Add(ERRID.ERR_PermissionSetAttributeInvalidFile, argSyntaxLocation, If(fileName, "<empty>"), filePropName)
 
-                    ElseIf (Not PermissionSetAttributeTypeHasRequiredProperty(attrType, hexPropName)) Then
+                    ElseIf Not PermissionSetAttributeTypeHasRequiredProperty(attrType, hexPropName) Then
 
                         ' PermissionSetAttribute was defined in user source, but doesn't have the required Hex property.
                         ' Native compiler still emits the file content as named assignment to 'Hex' property, but this leads to a runtime exception.
@@ -556,8 +556,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     End If
 
                 Case SymbolKind.NetModule
-                    If (IsTargetAttribute(target, AttributeDescription.CLSCompliantAttribute) AndAlso
-                            target.DeclaringCompilation.Options.OutputKind <> OutputKind.NetModule) Then
+                    If IsTargetAttribute(target, AttributeDescription.CLSCompliantAttribute) AndAlso
+                            target.DeclaringCompilation.Options.OutputKind <> OutputKind.NetModule Then
                         Return False
                     End If
                 Case SymbolKind.NamedType

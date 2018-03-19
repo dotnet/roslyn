@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.InternalUtilities
             emptySet.CopyTo(new int[0], 0); // should not throw
 
             // ICollection (not supported when read-only)
-            Assert.Throws<NotSupportedException>(() => ((ICollection<int>)(emptySet)).Add(0));
+            Assert.Throws<NotSupportedException>(() => ((ICollection<int>)emptySet).Add(0));
             Assert.Throws<NotSupportedException>(() => emptySet.Remove(0));
             Assert.Throws<NotSupportedException>(() => emptySet.Clear());
             

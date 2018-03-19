@@ -828,7 +828,7 @@ public class B
             {
                 context.RegisterSymbolAction(ctxt =>
                 {
-                    var method = ((IMethodSymbol)ctxt.Symbol);
+                    var method = (IMethodSymbol)ctxt.Symbol;
                     ctxt.ReportDiagnostic(CodeAnalysis.Diagnostic.Create(Descriptor1, method.Locations[0], method.ToDisplayString()));
                 }, SymbolKind.Method);
             }

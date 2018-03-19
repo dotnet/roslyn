@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim result As BoundStatement
 
             If [event].IsWindowsRuntimeEvent Then
-                result = RewriteWinRtEvent(node, unwrappedEventAccess, isAddition:=(node.Kind = BoundKind.AddHandlerStatement))
+                result = RewriteWinRtEvent(node, unwrappedEventAccess, isAddition:=node.Kind = BoundKind.AddHandlerStatement)
             Else
                 result = MakeEventAccessorCall(node, unwrappedEventAccess, If(node.Kind = BoundKind.AddHandlerStatement, [event].AddMethod, [event].RemoveMethod))
             End If

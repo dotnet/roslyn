@@ -363,7 +363,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim binaryOperator = DirectCast(nodeToCheck, BoundBinaryOperator)
 
                             If (binaryOperator.OperatorKind And BinaryOperatorKind.UserDefined) = 0 Then
-                                Select Case (binaryOperator.OperatorKind And BinaryOperatorKind.OpMask)
+                                Select Case binaryOperator.OperatorKind And BinaryOperatorKind.OpMask
                                     Case BinaryOperatorKind.Power,
                                          BinaryOperatorKind.Divide,
                                          BinaryOperatorKind.Modulo,
@@ -391,7 +391,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim unaryOperator = DirectCast(nodeToCheck, BoundUnaryOperator)
 
                             If (unaryOperator.OperatorKind And UnaryOperatorKind.UserDefined) = 0 Then
-                                Select Case (unaryOperator.OperatorKind And UnaryOperatorKind.IntrinsicOpMask)
+                                Select Case unaryOperator.OperatorKind And UnaryOperatorKind.IntrinsicOpMask
                                     Case UnaryOperatorKind.Minus,
                                          UnaryOperatorKind.Plus,
                                          UnaryOperatorKind.Not

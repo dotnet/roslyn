@@ -296,7 +296,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Friend Function LookupInOperatorTables(opcode As SyntaxKind, left As SpecialType, right As SpecialType) As SpecialType
             Dim whichTable As TableKind
 
-            Select Case (opcode)
+            Select Case opcode
 
                 Case SyntaxKind.AddExpression
                     whichTable = TableKind.Addition

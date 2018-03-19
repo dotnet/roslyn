@@ -289,7 +289,7 @@ recurse:
                     Dim member = members(i)
                     If textSpan.Contains(member.Span) Then
                         selectedMembers.Add(member)
-                    ElseIf (textSpan.OverlapsWith(member.Span)) Then
+                    ElseIf textSpan.OverlapsWith(member.Span) Then
                         Return ImmutableArray(Of StatementSyntax).Empty
                     Else
                         Exit For

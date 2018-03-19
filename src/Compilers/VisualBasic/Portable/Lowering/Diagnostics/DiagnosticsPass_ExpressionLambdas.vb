@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 lSelect:
                                 Select Case stmt.Kind
                                     Case BoundKind.ReturnStatement
-                                        If (DirectCast(stmt, BoundReturnStatement)).ExpressionOpt IsNot Nothing Then
+                                        If DirectCast(stmt, BoundReturnStatement).ExpressionOpt IsNot Nothing Then
                                             needDiagnostics = False
                                         End If
 

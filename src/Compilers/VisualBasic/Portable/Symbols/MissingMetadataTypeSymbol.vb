@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ''' <summary>
             ''' SpecialType.TypeId
             ''' </summary>
-            Private _lazyTypeId As Integer = (-1)
+            Private _lazyTypeId As Integer = -1
 
             Public Sub New([module] As ModuleSymbol, [namespace] As String, name As String, arity As Integer, mangleName As Boolean)
                 MyBase.New(name, arity, mangleName)
@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             Next
 
                             ' now create symbols we couldn't find.
-                            While (i < namespaces.Length)
+                            While i < namespaces.Length
                                 container = New MissingNamespaceSymbol(container, namespaces(i))
                                 i += 1
                             End While

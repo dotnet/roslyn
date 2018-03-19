@@ -57,8 +57,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim report As ReportDiagnostic
             Dim hasSourceSuppression As Boolean = False
 
-            If (s_alinkWarnings.Contains(CType(diagnostic.Code, ERRID)) AndAlso
-                caseInsensitiveSpecificDiagnosticOptions.Keys.Contains(VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1))) Then
+            If s_alinkWarnings.Contains(CType(diagnostic.Code, ERRID)) AndAlso
+                caseInsensitiveSpecificDiagnosticOptions.Keys.Contains(VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1)) Then
                 report = GetDiagnosticReport(VisualBasic.MessageProvider.Instance.GetSeverity(ERRID.WRN_AssemblyGeneration1),
                 diagnostic.IsEnabledByDefault,
                 VisualBasic.MessageProvider.Instance.GetIdForErrorCode(ERRID.WRN_AssemblyGeneration1),

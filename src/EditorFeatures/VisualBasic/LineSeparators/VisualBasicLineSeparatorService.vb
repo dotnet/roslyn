@@ -20,12 +20,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineSeparators
 
             Dim node = nodeOrToken.AsNode()
             Return _
-                TypeOf (node) Is MethodBlockBaseSyntax OrElse
-                TypeOf (node) Is PropertyBlockSyntax OrElse
-                TypeOf (node) Is TypeBlockSyntax OrElse
-                TypeOf (node) Is EnumBlockSyntax OrElse
-                TypeOf (node) Is NamespaceBlockSyntax OrElse
-                TypeOf (node) Is EventBlockSyntax
+                TypeOf node Is MethodBlockBaseSyntax OrElse
+                TypeOf node Is PropertyBlockSyntax OrElse
+                TypeOf node Is TypeBlockSyntax OrElse
+                TypeOf node Is EnumBlockSyntax OrElse
+                TypeOf node Is NamespaceBlockSyntax OrElse
+                TypeOf node Is EventBlockSyntax
         End Function
 
         ''' <summary>Node types that may contain separable blocks.</summary>

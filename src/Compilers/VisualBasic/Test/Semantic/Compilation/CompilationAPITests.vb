@@ -1191,7 +1191,7 @@ BC37224: Module 'a1.netmodule' is already defined in this assembly. Each module 
 
             Assert.Throws(Of ArgumentOutOfRangeException)(
                Sub()
-                   comp.GetSpecialType((SpecialType.None))
+                   comp.GetSpecialType(SpecialType.None)
                End Sub)
 
             ' Throw exception when the parameter of GetSpecialType is '0' 

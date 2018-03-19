@@ -6061,7 +6061,7 @@ class X
 
             var crefSyntax = GetCrefSyntaxes(compilation).Single();
 
-            var returnTypeSyntax = ((ConversionOperatorMemberCrefSyntax)(((QualifiedCrefSyntax)crefSyntax).Member)).Type;
+            var returnTypeSyntax = ((ConversionOperatorMemberCrefSyntax)((QualifiedCrefSyntax)crefSyntax).Member).Type;
             var expectedReturnTypeSymbol = compilation.GlobalNamespace.GetMember<NamedTypeSymbol>("X").GetMember<NamedTypeSymbol>("Y");
             var actualReturnTypeSymbol = model.GetSymbolInfo(returnTypeSyntax).Symbol;
             Assert.Equal(expectedReturnTypeSymbol, actualReturnTypeSymbol);

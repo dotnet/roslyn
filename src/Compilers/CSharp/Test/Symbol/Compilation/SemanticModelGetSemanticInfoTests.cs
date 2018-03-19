@@ -5596,7 +5596,7 @@ public class TestClass
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
-            MethodSymbol lambdaSym = (MethodSymbol)(semanticInfo.Symbol);
+            MethodSymbol lambdaSym = (MethodSymbol)semanticInfo.Symbol;
             Assert.Equal(1, lambdaSym.Parameters.Length);
             Assert.Equal("str", lambdaSym.Parameters[0].Name);
             Assert.Equal("System.String", lambdaSym.Parameters[0].Type.ToTestDisplayString());
@@ -5632,7 +5632,7 @@ public class TestClass
             Assert.Equal(SymbolKind.Method, semanticInfo.Symbol.Kind);
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length);
 
-            MethodSymbol lambdaSym = (MethodSymbol)(semanticInfo.Symbol);
+            MethodSymbol lambdaSym = (MethodSymbol)semanticInfo.Symbol;
             Assert.Equal(1, lambdaSym.Parameters.Length);
             Assert.Equal("str", lambdaSym.Parameters[0].Name);
             Assert.Equal(TypeKind.Error, lambdaSym.Parameters[0].Type.TypeKind);
@@ -11597,7 +11597,7 @@ class Test
 
             Assert.Equal("global", aliasInfo.Name);
             Assert.Equal("<global namespace>", aliasInfo.Target.ToTestDisplayString());
-            Assert.True(((NamespaceSymbol)(aliasInfo.Target)).IsGlobalNamespace);
+            Assert.True(((NamespaceSymbol)aliasInfo.Target).IsGlobalNamespace);
             Assert.Equal(false, aliasInfo.IsExtern);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);
@@ -11631,7 +11631,7 @@ class Test
 
             Assert.Equal("global", aliasInfo.Name);
             Assert.Equal("<global namespace>", aliasInfo.Target.ToTestDisplayString());
-            Assert.True(((NamespaceSymbol)(aliasInfo.Target)).IsGlobalNamespace);
+            Assert.True(((NamespaceSymbol)aliasInfo.Target).IsGlobalNamespace);
             Assert.Equal(false, aliasInfo.IsExtern);
 
             Assert.False(semanticInfo.IsCompileTimeConstant);

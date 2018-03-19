@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             {
                 bool a = a1[i];
                 a1[i] &= a2[i];
-                changed2 |= (a != a1[i]);
+                changed2 |= a != a1[i];
             }
             for (int i = 0; i < capacity; i++)
             {
@@ -141,7 +141,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Collections
             {
                 bool a = a1[i];
                 a1[i] |= a2[i];
-                changed2 |= (a != a1[i]);
+                changed2 |= a != a1[i];
             }
             for (int i = 0; i < maxCapacity; i++)
             {

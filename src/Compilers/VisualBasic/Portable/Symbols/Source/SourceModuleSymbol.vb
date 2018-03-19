@@ -1044,7 +1044,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 ' Only primary module of an assembly marked with an Extension attribute
                 ' can contain extension methods recognized by the language (Dev10 behavior).
                 If _lazyContainsExtensionMethods = ThreeState.Unknown Then
-                    If Not (_assemblySymbol.Modules(0) Is Me) Then
+                    If Not _assemblySymbol.Modules(0) Is Me Then
                         _lazyContainsExtensionMethods = ThreeState.False
                     End If
                 End If

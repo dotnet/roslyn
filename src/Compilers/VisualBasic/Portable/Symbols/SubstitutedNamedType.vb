@@ -398,7 +398,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Function
 
         Private Shared Function GetMethodSubstitute(methodSubstitutions As Dictionary(Of MethodSymbol, SubstitutedMethodSymbol), method As MethodSymbol) As SubstitutedMethodSymbol
-            Return If((method Is Nothing), Nothing, methodSubstitutions(method))
+            Return If(method Is Nothing, Nothing, methodSubstitutions(method))
         End Function
 
         Public Overrides Function GetMembers(name As String) As ImmutableArray(Of Symbol)

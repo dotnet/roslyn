@@ -42,11 +42,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     symbols.Add(TryCast(symbol, MethodSymbol))
 
                 Case SymbolKind.NamedType
-                    For Each m In (TryCast(symbol, NamedTypeSymbol)).GetMembers()
+                    For Each m In TryCast(symbol, NamedTypeSymbol).GetMembers()
                         symbols.AddRange(AllMethods(m))
                     Next
                 Case SymbolKind.[Namespace]
-                    For Each m In (TryCast(symbol, NamespaceSymbol)).GetMembers()
+                    For Each m In TryCast(symbol, NamespaceSymbol).GetMembers()
                         symbols.AddRange(AllMethods(m))
                     Next
             End Select

@@ -2481,18 +2481,18 @@ End Class
             Dim classX1 = DirectCast(globalNS.GetMembers("X1").First(), NamedTypeSymbol)
             Dim classX2 = DirectCast(globalNS.GetMembers("X2").First(), NamedTypeSymbol)
 
-            Dim x1Getters = (From memb In classX1.GetMembers("get_Prop1")
+            Dim x1Getters = From memb In classX1.GetMembers("get_Prop1")
                              Where memb.Kind = SymbolKind.Method
-                             Select DirectCast(memb, MethodSymbol))
-            Dim x1Setters = (From memb In classX1.GetMembers("set_Prop1")
+                             Select DirectCast(memb, MethodSymbol)
+            Dim x1Setters = From memb In classX1.GetMembers("set_Prop1")
                              Where memb.Kind = SymbolKind.Method
-                             Select DirectCast(memb, MethodSymbol))
-            Dim x2Getters = (From memb In classX2.GetMembers("get_Prop1")
+                             Select DirectCast(memb, MethodSymbol)
+            Dim x2Getters = From memb In classX2.GetMembers("get_Prop1")
                              Where memb.Kind = SymbolKind.Method
-                             Select DirectCast(memb, MethodSymbol))
-            Dim x2Setters = (From memb In classX2.GetMembers("set_Prop1")
+                             Select DirectCast(memb, MethodSymbol)
+            Dim x2Setters = From memb In classX2.GetMembers("set_Prop1")
                              Where memb.Kind = SymbolKind.Method
-                             Select DirectCast(memb, MethodSymbol))
+                             Select DirectCast(memb, MethodSymbol)
 
             Dim x1noArgGetter = (From meth In x1Getters Let params = meth.Parameters Where params.Length = 0 Select meth).First()
             Assert.Equal("get_prop1", x1noArgGetter.Name)

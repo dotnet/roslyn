@@ -39,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function GetExplicitInterfaceImplementations() As ImmutableArray(Of MethodSymbol)
             Dim sourceProperty = TryCast(ContainingProperty, SourcePropertySymbol)
             If sourceProperty IsNot Nothing Then
-                Return sourceProperty.GetAccessorImplementations(getter:=(MethodKind = MethodKind.PropertyGet))
+                Return sourceProperty.GetAccessorImplementations(getter:=MethodKind = MethodKind.PropertyGet)
             End If
 
             Return ImmutableArray(Of MethodSymbol).Empty
@@ -47,7 +47,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property OverriddenMethod As MethodSymbol
             Get
-                Return ContainingProperty.GetAccessorOverride(getter:=(MethodKind = MethodKind.PropertyGet))
+                Return ContainingProperty.GetAccessorOverride(getter:=MethodKind = MethodKind.PropertyGet)
             End Get
         End Property
         Friend Overrides ReadOnly Property Syntax As SyntaxNode

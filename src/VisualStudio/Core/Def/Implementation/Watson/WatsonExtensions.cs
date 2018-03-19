@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.ErrorReporting
                     // get first exception that is not aggregated exception
                     return GetParameterString(aggregate.InnerException);
                 default:
-                    return $"{exception.GetType().ToString()} {(exception.StackTrace ?? exception.ToString())}";
+                    return $"{exception.GetType().ToString()} {exception.StackTrace ?? exception.ToString()}";
             }
         }
 

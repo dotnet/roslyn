@@ -1063,7 +1063,7 @@ End Class
             c.VerifyDiagnostics()
             Dim symbolA2 = c.GetReferencedAssemblySymbol(refA2)
             Assert.True(TypeOf symbolA2 Is VisualBasic.Symbols.Metadata.PE.PEAssemblySymbol, "PE symbol expected")
-            Assert.Equal(1, (DirectCast(refA2.GetMetadataNoCopy(), AssemblyMetadata)).CachedSymbols.WeakCount)
+            Assert.Equal(1, DirectCast(refA2.GetMetadataNoCopy(), AssemblyMetadata).CachedSymbols.WeakCount)
 
             GC.KeepAlive(symbolA2)
 
@@ -1835,8 +1835,8 @@ End Class
                 TestOptions.ReleaseDll.WithMetadataReferenceResolver(resolver))
 
             c.VerifyEmitDiagnostics()
-            Assert.Equal("B", (DirectCast(c.GetAssemblyOrModuleSymbol(bRef), AssemblySymbol)).Name)
-            Assert.Equal("D", (DirectCast(c.GetAssemblyOrModuleSymbol(dRef), AssemblySymbol)).Name)
+            Assert.Equal("B", DirectCast(c.GetAssemblyOrModuleSymbol(bRef), AssemblySymbol).Name)
+            Assert.Equal("D", DirectCast(c.GetAssemblyOrModuleSymbol(dRef), AssemblySymbol).Name)
 
             ' We don't resolve one assembly reference identity twice, even if the requesting definition is different.
             resolver.VerifyResolutionAttempts(

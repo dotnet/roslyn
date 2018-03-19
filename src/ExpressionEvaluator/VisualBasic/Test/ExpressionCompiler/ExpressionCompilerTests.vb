@@ -2100,13 +2100,13 @@ End Class"
 }
 "
                     AssertEx.AssertEqualToleratingWhitespaceDifferences(expectedIL, actualIL)
-                    Assert.Equal(Cci.CallingConvention.Generic, (DirectCast(methodData.Method, Cci.IMethodDefinition)).CallingConvention)
+                    Assert.Equal(Cci.CallingConvention.Generic, DirectCast(methodData.Method, Cci.IMethodDefinition).CallingConvention)
 
                     context = CreateMethodContext(runtime, "A.B.M2")
                     testData = New CompilationTestData()
                     context.CompileExpression("If(GetType(T), GetType(U))", errorMessage, testData)
                     methodData = testData.GetMethodData("<>x(Of T, U, V).<>m0")
-                    Assert.Equal(Cci.CallingConvention.Default, (DirectCast(methodData.Method, Cci.IMethodDefinition)).CallingConvention)
+                    Assert.Equal(Cci.CallingConvention.Default, DirectCast(methodData.Method, Cci.IMethodDefinition).CallingConvention)
                 End Sub)
         End Sub
 

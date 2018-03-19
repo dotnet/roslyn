@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Overridable ReadOnly Property IsReadOnly As Boolean Implements IPropertySymbol.IsReadOnly
             Get
-                Return (Me.SetMethod Is Nothing)
+                Return Me.SetMethod Is Nothing
             End Get
         End Property
 
@@ -126,7 +126,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public Overridable ReadOnly Property IsWriteOnly As Boolean Implements IPropertySymbol.IsWriteOnly
             Get
-                Return (Me.GetMethod Is Nothing)
+                Return Me.GetMethod Is Nothing
             End Get
         End Property
 

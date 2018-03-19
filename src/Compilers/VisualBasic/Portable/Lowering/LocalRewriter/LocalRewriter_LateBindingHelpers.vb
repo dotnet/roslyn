@@ -747,12 +747,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If copyBackFlagArrayTemp Is Nothing Then
                         ' since we may have copybacks, we need a temp for the flags array to examine its content after the call
                         copyBackFlagArrayTemp = New SynthesizedLocal(Me._currentMethodOrLambda, copyBackFlagArray.Type, SynthesizedLocalKind.LoweringTemp)
-                        copyBackFlagArrayRef = (New BoundLocal(syntax, copyBackFlagArrayTemp, copyBackFlagArrayTemp.Type)).MakeRValue
+                        copyBackFlagArrayRef = New BoundLocal(syntax, copyBackFlagArrayTemp, copyBackFlagArrayTemp.Type).MakeRValue
 
                         ' since we may have copybacks, we need a temp for the arguments array to access it after the call
                         valueArrayTemp = New SynthesizedLocal(Me._currentMethodOrLambda, argumentsArray.Type, SynthesizedLocalKind.LoweringTemp)
                         valueArrayRef = New BoundLocal(syntax, valueArrayTemp, valueArrayTemp.Type)
-                        argumentsArray = (New BoundAssignmentOperator(syntax, valueArrayRef, argumentsArray, suppressObjectClone:=True)).MakeRValue
+                        argumentsArray = New BoundAssignmentOperator(syntax, valueArrayRef, argumentsArray, suppressObjectClone:=True).MakeRValue
                         valueArrayRef = valueArrayRef.MakeRValue
 
                         copyBackBuilder = ArrayBuilder(Of BoundExpression).GetInstance(assignmentArguments.Length)
@@ -769,12 +769,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Next
 
                 If copyBackFlagArrayTemp IsNot Nothing Then
-                    copyBackFlagArray = (New BoundAssignmentOperator(syntax,
+                    copyBackFlagArray = New BoundAssignmentOperator(syntax,
                                                                     New BoundLocal(syntax, copyBackFlagArrayTemp, copyBackFlagArrayTemp.Type),
                                                                     LateMakeCopyBackArray(syntax,
                                                                                           copyBackFlagValues.AsImmutableOrNull,
                                                                                           copyBackFlagArrayTemp.Type),
-                                                                    suppressObjectClone:=True)).MakeRValue
+                                                                    suppressObjectClone:=True).MakeRValue
                 End If
             End If
 

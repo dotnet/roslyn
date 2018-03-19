@@ -162,7 +162,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
                 ' Check if we need to do special retargeting
                 ' for primitive type references encoded with enum values in metadata signatures.
-                If (options = RetargetOptions.RetargetPrimitiveTypesByTypeCode) Then
+                If options = RetargetOptions.RetargetPrimitiveTypesByTypeCode Then
                     Dim typeCode As PrimitiveTypeCode = type.PrimitiveTypeCode
 
                     If typeCode <> PrimitiveTypeCode.NotPrimitive Then
@@ -248,7 +248,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                    type.Arity = 0 Then
                     ' Get type's identity
 
-                    Dim isInterface As Boolean = (type.IsInterface)
+                    Dim isInterface As Boolean = type.IsInterface
                     Dim hasGuid = False
                     Dim interfaceGuid As String = Nothing
                     Dim scope As String = Nothing
@@ -619,7 +619,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
                 Next
 
                 Debug.Assert(newModifiers Is Nothing OrElse newModifiers.Count = oldModifiers.Length)
-                modifiersHaveChanged = (newModifiers IsNot Nothing)
+                modifiersHaveChanged = newModifiers IsNot Nothing
                 Return If(modifiersHaveChanged, newModifiers.ToImmutableAndFree(), oldModifiers)
             End Function
 

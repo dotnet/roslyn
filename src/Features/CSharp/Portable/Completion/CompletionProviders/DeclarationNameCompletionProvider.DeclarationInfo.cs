@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             private static bool IsPossibleOutVariableDeclaration(SyntaxToken token, SemanticModel semanticModel, int position,
                 ITypeInferenceService typeInferenceService, CancellationToken cancellationToken, out NameDeclarationInfo result)
             {
-                if (!token.IsKind(SyntaxKind.IdentifierToken) || !(token.Parent.IsKind(SyntaxKind.IdentifierName)))
+                if (!token.IsKind(SyntaxKind.IdentifierToken) || !token.Parent.IsKind(SyntaxKind.IdentifierName))
                 {
                     result = default;
                     return false;

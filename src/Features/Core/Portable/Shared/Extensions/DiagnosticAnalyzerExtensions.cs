@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                 {
                     // It is not possible to know the categorization for a public analyzer,
                     // so return a worst-case categorization.
-                    category = (DiagnosticAnalyzerCategory.SyntaxAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis);
+                    category = DiagnosticAnalyzerCategory.SyntaxAnalysis | DiagnosticAnalyzerCategory.SemanticDocumentAnalysis | DiagnosticAnalyzerCategory.ProjectAnalysis;
                 }
             }
 

@@ -21556,7 +21556,7 @@ namespace ConsoleApplication5
 
             var comp = CompileAndVerify(source, expectedOutput: "42qq", references: new[] { libComp.ToMetadataReference() }, options: TestOptions.DebugExe, verify: Verification.Fails);
 
-            var m = (MethodSymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First());
+            var m = (MethodSymbol)comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First();
             Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Goo(System.Int32 arg)", m.ToTestDisplayString());
 
             var b = m.OverriddenMethod;
@@ -21612,7 +21612,7 @@ namespace ConsoleApplication5
 
             var comp = CompileAndVerifyWithMscorlib40(source, expectedOutput: "42qq", references: s_valueTupleRefs.Concat(new[] { libCompRef }).ToArray(), options: TestOptions.DebugExe, verify: Verification.Fails);
 
-            var m = (MethodSymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First());
+            var m = (MethodSymbol)comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First();
             Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Goo(System.Int32 arg)", m.ToTestDisplayString());
 
             var b = m.OverriddenMethod;
@@ -21959,7 +21959,7 @@ namespace ConsoleApplication5
 
             CompileAndVerify(comp, expectedOutput: "42qq", verify: Verification.Fails);
 
-            var m = (MethodSymbol)(comp.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First());
+            var m = (MethodSymbol)comp.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First();
             Assert.Equal("ref (System.Int32, dynamic) ConsoleApplication5.C2.Goo(System.Int32 arg)", m.ToTestDisplayString());
 
             var b = m.OverriddenMethod;
@@ -22012,7 +22012,7 @@ namespace ConsoleApplication5
 
             var comp = CompileAndVerify(source, expectedOutput: "42qq", references: new[] { libCompRef }, options: TestOptions.DebugExe, verify: Verification.Passes);
 
-            var m = (PropertySymbol)(comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First());
+            var m = (PropertySymbol)comp.Compilation.GetTypeByMetadataName("ConsoleApplication5.C2").GetMembers("Goo").First();
             Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Goo { get; }", m.ToTestDisplayString());
             Assert.Equal("ref (System.Int32, System.Object) ConsoleApplication5.C2.Goo.get", m.GetMethod.ToTestDisplayString());
 

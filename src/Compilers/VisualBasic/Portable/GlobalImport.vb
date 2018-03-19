@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim unmappedSpan = unmappedDiag.Location.SourceSpan
                 Dim startindex = unmappedSpan.Start - _clause.Span.Start
                 Dim length = unmappedSpan.Length
-                If (startindex < 0 OrElse length <= 0 OrElse startindex >= _importedName.Length) Then
+                If startindex < 0 OrElse length <= 0 OrElse startindex >= _importedName.Length Then
                     ' startIndex, length are bad for some reason. Used the whole import text instead.
                     startindex = 0
                     length = _importedName.Length

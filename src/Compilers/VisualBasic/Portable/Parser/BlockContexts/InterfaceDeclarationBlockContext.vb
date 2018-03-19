@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim stmtKind = statement.Kind
 
-            Select Case (stmtKind)
+            Select Case stmtKind
 
                 Case SyntaxKind.EndSubStatement,
                       SyntaxKind.EndFunctionStatement,

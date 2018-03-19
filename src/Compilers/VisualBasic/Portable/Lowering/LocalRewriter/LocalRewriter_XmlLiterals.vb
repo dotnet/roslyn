@@ -344,8 +344,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If items.Length = 0 Then
                 result = New BoundLiteral(syntax, ConstantValue.Nothing, arrayType)
             Else
-                Dim size = (New BoundLiteral(syntax, ConstantValue.Create(items.Length), GetSpecialType(SpecialType.System_Int32))).MakeCompilerGenerated()
-                Dim initializer = (New BoundArrayInitialization(syntax, items, arrayType)).MakeCompilerGenerated()
+                Dim size = New BoundLiteral(syntax, ConstantValue.Create(items.Length), GetSpecialType(SpecialType.System_Int32)).MakeCompilerGenerated()
+                Dim initializer = New BoundArrayInitialization(syntax, items, arrayType).MakeCompilerGenerated()
                 result = New BoundArrayCreation(syntax, ImmutableArray.Create(Of BoundExpression)(size), initializer, arrayType)
             End If
 

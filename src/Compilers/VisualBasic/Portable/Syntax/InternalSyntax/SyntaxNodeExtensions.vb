@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         <Extension()>
         Public Function WithoutDiagnostics(Of TNode As VisualBasicSyntaxNode)(node As TNode) As TNode
             Dim current As DiagnosticInfo() = node.GetDiagnostics
-            If ((current Is Nothing) OrElse (current.Length = 0)) Then
+            If (current Is Nothing) OrElse (current.Length = 0) Then
                 Return node
             End If
             Return DirectCast(node.SetDiagnostics(Nothing), TNode)
@@ -587,7 +587,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             For i As Integer = 0 To tokenListBuilder.Count - 1
                 Dim currentToken As SyntaxToken = tokenListBuilder(i)
 
-                skippedTriviaBuilder.AddToken(currentToken, isFirst:=(i = 0), isLast:=(i = tokenListBuilder.Count - 1))
+                skippedTriviaBuilder.AddToken(currentToken, isFirst:=i = 0, isLast:=i = tokenListBuilder.Count - 1)
             Next
 
             Return skippedTriviaBuilder.GetTriviaList()

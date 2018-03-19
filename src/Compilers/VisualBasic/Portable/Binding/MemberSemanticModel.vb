@@ -1774,7 +1774,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 parent = parent.Parent
             End While
 
-            Return (parent Is Nothing)
+            Return parent Is Nothing
         End Function
 #End If
 

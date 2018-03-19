@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim localSymbol = node.LocalSymbol
             Dim staticLocalBackingFields As KeyValuePair(Of SynthesizedStaticLocalBackingField, SynthesizedStaticLocalBackingField) = Nothing
             Dim initializerOpt As BoundExpression = node.InitializerOpt
-            Dim hasInitializer As Boolean = (initializerOpt IsNot Nothing)
+            Dim hasInitializer As Boolean = initializerOpt IsNot Nothing
 
             ' only if we have initializer we will produce something
             Dim result As BoundStatement = Nothing

@@ -911,7 +911,7 @@ namespace Microsoft.CodeAnalysis
 
         public static bool IsExtender(char ch)
         {
-            return (ch == 0xb7);
+            return ch == 0xb7;
         }
 
         public static bool IsNCNameSingleChar(char ch)

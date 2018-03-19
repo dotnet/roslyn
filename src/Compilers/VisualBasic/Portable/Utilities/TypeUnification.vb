@@ -240,7 +240,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Shared Function Contains(type As TypeSymbol, typeParam As TypeParameterSymbol) As Boolean
             Select Case type.Kind
                 Case SymbolKind.ArrayType
-                    Return Contains((DirectCast(type, ArrayTypeSymbol)).ElementType, typeParam)
+                    Return Contains(DirectCast(type, ArrayTypeSymbol).ElementType, typeParam)
                 Case SymbolKind.NamedType, SymbolKind.ErrorType
                     Dim namedType As NamedTypeSymbol = DirectCast(type, NamedTypeSymbol)
                     While namedType IsNot Nothing

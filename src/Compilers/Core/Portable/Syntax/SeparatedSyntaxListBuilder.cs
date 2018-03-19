@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             CheckExpectedElement();
             SyntaxNodeOrTokenList list = nodes.GetWithSeparators();
             _builder.AddRange(list);
-            _expectedSeparator = ((_builder.Count & 1) != 0);
+            _expectedSeparator = (_builder.Count & 1) != 0;
             return this;
         }
 
@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Syntax
             CheckExpectedElement();
             SyntaxNodeOrTokenList list = nodes.GetWithSeparators();
             _builder.AddRange(list, this.Count, Math.Min(count << 1, list.Count));
-            _expectedSeparator = ((_builder.Count & 1) != 0);
+            _expectedSeparator = (_builder.Count & 1) != 0;
             return this;
         }
 

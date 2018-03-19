@@ -437,7 +437,7 @@ namespace Microsoft.Cci
 
                 if (nestedTypeReference != null)
                 {
-                    this.typeReferenceNeedsToken = (typeReference.AsSpecializedNestedTypeReference == null);
+                    this.typeReferenceNeedsToken = typeReference.AsSpecializedNestedTypeReference == null;
                     this.Visit(nestedTypeReference.GetContainingType(Context));
                 }
             }

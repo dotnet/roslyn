@@ -336,7 +336,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Function GetDirectives(Optional filter As Func(Of DirectiveTriviaSyntax, Boolean) = Nothing) As IList(Of DirectiveTriviaSyntax)
-            Return (CType(Me, SyntaxNodeOrToken)).GetDirectives(Of DirectiveTriviaSyntax)(filter)
+            Return CType(Me, SyntaxNodeOrToken).GetDirectives(Of DirectiveTriviaSyntax)(filter)
         End Function
 
         Public Function GetFirstDirective(Optional predicate As Func(Of DirectiveTriviaSyntax, Boolean) = Nothing) As DirectiveTriviaSyntax
@@ -353,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         For Each tr In child.AsToken.LeadingTrivia
                             If tr.IsDirective Then
                                 Dim d As DirectiveTriviaSyntax = DirectCast(tr.GetStructure, DirectiveTriviaSyntax)
-                                If ((predicate Is Nothing) OrElse predicate(d)) Then
+                                If (predicate Is Nothing) OrElse predicate(d) Then
                                     Return d
                                 End If
                             End If
@@ -379,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         For Each tr In token.LeadingTrivia.Reverse()
                             If tr.IsDirective Then
                                 Dim d As DirectiveTriviaSyntax = DirectCast(tr.GetStructure, DirectiveTriviaSyntax)
-                                If ((predicate Is Nothing) OrElse predicate(d)) Then
+                                If (predicate Is Nothing) OrElse predicate(d) Then
                                     Return d
                                 End If
                             End If

@@ -121,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
                 ' check if this token is first on this line
                 Dim numLineBreaksBefore As Integer = LineBreaksBetween(_previousToken, token)
 
-                Dim needsIndentation As Boolean = (numLineBreaksBefore > 0)
+                Dim needsIndentation As Boolean = numLineBreaksBefore > 0
 
                 ' all line breaks except the first will be leading trivia of this token. The first line break
                 ' is trailing trivia of the previous token.
@@ -428,15 +428,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             ' +1 instead of + 1
             ' but not a instead of nota ...
-            If TypeOf (token.Parent) Is UnaryExpressionSyntax AndAlso
+            If TypeOf token.Parent Is UnaryExpressionSyntax AndAlso
                 token.Kind <> SyntaxKind.NotKeyword AndAlso
                 token.Kind <> SyntaxKind.AddressOfKeyword Then
                 Return False
             End If
 
             ' generally a + b, needs to go here to make it b + (a + b) instead of b +(a + b
-            If TypeOf (token.Parent) Is BinaryExpressionSyntax OrElse
-                TypeOf (nextToken.Parent) Is BinaryExpressionSyntax Then
+            If TypeOf token.Parent Is BinaryExpressionSyntax OrElse
+                TypeOf nextToken.Parent Is BinaryExpressionSyntax Then
                 Return True
             End If
 
@@ -500,18 +500,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
 
             ' handle closing attribute before XML tokens
             ' sub goo(<obsolete()> ByRef i as Integer) instead of sub goo(<obsolete()>ByRef i as Integer)
-            If (token.Kind = SyntaxKind.GreaterThanToken AndAlso
-                token.Parent.Kind = SyntaxKind.AttributeList) Then
+            If token.Kind = SyntaxKind.GreaterThanToken AndAlso
+                token.Parent.Kind = SyntaxKind.AttributeList Then
                 Return True
             End If
 
             ' needs to be checked after binary operators
             ' Imports <goo instead of Imports < goo
-            If (token.Kind = SyntaxKind.LessThanToken OrElse
+            If token.Kind = SyntaxKind.LessThanToken OrElse
                 nextToken.Kind = SyntaxKind.GreaterThanToken OrElse
                 token.Kind = SyntaxKind.LessThanSlashToken OrElse
                 token.Kind = SyntaxKind.GreaterThanToken OrElse
-                nextToken.Kind = SyntaxKind.LessThanSlashToken) Then
+                nextToken.Kind = SyntaxKind.LessThanSlashToken Then
                 Return False
             End If
 

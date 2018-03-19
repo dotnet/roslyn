@@ -13,7 +13,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public int GetCount()
         {
-            var dte = ((DTE2)GetDTE());
+            var dte = (DTE2)GetDTE();
             if (dte.Debugger.CurrentStackFrame != null) // Ensure that debugger is running
             {
                 EnvDTE.Expressions locals = dte.Debugger.CurrentStackFrame.Locals;
@@ -25,7 +25,7 @@ namespace Microsoft.VisualStudio.IntegrationTest.Utilities.InProcess
 
         public Common.Expression GetEntry(params string[] entryNames)
         {
-            var dte = ((DTE2)GetDTE());
+            var dte = (DTE2)GetDTE();
             if (dte.Debugger.CurrentStackFrame == null) // Ensure that debugger is running
             {
                 throw new Exception($"Could not find locals. Debugger is not running.");

@@ -541,7 +541,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      resorting to .Equals
 
             // the condition is expected to be folded when inlining "someSymbol == null"
-            if (((object)right == null))
+            if ((object)right == null)
             {
                 return (object)left == (object)null;
             }
@@ -566,7 +566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      since that sometimes results in a worse code
 
             // the condition is expected to be folded when inlining "someSymbol != null"
-            if (((object)right == null))
+            if ((object)right == null)
             {
                 return (object)left != (object)null;
             }

@@ -169,7 +169,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
             Assert.Equal(SyntaxKind.AddExpression, expr.Kind)
             Dim bex = CType(expr, BinaryExpressionSyntax)
             Assert.Equal(SyntaxKind.IdentifierName, bex.Left.Kind)
-            Dim id = (CType(bex.Left, IdentifierNameSyntax)).Identifier
+            Dim id = CType(bex.Left, IdentifierNameSyntax).Identifier
             Assert.Equal("a", id.ValueText)
             Assert.Equal(1, id.TrailingTrivia.Count)
             Dim trivia = id.TrailingTrivia(0)

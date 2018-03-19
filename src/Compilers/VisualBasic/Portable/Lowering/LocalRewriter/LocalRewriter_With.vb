@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' What the placeholder should be replaced with
             Dim result As WithExpressionRewriter.Result =
-                (New WithExpressionRewriter(statementSyntax)).AnalyzeWithExpression(Me._currentMethodOrLambda,
+                New WithExpressionRewriter(statementSyntax).AnalyzeWithExpression(Me._currentMethodOrLambda,
                                                              rewrittenExpression,
                                                              doNotUseByRefLocal,
                                                              Nothing)

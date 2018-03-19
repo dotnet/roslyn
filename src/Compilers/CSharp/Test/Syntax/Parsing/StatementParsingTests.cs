@@ -235,7 +235,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "(int, int) a;";
             var statement = this.ParseStatement(text, options: TestOptions.Regular);
 
-            (text).ToString();
+            text.ToString();
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = "(T x, (U k, V l, W m) y) a;";
             var statement = this.ParseStatement(text);
 
-            (text).ToString();
+            text.ToString();
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());

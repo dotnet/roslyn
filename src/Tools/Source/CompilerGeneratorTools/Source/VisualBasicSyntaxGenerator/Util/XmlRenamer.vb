@@ -15,22 +15,22 @@ Public Class XmlRenamer
 
         namesToUpdate = ParseUpdateList(renamingFile)
 
-        For Each name In (From n In namesToUpdate Where n.kind = UpdateKind.Enumerator)
+        For Each name In From n In namesToUpdate Where n.kind = UpdateKind.Enumerator
             UpdateEnumerator(name)
         Next
-        For Each name In (From n In namesToUpdate Where n.kind = UpdateKind.Child)
+        For Each name In From n In namesToUpdate Where n.kind = UpdateKind.Child
             UpdateChild(name)
         Next
-        For Each name In (From n In namesToUpdate Where n.kind = UpdateKind.Field)
+        For Each name In From n In namesToUpdate Where n.kind = UpdateKind.Field
             UpdateField(name)
         Next
-        For Each name In (From n In namesToUpdate Where n.kind = UpdateKind.Kind)
+        For Each name In From n In namesToUpdate Where n.kind = UpdateKind.Kind
             UpdateNodeKind(name)
         Next
-        For Each name In (From n In namesToUpdate Where n.kind = UpdateKind.Class)
+        For Each name In From n In namesToUpdate Where n.kind = UpdateKind.Class
             UpdateNodeClass(name)
         Next
-        For Each name In (From n In namesToUpdate Where n.kind = UpdateKind.Enum)
+        For Each name In From n In namesToUpdate Where n.kind = UpdateKind.Enum
             UpdateEnum(name)
         Next
     End Sub
@@ -64,7 +64,7 @@ Public Class XmlRenamer
     End Function
 
     Private Sub UpdateNodeKind(update As NameToUpdate)
-        For Each node In (From n In _xDoc...<node-kind> Where n.@name = update.memberName)
+        For Each node In From n In _xDoc...<node-kind> Where n.@name = update.memberName
             node.@name = update.newName
         Next
 
@@ -72,11 +72,11 @@ Public Class XmlRenamer
     End Sub
 
     Private Sub UpdateNodeClass(update As NameToUpdate)
-        For Each node In (From n In _xDoc...<node-structure> Where n.@name = update.typeName)
+        For Each node In From n In _xDoc...<node-structure> Where n.@name = update.typeName
             node.@name = update.newName
         Next
 
-        For Each node In (From n In _xDoc...<node-structure> Where n.@parent = update.typeName)
+        For Each node In From n In _xDoc...<node-structure> Where n.@parent = update.typeName
             node.@parent = update.newName
         Next
 
@@ -87,30 +87,30 @@ Public Class XmlRenamer
     End Sub
 
     Private Sub UpdateEnum(update As NameToUpdate)
-        For Each node In (From n In _xDoc...<enumeration> Where n.@name = update.typeName)
+        For Each node In From n In _xDoc...<enumeration> Where n.@name = update.typeName
             node.@name = update.newName
         Next
     End Sub
 
     Private Sub UpdateEnumerator(update As NameToUpdate)
-        For Each enumNode In (From n In _xDoc...<enumeration> Where n.@name = update.typeName)
-            For Each node In (From n In enumNode.<enumerators>.<enumerator> Where n.@name = update.memberName)
+        For Each enumNode In From n In _xDoc...<enumeration> Where n.@name = update.typeName
+            For Each node In From n In enumNode.<enumerators>.<enumerator> Where n.@name = update.memberName
                 node.@name = update.newName
             Next
         Next
     End Sub
 
     Private Sub UpdateChild(update As NameToUpdate)
-        For Each structNode In (From n In _xDoc...<node-structure> Where n.@name = update.typeName)
-            For Each node In (From n In structNode.<child> Where n.@name = update.memberName)
+        For Each structNode In From n In _xDoc...<node-structure> Where n.@name = update.typeName
+            For Each node In From n In structNode.<child> Where n.@name = update.memberName
                 node.@name = update.newName
             Next
         Next
     End Sub
 
     Private Sub UpdateField(update As NameToUpdate)
-        For Each structNode In (From n In _xDoc...<node-structure> Where n.@name = update.typeName)
-            For Each node In (From n In structNode.<field> Where n.@name = update.memberName)
+        For Each structNode In From n In _xDoc...<node-structure> Where n.@name = update.typeName
+            For Each node In From n In structNode.<field> Where n.@name = update.memberName
                 node.@name = update.newName
             Next
         Next
@@ -123,12 +123,12 @@ Public Class XmlRenamer
 
         Dim index As Integer = attrValue.IndexOf(kind, StringComparison.Ordinal)
 
-        If (index > 0 AndAlso attrValue(index - 1) <> "|"c) Then
+        If index > 0 AndAlso attrValue(index - 1) <> "|"c Then
             Return -1    ' must be preceded by vert bar or nothing.
         End If
 
         Dim endIndex = index + kind.Length
-        If (endIndex < attrValue.Length AndAlso attrValue(endIndex) <> "|"c) Then
+        If endIndex < attrValue.Length AndAlso attrValue(endIndex) <> "|"c Then
             Return -1    ' must be followed by vert bar or nothing.
         End If
 
@@ -140,15 +140,15 @@ Public Class XmlRenamer
     End Function
 
     Private Sub UpdateKindString(oldKind As String, newKind As String)
-        For Each node In (From n In _xDoc...<child> Where ContainsNodeKind(n.@kind, oldKind))
+        For Each node In From n In _xDoc...<child> Where ContainsNodeKind(n.@kind, oldKind)
             UpdateKindAttribute(node.Attribute("kind"), oldKind, newKind)
         Next
 
-        For Each node In (From n In _xDoc...<child> Where ContainsNodeKind(n.@<separator-kind>, oldKind))
+        For Each node In From n In _xDoc...<child> Where ContainsNodeKind(n.@<separator-kind>, oldKind)
             UpdateKindAttribute(node.Attribute("separator-kind"), oldKind, newKind)
         Next
 
-        For Each node In (From n In _xDoc...<node-kind-alias> Where ContainsNodeKind(n.@alias, oldKind))
+        For Each node In From n In _xDoc...<node-kind-alias> Where ContainsNodeKind(n.@alias, oldKind)
             UpdateKindAttribute(node.Attribute("alias"), oldKind, newKind)
         Next
     End Sub

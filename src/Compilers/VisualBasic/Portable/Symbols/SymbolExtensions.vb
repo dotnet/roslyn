@@ -302,9 +302,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function GetArity(symbol As Symbol) As Integer
             Select Case symbol.Kind
                 Case SymbolKind.Method
-                    Return (DirectCast(symbol, MethodSymbol)).Arity
+                    Return DirectCast(symbol, MethodSymbol).Arity
                 Case SymbolKind.NamedType, SymbolKind.ErrorType
-                    Return (DirectCast(symbol, NamedTypeSymbol)).Arity
+                    Return DirectCast(symbol, NamedTypeSymbol).Arity
                 Case Else
                     Return 0
             End Select

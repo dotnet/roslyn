@@ -474,7 +474,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.CodeModel.MethodXm
         End Function
 
         Private Function TryGenerateCast(type As ITypeSymbol, expression As ExpressionSyntax, Optional specialCastKind As SpecialCastKind? = Nothing) As Boolean
-            Using (CastTag(specialCastKind))
+            Using CastTag(specialCastKind)
                 GenerateType(type)
 
                 Return TryGenerateExpression(expression)

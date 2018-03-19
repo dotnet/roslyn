@@ -396,7 +396,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
 
         Friend Overrides Function MakeAcyclicInterfaces(diagnostics As DiagnosticBag) As ImmutableArray(Of NamedTypeSymbol)
             Dim declaredInterfaces As ImmutableArray(Of NamedTypeSymbol) = GetDeclaredInterfacesNoUseSiteDiagnostics(Nothing)
-            If (Not Me.IsInterface) Then
+            If Not Me.IsInterface Then
                 ' only interfaces needs to check for inheritance cycles via interfaces.
                 Return declaredInterfaces
             End If

@@ -56,7 +56,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateType
         End Function
 
         Protected Overrides Function GetTargetNode(node As SyntaxNode) As SyntaxNode
-            Return (DirectCast(node, ExpressionSyntax)).GetRightmostName()
+            Return DirectCast(node, ExpressionSyntax).GetRightmostName()
         End Function
     End Class
 End Namespace

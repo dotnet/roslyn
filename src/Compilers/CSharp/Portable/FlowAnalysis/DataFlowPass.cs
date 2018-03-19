@@ -1111,7 +1111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case BoundKind.Parameter:
                     {
-                        var parameter = ((BoundParameter)node);
+                        var parameter = (BoundParameter)node;
                         unassignedSlot = GetOrCreateSlot(parameter.ParameterSymbol);
                         break;
                     }

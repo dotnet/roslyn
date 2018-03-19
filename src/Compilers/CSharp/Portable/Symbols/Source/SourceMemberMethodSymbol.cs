@@ -1600,7 +1600,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (this.ContainingType.IsComImport && this.MethodKind == MethodKind.Constructor)
                 {
                     // Synthesized constructor of ComImport types is marked as Runtime implemented and InternalCall
-                    result |= (System.Reflection.MethodImplAttributes.Runtime | System.Reflection.MethodImplAttributes.InternalCall);
+                    result |= System.Reflection.MethodImplAttributes.Runtime | System.Reflection.MethodImplAttributes.InternalCall;
                 }
 
                 return result;

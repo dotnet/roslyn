@@ -202,7 +202,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' are for binding API scenarios.
                         Dim actualArity As Integer = DirectCast(sym, MethodSymbol).Arity
                         If actualArity <> arity AndAlso
-                           Not ((options And LookupOptions.AllMethodsOfAnyArity) <> 0) Then
+                           Not (options And LookupOptions.AllMethodsOfAnyArity) <> 0 Then
                             Return SingleLookupResult.WrongArityAndStopLookup(sym, WrongArityErrid(actualArity, arity))
                         End If
 

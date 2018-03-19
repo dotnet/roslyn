@@ -184,7 +184,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
                 Dim oldArgumentList = newInvocation.ArgumentList
                 Dim newArgumentList = GetNewArgumentList(oldArgumentList, argumentCount)
-                If (newArgumentList IsNot oldArgumentList) Then
+                If newArgumentList IsNot oldArgumentList Then
                     newInvocationStatement = newInvocationStatement.ReplaceNode(oldArgumentList, newArgumentList)
                     newInvocation = DirectCast(newInvocationStatement.GetAnnotatedNodes(s_annotation).Single(), InvocationExpressionSyntax)
                 End If
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
                     Dim delegatingConstructor = GenerateConstructorHelpers.GetDelegatingConstructor(
                         document, symbolInfo, candidates, namedType, state.ParameterTypes)
 
-                    If (delegatingConstructor Is Nothing OrElse meOrMybaseExpression.IsKind(SyntaxKind.MyBaseExpression)) Then
+                    If delegatingConstructor Is Nothing OrElse meOrMybaseExpression.IsKind(SyntaxKind.MyBaseExpression) Then
                         Return delegatingConstructor
                     End If
 
@@ -262,12 +262,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateConstructor
 
         Protected Overrides Function GetDelegatedConstructor(semanticModel As SemanticModel, constructor As IMethodSymbol, cancellationToken As CancellationToken) As IMethodSymbol
             Dim constructorStatements = constructor.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken).Parent.GetStatements()
-            If (constructorStatements.IsEmpty()) Then
+            If constructorStatements.IsEmpty() Then
                 Return Nothing
             End If
             Dim constructorInitializerSyntax = constructorStatements(0)
             Dim expressionStatement = TryCast(constructorInitializerSyntax, ExpressionStatementSyntax)
-            If (expressionStatement IsNot Nothing AndAlso expressionStatement.Expression.IsKind(SyntaxKind.InvocationExpression)) Then
+            If expressionStatement IsNot Nothing AndAlso expressionStatement.Expression.IsKind(SyntaxKind.InvocationExpression) Then
                 Dim methodSymbol = TryCast(semanticModel.GetSymbolInfo(expressionStatement.Expression, cancellationToken).Symbol, IMethodSymbol)
                 Return If(methodSymbol IsNot Nothing AndAlso methodSymbol.MethodKind = MethodKind.Constructor, methodSymbol, Nothing)
             End If

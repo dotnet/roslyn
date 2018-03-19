@@ -672,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (TryRewriteLocal(local, out localToUse))
                 {
                     newLocalsBuilder.Add(localToUse);
-                    localsRewritten |= ((object)local != localToUse);
+                    localsRewritten |= (object)local != localToUse;
                     continue;
                 }
 

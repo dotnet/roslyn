@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                                 baseTree As SyntaxTree,
                                 cancellationToken As CancellationToken) Implements ICommitFormatter.CommitRegion
 
-            Using (Logger.LogBlock(FunctionId.LineCommit_CommitRegion, cancellationToken))
+            Using Logger.LogBlock(FunctionId.LineCommit_CommitRegion, cancellationToken)
                 Dim buffer = spanToFormat.Snapshot.TextBuffer
                 Dim currentSnapshot = buffer.CurrentSnapshot
 
@@ -220,7 +220,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             ' is needed.
             If GetNumberOfIndentOperations(document, documentOptions, oldTree, oldDirtySpan, cancellationToken) =
                GetNumberOfIndentOperations(document, documentOptions, newTree, newDirtySpan, cancellationToken) Then
-                Return (New NoAnchorFormatterRule()).Concat(Formatter.GetDefaultFormattingRules(document))
+                Return New NoAnchorFormatterRule().Concat(Formatter.GetDefaultFormattingRules(document))
             End If
 
             Return Formatter.GetDefaultFormattingRules(document)

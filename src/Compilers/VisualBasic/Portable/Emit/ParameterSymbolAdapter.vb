@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If Not Me.IsDefinition Then
                 visitor.Visit(DirectCast(Me, IParameterTypeInformation))
             Else
-                If Me.ContainingModule = (DirectCast(visitor.Context.Module, PEModuleBuilder)).SourceModule Then
+                If Me.ContainingModule = DirectCast(visitor.Context.Module, PEModuleBuilder).SourceModule Then
                     visitor.Visit(DirectCast(Me, IParameterDefinition))
                 Else
                     visitor.Visit(DirectCast(Me, IParameterTypeInformation))

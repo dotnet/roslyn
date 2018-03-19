@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         End While
 
                         If node.IsStructuredTrivia Then
-                            Dim trivia = (DirectCast(node, StructuredTriviaSyntax)).ParentTrivia
+                            Dim trivia = DirectCast(node, StructuredTriviaSyntax).ParentTrivia
                             Dim triviaIndex = GetTriviaIndex(trivia)
                             path.Add(triviaIndex)
                             Dim tokenIndex = GetChildIndex(trivia.Token)

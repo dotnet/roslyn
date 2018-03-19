@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var spans = newTree.GetChangedSpans(oldTree);
             Assert.NotNull(spans);
             Assert.Equal(1, spans.Count);
-            var decl = (TypeDeclarationSyntax)(newTree.GetCompilationUnitRoot()).Members[0];
+            var decl = (TypeDeclarationSyntax)newTree.GetCompilationUnitRoot().Members[0];
             Assert.Equal(decl.Identifier.Span, spans[0]);
 
             var changes = newTree.GetChanges(oldTree);
@@ -60,9 +60,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var spans = newTree.GetChangedSpans(oldTree);
             Assert.NotNull(spans);
             Assert.Equal(2, spans.Count);
-            var decl1 = (TypeDeclarationSyntax)(newTree.GetCompilationUnitRoot()).Members[0];
+            var decl1 = (TypeDeclarationSyntax)newTree.GetCompilationUnitRoot().Members[0];
             Assert.Equal(decl1.Identifier.Span, spans[0]);
-            var decl2 = (TypeDeclarationSyntax)(newTree.GetCompilationUnitRoot()).Members[1];
+            var decl2 = (TypeDeclarationSyntax)newTree.GetCompilationUnitRoot().Members[1];
             Assert.Equal(decl2.Identifier.Span, spans[1]);
 
             var changes = newTree.GetChanges(oldTree);

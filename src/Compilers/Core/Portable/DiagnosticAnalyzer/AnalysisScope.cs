@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             // Skip syntax actions for implicitly declared symbols, except for implicitly declared global namespace symbols.
             return symbol.IsImplicitlyDeclared &&
-                !((symbol.Kind == SymbolKind.Namespace && ((INamespaceSymbol)symbol).IsGlobalNamespace));
+                !(symbol.Kind == SymbolKind.Namespace && ((INamespaceSymbol)symbol).IsGlobalNamespace);
         }
 
         public bool ShouldAnalyze(SyntaxTree tree)

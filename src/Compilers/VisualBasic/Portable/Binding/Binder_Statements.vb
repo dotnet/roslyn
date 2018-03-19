@@ -1644,7 +1644,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If DirectCast(defaultType, ArrayTypeSymbol).Rank <> DirectCast(valueType, ArrayTypeSymbol).Rank Then
                     Dim arrayLiteral = TryCast(valueExpression, BoundArrayLiteral)
                     ' Arrays on both sides but ranks are not the same.  This is an error unless rhs is an empty literal.
-                    If (arrayLiteral Is Nothing OrElse Not arrayLiteral.IsEmptyArrayLiteral) Then
+                    If arrayLiteral Is Nothing OrElse Not arrayLiteral.IsEmptyArrayLiteral Then
                         ReportDiagnostic(diagnostics, name, ERRID.ERR_TypeInferenceArrayRankMismatch1, name.Identifier.ToString())
                     End If
 
@@ -2084,7 +2084,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(op2 IsNot Nothing)
 
             Dim expr As BoundAssignmentOperator
-            If (op1.HasErrors OrElse op2.HasErrors) Then
+            If op1.HasErrors OrElse op2.HasErrors Then
                 If Not op1.HasErrors AndAlso node.Kind = SyntaxKind.SimpleAssignmentStatement Then
                     expr = New BoundAssignmentOperator(node, op1,
                                                        ApplyImplicitConversion(node.Right, op1.Type, op2, diagnostics, False),
@@ -2773,7 +2773,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim topConditionSyntax = node.DoStatement.WhileOrUntilClause
             If topConditionSyntax IsNot Nothing Then
                 topCondition = BindBooleanExpression(topConditionSyntax.Condition, diagnostics)
-                isTopUntil = (topConditionSyntax.Kind = SyntaxKind.UntilClause)
+                isTopUntil = topConditionSyntax.Kind = SyntaxKind.UntilClause
             End If
 
             ' Get the binder for the body of the loop. This defines the break and continue labels.
@@ -2786,7 +2786,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim bottomConditionSyntax = node.LoopStatement.WhileOrUntilClause
             If bottomConditionSyntax IsNot Nothing Then
                 bottomCondition = BindBooleanExpression(bottomConditionSyntax.Condition, diagnostics)
-                isBottomUntil = (bottomConditionSyntax.Kind = SyntaxKind.UntilClause)
+                isBottomUntil = bottomConditionSyntax.Kind = SyntaxKind.UntilClause
             End If
 
             ' Create the bound node.
@@ -3026,7 +3026,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' each next variable will be bound with the responsible binder for this for loop
                         Do
                             currentBinder = currentBinder.ContainingBinder
-                        Loop While currentBinder IsNot Nothing AndAlso Not (TypeOf (currentBinder) Is StatementListBinder)
+                        Loop While currentBinder IsNot Nothing AndAlso Not (TypeOf currentBinder Is StatementListBinder)
 
                         If currentBinder IsNot Nothing Then
                             currentBinder = currentBinder.ContainingBinder
@@ -3226,7 +3226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert(opCode = BinaryOperatorKind.Add OrElse opCode = BinaryOperatorKind.Subtract OrElse opCode = BinaryOperatorKind.LessThanOrEqual OrElse opCode = BinaryOperatorKind.GreaterThanOrEqual)
 
-            Dim isRelational As Boolean = (opCode = BinaryOperatorKind.LessThanOrEqual OrElse opCode = BinaryOperatorKind.GreaterThanOrEqual)
+            Dim isRelational As Boolean = opCode = BinaryOperatorKind.LessThanOrEqual OrElse opCode = BinaryOperatorKind.GreaterThanOrEqual
 
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
             Dim userDefinedOperator As OverloadResolution.OverloadResolutionResult = OverloadResolution.ResolveUserDefinedBinaryOperator(left, right, opCode, Me, includeEliminatedCandidates:=False,
@@ -3461,7 +3461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' will be used in code: "If e IsNot Nothing Then"
                 If isOrInheritsFromOrImplementsIDisposable Then
 
-                    If Not (enumeratorType.IsValueType) Then
+                    If Not enumeratorType.IsValueType Then
                         boundDisposeCondition = BindIsExpression(boundEnumeratorPlaceholder,
                                                                  New BoundLiteral(collectionSyntax, ConstantValue.Nothing, Nothing),
                                                                  collectionSyntax, True, diagnostics)

@@ -14,9 +14,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim nameEqualsOpt As VariableNameEqualsSyntax = Nothing
 
-            If ((CurrentToken.Kind = SyntaxKind.IdentifierToken OrElse CurrentToken.IsKeyword()) AndAlso
+            If (CurrentToken.Kind = SyntaxKind.IdentifierToken OrElse CurrentToken.IsKeyword()) AndAlso
                 PeekToken(1).Kind = SyntaxKind.EqualsToken OrElse
-                (PeekToken(1).Kind = SyntaxKind.QuestionToken AndAlso PeekToken(2).Kind = SyntaxKind.EqualsToken)) Then
+                (PeekToken(1).Kind = SyntaxKind.QuestionToken AndAlso PeekToken(2).Kind = SyntaxKind.EqualsToken) Then
 
                 Dim varName As ModifiedIdentifierSyntax = Nothing
                 Dim Equals As PunctuationSyntax = Nothing
@@ -171,10 +171,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim varName As ModifiedIdentifierSyntax = Nothing
             Dim Equals As PunctuationSyntax = Nothing
-            If ((CurrentToken.Kind = SyntaxKind.IdentifierToken OrElse CurrentToken.IsKeyword()) AndAlso
+            If (CurrentToken.Kind = SyntaxKind.IdentifierToken OrElse CurrentToken.IsKeyword()) AndAlso
                 PeekToken(1).Kind = SyntaxKind.EqualsToken _
                  OrElse
-                (PeekToken(1).Kind = SyntaxKind.QuestionToken AndAlso PeekToken(2).Kind = SyntaxKind.EqualsToken)) Then
+                (PeekToken(1).Kind = SyntaxKind.QuestionToken AndAlso PeekToken(2).Kind = SyntaxKind.EqualsToken) Then
 
                 ' // Parse form: <IdentifierOrKeyword> '=' <Expression>
                 varName = ParseSimpleIdentifierAsModifiedIdentifier()
@@ -298,7 +298,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword, SyntaxKind.IntoKeyword,
                         SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
 
-                    Select Case (peek)
+                    Select Case peek
                         Case SyntaxKind.AsKeyword,
                             SyntaxKind.InKeyword,
                             SyntaxKind.CommaToken
@@ -342,7 +342,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                                 SyntaxKind.SelectKeyword, SyntaxKind.OrderKeyword, SyntaxKind.JoinKeyword,
                                                 SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword, SyntaxKind.IntoKeyword,
                                                 SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
-                        Select Case (peek)
+                        Select Case peek
                             Case SyntaxKind.AsKeyword,
                                 SyntaxKind.InKeyword,
                                 SyntaxKind.CommaToken
@@ -419,7 +419,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                             SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword, SyntaxKind.IntoKeyword,
                                             SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
 
-                    Select Case (peek)
+                    Select Case peek
                         Case SyntaxKind.AsKeyword,
                             SyntaxKind.InKeyword,
                             SyntaxKind.CommaToken
@@ -464,7 +464,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                                 SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword, SyntaxKind.IntoKeyword,
                                                 SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
 
-                        Select Case (peek)
+                        Select Case peek
                             Case SyntaxKind.AsKeyword,
                                 SyntaxKind.InKeyword,
                                 SyntaxKind.CommaToken
@@ -770,7 +770,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                         SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword, SyntaxKind.IntoKeyword,
                                         SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
 
-                Select Case (peek)
+                Select Case peek
                     Case SyntaxKind.AsKeyword,
                         SyntaxKind.InKeyword,
                         SyntaxKind.GroupKeyword,
@@ -810,7 +810,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                                             SyntaxKind.DistinctKeyword, SyntaxKind.AggregateKeyword, SyntaxKind.IntoKeyword,
                                             SyntaxKind.SkipKeyword, SyntaxKind.TakeKeyword, SyntaxKind.LetKeyword)
 
-                    Select Case (peek)
+                    Select Case peek
                         Case SyntaxKind.EqualsToken,
                             SyntaxKind.InKeyword,
                             SyntaxKind.GroupKeyword,

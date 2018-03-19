@@ -200,7 +200,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert((opKind And BinaryOperatorKind.Lifted) = 0)
 
-            Select Case (opKind And BinaryOperatorKind.OpMask)
+            Select Case opKind And BinaryOperatorKind.OpMask
                 Case BinaryOperatorKind.Is, BinaryOperatorKind.IsNot
                     node = node.Update(node.OperatorKind,
                                        ReplaceMyGroupCollectionPropertyGetWithUnderlyingField(node.Left),
@@ -671,7 +671,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         Nothing,
                                         memberSymbol.ReturnType)
 
-                result = New BoundBinaryOperator(node.Syntax, (node.OperatorKind And BinaryOperatorKind.OpMask),
+                result = New BoundBinaryOperator(node.Syntax, node.OperatorKind And BinaryOperatorKind.OpMask,
                                                  compare, New BoundLiteral(node.Syntax, ConstantValue.Create(0I), memberSymbol.ReturnType),
                                                  False, node.Type)
             End If
@@ -801,7 +801,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' non-trivial cases rewrite differently when operands are boolean
             If node.Left.Type.IsNullableOfBoolean Then
-                Select Case (node.OperatorKind And BinaryOperatorKind.OpMask)
+                Select Case node.OperatorKind And BinaryOperatorKind.OpMask
                     'boolean context makes no difference for Xor.
                     Case BinaryOperatorKind.And,
                         BinaryOperatorKind.Or,
@@ -1007,7 +1007,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Additionally we observe if HasValue is known statically or capturing may not be needed
             ' so some of the Ifs may be folded
 
-            Dim IsShortCircuited = (op = BinaryOperatorKind.AndAlso Or op = BinaryOperatorKind.OrElse)
+            Dim IsShortCircuited = op = BinaryOperatorKind.AndAlso Or op = BinaryOperatorKind.OrElse
 
             Dim leftTemp As SynthesizedLocal = Nothing
             Dim leftInit As BoundExpression = Nothing
@@ -1245,12 +1245,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim rightHasNoValue As Boolean = HasNoValue(right)
 
             ' TWO NULLS
-            If (leftHasNoValue And rightHasNoValue) Then
+            If leftHasNoValue And rightHasNoValue Then
                 Return whenHasNoValue
             End If
 
             ' ONE NULL
-            If (leftHasNoValue Or rightHasNoValue) Then
+            If leftHasNoValue Or rightHasNoValue Then
                 Return MakeSequence(If(leftHasNoValue, right, left), whenHasNoValue)
             End If
 

@@ -86,7 +86,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(node.Operand.Type.IsObjectType() AndAlso node.Type.IsObjectType())
 
             Dim result As BoundExpression = node
-            Dim opKind = (node.OperatorKind And UnaryOperatorKind.IntrinsicOpMask)
+            Dim opKind = node.OperatorKind And UnaryOperatorKind.IntrinsicOpMask
 
             Dim member As WellKnownMember
 
@@ -114,7 +114,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Debug.Assert(node.Operand.Type.IsDecimalType() AndAlso node.Type.IsDecimalType())
 
             Dim result As BoundExpression = node
-            Dim opKind = (node.OperatorKind And UnaryOperatorKind.IntrinsicOpMask)
+            Dim opKind = node.OperatorKind And UnaryOperatorKind.IntrinsicOpMask
 
             If opKind = UnaryOperatorKind.Plus Then
                 result = node.Operand

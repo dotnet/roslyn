@@ -138,11 +138,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case SyntaxKind.IdentifierName, SyntaxKind.GenericName
                             Select Case parent.Kind
                                 Case SyntaxKind.QualifiedName
-                                    If (DirectCast(parent, QualifiedNameSyntax)).Right Is node Then
+                                    If DirectCast(parent, QualifiedNameSyntax).Right Is node Then
                                         Return parent
                                     End If
                                 Case SyntaxKind.SimpleMemberAccessExpression
-                                    If (DirectCast(parent, MemberAccessExpressionSyntax)).Name Is node Then
+                                    If DirectCast(parent, MemberAccessExpressionSyntax).Name Is node Then
                                         Return parent
                                     End If
                             End Select
@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Case SyntaxKind.XmlBracketedName
                             Select Case parent.Kind
                                 Case SyntaxKind.XmlElementAccessExpression, SyntaxKind.XmlAttributeAccessExpression, SyntaxKind.XmlDescendantAccessExpression
-                                    If (DirectCast(parent, XmlMemberAccessExpressionSyntax)).Name Is node Then
+                                    If DirectCast(parent, XmlMemberAccessExpressionSyntax).Name Is node Then
                                         Return parent
                                     End If
                             End Select

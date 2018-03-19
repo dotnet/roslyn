@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Debug.Assert(attributesToBind.Length = binders.Length)
 
                 ' Initialize the bag so that data decoded from early attributes can be stored onto it.
-                If (lazyCustomAttributesBag Is Nothing) Then
+                If lazyCustomAttributesBag Is Nothing Then
                     Interlocked.CompareExchange(lazyCustomAttributesBag, New CustomAttributesBag(Of VisualBasicAttributeData)(), Nothing)
                 End If
 

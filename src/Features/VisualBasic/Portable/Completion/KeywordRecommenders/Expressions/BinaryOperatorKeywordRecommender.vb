@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             Dim identifierName = TryCast(token.Parent, IdentifierNameSyntax)
             If identifierName IsNot Nothing Then
                 Dim text = token.ToString()
-                If (SyntaxFacts.GetContextualKeywordKind(text) = SyntaxKind.FromKeyword OrElse SyntaxFacts.GetContextualKeywordKind(text) = SyntaxKind.AggregateKeyword) Then
+                If SyntaxFacts.GetContextualKeywordKind(text) = SyntaxKind.FromKeyword OrElse SyntaxFacts.GetContextualKeywordKind(text) = SyntaxKind.AggregateKeyword Then
                     Dim symbol = context.SemanticModel.GetSymbolInfo(identifierName).Symbol
                     If symbol Is Nothing Then
                         Return False

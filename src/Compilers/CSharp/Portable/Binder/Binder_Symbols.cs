@@ -938,7 +938,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             diagnostics.Add(node, useSiteDiagnostics);
 
             bool wasError;
-            Symbol lookupResultSymbol = ResultSymbol(lookupResult, plainName, arity, node, diagnostics, (basesBeingResolved != null), out wasError, qualifierOpt, options);
+            Symbol lookupResultSymbol = ResultSymbol(lookupResult, plainName, arity, node, diagnostics, basesBeingResolved != null, out wasError, qualifierOpt, options);
 
             // As we said in the method above, there are three cases here:
             //

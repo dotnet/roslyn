@@ -785,9 +785,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // IL requires catches and finally block to be distinct try
             // blocks so if the source contained both a catch and
             // a finally, nested scopes are emitted.
-            bool emitNestedScopes = (!emitCatchesOnly &&
+            bool emitNestedScopes = !emitCatchesOnly &&
                 (statement.CatchBlocks.Length > 0) &&
-                (statement.FinallyBlockOpt != null));
+                (statement.FinallyBlockOpt != null);
 
             _builder.OpenLocalScope(ScopeType.TryCatchFinally);
 

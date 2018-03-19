@@ -42,7 +42,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Debug.Assert(lmrType.IsArray)
 
             ' Strip off additional array types (jagged arrays).  We'll only show the size of the "first" array.
-            While (lmrType.IsArray)
+            While lmrType.IsArray
                 lmrType = lmrType.GetElementType()
             End While
 

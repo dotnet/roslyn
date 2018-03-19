@@ -220,7 +220,7 @@ Public Class TestWriter
                     _writer.WriteLine("            Try")
 
                     For i = 0 To callTokens.Count - 1
-                        If (i <> anePositions(exceptionChecks)) Then
+                        If i <> anePositions(exceptionChecks) Then
                             _writer.Write(callTokens(i))
                         Else
                             _writer.Write("Nothing")
@@ -393,7 +393,7 @@ Public Class TestWriter
 
                     _writer.Write("            ")
                     For i = 0 To callTokens.Count - 1
-                        If (i <> anePositions(exceptionChecks)) Then
+                        If i <> anePositions(exceptionChecks) Then
                             _writer.Write(callTokens(i))
                         Else
                             _writer.Write("Nothing")
@@ -414,7 +414,7 @@ Public Class TestWriter
                     _writer.WriteLine("            Try")
                     _writer.Write("            ")
                     For i = 0 To callTokens.Count - 1
-                        If (i <> aePositions(exceptionChecks)) Then
+                        If i <> aePositions(exceptionChecks) Then
                             _writer.Write(callTokens(i))
                         Else
                             _writer.Write("SyntaxFactory.Token(SyntaxKind.ExternalSourceKeyword)") ' this syntaxtoken should not be legal anywhere in the tests
@@ -434,7 +434,7 @@ Public Class TestWriter
 
                     _writer.Write("            ")
                     For i = 0 To callTokens.Count - 1
-                        If (i <> KindNonePositions(exceptionChecks)) Then
+                        If i <> KindNonePositions(exceptionChecks) Then
                             _writer.Write(callTokens(i))
                         Else
                             _writer.Write("New SyntaxToken(Nothing, New InternalSyntax.KeywordSyntax(SyntaxKind.None, Nothing, Nothing, """", Nothing, Nothing), 0, 0)")
@@ -500,7 +500,7 @@ Public Class TestWriter
                 End If
                 withStat += String.Format(".With{0}(objectUnderTest.{0})", child.Name)
             Next
-            If (withStat IsNot Nothing) Then
+            If withStat IsNot Nothing Then
                 _writer.WriteLine("            Dim withObj = objectUnderTest{0}", withStat)
                 _writer.WriteLine("            Assert.Equal(withobj, objectUnderTest)")
             End If

@@ -243,12 +243,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim parameterList As ParameterListSyntax = singleLineLambda.SubOrFunctionHeader.ParameterList
 
                     If parameterList Is Nothing OrElse parameterList.CloseParenToken.IsMissing Then
-                        afterBegin = (position >= singleLineLambda.SubOrFunctionHeader.Span.End)
+                        afterBegin = position >= singleLineLambda.SubOrFunctionHeader.Span.End
                     Else
-                        afterBegin = (position >= parameterList.CloseParenToken.SpanStart)
+                        afterBegin = position >= parameterList.CloseParenToken.SpanStart
                     End If
 
-                    beforeEnd = (position <= singleLineLambda.Body.Span.End)
+                    beforeEnd = position <= singleLineLambda.Body.Span.End
 
                 Case SyntaxKind.MultiLineFunctionLambdaExpression,
                      SyntaxKind.MultiLineSubLambdaExpression
@@ -257,12 +257,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Dim parameterList As ParameterListSyntax = multiLineLambda.SubOrFunctionHeader.ParameterList
 
                     If parameterList Is Nothing OrElse parameterList.CloseParenToken.IsMissing Then
-                        afterBegin = (position >= multiLineLambda.SubOrFunctionHeader.Span.End)
+                        afterBegin = position >= multiLineLambda.SubOrFunctionHeader.Span.End
                     Else
-                        afterBegin = (position >= parameterList.CloseParenToken.SpanStart)
+                        afterBegin = position >= parameterList.CloseParenToken.SpanStart
                     End If
 
-                    beforeEnd = (position < multiLineLambda.EndSubOrFunctionStatement.SpanStart)
+                    beforeEnd = position < multiLineLambda.EndSubOrFunctionStatement.SpanStart
 
                 Case Else
                     Return False

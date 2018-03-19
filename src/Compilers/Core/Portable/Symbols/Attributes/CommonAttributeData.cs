@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis
                 // DeprecatedAttribute(String, DeprecationType, UInt32, String) 
 
                 message = (string)args[0].Value;
-                isError = ((int)args[1].Value == 1);
+                isError = (int)args[1].Value == 1;
             }
 
             return new ObsoleteAttributeData(ObsoleteAttributeKind.Deprecated, message, isError);

@@ -567,7 +567,7 @@ End Module
 </compilation>)
 
             Dim d As Decimal = 0
-            If (Decimal.TryParse("0E1", Globalization.NumberStyles.AllowExponent, Nothing, d)) Then
+            If Decimal.TryParse("0E1", Globalization.NumberStyles.AllowExponent, Nothing, d) Then
                 compilation.AssertNoErrors()
             Else
                 compilation.AssertTheseDiagnostics(<errors><![CDATA[
@@ -753,7 +753,7 @@ End Module
 
 
             Dim d As Decimal = 0
-            If (Decimal.TryParse("0E1", Globalization.NumberStyles.AllowExponent, Nothing, d)) Then
+            If Decimal.TryParse("0E1", Globalization.NumberStyles.AllowExponent, Nothing, d) Then
                 compilation.AssertNoErrors
             Else
                 compilation.AssertTheseDiagnostics(<errors><![CDATA[

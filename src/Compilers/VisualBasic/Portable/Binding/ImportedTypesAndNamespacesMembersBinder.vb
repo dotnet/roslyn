@@ -74,8 +74,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Debug.Assert(lookupResult.Symbols.Count > 0)  ' How can it stop lookup otherwise?
                             Debug.Assert(currentResult.Symbols.Count > 0) ' How can it stop lookup  otherwise?
 
-                            Dim lookupResultIsNamespace As Boolean = (lookupResult.Symbols(0).Kind = SymbolKind.Namespace)
-                            Dim currentResultIsNamespace As Boolean = (currentResult.Symbols(0).Kind = SymbolKind.Namespace)
+                            Dim lookupResultIsNamespace As Boolean = lookupResult.Symbols(0).Kind = SymbolKind.Namespace
+                            Dim currentResultIsNamespace As Boolean = currentResult.Symbols(0).Kind = SymbolKind.Namespace
 
                             ' Non-namespace wins over a namespace
                             If lookupResultIsNamespace AndAlso (Not currentResultIsNamespace) Then

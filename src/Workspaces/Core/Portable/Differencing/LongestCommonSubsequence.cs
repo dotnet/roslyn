@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                 int xEnd = yEnd + k;
 
                 // does the snake first go down (insert) or right(delete)?
-                bool right = (k == d || (k != -d && currentV[k - 1] > currentV[k + 1]));
+                bool right = k == d || (k != -d && currentV[k - 1] > currentV[k + 1]);
                 int kPrev = right ? k - 1 : k + 1;
 
                 // snake start point
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                 int xEnd = yEnd + k;
 
                 // does the snake first go down (insert) or right(delete)?
-                bool right = (k == d || (k != -d && currentV[k - 1] > currentV[k + 1]));
+                bool right = k == d || (k != -d && currentV[k - 1] > currentV[k + 1]);
                 int kPrev = right ? k - 1 : k + 1;
 
                 // snake start point
@@ -259,7 +259,7 @@ namespace Microsoft.CodeAnalysis.Differencing
                 for (int k = -d; k <= d; k += 2)
                 {
                     // down or right? 
-                    bool right = (k == d || (k != -d && currentV[k - 1] > currentV[k + 1]));
+                    bool right = k == d || (k != -d && currentV[k - 1] > currentV[k + 1]);
                     int kPrev = right ? k - 1 : k + 1;
 
                     // start point

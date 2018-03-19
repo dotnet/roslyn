@@ -3987,7 +3987,7 @@ End Module
             Assert.Empty(dataFlowResults.AlwaysAssigned)
             Assert.Empty(dataFlowResults.Captured)
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.DataFlowsIn))
-            Assert.Empty((dataFlowResults.DataFlowsOut))
+            Assert.Empty(dataFlowResults.DataFlowsOut)
             Assert.Equal("x", GetSymbolNamesJoined(dataFlowResults.ReadInside))
             Assert.Empty(dataFlowResults.WrittenInside)
             Assert.Empty(dataFlowResults.ReadOutside)

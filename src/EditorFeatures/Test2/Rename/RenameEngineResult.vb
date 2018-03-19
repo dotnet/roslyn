@@ -196,7 +196,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                     newText = newToken.ToFullString().Substring(newLocation.Start - newToken.FullSpan.Start, newLocation.Length)
                 Else
                     Dim newNode = newToken.Parent
-                    While (newNode IsNot Nothing AndAlso newNode.Span <> newLocation)
+                    While newNode IsNot Nothing AndAlso newNode.Span <> newLocation
                         newNode = newNode.Parent
                     End While
 

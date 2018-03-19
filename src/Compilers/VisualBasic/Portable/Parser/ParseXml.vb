@@ -319,7 +319,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             While True
                 Dim result As XmlNodeSyntax = Nothing
 
-                Select Case (CurrentToken.Kind)
+                Select Case CurrentToken.Kind
 
                     Case SyntaxKind.BadToken
                         Dim badToken = DirectCast(CurrentToken, BadTokenSyntax)
@@ -519,7 +519,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim greaterThan As PunctuationSyntax = Nothing
             Dim endEmptyElementToken As PunctuationSyntax = Nothing
 
-            Select Case (CurrentToken.Kind)
+            Select Case CurrentToken.Kind
 
                 Case SyntaxKind.GreaterThanToken
                     ' Element with content
@@ -1518,7 +1518,7 @@ lFailed:
             stateForName As ScannerState,
             nextState As ScannerState
         ) As XmlNodeSyntax
-            Select Case (CurrentToken.Kind)
+            Select Case CurrentToken.Kind
 
                 Case SyntaxKind.XmlNameToken
                     Return ParseXmlQualifiedName(requireLeadingWhitespace, stateForName, nextState)
@@ -1744,7 +1744,7 @@ lFailed:
             Dim xml As XmlNodeSyntax
 
             Do
-                Select Case (CurrentToken.Kind)
+                Select Case CurrentToken.Kind
 
                     Case SyntaxKind.LessThanToken
                         xml = ParseXmlElement(ScannerState.Content)

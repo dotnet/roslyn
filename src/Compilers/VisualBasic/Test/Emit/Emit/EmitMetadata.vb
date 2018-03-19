@@ -106,14 +106,14 @@ End Class
 
         Friend Shared Function LoadChildNamespace(n As NamespaceSymbol) As Xml.Linq.XElement
 
-            Dim elem As Xml.Linq.XElement = New System.Xml.Linq.XElement((If(n.Name.Length = 0, "Global", n.Name)))
+            Dim elem As Xml.Linq.XElement = New System.Xml.Linq.XElement(If(n.Name.Length = 0, "Global", n.Name))
 
             Dim childrenTypes = n.GetTypeMembers().AsEnumerable().OrderBy(Function(t) t, New TypeComparer())
 
             elem.Add(From t In childrenTypes Select LoadChildType(t))
 
             Dim childrenNS = n.GetMembers().
-                               Select(Function(m) (TryCast(m, NamespaceSymbol))).
+                               Select(Function(m) TryCast(m, NamespaceSymbol)).
                                Where(Function(m) m IsNot Nothing).
                                OrderBy(Function(child) child.Name, StringComparer.OrdinalIgnoreCase)
 
@@ -503,7 +503,7 @@ End Class
                         Assert.Same(m5.TypeParameters(1), m5.Parameters(1).Type)
 
                         If Not isFromSource Then
-                            Dim peReader = (DirectCast([Module], PEModuleSymbol)).Module.GetMetadataReader()
+                            Dim peReader = DirectCast([Module], PEModuleSymbol).Module.GetMetadataReader()
 
                             Dim list = New List(Of String)()
                             For Each typeRef In peReader.TypeReferences

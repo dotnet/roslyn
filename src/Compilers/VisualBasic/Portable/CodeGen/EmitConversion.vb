@@ -94,7 +94,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 Select Case conversion.Operand.Kind
                     Case BoundKind.BinaryOperator
 
-                        Select Case (DirectCast(conversion.Operand, BoundBinaryOperator).OperatorKind And BinaryOperatorKind.OpMask)
+                        Select Case DirectCast(conversion.Operand, BoundBinaryOperator).OperatorKind And BinaryOperatorKind.OpMask
                             Case BinaryOperatorKind.Add,
                                  BinaryOperatorKind.Subtract,
                                  BinaryOperatorKind.Multiply,
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                         End Select
 
                     Case BoundKind.UnaryOperator
-                        Select Case (DirectCast(conversion.Operand, BoundUnaryOperator).OperatorKind And UnaryOperatorKind.IntrinsicOpMask)
+                        Select Case DirectCast(conversion.Operand, BoundUnaryOperator).OperatorKind And UnaryOperatorKind.IntrinsicOpMask
                             Case UnaryOperatorKind.Minus,
                                  UnaryOperatorKind.Plus
 

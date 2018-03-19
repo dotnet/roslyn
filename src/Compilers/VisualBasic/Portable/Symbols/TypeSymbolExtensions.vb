@@ -23,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         <Extension()>
         Public Function GetNullableUnderlyingType(type As TypeSymbol) As TypeSymbol
             Debug.Assert(type.IsNullableType)
-            Return (DirectCast(type, NamedTypeSymbol)).TypeArgumentsNoUseSiteDiagnostics(0)
+            Return DirectCast(type, NamedTypeSymbol).TypeArgumentsNoUseSiteDiagnostics(0)
         End Function
 
         <Extension()>
@@ -338,7 +338,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            Return (t1 = t2)
+            Return t1 = t2
         End Function
 
         Private Function HasSameTypeArgumentCustomModifiers(type1 As NamedTypeSymbol, type2 As NamedTypeSymbol) As Boolean
@@ -369,7 +369,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Function AreSameCustomModifiers([mod] As ImmutableArray(Of CustomModifier), otherMod As ImmutableArray(Of CustomModifier)) As Boolean
             Dim count As Integer = [mod].Length
 
-            If (count <> otherMod.Length) Then
+            If count <> otherMod.Length Then
                 Return False
             End If
 
@@ -752,7 +752,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Function IsOrDerivedFrom(derivedType As TypeSymbol, baseType As TypeSymbol, <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)) As Boolean
             Debug.Assert(Not baseType.IsInterfaceType()) ' Not checking interfaces below.
 
-            While (derivedType IsNot Nothing)
+            While derivedType IsNot Nothing
                 Select Case derivedType.TypeKind
                     Case TypeKind.Array
                         derivedType = derivedType.BaseTypeWithDefinitionUseSiteDiagnostics(useSiteDiagnostics)
@@ -909,7 +909,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return typeParameter IsNot Nothing
         End Function
 
-        Private ReadOnly s_isTypeParameterFunc As Func(Of TypeSymbol, Object, Boolean) = Function(type, arg) (type.TypeKind = TypeKind.TypeParameter)
+        Private ReadOnly s_isTypeParameterFunc As Func(Of TypeSymbol, Object, Boolean) = Function(type, arg) type.TypeKind = TypeKind.TypeParameter
 
         ''' <summary>
         ''' Return true if the type contains any tuples.
@@ -1220,7 +1220,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return DirectCast(type, NamedTypeSymbol)
             Else
                 Dim expressionArg = ExpressionTargetDelegate(type, binder.Compilation)
-                wasExpression = (expressionArg IsNot Nothing)
+                wasExpression = expressionArg IsNot Nothing
                 Return expressionArg
             End If
         End Function

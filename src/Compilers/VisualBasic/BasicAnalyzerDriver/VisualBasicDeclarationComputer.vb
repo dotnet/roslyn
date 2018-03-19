@@ -48,8 +48,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Dim name = ns.NamespaceStatement.Name
                     Dim nsSymbol = declInfo.DeclaredSymbol
-                    While (name.Kind() = SyntaxKind.QualifiedName)
-                        name = (DirectCast(name, QualifiedNameSyntax)).Left
+                    While name.Kind() = SyntaxKind.QualifiedName
+                        name = DirectCast(name, QualifiedNameSyntax).Left
                         Dim declaredSymbol = If(getSymbol, nsSymbol?.ContainingNamespace, Nothing)
                         builder.Add(New DeclarationInfo(name, ImmutableArray(Of SyntaxNode).Empty, declaredSymbol))
                         nsSymbol = declaredSymbol

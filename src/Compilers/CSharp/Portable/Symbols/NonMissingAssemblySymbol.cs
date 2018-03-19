@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
 
-                bool foundMatchInThisAssembly = (i < count);
+                bool foundMatchInThisAssembly = i < count;
 
                 Debug.Assert(!foundMatchInThisAssembly || (object)result.ContainingAssembly == (object)this);
 

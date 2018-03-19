@@ -96,7 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Formatting
             Optional experimental As Boolean = False) As Task
 
             Dim parseOptions = New VisualBasicParseOptions()
-            If (experimental) Then
+            If experimental Then
                 ' There are no experimental features at this time.
                 ' parseOptions = parseOptions.WithExperimentalFeatures
             End If

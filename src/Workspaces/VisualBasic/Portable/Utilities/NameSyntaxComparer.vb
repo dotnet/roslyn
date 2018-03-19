@@ -61,14 +61,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 Return Compare(DirectCast(x, GenericNameSyntax), DirectCast(y, GenericNameSyntax))
             ElseIf TypeOf x Is IdentifierNameSyntax AndAlso TypeOf y Is GenericNameSyntax Then
                 Dim value = _tokenComparer.Compare(x.GetFirstToken(), y.GetFirstToken())
-                If (value <> 0) Then
+                If value <> 0 Then
                     Return value
                 End If
                 ' Goo goes before Goo(of T)
                 Return -1
             ElseIf TypeOf x Is GenericNameSyntax AndAlso TypeOf y Is IdentifierNameSyntax Then
                 Dim value = _tokenComparer.Compare(x.GetFirstToken(), y.GetFirstToken())
-                If (value <> 0) Then
+                If value <> 0 Then
                     Return value
                 End If
                 ' Goo(of T) goes after Goo
@@ -84,7 +84,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
             For i = 0 To Math.Min(xNameParts.Count, yNameParts.Count) - 1
                 Dim value = Compare(xNameParts(i), yNameParts(i))
-                If (value <> 0) Then
+                If value <> 0 Then
                     Return value
                 End If
             Next
@@ -118,13 +118,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
 
         Private Function Compare(x As GenericNameSyntax, y As GenericNameSyntax) As Integer
             Dim value = Compare(SyntaxFactory.IdentifierName(x.Identifier), SyntaxFactory.IdentifierName(y.Identifier))
-            If (value <> 0) Then
+            If value <> 0 Then
                 Return value
             End If
 
             ' The one with less type params comes first.
             value = x.TypeArgumentList.Arguments.Count - y.TypeArgumentList.Arguments.Count
-            If (value <> 0) Then
+            If value <> 0 Then
                 Return value
             End If
 
@@ -134,7 +134,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
                 Dim yArg = y.TypeArgumentList.Arguments(i)
 
                 value = typeComparer.Compare(xArg, yArg)
-                If (value <> 0) Then
+                If value <> 0 Then
                     Return value
                 End If
             Next

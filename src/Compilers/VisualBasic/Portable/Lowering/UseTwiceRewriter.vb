@@ -144,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             referToTemp = New BoundLocal(value.Syntax, temp, type)
             referToTemp.SetWasCompilerGenerated()
-            Dim capture = (New BoundAssignmentOperator(value.Syntax, referToTemp, value, suppressObjectClone:=True, type:=type)).MakeCompilerGenerated()
+            Dim capture = New BoundAssignmentOperator(value.Syntax, referToTemp, value, suppressObjectClone:=True, type:=type).MakeCompilerGenerated()
 
             ' Make sure we will not try to write to this local or pass it ByRef.
             referToTemp = referToTemp.MakeRValue()

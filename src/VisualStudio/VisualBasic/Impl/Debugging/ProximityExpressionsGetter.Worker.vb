@@ -55,7 +55,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Debugging
                 If previousStatement IsNot Nothing Then
                     ' Note: FieldDeclaration statements are interesting as the current statement, 
                     ' but not as the preceding statement (as in dev12).
-                    Select Case (previousStatement.Kind)
+                    Select Case previousStatement.Kind
                         Case SyntaxKind.LocalDeclarationStatement,
                              SyntaxKind.CallStatement,
                              SyntaxKind.ExpressionStatement,

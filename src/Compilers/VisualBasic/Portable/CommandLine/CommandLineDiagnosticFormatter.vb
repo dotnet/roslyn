@@ -69,14 +69,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 line = text.Lines(linenumber)
             End If
 
-            While (line.Start < sourceSpanEnd)
+            While line.Start < sourceSpanEnd
                 ' Builds the original text line
                 sb.AppendLine()
                 sb.AppendLine(line.ToString().Replace(vbTab, "    ")) ' normalize tabs with 4 spaces
 
                 ' Builds leading spaces up to the error span
                 For position = Math.Min(sourceSpanStart, line.Start) To Math.Min(line.End, sourceSpanStart) - 1
-                    If (text(position) = vbTab) Then
+                    If text(position) = vbTab Then
                         ' normalize tabs with 4 spaces
                         sb.Append(" "c, 4)
                     Else
@@ -89,7 +89,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     sb.Append("~")
                 Else
                     For position = Math.Max(sourceSpanStart, line.Start) To Math.Min(If(sourceSpanEnd = sourceSpanStart, sourceSpanEnd, sourceSpanEnd - 1), line.End - 1)
-                        If (text(position) = vbTab) Then
+                        If text(position) = vbTab Then
                             ' normalize tabs with 4 spaces
                             sb.Append("~"c, 4)
                         Else
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 ' Builds trailing spaces up to the end of this line
                 For position = Math.Min(sourceSpanEnd, line.End) To line.End - 1
-                    If (text(position) = vbTab) Then
+                    If text(position) = vbTab Then
                         ' normalize tabs with 4 spaces
                         sb.Append(" "c, 4)
                     Else

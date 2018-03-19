@@ -373,7 +373,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             const int CSharp = 1;
             const int VisualBasic = 2;
             var language = actual.Any() && actual.First().Id.StartsWith("CS", StringComparison.Ordinal) ? CSharp : VisualBasic;
-            var includeDiagnosticMessagesAsComments = (language == CSharp);
+            var includeDiagnosticMessagesAsComments = language == CSharp;
             int indentDepth = (language == CSharp) ? 4 : 1;
 
             StringBuilder assertText = new StringBuilder();

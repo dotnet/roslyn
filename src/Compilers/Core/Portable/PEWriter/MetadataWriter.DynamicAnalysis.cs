@@ -215,7 +215,7 @@ namespace Microsoft.Cci
                 _documentTable.Add(new DocumentRow
                 {
                     Name = SerializeDocumentName(document.Location),
-                    HashAlgorithm = (sourceInfo.Checksum.IsDefault ? default(GuidHandle) : GetOrAddGuid(sourceInfo.ChecksumAlgorithmId)),
+                    HashAlgorithm = sourceInfo.Checksum.IsDefault ? default(GuidHandle) : GetOrAddGuid(sourceInfo.ChecksumAlgorithmId),
                     Hash = (sourceInfo.Checksum.IsDefault) ? default(BlobHandle) : GetOrAddBlob(sourceInfo.Checksum)
                 });
             }
@@ -343,9 +343,9 @@ namespace Microsoft.Cci
         {
             foreach (var row in _documentTable)
             {
-                writer.WriteReference(MetadataTokens.GetHeapOffset(row.Name), isSmall: (sizes.BlobIndexSize == 2));
-                writer.WriteReference(MetadataTokens.GetHeapOffset(row.HashAlgorithm), isSmall: (sizes.GuidIndexSize == 2));
-                writer.WriteReference(MetadataTokens.GetHeapOffset(row.Hash), isSmall: (sizes.BlobIndexSize == 2));
+                writer.WriteReference(MetadataTokens.GetHeapOffset(row.Name), isSmall: sizes.BlobIndexSize == 2);
+                writer.WriteReference(MetadataTokens.GetHeapOffset(row.HashAlgorithm), isSmall: sizes.GuidIndexSize == 2);
+                writer.WriteReference(MetadataTokens.GetHeapOffset(row.Hash), isSmall: sizes.BlobIndexSize == 2);
             }
         }
 
@@ -353,7 +353,7 @@ namespace Microsoft.Cci
         {
             foreach (var row in _methodTable)
             {
-                writer.WriteReference(MetadataTokens.GetHeapOffset(row.Spans), isSmall: (sizes.BlobIndexSize == 2));
+                writer.WriteReference(MetadataTokens.GetHeapOffset(row.Spans), isSmall: sizes.BlobIndexSize == 2);
             }
         }
 

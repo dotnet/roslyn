@@ -188,7 +188,7 @@ FixedRankArray_19 = New Short() (1,
             ]]>)
 
         Dim d As Decimal = 0
-        If (Decimal.TryParse("0E1", Globalization.NumberStyles.AllowExponent, Nothing, d)) Then
+        If Decimal.TryParse("0E1", Globalization.NumberStyles.AllowExponent, Nothing, d) Then
             ParseAndVerify(<![CDATA[
     Module M
         Sub Main()

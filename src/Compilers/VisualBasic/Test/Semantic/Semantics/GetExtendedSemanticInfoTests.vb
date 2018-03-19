@@ -9842,7 +9842,7 @@ end class
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
             Assert.Equal(0, semanticInfo.MemberGroup.Length)
             Assert.[False](semanticInfo.ConstantValue.HasValue)
-            Assert.[False](SyntaxFacts.IsAttributeName((DirectCast(semanticInfo.Symbol, SourceNamedTypeSymbol)).SyntaxReferences.First().GetSyntax()), "IsAttributeName can be true only for alias name being qualified")
+            Assert.[False](SyntaxFacts.IsAttributeName(DirectCast(semanticInfo.Symbol, SourceNamedTypeSymbol).SyntaxReferences.First().GetSyntax()), "IsAttributeName can be true only for alias name being qualified")
         End Sub
 
         <Fact()>
@@ -9882,7 +9882,7 @@ end class
             Assert.Equal(0, semanticInfo.CandidateSymbols.Length)
             Assert.Equal(0, semanticInfo.MemberGroup.Length)
             Assert.[False](semanticInfo.ConstantValue.HasValue)
-            Assert.[False](SyntaxFacts.IsAttributeName((DirectCast(semanticInfo.Symbol, SourceNamedTypeSymbol)).SyntaxReferences.First().GetSyntax()), "IsAttributeName can be true only for alias name being qualified")
+            Assert.[False](SyntaxFacts.IsAttributeName(DirectCast(semanticInfo.Symbol, SourceNamedTypeSymbol).SyntaxReferences.First().GetSyntax()), "IsAttributeName can be true only for alias name being qualified")
         End Sub
 
 

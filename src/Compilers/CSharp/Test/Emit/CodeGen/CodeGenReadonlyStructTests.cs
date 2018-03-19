@@ -1243,7 +1243,7 @@ class Test
   IL_0015:  ret
 }";
 
-            var isx86 = (IntPtr.Size == 4);
+            var isx86 = IntPtr.Size == 4;
             if (isx86)
             {
                 CompileAndVerify(comp, expectedOutput: "overflow", verify: Verification.Fails).VerifyIL("Test.M", expectedIL);

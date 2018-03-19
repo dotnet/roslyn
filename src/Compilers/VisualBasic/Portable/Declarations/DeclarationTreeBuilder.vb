@@ -466,7 +466,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes,
                             SingleTypeDeclaration.TypeDeclarationFlags.None)
 
-                If (typeBlockSyntax.Inherits.Any) Then
+                If typeBlockSyntax.Inherits.Any Then
                     declFlags = declFlags Or SingleTypeDeclaration.TypeDeclarationFlags.HasBaseDeclarations
                 End If
 
@@ -515,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 SingleTypeDeclaration.TypeDeclarationFlags.HasAnyAttributes,
                 SingleTypeDeclaration.TypeDeclarationFlags.None)
 
-            If (declarationSyntax.UnderlyingType IsNot Nothing) Then
+            If declarationSyntax.UnderlyingType IsNot Nothing Then
                 declFlags = declFlags Or SingleTypeDeclaration.TypeDeclarationFlags.HasBaseDeclarations
             End If
 
@@ -631,11 +631,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End Select
             Next
 
-            If (anyMemberHasAttributes) Then
+            If anyMemberHasAttributes Then
                 declFlags = declFlags Or SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasAttributes
             End If
 
-            If (anyNonTypeMembers) Then
+            If anyNonTypeMembers Then
                 declFlags = declFlags Or SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers
             End If
 
@@ -656,7 +656,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function GetMemberNames(enumBlockSyntax As EnumBlockSyntax, ByRef declFlags As SingleTypeDeclaration.TypeDeclarationFlags) As String()
             Dim members = enumBlockSyntax.Members
 
-            If (members.Count <> 0) Then
+            If members.Count <> 0 Then
                 declFlags = declFlags Or SingleTypeDeclaration.TypeDeclarationFlags.HasAnyNontypeMembers
             End If
 
@@ -675,7 +675,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             Next
 
-            If (anyMemberHasAttributes) Then
+            If anyMemberHasAttributes Then
                 declFlags = declFlags Or SingleTypeDeclaration.TypeDeclarationFlags.AnyMemberHasAttributes
             End If
 

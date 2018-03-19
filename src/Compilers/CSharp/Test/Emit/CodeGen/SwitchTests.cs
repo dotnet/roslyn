@@ -3129,7 +3129,7 @@ class Test
             var reference = compVerifier.Compilation.EmitToImageReference();
             var comp = CSharpCompilation.Create("Name", references: new[] { reference }, options: TestOptions.ReleaseDll.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
-            var pid = ((NamedTypeSymbol)comp.GlobalNamespace.GetMembers().Single(s => s.Name.StartsWith("<PrivateImplementationDetails>", StringComparison.Ordinal)));
+            var pid = (NamedTypeSymbol)comp.GlobalNamespace.GetMembers().Single(s => s.Name.StartsWith("<PrivateImplementationDetails>", StringComparison.Ordinal));
             var member = pid.GetMembers(PrivateImplementationDetails.SynthesizedStringHashFunctionName).Single();
             Assert.Equal(Accessibility.Internal, member.DeclaredAccessibility);
         }

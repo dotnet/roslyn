@@ -1609,7 +1609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(result == r);
                     Debug.Assert(result == BetterResult.Left || result == BetterResult.Right);
 
-                    okToDowngradeResultToNeither = (okToDowngradeResultToNeither && okToDowngradeToNeither);
+                    okToDowngradeResultToNeither = okToDowngradeResultToNeither && okToDowngradeToNeither;
                 }
             }
 

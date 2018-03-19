@@ -50,13 +50,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal("Sub TC10.M1()", M1.ToTestDisplayString())
             Assert.True(M1.IsSub)
-            Assert.Equal(Accessibility.Public, (M1.DeclaredAccessibility))
+            Assert.Equal(Accessibility.Public, M1.DeclaredAccessibility)
             Assert.Same(module2, M1.Locations.Single().MetadataModule)
             Assert.False(M1.IsRuntimeImplemented()) ' test false case for PEMethodSymbols, true is covered in delegate tests
 
             Assert.Equal("Sub TC10.M2(m1_1 As System.Int32)", M2.ToTestDisplayString())
             Assert.True(M2.IsSub)
-            Assert.Equal(Accessibility.Protected, (M2.DeclaredAccessibility))
+            Assert.Equal(Accessibility.Protected, M2.DeclaredAccessibility)
             Assert.False(M2.IsRuntimeImplemented())
 
             Dim m1_1 = M2.Parameters(0)
@@ -73,15 +73,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
             Assert.Equal("Function TC10.M3() As TC8", M3.ToTestDisplayString())
             Assert.False(M3.IsSub)
-            Assert.Equal(Accessibility.Protected, (M3.DeclaredAccessibility))
+            Assert.Equal(Accessibility.Protected, M3.DeclaredAccessibility)
 
             Assert.Equal("Function TC10.M4(ByRef x As C1(Of System.Type), ByRef y As TC8) As C1(Of System.Type)", M4.ToTestDisplayString())
             Assert.False(M4.IsSub)
-            Assert.Equal(Accessibility.Friend, (M4.DeclaredAccessibility))
+            Assert.Equal(Accessibility.Friend, M4.DeclaredAccessibility)
 
             Assert.Equal("Sub TC10.M5(ByRef x As C1(Of System.Type)(,,), ByRef y As TC8())", M5.ToTestDisplayString())
             Assert.True(M5.IsSub)
-            Assert.Equal(Accessibility.ProtectedOrFriend, (M5.DeclaredAccessibility))
+            Assert.Equal(Accessibility.ProtectedOrFriend, M5.DeclaredAccessibility)
 
             Dim M6 = TC10.GetMembers("M6")
             Assert.Equal(0, M6.Length())

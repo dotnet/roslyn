@@ -548,7 +548,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             If DirectCast(arrayAccess.Expression.Type, ArrayTypeSymbol).IsSZArray Then
                 Dim elementType = arrayAccess.Type
                 If elementType.IsEnumType() Then
-                    elementType = (DirectCast(elementType, NamedTypeSymbol)).EnumUnderlyingType
+                    elementType = DirectCast(elementType, NamedTypeSymbol).EnumUnderlyingType
                 End If
                 Select Case elementType.PrimitiveTypeCode
                     Case Microsoft.Cci.PrimitiveTypeCode.Int8
@@ -793,7 +793,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         Private Sub EmitLoadIndirect(type As TypeSymbol, syntaxNode As SyntaxNode)
             If type.IsEnumType() Then
                 'underlying primitives do not need type tokens.
-                type = (DirectCast(type, NamedTypeSymbol)).EnumUnderlyingType
+                type = DirectCast(type, NamedTypeSymbol).EnumUnderlyingType
             End If
 
             Select Case type.PrimitiveTypeCode
@@ -1259,15 +1259,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ' okay to only explicitly convert one branch.
             '
             Dim mergeTypeOfAlternative As TypeSymbol = StackMergeType(expr.WhenFalse)
-            If (used) Then
-                If (IsVarianceCast(expr.Type, mergeTypeOfAlternative)) Then
+            If used Then
+                If IsVarianceCast(expr.Type, mergeTypeOfAlternative) Then
                     EmitStaticCast(expr.Type, expr.Syntax)
                     mergeTypeOfAlternative = expr.Type
                 End If
             End If
 
             _builder.EmitBranch(ILOpCode.Br, doneLabel)
-            If (used) Then
+            If used Then
                 ' If we get to consequenceLabel, we should not have WhenFalse on stack, adjust for that.
                 _builder.AdjustStack(-1)
             End If
@@ -1275,13 +1275,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             _builder.MarkLabel(consequenceLabel)
             EmitExpression(expr.WhenTrue, used)
 
-            If (used) Then
+            If used Then
                 Dim mergeTypeOfConsequence As TypeSymbol = StackMergeType(expr.WhenTrue)
-                If (IsVarianceCast(expr.Type, mergeTypeOfConsequence)) Then
+                If IsVarianceCast(expr.Type, mergeTypeOfConsequence) Then
                     EmitStaticCast(expr.Type, expr.Syntax)
                     mergeTypeOfConsequence = expr.Type
 
-                ElseIf (expr.Type.IsInterfaceType() AndAlso expr.Type <> mergeTypeOfAlternative AndAlso expr.Type <> mergeTypeOfConsequence) Then
+                ElseIf expr.Type.IsInterfaceType() AndAlso expr.Type <> mergeTypeOfAlternative AndAlso expr.Type <> mergeTypeOfConsequence Then
                     EmitStaticCast(expr.Type, expr.Syntax)
                 End If
             End If
@@ -1310,8 +1310,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             ' See the notes about verification type merges in EmitConditionalOperator
             Dim mergeTypeOfLeftValue As TypeSymbol = StackMergeType(expr.TestExpression)
-            If (used) Then
-                If (IsVarianceCast(expr.Type, mergeTypeOfLeftValue)) Then
+            If used Then
+                If IsVarianceCast(expr.Type, mergeTypeOfLeftValue) Then
                     EmitStaticCast(expr.Type, expr.Syntax)
                     mergeTypeOfLeftValue = expr.Type
                 End If
@@ -1319,24 +1319,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _builder.EmitOpCode(ILOpCode.Dup)
             End If
 
-            If (expr.Type.IsTypeParameter()) Then
+            If expr.Type.IsTypeParameter() Then
                 EmitBox(expr.Type, expr.TestExpression.Syntax)
             End If
 
             Dim ifLeftNotNullLabel = New Object()
             _builder.EmitBranch(ILOpCode.Brtrue, ifLeftNotNullLabel)
 
-            If (used) Then
+            If used Then
                 _builder.EmitOpCode(ILOpCode.Pop)
             End If
 
             EmitExpression(expr.ElseExpression, used)
-            If (used) Then
+            If used Then
                 Dim mergeTypeOfRightValue As TypeSymbol = StackMergeType(expr.ElseExpression)
-                If (IsVarianceCast(expr.Type, mergeTypeOfRightValue)) Then
+                If IsVarianceCast(expr.Type, mergeTypeOfRightValue) Then
                     EmitStaticCast(expr.Type, expr.Syntax)
                     mergeTypeOfRightValue = expr.Type
-                ElseIf (expr.Type.IsInterfaceType() AndAlso expr.Type <> mergeTypeOfLeftValue AndAlso expr.Type <> mergeTypeOfRightValue) Then
+                ElseIf expr.Type.IsInterfaceType() AndAlso expr.Type <> mergeTypeOfLeftValue AndAlso expr.Type <> mergeTypeOfRightValue Then
                     EmitStaticCast(expr.Type, expr.Syntax)
                 End If
             End If
@@ -1361,7 +1361,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         '       We still must assume that it can be an array, delegate or interface though.
         Private Function StackMergeType(expr As BoundExpression) As TypeSymbol
             ' these cases are not interesting. Merge type is the same or derived. No difference.
-            If (Not (expr.Type.IsArrayType OrElse expr.Type.IsInterfaceType OrElse expr.Type.IsDelegateType)) Then
+            If Not (expr.Type.IsArrayType OrElse expr.Type.IsInterfaceType OrElse expr.Type.IsDelegateType) Then
                 Return expr.Type
             End If
 
@@ -1369,18 +1369,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ' 1) are implicit casts
             ' 2) may transparently return operands, so we need to dig deeper
             ' 3) stack values
-            Select Case (expr.Kind)
+            Select Case expr.Kind
                 Case BoundKind.DirectCast
                     Dim conversion = DirectCast(expr, BoundDirectCast)
                     Dim conversionKind = conversion.ConversionKind
-                    If (Conversions.IsWideningConversion(conversionKind)) Then
+                    If Conversions.IsWideningConversion(conversionKind) Then
                         Return StackMergeType(conversion.Operand)
                     End If
 
                 Case BoundKind.TryCast
                     Dim conversion = DirectCast(expr, BoundTryCast)
                     Dim conversionKind = conversion.ConversionKind
-                    If (Conversions.IsWideningConversion(conversionKind)) Then
+                    If Conversions.IsWideningConversion(conversionKind) Then
                         Return StackMergeType(conversion.Operand)
                     End If
 
@@ -1401,7 +1401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
                 Case BoundKind.Local
                     Dim local = DirectCast(expr, BoundLocal)
-                    If (Me.IsStackLocal(local.LocalSymbol)) Then
+                    If Me.IsStackLocal(local.LocalSymbol) Then
                         ' stack value, we cannot be sure what it is
                         Return Nothing
                     End If
@@ -1420,18 +1420,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         ' "complicated" casts and make them static casts to ensure we are all on 
         ' the same page with what type should be tracked.
         Private Shared Function IsVarianceCast(toType As TypeSymbol, fromType As TypeSymbol) As Boolean
-            If (toType = fromType) Then
+            If toType = fromType Then
                 Return False
             End If
 
-            If (fromType Is Nothing) Then
+            If fromType Is Nothing Then
                 ' from unknown type - this could be a variance conversion.
                 Return True
             End If
 
             ' while technically variance casts, array conversions do not seem to be a problem
             ' unless the element types are converted via variance.
-            If (toType.IsArrayType) Then
+            If toType.IsArrayType Then
                 Return IsVarianceCast(DirectCast(toType, ArrayTypeSymbol).ElementType, DirectCast(fromType, ArrayTypeSymbol).ElementType)
             End If
 
@@ -1510,7 +1510,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
         End Sub
 
         Private Sub EmitInitObj(type As TypeSymbol, used As Boolean, syntaxNode As SyntaxNode)
-            If (used) Then
+            If used Then
                 Dim temp = Me.AllocateTemp(type, syntaxNode)
                 _builder.EmitLocalAddress(temp)                  '  ldloca temp
                 _builder.EmitOpCode(ILOpCode.Initobj)            '  initobj  <MyStruct>
@@ -1610,7 +1610,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ' unused constant has no side-effects
             If used Then
                 ' Null type parameter values must be emitted as 'initobj' rather than 'ldnull'.
-                If ((type IsNot Nothing) AndAlso (type.TypeKind = TypeKind.TypeParameter) AndAlso constantValue.IsNull) Then
+                If (type IsNot Nothing) AndAlso (type.TypeKind = TypeKind.TypeParameter) AndAlso constantValue.IsNull Then
                     EmitInitObj(type, used, syntaxNode)
                 Else
                     _builder.EmitConstantValue(constantValue)
@@ -2003,7 +2003,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
             If elementType.IsEnumType() Then
                 'underlying primitives do not need type tokens.
-                elementType = (DirectCast(elementType, NamedTypeSymbol)).EnumUnderlyingType
+                elementType = DirectCast(elementType, NamedTypeSymbol).EnumUnderlyingType
             End If
 
             Select Case elementType.PrimitiveTypeCode
@@ -2073,7 +2073,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 
         Private Sub EmitStoreIndirect(type As TypeSymbol, syntaxNode As SyntaxNode)
             If type.IsEnumType() Then
-                type = (DirectCast(type, NamedTypeSymbol)).EnumUnderlyingType
+                type = DirectCast(type, NamedTypeSymbol).EnumUnderlyingType
             End If
 
             Select Case type.PrimitiveTypeCode

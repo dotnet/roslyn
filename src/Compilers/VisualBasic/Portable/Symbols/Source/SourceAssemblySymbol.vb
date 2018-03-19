@@ -695,13 +695,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 Dim data = GetSourceDecodedWellKnownAttributeData()
                 If data IsNot Nothing Then
-                    fieldValue = (data.AssemblyDelaySignAttributeSetting = ThreeState.True)
+                    fieldValue = data.AssemblyDelaySignAttributeSetting = ThreeState.True
                 End If
 
                 If fieldValue = defaultValue Then
                     data = GetNetModuleDecodedWellKnownAttributeData()
                     If data IsNot Nothing Then
-                        fieldValue = (data.AssemblyDelaySignAttributeSetting = ThreeState.True)
+                        fieldValue = data.AssemblyDelaySignAttributeSetting = ThreeState.True
                     End If
                 End If
 
@@ -1313,7 +1313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' Alink performed these checks only when emitting an assembly.
             If _modules.Length > 1 AndAlso Not _compilation.Options.OutputKind.IsNetModule() Then
                 Dim assemblyMachine = Me.Machine
-                Dim isPlatformAgnostic As Boolean = (assemblyMachine = PortableExecutable.Machine.I386 AndAlso Not Me.Bit32Required)
+                Dim isPlatformAgnostic As Boolean = assemblyMachine = PortableExecutable.Machine.I386 AndAlso Not Me.Bit32Required
                 Dim knownModuleNames As New HashSet(Of String)(StringComparer.OrdinalIgnoreCase)
 
                 For i As Integer = 1 To Modules.Length - 1
@@ -1362,7 +1362,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 EnsureAttributesAreBound()
                 'TODO need to figure out the right behavior when command line and 
                 'attribute value conflict. Does command line setting need to be three-valued?
-                If (DeclaringCompilation.Options.DelaySign.HasValue) Then
+                If DeclaringCompilation.Options.DelaySign.HasValue Then
                     Return DeclaringCompilation.Options.DelaySign.Value
                 End If
 

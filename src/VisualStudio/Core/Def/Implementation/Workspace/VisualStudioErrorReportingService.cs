@@ -27,7 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         public void ShowDetailedErrorInfo(Exception exception)
         {
             string errorInfo = GetFormattedExceptionStack(exception);
-            (new DetailedErrorInfoDialog(exception.Message, errorInfo)).ShowModal();
+            new DetailedErrorInfoDialog(exception.Message, errorInfo).ShowModal();
         }
     }
 }

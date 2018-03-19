@@ -340,7 +340,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool TryGetWellKnownTypeMember<TSymbol>(SyntaxNode syntax, WellKnownMember member, out TSymbol symbol, bool isOptional = false) where TSymbol : Symbol
         {
             symbol = (TSymbol)Binder.GetWellKnownTypeMember(_compilation, member, _diagnostics, syntax: syntax, isOptional: isOptional);
-            return ((object)symbol != null);
+            return (object)symbol != null;
         }
 
         /// <summary>

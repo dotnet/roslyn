@@ -675,7 +675,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Dim context As ExprContext
 
                     If receiverType.IsReferenceType Then
-                        If (receiverType.IsTypeParameter()) Then
+                        If receiverType.IsTypeParameter() Then
                             ' type param receiver that we statically know Is a reference will be boxed
                             context = ExprContext.Box
                         Else
@@ -946,7 +946,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     Dim isLogical As Boolean
                     Dim cookie As Object = Nothing
 
-                    Select Case (binary.OperatorKind And BinaryOperatorKind.OpMask)
+                    Select Case binary.OperatorKind And BinaryOperatorKind.OpMask
                         Case BinaryOperatorKind.AndAlso, BinaryOperatorKind.OrElse
                             isLogical = True
                             ' implicit branch here
@@ -984,7 +984,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             End Function
 
             Private Function VisitBinaryOperatorSimple(node As BoundBinaryOperator) As BoundNode
-                Select Case (node.OperatorKind And BinaryOperatorKind.OpMask)
+                Select Case node.OperatorKind And BinaryOperatorKind.OpMask
                     Case BinaryOperatorKind.AndAlso, BinaryOperatorKind.OrElse
                         ' Short-circuit operators need to emulate implicit branch/label
 

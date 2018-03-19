@@ -7030,16 +7030,16 @@ public class RubyTime
             switch (op)
             {
                 case UnaryOperatorKind.UnaryMinus:
-                    expectChecked = (type.IsDynamic() || symbol1.ContainingType.EnumUnderlyingType().SpecialType.IsIntegralType());
+                    expectChecked = type.IsDynamic() || symbol1.ContainingType.EnumUnderlyingType().SpecialType.IsIntegralType();
                     break;
 
                 case UnaryOperatorKind.PrefixDecrement:
                 case UnaryOperatorKind.PrefixIncrement:
                 case UnaryOperatorKind.PostfixDecrement:
                 case UnaryOperatorKind.PostfixIncrement:
-                    expectChecked = (type.IsDynamic() || type.IsPointerType() ||
+                    expectChecked = type.IsDynamic() || type.IsPointerType() ||
                                      symbol1.ContainingType.EnumUnderlyingType().SpecialType.IsIntegralType() ||
-                                     symbol1.ContainingType.SpecialType == SpecialType.System_Char);
+                                     symbol1.ContainingType.SpecialType == SpecialType.System_Char;
                     break;
 
                 default:
@@ -7548,7 +7548,7 @@ class Module1
 
             BinaryOperatorKind result = OverloadResolution.BinopEasyOut.OpKind(op, leftType, rightType);
             BinaryOperatorSignature signature;
-            bool isDynamic = (leftType.IsDynamic() || rightType.IsDynamic());
+            bool isDynamic = leftType.IsDynamic() || rightType.IsDynamic();
 
             if (result == BinaryOperatorKind.Error)
             {

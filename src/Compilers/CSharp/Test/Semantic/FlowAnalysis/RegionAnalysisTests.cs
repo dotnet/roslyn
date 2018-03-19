@@ -1227,11 +1227,11 @@ class C {
             Assert.Equal(GetSymbolNamesJoined(results1.ReadInside),
                 GetSymbolNamesJoined(results2.ReadInside));
             Assert.Equal(GetSymbolNamesJoined(results1.ReadOutside),
-                string.Join(", ", new string[] { "f" }.Concat((results2.ReadOutside).Select(symbol => symbol.Name)).OrderBy(name => name)));
+                string.Join(", ", new string[] { "f" }.Concat(results2.ReadOutside.Select(symbol => symbol.Name)).OrderBy(name => name)));
             Assert.Equal(GetSymbolNamesJoined(results1.WrittenInside),
                 GetSymbolNamesJoined(results2.WrittenInside));
             Assert.Equal(GetSymbolNamesJoined(results1.WrittenOutside),
-                string.Join(", ", new string[] { "f" }.Concat((results2.WrittenOutside).Select(symbol => symbol.Name)).OrderBy(name => name)));
+                string.Join(", ", new string[] { "f" }.Concat(results2.WrittenOutside.Select(symbol => symbol.Name)).OrderBy(name => name)));
         }
 
         [WorkItem(539286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539286")]

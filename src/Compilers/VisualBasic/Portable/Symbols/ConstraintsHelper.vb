@@ -317,7 +317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             bad = True
                         End If
 
-                    ElseIf (pair1.TypeParameter Is pair2.TypeParameter) Then
+                    ElseIf pair1.TypeParameter Is pair2.TypeParameter Then
                         ' Skip other cases where both constraints are from the same type
                         ' parameter but not the current type parameter since those cases
                         ' will be reported directly on the other type parameter.

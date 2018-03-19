@@ -929,7 +929,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 Dim p As NamedTypeSymbol = Me
                 Do While p IsNot Nothing
-                    If (p.Arity <> 0) Then
+                    If p.Arity <> 0 Then
                         Return True
                     End If
                     p = p.ContainingType

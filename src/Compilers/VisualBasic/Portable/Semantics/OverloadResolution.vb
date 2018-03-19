@@ -471,7 +471,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             IsExpandedParamArrayForm = 1 << (s_stateSize + 0)
 
-            InferenceLevelShift = (s_stateSize + 1)
+            InferenceLevelShift = s_stateSize + 1
             InferenceLevelMask = 3 << InferenceLevelShift ' 2 bits are used
 
             ArgumentMatchingDone = 1 << (s_stateSize + 3)
@@ -489,7 +489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             SomeInferenceFailed = 1 << (s_stateSize + 10)
             AllFailedInferenceIsDueToObject = 1 << (s_stateSize + 11)
 
-            InferenceErrorReasonsShift = (s_stateSize + 12)
+            InferenceErrorReasonsShift = s_stateSize + 12
             InferenceErrorReasonsMask = 3 << InferenceErrorReasonsShift
 
             IgnoreExtensionMethods = 1 << (s_stateSize + 14)
@@ -595,7 +595,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Property
 
             Public Sub RegisterDelegateRelaxationLevel(conversionKind As ConversionKind)
-                Dim relaxationLevel As Integer = (conversionKind And SmallFieldMask.DelegateRelaxationLevelMask)
+                Dim relaxationLevel As Integer = conversionKind And SmallFieldMask.DelegateRelaxationLevelMask
 
                 If relaxationLevel > (_smallFields And SmallFieldMask.DelegateRelaxationLevelMask) Then
                     Debug.Assert(relaxationLevel <= ConversionKind.DelegateRelaxationLevelNarrowing)
@@ -1089,7 +1089,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                                      forceExpandedForm,
                                                                      useSiteDiagnostics)
             If applicableCandidates < 2 Then
-                narrowingCandidatesRemainInTheSet = (applicableNarrowingCandidates > 0)
+                narrowingCandidatesRemainInTheSet = applicableNarrowingCandidates > 0
                 GoTo ResolutionComplete
             End If
 
@@ -1107,7 +1107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' I am going to do the same.
             applicableCandidates = ShadowBasedOnDelegateRelaxation(candidates, applicableNarrowingCandidates)
             If applicableCandidates < 2 Then
-                narrowingCandidatesRemainInTheSet = (applicableNarrowingCandidates > 0)
+                narrowingCandidatesRemainInTheSet = applicableNarrowingCandidates > 0
                 GoTo ResolutionComplete
             End If
 
@@ -1121,7 +1121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ShadowBasedOnInferenceLevel(candidates, arguments, Not argumentNames.IsDefault, delegateReturnType, binder,
                                         applicableCandidates, applicableNarrowingCandidates, useSiteDiagnostics)
             If applicableCandidates < 2 Then
-                narrowingCandidatesRemainInTheSet = (applicableNarrowingCandidates > 0)
+                narrowingCandidatesRemainInTheSet = applicableNarrowingCandidates > 0
                 GoTo ResolutionComplete
             End If
 
@@ -1414,7 +1414,7 @@ ResolutionComplete:
                 End If
             Next
 
-            Return (mightBeTheMostApplicableIndex > -1)
+            Return mightBeTheMostApplicableIndex > -1
         End Function
 
         ''' <summary>
@@ -2461,7 +2461,7 @@ Next_i:
                         Dim current As CandidateAnalysisResult = candidates(i)
 
                         If current.State = CandidateAnalysisResultState.Applicable Then
-                            If (current.RequiresNarrowingNotFromObject OrElse current.Candidate.IsExtensionMethod) Then
+                            If current.RequiresNarrowingNotFromObject OrElse current.Candidate.IsExtensionMethod Then
                                 current.State = CandidateAnalysisResultState.ExtensionMethodVsLateBinding
                                 candidates(i) = current
                             Else
@@ -2747,8 +2747,8 @@ Done:
                         paramIndex += 1
                     End If
 
-                ElseIf (candidate.IsExpandedParamArrayForm AndAlso
-                    paramIndex = candidate.Candidate.ParameterCount - 1) Then
+                ElseIf candidate.IsExpandedParamArrayForm AndAlso
+                    paramIndex = candidate.Candidate.ParameterCount - 1 Then
 
                     paramArrayItems.Add(i)
                 Else
@@ -2917,7 +2917,7 @@ Bailout:
             ' as appropriate.
 
             Dim argIndex As Integer
-            Dim candidateIsAProperty As Boolean = (candidate.Candidate.UnderlyingSymbol.Kind = SymbolKind.Property)
+            Dim candidateIsAProperty As Boolean = candidate.Candidate.UnderlyingSymbol.Kind = SymbolKind.Property
 
             For paramIndex = 0 To candidate.Candidate.ParameterCount - 1 Step 1
                 If candidate.State <> CandidateAnalysisResultState.Applicable AndAlso
@@ -4135,7 +4135,7 @@ ContinueCandidatesLoop:
             ' Optimization: We will rely on ShadowBasedOnReceiverType to give us the
             '               same effect later on for cases when existingCandidate is
             '               applicable and neither candidate is from restricted type.
-            Dim existingIsApplicable As Boolean = (existingCandidate.State = CandidateAnalysisResultState.Applicable)
+            Dim existingIsApplicable As Boolean = existingCandidate.State = CandidateAnalysisResultState.Applicable
 
             If existingIsApplicable AndAlso Not existingType.IsRestrictedType() AndAlso Not newType.IsRestrictedType() Then
                 Return False
@@ -4961,7 +4961,7 @@ ContinueCandidatesLoop:
                 parameterToArgumentMap.Free()
             End If
 
-            Return (candidate.State = CandidateAnalysisResultState.Applicable)
+            Return candidate.State = CandidateAnalysisResultState.Applicable
         End Function
 
         Private Shared Function ConstructIfNeedTo(candidate As Candidate, typeArguments As ImmutableArray(Of TypeSymbol)) As Candidate

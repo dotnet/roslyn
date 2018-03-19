@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             await response.WriteAsync(memoryStream, default(CancellationToken));
             Assert.True(memoryStream.Position > 0);
             memoryStream.Position = 0;
-            var read = (CompletedBuildResponse)(await BuildResponse.ReadAsync(memoryStream, default(CancellationToken)));
+            var read = (CompletedBuildResponse)await BuildResponse.ReadAsync(memoryStream, default(CancellationToken));
             Assert.Equal(42, read.ReturnCode);
             Assert.False(read.Utf8Output);
             Assert.Equal("a string", read.Output);

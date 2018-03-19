@@ -164,9 +164,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
             ' we may need to extend the life time of the target until we are done accessing it
             ' {.v ; v = Goo(); v}.Bar()     // v should be released after Bar() Is over.
             Dim doNotRelease As LocalSymbol = Nothing
-            If (tempOpt Is Nothing) Then
+            If tempOpt Is Nothing Then
                 Dim referencedLocal As BoundLocal = DigForLocal(sequence.ValueOpt)
-                If (referencedLocal IsNot Nothing) Then
+                If referencedLocal IsNot Nothing Then
                     doNotRelease = referencedLocal.LocalSymbol
                 End If
             End If
@@ -175,7 +175,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                 _builder.CloseLocalScope()
 
                 For Each local In sequence.Locals
-                    If (local IsNot doNotRelease) Then
+                    If local IsNot doNotRelease Then
                         FreeLocal(local)
                     Else
                         tempOpt = GetLocal(doNotRelease)
@@ -195,7 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
                     End If
 
                 Case BoundKind.Sequence
-                    Return DigForLocal((DirectCast(value, BoundSequence)).ValueOpt)
+                    Return DigForLocal(DirectCast(value, BoundSequence).ValueOpt)
 
                 Case BoundKind.FieldAccess
                     Dim fieldAccess = DirectCast(value, BoundFieldAccess)

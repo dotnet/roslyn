@@ -852,7 +852,7 @@ New MetadataReference() {TestReferences.NetFx.v4_0_30319.mscorlib, ClassAv2, New
             Dim B2 = [global].GetTypeMembers("ClassB", 0).Single()
             Dim C = [global].GetTypeMembers("ClassC", 0).Single()
             Assert.IsType(Of Retargeting.RetargetingNamedTypeSymbol)(B2)
-            Assert.Same(B1, (DirectCast(B2, Retargeting.RetargetingNamedTypeSymbol)).UnderlyingNamedType)
+            Assert.Same(B1, DirectCast(B2, Retargeting.RetargetingNamedTypeSymbol).UnderlyingNamedType)
             Assert.Same(C.BaseType, B2)
 
             Dim expectedErrors = <errors>
@@ -914,7 +914,7 @@ New MetadataReference() {TestReferences.NetFx.v4_0_30319.mscorlib, ClassAv2, New
             Dim C = [global].GetTypeMembers("ClassC", 0).Single()
             Assert.IsAssignableFrom(Of PENamedTypeSymbol)(B2)
             Assert.NotEqual(B1, B2)
-            Assert.Same((DirectCast(B1.ContainingModule, PEModuleSymbol)).Module, DirectCast(B2.ContainingModule, PEModuleSymbol).Module)
+            Assert.Same(DirectCast(B1.ContainingModule, PEModuleSymbol).Module, DirectCast(B2.ContainingModule, PEModuleSymbol).Module)
             Assert.Equal(DirectCast(B1, PENamedTypeSymbol).Handle, DirectCast(B2, PENamedTypeSymbol).Handle)
             Assert.Same(C.BaseType, B2)
             Dim expectedErrors = <errors>
@@ -990,7 +990,7 @@ New MetadataReference() {TestReferences.NetFx.v4_0_30319.mscorlib, ClassAv1, New
             Dim B2 = [global].GetTypeMembers("ClassB", 0).Single()
             Dim C = [global].GetTypeMembers("ClassC", 0).Single()
 
-            Assert.Same(B1, (DirectCast(B2, Retargeting.RetargetingNamedTypeSymbol)).UnderlyingNamedType)
+            Assert.Same(B1, DirectCast(B2, Retargeting.RetargetingNamedTypeSymbol).UnderlyingNamedType)
             Assert.Same(C.BaseType, B2)
             Assert.Same(B2.BaseType, A2)
         End Sub
@@ -1121,7 +1121,7 @@ End Class
             Dim B2 = [global].GetTypeMembers("ClassB", 0).Single()
             Dim C = [global].GetTypeMembers("ClassC", 0).Single()
 
-            Assert.Same(B1, (DirectCast(B2, Retargeting.RetargetingNamedTypeSymbol)).UnderlyingNamedType)
+            Assert.Same(B1, DirectCast(B2, Retargeting.RetargetingNamedTypeSymbol).UnderlyingNamedType)
             Assert.Same(C.BaseType, B2)
             Assert.Same(B2.BaseType, A2)
         End Sub

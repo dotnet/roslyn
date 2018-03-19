@@ -714,7 +714,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Overrides ReadOnly Property CallingConvention As Microsoft.Cci.CallingConvention
             Get
-                Return (If(IsShared, Microsoft.Cci.CallingConvention.Default, Microsoft.Cci.CallingConvention.HasThis))
+                Return If(IsShared, Microsoft.Cci.CallingConvention.Default, Microsoft.Cci.CallingConvention.HasThis)
             End Get
         End Property
 
@@ -925,7 +925,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return CType((_flags And SourceMemberFlags.AccessibilityMask), Accessibility)
+                Return CType(_flags And SourceMemberFlags.AccessibilityMask, Accessibility)
             End Get
         End Property
 
@@ -979,12 +979,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
                 ' If there are no attributes then this symbol is not Obsolete.
-                If (Not Me._containingType.AnyMemberHasAttributes) Then
+                If Not Me._containingType.AnyMemberHasAttributes Then
                     Return Nothing
                 End If
 
                 Dim lazyCustomAttributesBag = Me._lazyCustomAttributesBag
-                If (lazyCustomAttributesBag IsNot Nothing AndAlso lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed) Then
+                If lazyCustomAttributesBag IsNot Nothing AndAlso lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed Then
                     Dim data = DirectCast(_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, CommonPropertyEarlyWellKnownAttributeData)
                     Return If(data IsNot Nothing, data.ObsoleteAttributeData, Nothing)
                 End If

@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis
                         FindBestMatch(_oldNodes, _oldNodes.Peek(), out indexOfOldInOld, out similarityOfOldInOld, 1);
 
                         // don't declare an insert if the node also appeared later in the original list
-                        var oldHasSimilarSibling = (indexOfOldInOld >= 1 && similarityOfOldInOld >= similarityOfOldInNew);
+                        var oldHasSimilarSibling = indexOfOldInOld >= 1 && similarityOfOldInOld >= similarityOfOldInNew;
                         if (!oldHasSimilarSibling)
                         {
                             return new DiffAction(DiffOp.InsertNew, indexOfOldInNew);

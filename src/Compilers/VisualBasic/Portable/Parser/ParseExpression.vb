@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 End If
 
                 ' Check for leading unary operators
-                Select Case (startToken.Kind)
+                Select Case startToken.Kind
 
                     Case SyntaxKind.MinusToken
 
@@ -883,7 +883,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                     Dim objInit = ParseObjectCollectionInitializer(FromToken)
 
-                    If (CurrentToken.Kind = SyntaxKind.WithKeyword) Then
+                    If CurrentToken.Kind = SyntaxKind.WithKeyword Then
                         ' TODO: this should actually go on the next token ( "With" )
                         ' perhaps we should capture With as an unexpected syntax?
                         objInit = ReportSyntaxError(objInit, ERRID.ERR_CantCombineInitializers)
@@ -897,7 +897,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' Parsing from "With" in "New Type(ParameterList) with {Initializer list}"
                 Dim objInit = ParseObjectInitializerList()
 
-                If (CurrentToken.Kind = SyntaxKind.WithKeyword) Then
+                If CurrentToken.Kind = SyntaxKind.WithKeyword Then
                     ' TODO: this should actually go on the next token ( "With" )
                     ' perhaps we should capture With as an unexpected syntax?
                     objInit = ReportSyntaxError(objInit, ERRID.ERR_CantCombineInitializers)
@@ -1010,7 +1010,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Dim Name = ParseIdentifierNameAllowingKeyword()
                 Return SyntaxFactory.DictionaryAccessExpression(Term, DotOrBangToken, Name)
             Else
-                If (CurrentToken.IsEndOfLine() AndAlso Not CurrentToken.IsEndOfParse()) Then
+                If CurrentToken.IsEndOfLine() AndAlso Not CurrentToken.IsEndOfParse() Then
 
                     Debug.Assert(CurrentToken.Kind = SyntaxKind.StatementTerminatorToken AndAlso
                               PrevToken.Kind = SyntaxKind.DotToken,
@@ -1022,8 +1022,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     '     .  <-- this is bad.  This . follows an EOL and isn't preceded by a tkID.  Can't have it dangling like this
                     '     field = 42
                     '*/
-                    If (prevPrevToken Is Nothing OrElse
-                         prevPrevToken.Kind = SyntaxKind.StatementTerminatorToken) Then
+                    If prevPrevToken Is Nothing OrElse
+                         prevPrevToken.Kind = SyntaxKind.StatementTerminatorToken Then
                         ' if ( CurrentToken->m_Prev->m_Prev == NULL || // make sure we can look back far enough.  We know we can look back once, but twice we need to test
                         '     CurrentToken->m_Prev->m_Prev->m_TokenType == tkEOL ) // Make sure there is something besides air before the '.' DEV10_486908
 
@@ -1045,7 +1045,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 ' 2. Attribute axis i.e. ".@ident" or ".@<ident>
                 ' 3. Descendant axis i.e. "...<ident>"
                 ' 4. Regular CLR member axis i.e. ".ident"
-                Select Case (CurrentToken.Kind)
+                Select Case CurrentToken.Kind
 
                     Case SyntaxKind.AtToken
                         Dim atToken = DirectCast(CurrentToken, PunctuationSyntax)
@@ -1231,8 +1231,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim openParen As PunctuationSyntax = Nothing
             TryGetTokenAndEatNewLine(SyntaxKind.OpenParenToken, openParen)
 
-            If (CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso
-                PeekToken(1).Kind = SyntaxKind.ColonEqualsToken) Then
+            If CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso
+                PeekToken(1).Kind = SyntaxKind.ColonEqualsToken Then
 
                 Dim argumentName = ParseIdentifierNameAllowingKeyword()
                 Dim colonEquals As PunctuationSyntax = Nothing
@@ -1246,7 +1246,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim operand = ParseExpressionCore()
 
-            If (CurrentToken.Kind = SyntaxKind.CommaToken) Then
+            If CurrentToken.Kind = SyntaxKind.CommaToken Then
                 Dim firstArgument = SyntaxFactory.SimpleArgument(nameColonEquals:=Nothing, expression:=operand)
 
                 Return ParseTheRestOfTupleLiteral(openParen, firstArgument)
@@ -1270,8 +1270,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 argumentBuilder.AddSeparator(commaToken)
                 Dim nameColonEquals As NameColonEqualsSyntax = Nothing
 
-                If (CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso
-                    PeekToken(1).Kind = SyntaxKind.ColonEqualsToken) Then
+                If CurrentToken.Kind = SyntaxKind.IdentifierToken AndAlso
+                    PeekToken(1).Kind = SyntaxKind.ColonEqualsToken Then
 
                     Dim argumentName = ParseIdentifierNameAllowingKeyword()
                     Dim colonEquals As PunctuationSyntax = Nothing

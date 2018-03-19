@@ -170,7 +170,7 @@ namespace Roslyn.Test.PdbUtilities
             {
                 unchecked
                 {
-                    value = (byte)((_buffer[_offset + 0] & 0xFF));
+                    value = (byte)(_buffer[_offset + 0] & 0xFF);
                 }
                 _offset += 1;
             }
@@ -321,12 +321,12 @@ namespace Roslyn.Test.PdbUtilities
             {
                 int word = index / 32;
                 if (word >= _size) return false;
-                return ((_words[word] & GetBit(index)) != 0);
+                return (_words[word] & GetBit(index)) != 0;
             }
 
             private static uint GetBit(int index)
             {
-                return ((uint)1 << (index % 32));
+                return (uint)1 << (index % 32);
             }
 
             internal bool IsEmpty
@@ -629,7 +629,7 @@ namespace Roslyn.Test.PdbUtilities
                 {
                     int bucketNumber = (int)(seed % (uint)newBuckets.Length);
 
-                    if ((newBuckets[bucketNumber].val == null))
+                    if (newBuckets[bucketNumber].val == null)
                     {
                         newBuckets[bucketNumber].val = nvalue;
                         newBuckets[bucketNumber].key = key;

@@ -1991,7 +1991,7 @@ class C4 { }
 ";
             var comp = CreateCompilationUtil(source);
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2004,7 +2004,7 @@ class C4 { }
         <!-- Badly formed XML comment ignored for member ""T:C4"" -->
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -2024,7 +2024,7 @@ partial class C
 ";
             var comp = CreateCompilationUtil(source);
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2034,7 +2034,7 @@ partial class C
         <!-- Badly formed XML comment ignored for member ""T:C"" -->
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -2063,7 +2063,7 @@ partial class C
             // NOTE: separate error comment for each part.
             var comp = CreateCompilationUtil(source);
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2077,7 +2077,7 @@ partial class C
         <!-- Badly formed XML comment ignored for member ""M:C.M2"" -->
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -2107,7 +2107,7 @@ class C {{ }}
                 // /// <see cref='C'/>
                 Diagnostic(ErrorCode.WRN_XMLParseError, "").WithArguments("The '\u1680' character, hexadecimal value 0x1680, cannot be included in a name."));
 
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2117,7 +2117,7 @@ class C {{ }}
         <!-- Badly formed XML comment ignored for member ""T:C"" -->
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -2189,7 +2189,7 @@ class C {{ }}
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, xmlFilePath));
             var actual = GetDocumentationCommentText(comp);
 
-            var expectedTemplate = (@"
+            var expectedTemplate = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2201,7 +2201,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
@@ -2224,7 +2224,7 @@ class C {{ }}
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, xmlFilePath));
             var actual = GetDocumentationCommentText(comp);
 
-            var expectedTemplate = (@"
+            var expectedTemplate = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2236,7 +2236,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
@@ -2262,7 +2262,7 @@ class C {{ }}
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, xmlFilePath));
             var actual = GetDocumentationCommentText(comp);
 
-            var expectedTemplate = (@"
+            var expectedTemplate = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2274,7 +2274,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
@@ -2299,7 +2299,7 @@ class C {{ }}
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, xmlFilePath));
             var actual = GetDocumentationCommentText(comp);
 
-            var expectedTemplate = (@"
+            var expectedTemplate = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2311,7 +2311,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
@@ -2335,7 +2335,7 @@ class C {{ }}
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, xmlFilePath));
             var actual = GetDocumentationCommentText(comp);
 
-            var expectedTemplate = (@"
+            var expectedTemplate = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2349,7 +2349,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
@@ -2400,7 +2400,7 @@ class C { }
             var comp = CSharpCompilation.Create("Test", new[] { tree }, new[] { MscorlibRef }, TestOptions.ReleaseDll.WithXmlReferenceResolver(resolver));
             var actual = GetDocumentationCommentText(comp);
 
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2412,7 +2412,7 @@ class C { }
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -2440,7 +2440,7 @@ class C { }
                 // (5,5): warning CS1590: Invalid XML include element -- Missing path attribute
                 // /// <include file='file'/>
                 Diagnostic(ErrorCode.WRN_InvalidInclude, "<include file='file'/>").WithArguments("Missing path attribute"));
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2455,7 +2455,7 @@ class C { }
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -2489,7 +2489,7 @@ class C {{ }}
                 Diagnostic(ErrorCode.WRN_InvalidInclude).WithArguments("Missing path attribute"));
 
             // NOTE: the whitespace is external to the selected nodes, so it's not included.
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2501,7 +2501,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -2517,7 +2517,7 @@ class C { }
                 // (2,5): warning CS1589: Unable to include XML fragment 'path' of file 'file' -- File not found.
                 // /// <include file='file' path='path'/>
                 Diagnostic(ErrorCode.WRN_FailedInclude, "<include file='file' path='path'/>").WithArguments("file", "path", "File not found."));
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2529,7 +2529,7 @@ class C { }
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -2554,7 +2554,7 @@ class C {{ }}
                 Diagnostic(ErrorCode.WRN_FailedInclude).WithArguments("file", "path", "File not found."));
 
             // NOTE: the whitespace is external to the selected nodes, so it's not included.
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2566,7 +2566,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -2590,7 +2590,7 @@ class C {{ }}
                     // (2,5): warning CS1589: Unable to include XML fragment 'path' of file 'c3af0dc5a3cf.xml' -- The process cannot access the file 'c3af0dc5a3cf.xml' because it is being used by another process.
                     // /// <include file='c3af0dc5a3cf.xml' path='path'/>
                     Diagnostic(ErrorCode.WRN_FailedInclude, includeElement).WithArguments(xmlFilePath, "path", string.Format("The process cannot access the file '{0}' because it is being used by another process.", xmlFilePath)));
-                var expectedTemplate = (@"
+                var expectedTemplate = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2602,7 +2602,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
                 Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
             }
         }
@@ -2626,7 +2626,7 @@ class C {{ }}
                 var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
                     // 3fba660141b6.xml(1,2): warning CS1589: Unable to include XML fragment 'path' of file 'd4241d125755.xml' -- The process cannot access the file 'd4241d125755.xml' because it is being used by another process.
                     Diagnostic(ErrorCode.WRN_FailedInclude).WithArguments(xmlFilePath1, "path", string.Format("The process cannot access the file '{0}' because it is being used by another process.", xmlFilePath1)));
-                var expectedTemplate = (@"
+                var expectedTemplate = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2638,7 +2638,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
                 Assert.Equal(string.Format(expectedTemplate, xmlFilePath1), actual);
             }
         }
@@ -2661,7 +2661,7 @@ class C {{ }}
                 // (2,5): warning CS1589: Unable to include XML fragment 'path' of file 'c3af0dc5a3cf.xml' -- The process cannot access the file 'c3af0dc5a3cf.xml' because it is being used by another process.
                 // /// <include file='c3af0dc5a3cf.xml' path='path'/>
                 Diagnostic(ErrorCode.WRN_FailedInclude, includeElement).WithArguments(xmlFilePath, ":", "':' has an invalid token."));
-            var expectedTemplate = (@"
+            var expectedTemplate = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2673,7 +2673,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
@@ -2694,7 +2694,7 @@ class C {{ }}
             var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
                 // 3fba660141b6.xml(1,2): warning CS1589: Unable to include XML fragment 'path' of file 'd4241d125755.xml' -- The process cannot access the file 'd4241d125755.xml' because it is being used by another process.
                 Diagnostic(ErrorCode.WRN_FailedInclude).WithArguments(xmlFilePath1, ":", "':' has an invalid token."));
-            var expectedTemplate = (@"
+            var expectedTemplate = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2706,7 +2706,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath1), actual);
         }
 
@@ -2727,7 +2727,7 @@ class C {{ }}
             var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
                 // 327697461814.xml(1,19): warning CS1592: Badly formed XML in included comments file -- 'Unexpected end of file has occurred. The following elements are not closed: OpenWithoutClose.'
                 Diagnostic(ErrorCode.WRN_XMLParseIncludeError).WithArguments("Unexpected end of file has occurred. The following elements are not closed: OpenWithoutClose."));
-            var expectedTemplate = (@"
+            var expectedTemplate = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2739,7 +2739,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFilePath)), actual);
         }
 
@@ -2761,7 +2761,7 @@ class C {{ }}
             var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
                 // 408eee49f410.xml(1,19): warning CS1592: Badly formed XML in included comments file -- 'Unexpected end of file has occurred. The following elements are not closed: OpenWithoutClose.'
                 Diagnostic(ErrorCode.WRN_XMLParseIncludeError).WithArguments("Unexpected end of file has occurred. The following elements are not closed: OpenWithoutClose."));
-            var expectedTemplate = (@"
+            var expectedTemplate = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2773,7 +2773,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath2), actual);
         }
 
@@ -2793,7 +2793,7 @@ class C {{ }}
             var actual = GetDocumentationCommentText(comp,
                 // 3fba660141b6.xml(1,2): warning CS1589: Unable to include XML fragment 'path' of file 'd4241d125755.xml' -- The process cannot access the file 'd4241d125755.xml' because it is being used by another process.
                 Diagnostic(ErrorCode.WRN_FailedInclude).WithArguments(xmlFilePath, "//include", "Operation caused a stack overflow."));
-            var expectedTemplate = (@"
+            var expectedTemplate = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2805,7 +2805,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
@@ -2827,7 +2827,7 @@ class C {{ }}
             var actual = GetDocumentationCommentText(comp,
                 // 3fba660141b6.xml(1,2): warning CS1589: Unable to include XML fragment 'path' of file 'd4241d125755.xml' -- The process cannot access the file 'd4241d125755.xml' because it is being used by another process.
                 Diagnostic(ErrorCode.WRN_FailedInclude).WithArguments(xmlFilePath, "//parent", "Operation caused a stack overflow."));
-            var expectedTemplate = (@"
+            var expectedTemplate = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2839,7 +2839,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
@@ -2874,7 +2874,7 @@ class C {{ }}
                 Diagnostic(ErrorCode.WRN_FailedInclude).WithArguments(xmlFilePath, "//include", "Operation caused a stack overflow."),
                 // 1dc0fa5fb526.xml(3,6): warning CS1589: Unable to include XML fragment '//include' of file '1dc0fa5fb526.xml' -- Operation caused a stack overflow.
                 Diagnostic(ErrorCode.WRN_FailedInclude).WithArguments(xmlFilePath, "//include", "Operation caused a stack overflow."));
-            var expectedTemplate = (@"
+            var expectedTemplate = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2892,7 +2892,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath), actual);
         }
 
@@ -2918,7 +2918,7 @@ class C {{ }}
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, xmlFilePath));
 
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2931,7 +2931,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -2958,7 +2958,7 @@ class C {{ }}
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, xmlFilePath1));
 
             var actual = GetDocumentationCommentText(comp);
-            var expectedTemplate = (@"
+            var expectedTemplate = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -2970,7 +2970,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(string.Format(expectedTemplate, xmlFilePath1), actual);
         }
 
@@ -3013,7 +3013,7 @@ enum D {{ }}
                 // /// <include file="012bf028d62c.xml" path="."/>
                 Diagnostic(ErrorCode.WRN_FailedInclude, string.Format(@"<include file=""{0}"" path="".""/>", xmlFilePath)).WithArguments(xmlFilePath, ".", "The XPath expression evaluated to unexpected type System.Xml.Linq.XDocument."));
 
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -3046,7 +3046,7 @@ enum D {{ }}
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -3071,7 +3071,7 @@ class C
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, includeElement));
 
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -3083,7 +3083,7 @@ class C
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -3106,7 +3106,7 @@ class C
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, includeElement));
 
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -3118,7 +3118,7 @@ class C
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -3152,7 +3152,7 @@ namespace N
             var actual = GetDocumentationCommentText(comp,
                 // (4,9): warning CS1574: XML comment has cref attribute 'Int32' that could not be resolved
                 Diagnostic(ErrorCode.WRN_BadXMLRef, includeElement).WithArguments("Int32"));
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -3165,7 +3165,7 @@ namespace N
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -3194,7 +3194,7 @@ class C {{ }}
                 // (2,5): warning CS1658: Unexpected character '#'. See also error CS1056.
                 // /// <include file='aa671ee8adcd.xml' path='//see'/>
                 Diagnostic(ErrorCode.WRN_ErrorOverride, includeElement).WithArguments("Unexpected character '#'", "1056"));
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -3206,7 +3206,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -3229,7 +3229,7 @@ class C {{ }}
                 // (2,5): warning CS1574: XML comment has cref attribute 'Invalid' that could not be resolved
                 // /// <include file='f76ef125d03d.xml' path='//see'/>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, includeElement).WithArguments("Invalid"));
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -3241,7 +3241,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -3290,7 +3290,7 @@ class X
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, seeElement, includeElement));
 
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -3303,7 +3303,7 @@ class X
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -3332,7 +3332,7 @@ class A<T>
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, seeElement, includeElement));
 
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -3345,7 +3345,7 @@ class A<T>
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -3412,7 +3412,7 @@ class C<T>
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, includeElements));
 
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -3449,7 +3449,7 @@ class C<T>
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -3502,7 +3502,7 @@ delegate void D<U, V>(U u, V v) {{ }}
                 // (10,5): warning CS1710: XML comment has a duplicate typeparam tag for 'V'
                 // /// <include file='f59a2ef50b4d.xml' path='root/*'/>
                 Diagnostic(ErrorCode.WRN_DuplicateTypeParamTag, includeElement).WithArguments("V"));
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -3522,7 +3522,7 @@ delegate void D<U, V>(U u, V v) {{ }}
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -3559,7 +3559,7 @@ delegate void D<U, V>(U u, V v) {{ }}
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, includeElement));
 
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -3577,7 +3577,7 @@ delegate void D<U, V>(U u, V v) {{ }}
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -3603,7 +3603,7 @@ class C<T> {{ }}
                 // (3,9): warning CS1712: Type parameter 'T' has no matching typeparam tag in the XML comment on 'C<T>' (but other type parameters do)
                 // class C<T> { }
                 Diagnostic(ErrorCode.WRN_MissingTypeParamTag, "T").WithArguments("T", "C<T>"));
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -3615,7 +3615,7 @@ class C<T> {{ }}
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -3644,7 +3644,7 @@ class C
                 // (5,16): warning CS1573: Parameter 'x' has no matching param tag in the XML comment for 'C.M(int)' (but other parameters do)
                 //     void M(int x) { }
                 Diagnostic(ErrorCode.WRN_MissingParamTag, "x").WithArguments("x", "C.M(int)"));
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -3656,7 +3656,7 @@ class C
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -3680,7 +3680,7 @@ class C
 
             // NOTE: no *xml* diagnostics, not no diagnostics.
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -3692,7 +3692,7 @@ class C
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -3717,7 +3717,7 @@ class C
             var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
                 // df33b60df5a9.xml(1,17): warning CS1592: Badly formed XML in included comments file -- ''name' is a duplicate attribute name.'
                 Diagnostic(ErrorCode.WRN_XMLParseIncludeError).WithArguments("'name' is a duplicate attribute name."));
-            var expectedTemplate = (@"
+            var expectedTemplate = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -3729,7 +3729,7 @@ class C
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFilePath)), actual);
         }
 
@@ -3765,7 +3765,7 @@ partial class C
             var comp = CreateCompilationUtil(string.Format(sourceTemplate, includeElement));
 
             var actual = GetDocumentationCommentText(comp);
-            var expectedTemplate = (@"
+            var expectedTemplate = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -3778,7 +3778,7 @@ partial class C
         </member>
     </members>
 </doc>
-        ").Trim();
+        ".Trim();
             Assert.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFilePath)), actual);
         }
 
@@ -3984,7 +3984,7 @@ class C
 }";
             var comp = CreateCompilationUtil(source);
             var actual = GetDocumentationCommentText(comp, "OutputName");
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -3997,7 +3997,7 @@ class C
             </summary>
         </member>
     </members>
-</doc>").Trim();
+</doc>".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -4014,7 +4014,7 @@ public class C
 ";
             var comp = CreateCompilationUtil(source);
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -4026,7 +4026,7 @@ public class C
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -4113,7 +4113,7 @@ class Generic<T>
                 // (26,35): warning CS1723: XML comment has cref attribute 'T' that refers to a type parameter
                 //     /// Type parameter <see cref="T"/> -- warning
                 Diagnostic(ErrorCode.WRN_BadXMLRefTypeVar, "T").WithArguments("T"));
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -4145,7 +4145,7 @@ class Generic<T>
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -4169,7 +4169,7 @@ class C
 ";
             var comp = CreateCompilationUtil(source);
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -4196,7 +4196,7 @@ class C
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -4239,7 +4239,7 @@ class C
                 // (11,20): warning CS1574: XML comment has cref attribute 'fake4' that could not be resolved
                 //     /// <see cref="fake4"/>
                 Diagnostic(ErrorCode.WRN_BadXMLRef, "fake4").WithArguments("fake4"));
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -4266,7 +4266,7 @@ class C
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -4305,7 +4305,7 @@ delegate void D<T, U>(T t, U u);
                 // (10,20): warning CS1712: Type parameter 'U' has no matching typeparam tag in the XML comment on 'D<T, U>' (but other type parameters do)
                 // delegate void D<T, U>(T t, U u);
                 Diagnostic(ErrorCode.WRN_MissingTypeParamTag, "U").WithArguments("U", "D<T, U>"));
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -4324,7 +4324,7 @@ delegate void D<T, U>(T t, U u);
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -4343,7 +4343,7 @@ public class C { }
                 // (2,14): warning CS1591: Missing XML comment for publicly visible type or member 'C'
                 // public class C { }
                 Diagnostic(ErrorCode.WRN_MissingXMLComment, "C").WithArguments("C")); //Filtering happens later.
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -4352,7 +4352,7 @@ public class C { }
     <members>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -4373,7 +4373,7 @@ class C
             comp.VerifyDiagnostics();
 
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -4385,7 +4385,7 @@ class C
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -4406,7 +4406,7 @@ class C
             comp.VerifyDiagnostics();
 
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -4418,7 +4418,7 @@ class C
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -4483,7 +4483,7 @@ class C<T> : I<T>
             comp.VerifyDiagnostics();
 
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -4495,7 +4495,7 @@ class C<T> : I<T>
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -4513,7 +4513,7 @@ class C
             comp.VerifyDiagnostics();
 
             var actual = GetDocumentationCommentText(comp);
-            var expected = (@"
+            var expected = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -4525,7 +4525,7 @@ class C
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(expected, actual);
         }
 
@@ -4545,7 +4545,7 @@ class C {{ }}
             var actual = GetDocumentationCommentText(comp, /*ensureEnglishUICulture:*/ true,
                 // 054c2dcb7959.xml(1,1): warning CS1592: Badly formed XML in included comments file -- 'Data at the root level is invalid.'
                 Diagnostic(ErrorCode.WRN_XMLParseIncludeError).WithArguments("Data at the root level is invalid."));
-            var expectedTemplate = (@"
+            var expectedTemplate = @"
 <?xml version=""1.0""?>
 <doc>
     <assembly>
@@ -4557,7 +4557,7 @@ class C {{ }}
         </member>
     </members>
 </doc>
-").Trim();
+".Trim();
             Assert.Equal(string.Format(expectedTemplate, TestHelpers.AsXmlCommentText(xmlFile.Path)), actual);
         }
 

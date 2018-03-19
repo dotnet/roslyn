@@ -27,16 +27,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private ReadOnly _Id As Integer
 
             Public Sub New(op As UnaryOperatorKind)
-                _Id = (1 Or (op << 2))
+                _Id = 1 Or (op << 2)
             End Sub
 
             Public Sub New(op As BinaryOperatorKind)
-                _Id = (2 Or (op << 2))
+                _Id = 2 Or (op << 2)
             End Sub
 
             Public ReadOnly Property ParamCount As Integer
                 Get
-                    Return (_Id And 3)
+                    Return _Id And 3
                 End Get
             End Property
 
@@ -214,7 +214,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function TryGetOperatorName(op As BinaryOperatorKind) As String
 
-            Select Case (op And BinaryOperatorKind.OpMask)
+            Select Case op And BinaryOperatorKind.OpMask
                 Case BinaryOperatorKind.Add
                     Return WellKnownMemberNames.AdditionOperatorName
                 Case BinaryOperatorKind.Concatenate
@@ -267,7 +267,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Friend Shared Function TryGetOperatorName(op As UnaryOperatorKind) As String
 
-            Select Case (op And UnaryOperatorKind.OpMask)
+            Select Case op And UnaryOperatorKind.OpMask
                 Case UnaryOperatorKind.Plus
                     Return WellKnownMemberNames.UnaryPlusOperatorName
                 Case UnaryOperatorKind.Minus
@@ -488,7 +488,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As UnaryOperatorKind
             Debug.Assert((opCode And UnaryOperatorKind.IntrinsicOpMask) = opCode AndAlso opCode <> UnaryOperatorKind.Error)
 
-            opCode = (opCode And UnaryOperatorKind.IntrinsicOpMask)
+            opCode = opCode And UnaryOperatorKind.IntrinsicOpMask
             intrinsicOperatorType = SpecialType.None
             userDefinedOperator = Nothing
 
@@ -496,11 +496,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' First, dig through Nullable
             Dim nullableUnderlying = operandType.GetNullableUnderlyingTypeOrSelf()
-            Dim operandIsNullable = (operandType IsNot nullableUnderlying)
+            Dim operandIsNullable = operandType IsNot nullableUnderlying
 
             ' Now dig through Enum
             Dim enumUnderlying = nullableUnderlying.GetEnumUnderlyingTypeOrSelf()
-            Dim operandIsEnum = (enumUnderlying IsNot nullableUnderlying)
+            Dim operandIsEnum = enumUnderlying IsNot nullableUnderlying
 
             ' Filter out unexpected underlying types for Nullable and enum types
             If (operandIsEnum OrElse operandIsNullable) AndAlso
@@ -715,7 +715,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If underlyingResultType.IsIntegralType() Then
                     Dim value As Int64 = GetConstantValueAsInt64(operandValue)
 
-                    Select Case (op And UnaryOperatorKind.IntrinsicOpMask)
+                    Select Case op And UnaryOperatorKind.IntrinsicOpMask
                         Case UnaryOperatorKind.Plus
                             ' Nothing to do
                         Case UnaryOperatorKind.Minus
@@ -743,7 +743,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ElseIf underlyingResultType.IsFloatingType Then
                     Dim value As Double = If(underlyingResultType.IsSingleType(), operandValue.SingleValue, operandValue.DoubleValue)
 
-                    Select Case (op And UnaryOperatorKind.IntrinsicOpMask)
+                    Select Case op And UnaryOperatorKind.IntrinsicOpMask
                         Case UnaryOperatorKind.Plus
                             ' Nothing to do
                         Case UnaryOperatorKind.Minus
@@ -768,7 +768,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ElseIf underlyingResultType.IsDecimalType() Then
                     Dim value As Decimal = operandValue.DecimalValue
 
-                    Select Case (op And UnaryOperatorKind.IntrinsicOpMask)
+                    Select Case op And UnaryOperatorKind.IntrinsicOpMask
                         Case UnaryOperatorKind.Plus
                             ' Nothing to do
                         Case UnaryOperatorKind.Minus
@@ -846,7 +846,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Debug.Assert((opCode And BinaryOperatorKind.OpMask) = opCode AndAlso opCode <> BinaryOperatorKind.Error)
 
-            opCode = (opCode And BinaryOperatorKind.OpMask)
+            opCode = opCode And BinaryOperatorKind.OpMask
             intrinsicOperatorType = SpecialType.None
             userDefinedOperator = Nothing
 
@@ -855,15 +855,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' First, dig through Nullable
             Dim leftNullableUnderlying = leftType.GetNullableUnderlyingTypeOrSelf()
-            Dim leftIsNullable = (leftType IsNot leftNullableUnderlying)
+            Dim leftIsNullable = leftType IsNot leftNullableUnderlying
             Dim rightNullableUnderlying = rightType.GetNullableUnderlyingTypeOrSelf()
-            Dim rightIsNullable = (rightType IsNot rightNullableUnderlying)
+            Dim rightIsNullable = rightType IsNot rightNullableUnderlying
 
             ' Now dig through Enum
             Dim leftEnumUnderlying = leftNullableUnderlying.GetEnumUnderlyingTypeOrSelf()
-            Dim leftIsEnum = (leftEnumUnderlying IsNot leftNullableUnderlying)
+            Dim leftIsEnum = leftEnumUnderlying IsNot leftNullableUnderlying
             Dim rightEnumUnderlying = rightNullableUnderlying.GetEnumUnderlyingTypeOrSelf()
-            Dim rightIsEnum = (rightEnumUnderlying IsNot rightNullableUnderlying)
+            Dim rightIsEnum = rightEnumUnderlying IsNot rightNullableUnderlying
 
             ' Filter out unexpected underlying types for Nullable and enum types
             If ((leftIsEnum OrElse leftIsNullable) AndAlso
@@ -1031,7 +1031,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim leftType = left.Type
             Dim rightType = right.Type
-            Dim op As BinaryOperatorKind = (operatorKind And BinaryOperatorKind.OpMask)
+            Dim op As BinaryOperatorKind = operatorKind And BinaryOperatorKind.OpMask
 
             Dim result As ConstantValue = Nothing
 
@@ -1257,8 +1257,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Case BinaryOperatorKind.RightShift
 
                         If resultType.IsUnsignedIntegralType() Then
-                            resultValue = UncheckedCLng((UncheckedCULng(leftValue) >>
-                                                         (CType(rightValue, Integer) And CodeGen.CodeGenerator.GetShiftSizeMask(operandType))))
+                            resultValue = UncheckedCLng(UncheckedCULng(leftValue) >>
+                                                         (CType(rightValue, Integer) And CodeGen.CodeGenerator.GetShiftSizeMask(operandType)))
                         Else
                             resultValue = leftValue >> (CType(rightValue, Integer) And CodeGen.CodeGenerator.GetShiftSizeMask(operandType))
                         End If
@@ -1298,22 +1298,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case op
 
                     Case BinaryOperatorKind.Equals
-                        resultValue = (leftValue = rightValue)
+                        resultValue = leftValue = rightValue
 
                     Case BinaryOperatorKind.NotEquals
-                        resultValue = (leftValue <> rightValue)
+                        resultValue = leftValue <> rightValue
 
                     Case BinaryOperatorKind.LessThanOrEqual
-                        resultValue = (leftValue <= rightValue)
+                        resultValue = leftValue <= rightValue
 
                     Case BinaryOperatorKind.GreaterThanOrEqual
-                        resultValue = (leftValue >= rightValue)
+                        resultValue = leftValue >= rightValue
 
                     Case BinaryOperatorKind.LessThan
-                        resultValue = (leftValue < rightValue)
+                        resultValue = leftValue < rightValue
 
                     Case BinaryOperatorKind.GreaterThan
-                        resultValue = (leftValue > rightValue)
+                        resultValue = leftValue > rightValue
 
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(op)
@@ -1353,9 +1353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                 Exit Select
                             End If
 
-                        ElseIf (
-                            Double.IsNaN(rightValue)
-                        ) Then
+                        ElseIf Double.IsNaN(rightValue) Then
                             resultValue = Double.NaN
                             Exit Select
                         End If
@@ -1422,22 +1420,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Select Case op
 
                     Case BinaryOperatorKind.Equals
-                        resultValue = (comparisonResult = 0)
+                        resultValue = comparisonResult = 0
 
                     Case BinaryOperatorKind.NotEquals
-                        resultValue = Not (comparisonResult = 0)
+                        resultValue = Not comparisonResult = 0
 
                     Case BinaryOperatorKind.LessThanOrEqual
-                        resultValue = (comparisonResult <= 0)
+                        resultValue = comparisonResult <= 0
 
                     Case BinaryOperatorKind.GreaterThanOrEqual
-                        resultValue = (comparisonResult >= 0)
+                        resultValue = comparisonResult >= 0
 
                     Case BinaryOperatorKind.LessThan
-                        resultValue = (comparisonResult < 0)
+                        resultValue = comparisonResult < 0
 
                     Case BinaryOperatorKind.GreaterThan
-                        resultValue = (comparisonResult > 0)
+                        resultValue = comparisonResult > 0
 
                     Case Else
                         Throw ExceptionUtilities.UnexpectedValue(op)
@@ -1539,22 +1537,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     Select Case op
                         Case BinaryOperatorKind.Equals
-                            stringComparisonSucceeds = (comparisonResult = 0)
+                            stringComparisonSucceeds = comparisonResult = 0
 
                         Case BinaryOperatorKind.NotEquals
-                            stringComparisonSucceeds = (comparisonResult <> 0)
+                            stringComparisonSucceeds = comparisonResult <> 0
 
                         Case BinaryOperatorKind.GreaterThan
-                            stringComparisonSucceeds = (comparisonResult > 0)
+                            stringComparisonSucceeds = comparisonResult > 0
 
                         Case BinaryOperatorKind.GreaterThanOrEqual
-                            stringComparisonSucceeds = (comparisonResult >= 0)
+                            stringComparisonSucceeds = comparisonResult >= 0
 
                         Case BinaryOperatorKind.LessThan
-                            stringComparisonSucceeds = (comparisonResult < 0)
+                            stringComparisonSucceeds = comparisonResult < 0
 
                         Case BinaryOperatorKind.LessThanOrEqual
-                            stringComparisonSucceeds = (comparisonResult <= 0)
+                            stringComparisonSucceeds = comparisonResult <= 0
 
                     End Select
 
@@ -1584,35 +1582,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case op
 
                 Case BinaryOperatorKind.Equals
-                    operationSucceeds = (leftValue = rightValue)
+                    operationSucceeds = leftValue = rightValue
 
                 Case BinaryOperatorKind.NotEquals
-                    operationSucceeds = (leftValue <> rightValue)
+                    operationSucceeds = leftValue <> rightValue
 
                 Case BinaryOperatorKind.GreaterThan
                     ' Amazingly, False > True.
-                    operationSucceeds = (leftValue = False AndAlso rightValue = True)
+                    operationSucceeds = leftValue = False AndAlso rightValue = True
 
                 Case BinaryOperatorKind.GreaterThanOrEqual
-                    operationSucceeds = (leftValue = False OrElse rightValue = True)
+                    operationSucceeds = leftValue = False OrElse rightValue = True
 
                 Case BinaryOperatorKind.LessThan
-                    operationSucceeds = (leftValue = True AndAlso rightValue = False)
+                    operationSucceeds = leftValue = True AndAlso rightValue = False
 
                 Case BinaryOperatorKind.LessThanOrEqual
-                    operationSucceeds = (leftValue = True OrElse rightValue = False)
+                    operationSucceeds = leftValue = True OrElse rightValue = False
 
                 Case BinaryOperatorKind.Xor
-                    operationSucceeds = (leftValue Xor rightValue)
+                    operationSucceeds = leftValue Xor rightValue
 
                 Case BinaryOperatorKind.OrElse,
                      BinaryOperatorKind.Or
 
-                    operationSucceeds = (leftValue OrElse rightValue)
+                    operationSucceeds = leftValue OrElse rightValue
 
                 Case BinaryOperatorKind.AndAlso,
                      BinaryOperatorKind.And
-                    operationSucceeds = (leftValue AndAlso rightValue)
+                    operationSucceeds = leftValue AndAlso rightValue
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(op)

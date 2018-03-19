@@ -200,7 +200,7 @@ Friend Module Extensions
 
                     Dim s1 = typeSym.ToDisplayString(SymbolDisplayFormat.TestFormat)
                     Dim s2 = expected.ToString()
-                    If (s1 = s2) Then
+                    If s1 = s2 Then
                         Return True
                     End If
 
@@ -228,26 +228,26 @@ Friend Module Extensions
 
             Dim namedType = DirectCast(typeSym, NamedTypeSymbol)
             ' name should be same if it's not generic (NO ByRef in attribute)
-            If (namedType.Arity = 0) Then
+            If namedType.Arity = 0 Then
                 Return typeSym.Name = expType.Name
             End If
             ' generic
-            If Not (expType.IsGenericType) Then
+            If Not expType.IsGenericType Then
                 Return False
             End If
 
             Dim nameOnly = expType.Name
             'generic <Name>'1
             Dim idx = expType.Name.LastIndexOfAny(New Char() {"`"c})
-            If (idx > 0) Then
+            If idx > 0 Then
                 nameOnly = expType.Name.Substring(0, idx)
             End If
-            If Not (typeSym.Name = nameOnly) Then
+            If Not typeSym.Name = nameOnly Then
                 Return False
             End If
             Dim expArgs = expType.GetGenericArguments()
             Dim actArgs = namedType.TypeArguments()
-            If Not (expArgs.Count = actArgs.Length) Then
+            If Not expArgs.Count = actArgs.Length Then
                 Return False
             End If
 

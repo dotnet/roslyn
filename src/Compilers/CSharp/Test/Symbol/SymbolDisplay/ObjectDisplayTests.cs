@@ -48,28 +48,28 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 Assert.Equal("0x01", FormatPrimitiveUsingHexadecimalNumbers((sbyte)1));
                 Assert.Equal(@"0x7f", FormatPrimitiveUsingHexadecimalNumbers((sbyte)0x7f));
                 Assert.Equal("0xffffffff", FormatPrimitiveUsingHexadecimalNumbers((sbyte)-1)); // As in dev11.
-                Assert.Equal(@"0xfffffffe", FormatPrimitiveUsingHexadecimalNumbers((sbyte)(-2)));
+                Assert.Equal(@"0xfffffffe", FormatPrimitiveUsingHexadecimalNumbers((sbyte)-2));
                 Assert.Equal("0x0001", FormatPrimitiveUsingHexadecimalNumbers((ushort)1));
                 Assert.Equal(@"0x007f", FormatPrimitiveUsingHexadecimalNumbers((ushort)0x7f));
                 Assert.Equal("0xffff", FormatPrimitiveUsingHexadecimalNumbers((ushort)-1));
                 Assert.Equal("0x0001", FormatPrimitiveUsingHexadecimalNumbers((short)1));
                 Assert.Equal(@"0x007f", FormatPrimitiveUsingHexadecimalNumbers((short)0x7f));
                 Assert.Equal("0xffffffff", FormatPrimitiveUsingHexadecimalNumbers((short)-1)); // As in dev11.
-                Assert.Equal(@"0xfffffffe", FormatPrimitiveUsingHexadecimalNumbers((short)(-2)));
+                Assert.Equal(@"0xfffffffe", FormatPrimitiveUsingHexadecimalNumbers((short)-2));
                 Assert.Equal("0x00000001", FormatPrimitiveUsingHexadecimalNumbers((uint)1));
                 Assert.Equal(@"0x0000007f", FormatPrimitiveUsingHexadecimalNumbers((uint)0x7f));
                 Assert.Equal("0xffffffff", FormatPrimitiveUsingHexadecimalNumbers((uint)-1));
                 Assert.Equal("0x00000001", FormatPrimitiveUsingHexadecimalNumbers((int)1));
                 Assert.Equal(@"0x0000007f", FormatPrimitiveUsingHexadecimalNumbers((int)0x7f));
                 Assert.Equal("0xffffffff", FormatPrimitiveUsingHexadecimalNumbers((int)-1));
-                Assert.Equal(@"0xfffffffe", FormatPrimitiveUsingHexadecimalNumbers((int)(-2)));
+                Assert.Equal(@"0xfffffffe", FormatPrimitiveUsingHexadecimalNumbers((int)-2));
                 Assert.Equal("0x0000000000000001", FormatPrimitiveUsingHexadecimalNumbers((ulong)1));
                 Assert.Equal(@"0x000000000000007f", FormatPrimitiveUsingHexadecimalNumbers((ulong)0x7f));
                 Assert.Equal("0xffffffffffffffff", FormatPrimitiveUsingHexadecimalNumbers((ulong)-1));
                 Assert.Equal("0x0000000000000001", FormatPrimitiveUsingHexadecimalNumbers((long)1));
                 Assert.Equal(@"0x000000000000007f", FormatPrimitiveUsingHexadecimalNumbers((long)0x7f));
                 Assert.Equal("0xffffffffffffffff", FormatPrimitiveUsingHexadecimalNumbers((long)-1));
-                Assert.Equal(@"0xfffffffffffffffe", FormatPrimitiveUsingHexadecimalNumbers((long)(-2)));
+                Assert.Equal(@"0xfffffffffffffffe", FormatPrimitiveUsingHexadecimalNumbers((long)-2));
             }
         }
 

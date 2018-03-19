@@ -215,7 +215,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ' note that those substitute/initializers will be based on initial bound 
                 ' form of the original expression captured without using ByRef locals
                 Dim result As WithExpressionRewriter.Result =
-                    (New WithExpressionRewriter(Me._withBlockSyntax.WithStatement)).AnalyzeWithExpression(Me.ContainingMember, boundExpression,
+                    New WithExpressionRewriter(Me._withBlockSyntax.WithStatement).AnalyzeWithExpression(Me.ContainingMember, boundExpression,
                                                                  doNotUseByRefLocal:=True,
                                                                  binder:=Me.ContainingBinder,
                                                                  preserveIdentityOfLValues:=True)

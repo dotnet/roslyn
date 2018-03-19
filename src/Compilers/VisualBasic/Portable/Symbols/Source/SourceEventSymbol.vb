@@ -95,7 +95,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If blockSyntaxOpt IsNot Nothing Then
                 For Each accessorSyntax In blockSyntaxOpt.Accessors
                     Dim accessor As CustomEventAccessorSymbol = BindEventAccessor(accessorSyntax, binder)
-                    Select Case (accessor.MethodKind)
+                    Select Case accessor.MethodKind
                         Case MethodKind.EventAdd
                             If _addMethod Is Nothing Then
                                 _addMethod = accessor
@@ -561,7 +561,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get
-                Return CType((_memberFlags And SourceMemberFlags.AccessibilityMask), Accessibility)
+                Return CType(_memberFlags And SourceMemberFlags.AccessibilityMask, Accessibility)
             End Get
         End Property
 
@@ -586,12 +586,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend NotOverridable Overrides ReadOnly Property ObsoleteAttributeData As ObsoleteAttributeData
             Get
                 ' If there are no attributes then this symbol is not Obsolete.
-                If (Not Me._containingType.AnyMemberHasAttributes) Then
+                If Not Me._containingType.AnyMemberHasAttributes Then
                     Return Nothing
                 End If
 
                 Dim lazyCustomAttributesBag = Me._lazyCustomAttributesBag
-                If (lazyCustomAttributesBag IsNot Nothing AndAlso lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed) Then
+                If lazyCustomAttributesBag IsNot Nothing AndAlso lazyCustomAttributesBag.IsEarlyDecodedWellKnownAttributeDataComputed Then
                     Dim data = DirectCast(_lazyCustomAttributesBag.EarlyDecodedWellKnownAttributeData, CommonEventEarlyWellKnownAttributeData)
                     Return If(data IsNot Nothing, data.ObsoleteAttributeData, Nothing)
                 End If

@@ -833,9 +833,9 @@ Namespace Microsoft.CodeAnalysis.Operations
             Debug.Assert(boundLateMemberAccess.ReceiverOpt IsNot Nothing OrElse boundLateMemberAccess.ContainerTypeOpt IsNot Nothing)
             ' Only set containing type if the container is set to something, and either there is no receiver, or the receiver's type
             ' does not match the type of the containing type.
-            If (boundLateMemberAccess.ContainerTypeOpt IsNot Nothing AndAlso
+            If boundLateMemberAccess.ContainerTypeOpt IsNot Nothing AndAlso
                 (boundLateMemberAccess.ReceiverOpt Is Nothing OrElse
-                 boundLateMemberAccess.ContainerTypeOpt <> boundLateMemberAccess.ReceiverOpt.Type)) Then
+                 boundLateMemberAccess.ContainerTypeOpt <> boundLateMemberAccess.ReceiverOpt.Type) Then
                 containingType = boundLateMemberAccess.ContainerTypeOpt
             End If
             Dim syntax As SyntaxNode = boundLateMemberAccess.Syntax

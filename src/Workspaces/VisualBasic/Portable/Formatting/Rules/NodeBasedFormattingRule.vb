@@ -142,8 +142,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             End If
 
             Dim Item1PreviousToken = pair.Item1.GetPreviousToken()
-            If (Item1PreviousToken.IsKind(SyntaxKind.GreaterThanToken) AndAlso
-                Item1PreviousToken.Parent.IsKind(SyntaxKind.XmlElementEndTag)) Then
+            If Item1PreviousToken.IsKind(SyntaxKind.GreaterThanToken) AndAlso
+                Item1PreviousToken.Parent.IsKind(SyntaxKind.XmlElementEndTag) Then
 
                 Dim outerBlockWithBaseToken = GetOuterBlockWithDifferentStartTokenUsingXmlElement(pair.Item1)
                 If outerBlockWithBaseToken IsNot Nothing Then
@@ -282,7 +282,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Formatting
             ' now we do expensive stuff to find out whether we are the first xml element on the line
             Dim foundXmlElement = False
             Dim previousToken = baseToken.GetPreviousToken(includeZeroWidth:=True)
-            While (Not IsFirstXmlElementTokenOnLine(previousToken))
+            While Not IsFirstXmlElementTokenOnLine(previousToken)
                 If TypeOf previousToken.Parent Is XmlElementSyntax Then
                     foundXmlElement = True
                     Exit While

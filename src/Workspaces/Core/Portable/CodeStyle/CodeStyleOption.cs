@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             }
 
             // If had an int and we wanted an enum, then just return this value.
-            return (T)(object)(i);
+            return (T)(object)i;
         }
 
         public bool Equals(CodeStyleOption<T> other)

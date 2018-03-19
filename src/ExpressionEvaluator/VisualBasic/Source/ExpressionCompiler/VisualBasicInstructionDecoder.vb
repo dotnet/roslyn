@@ -41,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
                             ' Drop any remaining display class name parts and the subsequent dot...
                             Do
                                 i += 1
-                            Loop While ((i < numParts) AndAlso parts(i).Kind <> SymbolDisplayPartKind.MethodName)
+                            Loop While (i < numParts) AndAlso parts(i).Kind <> SymbolDisplayPartKind.MethodName
                             i -= 1
                         End If
                     Case SymbolDisplayPartKind.MethodName

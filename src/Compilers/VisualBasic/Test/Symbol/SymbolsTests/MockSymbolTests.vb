@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
             If TypeOf sym Is NamespaceOrTypeSymbol AndAlso DirectCast(sym, NamespaceOrTypeSymbol).GetMembers().Any() Then
                 builder.AppendLine(" { ")
-                For Each child As Symbol In (From c In DirectCast(sym, NamespaceOrTypeSymbol).GetMembers().AsEnumerable() Order By c.Name)
+                For Each child As Symbol In From c In DirectCast(sym, NamespaceOrTypeSymbol).GetMembers().AsEnumerable() Order By c.Name
                     For i = 0 To level
                         builder.Append("    ")
                     Next

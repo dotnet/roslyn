@@ -534,7 +534,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         bool hasNamespaces = false;
                         for (int i = 0; (i < builder.Count) && !hasNamespaces; i++)
                         {
-                            hasNamespaces |= (builder[i].Kind == SymbolKind.Namespace);
+                            hasNamespaces |= builder[i].Kind == SymbolKind.Namespace;
                         }
 
                         members = hasNamespaces

@@ -410,7 +410,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (baseMethodDeclarationSyntax.Kind())
                 {
                     case SyntaxKind.ConstructorDeclaration:
-                        return (baseMethodDeclarationSyntax.Modifiers.Any(SyntaxKind.StaticKeyword) ? WellKnownMemberNames.StaticConstructorName : WellKnownMemberNames.InstanceConstructorName);
+                        return baseMethodDeclarationSyntax.Modifiers.Any(SyntaxKind.StaticKeyword) ? WellKnownMemberNames.StaticConstructorName : WellKnownMemberNames.InstanceConstructorName;
                     case SyntaxKind.DestructorDeclaration:
                         return WellKnownMemberNames.DestructorName;
                     case SyntaxKind.OperatorDeclaration:

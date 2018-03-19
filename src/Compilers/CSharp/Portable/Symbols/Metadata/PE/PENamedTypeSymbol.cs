@@ -1046,7 +1046,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         private void EnsureEnumUnderlyingTypeIsLoaded(UncommonProperties uncommon)
         {
-            if ((object)(uncommon.lazyEnumUnderlyingType) == null
+            if ((object)uncommon.lazyEnumUnderlyingType == null
                 && this.TypeKind == TypeKind.Enum)
             {
                 // From §8.5.2
@@ -1763,7 +1763,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
                 else
                 {
-                    isOrdinaryStruct = (this.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_Nullable_T);
+                    isOrdinaryStruct = this.SpecialType == Microsoft.CodeAnalysis.SpecialType.System_Nullable_T;
                 }
             }
 

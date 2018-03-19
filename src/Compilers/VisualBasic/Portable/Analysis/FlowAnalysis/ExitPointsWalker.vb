@@ -100,15 +100,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If IsInsideRegion(pending.Branch.Syntax.Span) Then
                     Select Case pending.Branch.Kind
                         Case BoundKind.GotoStatement
-                            If _labelsInside.Contains((TryCast((pending.Branch), BoundGotoStatement)).Label) Then
+                            If _labelsInside.Contains(TryCast(pending.Branch, BoundGotoStatement).Label) Then
                                 Continue For
                             End If
                         Case BoundKind.ExitStatement
-                            If _labelsInside.Contains((TryCast((pending.Branch), BoundExitStatement)).Label) Then
+                            If _labelsInside.Contains(TryCast(pending.Branch, BoundExitStatement).Label) Then
                                 Continue For
                             End If
                         Case BoundKind.ContinueStatement
-                            If _labelsInside.Contains((TryCast((pending.Branch), BoundContinueStatement)).Label) Then
+                            If _labelsInside.Contains(TryCast(pending.Branch, BoundContinueStatement).Label) Then
                                 Continue For
                             End If
                         Case BoundKind.YieldStatement

@@ -446,7 +446,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shared Function IsOperator(kind As SyntaxKind) As Boolean
-            Select Case (kind)
+            Select Case kind
 
                 Case SyntaxKind.AndKeyword,
                     SyntaxKind.AndAlsoKeyword,
@@ -574,7 +574,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Shared Function IsEndBlockLoopOrNextStatement(kind As SyntaxKind) As Boolean
-            Select Case (kind)
+            Select Case kind
                 Case SyntaxKind.EndIfStatement,
                      SyntaxKind.EndWithStatement,
                      SyntaxKind.EndSelectStatement,
@@ -686,7 +686,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Public Shared Function GetBinaryExpression(keyword As SyntaxKind) As SyntaxKind
-            Select Case (keyword)
+            Select Case keyword
 
                 Case SyntaxKind.IsKeyword
                     Return SyntaxKind.IsExpression

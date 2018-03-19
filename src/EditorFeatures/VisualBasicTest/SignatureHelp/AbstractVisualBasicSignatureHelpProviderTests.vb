@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
         End Sub
 
         Protected Overrides Function TestAsync(markupWithPositionAndOptSpan As String, Optional expectedOrderedItemsOrNull As IEnumerable(Of SignatureHelpTestItem) = Nothing, Optional usePreviousCharAsTrigger As Boolean = False, Optional sourceCodeKind As Microsoft.CodeAnalysis.SourceCodeKind? = Nothing, Optional experimental As Boolean = False) As Threading.Tasks.Task
-            If (sourceCodeKind.HasValue) Then
+            If sourceCodeKind.HasValue Then
                 Return MyBase.TestAsync(markupWithPositionAndOptSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger, sourceCodeKind, experimental)
             Else
                 Return MyBase.TestAsync(markupWithPositionAndOptSpan, expectedOrderedItemsOrNull, usePreviousCharAsTrigger, Microsoft.CodeAnalysis.SourceCodeKind.Regular, experimental)
@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
         End Function
 
         Protected Overrides Function VerifyCurrentParameterNameAsync(markupWithPosition As String, expectedParameterName As String, Optional sourceCodeKind As Microsoft.CodeAnalysis.SourceCodeKind? = Nothing) As Threading.Tasks.Task
-            If (sourceCodeKind.HasValue) Then
+            If sourceCodeKind.HasValue Then
                 Return MyBase.VerifyCurrentParameterNameAsync(markupWithPosition, expectedParameterName, sourceCodeKind)
             Else
                 Return MyBase.VerifyCurrentParameterNameAsync(markupWithPosition, expectedParameterName, Microsoft.CodeAnalysis.SourceCodeKind.Regular)
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
         End Function
 
         Protected Overrides Sub VerifyTriggerCharacters(expectedTriggerCharacters() As Char, unexpectedTriggerCharacters() As Char, Optional sourceCodeKind As Microsoft.CodeAnalysis.SourceCodeKind? = Nothing)
-            If (sourceCodeKind.HasValue) Then
+            If sourceCodeKind.HasValue Then
                 MyBase.VerifyTriggerCharacters(expectedTriggerCharacters, unexpectedTriggerCharacters, sourceCodeKind)
             Else
                 MyBase.VerifyTriggerCharacters(expectedTriggerCharacters, unexpectedTriggerCharacters, Microsoft.CodeAnalysis.SourceCodeKind.Regular)

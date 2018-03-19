@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis
                     // Add a comment change that does not conflict with any merge change
                     combinedChanges.Add(commentChangesList[commentChangeIndex]);
                     mergeConflictResolutionSpans.Add(new TextSpan(commentChangesList[commentChangeIndex].Span.Start + currentPositionDelta, commentChangesList[commentChangeIndex].NewText.Length));
-                    currentPositionDelta += (commentChangesList[commentChangeIndex].NewText.Length - commentChangesList[commentChangeIndex].Span.Length);
+                    currentPositionDelta += commentChangesList[commentChangeIndex].NewText.Length - commentChangesList[commentChangeIndex].Span.Length;
                     commentChangeIndex++;
                 }
 
@@ -251,7 +251,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     // Add a merge change that does not conflict with any comment change
                     combinedChanges.Add(mergedChange);
-                    currentPositionDelta += (mergedChange.NewText.Length - mergedChange.Span.Length);
+                    currentPositionDelta += mergedChange.NewText.Length - mergedChange.Span.Length;
                     continue;
                 }
 
@@ -268,7 +268,7 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 combinedChanges.Add(mergedChange);
-                currentPositionDelta += (mergedChange.NewText.Length - mergedChange.Span.Length);
+                currentPositionDelta += mergedChange.NewText.Length - mergedChange.Span.Length;
             }
 
             while (commentChangeIndex < commentChangesList.Count)
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis
                 combinedChanges.Add(commentChangesList[commentChangeIndex]);
                 mergeConflictResolutionSpans.Add(new TextSpan(commentChangesList[commentChangeIndex].Span.Start + currentPositionDelta, commentChangesList[commentChangeIndex].NewText.Length));
 
-                currentPositionDelta += (commentChangesList[commentChangeIndex].NewText.Length - commentChangesList[commentChangeIndex].Span.Length);
+                currentPositionDelta += commentChangesList[commentChangeIndex].NewText.Length - commentChangesList[commentChangeIndex].Span.Length;
                 commentChangeIndex++;
             }
 

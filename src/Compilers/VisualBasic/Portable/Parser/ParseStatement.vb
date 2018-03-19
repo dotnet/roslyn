@@ -28,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim kind As SyntaxKind
             Dim blockKeyword As KeywordSyntax = Nothing
 
-            Select Case (CurrentToken.Kind)
+            Select Case CurrentToken.Kind
 
                 Case SyntaxKind.DoKeyword
                     kind = SyntaxKind.ContinueDoStatement
@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Dim kind As SyntaxKind
             Dim blockKeyword As KeywordSyntax = Nothing
 
-            Select Case (CurrentToken.Kind)
+            Select Case CurrentToken.Kind
 
                 Case SyntaxKind.DoKeyword
                     kind = SyntaxKind.ExitDoStatement
@@ -778,7 +778,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             'TODO - davidsch - I have kept this code as-is but it seems that it would be better to parse the common prefix of 
             ' ParseVariable and ParseForLoopVariableDeclaration instead of peeking for 'AS', 'IN', '='
 
-            Select Case (CurrentToken.Kind)
+            Select Case CurrentToken.Kind
 
                 Case SyntaxKind.IdentifierToken
 

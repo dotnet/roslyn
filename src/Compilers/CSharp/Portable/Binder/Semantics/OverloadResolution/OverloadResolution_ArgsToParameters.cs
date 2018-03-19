@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 bool found = false;
                 for (int arg = 0; arg < argsToParameters.Length; ++arg)
                 {
-                    found = (argsToParameters[arg] == p);
+                    found = argsToParameters[arg] == p;
                     if (found)
                     {
                         break;

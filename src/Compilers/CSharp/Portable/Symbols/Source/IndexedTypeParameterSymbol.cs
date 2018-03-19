@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var initialPool = s_parameterPool;
             while (count > initialPool.Length)
             {
-                var newPoolSize = ((count + 0x0F) & ~0xF); // grow in increments of 16
+                var newPoolSize = (count + 0x0F) & ~0xF; // grow in increments of 16
                 var newPool = new TypeParameterSymbol[newPoolSize];
 
                 Array.Copy(initialPool, newPool, initialPool.Length);

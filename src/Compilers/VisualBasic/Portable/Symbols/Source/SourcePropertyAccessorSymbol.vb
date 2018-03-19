@@ -115,7 +115,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property OverriddenMethod As MethodSymbol
             Get
-                Return m_property.GetAccessorOverride(getter:=(MethodKind = MethodKind.PropertyGet))
+                Return m_property.GetAccessorOverride(getter:=MethodKind = MethodKind.PropertyGet)
             End Get
         End Property
 
@@ -330,7 +330,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If _lazyExplicitImplementations.IsDefault Then
                     ImmutableInterlocked.InterlockedCompareExchange(
                         _lazyExplicitImplementations,
-                        m_property.GetAccessorImplementations(getter:=(MethodKind = MethodKind.PropertyGet)),
+                        m_property.GetAccessorImplementations(getter:=MethodKind = MethodKind.PropertyGet),
                         Nothing)
                 End If
 
@@ -388,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                diagnostics As DiagnosticBag) As ImmutableArray(Of ParameterSymbol)
             Dim propertyParameters = propertySymbol.Parameters
             Dim nPropertyParameters = propertyParameters.Length
-            Dim isSetter As Boolean = (method.MethodKind = MethodKind.PropertySet)
+            Dim isSetter As Boolean = method.MethodKind = MethodKind.PropertySet
             Dim parameterListSyntax = If(parameterListOpt Is Nothing OrElse Not isSetter, Nothing, parameterListOpt.Parameters)
             Dim synthesizeParameter = isSetter AndAlso (parameterListSyntax.Count = 0)
             Dim nParameters = nPropertyParameters + parameterListSyntax.Count + If(synthesizeParameter, 1, 0)

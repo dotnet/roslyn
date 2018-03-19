@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = new AdhocWorkspace().CurrentSolution;
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = new RemotableDataServiceFactory().CreateService(solution.Workspace.Services) as IRemotableDataService;
             using (var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 var checksum = snapshot.SolutionChecksum;
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = new AdhocWorkspace().CurrentSolution;
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = new RemotableDataServiceFactory().CreateService(solution.Workspace.Services) as IRemotableDataService;
             using (var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 await VerifySolutionStateSerializationAsync(snapshotService, solution, snapshot.SolutionChecksum).ConfigureAwait(false);
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var project = new AdhocWorkspace().CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(project.Solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = new RemotableDataServiceFactory().CreateService(project.Solution.Workspace.Services) as IRemotableDataService;
             using (var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(project.Solution, CancellationToken.None).ConfigureAwait(false))
             {
                 var checksum = snapshot.SolutionChecksum;
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var project = new AdhocWorkspace().CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(project.Solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = new RemotableDataServiceFactory().CreateService(project.Solution.Workspace.Services) as IRemotableDataService;
             using (var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(project.Solution, CancellationToken.None).ConfigureAwait(false))
             {
                 await VerifySolutionStateSerializationAsync(snapshotService, project.Solution, snapshot.SolutionChecksum).ConfigureAwait(false);
@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var document = new AdhocWorkspace().CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp).AddDocument("Document", SourceText.From(code));
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(document.Project.Solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = new RemotableDataServiceFactory().CreateService(document.Project.Solution.Workspace.Services) as IRemotableDataService;
             using (var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(document.Project.Solution, CancellationToken.None).ConfigureAwait(false))
             {
                 var syncObject = snapshot.GetRemotableData(snapshot.SolutionChecksum, CancellationToken.None);
@@ -129,7 +129,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var document = new AdhocWorkspace().CurrentSolution.AddProject("Project", "Project.dll", LanguageNames.CSharp).AddDocument("Document", SourceText.From(code));
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(document.Project.Solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = new RemotableDataServiceFactory().CreateService(document.Project.Solution.Workspace.Services) as IRemotableDataService;
             using (var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(document.Project.Solution, CancellationToken.None).ConfigureAwait(false))
             {
                 await VerifySolutionStateSerializationAsync(snapshotService, document.Project.Solution, snapshot.SolutionChecksum).ConfigureAwait(false);
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var firstProjectChecksum = await solution.GetProject(solution.ProjectIds[0]).State.GetChecksumAsync(CancellationToken.None);
             var secondProjectChecksum = await solution.GetProject(solution.ProjectIds[1]).State.GetChecksumAsync(CancellationToken.None);
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = new RemotableDataServiceFactory().CreateService(solution.Workspace.Services) as IRemotableDataService;
             using (var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 var syncObject = snapshot.GetRemotableData(snapshot.SolutionChecksum, CancellationToken.None);
@@ -167,7 +167,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = new RemotableDataServiceFactory().CreateService(solution.Workspace.Services) as IRemotableDataService;
             using (var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 await VerifySolutionStateSerializationAsync(snapshotService, solution, snapshot.SolutionChecksum).ConfigureAwait(false);
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = new RemotableDataServiceFactory().CreateService(solution.Workspace.Services) as IRemotableDataService;
             using (var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(snapshot.SolutionChecksum);
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var solution = CreateFullSolution(hostServices);
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = new RemotableDataServiceFactory().CreateService(solution.Workspace.Services) as IRemotableDataService;
             using (var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 var solutionObject = await snapshotService.GetValueAsync<SolutionStateChecksums>(snapshot.SolutionChecksum);
@@ -213,7 +213,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             SolutionStateChecksums solutionId1;
             SolutionStateChecksums solutionId2;
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = new RemotableDataServiceFactory().CreateService(solution.Workspace.Services) as IRemotableDataService;
             using (var snapshot1 = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 solutionId1 = await snapshotService.GetValueAsync<SolutionStateChecksums>(snapshot1.SolutionChecksum).ConfigureAwait(false);
@@ -250,7 +250,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = new RemotableDataServiceFactory().CreateService(solution.Workspace.Services) as IRemotableDataService;
             var snapshot1 = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false);
 
             // recover solution from given snapshot
@@ -292,7 +292,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var solution = CreateFullSolution(hostServices);
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = new RemotableDataServiceFactory().CreateService(solution.Workspace.Services) as IRemotableDataService;
             var snapshot1 = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None).ConfigureAwait(false);
 
             // recover solution from given snapshot
@@ -455,7 +455,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             project = project.AddMetadataReference(metadata);
             project = project.AddAnalyzerReference(analyzer);
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(project.Solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = new RemotableDataServiceFactory().CreateService(project.Solution.Workspace.Services) as IRemotableDataService;
             using (var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(project.Solution, CancellationToken.None).ConfigureAwait(false))
             {
                 // this shouldn't throw
@@ -470,7 +470,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var project = new AdhocWorkspace(hostServices).CurrentSolution.AddProject("Project", "Project.dll", NullLanguageService.TestLanguage);
 
-            var snapshotService = (new RemotableDataServiceFactory()).CreateService(project.Solution.Workspace.Services) as IRemotableDataService;
+            var snapshotService = new RemotableDataServiceFactory().CreateService(project.Solution.Workspace.Services) as IRemotableDataService;
             using (var snapshot = await snapshotService.CreatePinnedRemotableDataScopeAsync(project.Solution, CancellationToken.None).ConfigureAwait(false))
             {
                 // this shouldn't throw
@@ -589,7 +589,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                                                    .AddMetadataReference(MetadataReference.CreateFromFile(tempCorlib.Path))
                                                    .Solution;
 
-                var snapshotService = (new RemotableDataServiceFactory()).CreateService(solution.Workspace.Services) as IRemotableDataService;
+                var snapshotService = new RemotableDataServiceFactory().CreateService(solution.Workspace.Services) as IRemotableDataService;
                 using (var scope = await snapshotService.CreatePinnedRemotableDataScopeAsync(solution, CancellationToken.None))
                 {
                     // recover solution from given snapshot

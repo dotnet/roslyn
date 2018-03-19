@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis
                 pstring.theString = sb.ToString();
             }
 
-            return (pstring);
+            return pstring;
         }
     }
 
@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis
             const WORD RT_MANIFEST = 24;
 
             var resWriter = new BinaryWriter(resStream);
-            resWriter.Write((DWORD)(manifestStream.Length));    //data size
+            resWriter.Write((DWORD)manifestStream.Length);    //data size
             resWriter.Write((DWORD)0x00000020);                 //header size
             resWriter.Write((WORD)0xFFFF);                      //identifies type as ordinal.
             resWriter.Write((WORD)RT_MANIFEST);                 //type

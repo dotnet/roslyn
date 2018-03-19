@@ -505,7 +505,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim members(originalTypeMembers.Length - 1) As NamedTypeSymbol
 
                 For i As Integer = 0 To members.Length - 1
-                    members(i) = (New UnboundGenericType.ConstructedSymbol(originalTypeMembers(i))).ConstructedFrom
+                    members(i) = New UnboundGenericType.ConstructedSymbol(originalTypeMembers(i)).ConstructedFrom
                 Next
 
                 Return members.AsImmutableOrNull()
@@ -516,7 +516,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Function
 
             Public Overrides Function GetTypeMembers(name As String, arity As Integer) As ImmutableArray(Of NamedTypeSymbol)
-                Return OriginalDefinition.GetTypeMembers(name, arity).SelectAsArray(Function(t) (New UnboundGenericType.ConstructedSymbol(t)).ConstructedFrom)
+                Return OriginalDefinition.GetTypeMembers(name, arity).SelectAsArray(Function(t) New UnboundGenericType.ConstructedSymbol(t).ConstructedFrom)
             End Function
 
             Friend Overrides Function InternalSubstituteTypeParameters(additionalSubstitution As TypeSubstitution) As TypeWithModifiers

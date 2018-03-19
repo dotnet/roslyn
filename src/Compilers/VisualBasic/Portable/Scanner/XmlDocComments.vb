@@ -243,7 +243,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             While CanGet(Here)
                 Dim c As Char = Peek(Here)
 
-                Select Case (c)
+                Select Case c
                     Case CARRIAGE_RETURN, LINE_FEED
                         If Here <> 0 Then
                             Return XmlMakeTextLiteralToken(precedingTrivia, Here, scratch)
@@ -286,7 +286,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             Select Case ch
                                 Case "!"c
                                     If CanGet(2) Then
-                                        Select Case (Peek(2))
+                                        Select Case Peek(2)
                                             Case "-"c
                                                 If NextIs(3, "-"c) Then
                                                     Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)
@@ -388,7 +388,7 @@ ScanChars:
             Dim Here = 0
             While CanGet(Here)
                 Dim c As Char = Peek(Here)
-                Select Case (c)
+                Select Case c
 
                     Case CARRIAGE_RETURN, LINE_FEED
                         result = XmlMakeProcessingInstructionToken(precedingTrivia.ToList, Here + LengthOfLineBreak(c, Here))
@@ -470,7 +470,7 @@ CleanUp:
 
                 Dim c As Char = Peek()
 
-                Select Case (c)
+                Select Case c
                     ' // Whitespace
                     ' //  S    ::=    (#x20 | #x9 | #xD | #xA)+
                     Case CARRIAGE_RETURN, LINE_FEED, " "c, CHARACTER_TABULATION
@@ -510,7 +510,7 @@ CleanUp:
                             Select Case ch
                                 Case "!"c
                                     If CanGet(2) Then
-                                        Select Case (Peek(2))
+                                        Select Case Peek(2)
                                             Case "-"c
                                                 If NextIs(3, "-"c) Then
                                                     Return XmlMakeBeginCommentToken(precedingTrivia, s_scanNoTriviaFunc)

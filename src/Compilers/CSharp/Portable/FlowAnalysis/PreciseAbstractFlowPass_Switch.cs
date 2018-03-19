@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var afterSwitchState = UnreachableState();
             var switchSections = node.SwitchSections;
-            var iLastSection = (switchSections.Length - 1);
+            var iLastSection = switchSections.Length - 1;
             // visit switch sections
             for (var iSection = 0; iSection <= iLastSection; iSection++)
             {
@@ -146,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var initialState = this.State;
             var afterSwitchState = UnreachableState();
             var switchSections = node.SwitchSections;
-            var iLastSection = (switchSections.Length - 1);
+            var iLastSection = switchSections.Length - 1;
 
             // simulate the dispatch (setting pattern variables and jumping to labels) to
             // all reachable switch labels

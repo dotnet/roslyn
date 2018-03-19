@@ -34,7 +34,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _truePreview = truePreview;
             _falsePreview = falsePreview;
 
-            var codeStyleOption = ((CodeStyleOption<bool>)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
+            var codeStyleOption = (CodeStyleOption<bool>)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null));
             _selectedPreference = Preferences.Single(c => c.IsChecked == codeStyleOption.Value);
 
             var notificationViewModel = NotificationPreferences.Single(i => i.Notification.Value == codeStyleOption.Notification.Value);

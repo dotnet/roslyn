@@ -733,7 +733,7 @@ BC35000: Requested operation is not available because the runtime library functi
 </errors>
             Dim compilation0 = CreateEmptyCompilationWithReferences(sources0, references:={MscorlibRef_v20})
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim compilation1 = CreateEmptyCompilationWithReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
@@ -988,7 +988,7 @@ End Class
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
@@ -1531,7 +1531,7 @@ End Interface
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0, verify:=Verification.Fails)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
@@ -1601,13 +1601,13 @@ End Interface
                 options:=TestOptions.DebugDll,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), SystemCoreRef})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=Verification.Fails)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True), SystemCoreRef})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator, verify:=Verification.Fails)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
         End Sub
 
         <Fact()>
@@ -1729,7 +1729,7 @@ End Structure
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Assert.Equal(1, [module].GetReferencedAssemblySymbols().Length)
@@ -1741,7 +1741,7 @@ End Structure
                 sources1,
                 references:={MscorlibRef, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             verifier.VerifyIL("S.F", <![CDATA[
 {
   // Code size       33 (0x21)
@@ -1761,7 +1761,7 @@ End Structure
                 sources1,
                 references:={MscorlibRef_v4_0_30316_17626, SystemRef, compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             verifier.VerifyIL("S.F", <![CDATA[
 {
   // Code size       33 (0x21)
@@ -1809,7 +1809,7 @@ End Module
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
@@ -1985,7 +1985,7 @@ End Class
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
@@ -2052,7 +2052,7 @@ End Class
                 options:=TestOptions.DebugDll,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), SystemCoreRef})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             verifier.VerifyIL("C.Add", expectedAdd)
             verifier.VerifyIL("C.Remove(Of T)", expectedRemove)
             compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
@@ -2060,7 +2060,7 @@ End Class
                 options:=TestOptions.DebugDll,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True), SystemCoreRef})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             verifier.VerifyIL("C.Add", expectedAdd)
             verifier.VerifyIL("C.Remove(Of T)", expectedRemove)
         End Sub
@@ -2101,7 +2101,7 @@ End Class
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
@@ -2130,13 +2130,13 @@ End Class
                 options:=TestOptions.DebugDll,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 options:=TestOptions.DebugDll,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
         End Sub
 
         <WorkItem(837420, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/837420")>
@@ -2388,7 +2388,7 @@ End Structure
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
@@ -2404,12 +2404,12 @@ End Structure
                 sources1,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
         End Sub
 
         <Fact()>
@@ -2442,7 +2442,7 @@ End Structure
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
@@ -2458,12 +2458,12 @@ End Structure
                 sources1,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
         End Sub
 
         <Fact()>
@@ -2490,7 +2490,7 @@ End Structure
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
@@ -2503,12 +2503,12 @@ End Structure
                 sources1,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
         End Sub
 
         <Fact()>
@@ -2538,7 +2538,7 @@ End Structure
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
@@ -2551,12 +2551,12 @@ End Structure
                 sources1,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
         End Sub
 
         <Fact()>
@@ -2587,7 +2587,7 @@ End Structure
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
@@ -2601,12 +2601,12 @@ End Structure
                 sources1,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
         End Sub
 
         <Fact()>
@@ -2635,7 +2635,7 @@ End Structure
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
@@ -2649,12 +2649,12 @@ End Structure
                 sources1,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
         End Sub
 
         <Fact()>
@@ -2682,7 +2682,7 @@ End Structure
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
@@ -2697,12 +2697,12 @@ End Structure
                 sources1,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
         End Sub
 
         <Fact()>
@@ -2732,7 +2732,7 @@ End Structure
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
@@ -2753,7 +2753,7 @@ BC30455: Argument not specified for parameter 'x' of 'Sub M(x As Date)'.
                 sources1,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
         End Sub
 
         <Fact()>
@@ -2785,7 +2785,7 @@ End Structure
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
@@ -2811,7 +2811,7 @@ BC30455: Argument not specified for parameter 'x' of 'Sub M2(x As Decimal)'.
                 sources1,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
         End Sub
 
         <Fact()>
@@ -2843,7 +2843,7 @@ End Structure
                 sources0,
                 references:={SystemRef})
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
@@ -2865,7 +2865,7 @@ BC30455: Argument not specified for parameter 'x' of 'Sub M(x As Decimal)'.
                 sources1,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
         End Sub
 
         <Fact()>
@@ -2891,7 +2891,7 @@ End Structure
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
@@ -2904,12 +2904,12 @@ End Structure
                 sources1,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
         End Sub
 
         <Fact()>
@@ -2940,7 +2940,7 @@ End Structure
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
@@ -2953,12 +2953,12 @@ End Structure
                 sources1,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
         End Sub
 
         ' See C# TypeNameConflict1 test.
@@ -3148,7 +3148,7 @@ End Class
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
@@ -3158,34 +3158,34 @@ End Class
                 sources1,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation1)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             ' No errors for /r:0.dll /r:1.dll.
             Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=False), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             ' Errors for /l:0.dll /r:1.dll.
             compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True), compilation1.EmitToImageReference(embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
         End Sub
 
         <Fact()>
@@ -3225,7 +3225,7 @@ BC40059: A reference was created to embedded interop assembly '0, Version=0.0.0.
 </errors>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Dim references = [module].GetReferencedAssemblySymbols()
@@ -3236,13 +3236,13 @@ BC40059: A reference was created to embedded interop assembly '0, Version=0.0.0.
                 sources1,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation1)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             ' No errors for /r:0.dll /r:1.dll.
             Dim compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=False), New VisualBasicCompilationReference(compilation1, embedInteropTypes:=False)})
             verifier = CompileAndVerify(compilation2)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             ' Errors for /l:0.dll /r:1.dll.
             compilation2 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources2,
@@ -3466,7 +3466,7 @@ End Class
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             Dim validator As Action(Of ModuleSymbol) = Sub([module])
                                                            DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                            Assert.Equal(1, [module].GetReferencedAssemblySymbols().Length)
@@ -3482,12 +3482,12 @@ End Class
                 sources1,
                 references:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
             compilation1 = CreateCompilationWithMscorlib40AndReferences(
                 sources1,
                 references:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
         End Sub
 
         <Fact()>
@@ -4176,7 +4176,7 @@ End Class
                            </compilation>
             Dim compilation0 = CreateCompilationWithMscorlib40(sources0)
             Dim verifier = CompileAndVerify(compilation0)
-            AssertTheseDiagnostics(verifier, (<errors/>))
+            AssertTheseDiagnostics(verifier, <errors/>)
 
             Dim compilation1 = CreateCompilationWithMscorlib40AndVBRuntimeAndReferences(
                 sources1,

@@ -51,18 +51,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
             namespaces.Enqueue(msCorLibRef.Modules(0).GlobalNamespace)
             Dim count As Integer = 0
 
-            While (namespaces.Count > 0)
+            While namespaces.Count > 0
 
                 For Each m In namespaces.Dequeue().GetMembers()
                     Dim ns = TryCast(m, NamespaceSymbol)
 
-                    If (ns IsNot Nothing) Then
+                    If ns IsNot Nothing Then
                         namespaces.Enqueue(ns)
-                    ElseIf (DirectCast(m, NamedTypeSymbol).SpecialType <> SpecialType.None) Then
+                    ElseIf DirectCast(m, NamedTypeSymbol).SpecialType <> SpecialType.None Then
                         count += 1
                     End If
 
-                    If (count >= SpecialType.Count) Then
+                    If count >= SpecialType.Count Then
                         Assert.False(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
                     End If
                 Next
@@ -82,7 +82,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.CorLibrary
                 Dim t = msCorLibRef.GetSpecialType(CType(i, SpecialType))
                 Assert.Equal(CType(i, SpecialType), t.SpecialType)
 
-                If (t.SpecialType = SpecialType.System_Object) Then
+                If t.SpecialType = SpecialType.System_Object Then
                     Assert.NotEqual(TypeKind.Error, t.TypeKind)
                 Else
                     Assert.Equal(TypeKind.Error, t.TypeKind)
@@ -112,7 +112,7 @@ ENd NAmespace
             Dim msCorLibRef = DirectCast(c1.Assembly, MetadataOrSourceAssemblySymbol)
 
             For i As Integer = 1 To SpecialType.Count
-                If (i <> SpecialType.System_Object) Then
+                If i <> SpecialType.System_Object Then
                     Assert.True(msCorLibRef.KeepLookingForDeclaredSpecialTypes)
                     Dim t = c1.Assembly.GetSpecialType(CType(i, SpecialType))
                     Assert.Equal(CType(i, SpecialType), t.SpecialType)

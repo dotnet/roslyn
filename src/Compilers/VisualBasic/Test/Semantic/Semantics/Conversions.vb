@@ -2083,7 +2083,7 @@ End Class
                     Assert.Equal(convClass, Conversions.ConversionEasyOut.ClassifyPredefinedConversion(types(i), types(j)))
                     Assert.Equal(convClass, ClassifyConversion(types(i), types(j)))
 
-                    If (i = j) Then
+                    If i = j Then
                         Assert.True(Conversions.IsIdentityConversion(convClass))
                     Else
                         Dim baseline = HasBuiltInWideningConversions(types(i), types(j))
@@ -2114,13 +2114,13 @@ End Class
 
                 'Nullable Value Type conversions
                 '•	From a type T? to a type S?, where there is a widening conversion from the type T to the type S.
-                If (fromIsNullable AndAlso toIsNullable) Then
+                If fromIsNullable AndAlso toIsNullable Then
                     If (HasBuiltInWideningConversions(fromElement, toElement) And ConversionKind.Widening) <> 0 Then
                         Return ConversionKind.WideningNullable
                     End If
                 End If
 
-                If (Not fromIsNullable AndAlso toIsNullable) Then
+                If Not fromIsNullable AndAlso toIsNullable Then
                     '•	From a type T to the type T?.
                     If from.Equals(toElement) Then
                         Return ConversionKind.WideningNullable
@@ -2151,7 +2151,7 @@ End Class
                 Dim fromElement = If(fromIsNullable, from.GetNullableUnderlyingType(), Nothing)
 
                 'Nullable Value Type conversions
-                If (fromIsNullable AndAlso Not toIsNullable) Then
+                If fromIsNullable AndAlso Not toIsNullable Then
                     '•	From a type T? to a type T.
                     If fromElement.Equals([to]) Then
                         Return ConversionKind.NarrowingNullable
@@ -2165,14 +2165,14 @@ End Class
                 End If
 
                 '•	From a type T? to a type S?, where there is a narrowing conversion from the type T to the type S.
-                If (fromIsNullable AndAlso toIsNullable) Then
+                If fromIsNullable AndAlso toIsNullable Then
                     If (HasBuiltInNarrowingConversions(fromElement, toElement) And ConversionKind.Narrowing) <> 0 Then
                         Return ConversionKind.NarrowingNullable
                     End If
                 End If
 
                 '•	From a type T to a type S?, where there is a narrowing conversion from the type T to the type S.
-                If (Not fromIsNullable AndAlso toIsNullable) Then
+                If Not fromIsNullable AndAlso toIsNullable Then
                     If (HasBuiltInNarrowingConversions(from, toElement) And ConversionKind.Narrowing) <> 0 Then
                         Return ConversionKind.NarrowingNullable
                     End If

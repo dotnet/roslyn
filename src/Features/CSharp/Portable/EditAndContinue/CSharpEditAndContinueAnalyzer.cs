@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             if (node.IsKind(SyntaxKind.VariableDeclarator))
             {
-                return (((VariableDeclaratorSyntax)node).Initializer)?.Value;
+                return ((VariableDeclaratorSyntax)node).Initializer?.Value;
             }
 
             return SyntaxUtilities.TryGetMethodDeclarationBody(node);

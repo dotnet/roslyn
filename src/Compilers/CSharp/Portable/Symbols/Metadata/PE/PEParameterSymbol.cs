@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 if (value)
                 {
                     // the actual value:
-                    bitsToSet |= ((int)flag << WellKnownAttributeDataOffset);
+                    bitsToSet |= (int)flag << WellKnownAttributeDataOffset;
                 }
 
                 ThreadSafeFlagOperations.Set(ref _bits, bitsToSet);
@@ -749,7 +749,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
                 // Filter out ParamArrayAttributes if necessary and cache
                 // the attribute handle for GetCustomAttributesToEmit
-                bool filterOutParamArrayAttribute = (!_lazyIsParams.HasValue() || _lazyIsParams.Value());
+                bool filterOutParamArrayAttribute = !_lazyIsParams.HasValue() || _lazyIsParams.Value();
 
                 ConstantValue defaultValue = this.ExplicitDefaultConstantValue;
                 AttributeDescription filterOutConstantAttributeDescription = default(AttributeDescription);

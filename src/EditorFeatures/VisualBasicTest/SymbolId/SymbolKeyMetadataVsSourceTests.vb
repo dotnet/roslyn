@@ -78,15 +78,15 @@ End Class
             ' Metadata symbols
             Dim typesym = TryCast(comp2.SourceModule.GlobalNamespace.GetTypeMembers("App").FirstOrDefault(), INamedTypeSymbol)
             ' NYI 'D'
-            Dim mtSym01 = (TryCast(typesym.GetMembers("myEvent").[Single](), IEventSymbol)).Type
+            Dim mtSym01 = TryCast(typesym.GetMembers("myEvent").[Single](), IEventSymbol).Type
             ' 'I'
-            Dim mtSym02 = (TryCast(typesym.GetMembers("Prop").[Single](), IPropertySymbol)).Type
+            Dim mtSym02 = TryCast(typesym.GetMembers("Prop").[Single](), IPropertySymbol).Type
             ' 'C'
             Dim mtSym03 = typesym.BaseType
             ' 'S'
-            Dim mtSym04 = (TryCast(typesym.GetMembers("M").[Single](), IMethodSymbol)).Parameters(0).Type
+            Dim mtSym04 = TryCast(typesym.GetMembers("M").[Single](), IMethodSymbol).Parameters(0).Type
             ' 'E'
-            Dim mtSym05 = (TryCast(typesym.GetMembers("Item").[Single](), IPropertySymbol)).Type
+            Dim mtSym05 = TryCast(typesym.GetMembers("Item").[Single](), IPropertySymbol).Type
 
             ResolveAndVerifySymbol(mtSym03, originalSymbols(0), comp1, SymbolIdComparison.None)
             ResolveAndVerifySymbol(mtSym01, originalSymbols(1), comp1, SymbolIdComparison.None)

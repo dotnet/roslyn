@@ -67,16 +67,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If Not Me.IsDefinition Then
                 If Me.IsGenericMethod AndAlso Me IsNot Me.ConstructedFrom Then
-                    Debug.Assert((DirectCast(Me, Cci.IMethodReference)).AsGenericMethodInstanceReference IsNot Nothing)
+                    Debug.Assert(DirectCast(Me, Cci.IMethodReference).AsGenericMethodInstanceReference IsNot Nothing)
                     visitor.Visit(DirectCast(Me, Cci.IGenericMethodInstanceReference))
                 Else
-                    Debug.Assert((DirectCast(Me, Cci.IMethodReference)).AsSpecializedMethodReference IsNot Nothing)
+                    Debug.Assert(DirectCast(Me, Cci.IMethodReference).AsSpecializedMethodReference IsNot Nothing)
                     visitor.Visit(DirectCast(Me, Cci.ISpecializedMethodReference))
                 End If
             Else
                 Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(visitor.Context.Module, PEModuleBuilder)
                 If Me.ContainingModule = moduleBeingBuilt.SourceModule Then
-                    Debug.Assert((DirectCast(Me, Cci.IMethodReference)).GetResolvedMethod(visitor.Context) IsNot Nothing)
+                    Debug.Assert(DirectCast(Me, Cci.IMethodReference).GetResolvedMethod(visitor.Context) IsNot Nothing)
                     visitor.Visit(DirectCast(Me, Cci.IMethodDefinition))
                 Else
                     visitor.Visit(DirectCast(Me, Cci.IMethodReference))
@@ -195,14 +195,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function IGenericMethodInstanceReferenceGetGenericArguments(context As EmitContext) As IEnumerable(Of Cci.ITypeReference) Implements Cci.IGenericMethodInstanceReference.GetGenericArguments
             Dim moduleBeingBuilt As PEModuleBuilder = DirectCast(context.Module, PEModuleBuilder)
 
-            Debug.Assert((DirectCast(Me, Cci.IMethodReference)).AsGenericMethodInstanceReference IsNot Nothing)
+            Debug.Assert(DirectCast(Me, Cci.IMethodReference).AsGenericMethodInstanceReference IsNot Nothing)
 
             Return From arg In Me.TypeArguments
                    Select moduleBeingBuilt.Translate(arg, syntaxNodeOpt:=DirectCast(context.SyntaxNodeOpt, VisualBasicSyntaxNode), diagnostics:=context.Diagnostics)
         End Function
 
         Private Function IGenericMethodInstanceReferenceGetGenericMethod(context As EmitContext) As Cci.IMethodReference Implements Cci.IGenericMethodInstanceReference.GetGenericMethod
-            Debug.Assert((DirectCast(Me, Cci.IMethodReference)).AsGenericMethodInstanceReference IsNot Nothing)
+            Debug.Assert(DirectCast(Me, Cci.IMethodReference).AsGenericMethodInstanceReference IsNot Nothing)
 
             If Me.OriginalDefinition IsNot Me.ConstructedFrom Then
                 Return Me.ConstructedFrom
@@ -210,7 +210,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim container As NamedTypeSymbol = Me.ContainingType
 
-            If (Not container.IsOrInGenericType()) Then
+            If Not container.IsOrInGenericType() Then
                 Return Me.OriginalDefinition
                 ' NoPia method might come through here.
                 Return DirectCast(context.Module, PEModuleBuilder).Translate(
@@ -226,7 +226,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private ReadOnly Property ISpecializedMethodReferenceUnspecializedVersion As Cci.IMethodReference Implements Cci.ISpecializedMethodReference.UnspecializedVersion
             Get
-                Debug.Assert((DirectCast(Me, Cci.IMethodReference)).AsSpecializedMethodReference IsNot Nothing)
+                Debug.Assert(DirectCast(Me, Cci.IMethodReference).AsSpecializedMethodReference IsNot Nothing)
                 Return Me.OriginalDefinition
             End Get
         End Property
@@ -253,7 +253,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private Function IMethodDefinitionGetBody(context As EmitContext) As Cci.IMethodBody Implements Cci.IMethodDefinition.GetBody
             CheckDefinitionInvariant()
-            Return (DirectCast(context.Module, PEModuleBuilder)).GetMethodBody(Me)
+            Return DirectCast(context.Module, PEModuleBuilder).GetMethodBody(Me)
         End Function
 
         Private ReadOnly Property IMethodDefinitionGenericParameters As IEnumerable(Of Cci.IGenericMethodParameter) Implements Cci.IMethodDefinition.GenericParameters

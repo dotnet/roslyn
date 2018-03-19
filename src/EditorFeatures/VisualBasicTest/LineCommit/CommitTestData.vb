@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.LineCommit
             Buffer = workspace.Documents.Single().TextBuffer
 
             ' HACK: We may have already created a CommitBufferManager for the buffer, so remove it
-            If (Buffer.Properties.ContainsProperty(GetType(CommitBufferManager))) Then
+            If Buffer.Properties.ContainsProperty(GetType(CommitBufferManager)) Then
                 Dim oldManager = Buffer.Properties.GetProperty(Of CommitBufferManager)(GetType(CommitBufferManager))
                 oldManager.RemoveReferencingView()
                 Buffer.Properties.RemoveProperty(GetType(CommitBufferManager))

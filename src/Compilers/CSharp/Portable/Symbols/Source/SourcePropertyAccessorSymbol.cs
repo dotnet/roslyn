@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             Debug.Assert(syntax.Kind() == SyntaxKind.GetAccessorDeclaration || syntax.Kind() == SyntaxKind.SetAccessorDeclaration);
 
-            bool isGetMethod = (syntax.Kind() == SyntaxKind.GetAccessorDeclaration);
+            bool isGetMethod = syntax.Kind() == SyntaxKind.GetAccessorDeclaration;
             string name;
             ImmutableArray<MethodSymbol> explicitInterfaceImplementations;
             GetNameAndExplicitInterfaceImplementations(
@@ -427,7 +427,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((mods & DeclarationModifiers.AccessibilityMask) != 0)
                 {
                     diagnostics.Add(ErrorCode.ERR_PropertyAccessModInInterface, location, this);
-                    mods = (mods & ~DeclarationModifiers.AccessibilityMask);
+                    mods = mods & ~DeclarationModifiers.AccessibilityMask;
                 }
             }
 

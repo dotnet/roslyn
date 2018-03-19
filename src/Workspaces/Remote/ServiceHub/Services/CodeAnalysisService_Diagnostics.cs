@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Remote
                         var projectId = arguments.ProjectId;
                         var analyzers = RoslynServices.AssetService.GetGlobalAssetsOfType<AnalyzerReference>(token);
 
-                        var result = await (new DiagnosticComputer(solution.GetProject(projectId))).GetDiagnosticsAsync(
+                        var result = await new DiagnosticComputer(solution.GetProject(projectId)).GetDiagnosticsAsync(
                             analyzers, optionSet, arguments.AnalyzerIds, arguments.ReportSuppressedDiagnostics, arguments.LogAnalyzerExecutionTime, token).ConfigureAwait(false);
 
                         await SerializeDiagnosticResultAsync(streamName, result, token).ConfigureAwait(false);

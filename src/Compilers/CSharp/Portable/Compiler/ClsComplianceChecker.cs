@@ -1107,7 +1107,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Compliance GetDeclaredOrInheritedCompliance(Symbol symbol)
         {
-            System.Diagnostics.Debug.Assert(symbol.Kind == SymbolKind.NamedType || !((symbol is TypeSymbol)),
+            System.Diagnostics.Debug.Assert(symbol.Kind == SymbolKind.NamedType || !(symbol is TypeSymbol),
                 "Type kinds without declarations are handled elsewhere.");
 
             if (symbol.Kind == SymbolKind.Namespace)

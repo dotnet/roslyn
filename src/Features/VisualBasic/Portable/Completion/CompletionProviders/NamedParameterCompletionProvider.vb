@@ -178,19 +178,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             While current IsNot Nothing
                 If TypeOf current Is AttributeSyntax Then
                     invocableNode = current
-                    argumentList = (DirectCast(current, AttributeSyntax)).ArgumentList
+                    argumentList = DirectCast(current, AttributeSyntax).ArgumentList
                     Return
                 End If
 
                 If TypeOf current Is InvocationExpressionSyntax Then
                     invocableNode = current
-                    argumentList = (DirectCast(current, InvocationExpressionSyntax)).ArgumentList
+                    argumentList = DirectCast(current, InvocationExpressionSyntax).ArgumentList
                     Return
                 End If
 
                 If TypeOf current Is ObjectCreationExpressionSyntax Then
                     invocableNode = current
-                    argumentList = (DirectCast(current, ObjectCreationExpressionSyntax)).ArgumentList
+                    argumentList = DirectCast(current, ObjectCreationExpressionSyntax).ArgumentList
                     Return
                 End If
 

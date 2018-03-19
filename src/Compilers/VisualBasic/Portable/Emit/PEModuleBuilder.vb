@@ -245,7 +245,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                                     Case SymbolKind.Event
                                         AddSymbolLocation(result, member)
-                                        Dim AssociatedField = (DirectCast(member, EventSymbol)).AssociatedField
+                                        Dim AssociatedField = DirectCast(member, EventSymbol).AssociatedField
 
                                         If AssociatedField IsNot Nothing Then
                                             ' event backing fields do not show up in GetMembers
@@ -277,7 +277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim span As FileLinePositionSpan = location.GetLineSpan()
 
             Dim doc As Cci.DebugSourceDocument = DebugDocumentsBuilder.TryGetDebugDocument(span.Path, basePath:=location.SourceTree.FilePath)
-            If (doc IsNot Nothing) Then
+            If doc IsNot Nothing Then
                 result.Add(doc,
                        New Cci.DefinitionWithLocation(
                            definition,

@@ -18583,7 +18583,7 @@ public class Cls
                 var tree = context.Node.SyntaxTree;
                 var model = context.SemanticModel;
                 var constructorDeclaration = (ConstructorDeclarationSyntax)context.Node.Parent;
-                SyntaxTreeSemanticModel syntaxTreeModel = ((SyntaxTreeSemanticModel)model);
+                SyntaxTreeSemanticModel syntaxTreeModel = (SyntaxTreeSemanticModel)model;
 
                 Assert.True(syntaxTreeModel.TestOnlyMemberModels.ContainsKey(constructorDeclaration));
 

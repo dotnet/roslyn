@@ -61,7 +61,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Operator
 
         Public Shared Operator <>(a As BoundTypeOrValueData, b As BoundTypeOrValueData) As Boolean
-            Return Not (a = b)
+            Return Not a = b
         End Operator
 
         Public Overrides Function Equals(obj As Object) As Boolean

@@ -19,7 +19,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim i As Integer = 0
             Dim n As Integer = If(list.IsDefault, 0, list.Length)
 
-            While (i < n)
+            While i < n
                 Dim item As T = list.Item(i)
                 Debug.Assert(item IsNot Nothing)
 

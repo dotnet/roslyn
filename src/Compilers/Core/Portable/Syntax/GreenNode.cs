@@ -103,7 +103,7 @@ namespace Microsoft.CodeAnalysis
         protected void AdjustFlagsAndWidth(GreenNode node)
         {
             Debug.Assert(node != null, "PERF: caller must ensure that node!=null, we do not want to re-check that here.");
-            this.flags |= (node.flags & NodeFlags.InheritMask);
+            this.flags |= node.flags & NodeFlags.InheritMask;
             _fullWidth += node._fullWidth;
         }
 
@@ -944,7 +944,7 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(this.IsCacheable);
 
-            int code = (int)(this.flags) ^ this.RawKind;
+            int code = (int)this.flags ^ this.RawKind;
             int cnt = this.SlotCount;
             for (int i = 0; i < cnt; i++)
             {

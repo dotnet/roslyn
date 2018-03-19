@@ -218,7 +218,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim typeParameterAwareBinder As Binder = Me.GetOrCreateTypeParametersAwareBinder(crefReference)
 
             Dim result As Symbol
-            If (diagnosticBag Is Nothing) Then
+            If diagnosticBag Is Nothing Then
                 Dim diagnostics = DiagnosticBag.GetInstance
                 result = typeParameterAwareBinder.BindNamespaceOrTypeOrAliasSyntax(name, diagnostics)
                 diagnostics.Free()

@@ -434,14 +434,14 @@ namespace Microsoft.CodeAnalysis
                     Debug.Assert(x.Description != null && x.Title != null && x.CustomTags != null);
                     Debug.Assert(y.Description != null && y.Title != null && y.CustomTags != null);
 
-                    return (x.Category == y.Category
+                    return x.Category == y.Category
                         && x.DefaultSeverity == y.DefaultSeverity
                         && x.Description.Equals(y.Description)
                         && x.HelpLinkUri == y.HelpLinkUri
                         && x.Id == y.Id
                         && x.IsEnabledByDefault == y.IsEnabledByDefault
                         && x.Title.Equals(y.Title)
-                        && x.CustomTags.SequenceEqual(y.CustomTags));
+                        && x.CustomTags.SequenceEqual(y.CustomTags);
                 }
 
                 public int GetHashCode(DiagnosticDescriptor obj)

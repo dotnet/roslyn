@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax
             ' Captures reporting state for specific warnings. Diagnostic ids must be processed in case-insensitive fashion in VB.
             Dim accumulatedSpecificWarningState = ImmutableDictionary.Create(Of String, ReportDiagnostic)(CaseInsensitiveComparison.Comparer)
 
-            While (index < directiveList.Length)
+            While index < directiveList.Length
                 Dim currentDirective = directiveList(index)
                 Dim reportingState As ReportDiagnostic
                 Dim codes As SeparatedSyntaxList(Of IdentifierNameSyntax)

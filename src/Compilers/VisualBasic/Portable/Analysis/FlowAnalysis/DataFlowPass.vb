@@ -404,7 +404,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Dim slot As Integer
-            Return If((_variableSlot.TryGetValue(New VariableIdentifier(symbol, containingSlot), slot)), slot, SlotKind.NotTracked)
+            Return If(_variableSlot.TryGetValue(New VariableIdentifier(symbol, containingSlot), slot), slot, SlotKind.NotTracked)
 
         End Function
 

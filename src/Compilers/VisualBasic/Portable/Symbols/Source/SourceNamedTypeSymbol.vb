@@ -325,7 +325,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Case VisualBasic.Symbols.DeclarationKind.Module
                         If (foundModifiers And DeclarationModifiers.InvalidInModule) <> 0 Then
                             binder.ReportModifierError(modifiers, ERRID.ERR_ModuleCantUseTypeSpecifier1, diagBag, InvalidModifiersInModule)
-                            foundModifiers = (foundModifiers And (Not DeclarationModifiers.InvalidInModule))
+                            foundModifiers = foundModifiers And (Not DeclarationModifiers.InvalidInModule)
                         End If
 
                     Case VisualBasic.Symbols.DeclarationKind.Interface
@@ -353,7 +353,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                         SyntaxKind.ProtectedKeyword,
                                                                         SyntaxKind.SharedKeyword)
 
-                                        foundModifiers = (foundModifiers And (Not invalidModifiers))
+                                        foundModifiers = foundModifiers And (Not invalidModifiers)
                                     End If
                             End Select
 
@@ -365,7 +365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                                                 SyntaxKind.PublicKeyword,
                                                                 SyntaxKind.SharedKeyword)
 
-                                foundModifiers = (foundModifiers And (Not DeclarationModifiers.InvalidInInterface))
+                                foundModifiers = foundModifiers And (Not DeclarationModifiers.InvalidInInterface)
                             End If
                         End If
 
@@ -379,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 If (foundModifiers And DeclarationModifiers.Shadows) <> 0 Then
                     Binder.ReportDiagnostic(diagBag, id, ERRID.ERR_ShadowingTypeOutsideClass1, id.ToString())
-                    foundModifiers = (foundModifiers And (Not DeclarationModifiers.Shadows))
+                    foundModifiers = foundModifiers And (Not DeclarationModifiers.Shadows)
                 End If
 
             End If
@@ -388,7 +388,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If (foundModifiers And DeclarationModifiers.Protected) <> 0 AndAlso
                 (Not isNested OrElse containingType.DeclarationKind <> VisualBasic.Symbols.DeclarationKind.Class) Then
                 Binder.ReportDiagnostic(diagBag, id, ERRID.ERR_ProtectedTypeOutsideClass)
-                foundModifiers = (foundModifiers And (Not DeclarationModifiers.Protected))
+                foundModifiers = foundModifiers And (Not DeclarationModifiers.Protected)
             End If
 
             Return foundModifiers
@@ -549,10 +549,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                         Else
                             ' Neither of types is embedded.
-                            If (Me.ContainingType Is Nothing OrElse
+                            If Me.ContainingType Is Nothing OrElse
                                     container.Locations.Length = 1 OrElse
                                     Not (TypeOf container Is SourceMemberContainerTypeSymbol) OrElse
-                                    CType(container, SourceMemberContainerTypeSymbol).IsPartial) Then
+                                    CType(container, SourceMemberContainerTypeSymbol).IsPartial Then
                                 Binder.ReportDiagnostic(diagBag, id, ERRID.ERR_TypeConflict6,
                                                         Me.GetKindText(), id.ToString, _3rdArg, s.Name,
                                                         container.GetKindText(), Me.ContainingSymbol.ToErrorMessageArgument(ERRID.ERR_TypeConflict6))
@@ -2437,7 +2437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend Overrides ReadOnly Property MarshallingCharSet As CharSet
             Get
                 Dim data = GetDecodedWellKnownAttributeData()
-                Return If((data IsNot Nothing AndAlso data.HasStructLayoutAttribute), data.MarshallingCharSet, DefaultMarshallingCharSet)
+                Return If(data IsNot Nothing AndAlso data.HasStructLayoutAttribute, data.MarshallingCharSet, DefaultMarshallingCharSet)
             End Get
         End Property
 

@@ -570,11 +570,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Utilities
             Dim originalIsUserDefined = originalConversion.IsUserDefined
             Dim newIsUserDefined = newConversion.IsUserDefined
 
-            If (originalIsUserDefined <> newIsUserDefined) Then
+            If originalIsUserDefined <> newIsUserDefined Then
                 Return False
             End If
 
-            If (originalIsUserDefined OrElse originalConversion.MethodSymbol IsNot Nothing OrElse newConversion.MethodSymbol IsNot Nothing) Then
+            If originalIsUserDefined OrElse originalConversion.MethodSymbol IsNot Nothing OrElse newConversion.MethodSymbol IsNot Nothing Then
                 Return SymbolsAreCompatible(originalConversion.MethodSymbol, newConversion.MethodSymbol)
             End If
 

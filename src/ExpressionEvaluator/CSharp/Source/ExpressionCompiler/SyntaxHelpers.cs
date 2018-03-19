@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         }
                         builder.Add(token);
                         start = -1;
-                        expectingComma = (c != ',');
+                        expectingComma = c != ',';
                     }
                     else if (c == ',')
                     {

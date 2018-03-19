@@ -13,7 +13,7 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CaseCorrecting
     Public Class CaseCorrectionServiceTests
         Private Async Function TestAsync(input As XElement, expected As XElement, Optional interProject As Boolean = False) As Tasks.Task
-            If (interProject) Then
+            If interProject Then
                 Await TestAsync(input, expected.NormalizedValue)
             Else
                 Await TestAsync(input.NormalizedValue, expected.NormalizedValue)

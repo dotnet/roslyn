@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function GetConstantValueAsInt64(ByRef value As ConstantValue) As Long
-            Select Case (value.Discriminator)
+            Select Case value.Discriminator
                 Case ConstantValueTypeDiscriminator.SByte : Return value.SByteValue
                 Case ConstantValueTypeDiscriminator.Byte : Return value.ByteValue
                 Case ConstantValueTypeDiscriminator.Int16 : Return value.Int16Value
@@ -177,7 +177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function GetConstantValue(type As ConstantValueTypeDiscriminator, value As Long) As ConstantValue
             Dim result As ConstantValue
 
-            Select Case (type)
+            Select Case type
                 Case ConstantValueTypeDiscriminator.SByte : result = ConstantValue.Create(UncheckedCSByte(value))
                 Case ConstantValueTypeDiscriminator.Byte : result = ConstantValue.Create(UncheckedCByte(value))
                 Case ConstantValueTypeDiscriminator.Int16 : result = ConstantValue.Create(UncheckedCShort(value))
@@ -205,7 +205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ) As Long
             Dim resultValue As Long = 0
 
-            Select Case (resultType)
+            Select Case resultType
 
                 Case ConstantValueTypeDiscriminator.Boolean
                     resultValue = If(sourceValue = 0, 0, 1)
@@ -365,7 +365,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim overflow As Boolean = False
 
-            If (ConstantValue.IsBooleanType(targetType)) Then
+            If ConstantValue.IsBooleanType(targetType) Then
 
                 Return ConvertIntegralValue(If(sourceValue = 0.0, 0, 1),
                                             ConstantValueTypeDiscriminator.Int64,
@@ -539,7 +539,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 overflow = True
             End If
 
-            Select Case (resultType)
+            Select Case resultType
 
                 Case ConstantValueTypeDiscriminator.Double
                     Return value
@@ -599,7 +599,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Return False
                     End If
                 Else
-                    Dim temporary As Double = (sourceValue - &HF000000000000000UL)
+                    Dim temporary As Double = sourceValue - &HF000000000000000UL
 
                     If temporary < &H7000000000000000L AndAlso UncheckedCLng(temporary) < &H1000000000000000L Then
                         Return False
@@ -615,7 +615,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
                 Else
                     If sourceValue > &H7000000000000000L Then
-                        Dim temporary As Double = (sourceValue - &H7000000000000000L)
+                        Dim temporary As Double = sourceValue - &H7000000000000000L
 
                         If temporary < &H7000000000000000L AndAlso UncheckedCLng(temporary) > &H1000000000000000L Then
                             Return False
@@ -656,7 +656,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function TypeAllowsCompileTimeOperations(type As ConstantValueTypeDiscriminator) As Boolean
-            Select Case (type)
+            Select Case type
                 Case ConstantValueTypeDiscriminator.Boolean,
                      ConstantValueTypeDiscriminator.SByte,
                      ConstantValueTypeDiscriminator.Byte,

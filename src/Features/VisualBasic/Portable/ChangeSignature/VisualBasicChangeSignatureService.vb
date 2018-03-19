@@ -461,7 +461,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ChangeSignature
                 End If
 
                 Dim identifier = nameAttribute.DescendantNodes(descendIntoTrivia:=True).OfType(Of IdentifierNameSyntax)().FirstOrDefault()
-                If (identifier Is Nothing OrElse identifier.ToString() <> declaredParameters.ElementAt(i).Name) Then
+                If identifier Is Nothing OrElse identifier.ToString() <> declaredParameters.ElementAt(i).Name Then
                     Return Nothing
                 End If
 

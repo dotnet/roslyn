@@ -446,7 +446,7 @@ End Namespace
         <Fact>
         <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllSpecialTypes()
-            Dim comp = CreateEmptyCompilationWithReferences((<compilation/>), {MscorlibRef_v4_0_30316_17626})
+            Dim comp = CreateEmptyCompilationWithReferences(<compilation/>, {MscorlibRef_v4_0_30316_17626})
 
             For special As SpecialType = CType(SpecialType.None + 1, SpecialType) To SpecialType.Count
                 Dim symbol = comp.GetSpecialType(special)
@@ -458,7 +458,7 @@ End Namespace
         <Fact>
         <WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")>
         Public Sub AllSpecialTypeMembers()
-            Dim comp = CreateEmptyCompilationWithReferences((<compilation/>), {MscorlibRef_v4_0_30316_17626})
+            Dim comp = CreateEmptyCompilationWithReferences(<compilation/>, {MscorlibRef_v4_0_30316_17626})
 
             For Each special As SpecialMember In [Enum].GetValues(GetType(SpecialMember))
                 Select Case special
@@ -494,7 +494,7 @@ End Namespace
             }.Concat(WinRtRefs).ToArray()
 
             Dim lastType = CType(WellKnownType.NextAvailable - 1, WellKnownType)
-            Dim comp = CreateEmptyCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
+            Dim comp = CreateEmptyCompilationWithReferences(<compilation/>, refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
             For wkt = WellKnownType.First To lastType
                 Select Case wkt
                     Case WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators
@@ -578,7 +578,7 @@ End Namespace
                 ValueTupleRef
             }.Concat(WinRtRefs).ToArray()
 
-            Dim comp = CreateEmptyCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
+            Dim comp = CreateEmptyCompilationWithReferences(<compilation/>, refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
             For Each wkm As WellKnownMember In [Enum].GetValues(GetType(WellKnownMember))
                 Select Case wkm
                     Case WellKnownMember.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators__CompareStringStringStringBoolean

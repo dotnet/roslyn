@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             var declaredInterfaces = GetDeclaredInterfaces(basesBeingResolved: basesBeingResolved);
-            bool isClass = (typeKind == TypeKind.Class);
+            bool isClass = typeKind == TypeKind.Class;
 
             ArrayBuilder<NamedTypeSymbol> result = isClass ? null : ArrayBuilder<NamedTypeSymbol>.GetInstance();
             foreach (var t in declaredInterfaces)

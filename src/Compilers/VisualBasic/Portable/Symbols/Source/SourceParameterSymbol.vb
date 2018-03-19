@@ -113,7 +113,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     Return True
                 End If
 
-                Return (GetMatchingPropertyParameter() IsNot Nothing)
+                Return GetMatchingPropertyParameter() IsNot Nothing
             End Get
         End Property
 

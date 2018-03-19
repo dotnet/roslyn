@@ -159,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Rename.ConflictEngine
                                 if (phase == 0)
                                 {
                                     _conflictLocations = conflictResolution.RelatedLocations
-                                        .Where(loc => (documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossiblyResolvableConflict && loc.IsReference))
+                                        .Where(loc => documentIdsThatGetsAnnotatedAndRenamed.Contains(loc.DocumentId) && loc.Type == RelatedLocationType.PossiblyResolvableConflict && loc.IsReference)
                                         .Select(loc => new ConflictLocationInfo(loc))
                                         .ToSet();
 

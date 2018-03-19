@@ -3222,7 +3222,7 @@ BC30439: Constant expression not representable in type 'Byte'.
 
         Private Class ExpectedSymbolVerifier
             Public Shared Function ConversionOrDelegateChildSelector(conv As IOperation) As IOperation
-                If (conv.Kind = OperationKind.Conversion) Then
+                If conv.Kind = OperationKind.Conversion Then
                     Return DirectCast(conv, IConversionOperation).Operand
                 Else
                     Return DirectCast(conv, IDelegateCreationOperation).Target

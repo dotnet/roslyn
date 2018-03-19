@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
             var other = CreateCompilation(s, options: TestOptions.ReleaseDll);
             Assert.Empty(other.GetDiagnostics());
-            Assert.Equal("pt-BR", (other.Assembly.Identity.CultureName));
+            Assert.Equal("pt-BR", other.Assembly.Identity.CultureName);
         }
 
         [Fact]

@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            return _children.Where(ns => (ns.Name == name)).ToArray().AsImmutableOrNull();
+            return _children.Where(ns => ns.Name == name).ToArray().AsImmutableOrNull();
         }
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()

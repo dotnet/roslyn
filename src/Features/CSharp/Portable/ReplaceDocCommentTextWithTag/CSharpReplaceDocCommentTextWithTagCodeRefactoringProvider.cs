@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplaceDocCommentTextWithTag
 
         protected override bool IsInXMLAttribute(SyntaxToken token)
         {
-            return (token.Parent.Kind() == SyntaxKind.XmlCrefAttribute
+            return token.Parent.Kind() == SyntaxKind.XmlCrefAttribute
                 || token.Parent.Kind() == SyntaxKind.XmlNameAttribute
-                || token.Parent.Kind() == SyntaxKind.XmlTextAttribute);
+                || token.Parent.Kind() == SyntaxKind.XmlTextAttribute;
         }
 
         protected override bool IsKeyword(string text)

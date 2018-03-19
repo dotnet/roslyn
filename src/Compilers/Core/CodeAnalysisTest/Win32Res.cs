@@ -140,7 +140,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                     unsafe
                     {
-                        fixed (byte* p = (r.data))
+                        fixed (byte* p = r.data)
                             rsrcInXml = Win32Res.VersionResourceToXml((IntPtr)p);
                     }
 
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                     unsafe
                     {
-                        fixed (byte* p = (r.data))
+                        fixed (byte* p = r.data)
                         {
                             Marshal.Copy((IntPtr)p, threeWords, 0, 3);
                         }

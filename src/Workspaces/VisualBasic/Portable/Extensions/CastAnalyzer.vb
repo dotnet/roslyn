@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
             If variableDeclarator IsNot Nothing Then
 
                 Dim asClause = TryCast(variableDeclarator.AsClause, SimpleAsClauseSyntax)
-                If (asClause IsNot Nothing) Then
+                If asClause IsNot Nothing Then
                     Return semanticModel.GetTypeInfo(asClause.Type).Type
                 End If
             End If
@@ -285,7 +285,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                     Dim expressionToCastTypeIsWideningRefOrDefault As Boolean = expressionToCastType.IsWidening AndAlso (expressionToCastType.IsReference OrElse expressionToCastType.IsDefault)
                     Dim expressionToOuterTypeIsWideningRefOrDefault As Boolean = expressionToOuterType.IsWidening AndAlso (expressionToOuterType.IsReference OrElse expressionToOuterType.IsDefault)
 
-                    If (expressionToCastTypeIsWideningRefOrDefault AndAlso expressionToOuterTypeIsWideningRefOrDefault) Then
+                    If expressionToCastTypeIsWideningRefOrDefault AndAlso expressionToOuterTypeIsWideningRefOrDefault Then
                         If expressionToCastType.IsDefault Then
                             Return Not CastRemovalChangesDefaultValue(castType, outerType)
                         End If
@@ -303,7 +303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
                 End If
 
                 If Not castToOuterType.IsValueType AndAlso castToOuterType = expressionToOuterType Then
-                    If (castToOuterType.IsNullableValueType) Then
+                    If castToOuterType.IsNullableValueType Then
                         Return expressionToOuterType.IsWidening AndAlso
                             DirectCast(castExpressionType.OriginalDefinition, ITypeSymbol).SpecialType = SpecialType.System_Nullable_T
                     ElseIf expressionToCastType.IsWidening AndAlso expressionToCastType.IsNumeric AndAlso Not castToOuterType.IsIdentity Then

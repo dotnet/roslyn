@@ -45,7 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         Public Overrides Function VisitArrayType(symbol As IArrayTypeSymbol) As TypeSyntax
             Dim underlyingNonArrayType = symbol.ElementType
             While underlyingNonArrayType.Kind = SymbolKind.ArrayType
-                underlyingNonArrayType = (DirectCast(underlyingNonArrayType, IArrayTypeSymbol)).ElementType
+                underlyingNonArrayType = DirectCast(underlyingNonArrayType, IArrayTypeSymbol).ElementType
             End While
 
             Dim elementTypeSyntax = underlyingNonArrayType.Accept(Me)

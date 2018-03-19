@@ -123,7 +123,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Dim dummyResultKind As LookupResultKind
 
                 Dim firstImplementedMemberIsWindowsRuntimeEvent As ThreeState = ThreeState.Unknown
-                Dim implementingSymIsEvent = (implementingSym.Kind = SymbolKind.Event)
+                Dim implementingSymIsEvent = implementingSym.Kind = SymbolKind.Event
                 For Each implementedMemberSyntax As QualifiedNameSyntax In implementsClause.InterfaceMembers
                     Dim implementedMember As TSymbol = FindExplicitlyImplementedMember(implementingSym, container, implementedMemberSyntax, binder, diagBag, Nothing, dummyResultKind)
                     If implementedMember IsNot Nothing Then
@@ -415,13 +415,13 @@ DoneWithErrorReporting:
                     Dim results = MethodSignatureComparer.DetailedCompare(DirectCast(implementedSym, MethodSymbol), DirectCast(implementingSym, MethodSymbol),
                                                                           comparisons,
                                                                           comparisons)
-                    Return (results = 0)
+                    Return results = 0
 
                 Case SymbolKind.Property
                     Dim results = PropertySignatureComparer.DetailedCompare(DirectCast(implementedSym, PropertySymbol), DirectCast(implementingSym, PropertySymbol),
                                                                             comparisons,
                                                                             comparisons)
-                    Return (results = 0)
+                    Return results = 0
 
                 Case SymbolKind.Event
                     Return eventComparer.Equals(DirectCast(implementedSym, EventSymbol), DirectCast(implementingSym, EventSymbol))

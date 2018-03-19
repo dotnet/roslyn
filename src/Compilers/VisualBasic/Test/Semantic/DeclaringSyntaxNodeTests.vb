@@ -430,7 +430,7 @@ End Namespace
             Next
 
             For Each f In c2.GetMembers().OfType(Of FieldSymbol)()
-                For Each tp In (DirectCast(f.Type, NamedTypeSymbol)).TypeParameters
+                For Each tp In DirectCast(f.Type, NamedTypeSymbol).TypeParameters
                     CheckDeclaringSyntaxNodes(comp, tp, 1)
                 Next
             Next
@@ -442,7 +442,7 @@ End Namespace
             Next
 
             For Each f In c3.GetMembers().OfType(Of FieldSymbol)()
-                For Each tp In (DirectCast(f.Type, NamedTypeSymbol)).TypeParameters
+                For Each tp In DirectCast(f.Type, NamedTypeSymbol).TypeParameters
                     CheckDeclaringSyntaxNodes(comp, tp, 0)
                 Next
             Next
@@ -515,7 +515,7 @@ End Namespace
             Dim c2 = TryCast(n1.GetTypeMembers("C2").Single(), NamedTypeSymbol)
             Dim e1 = TryCast(n1.GetTypeMembers("E1").Single(), NamedTypeSymbol)
             For Each memb In e1.GetMembers()
-                If memb.Kind = SymbolKind.Method AndAlso (DirectCast(memb, MethodSymbol)).MethodKind = MethodKind.Constructor Then
+                If memb.Kind = SymbolKind.Method AndAlso DirectCast(memb, MethodSymbol).MethodKind = MethodKind.Constructor Then
                     CheckDeclaringSyntaxNodesIncludingParameters(comp, memb, 0)
                 ElseIf memb.Name = "value__" Then
                     CheckDeclaringSyntaxNodesIncludingParameters(comp, memb, 0)

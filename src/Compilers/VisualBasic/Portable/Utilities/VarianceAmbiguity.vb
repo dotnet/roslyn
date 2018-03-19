@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If Not typeArgument1.IsSameTypeIgnoringAll(typeArgument2) Then
                 Select Case variance
                     Case VarianceKind.In
-                        Dim bothAreClasses = (typeArgument1.IsClassType() AndAlso typeArgument2.IsClassType())
+                        Dim bothAreClasses = typeArgument1.IsClassType() AndAlso typeArgument2.IsClassType()
                         Dim oneDerivesFromOther = bothAreClasses AndAlso
                                 (Conversions.ClassifyDirectCastConversion(typeArgument1, typeArgument2, useSiteDiagnostics) And ConversionKind.Reference) <> 0
 

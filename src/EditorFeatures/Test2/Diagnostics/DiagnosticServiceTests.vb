@@ -1399,7 +1399,7 @@ public class B
                 context.RegisterCompilationStartAction(Sub(compStartContext As CompilationStartAnalysisContext)
                                                            Dim symbols = New HashSet(Of ISymbol)
                                                            compStartContext.RegisterSymbolAction(Sub(sc As SymbolAnalysisContext)
-                                                                                                     If (symbols.Contains(sc.Symbol)) Then
+                                                                                                     If symbols.Contains(sc.Symbol) Then
                                                                                                          Throw New Exception("Duplicate symbol callback")
                                                                                                      End If
                                                                                                      sc.ReportDiagnostic(Diagnostic.Create(DiagDescriptor, sc.Symbol.Locations.First()))
@@ -1685,7 +1685,7 @@ public class B
 
             Public Overrides Sub Initialize(context As AnalysisContext)
                 context.RegisterSymbolAction(Sub(ctxt)
-                                                 Dim method = (DirectCast(ctxt.Symbol, IMethodSymbol))
+                                                 Dim method = DirectCast(ctxt.Symbol, IMethodSymbol)
                                                  ctxt.ReportDiagnostic(Diagnostic.Create(Descriptor, method.Locations(0), method.ToDisplayString))
                                              End Sub, SymbolKind.Method)
             End Sub

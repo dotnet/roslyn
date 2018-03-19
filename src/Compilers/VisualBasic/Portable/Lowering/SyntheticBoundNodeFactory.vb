@@ -811,7 +811,7 @@ nextm:
 
         Public Function ArrayAccess(array As BoundExpression, isLValue As Boolean, indices As ImmutableArray(Of BoundExpression)) As BoundArrayAccess
             Debug.Assert(array.Type IsNot Nothing AndAlso array.Type.IsArrayType())
-            Dim boundNode = New BoundArrayAccess(_syntax, array, indices, isLValue, (DirectCast(array.Type, ArrayTypeSymbol)).ElementType)
+            Dim boundNode = New BoundArrayAccess(_syntax, array, indices, isLValue, DirectCast(array.Type, ArrayTypeSymbol).ElementType)
             boundNode.SetWasCompilerGenerated()
             Return boundNode
         End Function

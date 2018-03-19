@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     refKind,
                     parameterSyntax.Identifier,
                     parameterIndex,
-                    (paramsKeyword.Kind() != SyntaxKind.None),
+                    paramsKeyword.Kind() != SyntaxKind.None,
                     parameterIndex == 0 && thisKeyword.Kind() != SyntaxKind.None,
                     addRefReadOnlyModifier,
                     diagnostics);

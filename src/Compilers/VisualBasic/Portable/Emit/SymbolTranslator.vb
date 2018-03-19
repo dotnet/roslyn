@@ -459,7 +459,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim mustBeTranslated = params.Any AndAlso MustBeWrapped(params.First())
             Debug.Assert(params.All(Function(p) mustBeTranslated = MustBeWrapped(p)), "either all or no parameters need translating")
 
-            If (Not mustBeTranslated) Then
+            If Not mustBeTranslated Then
                 Return StaticCast(Of Microsoft.Cci.IParameterTypeInformation).From(params)
             End If
 
@@ -473,9 +473,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             ' 1) parameters are definitions And
             ' 2) container Is generic
             ' NOTE: all parameters must always agree On whether they need wrapping
-            If (param.IsDefinition) Then
+            If param.IsDefinition Then
                 Dim container = param.ContainingSymbol
-                If (ContainerIsGeneric(container)) Then
+                If ContainerIsGeneric(container) Then
                     Return True
                 End If
             End If
@@ -495,7 +495,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim reference As Object = Nothing
             Dim paramRef As Microsoft.Cci.IParameterTypeInformation
 
-            If (Me._genericInstanceMap.TryGetValue(param, reference)) Then
+            If Me._genericInstanceMap.TryGetValue(param, reference) Then
                 Return DirectCast(reference, Microsoft.Cci.IParameterTypeInformation)
             End If
 
@@ -506,7 +506,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
         End Function
 
         Private Shared Function ContainerIsGeneric(container As Symbol) As Boolean
-            Return container.Kind = SymbolKind.Method AndAlso (DirectCast(container, MethodSymbol)).IsGenericMethod OrElse
+            Return container.Kind = SymbolKind.Method AndAlso DirectCast(container, MethodSymbol).IsGenericMethod OrElse
                 container.ContainingType.IsGenericType
 
         End Function
