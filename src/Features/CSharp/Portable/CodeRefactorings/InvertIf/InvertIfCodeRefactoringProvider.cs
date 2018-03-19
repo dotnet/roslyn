@@ -66,8 +66,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var invertIfStyle = GetInvertIfStyleAsync(semanticModel, ifStatement,
-                out var subsequenceExitPoint,
+            var invertIfStyle = GetInvertIfStyle(semanticModel, ifStatement,
+                out var subsequenceExitPointOpt,
                 out var jumpStatementKind);
             if (invertIfStyle == InvertIfStyle.None)
             {
@@ -77,13 +77,16 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             context.RegisterRefactoring(
                 new MyCodeAction(
                     CSharpFeaturesResources.Invert_if_statement,
-                    c => InvertIfAsync(document, ifStatement, invertIfStyle, jumpStatementKind, subsequenceExitPoint, c)));
+                    c => InvertIfAsync(document, ifStatement, invertIfStyle, jumpStatementKind, subsequenceExitPointOpt, c)));
         }
 
-        private static InvertIfStyle GetInvertIfStyleAsync(
-            SemanticModel semanticModel, IfStatementSyntax ifStatement, out SyntaxNode subsequenceExitPoint, out SyntaxKind jumpStatementKind)
+        private static InvertIfStyle GetInvertIfStyle(
+            SemanticModel semanticModel,
+            IfStatementSyntax ifStatement,
+            out SyntaxNode subsequenceExitPointOpt,
+            out SyntaxKind jumpStatementKind)
         {
-            subsequenceExitPoint = null;
+            subsequenceExitPointOpt = null;
             jumpStatementKind = default;
 
             if (ifStatement.Else != null)
@@ -102,7 +105,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
             AnalyzeIfStatement(semanticModel, ifStatement.Statement,
                 out BlockStyle ifStatementBlockStyle,
-                out SyntaxNode ifStatementExitPoint,
+                out SyntaxNode ifStatementExitPointOpt,
                 out StatementStyle ifStatementStyle);
 
             if (ifStatementBlockStyle == BlockStyle.Empty)
@@ -111,11 +114,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             }
 
             AnalyzeSubsequence(semanticModel, ifStatement,
-                out subsequenceExitPoint,
+                out subsequenceExitPointOpt,
                 out jumpStatementKind,
                 out BlockStyle subsequenceBlockStyle,
                 out StatementStyle subsequenceStatementStyle,
                 out bool hasOuterBlockStatements);
+
+            Debug.Assert(ifStatementBlockStyle != BlockStyle.Empty);
 
             switch (subsequenceBlockStyle)
             {
@@ -123,55 +128,71 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                     return InvertIfStyle.WithNearmostJump;
 
                 case BlockStyle.Reachable:
-                    if (!hasOuterBlockStatements && 
-                        ifStatementExitPoint.IsKind(jumpStatementKind) &&
-                        ifStatementStyle == StatementStyle.SingleStatement)
+                    switch (ifStatementBlockStyle)
                     {
-                        return InvertIfStyle.MoveSubsequenceToElseBody;
-                    }
-                    else
-                    {
-                        return InvertIfStyle.WithElseClause;
+                        case BlockStyle.Reachable:
+                            return InvertIfStyle.MoveIfBodyToElseClause;
+
+                        case BlockStyle.Unreachable:
+                            if (ifStatementStyle == StatementStyle.SingleStatement &&
+                                ifStatementExitPointOpt.IsKind(jumpStatementKind) &&
+                                !hasOuterBlockStatements)
+                            {
+                                return InvertIfStyle.MoveSubsequenceToElseBody;
+                            }
+                            else
+                            {
+                                return InvertIfStyle.WithElseClause;
+                            }
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(ifStatementBlockStyle);
                     }
 
                 case BlockStyle.Unreachable:
-                    if (ifStatementBlockStyle == BlockStyle.Reachable)
+                    switch (ifStatementBlockStyle)
                     {
-                        if (subsequenceExitPoint != null &&
-                            subsequenceStatementStyle == StatementStyle.SingleStatement)
-                        {
-                            return InvertIfStyle.WithSubsequenceExitPoint;
-                        }
-                        else
-                        {
-                            return InvertIfStyle.MoveIfBodyToElseClause;
-                        }
+                        case BlockStyle.Reachable:
+                            if (subsequenceExitPointOpt != null &&
+                                subsequenceStatementStyle == StatementStyle.SingleStatement)
+                            {
+                                return InvertIfStyle.WithSubsequenceExitPoint;
+                            }
+                            else
+                            {
+                                return InvertIfStyle.MoveIfBodyToElseClause;
+                            }
+
+                        case BlockStyle.Unreachable:
+                            if (!hasOuterBlockStatements)
+                            {
+                                return InvertIfStyle.SwapIfBodyWithSubsequence;
+                            }
+                            else
+                            {
+                                return InvertIfStyle.MoveIfBodyToElseClause;
+                            }
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(ifStatementBlockStyle);
                     }
 
-                    if (!hasOuterBlockStatements)
-                    {
-                        return InvertIfStyle.SwapIfBodyWithSubsequence;
-                    }
-                    else
-                    {
-                        return InvertIfStyle.MoveIfBodyToElseClause;
-                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(subsequenceBlockStyle);
             }
-
-            return InvertIfStyle.None;
         }
 
         private static void AnalyzeIfStatement(
             SemanticModel semanticModel,
             StatementSyntax statement,
             out BlockStyle blockStyle,
-            out SyntaxNode ifStatementExitPoint,
+            out SyntaxNode ifStatementExitPointOpt,
             out StatementStyle statementStyle)
         {
             statementStyle = GetStatementStyle(statement);
             if (statementStyle == StatementStyle.Empty)
             {
-                ifStatementExitPoint = null;
+                ifStatementExitPointOpt = null;
                 blockStyle = BlockStyle.Empty;
                 return;
             }
@@ -179,49 +200,71 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             var controlFlow = semanticModel.AnalyzeControlFlow(statement);
             if (controlFlow.EndPointIsReachable)
             {
-                ifStatementExitPoint = null;
+                ifStatementExitPointOpt = null;
                 blockStyle = BlockStyle.Reachable;
             }
             else
             {
                 var exitPoints = controlFlow.ExitPoints;
-                ifStatementExitPoint = exitPoints.Length == 1 ? exitPoints[0] : null;
+                ifStatementExitPointOpt = exitPoints.Length == 1 ? exitPoints[0] : null;
                 blockStyle = BlockStyle.Unreachable;
             }
         }
 
         private static void AnalyzeStatements(
-            SemanticModel semanticModel,
             in SyntaxList<StatementSyntax> statements,
+            SemanticModel semanticModel,
             StatementSyntax innerStatement,
-            out BlockStyle blockStyle,
-            ref SyntaxNode subsequenceExitPoint,
-            ref StatementStyle statementStyle)
+            bool isOuterBlock,
+            ref BlockStyle blockStyle,
+            ref SyntaxNode subsequenceExitPointOpt,
+            ref StatementStyle statementStyle,
+            ref bool hasOuterBlockStatements)
         {
-            Debug.Assert(subsequenceExitPoint is null);
+            Debug.Assert(subsequenceExitPointOpt is null);
 
             var nextIndex = statements.IndexOf(innerStatement) + 1;
             Debug.Assert(nextIndex > 0);
-            statementStyle |= GetStatementStyle(statements, nextIndex);
-            if (nextIndex >= statements.Count || statementStyle == StatementStyle.Empty)
-            {
-                subsequenceExitPoint = null;
-                blockStyle = BlockStyle.Empty;
-                return;
-            }
 
-            var controlFlow = semanticModel.AnalyzeControlFlow(statements[nextIndex], statements.Last());
-            if (controlFlow.EndPointIsReachable)
+            var currentStatementStyle = GetStatementStyle(statements, nextIndex);
+            if (currentStatementStyle == StatementStyle.SingleStatement &&
+                statementStyle == StatementStyle.SingleStatement)
             {
-                subsequenceExitPoint = null;
-                blockStyle = BlockStyle.Reachable;
+                statementStyle = StatementStyle.MultiStatement;
             }
             else
             {
-                var exitPoints = controlFlow.ExitPoints;
-                subsequenceExitPoint = exitPoints.Length == 1 ? exitPoints[0] : null;
-                blockStyle = BlockStyle.Unreachable;
+                statementStyle |= GetStatementStyle(statements, nextIndex);
             }
+
+            BlockStyle currentBlockStyle;
+            if (nextIndex >= statements.Count || statementStyle == StatementStyle.Empty)
+            {
+                subsequenceExitPointOpt = null;
+                currentBlockStyle = BlockStyle.Empty;
+            }
+            else
+            {
+                var controlFlow = semanticModel.AnalyzeControlFlow(statements[nextIndex], statements.Last());
+                if (controlFlow.EndPointIsReachable)
+                {
+                    subsequenceExitPointOpt = null;
+                    currentBlockStyle = BlockStyle.Reachable;
+                }
+                else
+                {
+                    var exitPoints = controlFlow.ExitPoints;
+                    subsequenceExitPointOpt = exitPoints.Length == 1 ? exitPoints[0] : null;
+                    currentBlockStyle = BlockStyle.Unreachable;
+                }
+            }
+
+            if (currentBlockStyle != BlockStyle.Empty && isOuterBlock)
+            {
+                hasOuterBlockStatements = true;
+            }
+
+            blockStyle |= currentBlockStyle;
         }
 
         private static StatementStyle GetStatementStyle(in SyntaxList<StatementSyntax> statements, int startIndex = 0)
@@ -290,6 +333,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
             subsequenceExitPoint = null;
             hasOuterBlockStatements = false;
 
+            bool isOuterBlock = false;
+
             foreach (var node in ifStatement.Ancestors())
             {
                 switch (node.Kind())
@@ -297,17 +342,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                     case SyntaxKind.Block:
                         if (blockStyle != BlockStyle.Unreachable)
                         {
-                            var block = (BlockSyntax)node;
-                            AnalyzeStatements(semanticModel, block.Statements, innerStatement,
-                                out var currentBlockStyle,
-                                ref subsequenceExitPoint,
-                                ref statementStyle);
-                            if (currentBlockStyle != BlockStyle.Empty && innerStatement != ifStatement)
-                            {
-                                hasOuterBlockStatements = true;
-                            }
-
-                            blockStyle |= currentBlockStyle;
+                            AnalyzeStatements(((BlockSyntax)node).Statements,
+                                semanticModel, innerStatement, isOuterBlock,
+                                ref blockStyle, ref subsequenceExitPoint,
+                                ref statementStyle, ref hasOuterBlockStatements);
                         }
 
                         break;
@@ -315,17 +353,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                     case SyntaxKind.SwitchSection:
                         if (blockStyle != BlockStyle.Unreachable)
                         {
-                            var section = (SwitchSectionSyntax)node;
-                            AnalyzeStatements(semanticModel, section.Statements, innerStatement,
-                                out var currentBlockStyle,
-                                ref subsequenceExitPoint,
-                                ref statementStyle);
-                            if (currentBlockStyle != BlockStyle.Empty && innerStatement != ifStatement)
-                            {
-                                hasOuterBlockStatements = true;
-                            }
-
-                            blockStyle |= currentBlockStyle;
+                            AnalyzeStatements(((SwitchSectionSyntax)node).Statements,
+                                semanticModel, innerStatement, isOuterBlock,
+                                ref blockStyle, ref subsequenceExitPoint,
+                                ref statementStyle, ref hasOuterBlockStatements);
                         }
 
                         jumpStatementKind = SyntaxKind.BreakStatement;
@@ -356,13 +387,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                         return;
                 }
 
-                innerStatement = node as StatementSyntax;
+                isOuterBlock = true;
+
+                if (node is StatementSyntax statement)
+                {
+                    innerStatement = statement;
+                }
             }
 
             jumpStatementKind = SyntaxKind.None;
         }
 
-        private static async Task<Document> InvertIfAsync(Document document, IfStatementSyntax ifNode, InvertIfStyle invertIfStyle, SyntaxKind jumpStatementKind, SyntaxNode subsequenceExitPoint, CancellationToken cancellationToken)
+        private static async Task<Document> InvertIfAsync(
+            Document document,
+            IfStatementSyntax ifNode,
+            InvertIfStyle invertIfStyle,
+            SyntaxKind jumpStatementKind,
+            SyntaxNode subsequenceExitPointOpt,
+            CancellationToken cancellationToken)
         {
             var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
             var root = await tree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -377,9 +419,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
                         // In the case that the else clause is actually an else if clause, place the if
                         // statement to be moved in a new block in order to make sure that the else
                         // statement matches the right if statement after the edit.
-                        var newIfNodeStatement = ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement ?
-                            SyntaxFactory.Block(ifNode.Else.Statement) :
-                            ifNode.Else.Statement;
+                        var newIfNodeStatement = ifNode.Else.Statement.Kind() == SyntaxKind.IfStatement
+                            ? SyntaxFactory.Block(ifNode.Else.Statement)
+                            : ifNode.Else.Statement;
 
                         var invertedIf = ifNode.WithCondition(negatedCondition)
                                     .WithStatement(newIfNodeStatement)
@@ -464,7 +506,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InvertIf
 
                 case InvertIfStyle.WithSubsequenceExitPoint:
                     {
-                        var newIfBody = (StatementSyntax)subsequenceExitPoint;
+                        var newIfBody = (StatementSyntax)subsequenceExitPointOpt;
                         var updatedIf = ifNode.WithCondition(negatedCondition)
                             .WithStatement(SyntaxFactory.Block(newIfBody));
 

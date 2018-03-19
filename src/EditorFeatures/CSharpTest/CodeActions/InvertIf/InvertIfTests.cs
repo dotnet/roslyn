@@ -1121,5 +1121,83 @@ class C
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestElseless14()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    void M()
+    {
+        [||]if (c)
+        {
+            f();
+        }
+
+        g();
+        g();
+    }
+}",
+@"class C
+{
+    void M()
+    {
+        if (!c)
+        {
+        }
+        else
+        {
+            f();
+        }
+
+        g();
+        g();
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInvertIf)]
+        public async Task TestElseless15()
+        {
+            await TestInRegularAndScriptAsync(
+@"class C
+{
+    bool M()
+    {
+        if (c)
+        {
+            [||]if (c)
+            {
+                f();
+            }
+
+            g();
+        }
+
+        return false;
+    }
+}",
+@"class C
+{
+    bool M()
+    {
+        if (c)
+        {
+            if (!c)
+            {
+            }
+            else
+            {
+                f();
+            }
+
+            g();
+        }
+
+        return false;
+    }
+}");
+        }
     }
 }
